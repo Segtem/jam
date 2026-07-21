@@ -31,7 +31,7 @@ from collections import deque
 from dataclasses import dataclass, field
 from itertools import combinations
 
-from src.mazes.maze3d import Maze3D
+from .maze3d import Maze3D  # re-cableado 2026-07-21: era `src.mazes.maze3d`
 
 # "shortcut" = atajo DECLARADO (intención cíclica, D3 del informe mission/space): misma semántica
 # de traversal que una arista gateada, pero el generador declara que ES un loop-back a propósito

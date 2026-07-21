@@ -1,0 +1,16 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.1.0",
+	"FriendlyName": "Jam",
+	"Description": "Asistente privado de gamedev in-editor para Unreal, con oráculo determinista. Crear libre; verificar desde afuera. Para el juego BotOO.",
+	"Category": "Jam",
+	"CreatedBy": "Brian Hollweg",
+	"EnabledByDefault": true,
+	"CanContainContent": true,
+	"IsBetaVersion": true,
+	"Installed": false,
+	"Plugins": [
+		{ "Name": "PythonScriptPlugin", "Enabled": true }
+	]
+}
