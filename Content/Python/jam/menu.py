@@ -15,10 +15,12 @@ from . import (
     oracle_espacio,
     oracle_physics,
     oracle_placement,
+    oracle_reemplazo,
     oracle_scatter,
     oracle_snap,
     physics,
     place,
+    reemplazar,
     scatter,
     snap,
 )
@@ -153,6 +155,26 @@ def on_snap_grilla_demo() -> str:
     return cuerpo
 
 
+def on_reemplazar_demo() -> str:
+    """Arma una caja de blockout (200×200×300cm), la reemplaza por el asset real escalado a calzar,
+    y muestra si se preservó el footprint. Deja el asset resultante en el nivel (para verlo)."""
+    libro = library.buscar(limit=1)
+    if not libro:
+        msg = "Biblioteca vacía: no hay StaticMesh bajo /Game."
+        _log(msg)
+        _mostrar_dialogo("Jam · Reemplazar", msg)
+        return msg
+    ruta = libro[0]["ruta"]
+    blockout = place.colocar(ruta, (0.0, 0.0, 150.0), scale=(2.0, 2.0, 3.0))
+    blockout.set_actor_label("Jam_blockout")
+    nuevo, objetivo = reemplazar.reemplazar(blockout, ruta, ajustar_escala=True)
+    cuerpo = (f"Reemplazar blockout (200×200×300cm) por «{libro[0]['nombre']}»:\n\n"
+              + oracle_reemplazo.verificar_texto(nuevo, objetivo))
+    _log(cuerpo)
+    _mostrar_dialogo("Jam · Reemplazar blockout (oráculo)", cuerpo)
+    return cuerpo
+
+
 def _mostrar_dialogo(titulo: str, cuerpo: str) -> None:
     """Diálogo modal si hay GUI; en headless no hace nada (ya se logueó)."""
     try:
@@ -232,6 +254,18 @@ def register() -> bool:
             "import jam.menu; jam.menu.on_snap_grilla_demo()",
         )
         jam.add_menu_entry(_SUBMENU, entry5)
+
+        entry6 = unreal.ToolMenuEntry(
+            name="Jam_Reemplazar", type=unreal.MultiBlockType.MENU_ENTRY
+        )
+        entry6.set_label("Reemplazar blockout (footprint + oráculo)")
+        entry6.set_tool_tip("Cambia una caja de blockout por el asset real y verifica que se "
+                            "preserve el footprint (centro, base y planta).")
+        entry6.set_string_command(
+            unreal.ToolMenuStringCommandType.PYTHON, "",
+            "import jam.menu; jam.menu.on_reemplazar_demo()",
+        )
+        jam.add_menu_entry(_SUBMENU, entry6)
 
         menus.refresh_all_widgets()
         _log("Menú «Jam» registrado en la barra del editor.")
@@ -392,6 +426,37 @@ def selftest_snap() -> bool:
     return ok
 
 
+def selftest_reemplazo() -> bool:
+    """Reemplazo: escalando (ajustar_escala=True) el footprint se PRESERVA; sin escalar el asset
+    nativo NO calza la planta del blockout y el oráculo lo caza. Limpia los actores al final."""
+    _log("--- selftest: reemplazar blockout ---")
+    libro = library.buscar(limit=1)
+    if not libro:
+        _log("biblioteca vacía — no hay StaticMesh bajo /Game")
+        return False
+    ruta = libro[0]["ruta"]
+    x0 = 400000.0  # lejos de todo
+
+    b1 = place.colocar(ruta, (x0, 0.0, 150.0), scale=(2.0, 2.0, 3.0))  # blockout 200×200×300
+    n1, obj1 = reemplazar.reemplazar(b1, ruta, ajustar_escala=True)
+    r1 = oracle_reemplazo.verificar(n1, obj1)
+    _log("escala  " + oracle_reemplazo.verificar_texto(n1, obj1))
+
+    b2 = place.colocar(ruta, (x0 + 1000.0, 0.0, 150.0), scale=(2.0, 2.0, 3.0))
+    n2, obj2 = reemplazar.reemplazar(b2, ruta, ajustar_escala=False)  # nativo 100³ vs 200×200×300
+    r2 = oracle_reemplazo.verificar(n2, obj2)
+    _log("nativo  " + oracle_reemplazo.verificar_texto(n2, obj2))
+
+    actor_sub = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
+    for x in (n1, n2):
+        actor_sub.destroy_actor(x)
+
+    ok = oracle_reemplazo.es_ok(r1) and not oracle_reemplazo.es_ok(r2) and not r2["footprint"]
+    _log(f"reemplazo {'OK ✓' if ok else 'FALLÓ ✗'} "
+         f"(escala.preserva={r1['preserva']}, nativo.preserva={r2['preserva']}, nativo.footprint={r2['footprint']})")
+    return ok
+
+
 def selftest() -> bool:
     """Prueba TODA la rebanada sin GUI. Headless: `-ExecCmds "py import jam.menu as m; m.selftest()"`."""
     _log("=== SELFTEST ===")
@@ -400,8 +465,9 @@ def selftest() -> bool:
     ok_s = selftest_scatter()
     ok_p = selftest_physics()
     ok_n = selftest_snap()
+    ok_r = selftest_reemplazo()
     _log(f"contexto: {contexto_editor()}")
-    ok = ok_e and ok_c and ok_s and ok_p and ok_n
+    ok = ok_e and ok_c and ok_s and ok_p and ok_n and ok_r
     _log(f"SELFTEST {'OK ✓' if ok else 'FALLÓ ✗'} "
-         f"(espacio={ok_e}, colocar={ok_c}, scatter={ok_s}, physics={ok_p}, snap={ok_n})")
+         f"(espacio={ok_e}, colocar={ok_c}, scatter={ok_s}, physics={ok_p}, snap={ok_n}, reemplazo={ok_r})")
     return ok
