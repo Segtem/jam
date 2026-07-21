@@ -13,11 +13,13 @@ import unreal
 from . import (
     library,
     oracle_espacio,
+    oracle_pared,
     oracle_physics,
     oracle_placement,
     oracle_reemplazo,
     oracle_scatter,
     oracle_snap,
+    pared,
     physics,
     place,
     reemplazar,
@@ -175,6 +177,40 @@ def on_reemplazar_demo() -> str:
     return cuerpo
 
 
+def on_crear_spline() -> str:
+    """Crea un spline editable (L por defecto) y lo deja seleccionado para moldearlo en el viewport.
+    Después usá 'Jam → Pared por spline' para levantar la pared sobre él."""
+    actor = pared.crear_spline()
+    msg = (f"Spline «{actor.get_actor_label()}» creado y seleccionado.\n"
+           "Moldealo en el viewport (Alt-arrastrar añade puntos; los puntos se mueven con el widget),\n"
+           "y después corré «Jam → Pared por spline».")
+    _log(msg)
+    _mostrar_dialogo("Jam · Crear spline de pared", msg)
+    return msg
+
+
+def on_pared_demo() -> str:
+    """Levanta una pared sobre el spline seleccionado (o crea uno si no hay) y muestra el veredicto.
+    Deja la pared en el nivel (para verla)."""
+    libro = library.buscar(limit=1)
+    if not libro:
+        msg = "Biblioteca vacía: no hay StaticMesh bajo /Game."
+        _log(msg)
+        _mostrar_dialogo("Jam · Pared", msg)
+        return msg
+    actor = pared.seleccionado_con_spline()
+    creado = ""
+    if actor is None:
+        actor = pared.crear_spline()
+        creado = " (no había spline seleccionado; creé una L de ejemplo)"
+    build = pared.construir(actor, libro[0]["ruta"])
+    cuerpo = (f"Pared de «{libro[0]['nombre']}» sobre «{actor.get_actor_label()}»{creado}:\n\n"
+              + oracle_pared.verificar_texto(build))
+    _log(cuerpo)
+    _mostrar_dialogo("Jam · Pared por spline (oráculo)", cuerpo)
+    return cuerpo
+
+
 def _mostrar_dialogo(titulo: str, cuerpo: str) -> None:
     """Diálogo modal si hay GUI; en headless no hace nada (ya se logueó)."""
     try:
@@ -266,6 +302,29 @@ def register() -> bool:
             "import jam.menu; jam.menu.on_reemplazar_demo()",
         )
         jam.add_menu_entry(_SUBMENU, entry6)
+
+        entry7 = unreal.ToolMenuEntry(
+            name="Jam_CrearSpline", type=unreal.MultiBlockType.MENU_ENTRY
+        )
+        entry7.set_label("Crear spline de pared")
+        entry7.set_tool_tip("Agrega un spline editable a la escena para moldear el trazado de una pared.")
+        entry7.set_string_command(
+            unreal.ToolMenuStringCommandType.PYTHON, "",
+            "import jam.menu; jam.menu.on_crear_spline()",
+        )
+        jam.add_menu_entry(_SUBMENU, entry7)
+
+        entry8 = unreal.ToolMenuEntry(
+            name="Jam_Pared", type=unreal.MultiBlockType.MENU_ENTRY
+        )
+        entry8.set_label("Pared por spline (oráculo)")
+        entry8.set_tool_tip("Levanta una pared de segmentos modulares sobre el spline seleccionado y "
+                            "verifica que sea continua.")
+        entry8.set_string_command(
+            unreal.ToolMenuStringCommandType.PYTHON, "",
+            "import jam.menu; jam.menu.on_pared_demo()",
+        )
+        jam.add_menu_entry(_SUBMENU, entry8)
 
         menus.refresh_all_widgets()
         _log("Menú «Jam» registrado en la barra del editor.")
@@ -457,6 +516,41 @@ def selftest_reemplazo() -> bool:
     return ok
 
 
+def selftest_pared() -> bool:
+    """Pared por spline: sobre un spline RECTO la pared es continua; sobre un spline con un PICO y
+    segmentos largos las juntas se despegan → discontinua. El oráculo debe distinguirlos.
+    Limpia el spline y los segmentos al final."""
+    _log("--- selftest: pared por spline ---")
+    libro = library.buscar(limit=1)
+    if not libro:
+        _log("biblioteca vacía — no hay StaticMesh bajo /Game")
+        return False
+    ruta = libro[0]["ruta"]
+    actor_sub = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
+
+    # recto → continua
+    sp_recto = pared.crear_spline([(500000.0, 0.0, 0.0), (502000.0, 0.0, 0.0)], seleccionar=False)
+    b_recto = pared.construir(sp_recto, ruta, largo_segmento=200.0)
+    r_recto = oracle_pared.verificar(b_recto)
+    _log(oracle_pared.verificar_texto(b_recto))
+
+    # pico + segmentos largos → discontinua
+    sp_pico = pared.crear_spline(
+        [(600000.0, 0.0, 0.0), (600400.0, 700.0, 0.0), (600800.0, 0.0, 0.0)], seleccionar=False)
+    b_pico = pared.construir(sp_pico, ruta, largo_segmento=500.0)
+    r_pico = oracle_pared.verificar(b_pico)
+    _log(oracle_pared.verificar_texto(b_pico))
+
+    for x in (b_recto["segmentos"] + b_pico["segmentos"] + [sp_recto, sp_pico]):
+        actor_sub.destroy_actor(x)
+
+    ok = oracle_pared.es_ok(r_recto) and not r_pico["continua"]
+    _log(f"pared {'OK ✓' if ok else 'FALLÓ ✗'} "
+         f"(recto.continua={r_recto['continua']} maxgap={r_recto['max_gap']}, "
+         f"pico.continua={r_pico['continua']} maxgap={r_pico['max_gap']})")
+    return ok
+
+
 def selftest() -> bool:
     """Prueba TODA la rebanada sin GUI. Headless: `-ExecCmds "py import jam.menu as m; m.selftest()"`."""
     _log("=== SELFTEST ===")
@@ -466,8 +560,10 @@ def selftest() -> bool:
     ok_p = selftest_physics()
     ok_n = selftest_snap()
     ok_r = selftest_reemplazo()
+    ok_w = selftest_pared()
     _log(f"contexto: {contexto_editor()}")
-    ok = ok_e and ok_c and ok_s and ok_p and ok_n and ok_r
+    ok = ok_e and ok_c and ok_s and ok_p and ok_n and ok_r and ok_w
     _log(f"SELFTEST {'OK ✓' if ok else 'FALLÓ ✗'} "
-         f"(espacio={ok_e}, colocar={ok_c}, scatter={ok_s}, physics={ok_p}, snap={ok_n}, reemplazo={ok_r})")
+         f"(espacio={ok_e}, colocar={ok_c}, scatter={ok_s}, physics={ok_p}, snap={ok_n}, "
+         f"reemplazo={ok_r}, pared={ok_w})")
     return ok
