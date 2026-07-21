@@ -14,6 +14,8 @@ from __future__ import annotations
 import unreal
 
 _TOL_CM = 1.0  # menos que esto = tocándose, no interpenetrando
+_MAX_VECINO_CM = 50000.0  # semi-extensión > 500 m en un eje = escenografía de fondo
+#                          (SkySphere, atmósfera): envuelve el mapa, no cuenta como interpenetración
 
 
 def aabb(actor: unreal.Actor) -> tuple[unreal.Vector, unreal.Vector]:
@@ -39,14 +41,21 @@ def _penetracion(a: unreal.Actor, b: unreal.Actor, tol: float = _TOL_CM) -> floa
     return min(solapes)
 
 
+def es_fondo(actor: unreal.Actor) -> bool:
+    """True si el actor es escenografía de fondo (AABB descomunal que envuelve el mapa: SkySphere,
+    atmósfera). La interpenetración sólo tiene sentido entre actores de escala comparable."""
+    _, e = aabb(actor)
+    return max(e.x, e.y, e.z) > _MAX_VECINO_CM
+
+
 def verificar(actor: unreal.Actor, otros: list[unreal.Actor], tol: float = _TOL_CM) -> dict:
-    """Veredicto de colocación de `actor` frente a `otros`."""
+    """Veredicto de colocación de `actor` frente a `otros` (ignora la escenografía de fondo)."""
     _, extent = aabb(actor)
     vol = extent.x * extent.y * extent.z
     bounds_ok = vol > 1e-3
     choques = []
     for o in otros:
-        if o == actor:
+        if o == actor or es_fondo(o):
             continue
         d = _penetracion(actor, o, tol)
         if d > 0.0:

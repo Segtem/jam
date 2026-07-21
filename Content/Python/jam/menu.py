@@ -409,21 +409,27 @@ def selftest_colocar() -> bool:
     a = place.colocar(ruta, (0.0, 0.0, 0.0))
     b = place.colocar(ruta, (0.0, 0.0, 0.0))          # coincidente con a → debe interpenetrar
     c = place.colocar(ruta, (100000.0, 0.0, 0.0))     # lejos → debe quedar limpio
-    if not (a and b and c):
+    fondo = place.colocar(ruta, (0.0, 0.0, 0.0), scale=(2000.0, 2000.0, 2000.0))  # 2 km: escenografía
+    fondo.set_actor_label("Jam_fondo_gigante")
+    if not (a and b and c and fondo):
         _log("falló el spawn de alguna pieza")
         return False
-    todos = [a, b, c]
+    todos = [a, b, c, fondo]
     _log(oracle_placement.verificar_texto(b, todos))
     _log(oracle_placement.verificar_texto(c, todos))
-    v_b = oracle_placement.verificar(b, todos)
-    v_c = oracle_placement.verificar(c, todos)
-    ok = v_b["bounds_ok"] and bool(v_b["interpenetra"]) and not v_c["interpenetra"]
+    v_b = oracle_placement.verificar(b, todos)   # coincide con a (normal) → interpenetra; fondo se ignora
+    v_c = oracle_placement.verificar(c, todos)   # lejos de a; el fondo enorme NO debe marcarlo
+    fondo_ignorado = all("fondo" not in n for n, _ in v_c["interpenetra"])
+    ok = (v_b["bounds_ok"] and bool(v_b["interpenetra"])
+          and not v_c["interpenetra"] and fondo_ignorado
+          and oracle_placement.es_fondo(fondo) and not oracle_placement.es_fondo(a))
     # limpieza: son actores de prueba en un mapa transitorio, igual los borramos
     actor_sub = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
     for x in todos:
         actor_sub.destroy_actor(x)
     _log(f"colocar {'OK ✓' if ok else 'FALLÓ ✗'} "
-         f"(coincidente.interpenetra={bool(v_b['interpenetra'])}, lejana.interpenetra={bool(v_c['interpenetra'])})")
+         f"(coincidente.interpenetra={bool(v_b['interpenetra'])}, lejana.interpenetra={bool(v_c['interpenetra'])}, "
+         f"fondo_ignorado={fondo_ignorado})")
     return ok
 
 
