@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import unreal
 
-from . import oracle_espacio
+from . import library, oracle_espacio, oracle_placement, place
 
 _MENU_MAIN = "LevelEditor.MainMenu"
 _SUBMENU = "Jam"
@@ -56,6 +56,29 @@ def on_verificar_espacio() -> str:
     return cuerpo
 
 
+def on_colocar_primero() -> str:
+    """Coloca el primer asset de la biblioteca en el origen y muestra el veredicto del oráculo.
+    (Acción demo del Content Browser; la versión con picker de asset es un crecimiento posterior.)"""
+    libro = library.buscar(limit=1)
+    if not libro:
+        msg = "Biblioteca vacía: no hay StaticMesh bajo /Game."
+        _log(msg)
+        _mostrar_dialogo("Jam · Colocar", msg)
+        return msg
+    elegido = libro[0]
+    actor = place.colocar(elegido["ruta"], (0.0, 0.0, 0.0))
+    if actor is None:
+        msg = f"No se pudo colocar {elegido['nombre']}."
+        _log(msg)
+        return msg
+    otros = unreal.get_editor_subsystem(unreal.EditorActorSubsystem).get_all_level_actors()
+    cuerpo = f"Colocado «{elegido['nombre']}» en el origen.\n\n" + \
+        oracle_placement.verificar_texto(actor, otros)
+    _log(cuerpo)
+    _mostrar_dialogo("Jam · Colocar (oráculo)", cuerpo)
+    return cuerpo
+
+
 def _mostrar_dialogo(titulo: str, cuerpo: str) -> None:
     """Diálogo modal si hay GUI; en headless no hace nada (ya se logueó)."""
     try:
@@ -89,6 +112,18 @@ def register() -> bool:
             "import jam.menu; jam.menu.on_verificar_espacio()",
         )
         jam.add_menu_entry(_SUBMENU, entry)
+
+        entry2 = unreal.ToolMenuEntry(
+            name="Jam_Colocar", type=unreal.MultiBlockType.MENU_ENTRY
+        )
+        entry2.set_label("Colocar de la biblioteca (oráculo)")
+        entry2.set_tool_tip("Spawnea un asset del proyecto y verifica bounds + interpenetración.")
+        entry2.set_string_command(
+            unreal.ToolMenuStringCommandType.PYTHON, "",
+            "import jam.menu; jam.menu.on_colocar_primero()",
+        )
+        jam.add_menu_entry(_SUBMENU, entry2)
+
         menus.refresh_all_widgets()
         _log("Menú «Jam» registrado en la barra del editor.")
         return True
@@ -99,16 +134,55 @@ def register() -> bool:
 
 # ---- selftest headless (para verificar la rebanada sin GUI) ----
 
-def selftest() -> bool:
-    """Prueba la rebanada entera sin GUI: el oráculo corre, el sano es ganable, el roto no.
-    Se invoca headless con `-ExecCmds "py import jam.menu; jam.menu.selftest()"`."""
-    _log("=== SELFTEST ===")
+def selftest_espacio() -> bool:
+    """Oráculo de espacio: el mapa sano es ganable, el roto no."""
+    _log("--- selftest: espacio ---")
     r_sano = oracle_espacio.veredicto(oracle_espacio.mapa_botoo_ganable())
     r_roto = oracle_espacio.veredicto(oracle_espacio.mapa_botoo_roto())
     _log(oracle_espacio.veredicto_texto("BotOO sano", oracle_espacio.mapa_botoo_ganable()))
     _log(oracle_espacio.veredicto_texto("BotOO roto", oracle_espacio.mapa_botoo_roto()))
-    _log(f"contexto: {contexto_editor()}")
     ok = bool(r_sano["solvable"]) and not bool(r_roto["solvable"])
-    _log(f"SELFTEST {'OK ✓' if ok else 'FALLÓ ✗'} "
-         f"(sano.solvable={r_sano['solvable']}, roto.solvable={r_roto['solvable']})")
+    _log(f"espacio {'OK ✓' if ok else 'FALLÓ ✗'}")
+    return ok
+
+
+def selftest_colocar() -> bool:
+    """Biblioteca + colocar: enumera la biblioteca real, coloca una malla, y el oráculo distingue
+    una copia coincidente (INTERPENETRA) de una lejana (LIMPIO). Limpia los actores al final."""
+    _log("--- selftest: biblioteca + colocar ---")
+    libro = library.buscar(limit=1)
+    if not libro:
+        _log("biblioteca vacía — no hay StaticMesh bajo /Game")
+        return False
+    ruta = libro[0]["ruta"]
+    _log(f"biblioteca: {len(library.buscar(limit=9999))} StaticMesh; elegido «{libro[0]['nombre']}»")
+    a = place.colocar(ruta, (0.0, 0.0, 0.0))
+    b = place.colocar(ruta, (0.0, 0.0, 0.0))          # coincidente con a → debe interpenetrar
+    c = place.colocar(ruta, (100000.0, 0.0, 0.0))     # lejos → debe quedar limpio
+    if not (a and b and c):
+        _log("falló el spawn de alguna pieza")
+        return False
+    todos = [a, b, c]
+    _log(oracle_placement.verificar_texto(b, todos))
+    _log(oracle_placement.verificar_texto(c, todos))
+    v_b = oracle_placement.verificar(b, todos)
+    v_c = oracle_placement.verificar(c, todos)
+    ok = v_b["bounds_ok"] and bool(v_b["interpenetra"]) and not v_c["interpenetra"]
+    # limpieza: son actores de prueba en un mapa transitorio, igual los borramos
+    actor_sub = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
+    for x in todos:
+        actor_sub.destroy_actor(x)
+    _log(f"colocar {'OK ✓' if ok else 'FALLÓ ✗'} "
+         f"(coincidente.interpenetra={bool(v_b['interpenetra'])}, lejana.interpenetra={bool(v_c['interpenetra'])})")
+    return ok
+
+
+def selftest() -> bool:
+    """Prueba TODA la rebanada sin GUI. Headless: `-ExecCmds "py import jam.menu as m; m.selftest()"`."""
+    _log("=== SELFTEST ===")
+    ok_e = selftest_espacio()
+    ok_c = selftest_colocar()
+    _log(f"contexto: {contexto_editor()}")
+    ok = ok_e and ok_c
+    _log(f"SELFTEST {'OK ✓' if ok else 'FALLÓ ✗'} (espacio={ok_e}, colocar={ok_c})")
     return ok
