@@ -10,7 +10,16 @@ from __future__ import annotations
 
 import unreal
 
-from . import library, oracle_espacio, oracle_placement, oracle_scatter, place, scatter
+from . import (
+    library,
+    oracle_espacio,
+    oracle_physics,
+    oracle_placement,
+    oracle_scatter,
+    physics,
+    place,
+    scatter,
+)
 
 _MENU_MAIN = "LevelEditor.MainMenu"
 _SUBMENU = "Jam"
@@ -98,6 +107,31 @@ def on_scatter_demo() -> str:
     return cuerpo
 
 
+def on_soltar_demo() -> str:
+    """Arma un piso, deja caer un asset flotando y muestra el veredicto del oráculo de physics.
+    Deja el piso + la pieza en el nivel (para verlos); el drop sobre geometría real es crecimiento."""
+    libro = library.buscar(limit=1)
+    if not libro:
+        msg = "Biblioteca vacía: no hay StaticMesh bajo /Game."
+        _log(msg)
+        _mostrar_dialogo("Jam · Physics", msg)
+        return msg
+    ruta = libro[0]["ruta"]
+    piso = place.colocar(ruta, (0.0, 0.0, 0.0), scale=(50.0, 50.0, 1.0))
+    piso.set_actor_label("Jam_piso")
+    caja = place.colocar(ruta, (0.0, 0.0, 800.0))
+    antes = oracle_physics.verificar_texto(caja, [piso])
+    r = physics.soltar(caja, [piso])
+    despues = oracle_physics.verificar_texto(caja, [piso])
+    cuerpo = (f"Soltar «{libro[0]['nombre']}» sobre un piso:\n\n"
+              f"antes:   {antes}\n"
+              f"cae {r['caida']}cm →\n"
+              f"después: {despues}")
+    _log(cuerpo)
+    _mostrar_dialogo("Jam · Physics (oráculo)", cuerpo)
+    return cuerpo
+
+
 def _mostrar_dialogo(titulo: str, cuerpo: str) -> None:
     """Diálogo modal si hay GUI; en headless no hace nada (ya se logueó)."""
     try:
@@ -154,6 +188,18 @@ def register() -> bool:
             "import jam.menu; jam.menu.on_scatter_demo()",
         )
         jam.add_menu_entry(_SUBMENU, entry3)
+
+        entry4 = unreal.ToolMenuEntry(
+            name="Jam_Soltar", type=unreal.MultiBlockType.MENU_ENTRY
+        )
+        entry4.set_label("Soltar al piso (physics + oráculo)")
+        entry4.set_tool_tip("Deja caer un asset sobre el soporte de abajo y verifica que quede "
+                            "apoyado (ni flotando ni hundido).")
+        entry4.set_string_command(
+            unreal.ToolMenuStringCommandType.PYTHON, "",
+            "import jam.menu; jam.menu.on_soltar_demo()",
+        )
+        jam.add_menu_entry(_SUBMENU, entry4)
 
         menus.refresh_all_widgets()
         _log("Menú «Jam» registrado en la barra del editor.")
@@ -239,13 +285,49 @@ def selftest_scatter() -> bool:
     return ok
 
 
+def selftest_physics() -> bool:
+    """Physics drop: sobre un piso, una pieza que FLOTA debe caer a APOYADO, y una pieza clavada
+    debe leerse HUNDIDO. El oráculo debe distinguir los tres estados. Limpia los actores al final."""
+    _log("--- selftest: physics (drop) ---")
+    libro = library.buscar(limit=1)
+    if not libro:
+        _log("biblioteca vacía — no hay StaticMesh bajo /Game")
+        return False
+    ruta = libro[0]["ruta"]
+    x0 = 200000.0  # lejos de todo, para que el piso sea el único soporte
+    piso = place.colocar(ruta, (x0, 0.0, 0.0), scale=(50.0, 50.0, 1.0))  # top del AABB en +50
+    caja = place.colocar(ruta, (x0, 0.0, 800.0))                        # flota muy por encima
+    clavada = place.colocar(ruta, (x0 + 1000.0, 0.0, 50.0))             # base en 0 < top piso 50
+
+    r_antes = oracle_physics.verificar(caja, [piso])
+    _log("caja  " + oracle_physics.verificar_texto(caja, [piso]))
+    drop = physics.soltar(caja, [piso])
+    r_desp = oracle_physics.verificar(caja, [piso])
+    _log(f"caja  cae {drop['caida']}cm → " + oracle_physics.verificar_texto(caja, [piso]))
+    r_clav = oracle_physics.verificar(clavada, [piso])
+    _log("clav  " + oracle_physics.verificar_texto(clavada, [piso]))
+
+    actor_sub = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
+    for x in (piso, caja, clavada):
+        actor_sub.destroy_actor(x)
+
+    ok = (r_antes["estado"] == "flotando"
+          and r_desp["estado"] == "apoyado"
+          and r_clav["estado"] == "hundido")
+    _log(f"physics {'OK ✓' if ok else 'FALLÓ ✗'} "
+         f"(antes={r_antes['estado']}, después={r_desp['estado']}, clavada={r_clav['estado']})")
+    return ok
+
+
 def selftest() -> bool:
     """Prueba TODA la rebanada sin GUI. Headless: `-ExecCmds "py import jam.menu as m; m.selftest()"`."""
     _log("=== SELFTEST ===")
     ok_e = selftest_espacio()
     ok_c = selftest_colocar()
     ok_s = selftest_scatter()
+    ok_p = selftest_physics()
     _log(f"contexto: {contexto_editor()}")
-    ok = ok_e and ok_c and ok_s
-    _log(f"SELFTEST {'OK ✓' if ok else 'FALLÓ ✗'} (espacio={ok_e}, colocar={ok_c}, scatter={ok_s})")
+    ok = ok_e and ok_c and ok_s and ok_p
+    _log(f"SELFTEST {'OK ✓' if ok else 'FALLÓ ✗'} "
+         f"(espacio={ok_e}, colocar={ok_c}, scatter={ok_s}, physics={ok_p})")
     return ok
