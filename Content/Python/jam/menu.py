@@ -19,6 +19,7 @@ from . import (
     oracle_reemplazo,
     oracle_scatter,
     oracle_snap,
+    panel,
     pared,
     physics,
     place,
@@ -30,6 +31,9 @@ from . import (
 _MENU_MAIN = "LevelEditor.MainMenu"
 _SUBMENU = "Jam"
 _LOG_PREFIX = "[Jam]"
+
+# El panel (jam.panel) pone esto en True para que el veredicto vaya al TextBlock y no a un modal.
+_SILENCIAR_DIALOGO = False
 
 
 def _log(msg: str) -> None:
@@ -212,7 +216,9 @@ def on_pared_demo() -> str:
 
 
 def _mostrar_dialogo(titulo: str, cuerpo: str) -> None:
-    """Diálogo modal si hay GUI; en headless no hace nada (ya se logueó)."""
+    """Diálogo modal si hay GUI; en headless no hace nada (ya se logueó). El panel lo silencia."""
+    if _SILENCIAR_DIALOGO:
+        return
     try:
         unreal.EditorDialog.show_message(
             titulo, cuerpo, unreal.AppMsgType.OK, unreal.AppReturnType.OK
@@ -233,6 +239,17 @@ def register() -> bool:
             return False
         main.add_sub_menu(_MENU_MAIN, "", _SUBMENU, "Jam")
         jam = menus.find_menu(f"{_MENU_MAIN}.{_SUBMENU}")
+
+        entry0 = unreal.ToolMenuEntry(
+            name="Jam_AbrirPanel", type=unreal.MultiBlockType.MENU_ENTRY
+        )
+        entry0.set_label("Abrir panel (beta)")
+        entry0.set_tool_tip("Abre el panel dockeable de Jam (estilo Dash Bar) con el veredicto del oráculo.")
+        entry0.set_string_command(
+            unreal.ToolMenuStringCommandType.PYTHON, "",
+            "import jam.panel; jam.panel.abrir()",
+        )
+        jam.add_menu_entry(_SUBMENU, entry0)
 
         entry = unreal.ToolMenuEntry(
             name="Jam_VerificarEspacio", type=unreal.MultiBlockType.MENU_ENTRY
