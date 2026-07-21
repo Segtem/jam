@@ -23,6 +23,7 @@ from . import (
     pared,
     physics,
     place,
+    preset,
     reemplazar,
     scatter,
     snap,
@@ -215,6 +216,24 @@ def on_pared_demo() -> str:
     return cuerpo
 
 
+def on_presets_demo() -> str:
+    """Lista los presets disponibles y aplica el primero, mostrando el veredicto del oráculo.
+    (El picker de presets por tool va en el panel; esto es la demo de menú.)"""
+    presets = preset.listar()
+    if not presets:
+        msg = "No hay presets. (Deberían estar los de fábrica en <plugin>/presets/.)"
+        _log(msg)
+        _mostrar_dialogo("Jam · Presets", msg)
+        return msg
+    lista = "\n".join(f"  · [{p['scope']}] {p['nombre']} ({p['tool']})" for p in presets)
+    elegido = presets[0]
+    res = preset.aplicar(elegido)
+    cuerpo = f"Presets disponibles:\n{lista}\n\nApliqué el primero →\n{res['texto']}"
+    _log(cuerpo)
+    _mostrar_dialogo("Jam · Presets (oráculo)", cuerpo)
+    return cuerpo
+
+
 def _mostrar_dialogo(titulo: str, cuerpo: str) -> None:
     """Diálogo modal si hay GUI; en headless no hace nada (ya se logueó). El panel lo silencia."""
     if _SILENCIAR_DIALOGO:
@@ -342,6 +361,18 @@ def register() -> bool:
             "import jam.menu; jam.menu.on_pared_demo()",
         )
         jam.add_menu_entry(_SUBMENU, entry8)
+
+        entry9 = unreal.ToolMenuEntry(
+            name="Jam_Presets", type=unreal.MultiBlockType.MENU_ENTRY
+        )
+        entry9.set_label("Presets: listar y aplicar")
+        entry9.set_tool_tip("Lista los presets (config de tool guardada en JSON) y aplica uno, "
+                            "verificándolo con su oráculo.")
+        entry9.set_string_command(
+            unreal.ToolMenuStringCommandType.PYTHON, "",
+            "import jam.menu; jam.menu.on_presets_demo()",
+        )
+        jam.add_menu_entry(_SUBMENU, entry9)
 
         menus.refresh_all_widgets()
         _log("Menú «Jam» registrado en la barra del editor.")
@@ -568,6 +599,47 @@ def selftest_pared() -> bool:
     return ok
 
 
+def selftest_presets() -> bool:
+    """Presets: hay ≥3 de fábrica; aplicar el de scatter da REPARTO SANO; guardar+cargar+aplicar un
+    preset local roundtrip funciona. Limpia actores y el archivo temporal al final."""
+    _log("--- selftest: presets ---")
+    globales = preset.listar(scope="global")
+    _log(f"presets de fábrica: {len(globales)} — " + ", ".join(p["nombre"] for p in globales))
+    if len(globales) < 3:
+        _log("faltan presets de fábrica")
+        return False
+
+    # aplicar el preset de scatter de fábrica
+    res_scatter = preset.aplicar("Escombros densos")
+    _log("aplicar built-in → " + res_scatter["texto"])
+
+    # roundtrip local: guardar → cargar → aplicar
+    demo = {"tool": "colocar", "nombre": "Jam Selftest Prop", "categoria": "test",
+            "tags": ["test"], "params": {"asset": None, "location": [700000, 0, 0]},
+            "oraculo": {}, "scope": "local"}
+    ruta = preset.guardar(demo)
+    cargado = preset.cargar("Jam Selftest Prop")
+    res_local = preset.aplicar(cargado) if cargado else {"ok": False, "texto": "no cargó", "actores": []}
+    _log("roundtrip local → " + res_local["texto"])
+
+    # limpieza
+    actor_sub = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
+    for a in res_scatter["actores"] + res_local["actores"]:
+        actor_sub.destroy_actor(a)
+    try:
+        __import__("pathlib").Path(ruta).unlink()
+    except Exception:  # noqa: BLE001
+        pass
+
+    # El roundtrip prueba el MOTOR (guardó → cargó → aplicó → spawneó), no el veredicto del oráculo
+    # de colocar (que en este mapa da falso positivo por el AABB gigante del SM_SkySphere).
+    roundtrip_ok = (cargado is not None) and bool(res_local["actores"])
+    ok = res_scatter["ok"] and roundtrip_ok
+    _log(f"presets {'OK ✓' if ok else 'FALLÓ ✗'} "
+         f"(scatter.ok={res_scatter['ok']}, roundtrip={roundtrip_ok})")
+    return ok
+
+
 def selftest() -> bool:
     """Prueba TODA la rebanada sin GUI. Headless: `-ExecCmds "py import jam.menu as m; m.selftest()"`."""
     _log("=== SELFTEST ===")
@@ -578,9 +650,10 @@ def selftest() -> bool:
     ok_n = selftest_snap()
     ok_r = selftest_reemplazo()
     ok_w = selftest_pared()
+    ok_pr = selftest_presets()
     _log(f"contexto: {contexto_editor()}")
-    ok = ok_e and ok_c and ok_s and ok_p and ok_n and ok_r and ok_w
+    ok = ok_e and ok_c and ok_s and ok_p and ok_n and ok_r and ok_w and ok_pr
     _log(f"SELFTEST {'OK ✓' if ok else 'FALLÓ ✗'} "
          f"(espacio={ok_e}, colocar={ok_c}, scatter={ok_s}, physics={ok_p}, snap={ok_n}, "
-         f"reemplazo={ok_r}, pared={ok_w})")
+         f"reemplazo={ok_r}, pared={ok_w}, presets={ok_pr})")
     return ok

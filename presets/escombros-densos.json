@@ -1,0 +1,10 @@
+{
+  "tool": "scatter",
+  "nombre": "Escombros densos",
+  "categoria": "BotOO/deco",
+  "descripcion": "Reparto denso de props sobre un área media (8x8 m).",
+  "tags": ["escombros", "deco", "suelo"],
+  "params": { "asset": null, "centro": [0, 0], "semi": [400, 400], "cantidad": 16, "seed": 7 },
+  "oraculo": {},
+  "scope": "global"
+}

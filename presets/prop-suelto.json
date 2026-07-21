@@ -1,0 +1,10 @@
+{
+  "tool": "colocar",
+  "nombre": "Prop suelto",
+  "categoria": "BotOO/deco",
+  "descripcion": "Coloca un prop de la biblioteca en el origen.",
+  "tags": ["prop"],
+  "params": { "asset": null, "location": [0, 0, 0] },
+  "oraculo": {},
+  "scope": "global"
+}
