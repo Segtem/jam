@@ -19,6 +19,7 @@ from . import (
     oracle_reemplazo,
     oracle_scatter,
     oracle_snap,
+    nivel,
     panel,
     pared,
     physics,
@@ -65,11 +66,17 @@ def contexto_editor() -> str:
 # ---- la acción ----
 
 def on_verificar_espacio() -> str:
-    """Corre el oráculo sobre el mapa BotOO sano y el roto; reporta ambos veredictos."""
-    sano = oracle_espacio.veredicto_texto("BotOO sano", oracle_espacio.mapa_botoo_ganable())
-    roto = oracle_espacio.veredicto_texto("BotOO roto", oracle_espacio.mapa_botoo_roto())
-    ctx = contexto_editor()
-    cuerpo = f"{sano}\n\n{roto}\n\nEditor: {ctx}"
+    """Verifica la winnability del NIVEL REAL (actores etiquetados con tags jam:*). Si el nivel no
+    tiene nodos de Jam, cae al mapa demo en código para mostrar de qué se trata el oráculo."""
+    r, _g = nivel.veredicto_nivel()
+    if r is not None:
+        cuerpo = nivel.veredicto_texto_nivel()
+    else:
+        sano = oracle_espacio.veredicto_texto("BotOO sano (demo)", oracle_espacio.mapa_botoo_ganable())
+        roto = oracle_espacio.veredicto_texto("BotOO roto (demo)", oracle_espacio.mapa_botoo_roto())
+        cuerpo = (nivel.veredicto_texto_nivel() + "\n\n— mientras tanto, el demo en código —\n\n"
+                  + f"{sano}\n\n{roto}")
+    cuerpo += f"\n\nEditor: {contexto_editor()}"
     _log("Verificar espacio →")
     _log(cuerpo)
     _mostrar_dialogo("Jam · Oráculo de espacio", cuerpo)
@@ -646,6 +653,52 @@ def selftest_presets() -> bool:
     return ok
 
 
+def selftest_nivel() -> bool:
+    """Oráculo sobre el NIVEL REAL: spawnea 5 cubos, los etiqueta como el mapa de extracción de
+    BotOO, lee el grafo del nivel y verifica GANABLE; luego rompe el enlace a la pista (el sello se
+    vuelve inalcanzable) y verifica NO GANABLE. Limpia los actores al final."""
+    _log("--- selftest: oráculo sobre nivel real ---")
+    libro = library.buscar(limit=1)
+    if not libro:
+        _log("biblioteca vacía — no hay StaticMesh bajo /Game")
+        return False
+    ruta = libro[0]["ruta"]
+    x0 = 800000.0
+    ent = place.colocar(ruta, (x0, 0.0, 0.0))
+    pis = place.colocar(ruta, (x0 + 300, 0.0, 0.0))
+    gal = place.colocar(ruta, (x0, 300.0, 0.0))
+    cri = place.colocar(ruta, (x0 + 300, 300.0, 0.0))
+    ext = place.colocar(ruta, (x0 + 600, 300.0, 0.0))
+    nodos = [ent, pis, gal, cri, ext]
+
+    nivel.marcar_nodo(ent, "entrada", tipo="spawn", start=True, enlaces=["pista", "galeria"])
+    nivel.marcar_nodo(pis, "pista", tipo="clue", key="sello_antiguo")
+    nivel.marcar_nodo(gal, "galeria", enlaces=["cripta"])
+    nivel.marcar_nodo(cri, "cripta", tipo="boss")
+    # sólo se extrae con el sello: la arista cripta↔extraccion es una puerta que exige la llave
+    nivel.marcar_nodo(ext, "extraccion", tipo="extract", goal=True, enlaces=[("cripta", "sello_antiguo")])
+
+    r_sano, g_sano = nivel.veredicto_nivel(nodos)
+    _log(nivel.veredicto_texto_nivel(nodos))
+
+    # romper: la entrada deja de enlazar a la pista → el sello queda inalcanzable
+    nivel.marcar_nodo(ent, "entrada", tipo="spawn", start=True, enlaces=["galeria"])
+    r_roto, _g = nivel.veredicto_nivel(nodos)
+    _log(nivel.veredicto_texto_nivel(nodos))
+
+    actor_sub = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
+    for a in nodos:
+        actor_sub.destroy_actor(a)
+
+    ok = (r_sano is not None and r_sano["solvable"]
+          and len(g_sano.nodes) == 5 and len(g_sano.edges) == 4
+          and r_roto is not None and not r_roto["solvable"])
+    _log(f"nivel {'OK ✓' if ok else 'FALLÓ ✗'} "
+         f"(sano.ganable={r_sano and r_sano['solvable']}, nodos={len(g_sano.nodes)}, "
+         f"aristas={len(g_sano.edges)}, roto.ganable={r_roto and r_roto['solvable']})")
+    return ok
+
+
 def selftest() -> bool:
     """Prueba TODA la rebanada sin GUI. Headless: `-ExecCmds "py import jam.menu as m; m.selftest()"`."""
     _log("=== SELFTEST ===")
@@ -657,9 +710,10 @@ def selftest() -> bool:
     ok_r = selftest_reemplazo()
     ok_w = selftest_pared()
     ok_pr = selftest_presets()
+    ok_nv = selftest_nivel()
     _log(f"contexto: {contexto_editor()}")
-    ok = ok_e and ok_c and ok_s and ok_p and ok_n and ok_r and ok_w and ok_pr
+    ok = ok_e and ok_c and ok_s and ok_p and ok_n and ok_r and ok_w and ok_pr and ok_nv
     _log(f"SELFTEST {'OK ✓' if ok else 'FALLÓ ✗'} "
          f"(espacio={ok_e}, colocar={ok_c}, scatter={ok_s}, physics={ok_p}, snap={ok_n}, "
-         f"reemplazo={ok_r}, pared={ok_w}, presets={ok_pr})")
+         f"reemplazo={ok_r}, pared={ok_w}, presets={ok_pr}, nivel={ok_nv})")
     return ok
