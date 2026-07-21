@@ -16,9 +16,11 @@ from . import (
     oracle_physics,
     oracle_placement,
     oracle_scatter,
+    oracle_snap,
     physics,
     place,
     scatter,
+    snap,
 )
 
 _MENU_MAIN = "LevelEditor.MainMenu"
@@ -132,6 +134,25 @@ def on_soltar_demo() -> str:
     return cuerpo
 
 
+def on_snap_grilla_demo() -> str:
+    """Coloca un asset en una posición fuera de grilla, lo cuadra a grilla de 100cm y muestra
+    el veredicto antes/después. Deja la pieza en el nivel (para verla)."""
+    libro = library.buscar(limit=1)
+    if not libro:
+        msg = "Biblioteca vacía: no hay StaticMesh bajo /Game."
+        _log(msg)
+        _mostrar_dialogo("Jam · Snap", msg)
+        return msg
+    caja = place.colocar(libro[0]["ruta"], (137.4, 62.9, 11.1), (0.0, 0.0, 37.0))
+    antes = oracle_snap.texto_grilla(caja, 100.0)
+    snap.a_grilla(caja, 100.0)
+    despues = oracle_snap.texto_grilla(caja, 100.0)
+    cuerpo = f"Alinear «{libro[0]['nombre']}» a grilla de 100cm:\n\nantes:   {antes}\ndespués: {despues}"
+    _log(cuerpo)
+    _mostrar_dialogo("Jam · Snap a grilla (oráculo)", cuerpo)
+    return cuerpo
+
+
 def _mostrar_dialogo(titulo: str, cuerpo: str) -> None:
     """Diálogo modal si hay GUI; en headless no hace nada (ya se logueó)."""
     try:
@@ -200,6 +221,17 @@ def register() -> bool:
             "import jam.menu; jam.menu.on_soltar_demo()",
         )
         jam.add_menu_entry(_SUBMENU, entry4)
+
+        entry5 = unreal.ToolMenuEntry(
+            name="Jam_SnapGrilla", type=unreal.MultiBlockType.MENU_ENTRY
+        )
+        entry5.set_label("Alinear a grilla (snap + oráculo)")
+        entry5.set_tool_tip("Cuadra el pivote de un asset a la grilla y verifica que quede alineado.")
+        entry5.set_string_command(
+            unreal.ToolMenuStringCommandType.PYTHON, "",
+            "import jam.menu; jam.menu.on_snap_grilla_demo()",
+        )
+        jam.add_menu_entry(_SUBMENU, entry5)
 
         menus.refresh_all_widgets()
         _log("Menú «Jam» registrado en la barra del editor.")
@@ -319,6 +351,47 @@ def selftest_physics() -> bool:
     return ok
 
 
+def selftest_snap() -> bool:
+    """Snap: (a) una pieza fuera de grilla debe pasar a EN GRILLA; (b) una pieza con hueco contra
+    otra debe pasar a AL RAS, y el oráculo debe leer HUECO antes. Limpia los actores al final."""
+    _log("--- selftest: snap / alinear ---")
+    libro = library.buscar(limit=1)
+    if not libro:
+        _log("biblioteca vacía — no hay StaticMesh bajo /Game")
+        return False
+    ruta = libro[0]["ruta"]
+    x0 = 300000.0  # lejos de todo
+
+    # (a) grilla
+    caja = place.colocar(ruta, (x0 + 137.4, 62.9, 11.1), (0.0, 0.0, 37.0))
+    g_antes = oracle_snap.verificar_grilla(caja, 100.0)
+    _log("grilla " + oracle_snap.texto_grilla(caja, 100.0))
+    snap.a_grilla(caja, 100.0)
+    g_desp = oracle_snap.verificar_grilla(caja, 100.0)
+    _log("grilla " + oracle_snap.texto_grilla(caja, 100.0))
+
+    # (b) al ras: objetivo en el origen local; actor con un hueco de 60cm sobre +x (cubos de 100)
+    obj = place.colocar(ruta, (x0, 5000.0, 0.0))
+    obj.set_actor_label("Jam_objetivo")
+    act = place.colocar(ruta, (x0 + 260.0, 5000.0, 0.0))  # centros a 260 → gap 160 sobre x
+    r_antes = oracle_snap.verificar_ras(act, obj, "x")
+    _log("ras    " + oracle_snap.texto_ras(act, obj, "x"))
+    snap.al_ras(act, obj, "x")
+    r_desp = oracle_snap.verificar_ras(act, obj, "x")
+    _log("ras    " + oracle_snap.texto_ras(act, obj, "x"))
+
+    actor_sub = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
+    for x in (caja, obj, act):
+        actor_sub.destroy_actor(x)
+
+    ok = (not g_antes["en_grilla"] and g_desp["en_grilla"]
+          and r_antes["estado"] == "hueco" and r_desp["estado"] == "al_ras")
+    _log(f"snap {'OK ✓' if ok else 'FALLÓ ✗'} "
+         f"(grilla {not g_antes['en_grilla']}→{g_desp['en_grilla']}, "
+         f"ras {r_antes['estado']}→{r_desp['estado']})")
+    return ok
+
+
 def selftest() -> bool:
     """Prueba TODA la rebanada sin GUI. Headless: `-ExecCmds "py import jam.menu as m; m.selftest()"`."""
     _log("=== SELFTEST ===")
@@ -326,8 +399,9 @@ def selftest() -> bool:
     ok_c = selftest_colocar()
     ok_s = selftest_scatter()
     ok_p = selftest_physics()
+    ok_n = selftest_snap()
     _log(f"contexto: {contexto_editor()}")
-    ok = ok_e and ok_c and ok_s and ok_p
+    ok = ok_e and ok_c and ok_s and ok_p and ok_n
     _log(f"SELFTEST {'OK ✓' if ok else 'FALLÓ ✗'} "
-         f"(espacio={ok_e}, colocar={ok_c}, scatter={ok_s}, physics={ok_p})")
+         f"(espacio={ok_e}, colocar={ok_c}, scatter={ok_s}, physics={ok_p}, snap={ok_n})")
     return ok
