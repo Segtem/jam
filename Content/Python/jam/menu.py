@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import unreal
 
-from . import library, oracle_espacio, oracle_placement, place
+from . import library, oracle_espacio, oracle_placement, oracle_scatter, place, scatter
 
 _MENU_MAIN = "LevelEditor.MainMenu"
 _SUBMENU = "Jam"
@@ -79,6 +79,25 @@ def on_colocar_primero() -> str:
     return cuerpo
 
 
+def on_scatter_demo() -> str:
+    """Esparce ~9 copias del primer asset de la biblioteca sobre un área y muestra el veredicto.
+    Deja las instancias en el nivel (para verlas); la versión con picker de asset/región es crecimiento."""
+    libro = library.buscar(limit=1)
+    if not libro:
+        msg = "Biblioteca vacía: no hay StaticMesh bajo /Game."
+        _log(msg)
+        _mostrar_dialogo("Jam · Scatter", msg)
+        return msg
+    elegido = libro[0]
+    centro, semi, cant = (0.0, 0.0), (500.0, 500.0), 9
+    actores = scatter.esparcir(elegido["ruta"], centro, semi, cant, seed=7)
+    cuerpo = f"Scatter de «{elegido['nombre']}» ({len(actores)} instancias sobre 10×10 m):\n\n" + \
+        oracle_scatter.verificar_texto(actores, centro, semi, cant)
+    _log(cuerpo)
+    _mostrar_dialogo("Jam · Scatter (oráculo)", cuerpo)
+    return cuerpo
+
+
 def _mostrar_dialogo(titulo: str, cuerpo: str) -> None:
     """Diálogo modal si hay GUI; en headless no hace nada (ya se logueó)."""
     try:
@@ -123,6 +142,18 @@ def register() -> bool:
             "import jam.menu; jam.menu.on_colocar_primero()",
         )
         jam.add_menu_entry(_SUBMENU, entry2)
+
+        entry3 = unreal.ToolMenuEntry(
+            name="Jam_Scatter", type=unreal.MultiBlockType.MENU_ENTRY
+        )
+        entry3.set_label("Esparcir (scatter + oráculo)")
+        entry3.set_tool_tip("Esparce un asset sobre un área y verifica cantidad, contención, "
+                            "interpenetración y cobertura.")
+        entry3.set_string_command(
+            unreal.ToolMenuStringCommandType.PYTHON, "",
+            "import jam.menu; jam.menu.on_scatter_demo()",
+        )
+        jam.add_menu_entry(_SUBMENU, entry3)
 
         menus.refresh_all_widgets()
         _log("Menú «Jam» registrado en la barra del editor.")
@@ -177,12 +208,44 @@ def selftest_colocar() -> bool:
     return ok
 
 
+def selftest_scatter() -> bool:
+    """Scatter: un reparto SANO (área amplia → cantidad, contenido, sin clavarse, cubierto) y uno
+    SATURADO (área diminuta → las piezas se clavan). El oráculo debe aprobar el 1º y reprobar el 2º.
+    Limpia los actores al final."""
+    _log("--- selftest: scatter ---")
+    libro = library.buscar(limit=1)
+    if not libro:
+        _log("biblioteca vacía — no hay StaticMesh bajo /Game")
+        return False
+    ruta = libro[0]["ruta"]
+
+    c_sano, s_sano, n = (0.0, 0.0), (500.0, 500.0), 9
+    sano = scatter.esparcir(ruta, c_sano, s_sano, n, seed=7, yaw_aleatorio=False)
+    r_sano = oracle_scatter.verificar(sano, c_sano, s_sano, n)
+    _log(oracle_scatter.verificar_texto(sano, c_sano, s_sano, n))
+
+    c_den, s_den = (100000.0, 0.0), (60.0, 60.0)   # lejos del sano; 120×120cm para 9 cubos de 100
+    denso = scatter.esparcir(ruta, c_den, s_den, n, seed=7, yaw_aleatorio=False)
+    r_den = oracle_scatter.verificar(denso, c_den, s_den, n)
+    _log(oracle_scatter.verificar_texto(denso, c_den, s_den, n))
+
+    actor_sub = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
+    for x in sano + denso:
+        actor_sub.destroy_actor(x)
+
+    ok = oracle_scatter.es_ok(r_sano) and bool(r_den["interpenetra"])
+    _log(f"scatter {'OK ✓' if ok else 'FALLÓ ✗'} "
+         f"(sano.ok={oracle_scatter.es_ok(r_sano)}, denso.interpenetra={len(r_den['interpenetra'])} pares)")
+    return ok
+
+
 def selftest() -> bool:
     """Prueba TODA la rebanada sin GUI. Headless: `-ExecCmds "py import jam.menu as m; m.selftest()"`."""
     _log("=== SELFTEST ===")
     ok_e = selftest_espacio()
     ok_c = selftest_colocar()
+    ok_s = selftest_scatter()
     _log(f"contexto: {contexto_editor()}")
-    ok = ok_e and ok_c
-    _log(f"SELFTEST {'OK ✓' if ok else 'FALLÓ ✗'} (espacio={ok_e}, colocar={ok_c})")
+    ok = ok_e and ok_c and ok_s
+    _log(f"SELFTEST {'OK ✓' if ok else 'FALLÓ ✗'} (espacio={ok_e}, colocar={ok_c}, scatter={ok_s})")
     return ok
