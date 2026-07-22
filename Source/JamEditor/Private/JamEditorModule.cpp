@@ -4,8 +4,10 @@
 #include "Framework/Application/SlateApplication.h"
 #include "Widgets/SWindow.h"
 #include "Widgets/SBoxPanel.h"
+#include "Widgets/SNullWidget.h"
 #include "Widgets/Layout/SWrapBox.h"
 #include "Widgets/Layout/SScrollBox.h"
+#include "Widgets/Layout/SBox.h"
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Input/SComboButton.h"
 #include "Widgets/Input/SEditableTextBox.h"
@@ -14,6 +16,11 @@
 #include "Framework/MultiBox/MultiBoxBuilder.h"
 #include "ToolMenus.h"
 #include "IPythonScriptPlugin.h"
+#include "AssetThumbnail.h"
+#include "AssetRegistry/AssetRegistryModule.h"
+#include "AssetRegistry/IAssetRegistry.h"
+#include "AssetRegistry/AssetData.h"
+#include "UObject/SoftObjectPath.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 #include "Dom/JsonObject.h"
@@ -79,6 +86,11 @@ void FJamEditorModule::OpenDashBar()
 
 	LoadSpec();
 
+	if (!ThumbnailPool.IsValid())
+	{
+		ThumbnailPool = MakeShareable(new FAssetThumbnailPool(64));
+	}
+
 	TSharedRef<SWindow> Win = SNew(SWindow)
 		.Title(LOCTEXT("DashTitle", "Jam — Dash Bar"))
 		.ClientSize(FVector2D(560.0f, 440.0f))
@@ -105,6 +117,11 @@ void FJamEditorModule::OnDashClosed(const TSharedRef<SWindow>& /*Window*/)
 	CmdBox.Reset();
 	OutputBox.Reset();
 	ParamFields.Empty();
+	AssetLabel.Reset();
+	ContentGrid.Reset();
+	ContentSearchBox.Reset();
+	ThumbnailsKeepAlive.Reset();
+	bContentOpen = false;
 }
 
 void FJamEditorModule::LoadSpec()
@@ -209,8 +226,24 @@ TSharedRef<SWidget> FJamEditorModule::BuildDashContent()
 	// Barra horizontal estilo Dash: un combo por categoría (Content/Place/Scatter/Create/Edit)
 	// + un buscador «Find Tools». Las categorías vacías se saltan.
 	TSharedRef<SHorizontalBox> Bar = SNew(SHorizontalBox);
+
+	// Content: botón que abre/cierra el navegador de assets con miniaturas.
+	Bar->AddSlot()
+		.AutoWidth()
+		.Padding(2.0f, 0.0f)
+		[
+			SNew(SButton)
+			.Text(LOCTEXT("Content", "Content"))
+			.ToolTipText(LOCTEXT("ContentTip", "Navegador de assets con miniaturas"))
+			.OnClicked_Lambda([this]() { ToggleContent(); return FReply::Handled(); })
+		];
+
 	for (const FString& Cat : Categories)
 	{
+		if (Cat == TEXT("Content"))
+		{
+			continue;  // Content ya está como botón propio (browser), no como combo de verbos
+		}
 		if (!CategoryHasTools(Cat))
 		{
 			continue;
@@ -251,6 +284,28 @@ TSharedRef<SWidget> FJamEditorModule::BuildDashContent()
 		.Padding(6.0f, 6.0f, 6.0f, 4.0f)
 		[
 			Bar
+		]
+
+		// Content browser (colapsable): grilla de miniaturas de assets.
+		+ SVerticalBox::Slot()
+		.AutoHeight()
+		.Padding(6.0f, 2.0f)
+		[
+			SNew(SBox)
+			.HeightOverride(250.0f)
+			.Visibility_Lambda([this]() { return bContentOpen ? EVisibility::Visible : EVisibility::Collapsed; })
+			[
+				BuildContentBrowser()
+			]
+		]
+
+		// Asset activo (lo elegido en Content alimenta las herramientas).
+		+ SVerticalBox::Slot()
+		.AutoHeight()
+		.Padding(6.0f, 2.0f)
+		[
+			SAssignNew(AssetLabel, STextBlock)
+			.Text(LOCTEXT("NoAsset", "Asset: (elegí uno en Content)"))
 		]
 
 		// Params vivos del tool activo (se reconstruyen al elegir sección).
@@ -352,6 +407,148 @@ void FJamEditorModule::FindAndSelectTool(const FString& Query)
 	}
 }
 
+TSharedRef<SWidget> FJamEditorModule::BuildContentBrowser()
+{
+	return SNew(SVerticalBox)
+		+ SVerticalBox::Slot()
+		.AutoHeight()
+		.Padding(0.0f, 0.0f, 0.0f, 4.0f)
+		[
+			SAssignNew(ContentSearchBox, SEditableTextBox)
+			.HintText(LOCTEXT("SearchAssets", "buscar assets…"))
+			.OnTextCommitted_Lambda([this](const FText& Text, ETextCommit::Type Type)
+			{
+				if (Type == ETextCommit::OnEnter)
+				{
+					PopulateContent(Text.ToString());
+				}
+			})
+		]
+		+ SVerticalBox::Slot()
+		.FillHeight(1.0f)
+		[
+			SNew(SScrollBox)
+			+ SScrollBox::Slot()
+			[
+				SAssignNew(ContentGrid, SWrapBox).UseAllottedSize(true)
+			]
+		];
+}
+
+void FJamEditorModule::ToggleContent()
+{
+	bContentOpen = !bContentOpen;
+	if (bContentOpen)
+	{
+		const FString Query = ContentSearchBox.IsValid() ? ContentSearchBox->GetText().ToString() : FString();
+		PopulateContent(Query);
+	}
+}
+
+void FJamEditorModule::PopulateContent(const FString& Query)
+{
+	if (!ContentGrid.IsValid())
+	{
+		return;
+	}
+	ContentGrid->ClearChildren();
+	ThumbnailsKeepAlive.Reset();
+
+	const FString Stmt = FString::Printf(
+		TEXT("import jam.library as _l; print('JAMASSETS:' + _l.buscar_json(%s))"), *ToPyStr(Query));
+	const FString Raw = ExecPythonCapture(Stmt);
+
+	const FString Marker(TEXT("JAMASSETS:"));
+	const int32 M = Raw.Find(Marker);
+	if (M == INDEX_NONE)
+	{
+		return;
+	}
+	FString Json = Raw.Mid(M + Marker.Len());
+	Json.TrimStartAndEndInline();
+
+	TArray<TSharedPtr<FJsonValue>> Arr;
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Json);
+	if (!FJsonSerializer::Deserialize(Reader, Arr))
+	{
+		return;
+	}
+	for (const TSharedPtr<FJsonValue>& V : Arr)
+	{
+		const TSharedPtr<FJsonObject> O = V->AsObject();
+		if (!O.IsValid())
+		{
+			continue;
+		}
+		const FString Nombre = O->GetStringField(TEXT("nombre"));
+		const FString Ruta = O->GetStringField(TEXT("ruta"));
+		ContentGrid->AddSlot().Padding(4.0f)
+		[
+			MakeAssetTile(Nombre, Ruta)
+		];
+	}
+}
+
+TSharedRef<SWidget> FJamEditorModule::MakeAssetTile(const FString& Name, const FString& Path)
+{
+	TSharedRef<SWidget> ThumbWidget = SNullWidget::NullWidget;
+
+	FAssetRegistryModule& ARM = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+	const FAssetData Data = ARM.Get().GetAssetByObjectPath(FSoftObjectPath(Path));
+	if (Data.IsValid() && ThumbnailPool.IsValid())
+	{
+		TSharedPtr<FAssetThumbnail> Thumb = MakeShareable(new FAssetThumbnail(Data, 88, 88, ThumbnailPool));
+		ThumbnailsKeepAlive.Add(Thumb);
+		FAssetThumbnailConfig Cfg;
+		Cfg.bAllowFadeIn = true;
+		ThumbWidget = Thumb->MakeThumbnailWidget(Cfg);
+	}
+
+	return SNew(SBox)
+		.WidthOverride(108.0f)
+		[
+			SNew(SButton)
+			.OnClicked_Lambda([this, Name, Path]() { SelectAsset(Name, Path); return FReply::Handled(); })
+			// Resalte de alto contraste cuando está elegido (azul); si no, gris oscuro.
+			.ButtonColorAndOpacity_Lambda([this, Name]()
+			{
+				return SelectedAssetName == Name
+					? FLinearColor(0.12f, 0.5f, 1.0f, 1.0f)
+					: FLinearColor(0.09f, 0.09f, 0.1f, 1.0f);
+			})
+			[
+				SNew(SVerticalBox)
+				+ SVerticalBox::Slot()
+				.AutoHeight()
+				.HAlign(HAlign_Center)
+				[
+					SNew(SBox).WidthOverride(88.0f).HeightOverride(88.0f)[ ThumbWidget ]
+				]
+				+ SVerticalBox::Slot()
+				.AutoHeight()
+				.HAlign(HAlign_Center)
+				.Padding(0.0f, 2.0f, 0.0f, 0.0f)
+				[
+					SNew(STextBlock)
+					.Text(FText::FromString(Name))
+					.Justification(ETextJustify::Center)
+					.AutoWrapText(true)
+				]
+			]
+		];
+}
+
+void FJamEditorModule::SelectAsset(const FString& Name, const FString& Path)
+{
+	SelectedAssetName = Name;
+	SelectedAssetPath = Path;
+	if (AssetLabel.IsValid())
+	{
+		AssetLabel->SetText(FText::FromString(FString::Printf(TEXT("Asset: %s"), *Name)));
+	}
+	ComposeCommandFromParams();  // que el comando incluya asset=…
+}
+
 void FJamEditorModule::RebuildParams()
 {
 	ParamFields.Empty();
@@ -423,6 +620,10 @@ void FJamEditorModule::ComposeCommandFromParams()
 				}
 			}
 		}
+	}
+	if (!SelectedAssetName.IsEmpty())
+	{
+		Cmd += FString::Printf(TEXT(" asset=%s"), *SelectedAssetName);
 	}
 	CmdBox->SetText(FText::FromString(Cmd));
 }

@@ -34,6 +34,12 @@ def buscar(query: str = "", *, limit: int = 25, raiz: str = "/Game") -> list[dic
     return out[:limit]
 
 
+def buscar_json(query: str = "", *, limit: int = 60) -> str:
+    """Los resultados de `buscar` como JSON, para el Content browser en C++ (Dash Bar)."""
+    import json
+    return json.dumps(buscar(query, limit=limit), ensure_ascii=True)
+
+
 def cargar_malla(ruta: str) -> unreal.StaticMesh | None:
     """Carga el StaticMesh por su ObjectPath. None si no existe."""
     obj = unreal.load_asset(ruta)

@@ -8,8 +8,12 @@
 class SWindow;
 class SWidget;
 class SVerticalBox;
+class SWrapBox;
 class SEditableTextBox;
 class SMultiLineEditableTextBox;
+class STextBlock;
+class FAssetThumbnail;
+class FAssetThumbnailPool;
 
 /** Una herramienta de Jam vista desde la UI: verbo + doc + params (nombre → default). */
 struct FJamTool
@@ -49,6 +53,13 @@ private:
 	const FJamTool* FindTool(const FString& Verb) const;
 	bool CategoryHasTools(const FString& Category) const;
 
+	// Content browser (miniaturas de assets).
+	TSharedRef<SWidget> BuildContentBrowser();
+	void ToggleContent();
+	void PopulateContent(const FString& Query);
+	TSharedRef<SWidget> MakeAssetTile(const FString& Name, const FString& Path);
+	void SelectAsset(const FString& Name, const FString& Path);
+
 	/** Corre un statement de Python y devuelve lo capturado por LogOutput (stdout/log). */
 	FString ExecPythonCapture(const FString& Statement);
 	/** Manda una línea de DSL a `jam.panel.ejecutar_dsl` y vuelca el veredicto en la salida. */
@@ -69,4 +80,14 @@ private:
 	TSharedPtr<SEditableTextBox> SearchBox;
 	TSharedPtr<SMultiLineEditableTextBox> OutputBox;
 	TMap<FString, TSharedPtr<SEditableTextBox>> ParamFields;
+
+	// Content browser.
+	bool bContentOpen = false;
+	FString SelectedAssetName;
+	FString SelectedAssetPath;
+	TSharedPtr<STextBlock> AssetLabel;
+	TSharedPtr<SWrapBox> ContentGrid;
+	TSharedPtr<SEditableTextBox> ContentSearchBox;
+	TSharedPtr<FAssetThumbnailPool> ThumbnailPool;
+	TArray<TSharedPtr<FAssetThumbnail>> ThumbnailsKeepAlive;
 };

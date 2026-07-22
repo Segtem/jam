@@ -23,6 +23,7 @@ public class JamEditor : ModuleRules
 			"InputCore",
 			"Projects",
 			"Json",
+			"AssetRegistry",
 			"PythonScriptPlugin",
 		});
 	}
