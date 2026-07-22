@@ -218,7 +218,11 @@ void SJamGraphEditor::OnPinClicked(const FString& Id, bool bOutput)
 	// clic en una entrada: cierra la conexión si hay una salida armada
 	if (!PendingSource.IsEmpty() && PendingSource != Id)
 	{
-		Edges.Add(TPair<FString, FString>(PendingSource, Id));
+		const TPair<FString, FString> Wire(PendingSource, Id);
+		if (!Edges.Contains(Wire))   // sin duplicar
+		{
+			Edges.Add(Wire);
+		}
 		if (Output.IsValid())
 		{
 			Output->SetText(FText::FromString(FString::Printf(TEXT("wire: %s → %s"), *PendingSource, *Id)));

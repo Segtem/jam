@@ -126,7 +126,11 @@ FReply SJamGraphNode::OnMouseMove(const FGeometry& MyGeometry, const FPointerEve
 {
 	if (bDragging && HasMouseCapture())
 	{
-		OnDragDelta.ExecuteIfBound(MouseEvent.GetCursorDelta());
+		// El delta del cursor viene en píxeles de pantalla; el modelo está en unidades locales del
+		// canvas → dividir por la escala de layout (DPI) para que el nodo siga al mouse 1:1.
+		const float S = MyGeometry.GetAccumulatedLayoutTransform().GetScale();
+		const FVector2D Delta = MouseEvent.GetCursorDelta() / (S > 0.0f ? S : 1.0f);
+		OnDragDelta.ExecuteIfBound(Delta);
 		return FReply::Handled();
 	}
 	return FReply::Unhandled();
