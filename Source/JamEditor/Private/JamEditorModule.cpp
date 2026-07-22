@@ -110,7 +110,7 @@ void FJamEditorModule::OpenGraph()
 FString FJamEditorModule::RunGraphJson(const FString& Json)
 {
 	const FString Stmt = FString::Printf(
-		TEXT("import jam.panel as _p; print(_p.ejecutar_grafo(%s, None))"), *ToPyStr(Json));
+		TEXT("import jam.api as _a; print(_a.run_graph(%s))"), *ToPyStr(Json));
 	return ExecPythonCapture(Stmt);
 }
 
@@ -168,7 +168,7 @@ void FJamEditorModule::LoadSpec()
 	Tools.Reset();
 	Categories.Reset();
 	const FString Raw = ExecPythonCapture(
-		TEXT("import jam.tools as _t; print('JAMSPEC:' + _t.spec_json())"));
+		TEXT("import jam.api as _a; print('JAMSPEC:' + _a.spec())"));
 
 	const FString Marker(TEXT("JAMSPEC:"));
 	const int32 M = Raw.Find(Marker);
@@ -489,7 +489,7 @@ void FJamEditorModule::PopulateContent(const FString& Query)
 	ThumbnailsKeepAlive.Reset();
 
 	const FString Stmt = FString::Printf(
-		TEXT("import jam.library as _l; print('JAMASSETS:' + _l.buscar_json(%s))"), *ToPyStr(Query));
+		TEXT("import jam.api as _a; print('JAMASSETS:' + _a.assets(%s))"), *ToPyStr(Query));
 	const FString Raw = ExecPythonCapture(Stmt);
 
 	const FString Marker(TEXT("JAMASSETS:"));
@@ -718,7 +718,7 @@ FString FJamEditorModule::ExecPythonCapture(const FString& Statement)
 void FJamEditorModule::RunCommand(const FString& Command)
 {
 	const FString Statement = FString::Printf(
-		TEXT("import jam.panel as _p; print(_p.ejecutar_dsl(%s, None))"), *ToPyStr(Command));
+		TEXT("import jam.api as _a; print(_a.run(%s))"), *ToPyStr(Command));
 
 	FString Out = ExecPythonCapture(Statement);
 	if (Out.IsEmpty())
