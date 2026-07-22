@@ -26,6 +26,7 @@
 #include "Serialization/JsonSerializer.h"
 #include "Dom/JsonObject.h"
 #include "Dom/JsonValue.h"
+#include "HAL/PlatformProcess.h"
 
 #define LOCTEXT_NAMESPACE "JamEditor"
 
@@ -81,6 +82,19 @@ void FJamEditorModule::RegisterMenus()
 		LOCTEXT("OpenJamGraphTip", "Editor de nodos: cada nodo es un comando; correr = orden topológico + oráculo"),
 		FSlateIcon(),
 		FUIAction(FExecuteAction::CreateRaw(this, &FJamEditorModule::OpenGraph)));
+	Section.AddMenuEntry(
+		"OpenJamWeb",
+		LOCTEXT("OpenJamWeb", "Jam: abrir web"),
+		LOCTEXT("OpenJamWebTip", "Arranca el server web de Jam y lo abre en el navegador (http://127.0.0.1:8790)"),
+		FSlateIcon(),
+		FUIAction(FExecuteAction::CreateRaw(this, &FJamEditorModule::OpenWebUI)));
+}
+
+void FJamEditorModule::OpenWebUI()
+{
+	// Arranca el server HTTP dentro del editor (idempotente) y abre el navegador por defecto.
+	ExecPythonCapture(TEXT("import jam.web; jam.web.iniciar()"));
+	FPlatformProcess::LaunchURL(TEXT("http://127.0.0.1:8790"), nullptr, nullptr);
 }
 
 void FJamEditorModule::OpenGraph()

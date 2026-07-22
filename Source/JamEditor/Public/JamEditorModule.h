@@ -43,6 +43,7 @@ private:
 	void OpenDashBar();
 	void OnDashClosed(const TSharedRef<SWindow>& Window);
 	void OpenGraph();
+	void OpenWebUI();
 	/** Corre un JamGraph (JSON) vía Python (jam.panel.ejecutar_grafo) y devuelve el reporte. */
 	FString RunGraphJson(const FString& Json);
 
