@@ -1,0 +1,28 @@
+// Módulo de editor del plugin Jam: tab Slate nativo (consola DSL) que llama al Python de Jam.
+using UnrealBuildTool;
+
+public class JamEditor : ModuleRules
+{
+	public JamEditor(ReadOnlyTargetRules Target) : base(Target)
+	{
+		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+
+		PublicDependencyModuleNames.AddRange(new string[]
+		{
+			"Core",
+		});
+
+		PrivateDependencyModuleNames.AddRange(new string[]
+		{
+			"CoreUObject",
+			"Engine",
+			"Slate",
+			"SlateCore",
+			"UnrealEd",
+			"ToolMenus",
+			"InputCore",
+			"Projects",
+			"PythonScriptPlugin",
+		});
+	}
+}

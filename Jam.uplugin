@@ -10,6 +10,13 @@
 	"CanContainContent": true,
 	"IsBetaVersion": true,
 	"Installed": false,
+	"Modules": [
+		{
+			"Name": "JamEditor",
+			"Type": "Editor",
+			"LoadingPhase": "PostEngineInit"
+		}
+	],
 	"Plugins": [
 		{ "Name": "PythonScriptPlugin", "Enabled": true }
 	]
