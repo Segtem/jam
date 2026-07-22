@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import unreal
 
-from . import preset
+from . import library, preset
 
 RUTA_DIR = "/Jam/UI"
 RUTA_BP = "/Jam/UI/WBP_JamPanel"
@@ -118,7 +118,7 @@ def _poblar_assets(widget) -> int:
 
 def _asset_elegido(widget) -> str | None:
     """ObjectPath del asset elegido en cmb_asset; si no hay picker/selección, el primero de la biblioteca."""
-    cmb = widget.find_child_widget_by_name("cmb_asset")
+    cmb = widget.find_child_widget_by_name("cmb_asset") if widget is not None else None
     if cmb is not None:
         try:
             etiqueta = str(cmb.get_selected_option()).strip()
@@ -230,77 +230,113 @@ def _h_buscar(widget) -> str:
     return f"Content Browser: {n} StaticMesh para {detalle}. Elegí uno y usá cualquier herramienta."
 
 
-# ---- handlers param-aware (leen campos + asset del widget; defaults = los de las demos) ----
+# ---- handlers param-aware: leen campos del widget y DELEGAN en jam.tools (única fuente de verdad) ----
 
 def _h_colocar(widget) -> str:
-    from . import oracle_placement, place
+    from . import tools
     asset = _asset_elegido(widget)
     if not asset:
         return "biblioteca vacía"
-    actor = place.colocar(asset, (0.0, 0.0, 0.0))
-    if actor is None:
-        return f"no se pudo colocar {_nombre_corto(asset)}"
-    otros = unreal.get_editor_subsystem(unreal.EditorActorSubsystem).get_all_level_actors()
-    return oracle_placement.verificar_texto(actor, otros)
+    return tools.t_colocar(asset)
 
 
 def _h_scatter(widget) -> str:
-    from . import oracle_scatter, scatter
+    from . import tools
     asset = _asset_elegido(widget)
     if not asset:
         return "biblioteca vacía"
-    cant = int(_num(widget, "in_cantidad", 9))
-    area = _num(widget, "in_area", 500.0)
-    seed = int(_num(widget, "in_seed", 7))
-    centro, semi = (0.0, 0.0), (area, area)
-    actores = scatter.esparcir(asset, centro, semi, cant, seed=seed)
-    return oracle_scatter.verificar_texto(actores, centro, semi, cant)
+    return tools.t_scatter(asset,
+                           cantidad=int(_num(widget, "in_cantidad", 9)),
+                           area=_num(widget, "in_area", 500.0),
+                           seed=int(_num(widget, "in_seed", 7)))
 
 
 def _h_soltar(widget) -> str:
-    from . import oracle_physics, physics, place
+    from . import tools
     asset = _asset_elegido(widget)
     if not asset:
         return "biblioteca vacía"
-    # Cae sobre la geometría REAL del nivel (piso/landscape), sin fabricar un suelo.
-    caja = place.colocar(asset, (0.0, 0.0, 800.0))  # a plomo desde 8 m
-    r = physics.soltar(caja)                          # soportes=None → todos los actores del nivel
-    return f"cae {r['caida']}cm → " + oracle_physics.verificar_texto(caja)
+    return tools.t_soltar(asset)
 
 
 def _h_grilla(widget) -> str:
-    from . import oracle_snap, place, snap
+    from . import tools
     asset = _asset_elegido(widget)
     if not asset:
         return "biblioteca vacía"
-    grilla = _num(widget, "in_grilla", 100.0)
-    caja = place.colocar(asset, (137.4, 62.9, 11.1), (0.0, 0.0, 37.0))
-    snap.a_grilla(caja, grilla)
-    return oracle_snap.texto_grilla(caja, grilla)
+    return tools.t_grilla(asset, grilla=_num(widget, "in_grilla", 100.0))
 
 
 def _h_reemplazar(widget) -> str:
-    from . import oracle_reemplazo, place, reemplazar
+    from . import tools
     asset = _asset_elegido(widget)
     if not asset:
         return "biblioteca vacía"
-    blockout = place.colocar(asset, (0.0, 0.0, 150.0), scale=(2.0, 2.0, 3.0))
-    blockout.set_actor_label("Jam_blockout")
-    nuevo, objetivo = reemplazar.reemplazar(blockout, asset, ajustar_escala=True)
-    return oracle_reemplazo.verificar_texto(nuevo, objetivo)
+    return tools.t_reemplazar(asset)
 
 
 def _h_pared(widget) -> str:
-    from . import oracle_pared, pared
+    from . import tools
     asset = _asset_elegido(widget)
     if not asset:
         return "biblioteca vacía"
-    actor = pared.seleccionado_con_spline() or pared.crear_spline()
-    build = pared.construir(actor, asset,
-                            alto=_num(widget, "in_alto", 300.0),
-                            espesor=_num(widget, "in_espesor", 40.0),
-                            largo_segmento=_num(widget, "in_largo_seg", 200.0))
-    return oracle_pared.verificar_texto(build)
+    return tools.t_pared(asset,
+                         alto=_num(widget, "in_alto", 300.0),
+                         espesor=_num(widget, "in_espesor", 40.0),
+                         largo_seg=_num(widget, "in_largo_seg", 200.0))
+
+
+# ---- Consola DSL (interfaz que escala sin widgets: cada capacidad es un verbo, no un botón) ----
+
+def _resolver_asset(nombre, widget) -> str | None:
+    """asset del comando (por nombre) → si no, el elegido en el picker → si no, el 1º de la biblioteca."""
+    if nombre:
+        hits = library.buscar(nombre, limit=1)
+        if hits:
+            return hits[0]["ruta"]
+        return None  # pidió un asset por nombre y no existe: que el llamador lo reporte
+    return _asset_elegido(widget)
+
+
+def ejecutar_dsl(linea: str, widget=None) -> str:
+    """Corre una línea de DSL. Los verbos de spawn pasan por el MISMO preview del panel
+    (Confirmar/Descartar los resuelven). Devuelve el texto para txt_veredicto."""
+    from . import dsl, menu, tools
+    r = dsl.parsear(linea)
+    verbo = r["verbo"]
+    if not verbo:
+        return "escribí un comando. «help» lista los verbos."
+    if verbo in ("help", "?", "ayuda"):
+        return dsl.ayuda()
+    if verbo in ("confirmar", "fijar", "ok"):
+        return _h_confirmar(widget)
+    if verbo in ("descartar", "cancelar", "borrar"):
+        return _h_descartar(widget)
+    if verbo in ("verificar", "oraculo", "oráculo"):
+        return menu.on_verificar_espacio()
+    if verbo in ("buscar", "listar"):
+        hits = library.buscar(r["asset"] or "", limit=15)
+        if not hits:
+            return f"sin resultados para «{r['asset'] or ''}»."
+        nombres = ", ".join(h["nombre"] for h in hits)
+        return f"{len(hits)} assets: {nombres}"
+    if verbo in tools.REGISTRO:
+        if r["asset"] and _resolver_asset(r["asset"], widget) is None:
+            return f"asset «{r['asset']}» no encontrado en la biblioteca."
+        asset = _resolver_asset(r["asset"], widget)
+        if not asset:
+            return "biblioteca vacía (no hay assets que colocar)."
+        kw, desconocidos = dsl.coaccionar(verbo, r["params"])
+        fn = tools.REGISTRO[verbo]["fn"]
+        cuerpo = _preview(lambda _w: fn(asset, **kw), widget)
+        if desconocidos:
+            cuerpo += f"\n(ignoré params desconocidos: {', '.join(desconocidos)})"
+        return cuerpo
+    return f"verbo desconocido: «{verbo}». «help» lista los verbos."
+
+
+def _h_consola(widget) -> str:
+    return ejecutar_dsl(_texto(widget, "in_cmd", ""), widget)
 
 
 def _mapa_handlers() -> dict:
@@ -474,13 +510,53 @@ def _cablear(widget) -> int:
     # Live-on-Enter: al confirmar un campo de params con Enter, re-previsualiza la última herramienta
     n_live = _cablear_live(widget, _relive)
 
+    # Consola DSL: una caja de comando (in_cmd) que escala sin widgets. Enter = ejecutar la línea.
+    consola = _cablear_consola(widget, txt)
+
     if txt is not None:
-        txt.set_text(f"Jam · {n} herramientas · {n_presets} presets · {n_assets} assets — "
-                     "elegí un asset y una herramienta, y mirá el veredicto.")
+        txt.set_text(f"Jam · {n} herramientas · {n_presets} presets · {n_assets} assets"
+                     + (" · consola DSL lista (escribí «help»)" if consola else "")
+                     + " — elegí un asset y una herramienta, y mirá el veredicto.")
     unreal.log(f"[Jam] panel: {n} botones cableados, {n_presets} presets, {n_assets} assets, "
-               f"{n_live} campos live"
+               f"{n_live} campos live, consola={'sí' if consola else 'no'}"
                + ("" if txt is not None else " (falta el TextBlock txt_veredicto)"))
     return n
+
+
+def _cablear_consola(widget, txt) -> bool:
+    """Engancha la caja de comando `in_cmd` (Enter ejecuta la línea DSL) y, si existe, `btn_run`.
+    Devuelve True si había una consola en el layout. Reusa el preview/confirmar/descartar del panel."""
+    caja = widget.find_child_widget_by_name("in_cmd")
+    boton = widget.find_child_widget_by_name("btn_run")
+    if caja is None and boton is None:
+        return False
+
+    def _correr_consola():
+        try:
+            cuerpo = _h_consola(widget)
+        except Exception as e:  # noqa: BLE001
+            cuerpo = f"[error] {type(e).__name__}: {e}"
+        if txt is not None:
+            txt.set_text(cuerpo)
+
+    if caja is not None and isinstance(caja, unreal.EditableTextBox):
+        def _on_commit(text, commit_method):
+            if commit_method == unreal.TextCommit.ON_ENTER:
+                _correr_consola()
+        _HANDLERS.append(_on_commit)
+        try:
+            caja.on_text_committed.add_callable(_on_commit)
+        except Exception as e:  # noqa: BLE001
+            unreal.log_error(f"[Jam] panel: no pude cablear in_cmd: {e}")
+    if boton is not None:
+        def _on_click():
+            _correr_consola()
+        _HANDLERS.append(_on_click)
+        try:
+            boton.on_clicked.add_callable(_on_click)
+        except Exception as e:  # noqa: BLE001
+            unreal.log_error(f"[Jam] panel: no pude cablear btn_run: {e}")
+    return True
 
 
 def abrir():
