@@ -42,6 +42,14 @@ _ASSET_MAP: dict[str, str] = {}
 _PREVIEW: list = []
 _TAG_PREVIEW = "jam:preview"
 
+# Live-on-Enter: última herramienta que pasó por preview. Al apretar Enter en un campo de params
+# se re-previsualiza ESA herramienta con los valores nuevos (descartando el preview anterior).
+_ULTIMA: dict = {"fn": None}
+
+# Campos de params que, al confirmarse con Enter, re-disparan el preview de la última herramienta.
+_CAMPOS_LIVE = {"in_cantidad", "in_area", "in_seed", "in_alto", "in_espesor",
+                "in_largo_seg", "in_grilla"}
+
 
 # ---- lectura de campos de parámetros (defensiva: campo ausente/ilegible → default) ----
 
@@ -360,6 +368,40 @@ def crear_asset_panel():
     return bp
 
 
+def _cablear_live(widget, relive) -> int:
+    """Live-on-Enter: engancha los campos de params para que, al confirmar con Enter (EditableTextBox)
+    o al soltar el valor (SpinBox), se re-dispare `relive()` (re-preview de la última herramienta).
+    Los handlers se guardan en `_HANDLERS` para que el GC no mate los delegates."""
+    n = 0
+    for name in _CAMPOS_LIVE:
+        c = widget.find_child_widget_by_name(name)
+        if c is None:
+            continue
+        try:
+            if isinstance(c, unreal.EditableTextBox):
+                def _mk_texto(cb):
+                    def _on_commit(text, commit_method):
+                        if commit_method == unreal.TextCommit.ON_ENTER:  # sólo Enter, no perder foco
+                            cb()
+                    return _on_commit
+                h = _mk_texto(relive)
+                _HANDLERS.append(h)
+                c.on_text_committed.add_callable(h)
+                n += 1
+            elif isinstance(c, unreal.SpinBox):
+                def _mk_valor(cb):
+                    def _on_value(value):
+                        cb()
+                    return _on_value
+                h = _mk_valor(relive)
+                _HANDLERS.append(h)
+                c.on_value_committed.add_callable(h)
+                n += 1
+        except Exception as e:  # noqa: BLE001
+            unreal.log_error(f"[Jam] panel: no pude cablear live «{name}»: {e}")
+    return n
+
+
 def _cablear(widget) -> int:
     """Cablea botones + preset library + picker de assets, mandando cada veredicto a txt_veredicto."""
     txt = widget.find_child_widget_by_name("txt_veredicto")
@@ -370,7 +412,11 @@ def _cablear(widget) -> int:
         def handler():
             menu._SILENCIAR_DIALOGO = True
             try:
-                cuerpo = _preview(fn, widget) if previa else fn(widget)
+                if previa:
+                    _ULTIMA["fn"] = fn  # recordar para el live-on-Enter
+                    cuerpo = _preview(fn, widget)
+                else:
+                    cuerpo = fn(widget)
             except Exception as e:  # noqa: BLE001
                 cuerpo = f"[error] {type(e).__name__}: {e}"
             finally:
@@ -378,6 +424,22 @@ def _cablear(widget) -> int:
             if txt is not None:
                 txt.set_text(cuerpo)
         return handler
+
+    def _relive():
+        """Re-previsualiza la última herramienta con los valores actuales de los campos (Enter)."""
+        from . import menu
+        fn = _ULTIMA["fn"]
+        if fn is None:
+            return
+        menu._SILENCIAR_DIALOGO = True
+        try:
+            cuerpo = _preview(fn, widget)
+        except Exception as e:  # noqa: BLE001
+            cuerpo = f"[error] {type(e).__name__}: {e}"
+        finally:
+            menu._SILENCIAR_DIALOGO = False
+        if txt is not None:
+            txt.set_text(cuerpo)
 
     _limpiar_huerfanos()  # restos de previews no resueltas de sesiones anteriores
     _PREVIEW.clear()
@@ -409,10 +471,14 @@ def _cablear(widget) -> int:
     # Content Browser: poblar el picker con todo el proyecto de arranque
     n_assets = _poblar_assets(widget)
 
+    # Live-on-Enter: al confirmar un campo de params con Enter, re-previsualiza la última herramienta
+    n_live = _cablear_live(widget, _relive)
+
     if txt is not None:
         txt.set_text(f"Jam · {n} herramientas · {n_presets} presets · {n_assets} assets — "
                      "elegí un asset y una herramienta, y mirá el veredicto.")
-    unreal.log(f"[Jam] panel: {n} botones cableados, {n_presets} presets, {n_assets} assets"
+    unreal.log(f"[Jam] panel: {n} botones cableados, {n_presets} presets, {n_assets} assets, "
+               f"{n_live} campos live"
                + ("" if txt is not None else " (falta el TextBlock txt_veredicto)"))
     return n
 
