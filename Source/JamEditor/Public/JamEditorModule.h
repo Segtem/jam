@@ -62,8 +62,10 @@ private:
 
 	/** Corre un statement de Python y devuelve lo capturado por LogOutput (stdout/log). */
 	FString ExecPythonCapture(const FString& Statement);
-	/** Manda una línea de DSL a `jam.panel.ejecutar_dsl` y vuelca el veredicto en la salida. */
+	/** Manda una línea de DSL a `jam.panel.ejecutar_dsl` y agrega comando + veredicto al log. */
 	void RunCommand(const FString& Command);
+	/** Agrega «> comando» + resultado al log acumulativo (estilo Rhino) y hace autoscroll. */
+	void AppendLog(const FString& Command, const FString& Result);
 
 	FReply OnPreviewClicked();
 	FReply OnConfirmarClicked();
@@ -73,6 +75,7 @@ private:
 	TArray<FJamTool> Tools;
 	TArray<FString> Categories;
 	FString ActiveVerb;
+	FString LogText;
 
 	TSharedPtr<SWindow> DashWindow;
 	TSharedPtr<SVerticalBox> ParamsBox;

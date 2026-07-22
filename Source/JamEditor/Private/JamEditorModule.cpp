@@ -122,6 +122,7 @@ void FJamEditorModule::OnDashClosed(const TSharedRef<SWindow>& /*Window*/)
 	ContentSearchBox.Reset();
 	ThumbnailsKeepAlive.Reset();
 	bContentOpen = false;
+	LogText.Empty();
 }
 
 void FJamEditorModule::LoadSpec()
@@ -316,31 +317,18 @@ TSharedRef<SWidget> FJamEditorModule::BuildDashContent()
 			SAssignNew(ParamsBox, SVerticalBox)
 		]
 
-		// Línea de comando (CLI) = fuente de verdad + Preview.
+		// OUTPUT LOG (estilo Rhino): historia acumulativa de comandos + veredictos. Ocupa el grueso.
 		+ SVerticalBox::Slot()
-		.AutoHeight()
-		.Padding(6.0f, 4.0f)
+		.FillHeight(1.0f)
+		.Padding(6.0f, 2.0f)
 		[
-			SNew(SHorizontalBox)
-			+ SHorizontalBox::Slot()
-			.FillWidth(1.0f)
-			.VAlign(VAlign_Center)
-			[
-				SAssignNew(CmdBox, SEditableTextBox)
-				.HintText(LOCTEXT("CmdHint", "comando Jam — o editá los params de arriba"))
-				.OnTextCommitted_Raw(this, &FJamEditorModule::OnCmdCommitted)
-			]
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.Padding(4.0f, 0.0f, 0.0f, 0.0f)
-			[
-				SNew(SButton)
-				.Text(LOCTEXT("Preview", "Preview"))
-				.OnClicked_Raw(this, &FJamEditorModule::OnPreviewClicked)
-			]
+			SAssignNew(OutputBox, SMultiLineEditableTextBox)
+			.IsReadOnly(true)
+			.AllowMultiLine(true)
+			.Text(LOCTEXT("Welcome", "Jam — todo es un comando. Elegí una herramienta y Enter, o escribí «help» abajo."))
 		]
 
-		// Acciones del preview.
+		// Acciones del preview (también son comandos: se loguean como «> confirmar/descartar»).
 		+ SVerticalBox::Slot()
 		.AutoHeight()
 		.Padding(6.0f, 2.0f)
@@ -363,18 +351,26 @@ TSharedRef<SWidget> FJamEditorModule::BuildDashContent()
 			]
 		]
 
-		// Salida: veredicto del oráculo.
+		// BARRA DE COMANDOS ABAJO (estilo Rhino: «Command:» + input, Enter ejecuta).
 		+ SVerticalBox::Slot()
-		.FillHeight(1.0f)
+		.AutoHeight()
 		.Padding(6.0f, 2.0f, 6.0f, 6.0f)
 		[
-			SNew(SScrollBox)
-			+ SScrollBox::Slot()
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.VAlign(VAlign_Center)
+			.Padding(0.0f, 0.0f, 6.0f, 0.0f)
 			[
-				SAssignNew(OutputBox, SMultiLineEditableTextBox)
-				.IsReadOnly(true)
-				.AllowMultiLine(true)
-				.Text(LOCTEXT("Welcome", "Elegí una herramienta arriba, ajustá params y Preview. También podés escribir el comando directo y Enter («help»)."))
+				SNew(STextBlock).Text(LOCTEXT("CommandPrompt", "Command:"))
+			]
+			+ SHorizontalBox::Slot()
+			.FillWidth(1.0f)
+			.VAlign(VAlign_Center)
+			[
+				SAssignNew(CmdBox, SEditableTextBox)
+				.HintText(LOCTEXT("CmdHint", "escribí un comando (o elegí una herramienta arriba) y Enter"))
+				.OnTextCommitted_Raw(this, &FJamEditorModule::OnCmdCommitted)
 			]
 		];
 }
@@ -691,9 +687,21 @@ void FJamEditorModule::RunCommand(const FString& Command)
 	{
 		Out = TEXT("(sin salida)");
 	}
+	AppendLog(Command.TrimStartAndEnd(), Out);
+}
+
+void FJamEditorModule::AppendLog(const FString& Command, const FString& Result)
+{
+	if (!Command.IsEmpty())
+	{
+		LogText += FString::Printf(TEXT("> %s\n"), *Command);
+	}
+	LogText += Result;
+	LogText += TEXT("\n\n");
 	if (OutputBox.IsValid())
 	{
-		OutputBox->SetText(FText::FromString(Out));
+		OutputBox->SetText(FText::FromString(LogText));
+		OutputBox->ScrollTo(ETextLocation::EndOfDocument);
 	}
 }
 
