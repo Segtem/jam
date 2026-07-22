@@ -328,7 +328,7 @@ TSharedRef<SWidget> FJamEditorModule::BuildDashContent()
 			.Text(LOCTEXT("Welcome", "Jam — todo es un comando. Elegí una herramienta y Enter, o escribí «help» abajo."))
 		]
 
-		// Acciones del preview (también son comandos: se loguean como «> confirmar/descartar»).
+		// Acciones del preview (también son comandos: se loguean como «> confirm/discard»).
 		+ SVerticalBox::Slot()
 		.AutoHeight()
 		.Padding(6.0f, 2.0f)
@@ -635,13 +635,13 @@ FReply FJamEditorModule::OnPreviewClicked()
 
 FReply FJamEditorModule::OnConfirmarClicked()
 {
-	RunCommand(TEXT("confirmar"));
+	RunCommand(TEXT("confirm"));
 	return FReply::Handled();
 }
 
 FReply FJamEditorModule::OnDescartarClicked()
 {
-	RunCommand(TEXT("descartar"));
+	RunCommand(TEXT("discard"));
 	return FReply::Handled();
 }
 

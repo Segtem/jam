@@ -1,13 +1,14 @@
 """DSL de Jam — una línea de texto = una herramienta con params. El norte del proyecto: lenguaje
 para crear, oráculo para verificar.
 
-    scatter asset=SM_Rock cantidad=20 area=650 seed=7
-    soltar SM_Barrel
-    spline alto=350 espesor=30
-    verificar | confirmar | descartar | buscar muro | help
+    scatter asset=SM_Rock count=20 area=650 seed=7
+    drop SM_Barrel
+    spline height=350 thickness=30
+    verify | confirm | discard | search muro | help
 
+Los NOMBRES (verbos + params + keywords) están en inglés; la prosa (docs/veredictos) en español.
 Sólo parsea y coacciona tipos; QUIÉN spawnea/previsualiza lo decide `jam.panel` (reusa el mismo
-preview/confirmar/descartar del panel). Los verbos y sus params salen de `jam.tools.REGISTRO`, así
+preview/confirm/discard del panel). Los verbos y sus params salen de `jam.tools.REGISTRO`, así
 que agregar una herramienta al registro la habilita en la consola sin tocar este archivo.
 """
 
@@ -18,7 +19,7 @@ import shlex
 from . import tools
 
 # Alias cómodos para el que tipea rápido (nombre corto → param real).
-_ALIAS = {"n": "cantidad", "s": "seed", "h": "alto", "e": "espesor"}
+_ALIAS = {"n": "count", "s": "seed", "h": "height", "t": "thickness"}
 
 
 def parsear(linea: str) -> dict:
@@ -74,11 +75,11 @@ def ayuda() -> str:
     lineas = ["Jam DSL — un comando por línea:"]
     for nombre, info in tools.REGISTRO.items():
         ps = " ".join(f"{k}=" for k in info["params"])
-        lineas.append(f"  {nombre:<11}{ps:<34}— {info['doc']}")
+        lineas.append(f"  {nombre:<14}{ps:<34}— {info['doc']}")
     lineas += [
-        "  verificar                                    — corre el oráculo de espacio sobre el nivel",
-        "  confirmar / descartar                        — fija o borra el preview activo",
-        "  buscar <texto>                               — lista assets del proyecto",
+        "  verify                                       — corre el oráculo de espacio sobre el nivel",
+        "  confirm / discard                            — fija o borra el preview activo",
+        "  search <texto>                               — lista assets del proyecto",
         "  help                                         — esta ayuda",
         "asset: 'scatter SM_Rock …' o 'asset=SM_Rock' (si lo omitís usa el del picker).",
     ]

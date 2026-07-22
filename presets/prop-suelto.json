@@ -1,5 +1,5 @@
 {
-  "tool": "colocar",
+  "tool": "place",
   "nombre": "Prop suelto",
   "categoria": "BotOO/deco",
   "descripcion": "Coloca un prop de la biblioteca en el origen.",

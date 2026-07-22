@@ -237,7 +237,7 @@ def _h_colocar(widget) -> str:
     asset = _asset_elegido(widget)
     if not asset:
         return "biblioteca vacía"
-    return tools.t_colocar(asset)
+    return tools.t_place(asset)
 
 
 def _h_scatter(widget) -> str:
@@ -246,7 +246,7 @@ def _h_scatter(widget) -> str:
     if not asset:
         return "biblioteca vacía"
     return tools.t_scatter(asset,
-                           cantidad=int(_num(widget, "in_cantidad", 9)),
+                           count=int(_num(widget, "in_cantidad", 9)),
                            area=_num(widget, "in_area", 500.0),
                            seed=int(_num(widget, "in_seed", 7)))
 
@@ -256,7 +256,7 @@ def _h_soltar(widget) -> str:
     asset = _asset_elegido(widget)
     if not asset:
         return "biblioteca vacía"
-    return tools.t_soltar(asset)
+    return tools.t_drop(asset)
 
 
 def _h_grilla(widget) -> str:
@@ -264,7 +264,7 @@ def _h_grilla(widget) -> str:
     asset = _asset_elegido(widget)
     if not asset:
         return "biblioteca vacía"
-    return tools.t_grilla(asset, grilla=_num(widget, "in_grilla", 100.0))
+    return tools.t_snap(asset, grid=_num(widget, "in_grilla", 100.0))
 
 
 def _h_reemplazar(widget) -> str:
@@ -272,7 +272,7 @@ def _h_reemplazar(widget) -> str:
     asset = _asset_elegido(widget)
     if not asset:
         return "biblioteca vacía"
-    return tools.t_reemplazar(asset)
+    return tools.t_replace(asset)
 
 
 def _h_pared(widget) -> str:
@@ -281,9 +281,9 @@ def _h_pared(widget) -> str:
     if not asset:
         return "biblioteca vacía"
     return tools.t_spline(asset,
-                          alto=_num(widget, "in_alto", 300.0),
-                          espesor=_num(widget, "in_espesor", 40.0),
-                          largo_seg=_num(widget, "in_largo_seg", 200.0))
+                          height=_num(widget, "in_alto", 300.0),
+                          thickness=_num(widget, "in_espesor", 40.0),
+                          segment=_num(widget, "in_largo_seg", 200.0))
 
 
 # ---- Consola DSL (interfaz que escala sin widgets: cada capacidad es un verbo, no un botón) ----
@@ -306,15 +306,16 @@ def ejecutar_dsl(linea: str, widget=None) -> str:
     verbo = r["verbo"]
     if not verbo:
         return "escribí un comando. «help» lista los verbos."
+    # keywords en inglés (primario) + alias español por comodidad
     if verbo in ("help", "?", "ayuda"):
         return dsl.ayuda()
-    if verbo in ("confirmar", "fijar", "ok"):
+    if verbo in ("confirm", "confirmar", "ok"):
         return _h_confirmar(widget)
-    if verbo in ("descartar", "cancelar", "borrar"):
+    if verbo in ("discard", "descartar", "cancel"):
         return _h_descartar(widget)
-    if verbo in ("verificar", "oraculo", "oráculo"):
+    if verbo in ("verify", "verificar", "oracle"):
         return menu.on_verificar_espacio()
-    if verbo in ("buscar", "listar"):
+    if verbo in ("search", "list", "buscar", "listar"):
         hits = library.buscar(r["asset"] or "", limit=15)
         if not hits:
             return f"sin resultados para «{r['asset'] or ''}»."
