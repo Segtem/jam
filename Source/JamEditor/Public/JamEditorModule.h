@@ -15,6 +15,7 @@ class SMultiLineEditableTextBox;
 struct FJamTool
 {
 	FString Verb;
+	FString Cat;
 	FString Doc;
 	TArray<TPair<FString, FString>> Params;
 };
@@ -40,10 +41,13 @@ private:
 
 	void LoadSpec();
 	TSharedRef<SWidget> BuildDashContent();
+	TSharedRef<SWidget> MakeCategoryMenu(const FString& Category);
 	void SelectTool(const FString& Verb);
+	void FindAndSelectTool(const FString& Query);
 	void RebuildParams();
 	void ComposeCommandFromParams();
 	const FJamTool* FindTool(const FString& Verb) const;
+	bool CategoryHasTools(const FString& Category) const;
 
 	/** Corre un statement de Python y devuelve lo capturado por LogOutput (stdout/log). */
 	FString ExecPythonCapture(const FString& Statement);
@@ -56,11 +60,13 @@ private:
 	void OnCmdCommitted(const FText& Text, ETextCommit::Type CommitType);
 
 	TArray<FJamTool> Tools;
+	TArray<FString> Categories;
 	FString ActiveVerb;
 
 	TSharedPtr<SWindow> DashWindow;
 	TSharedPtr<SVerticalBox> ParamsBox;
 	TSharedPtr<SEditableTextBox> CmdBox;
+	TSharedPtr<SEditableTextBox> SearchBox;
 	TSharedPtr<SMultiLineEditableTextBox> OutputBox;
 	TMap<FString, TSharedPtr<SEditableTextBox>> ParamFields;
 };

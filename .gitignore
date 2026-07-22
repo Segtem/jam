@@ -21,3 +21,6 @@ DerivedDataCache/
 *.swp
 .idea/
 .vscode/
+
+# Reference: la GIF de 15MB es pesada para la historia (el PNG/AVIF chicos sí se versionan)
+Reference/*.gif

@@ -67,31 +67,37 @@ def t_pared(asset, *, alto=300.0, espesor=40.0, largo_seg=200.0) -> str:
 
 # ---- el registro: nombre → acción param-driven + defaults (fuente de verdad para DSL, help y panel) ----
 
+# `cat` = categoría estilo Dash (Content/Place/Scatter/Create/Edit) → agrupa los verbos en la
+# Dash Bar. Es dato: mover una herramienta de categoría es cambiar este campo, sin tocar C++.
 REGISTRO = {
-    "colocar":    {"fn": t_colocar,    "params": {"x": 0.0, "y": 0.0, "z": 0.0},
+    "colocar":    {"fn": t_colocar,    "cat": "Place",   "params": {"x": 0.0, "y": 0.0, "z": 0.0},
                    "doc": "coloca el asset en (x,y,z) y verifica solape/vecino"},
-    "scatter":    {"fn": t_scatter,    "params": {"cantidad": 9, "area": 500.0, "seed": 7},
+    "scatter":    {"fn": t_scatter,    "cat": "Scatter", "params": {"cantidad": 9, "area": 500.0, "seed": 7},
                    "doc": "esparce N copias en un área y verifica cobertura"},
-    "soltar":     {"fn": t_soltar,     "params": {"altura": 800.0},
+    "soltar":     {"fn": t_soltar,     "cat": "Place",   "params": {"altura": 800.0},
                    "doc": "deja caer el asset sobre el piso real y verifica apoyo"},
-    "grilla":     {"fn": t_grilla,     "params": {"grilla": 100.0},
+    "grilla":     {"fn": t_grilla,     "cat": "Place",   "params": {"grilla": 100.0},
                    "doc": "snap a grilla y verifica alineación"},
-    "reemplazar": {"fn": t_reemplazar, "params": {"sx": 2.0, "sy": 2.0, "sz": 3.0},
+    "reemplazar": {"fn": t_reemplazar, "cat": "Create",  "params": {"sx": 2.0, "sy": 2.0, "sz": 3.0},
                    "doc": "blockout → asset conservando footprint"},
-    "pared":      {"fn": t_pared,      "params": {"alto": 300.0, "espesor": 40.0, "largo_seg": 200.0},
+    "pared":      {"fn": t_pared,      "cat": "Scatter", "params": {"alto": 300.0, "espesor": 40.0, "largo_seg": 200.0},
                    "doc": "pared por spline y verifica continuidad de juntas"},
 }
 
+# Orden de las categorías en la barra (como Dash). Las vacías no se muestran.
+CATEGORIAS = ["Content", "Place", "Scatter", "Create", "Edit"]
+
 
 def spec_json() -> str:
-    """El registro como JSON (verbo/doc/params) para que la UI en C++ (Dash Bar) se arme sola.
-    Agregar una herramienta a REGISTRO la hace aparecer en el panel sin tocar C++."""
+    """El registro como JSON (categoría/verbo/doc/params) para que la Dash Bar en C++ se arme sola.
+    Agregar una herramienta a REGISTRO la hace aparecer en su sección sin tocar C++."""
     import json
     salida = []
     for nombre, info in REGISTRO.items():
         salida.append({
             "verbo": nombre,
+            "cat": info.get("cat", "Place"),
             "doc": info["doc"],
             "params": [{"nombre": k, "default": str(v)} for k, v in info["params"].items()],
         })
-    return json.dumps(salida, ensure_ascii=True)
+    return json.dumps({"categorias": CATEGORIAS, "tools": salida}, ensure_ascii=True)

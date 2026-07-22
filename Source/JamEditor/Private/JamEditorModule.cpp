@@ -7,9 +7,11 @@
 #include "Widgets/Layout/SWrapBox.h"
 #include "Widgets/Layout/SScrollBox.h"
 #include "Widgets/Input/SButton.h"
+#include "Widgets/Input/SComboButton.h"
 #include "Widgets/Input/SEditableTextBox.h"
 #include "Widgets/Input/SMultiLineEditableTextBox.h"
 #include "Widgets/Text/STextBlock.h"
+#include "Framework/MultiBox/MultiBoxBuilder.h"
 #include "ToolMenus.h"
 #include "IPythonScriptPlugin.h"
 #include "Serialization/JsonReader.h"
@@ -108,6 +110,7 @@ void FJamEditorModule::OnDashClosed(const TSharedRef<SWindow>& /*Window*/)
 void FJamEditorModule::LoadSpec()
 {
 	Tools.Reset();
+	Categories.Reset();
 	const FString Raw = ExecPythonCapture(
 		TEXT("import jam.tools as _t; print('JAMSPEC:' + _t.spec_json())"));
 
@@ -121,15 +124,29 @@ void FJamEditorModule::LoadSpec()
 	FString Json = Raw.Mid(M + Marker.Len());
 	Json.TrimStartAndEndInline();
 
-	TArray<TSharedPtr<FJsonValue>> Arr;
+	TSharedPtr<FJsonObject> Root;
 	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Json);
-	if (!FJsonSerializer::Deserialize(Reader, Arr))
+	if (!FJsonSerializer::Deserialize(Reader, Root) || !Root.IsValid())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[JamEditor] spec no parseó como JSON."));
 		return;
 	}
 
-	for (const TSharedPtr<FJsonValue>& V : Arr)
+	const TArray<TSharedPtr<FJsonValue>>* Cats = nullptr;
+	if (Root->TryGetArrayField(TEXT("categorias"), Cats) && Cats)
+	{
+		for (const TSharedPtr<FJsonValue>& CV : *Cats)
+		{
+			Categories.Add(CV->AsString());
+		}
+	}
+
+	const TArray<TSharedPtr<FJsonValue>>* Ts = nullptr;
+	if (!Root->TryGetArrayField(TEXT("tools"), Ts) || !Ts)
+	{
+		return;
+	}
+	for (const TSharedPtr<FJsonValue>& V : *Ts)
 	{
 		const TSharedPtr<FJsonObject> O = V->AsObject();
 		if (!O.IsValid())
@@ -138,6 +155,7 @@ void FJamEditorModule::LoadSpec()
 		}
 		FJamTool T;
 		T.Verb = O->GetStringField(TEXT("verbo"));
+		O->TryGetStringField(TEXT("cat"), T.Cat);
 		O->TryGetStringField(TEXT("doc"), T.Doc);
 		const TArray<TSharedPtr<FJsonValue>>* Ps = nullptr;
 		if (O->TryGetArrayField(TEXT("params"), Ps) && Ps)
@@ -157,6 +175,30 @@ void FJamEditorModule::LoadSpec()
 	}
 }
 
+bool FJamEditorModule::CategoryHasTools(const FString& Category) const
+{
+	return Tools.ContainsByPredicate([&Category](const FJamTool& T) { return T.Cat == Category; });
+}
+
+TSharedRef<SWidget> FJamEditorModule::MakeCategoryMenu(const FString& Category)
+{
+	FMenuBuilder MenuBuilder(/*bShouldCloseWindowAfterMenuSelection*/ true, nullptr);
+	for (const FJamTool& T : Tools)
+	{
+		if (T.Cat != Category)
+		{
+			continue;
+		}
+		const FString Verb = T.Verb;
+		MenuBuilder.AddMenuEntry(
+			FText::FromString(T.Verb),
+			FText::FromString(T.Doc),
+			FSlateIcon(),
+			FUIAction(FExecuteAction::CreateLambda([this, Verb]() { SelectTool(Verb); })));
+	}
+	return MenuBuilder.MakeWidget();
+}
+
 const FJamTool* FJamEditorModule::FindTool(const FString& Verb) const
 {
 	return Tools.FindByPredicate([&Verb](const FJamTool& T) { return T.Verb == Verb; });
@@ -164,27 +206,51 @@ const FJamTool* FJamEditorModule::FindTool(const FString& Verb) const
 
 TSharedRef<SWidget> FJamEditorModule::BuildDashContent()
 {
-	TSharedRef<SWrapBox> Toolbar = SNew(SWrapBox).UseAllottedSize(true);
-	for (const FJamTool& T : Tools)
+	// Barra horizontal estilo Dash: un combo por categoría (Content/Place/Scatter/Create/Edit)
+	// + un buscador «Find Tools». Las categorías vacías se saltan.
+	TSharedRef<SHorizontalBox> Bar = SNew(SHorizontalBox);
+	for (const FString& Cat : Categories)
 	{
-		const FString Verb = T.Verb;
-		Toolbar->AddSlot().Padding(2.0f)
-		[
-			SNew(SButton)
-			.Text(FText::FromString(Verb))
-			.ToolTipText(FText::FromString(T.Doc))
-			.OnClicked_Lambda([this, Verb]() { SelectTool(Verb); return FReply::Handled(); })
-		];
+		if (!CategoryHasTools(Cat))
+		{
+			continue;
+		}
+		Bar->AddSlot()
+			.AutoWidth()
+			.Padding(2.0f, 0.0f)
+			[
+				SNew(SComboButton)
+				.ButtonContent()
+				[
+					SNew(STextBlock).Text(FText::FromString(Cat))
+				]
+				.OnGetMenuContent_Lambda([this, Cat]() { return MakeCategoryMenu(Cat); })
+			];
 	}
+	Bar->AddSlot()
+		.FillWidth(1.0f)
+		.Padding(8.0f, 0.0f, 0.0f, 0.0f)
+		.VAlign(VAlign_Center)
+		[
+			SAssignNew(SearchBox, SEditableTextBox)
+			.HintText(LOCTEXT("FindTools", "Find Tools…"))
+			.OnTextCommitted_Lambda([this](const FText& Text, ETextCommit::Type Type)
+			{
+				if (Type == ETextCommit::OnEnter)
+				{
+					FindAndSelectTool(Text.ToString());
+				}
+			})
+		];
 
 	return SNew(SVerticalBox)
 
-		// Barra de secciones (una por herramienta, generada desde el spec).
+		// Barra de secciones horizontal (Dash bar).
 		+ SVerticalBox::Slot()
 		.AutoHeight()
-		.Padding(6.0f, 6.0f, 6.0f, 2.0f)
+		.Padding(6.0f, 6.0f, 6.0f, 4.0f)
 		[
-			Toolbar
+			Bar
 		]
 
 		// Params vivos del tool activo (se reconstruyen al elegir sección).
@@ -262,6 +328,28 @@ void FJamEditorModule::SelectTool(const FString& Verb)
 {
 	ActiveVerb = Verb;
 	RebuildParams();
+}
+
+void FJamEditorModule::FindAndSelectTool(const FString& Query)
+{
+	const FString Q = Query.TrimStartAndEnd();
+	if (Q.IsEmpty())
+	{
+		return;
+	}
+	// coincide por verbo o por doc (case-insensitive), como el «Find Tools» de Dash.
+	const FJamTool* Hit = Tools.FindByPredicate([&Q](const FJamTool& T)
+	{
+		return T.Verb.Contains(Q) || T.Doc.Contains(Q);
+	});
+	if (Hit)
+	{
+		SelectTool(Hit->Verb);
+	}
+	else if (OutputBox.IsValid())
+	{
+		OutputBox->SetText(FText::FromString(FString::Printf(TEXT("sin herramienta para «%s»."), *Q)));
+	}
 }
 
 void FJamEditorModule::RebuildParams()
