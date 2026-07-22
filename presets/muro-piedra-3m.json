@@ -1,5 +1,5 @@
 {
-  "tool": "pared",
+  "tool": "spline",
   "nombre": "Muro de piedra 3m",
   "categoria": "BotOO/estructura",
   "descripcion": "Pared modular de 3 m de alto levantada sobre un spline.",

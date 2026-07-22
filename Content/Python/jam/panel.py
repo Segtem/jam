@@ -280,10 +280,10 @@ def _h_pared(widget) -> str:
     asset = _asset_elegido(widget)
     if not asset:
         return "biblioteca vacía"
-    return tools.t_pared(asset,
-                         alto=_num(widget, "in_alto", 300.0),
-                         espesor=_num(widget, "in_espesor", 40.0),
-                         largo_seg=_num(widget, "in_largo_seg", 200.0))
+    return tools.t_spline(asset,
+                          alto=_num(widget, "in_alto", 300.0),
+                          espesor=_num(widget, "in_espesor", 40.0),
+                          largo_seg=_num(widget, "in_largo_seg", 200.0))
 
 
 # ---- Consola DSL (interfaz que escala sin widgets: cada capacidad es un verbo, no un botón) ----

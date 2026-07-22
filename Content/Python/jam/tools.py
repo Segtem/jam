@@ -58,11 +58,23 @@ def t_reemplazar(asset, *, sx=2.0, sy=2.0, sz=3.0) -> str:
     return oracle_reemplazo.verificar_texto(nuevo, objetivo)
 
 
-def t_pared(asset, *, alto=300.0, espesor=40.0, largo_seg=200.0) -> str:
+def t_spline(asset, *, alto=300.0, espesor=40.0, largo_seg=200.0) -> str:
+    """Scatter «a lo largo de un spline»: coloca piezas modulares sobre el spline seleccionado
+    (o crea uno) orientadas a la tangente. El oráculo verifica continuidad de juntas. Una PARED de
+    piedra es un PRESET de este tool (asset + alto/espesor/largo_seg)."""
     from . import oracle_pared, pared
     actor = pared.seleccionado_con_spline() or pared.crear_spline()
     build = pared.construir(actor, asset, alto=alto, espesor=espesor, largo_segmento=largo_seg)
     return oracle_pared.verificar_texto(build)
+
+
+def t_crear_spline(asset=None) -> str:
+    """Create: agrega un spline editable a la escena (primitiva de curva, como el Create de Dash).
+    Después movés sus puntos y «spline» levanta las piezas sobre él. No usa asset."""
+    from . import pared
+    actor = pared.crear_spline()
+    etiqueta = actor.get_actor_label() if actor is not None else "spline"
+    return f"SPLINE creado ✓ — «{etiqueta}»: editá sus puntos y usá «spline» para levantar piezas."
 
 
 # ---- el registro: nombre → acción param-driven + defaults (fuente de verdad para DSL, help y panel) ----
@@ -80,8 +92,10 @@ REGISTRO = {
                    "doc": "snap a grilla y verifica alineación"},
     "reemplazar": {"fn": t_reemplazar, "cat": "Create",  "params": {"sx": 2.0, "sy": 2.0, "sz": 3.0},
                    "doc": "blockout → asset conservando footprint"},
-    "pared":      {"fn": t_pared,      "cat": "Scatter", "params": {"alto": 300.0, "espesor": 40.0, "largo_seg": 200.0},
-                   "doc": "pared por spline y verifica continuidad de juntas"},
+    "spline":     {"fn": t_spline,     "cat": "Scatter", "params": {"alto": 300.0, "espesor": 40.0, "largo_seg": 200.0},
+                   "doc": "coloca piezas modulares a lo largo de un spline (verifica juntas)"},
+    "crear_spline": {"fn": t_crear_spline, "cat": "Create", "params": {},
+                     "doc": "agrega un spline editable a la escena (primitiva de curva)"},
 }
 
 # Orden de las categorías en la barra (como Dash). Las vacías no se muestran.

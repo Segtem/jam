@@ -132,7 +132,8 @@ def _aplicar_pared(preset: dict) -> dict:
 _TOOLS = {
     "scatter": _aplicar_scatter,
     "colocar": _aplicar_colocar,
-    "pared": _aplicar_pared,
+    "spline": _aplicar_pared,   # «a lo largo de spline»: una pared es un preset de este tool
+    "pared": _aplicar_pared,    # alias por compatibilidad con presets viejos
 }
 
 

@@ -3,7 +3,7 @@ para crear, oráculo para verificar.
 
     scatter asset=SM_Rock cantidad=20 area=650 seed=7
     soltar SM_Barrel
-    pared alto=350 espesor=30
+    spline alto=350 espesor=30
     verificar | confirmar | descartar | buscar muro | help
 
 Sólo parsea y coacciona tipos; QUIÉN spawnea/previsualiza lo decide `jam.panel` (reusa el mismo
