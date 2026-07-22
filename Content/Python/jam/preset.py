@@ -91,15 +91,16 @@ def _resolver_asset(params: dict) -> str | None:
 # ---- appliers por tool (build + oráculo) ----
 
 def _aplicar_scatter(preset: dict) -> dict:
-    from . import oracle_scatter, scatter
+    from . import oracle_scatter, scatter, ue
     p = preset["params"]
     asset = _resolver_asset(p)
     centro = tuple(p.get("centro", [0, 0]))
     semi = tuple(p.get("semi", [500, 500]))
     cant = int(p.get("cantidad", 9))
     actores = scatter.esparcir(asset, centro, semi, cant, seed=int(p.get("seed", 0)))
-    r = oracle_scatter.verificar(actores, centro, semi, cant)
-    texto = oracle_scatter.verificar_texto(actores, centro, semi, cant)
+    piezas = ue.piezas(actores)
+    r = oracle_scatter.verificar(piezas, centro, semi, cant)
+    texto = oracle_scatter.verificar_texto(piezas, centro, semi, cant)
     return {"ok": oracle_scatter.es_ok(r), "texto": texto, "actores": actores}
 
 

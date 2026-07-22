@@ -11,14 +11,12 @@ PRESERVA = las tres. Reusa el AABB de `jam.oracle_placement`.
 
 from __future__ import annotations
 
-import unreal
-
-from . import oracle_placement, ue
+from . import geometry
 
 
-def verificar(nuevo, objetivo: dict, *, tol: float = oracle_placement._TOL_CM, tol_fp: float = 2.0) -> dict:
-    """Compara el AABB de `nuevo` con el footprint `objetivo` del blockout."""
-    on, en = ue.aabb(nuevo)
+def verificar(pieza, objetivo: dict, *, tol: float = geometry.TOL_CM, tol_fp: float = 2.0) -> dict:
+    """Compara el AABB de `pieza` (geometry.Pieza) con el footprint `objetivo` del blockout."""
+    on, en = pieza.aabb.origin, pieza.aabb.extent
     dcx = on.x - objetivo["cx"]
     dcy = on.y - objetivo["cy"]
     dbase = (on.z - en.z) - objetivo["base"]
@@ -42,9 +40,9 @@ def es_ok(r: dict) -> bool:
     return bool(r["preserva"])
 
 
-def verificar_texto(nuevo, objetivo: dict, **kw) -> str:
-    r = verificar(nuevo, objetivo, **kw)
-    label = nuevo.get_actor_label()
+def verificar_texto(pieza, objetivo: dict, **kw) -> str:
+    r = verificar(pieza, objetivo, **kw)
+    label = pieza.nombre
     if r["preserva"]:
         return f"[{label}] FOOTPRINT PRESERVADO ✓ — centro, base y planta calzan con el blockout"
     fallas = []

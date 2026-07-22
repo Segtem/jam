@@ -143,13 +143,13 @@ def selftest_scatter() -> bool:
 
     c_sano, s_sano, n = (0.0, 0.0), (500.0, 500.0), 9
     sano = scatter.esparcir(ruta, c_sano, s_sano, n, seed=7, yaw_aleatorio=False)
-    r_sano = oracle_scatter.verificar(sano, c_sano, s_sano, n)
-    _log(oracle_scatter.verificar_texto(sano, c_sano, s_sano, n))
+    r_sano = oracle_scatter.verificar(ue.piezas(sano), c_sano, s_sano, n)
+    _log(oracle_scatter.verificar_texto(ue.piezas(sano), c_sano, s_sano, n))
 
     c_den, s_den = (100000.0, 0.0), (60.0, 60.0)   # lejos del sano; 120×120cm para 9 cubos de 100
     denso = scatter.esparcir(ruta, c_den, s_den, n, seed=7, yaw_aleatorio=False)
-    r_den = oracle_scatter.verificar(denso, c_den, s_den, n)
-    _log(oracle_scatter.verificar_texto(denso, c_den, s_den, n))
+    r_den = oracle_scatter.verificar(ue.piezas(denso), c_den, s_den, n)
+    _log(oracle_scatter.verificar_texto(ue.piezas(denso), c_den, s_den, n))
 
     actor_sub = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
     for x in sano + denso:
@@ -175,13 +175,13 @@ def selftest_physics() -> bool:
     caja = place.colocar(ruta, (x0, 0.0, 800.0))                        # flota muy por encima
     clavada = place.colocar(ruta, (x0 + 1000.0, 0.0, 50.0))             # base en 0 < top piso 50
 
-    r_antes = oracle_physics.verificar(caja, [piso])
-    _log("caja  " + oracle_physics.verificar_texto(caja, [piso]))
+    r_antes = oracle_physics.verificar(ue.pieza(caja), ue.piezas([piso]))
+    _log("caja  " + oracle_physics.verificar_texto(ue.pieza(caja), ue.piezas([piso])))
     drop = physics.soltar(caja, [piso])
-    r_desp = oracle_physics.verificar(caja, [piso])
-    _log(f"caja  cae {drop['caida']}cm → " + oracle_physics.verificar_texto(caja, [piso]))
-    r_clav = oracle_physics.verificar(clavada, [piso])
-    _log("clav  " + oracle_physics.verificar_texto(clavada, [piso]))
+    r_desp = oracle_physics.verificar(ue.pieza(caja), ue.piezas([piso]))
+    _log(f"caja  cae {drop['caida']}cm → " + oracle_physics.verificar_texto(ue.pieza(caja), ue.piezas([piso])))
+    r_clav = oracle_physics.verificar(ue.pieza(clavada), ue.piezas([piso]))
+    _log("clav  " + oracle_physics.verificar_texto(ue.pieza(clavada), ue.piezas([piso])))
 
     actor_sub = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
     for x in (piso, caja, clavada):
@@ -208,21 +208,21 @@ def selftest_snap() -> bool:
 
     # (a) grilla
     caja = place.colocar(ruta, (x0 + 137.4, 62.9, 11.1), (0.0, 0.0, 37.0))
-    g_antes = oracle_snap.verificar_grilla(caja, 100.0)
-    _log("grilla " + oracle_snap.texto_grilla(caja, 100.0))
+    g_antes = oracle_snap.verificar_grilla(ue.pieza(caja), 100.0)
+    _log("grilla " + oracle_snap.texto_grilla(ue.pieza(caja), 100.0))
     snap.a_grilla(caja, 100.0)
-    g_desp = oracle_snap.verificar_grilla(caja, 100.0)
-    _log("grilla " + oracle_snap.texto_grilla(caja, 100.0))
+    g_desp = oracle_snap.verificar_grilla(ue.pieza(caja), 100.0)
+    _log("grilla " + oracle_snap.texto_grilla(ue.pieza(caja), 100.0))
 
     # (b) al ras: objetivo en el origen local; actor con un hueco de 60cm sobre +x (cubos de 100)
     obj = place.colocar(ruta, (x0, 5000.0, 0.0))
     obj.set_actor_label("Jam_objetivo")
     act = place.colocar(ruta, (x0 + 260.0, 5000.0, 0.0))  # centros a 260 → gap 160 sobre x
-    r_antes = oracle_snap.verificar_ras(act, obj, "x")
-    _log("ras    " + oracle_snap.texto_ras(act, obj, "x"))
+    r_antes = oracle_snap.verificar_ras(ue.pieza(act), ue.pieza(obj), "x")
+    _log("ras    " + oracle_snap.texto_ras(ue.pieza(act), ue.pieza(obj), "x"))
     snap.al_ras(act, obj, "x")
-    r_desp = oracle_snap.verificar_ras(act, obj, "x")
-    _log("ras    " + oracle_snap.texto_ras(act, obj, "x"))
+    r_desp = oracle_snap.verificar_ras(ue.pieza(act), ue.pieza(obj), "x")
+    _log("ras    " + oracle_snap.texto_ras(ue.pieza(act), ue.pieza(obj), "x"))
 
     actor_sub = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
     for x in (caja, obj, act):
@@ -249,13 +249,13 @@ def selftest_reemplazo() -> bool:
 
     b1 = place.colocar(ruta, (x0, 0.0, 150.0), scale=(2.0, 2.0, 3.0))  # blockout 200×200×300
     n1, obj1 = reemplazar.reemplazar(b1, ruta, ajustar_escala=True)
-    r1 = oracle_reemplazo.verificar(n1, obj1)
-    _log("escala  " + oracle_reemplazo.verificar_texto(n1, obj1))
+    r1 = oracle_reemplazo.verificar(ue.pieza(n1), obj1)
+    _log("escala  " + oracle_reemplazo.verificar_texto(ue.pieza(n1), obj1))
 
     b2 = place.colocar(ruta, (x0 + 1000.0, 0.0, 150.0), scale=(2.0, 2.0, 3.0))
     n2, obj2 = reemplazar.reemplazar(b2, ruta, ajustar_escala=False)  # nativo 100³ vs 200×200×300
-    r2 = oracle_reemplazo.verificar(n2, obj2)
-    _log("nativo  " + oracle_reemplazo.verificar_texto(n2, obj2))
+    r2 = oracle_reemplazo.verificar(ue.pieza(n2), obj2)
+    _log("nativo  " + oracle_reemplazo.verificar_texto(ue.pieza(n2), obj2))
 
     actor_sub = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
     for x in (n1, n2):

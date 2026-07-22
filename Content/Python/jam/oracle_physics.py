@@ -12,18 +12,15 @@ fuente de verdad para "qué hay debajo".
 
 from __future__ import annotations
 
-import unreal
-
-from . import oracle_placement, physics, ue
+from . import geometry
 
 
-def verificar(actor, soportes=None, *, tol: float = oracle_placement._TOL_CM) -> dict:
-    """Veredicto de asentamiento de `actor`. `soportes` None = todos los actores del nivel."""
-    if soportes is None:
-        soportes = physics.soportes_del_nivel()
-    oa, ea = ue.aabb(actor)
-    base = oa.z - ea.z
-    z_top, label = physics._soporte_top(actor, soportes, tol)
+def verificar(pieza, soportes, *, tol: float = geometry.TOL_CM) -> dict:
+    """Veredicto de asentamiento de `pieza` (geometry.Pieza) frente a `soportes` (lista de Pieza que
+    NO incluye a la propia). El adaptador `jam.ue` arma las piezas del nivel."""
+    a = pieza.aabb
+    base = a.origin.z - a.extent.z
+    z_top, label = geometry.soporte_top(a, soportes, tol)
     if z_top is None:
         return {"estado": "sin_suelo", "gap": None, "soporte": None, "apoyado": False}
     gap = base - z_top
@@ -40,9 +37,9 @@ def es_ok(r: dict) -> bool:
     return bool(r["apoyado"])
 
 
-def verificar_texto(actor, soportes=None, *, tol: float = oracle_placement._TOL_CM) -> str:
-    r = verificar(actor, soportes, tol=tol)
-    label = actor.get_actor_label()
+def verificar_texto(pieza, soportes, *, tol: float = geometry.TOL_CM) -> str:
+    r = verificar(pieza, soportes, tol=tol)
+    label = pieza.nombre
     if r["estado"] == "sin_suelo":
         return f"[{label}] SIN SUELO ✗ — no hay soporte debajo (caería al vacío)"
     if r["estado"] == "flotando":

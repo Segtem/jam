@@ -18,17 +18,17 @@ _TOL_CM = geometry.TOL_CM
 
 
 def verificar(pieza, otras, tol: float = geometry.TOL_CM) -> dict:
-    """Veredicto de colocación de `pieza`=(nombre, AABB) frente a `otras`=[(nombre, AABB)]
-    (que NO debe incluir a la propia pieza; el fondo se ignora)."""
-    nombre, a = pieza
+    """Veredicto de colocación de `pieza` (geometry.Pieza) frente a `otras` (lista de Pieza, que NO
+    debe incluir a la propia; el fondo se ignora)."""
+    a = pieza.aabb
     bounds_ok = geometry.volumen(a) > 1e-3
     choques = []
-    for n, o in otras:
-        if geometry.es_fondo(o):
+    for o in otras:
+        if geometry.es_fondo(o.aabb):
             continue
-        d = geometry.penetracion(a, o, tol)
+        d = geometry.penetracion(a, o.aabb, tol)
         if d > 0.0:
-            choques.append((n, round(d, 1)))
+            choques.append((o.nombre, round(d, 1)))
     e = a.extent
     return {
         "bounds_ok": bounds_ok,
@@ -42,7 +42,7 @@ def es_ok(r: dict) -> bool:
 
 
 def verificar_texto(pieza, otras, tol: float = geometry.TOL_CM) -> str:
-    nombre, _a = pieza
+    nombre = pieza.nombre
     r = verificar(pieza, otras, tol)
     if not r["bounds_ok"]:
         return f"[{nombre}] COLOCACIÓN INVÁLIDA ✗ — bounds degenerados {r['extent']}"

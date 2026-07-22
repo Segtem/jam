@@ -14,20 +14,15 @@ from __future__ import annotations
 
 import math
 
-import unreal
-
-from . import pared
-
-_WORLD = unreal.SplineCoordinateSpace.WORLD
-
 
 def verificar(build: dict, *, tol: float = 50.0) -> dict:
-    """Veredicto de la pared construida por `pared.construir`. `tol` en cm (junta despegada tolerable)."""
-    sc = pared.spline_de(build.get("actor_spline"))
+    """Veredicto de la pared construida por `pared.construir` — PURO (0 unreal): razona sobre los
+    DATOS del build (centros, forwards, puntos_junta horneados). `tol` en cm (junta despegada tolerable)."""
     n = build["n"]
     paso = build.get("paso", 0.0)
     centros = build["centros"]
     forwards = build["forwards"]
+    puntos = build.get("puntos_junta", [])
 
     def extremo(i, signo):
         cx, cy = centros[i]
@@ -36,14 +31,13 @@ def verificar(build: dict, *, tol: float = 50.0) -> dict:
 
     max_gap = 0.0
     juntas = []
-    if sc is not None:
-        for i in range(n - 1):
-            fin_i = extremo(i, +1)
-            ini_j = extremo(i + 1, -1)
-            p = sc.get_location_at_distance_along_spline((i + 1) * paso, _WORLD)
-            g = max(math.dist(fin_i, (p.x, p.y)), math.dist(ini_j, (p.x, p.y)))
-            max_gap = max(max_gap, g)
-            juntas.append(round(g, 1))
+    for i in range(min(n - 1, len(puntos))):
+        fin_i = extremo(i, +1)
+        ini_j = extremo(i + 1, -1)
+        px, py = puntos[i]
+        g = max(math.dist(fin_i, (px, py)), math.dist(ini_j, (px, py)))
+        max_gap = max(max_gap, g)
+        juntas.append(round(g, 1))
 
     continua = (n <= 1) or (max_gap <= tol)
     largo_real = n * paso

@@ -73,7 +73,7 @@ def construir(actor, asset, *, alto: float = 300.0, espesor: float = 40.0,
     sc = spline_de(actor)
     if sc is None:
         return {"segmentos": [], "n": 0, "paso": 0.0, "largo_spline": 0.0,
-                "centros": [], "forwards": [], "actor_spline": actor}
+                "centros": [], "forwards": [], "puntos_junta": [], "actor_spline": actor}
     largo = sc.get_spline_length()
     n = max(1, round(largo / largo_segmento))
     paso = largo / n
@@ -91,5 +91,12 @@ def construir(actor, asset, *, alto: float = 300.0, espesor: float = 40.0,
         segmentos.append(seg)
         centros.append((loc.x, loc.y))
         forwards.append((dirv.x, dirv.y))
+    # Puntos del spline en cada JUNTA (i→i+1), horneados como DATO para que el oráculo sea puro
+    # (no tenga que consultar el SplineComponent en vivo).
+    puntos_junta = []
+    for i in range(n - 1):
+        p = sc.get_location_at_distance_along_spline((i + 1) * paso, _WORLD)
+        puntos_junta.append((p.x, p.y))
     return {"segmentos": segmentos, "n": n, "paso": paso, "largo_spline": largo,
-            "centros": centros, "forwards": forwards, "actor_spline": actor}
+            "centros": centros, "forwards": forwards, "puntos_junta": puntos_junta,
+            "actor_spline": actor}

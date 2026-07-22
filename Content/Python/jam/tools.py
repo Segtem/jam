@@ -32,33 +32,33 @@ def t_place(asset, *, x=0.0, y=0.0, z=0.0) -> str:
 
 
 def t_scatter(asset, *, count=9, area=500.0, seed=7) -> str:
-    from . import oracle_scatter, scatter
+    from . import scatter, ue
     count, seed = int(count), int(seed)
     centro, semi = (0.0, 0.0), (area, area)
     actores = scatter.esparcir(asset, centro, semi, count, seed=seed)
-    return oracle_scatter.verificar_texto(actores, centro, semi, count)
+    return ue.scatter_texto(actores, centro, semi, count)
 
 
 def t_drop(asset, *, height=800.0) -> str:
-    from . import oracle_physics, physics, place
+    from . import physics, place, ue
     caja = place.colocar(asset, (0.0, 0.0, height))  # a plomo desde `height`
     r = physics.soltar(caja)                          # cae sobre la geometría real del nivel
-    return f"cae {r['caida']}cm → " + oracle_physics.verificar_texto(caja)
+    return f"cae {r['caida']}cm → " + ue.physics_texto(caja)
 
 
 def t_snap(asset, *, grid=100.0) -> str:
-    from . import oracle_snap, place, snap
+    from . import place, snap, ue
     caja = place.colocar(asset, (137.4, 62.9, 11.1), (0.0, 0.0, 37.0))
     snap.a_grilla(caja, grid)
-    return oracle_snap.texto_grilla(caja, grid)
+    return ue.snap_grilla_texto(caja, grid)
 
 
 def t_replace(asset, *, sx=2.0, sy=2.0, sz=3.0) -> str:
-    from . import oracle_reemplazo, place, reemplazar
+    from . import place, reemplazar, ue
     blockout = place.colocar(asset, (0.0, 0.0, 150.0), scale=(sx, sy, sz))
     blockout.set_actor_label("Jam_blockout")
     nuevo, objetivo = reemplazar.reemplazar(blockout, asset, ajustar_escala=True)
-    return oracle_reemplazo.verificar_texto(nuevo, objetivo)
+    return ue.reemplazo_texto(nuevo, objetivo)
 
 
 def t_spline(asset, *, height=300.0, thickness=40.0, segment=200.0) -> str:

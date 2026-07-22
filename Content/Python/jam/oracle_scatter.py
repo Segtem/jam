@@ -13,48 +13,47 @@ de verdad para "dos piezas clavadas".
 
 from __future__ import annotations
 
-import unreal
-
-from . import geometry, oracle_placement, ue
+from . import geometry
 
 
-def _centro_xy(actor: unreal.Actor) -> tuple[float, float]:
-    origin, _ = ue.aabb(actor)
-    return origin.x, origin.y
+def _centro_xy(pieza) -> tuple[float, float]:
+    o = pieza.aabb.origin
+    return o.x, o.y
 
 
 def verificar(
-    actores: list[unreal.Actor],
+    piezas: list,
     centro: tuple[float, float],
     semi: tuple[float, float],
     cantidad_pedida: int,
     *,
     grilla: int = 3,
     cobertura_min: float = 0.6,
-    tol: float = oracle_placement._TOL_CM,
+    tol: float = geometry.TOL_CM,
 ) -> dict:
-    """Veredicto del scatter: cantidad, instancias fuera de región, pares que interpenetran, cobertura."""
-    n = len(actores)
+    """Veredicto del scatter sobre `piezas` (lista de geometry.Pieza): cantidad, instancias fuera de
+    región, pares que interpenetran, cobertura."""
+    n = len(piezas)
     cx, cy = centro
     sx, sy = semi
 
     fuera = []
-    for a in actores:
-        x, y = _centro_xy(a)
+    for p in piezas:
+        x, y = _centro_xy(p)
         if abs(x - cx) > sx + tol or abs(y - cy) > sy + tol:
-            fuera.append(a.get_actor_label())
+            fuera.append(p.nombre)
 
     choques = []
-    for i in range(len(actores)):
-        for j in range(i + 1, len(actores)):
-            d = geometry.penetracion(ue.aabb(actores[i]), ue.aabb(actores[j]), tol)
+    for i in range(len(piezas)):
+        for j in range(i + 1, len(piezas)):
+            d = geometry.penetracion(piezas[i].aabb, piezas[j].aabb, tol)
             if d > 0.0:
-                choques.append((actores[i].get_actor_label(), actores[j].get_actor_label(), round(d, 1)))
+                choques.append((piezas[i].nombre, piezas[j].nombre, round(d, 1)))
 
     celdas = set()
     if sx > 0 and sy > 0:
-        for a in actores:
-            x, y = _centro_xy(a)
+        for p in piezas:
+            x, y = _centro_xy(p)
             gx = min(grilla - 1, max(0, int((x - (cx - sx)) / (2 * sx) * grilla)))
             gy = min(grilla - 1, max(0, int((y - (cy - sy)) / (2 * sy) * grilla)))
             celdas.add((gx, gy))
@@ -75,13 +74,13 @@ def es_ok(r: dict) -> bool:
 
 
 def verificar_texto(
-    actores: list[unreal.Actor],
+    piezas: list,
     centro: tuple[float, float],
     semi: tuple[float, float],
     cantidad_pedida: int,
     **kw,
 ) -> str:
-    r = verificar(actores, centro, semi, cantidad_pedida, **kw)
+    r = verificar(piezas, centro, semi, cantidad_pedida, **kw)
     lineas = [f"SCATTER · {r['cantidad']}/{cantidad_pedida} instancias · cobertura {int(r['cobertura'] * 100)}%"]
     if not r["cantidad_ok"]:
         lineas.append(f"  ✗ cantidad: faltan {cantidad_pedida - r['cantidad']} (región saturada)")

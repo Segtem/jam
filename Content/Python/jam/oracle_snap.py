@@ -1,43 +1,42 @@
-"""Oráculo de SNAP / ALINEACIÓN — Dash cuadra; Jam verifica que quedó alineado dentro de tolerancia.
+"""Oráculo de SNAP / ALINEACIÓN — PURO (0 unreal). Dash cuadra; Jam verifica que quedó alineado.
 
-Dos preguntas deterministas por AABB:
-  - EN GRILLA: ¿el pivote cae en múltiplos de la grilla (±tol) y el yaw en su paso?
-  - AL RAS:    ¿la cara del actor toca la de `objetivo` sobre un eje (gap ±tol) compartiendo las
+Dos preguntas deterministas sobre `piezas` (geometry.Pieza):
+  - EN GRILLA: ¿el pivote (pieza.location) cae en múltiplos de la grilla (±tol) y el yaw en su paso?
+  - AL RAS:    ¿la cara de la pieza toca la de `objetivo` sobre un eje (gap ±tol) compartiendo las
                otras dos (adyacente, no diagonal), sin clavarse ni dejar hueco?
-
-Reusa el AABB de `jam.oracle_placement`.
 """
 
 from __future__ import annotations
 
-import unreal
+from . import geometry
 
-from . import oracle_placement, ue
-from .snap import _EJES, _vec_comp
+_EJES = {"x": 0, "y": 1, "z": 2}
+
+
+def _comps(v3) -> tuple[float, float, float]:
+    return (v3.x, v3.y, v3.z)
 
 
 def _mult_cercano(v: float, paso: float, tol: float) -> bool:
     return abs(v - round(v / paso) * paso) <= tol
 
 
-def verificar_grilla(actor, grilla: float = 100.0, *, paso_yaw: float = 90.0,
-                     tol: float = oracle_placement._TOL_CM, tol_yaw: float = 0.5) -> dict:
-    """¿El pivote del actor está en la grilla y el yaw en su paso?"""
-    loc = actor.get_actor_location()
+def verificar_grilla(pieza, grilla: float = 100.0, *, paso_yaw: float = 90.0,
+                     tol: float = geometry.TOL_CM, tol_yaw: float = 0.5) -> dict:
+    """¿El pivote de la pieza está en la grilla y el yaw en su paso?"""
+    loc = pieza.location
     ejes_ok = {e: _mult_cercano(getattr(loc, e), grilla, tol) for e in ("x", "y", "z")}
-    yaw = actor.get_actor_rotation().yaw
+    yaw = pieza.yaw
     yaw_ok = _mult_cercano(yaw, paso_yaw, tol_yaw)
     en_grilla = all(ejes_ok.values()) and yaw_ok
     return {"en_grilla": en_grilla, "ejes_ok": ejes_ok, "yaw": round(yaw, 1), "yaw_ok": yaw_ok}
 
 
-def verificar_ras(actor, objetivo, eje: str = "x", *, tol: float = oracle_placement._TOL_CM) -> dict:
-    """¿`actor` quedó al ras contra `objetivo` sobre `eje`? Devuelve estado + gap del eje."""
+def verificar_ras(pieza, objetivo, eje: str = "x", *, tol: float = geometry.TOL_CM) -> dict:
+    """¿`pieza` quedó al ras contra `objetivo` sobre `eje`? Devuelve estado + gap del eje."""
     i = _EJES[eje]
-    oa, ea = ue.aabb(actor)
-    ob, eb = ue.aabb(objetivo)
-    ca, cb = _vec_comp(oa), _vec_comp(ob)
-    va, vb = _vec_comp(ea), _vec_comp(eb)
+    ca, va = _comps(pieza.aabb.origin), _comps(pieza.aabb.extent)
+    cb, vb = _comps(objetivo.aabb.origin), _comps(objetivo.aabb.extent)
     gap = abs(ca[i] - cb[i]) - (va[i] + vb[i])            # >0 hueco, ~0 al ras, <0 solapado
     otros_solapan = all((va[j] + vb[j]) - abs(ca[j] - cb[j]) > tol for j in range(3) if j != i)
     if not otros_solapan:
@@ -59,9 +58,9 @@ def es_ok_ras(r: dict) -> bool:
     return bool(r["al_ras"])
 
 
-def texto_grilla(actor, grilla: float = 100.0, **kw) -> str:
-    r = verificar_grilla(actor, grilla, **kw)
-    label = actor.get_actor_label()
+def texto_grilla(pieza, grilla: float = 100.0, **kw) -> str:
+    r = verificar_grilla(pieza, grilla, **kw)
+    label = pieza.nombre
     if r["en_grilla"]:
         return f"[{label}] EN GRILLA ✓ — pivote en múltiplos de {int(grilla)}cm, yaw {r['yaw']}°"
     faltan = [e for e, ok in r["ejes_ok"].items() if not ok]
@@ -71,10 +70,10 @@ def texto_grilla(actor, grilla: float = 100.0, **kw) -> str:
     return f"[{label}] FUERA DE GRILLA ✗ — {detalle}"
 
 
-def texto_ras(actor, objetivo, eje: str = "x", **kw) -> str:
-    r = verificar_ras(actor, objetivo, eje, **kw)
-    label = actor.get_actor_label()
-    otro = objetivo.get_actor_label()
+def texto_ras(pieza, objetivo, eje: str = "x", **kw) -> str:
+    r = verificar_ras(pieza, objetivo, eje, **kw)
+    label = pieza.nombre
+    otro = objetivo.nombre
     if r["estado"] == "al_ras":
         return f"[{label}] AL RAS ✓ — cara {eje} contra «{otro}» (gap {r['gap']}cm)"
     if r["estado"] == "hueco":
