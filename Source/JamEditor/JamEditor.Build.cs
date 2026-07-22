@@ -22,6 +22,7 @@ public class JamEditor : ModuleRules
 			"ToolMenus",
 			"InputCore",
 			"Projects",
+			"Json",
 			"PythonScriptPlugin",
 		});
 	}

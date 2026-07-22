@@ -81,3 +81,17 @@ REGISTRO = {
     "pared":      {"fn": t_pared,      "params": {"alto": 300.0, "espesor": 40.0, "largo_seg": 200.0},
                    "doc": "pared por spline y verifica continuidad de juntas"},
 }
+
+
+def spec_json() -> str:
+    """El registro como JSON (verbo/doc/params) para que la UI en C++ (Dash Bar) se arme sola.
+    Agregar una herramienta a REGISTRO la hace aparecer en el panel sin tocar C++."""
+    import json
+    salida = []
+    for nombre, info in REGISTRO.items():
+        salida.append({
+            "verbo": nombre,
+            "doc": info["doc"],
+            "params": [{"nombre": k, "default": str(v)} for k, v in info["params"].items()],
+        })
+    return json.dumps(salida, ensure_ascii=True)

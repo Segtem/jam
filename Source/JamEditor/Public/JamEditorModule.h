@@ -5,15 +5,27 @@
 #include "Input/Reply.h"
 #include "Types/SlateEnums.h"
 
-class SDockTab;
-class FSpawnTabArgs;
+class SWindow;
+class SWidget;
+class SVerticalBox;
 class SEditableTextBox;
 class SMultiLineEditableTextBox;
 
+/** Una herramienta de Jam vista desde la UI: verbo + doc + params (nombre → default). */
+struct FJamTool
+{
+	FString Verb;
+	FString Doc;
+	TArray<TPair<FString, FString>> Params;
+};
+
 /**
- * Módulo de editor de Jam. Registra un tab dockeable ("Consola Jam") armado 100% en Slate/C++
- * (sin UMG, sin widgets a mano) y un ítem de menú para abrirlo. La lógica de las herramientas
- * sigue viviendo en Python: el tab manda cada línea a `jam.panel.ejecutar_dsl` y muestra el veredicto.
+ * Módulo de editor de Jam. Arma en Slate/C++ una "Dash Bar" flotante estilo PolygonFlow Dash:
+ * barra de herramientas por sección (una por verbo), panel de params vivo del tool activo, una
+ * línea de comando (CLI) que es la fuente de verdad, y preview + veredicto + Confirmar/Descartar.
+ * La UI se genera desde `jam.tools.spec_json()` (agregar una herramienta en Python la hace aparecer
+ * sola). La ejecución sigue en Python: cada acción compone una línea de DSL y llama a
+ * `jam.panel.ejecutar_dsl`. Sin UMG, sin widgets a mano.
  */
 class FJamEditorModule : public IModuleInterface
 {
@@ -22,18 +34,33 @@ public:
 	virtual void ShutdownModule() override;
 
 private:
-	TSharedRef<SDockTab> SpawnJamTab(const FSpawnTabArgs& Args);
 	void RegisterMenus();
-	void OpenTab();
+	void OpenDashBar();
+	void OnDashClosed(const TSharedRef<SWindow>& Window);
 
-	/** Corre una línea de DSL en Python y vuelca el veredicto en el cuadro de salida. */
+	void LoadSpec();
+	TSharedRef<SWidget> BuildDashContent();
+	void SelectTool(const FString& Verb);
+	void RebuildParams();
+	void ComposeCommandFromParams();
+	const FJamTool* FindTool(const FString& Verb) const;
+
+	/** Corre un statement de Python y devuelve lo capturado por LogOutput (stdout/log). */
+	FString ExecPythonCapture(const FString& Statement);
+	/** Manda una línea de DSL a `jam.panel.ejecutar_dsl` y vuelca el veredicto en la salida. */
 	void RunCommand(const FString& Command);
 
-	FReply OnRunClicked();
+	FReply OnPreviewClicked();
 	FReply OnConfirmarClicked();
 	FReply OnDescartarClicked();
-	void OnInputCommitted(const FText& Text, ETextCommit::Type CommitType);
+	void OnCmdCommitted(const FText& Text, ETextCommit::Type CommitType);
 
-	TSharedPtr<SEditableTextBox> InputBox;
+	TArray<FJamTool> Tools;
+	FString ActiveVerb;
+
+	TSharedPtr<SWindow> DashWindow;
+	TSharedPtr<SVerticalBox> ParamsBox;
+	TSharedPtr<SEditableTextBox> CmdBox;
 	TSharedPtr<SMultiLineEditableTextBox> OutputBox;
+	TMap<FString, TSharedPtr<SEditableTextBox>> ParamFields;
 };

@@ -1,20 +1,23 @@
 #include "JamEditorModule.h"
 
 #include "Modules/ModuleManager.h"
-#include "Framework/Docking/TabManager.h"
-#include "Widgets/Docking/SDockTab.h"
+#include "Framework/Application/SlateApplication.h"
+#include "Widgets/SWindow.h"
 #include "Widgets/SBoxPanel.h"
+#include "Widgets/Layout/SWrapBox.h"
+#include "Widgets/Layout/SScrollBox.h"
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Input/SEditableTextBox.h"
 #include "Widgets/Input/SMultiLineEditableTextBox.h"
 #include "Widgets/Text/STextBlock.h"
-#include "Widgets/Layout/SScrollBox.h"
 #include "ToolMenus.h"
 #include "IPythonScriptPlugin.h"
+#include "Serialization/JsonReader.h"
+#include "Serialization/JsonSerializer.h"
+#include "Dom/JsonObject.h"
+#include "Dom/JsonValue.h"
 
 #define LOCTEXT_NAMESPACE "JamEditor"
-
-static const FName JamTabName(TEXT("JamConsole"));
 
 // Convierte un FString a un literal de string de Python entre comillas simples (escapando lo justo).
 static FString ToPyStr(const FString& In)
@@ -29,26 +32,20 @@ static FString ToPyStr(const FString& In)
 
 void FJamEditorModule::StartupModule()
 {
-	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(
-			JamTabName,
-			FOnSpawnTab::CreateRaw(this, &FJamEditorModule::SpawnJamTab))
-		.SetDisplayName(LOCTEXT("JamTabTitle", "Consola Jam"))
-		.SetTooltipText(LOCTEXT("JamTabTooltip", "Consola de Jam (DSL + oráculo determinista)"))
-		.SetMenuType(ETabSpawnerMenuType::Hidden);
-
 	UToolMenus::RegisterStartupCallback(
 		FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FJamEditorModule::RegisterMenus));
 
-	UE_LOG(LogTemp, Display, TEXT("[JamEditor] módulo C++ cargado — tab «Consola Jam» registrado."));
+	UE_LOG(LogTemp, Display, TEXT("[JamEditor] módulo C++ cargado — Dash Bar disponible en Tools."));
 }
 
 void FJamEditorModule::ShutdownModule()
 {
 	UToolMenus::UnRegisterStartupCallback(this);
 	UToolMenus::UnregisterOwner(this);
-	if (FSlateApplication::IsInitialized())
+	if (DashWindow.IsValid())
 	{
-		FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(JamTabName);
+		DashWindow->RequestDestroyWindow();
+		DashWindow.Reset();
 	}
 }
 
@@ -63,94 +60,290 @@ void FJamEditorModule::RegisterMenus()
 	}
 	FToolMenuSection& Section = Menu->FindOrAddSection("Jam");
 	Section.AddMenuEntry(
-		"OpenJamConsole",
-		LOCTEXT("OpenJamConsole", "Jam: Consola (C++)"),
-		LOCTEXT("OpenJamConsoleTip", "Abrir la consola Jam nativa (DSL + oráculo)"),
+		"OpenJamDashBar",
+		LOCTEXT("OpenJamDashBar", "Jam: Dash Bar"),
+		LOCTEXT("OpenJamDashBarTip", "Abrir la Dash Bar de Jam (secciones + params + oráculo)"),
 		FSlateIcon(),
-		FUIAction(FExecuteAction::CreateRaw(this, &FJamEditorModule::OpenTab)));
+		FUIAction(FExecuteAction::CreateRaw(this, &FJamEditorModule::OpenDashBar)));
 }
 
-void FJamEditorModule::OpenTab()
+void FJamEditorModule::OpenDashBar()
 {
-	FGlobalTabmanager::Get()->TryInvokeTab(JamTabName);
+	if (DashWindow.IsValid())
+	{
+		DashWindow->BringToFront();
+		return;
+	}
+
+	LoadSpec();
+
+	TSharedRef<SWindow> Win = SNew(SWindow)
+		.Title(LOCTEXT("DashTitle", "Jam — Dash Bar"))
+		.ClientSize(FVector2D(560.0f, 440.0f))
+		.AutoCenter(EAutoCenter::PreferredWorkArea)
+		.SupportsMaximize(false)
+		.SupportsMinimize(false);
+
+	Win->SetContent(BuildDashContent());
+	Win->SetOnWindowClosed(FOnWindowClosed::CreateRaw(this, &FJamEditorModule::OnDashClosed));
+
+	FSlateApplication::Get().AddWindow(Win);
+	DashWindow = Win;
+
+	if (Tools.Num() > 0)
+	{
+		SelectTool(ActiveVerb.IsEmpty() ? Tools[0].Verb : ActiveVerb);
+	}
 }
 
-TSharedRef<SDockTab> FJamEditorModule::SpawnJamTab(const FSpawnTabArgs& Args)
+void FJamEditorModule::OnDashClosed(const TSharedRef<SWindow>& /*Window*/)
 {
-	return SNew(SDockTab)
-		.TabRole(ETabRole::NomadTab)
+	DashWindow.Reset();
+	ParamsBox.Reset();
+	CmdBox.Reset();
+	OutputBox.Reset();
+	ParamFields.Empty();
+}
+
+void FJamEditorModule::LoadSpec()
+{
+	Tools.Reset();
+	const FString Raw = ExecPythonCapture(
+		TEXT("import jam.tools as _t; print('JAMSPEC:' + _t.spec_json())"));
+
+	const FString Marker(TEXT("JAMSPEC:"));
+	const int32 M = Raw.Find(Marker);
+	if (M == INDEX_NONE)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[JamEditor] no pude leer el spec de jam.tools."));
+		return;
+	}
+	FString Json = Raw.Mid(M + Marker.Len());
+	Json.TrimStartAndEndInline();
+
+	TArray<TSharedPtr<FJsonValue>> Arr;
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Json);
+	if (!FJsonSerializer::Deserialize(Reader, Arr))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[JamEditor] spec no parseó como JSON."));
+		return;
+	}
+
+	for (const TSharedPtr<FJsonValue>& V : Arr)
+	{
+		const TSharedPtr<FJsonObject> O = V->AsObject();
+		if (!O.IsValid())
+		{
+			continue;
+		}
+		FJamTool T;
+		T.Verb = O->GetStringField(TEXT("verbo"));
+		O->TryGetStringField(TEXT("doc"), T.Doc);
+		const TArray<TSharedPtr<FJsonValue>>* Ps = nullptr;
+		if (O->TryGetArrayField(TEXT("params"), Ps) && Ps)
+		{
+			for (const TSharedPtr<FJsonValue>& PV : *Ps)
+			{
+				const TSharedPtr<FJsonObject> PO = PV->AsObject();
+				if (PO.IsValid())
+				{
+					T.Params.Add(TPair<FString, FString>(
+						PO->GetStringField(TEXT("nombre")),
+						PO->GetStringField(TEXT("default"))));
+				}
+			}
+		}
+		Tools.Add(T);
+	}
+}
+
+const FJamTool* FJamEditorModule::FindTool(const FString& Verb) const
+{
+	return Tools.FindByPredicate([&Verb](const FJamTool& T) { return T.Verb == Verb; });
+}
+
+TSharedRef<SWidget> FJamEditorModule::BuildDashContent()
+{
+	TSharedRef<SWrapBox> Toolbar = SNew(SWrapBox).UseAllottedSize(true);
+	for (const FJamTool& T : Tools)
+	{
+		const FString Verb = T.Verb;
+		Toolbar->AddSlot().Padding(2.0f)
 		[
-			SNew(SVerticalBox)
+			SNew(SButton)
+			.Text(FText::FromString(Verb))
+			.ToolTipText(FText::FromString(T.Doc))
+			.OnClicked_Lambda([this, Verb]() { SelectTool(Verb); return FReply::Handled(); })
+		];
+	}
 
-			// Fila de comando: caja de texto (Enter ejecuta) + Run.
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(6.0f, 6.0f, 6.0f, 2.0f)
+	return SNew(SVerticalBox)
+
+		// Barra de secciones (una por herramienta, generada desde el spec).
+		+ SVerticalBox::Slot()
+		.AutoHeight()
+		.Padding(6.0f, 6.0f, 6.0f, 2.0f)
+		[
+			Toolbar
+		]
+
+		// Params vivos del tool activo (se reconstruyen al elegir sección).
+		+ SVerticalBox::Slot()
+		.AutoHeight()
+		.Padding(6.0f, 2.0f)
+		[
+			SAssignNew(ParamsBox, SVerticalBox)
+		]
+
+		// Línea de comando (CLI) = fuente de verdad + Preview.
+		+ SVerticalBox::Slot()
+		.AutoHeight()
+		.Padding(6.0f, 4.0f)
+		[
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot()
+			.FillWidth(1.0f)
+			.VAlign(VAlign_Center)
 			[
-				SNew(SHorizontalBox)
-				+ SHorizontalBox::Slot()
-				.FillWidth(1.0f)
-				.VAlign(VAlign_Center)
-				[
-					SAssignNew(InputBox, SEditableTextBox)
-					.HintText(LOCTEXT("CmdHint", "comando Jam — ej: scatter cantidad=20 area=650 seed=7   ·   help"))
-					.OnTextCommitted_Raw(this, &FJamEditorModule::OnInputCommitted)
-				]
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				.Padding(4.0f, 0.0f, 0.0f, 0.0f)
-				[
-					SNew(SButton)
-					.Text(LOCTEXT("Run", "Ejecutar"))
-					.OnClicked_Raw(this, &FJamEditorModule::OnRunClicked)
-				]
+				SAssignNew(CmdBox, SEditableTextBox)
+				.HintText(LOCTEXT("CmdHint", "comando Jam — o editá los params de arriba"))
+				.OnTextCommitted_Raw(this, &FJamEditorModule::OnCmdCommitted)
 			]
-
-			// Fila de acciones del preview.
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(6.0f, 2.0f)
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.Padding(4.0f, 0.0f, 0.0f, 0.0f)
 			[
-				SNew(SHorizontalBox)
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				.Padding(0.0f, 0.0f, 4.0f, 0.0f)
-				[
-					SNew(SButton)
-					.Text(LOCTEXT("Confirmar", "✓ Confirmar"))
-					.OnClicked_Raw(this, &FJamEditorModule::OnConfirmarClicked)
-				]
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				[
-					SNew(SButton)
-					.Text(LOCTEXT("Descartar", "✗ Descartar"))
-					.OnClicked_Raw(this, &FJamEditorModule::OnDescartarClicked)
-				]
+				SNew(SButton)
+				.Text(LOCTEXT("Preview", "Preview"))
+				.OnClicked_Raw(this, &FJamEditorModule::OnPreviewClicked)
 			]
+		]
 
-			// Salida: veredicto del oráculo (solo lectura, con scroll).
-			+ SVerticalBox::Slot()
-			.FillHeight(1.0f)
-			.Padding(6.0f, 2.0f, 6.0f, 6.0f)
+		// Acciones del preview.
+		+ SVerticalBox::Slot()
+		.AutoHeight()
+		.Padding(6.0f, 2.0f)
+		[
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.Padding(0.0f, 0.0f, 4.0f, 0.0f)
 			[
-				SNew(SScrollBox)
-				+ SScrollBox::Slot()
-				[
-					SAssignNew(OutputBox, SMultiLineEditableTextBox)
-					.IsReadOnly(true)
-					.AllowMultiLine(true)
-					.Text(LOCTEXT("Welcome", "Jam — consola nativa lista. Escribí «help» y Enter."))
-				]
+				SNew(SButton)
+				.Text(LOCTEXT("Confirmar", "✓ Confirmar"))
+				.OnClicked_Raw(this, &FJamEditorModule::OnConfirmarClicked)
+			]
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			[
+				SNew(SButton)
+				.Text(LOCTEXT("Descartar", "✗ Descartar"))
+				.OnClicked_Raw(this, &FJamEditorModule::OnDescartarClicked)
+			]
+		]
+
+		// Salida: veredicto del oráculo.
+		+ SVerticalBox::Slot()
+		.FillHeight(1.0f)
+		.Padding(6.0f, 2.0f, 6.0f, 6.0f)
+		[
+			SNew(SScrollBox)
+			+ SScrollBox::Slot()
+			[
+				SAssignNew(OutputBox, SMultiLineEditableTextBox)
+				.IsReadOnly(true)
+				.AllowMultiLine(true)
+				.Text(LOCTEXT("Welcome", "Elegí una herramienta arriba, ajustá params y Preview. También podés escribir el comando directo y Enter («help»)."))
 			]
 		];
 }
 
-FReply FJamEditorModule::OnRunClicked()
+void FJamEditorModule::SelectTool(const FString& Verb)
 {
-	if (InputBox.IsValid())
+	ActiveVerb = Verb;
+	RebuildParams();
+}
+
+void FJamEditorModule::RebuildParams()
+{
+	ParamFields.Empty();
+	if (!ParamsBox.IsValid())
 	{
-		RunCommand(InputBox->GetText().ToString());
+		return;
+	}
+	ParamsBox->ClearChildren();
+
+	const FJamTool* T = FindTool(ActiveVerb);
+	if (T == nullptr)
+	{
+		return;
+	}
+
+	ParamsBox->AddSlot()
+		.AutoHeight()
+		.Padding(0.0f, 0.0f, 0.0f, 2.0f)
+		[
+			SNew(STextBlock).Text(FText::FromString(FString::Printf(TEXT("%s  —  %s"), *T->Verb, *T->Doc)))
+		];
+
+	for (const TPair<FString, FString>& P : T->Params)
+	{
+		const FString Key = P.Key;
+		TSharedPtr<SEditableTextBox> Field;
+		ParamsBox->AddSlot()
+			.AutoHeight()
+			.Padding(0.0f, 1.0f)
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				.FillWidth(0.4f)
+				.VAlign(VAlign_Center)
+				[
+					SNew(STextBlock).Text(FText::FromString(Key))
+				]
+				+ SHorizontalBox::Slot()
+				.FillWidth(0.6f)
+				[
+					SAssignNew(Field, SEditableTextBox)
+					.Text(FText::FromString(P.Value))
+					.OnTextChanged_Lambda([this](const FText&) { ComposeCommandFromParams(); })
+				]
+			];
+		ParamFields.Add(Key, Field);
+	}
+
+	ComposeCommandFromParams();
+}
+
+void FJamEditorModule::ComposeCommandFromParams()
+{
+	if (!CmdBox.IsValid())
+	{
+		return;
+	}
+	FString Cmd = ActiveVerb;
+	if (const FJamTool* T = FindTool(ActiveVerb))
+	{
+		for (const TPair<FString, FString>& P : T->Params)
+		{
+			if (const TSharedPtr<SEditableTextBox>* Field = ParamFields.Find(P.Key))
+			{
+				const FString Val = (*Field)->GetText().ToString().TrimStartAndEnd();
+				if (!Val.IsEmpty())
+				{
+					Cmd += FString::Printf(TEXT(" %s=%s"), *P.Key, *Val);
+				}
+			}
+		}
+	}
+	CmdBox->SetText(FText::FromString(Cmd));
+}
+
+FReply FJamEditorModule::OnPreviewClicked()
+{
+	if (CmdBox.IsValid())
+	{
+		RunCommand(CmdBox->GetText().ToString());
 	}
 	return FReply::Handled();
 }
@@ -167,7 +360,7 @@ FReply FJamEditorModule::OnDescartarClicked()
 	return FReply::Handled();
 }
 
-void FJamEditorModule::OnInputCommitted(const FText& Text, ETextCommit::Type CommitType)
+void FJamEditorModule::OnCmdCommitted(const FText& Text, ETextCommit::Type CommitType)
 {
 	if (CommitType == ETextCommit::OnEnter)
 	{
@@ -175,35 +368,40 @@ void FJamEditorModule::OnInputCommitted(const FText& Text, ETextCommit::Type Com
 	}
 }
 
-void FJamEditorModule::RunCommand(const FString& Command)
+FString FJamEditorModule::ExecPythonCapture(const FString& Statement)
 {
 	FString Out;
 	IPythonScriptPlugin* Py = IPythonScriptPlugin::Get();
 	if (Py == nullptr || !Py->IsPythonAvailable())
 	{
-		Out = TEXT("Python no está disponible en este editor.");
+		return TEXT("Python no está disponible en este editor.");
 	}
-	else
+
+	FPythonCommandEx Cmd;
+	Cmd.ExecutionMode = EPythonCommandExecutionMode::ExecuteStatement;
+	Cmd.FileExecutionScope = EPythonFileExecutionScope::Private;
+	Cmd.Command = Statement;
+
+	Py->ExecPythonCommandEx(Cmd);
+
+	for (const FPythonLogOutputEntry& Entry : Cmd.LogOutput)
 	{
-		FPythonCommandEx Cmd;
-		Cmd.ExecutionMode = EPythonCommandExecutionMode::ExecuteStatement;
-		Cmd.FileExecutionScope = EPythonFileExecutionScope::Private;
-		Cmd.Command = FString::Printf(
-			TEXT("import jam.panel as _p; print(_p.ejecutar_dsl(%s, None))"), *ToPyStr(Command));
-
-		Py->ExecPythonCommandEx(Cmd);
-
-		for (const FPythonLogOutputEntry& Entry : Cmd.LogOutput)
-		{
-			Out += Entry.Output;
-		}
-		Out.TrimEndInline();
-		if (Out.IsEmpty())
-		{
-			Out = Cmd.CommandResult.IsEmpty() ? TEXT("(sin salida)") : Cmd.CommandResult;
-		}
+		Out += Entry.Output;
 	}
+	Out.TrimEndInline();
+	return Out;
+}
 
+void FJamEditorModule::RunCommand(const FString& Command)
+{
+	const FString Statement = FString::Printf(
+		TEXT("import jam.panel as _p; print(_p.ejecutar_dsl(%s, None))"), *ToPyStr(Command));
+
+	FString Out = ExecPythonCapture(Statement);
+	if (Out.IsEmpty())
+	{
+		Out = TEXT("(sin salida)");
+	}
 	if (OutputBox.IsValid())
 	{
 		OutputBox->SetText(FText::FromString(Out));
