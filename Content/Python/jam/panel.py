@@ -3,7 +3,8 @@
 Frontera de UMG-desde-Python en UE 5.7 (medida con sonda): se puede CREAR el EditorUtilityWidget por
 Python y CABLEAR botones/leer campos en runtime, pero NO poblar el árbol de widgets (`WidgetTree` es
 protegido). Por eso el LAYOUT se arma una vez en el editor con nombres convenidos y TODO lo demás vive
-acá en Python: cablear botones, LEER los campos de parámetros, y poblar/aplicar el Preset Library.
+acá en Python: cablear botones, LEER los campos de parámetros, poblar el Preset Library y el picker de
+assets (el "Content Browser" del panel), y ENCHUFAR el asset elegido a cada herramienta.
 
 Widgets del layout (los que falten se saltean, sin romper — el panel se enciende de a poco):
   Botones:  btn_verificar · btn_colocar · btn_scatter · btn_soltar · btn_grilla · btn_reemplazar ·
@@ -15,6 +16,10 @@ Widgets del layout (los que falten se saltean, sin romper — el panel se encien
             in_grilla                          (snap a grilla)
   Presets (Fase B):
             cmb_preset (ComboBox String) · btn_aplicar_preset (Button)
+  Content Browser / picker de assets (Fase C · Tier 1):
+            in_buscar (EditableTextBox) · btn_buscar (Button) · cmb_asset (ComboBox String)
+            El asset elegido en cmb_asset alimenta colocar/scatter/física/snap/reemplazar/pared.
+            Si el picker no está en el layout, todo cae al primer asset de la biblioteca (compat).
 """
 
 from __future__ import annotations
@@ -28,6 +33,9 @@ RUTA_BP = "/Jam/UI/WBP_JamPanel"
 
 # Mantener vivos los handlers cableados (si no, el GC de Python los suelta y el delegate queda muerto).
 _HANDLERS: list = []
+
+# Picker de assets: etiqueta mostrada en cmb_asset → ObjectPath cargable. Se rearma en cada búsqueda.
+_ASSET_MAP: dict[str, str] = {}
 
 
 # ---- lectura de campos de parámetros (defensiva: campo ausente/ilegible → default) ----
@@ -50,17 +58,92 @@ def _num(widget, name: str, default: float) -> float:
     return default
 
 
+def _texto(widget, name: str, default: str = "") -> str:
+    w = widget.find_child_widget_by_name(name)
+    if w is None or not hasattr(w, "get_text"):
+        return default
+    try:
+        return str(w.get_text()).strip()
+    except Exception:  # noqa: BLE001
+        return default
+
+
 def _asset_biblioteca():
     from . import library
     libro = library.buscar(limit=1)
     return libro[0]["ruta"] if libro else None
 
 
-# ---- handlers param-aware (leen campos del widget; si faltan usan los defaults de las demos) ----
+# ---- Content Browser / picker de assets ----
+
+def _poblar_assets(widget) -> int:
+    """Llena cmb_asset con los StaticMesh del proyecto que matchean in_buscar. Devuelve cuántos."""
+    cmb = widget.find_child_widget_by_name("cmb_asset")
+    if cmb is None:
+        return 0
+    from . import library
+    query = _texto(widget, "in_buscar", "")
+    resultados = library.buscar(query, limit=50)
+    _ASSET_MAP.clear()
+    try:
+        cmb.clear_options()
+        for r in resultados:
+            etiqueta = r["nombre"]
+            # nombres repetidos → desambiguar con la carpeta contenedora para no pisar la ruta
+            if etiqueta in _ASSET_MAP:
+                carpeta = r["ruta"].rsplit("/", 1)[0].rsplit("/", 1)[-1]
+                etiqueta = f"{r['nombre']}  ({carpeta})"
+            _ASSET_MAP[etiqueta] = r["ruta"]
+            cmb.add_option(etiqueta)
+        if resultados:
+            cmb.set_selected_index(0)
+        return len(resultados)
+    except Exception as e:  # noqa: BLE001
+        unreal.log_error(f"[Jam] panel: poblar assets FALLO: {e}")
+        return 0
+
+
+def _asset_elegido(widget) -> str | None:
+    """ObjectPath del asset elegido en cmb_asset; si no hay picker/selección, el primero de la biblioteca."""
+    cmb = widget.find_child_widget_by_name("cmb_asset")
+    if cmb is not None:
+        try:
+            etiqueta = str(cmb.get_selected_option()).strip()
+            if etiqueta in _ASSET_MAP:
+                return _ASSET_MAP[etiqueta]
+        except Exception:  # noqa: BLE001
+            pass
+    return _asset_biblioteca()
+
+
+def _nombre_corto(ruta: str) -> str:
+    return ruta.rsplit(".", 1)[-1] if ruta else "asset"
+
+
+def _h_buscar(widget) -> str:
+    n = _poblar_assets(widget)
+    q = _texto(widget, "in_buscar", "")
+    detalle = f"«{q}»" if q else "(todos)"
+    return f"Content Browser: {n} StaticMesh para {detalle}. Elegí uno y usá cualquier herramienta."
+
+
+# ---- handlers param-aware (leen campos + asset del widget; defaults = los de las demos) ----
+
+def _h_colocar(widget) -> str:
+    from . import oracle_placement, place
+    asset = _asset_elegido(widget)
+    if not asset:
+        return "biblioteca vacía"
+    actor = place.colocar(asset, (0.0, 0.0, 0.0))
+    if actor is None:
+        return f"no se pudo colocar {_nombre_corto(asset)}"
+    otros = unreal.get_editor_subsystem(unreal.EditorActorSubsystem).get_all_level_actors()
+    return oracle_placement.verificar_texto(actor, otros)
+
 
 def _h_scatter(widget) -> str:
     from . import oracle_scatter, scatter
-    asset = _asset_biblioteca()
+    asset = _asset_elegido(widget)
     if not asset:
         return "biblioteca vacía"
     cant = int(_num(widget, "in_cantidad", 9))
@@ -71,9 +154,43 @@ def _h_scatter(widget) -> str:
     return oracle_scatter.verificar_texto(actores, centro, semi, cant)
 
 
+def _h_soltar(widget) -> str:
+    from . import oracle_physics, physics, place
+    asset = _asset_elegido(widget)
+    if not asset:
+        return "biblioteca vacía"
+    piso = place.colocar(asset, (0.0, 0.0, 0.0), scale=(50.0, 50.0, 1.0))
+    piso.set_actor_label("Jam_piso")
+    caja = place.colocar(asset, (0.0, 0.0, 800.0))
+    r = physics.soltar(caja, [piso])
+    return f"cae {r['caida']}cm → " + oracle_physics.verificar_texto(caja, [piso])
+
+
+def _h_grilla(widget) -> str:
+    from . import oracle_snap, place, snap
+    asset = _asset_elegido(widget)
+    if not asset:
+        return "biblioteca vacía"
+    grilla = _num(widget, "in_grilla", 100.0)
+    caja = place.colocar(asset, (137.4, 62.9, 11.1), (0.0, 0.0, 37.0))
+    snap.a_grilla(caja, grilla)
+    return oracle_snap.texto_grilla(caja, grilla)
+
+
+def _h_reemplazar(widget) -> str:
+    from . import oracle_reemplazo, place, reemplazar
+    asset = _asset_elegido(widget)
+    if not asset:
+        return "biblioteca vacía"
+    blockout = place.colocar(asset, (0.0, 0.0, 150.0), scale=(2.0, 2.0, 3.0))
+    blockout.set_actor_label("Jam_blockout")
+    nuevo, objetivo = reemplazar.reemplazar(blockout, asset, ajustar_escala=True)
+    return oracle_reemplazo.verificar_texto(nuevo, objetivo)
+
+
 def _h_pared(widget) -> str:
     from . import oracle_pared, pared
-    asset = _asset_biblioteca()
+    asset = _asset_elegido(widget)
     if not asset:
         return "biblioteca vacía"
     actor = pared.seleccionado_con_spline() or pared.crear_spline()
@@ -84,29 +201,19 @@ def _h_pared(widget) -> str:
     return oracle_pared.verificar_texto(build)
 
 
-def _h_grilla(widget) -> str:
-    from . import oracle_snap, place, snap
-    asset = _asset_biblioteca()
-    if not asset:
-        return "biblioteca vacía"
-    grilla = _num(widget, "in_grilla", 100.0)
-    caja = place.colocar(asset, (137.4, 62.9, 11.1), (0.0, 0.0, 37.0))
-    snap.a_grilla(caja, grilla)
-    return oracle_snap.texto_grilla(caja, grilla)
-
-
 def _mapa_handlers() -> dict:
-    """Nombre de botón → handler(widget) → texto de veredicto. Los que no usan params delegan al menú."""
+    """Nombre de botón → handler(widget) → texto de veredicto. Todos usan el asset elegido."""
     from . import menu
     return {
-        "btn_verificar": lambda w: menu.on_verificar_espacio(),
-        "btn_colocar": lambda w: menu.on_colocar_primero(),
+        "btn_verificar": lambda w: menu.on_verificar_espacio(),  # lee el nivel, no usa asset
+        "btn_colocar": _h_colocar,
         "btn_scatter": _h_scatter,
-        "btn_soltar": lambda w: menu.on_soltar_demo(),
+        "btn_soltar": _h_soltar,
         "btn_grilla": _h_grilla,
-        "btn_reemplazar": lambda w: menu.on_reemplazar_demo(),
-        "btn_spline": lambda w: menu.on_crear_spline(),
+        "btn_reemplazar": _h_reemplazar,
+        "btn_spline": lambda w: menu.on_crear_spline(),          # sólo crea el spline
         "btn_pared": _h_pared,
+        "btn_buscar": _h_buscar,
     }
 
 
@@ -158,7 +265,7 @@ def crear_asset_panel():
 
 
 def _cablear(widget) -> int:
-    """Cablea botones + preset library, mandando cada veredicto al TextBlock txt_veredicto."""
+    """Cablea botones + preset library + picker de assets, mandando cada veredicto a txt_veredicto."""
     txt = widget.find_child_widget_by_name("txt_veredicto")
 
     def _correr(fn):
@@ -201,9 +308,13 @@ def _cablear(widget) -> int:
         except Exception as e:  # noqa: BLE001
             unreal.log_error(f"[Jam] panel: no pude cablear «btn_aplicar_preset»: {e}")
 
+    # Content Browser: poblar el picker con todo el proyecto de arranque
+    n_assets = _poblar_assets(widget)
+
     if txt is not None:
-        txt.set_text(f"Jam · {n} herramientas · {n_presets} presets — elegí una y mirá el veredicto.")
-    unreal.log(f"[Jam] panel: {n} botones cableados, {n_presets} presets"
+        txt.set_text(f"Jam · {n} herramientas · {n_presets} presets · {n_assets} assets — "
+                     "elegí un asset y una herramienta, y mirá el veredicto.")
+    unreal.log(f"[Jam] panel: {n} botones cableados, {n_presets} presets, {n_assets} assets"
                + ("" if txt is not None else " (falta el TextBlock txt_veredicto)"))
     return n
 
