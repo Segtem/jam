@@ -1,4 +1,5 @@
 #include "JamEditorModule.h"
+#include "SJamGraphEditor.h"
 
 #include "Modules/ModuleManager.h"
 #include "Framework/Application/SlateApplication.h"
@@ -74,6 +75,43 @@ void FJamEditorModule::RegisterMenus()
 		LOCTEXT("OpenJamDashBarTip", "Abrir la Dash Bar de Jam (secciones + params + oráculo)"),
 		FSlateIcon(),
 		FUIAction(FExecuteAction::CreateRaw(this, &FJamEditorModule::OpenDashBar)));
+	Section.AddMenuEntry(
+		"OpenJamGraph",
+		LOCTEXT("OpenJamGraph", "Jam: Graph (Grasshopper)"),
+		LOCTEXT("OpenJamGraphTip", "Editor de nodos: cada nodo es un comando; correr = orden topológico + oráculo"),
+		FSlateIcon(),
+		FUIAction(FExecuteAction::CreateRaw(this, &FJamEditorModule::OpenGraph)));
+}
+
+void FJamEditorModule::OpenGraph()
+{
+	if (GraphWindow.IsValid())
+	{
+		GraphWindow->BringToFront();
+		return;
+	}
+	LoadSpec();
+
+	TSharedRef<SWindow> Win = SNew(SWindow)
+		.Title(LOCTEXT("GraphTitle", "Jam — Graph (Grasshopper)"))
+		.ClientSize(FVector2D(780.0f, 560.0f))
+		.AutoCenter(EAutoCenter::PreferredWorkArea);
+
+	Win->SetContent(
+		SNew(SJamGraphEditor, Tools)
+		.OnRunGraph_Raw(this, &FJamEditorModule::RunGraphJson));
+	Win->SetOnWindowClosed(FOnWindowClosed::CreateLambda(
+		[this](const TSharedRef<SWindow>&) { GraphWindow.Reset(); }));
+
+	FSlateApplication::Get().AddWindow(Win);
+	GraphWindow = Win;
+}
+
+FString FJamEditorModule::RunGraphJson(const FString& Json)
+{
+	const FString Stmt = FString::Printf(
+		TEXT("import jam.panel as _p; print(_p.ejecutar_grafo(%s, None))"), *ToPyStr(Json));
+	return ExecPythonCapture(Stmt);
 }
 
 void FJamEditorModule::OpenDashBar()

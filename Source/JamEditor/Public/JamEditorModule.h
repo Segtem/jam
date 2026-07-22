@@ -42,6 +42,9 @@ private:
 	void RegisterMenus();
 	void OpenDashBar();
 	void OnDashClosed(const TSharedRef<SWindow>& Window);
+	void OpenGraph();
+	/** Corre un JamGraph (JSON) vía Python (jam.panel.ejecutar_grafo) y devuelve el reporte. */
+	FString RunGraphJson(const FString& Json);
 
 	void LoadSpec();
 	TSharedRef<SWidget> BuildDashContent();
@@ -78,6 +81,7 @@ private:
 	FString LogText;
 
 	TSharedPtr<SWindow> DashWindow;
+	TSharedPtr<SWindow> GraphWindow;
 	TSharedPtr<SVerticalBox> ParamsBox;
 	TSharedPtr<SEditableTextBox> CmdBox;
 	TSharedPtr<SEditableTextBox> SearchBox;

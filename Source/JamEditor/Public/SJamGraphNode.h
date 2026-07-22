@@ -1,0 +1,51 @@
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Widgets/SCompoundWidget.h"
+#include "Widgets/DeclarativeSyntaxSupport.h"
+
+class SEditableTextBox;
+
+/** (nombre, default) de un param — typedef para no romper los macros SLATE_* con la coma del TPair. */
+using FJamNodeParam = TPair<FString, FString>;
+
+DECLARE_DELEGATE_OneParam(FOnNodeDragDelta, const FVector2D&);
+
+/**
+ * Un nodo del canvas «Grasshopper» de Jam: caja arrastrable con título (verbo), campos de params,
+ * pin de entrada (izq) y salida (der), y botón borrar. Es sólo la VISTA; el grafo/ejecución viven
+ * en `jam.graph`. El header (o cualquier zona no interactiva) arrastra el nodo.
+ */
+class SJamGraphNode : public SCompoundWidget
+{
+public:
+	SLATE_BEGIN_ARGS(SJamGraphNode) {}
+		SLATE_ARGUMENT(FString, Verb)
+		/** (nombre, default) por cada param. */
+		SLATE_ARGUMENT(TArray<FJamNodeParam>, Params)
+		SLATE_EVENT(FOnNodeDragDelta, OnDragDelta)
+		SLATE_EVENT(FSimpleDelegate, OnOutputClicked)
+		SLATE_EVENT(FSimpleDelegate, OnInputClicked)
+		SLATE_EVENT(FSimpleDelegate, OnDeleteClicked)
+	SLATE_END_ARGS()
+
+	void Construct(const FArguments& InArgs);
+
+	/** Valores actuales de los params (leídos de los text boxes). */
+	TMap<FString, FString> GetParamValues() const;
+	const FString& GetVerb() const { return Verb; }
+
+	// Arrastre: si el click no lo toma un hijo interactivo (param/pin), arrastra el nodo.
+	virtual FReply OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+	virtual FReply OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+	virtual FReply OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+
+private:
+	FString Verb;
+	bool bDragging = false;
+	FOnNodeDragDelta OnDragDelta;
+	FSimpleDelegate OnInputClickedDelegate;
+	FSimpleDelegate OnOutputClickedDelegate;
+	FSimpleDelegate OnDeleteClickedDelegate;
+	TMap<FString, TSharedPtr<SEditableTextBox>> Fields;
+};
