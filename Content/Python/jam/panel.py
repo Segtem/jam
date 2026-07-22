@@ -340,6 +340,14 @@ def _h_consola(widget) -> str:
     return ejecutar_dsl(_texto(widget, "in_cmd", ""), widget)
 
 
+def ejecutar_grafo(g_json: str, widget=None) -> str:
+    """Corre un JamGraph (JSON) como UN preview: todos los actores del grafo se marcan juntos y
+    Confirmar/Descartar resuelven el grafo entero. Es la ejecución del «Grasshopper» de Jam."""
+    from . import graph
+    g = graph.JamGraph.from_json(g_json)
+    return _preview(lambda _w: graph.ejecutar(g), widget)
+
+
 def _mapa_handlers() -> dict:
     """Nombre de botón → handler(widget) → texto de veredicto. Todos usan el asset elegido."""
     from . import menu
