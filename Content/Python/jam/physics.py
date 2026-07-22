@@ -18,6 +18,23 @@ def _actor_sub() -> unreal.EditorActorSubsystem:
     return unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
 
 
+def _es_geometria(actor) -> bool:
+    """¿El actor es superficie sobre la que algo puede apoyarse? Malla o landscape — NO luces,
+    cámaras, sky, volúmenes ni player-start (esos no tienen geometría renderizable)."""
+    try:
+        if isinstance(actor, unreal.LandscapeProxy):
+            return True
+    except Exception:
+        pass
+    return bool(actor.get_components_by_class(unreal.StaticMeshComponent))
+
+
+def soportes_del_nivel():
+    """Todos los actores del nivel que cuentan como piso/geometría (única fuente de verdad para
+    `soltar` y su oráculo: ambos deben coincidir en «qué hay debajo»)."""
+    return [a for a in _actor_sub().get_all_level_actors() if _es_geometria(a)]
+
+
 def _soporte_top(actor, soportes, tol):
     """Top del AABB del soporte más alto que solapa a `actor` en XY y no está por encima de su centro.
     Devuelve (z_top, label), o (None, None) si no hay nada debajo."""
@@ -41,7 +58,7 @@ def soltar(actor, soportes=None, *, tol=oracle_placement._TOL_CM):
     """Baja `actor` hasta apoyar su base sobre el soporte más alto debajo (AABB). `soportes` None
     = todos los actores del nivel. Devuelve {cayo, z_apoyo, soporte, caida} (caida en cm, >0 flotaba)."""
     if soportes is None:
-        soportes = _actor_sub().get_all_level_actors()
+        soportes = soportes_del_nivel()
     oa, ea = oracle_placement.aabb(actor)
     base = oa.z - ea.z
     z_top, label = _soporte_top(actor, soportes, tol)

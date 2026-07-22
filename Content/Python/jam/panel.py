@@ -254,11 +254,10 @@ def _h_soltar(widget) -> str:
     asset = _asset_elegido(widget)
     if not asset:
         return "biblioteca vacía"
-    piso = place.colocar(asset, (0.0, 0.0, 0.0), scale=(50.0, 50.0, 1.0))
-    piso.set_actor_label("Jam_piso")
-    caja = place.colocar(asset, (0.0, 0.0, 800.0))
-    r = physics.soltar(caja, [piso])
-    return f"cae {r['caida']}cm → " + oracle_physics.verificar_texto(caja, [piso])
+    # Cae sobre la geometría REAL del nivel (piso/landscape), sin fabricar un suelo.
+    caja = place.colocar(asset, (0.0, 0.0, 800.0))  # a plomo desde 8 m
+    r = physics.soltar(caja)                          # soportes=None → todos los actores del nivel
+    return f"cae {r['caida']}cm → " + oracle_physics.verificar_texto(caja)
 
 
 def _h_grilla(widget) -> str:

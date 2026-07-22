@@ -20,7 +20,7 @@ from . import oracle_placement, physics
 def verificar(actor, soportes=None, *, tol: float = oracle_placement._TOL_CM) -> dict:
     """Veredicto de asentamiento de `actor`. `soportes` None = todos los actores del nivel."""
     if soportes is None:
-        soportes = physics._actor_sub().get_all_level_actors()
+        soportes = physics.soportes_del_nivel()
     oa, ea = oracle_placement.aabb(actor)
     base = oa.z - ea.z
     z_top, label = physics._soporte_top(actor, soportes, tol)
