@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jam · web</title>
+<style>
+  :root{
+    --bg:#14161a; --panel:#1c1f26; --panel2:#232733; --line:#2e3340;
+    --ink:#e7e9ee; --dim:#9aa3b2; --accent:#3aa0ff; --ok:#57d38c; --bad:#ff6b6b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:14px/1.45 ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif;height:100vh;display:flex;flex-direction:column}
+  header{padding:10px 14px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:10px}
+  header b{font-size:16px} header .tag{color:var(--dim);font-size:12px}
+  header .dot{margin-left:auto;font-size:12px;color:var(--dim)}
+  header .dot.on{color:var(--ok)} header .dot.off{color:var(--bad)}
+  .wrap{flex:1;display:flex;flex-direction:column;gap:10px;padding:12px;overflow:auto}
+  .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .cat{display:flex;gap:4px;align-items:center;background:var(--panel);border:1px solid var(--line);
+    border-radius:8px;padding:4px 6px}
+  .cat > .lbl{color:var(--dim);font-size:12px;padding:0 4px}
+  button{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:6px;
+    padding:5px 10px;cursor:pointer;font-size:13px}
+  button:hover{border-color:var(--accent)}
+  button.on{background:var(--accent);border-color:var(--accent);color:#04101f;font-weight:600}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px}
+  .params{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .params .p{display:flex;flex-direction:column;gap:2px}
+  .params label{color:var(--dim);font-size:11px}
+  input[type=text],input.num{background:#0f1116;color:var(--ink);border:1px solid var(--line);
+    border-radius:6px;padding:6px 8px;font:13px ui-monospace,SFMono-Regular,Menlo,monospace}
+  input.num{width:78px}
+  #cmd{flex:1;min-width:220px}
+  #log{flex:1;min-height:180px;white-space:pre-wrap;overflow:auto;background:#0d0f13;border:1px solid var(--line);
+    border-radius:10px;padding:12px;font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+  #log .cmd{color:var(--accent)} #log .ok{color:var(--ok)} #log .bad{color:var(--bad)} #log .sep{color:var(--line)}
+  #assets{display:none;flex-wrap:wrap;gap:6px;max-height:140px;overflow:auto}
+  #assets.show{display:flex}
+  .chip{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:4px 10px;cursor:pointer;font-size:12px}
+  .chip.on{background:var(--accent);color:#04101f;border-color:var(--accent)}
+  .assetlbl{color:var(--dim);font-size:12px}
+  .assetlbl b{color:var(--ink)}
+</style>
+</head>
+<body>
+<header>
+  <b>Jam</b><span class="tag">· web — cliente fuera de Unreal, habla jam.api</span>
+  <span id="conn" class="dot off">● desconectado</span>
+</header>
+
+<div class="wrap">
+  <div class="bar" id="bar">
+    <button id="btnContent">Content</button>
+    <!-- categorías con sus verbos se inyectan acá -->
+  </div>
+
+  <div id="assets" class="panel"></div>
+
+  <div class="panel">
+    <div class="row" style="margin-bottom:8px">
+      <span class="assetlbl">Asset: <b id="assetName">(elegí uno en Content)</b></span>
+      <span id="toolName" class="assetlbl" style="margin-left:auto"></span>
+    </div>
+    <div class="params" id="params"></div>
+  </div>
+
+  <div class="row">
+    <input type="text" id="cmd" placeholder="comando Jam — o elegí una herramienta y ajustá params" />
+    <button id="btnRun">Run</button>
+    <button id="btnConfirm">✓ Confirm</button>
+    <button id="btnDiscard">✗ Discard</button>
+  </div>
+
+  <pre id="log">Jam web lista. Elegí una herramienta y Run, o escribí «help» y Enter.</pre>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+let SPEC = {categorias:[], tools:[]};
+let activeVerb = null, activeAsset = null;
+
+async function jget(p){ const r = await fetch(p); return r; }
+async function jpost(p, body){ const r = await fetch(p,{method:'POST',body:body||''}); return r.text(); }
+
+function setConn(ok){ const c=$('#conn'); c.className='dot '+(ok?'on':'off'); c.textContent = ok?'● conectado':'● sin editor'; }
+
+function toolOf(v){ return SPEC.tools.find(t=>t.verbo===v); }
+
+function composeCmd(){
+  if(!activeVerb){ return; }
+  let cmd = activeVerb;
+  const t = toolOf(activeVerb);
+  (t?t.params:[]).forEach(p=>{
+    const el = document.getElementById('pm_'+p.nombre);
+    const v = el ? el.value.trim() : '';
+    if(v!=='') cmd += ' '+p.nombre+'='+v;
+  });
+  if(activeAsset) cmd += ' asset='+activeAsset;
+  $('#cmd').value = cmd;
+}
+
+function renderParams(){
+  const box = $('#params'); box.innerHTML='';
+  const t = toolOf(activeVerb);
+  $('#toolName').textContent = t ? (t.verbo+' — '+t.doc) : '';
+  if(!t) return;
+  t.params.forEach(p=>{
+    const wrap=document.createElement('div'); wrap.className='p';
+    const lab=document.createElement('label'); lab.textContent=p.nombre;
+    const inp=document.createElement('input'); inp.className='num'; inp.id='pm_'+p.nombre; inp.value=p.default;
+    inp.addEventListener('input', composeCmd);
+    wrap.appendChild(lab); wrap.appendChild(inp); box.appendChild(wrap);
+  });
+  composeCmd();
+}
+
+function selectVerb(v){
+  activeVerb=v;
+  document.querySelectorAll('.bar button[data-verb]').forEach(b=>b.classList.toggle('on', b.dataset.verb===v));
+  renderParams();
+}
+
+function buildBar(){
+  const bar=$('#bar');
+  // dejar el botón Content, sacar lo demás
+  [...bar.querySelectorAll('.cat')].forEach(n=>n.remove());
+  SPEC.categorias.forEach(cat=>{
+    const verbs = SPEC.tools.filter(t=>t.cat===cat);
+    if(!verbs.length) return;
+    const g=document.createElement('div'); g.className='cat';
+    const l=document.createElement('span'); l.className='lbl'; l.textContent=cat; g.appendChild(l);
+    verbs.forEach(t=>{
+      const b=document.createElement('button'); b.textContent=t.verbo; b.dataset.verb=t.verbo;
+      b.title=t.doc; b.addEventListener('click',()=>selectVerb(t.verbo));
+      g.appendChild(b);
+    });
+    bar.appendChild(g);
+  });
+}
+
+function logLine(cmd, res){
+  const log=$('#log');
+  let html = '';
+  if(cmd) html += '<span class="cmd">&gt; '+esc(cmd)+'</span>\n';
+  html += colorize(res)+'\n<span class="sep">'+'─'.repeat(40)+'</span>\n';
+  log.innerHTML += html;
+  log.scrollTop = log.scrollHeight;
+}
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+function colorize(s){
+  return esc(s).split('\n').map(l=>{
+    if(/✓/.test(l)) return '<span class="ok">'+l+'</span>';
+    if(/✗/.test(l)) return '<span class="bad">'+l+'</span>';
+    return l;
+  }).join('\n');
+}
+
+async function run(cmd){
+  if(!cmd) return;
+  try{ const res = await jpost('/run', cmd); logLine(cmd, res); setConn(true); }
+  catch(e){ logLine(cmd, '[sin editor] '+e); setConn(false); }
+}
+
+async function loadAssets(q){
+  try{
+    const r = await (await jget('/assets?q='+encodeURIComponent(q||''))).json();
+    const box=$('#assets'); box.innerHTML='';
+    r.forEach(a=>{
+      const c=document.createElement('span'); c.className='chip'+(a.nombre===activeAsset?' on':'');
+      c.textContent=a.nombre; c.title=a.ruta;
+      c.addEventListener('click',()=>{ activeAsset=a.nombre; $('#assetName').textContent=a.nombre;
+        document.querySelectorAll('#assets .chip').forEach(x=>x.classList.toggle('on', x.textContent===a.nombre));
+        composeCmd(); });
+      box.appendChild(c);
+    });
+    setConn(true);
+  }catch(e){ setConn(false); }
+}
+
+async function init(){
+  try{
+    SPEC = await (await jget('/spec')).json();
+    buildBar(); setConn(true);
+  }catch(e){ setConn(false); logLine('', '[sin editor] no pude leer /spec — ¿corriste jam.web.iniciar()?'); }
+
+  $('#btnContent').addEventListener('click', ()=>{
+    const a=$('#assets'); a.classList.toggle('show');
+    if(a.classList.contains('show') && !a.dataset.loaded){ loadAssets(''); a.dataset.loaded='1'; }
+  });
+  $('#btnRun').addEventListener('click', ()=>run($('#cmd').value.trim()));
+  $('#cmd').addEventListener('keydown', e=>{ if(e.key==='Enter') run($('#cmd').value.trim()); });
+  $('#btnConfirm').addEventListener('click', async()=>{ logLine('confirm', await jpost('/confirm')); });
+  $('#btnDiscard').addEventListener('click', async()=>{ logLine('discard', await jpost('/discard')); });
+}
+init();
+</script>
+</body>
+</html>

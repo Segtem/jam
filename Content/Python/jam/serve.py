@@ -1,12 +1,11 @@
-"""jam.serve — receptor TCP localhost: expone el contrato `jam.api` a un proceso FUERA de Unreal.
+"""jam.serve — game-thread bridge + receptor TCP para clientes FUERA de Unreal.
 
-Prueba de que la UI puede vivir afuera sin depender del C++/Slate ni del multicast del remote-exec de
-UE (que pide config de red con root). Un cliente externo (python3 pelado, o una web) se conecta a
-127.0.0.1:PORT, manda una línea de comando DSL y recibe el veredicto.
+Prueba de que la UI puede vivir afuera sin depender del C++/Slate. Las ops de actores de UE deben
+correr en el hilo del juego; acá está la máquina que lo garantiza: los servidores (TCP acá, HTTP en
+`jam.web`) corren en hilos aparte y ENCOLAN callables; un callback de Slate post-tick los drena y los
+ejecuta en el GAME THREAD. `en_game_thread(fn)` es el punto de entrada compartido.
 
-Marshalling al game thread: las ops de actores de UE deben correr en el hilo del juego. El server
-corre en un hilo aparte y ENCOLA los comandos; un callback de Slate post-tick los drena y ejecuta
-`jam.api` en el game thread. Framing: comando = 1 línea (\\n); respuesta = texto + NUL (\\x00).
+Transporte TCP (127.0.0.1:8791): comando = 1 línea (\\n); respuesta = texto + NUL (\\x00).
 """
 
 from __future__ import annotations
@@ -20,23 +19,44 @@ import unreal
 from . import api
 
 _PORT_DEFECTO = 8791
-_PENDIENTES: "queue.Queue" = queue.Queue()
-_S = {"sock": None, "hilo": None, "tick": None, "corriendo": False}
+_PENDIENTES: "queue.Queue" = queue.Queue()   # (thunk, holder, ev)
+_TICK = {"handle": None}
+_S = {"sock": None, "corriendo": False}
 
+
+# ---- máquina de game thread (compartida por TCP y HTTP) ----
 
 def _tick(_delta) -> None:
-    """Game thread: drena la cola y corre jam.api por cada comando pendiente."""
+    """Game thread: drena la cola y corre cada callable pendiente."""
     while True:
         try:
-            cmd, holder, ev = _PENDIENTES.get_nowait()
+            thunk, holder, ev = _PENDIENTES.get_nowait()
         except queue.Empty:
             return
         try:
-            holder["r"] = api.run(cmd)
+            holder["r"] = thunk()
         except Exception as e:  # noqa: BLE001
             holder["r"] = f"[error] {type(e).__name__}: {e}"
         ev.set()
 
+
+def asegurar_tick() -> None:
+    """Registra el drenaje en el game thread una sola vez."""
+    if _TICK["handle"] is None:
+        _TICK["handle"] = unreal.register_slate_post_tick_callback(_tick)
+
+
+def en_game_thread(thunk, timeout: float = 30.0):
+    """Encola un callable para correr en el game thread; espera y devuelve su resultado."""
+    holder: dict = {}
+    ev = threading.Event()
+    _PENDIENTES.put((thunk, holder, ev))
+    if not ev.wait(timeout):
+        return "(timeout: el editor no respondió — ¿está vivo y ticando?)"
+    return holder.get("r")
+
+
+# ---- receptor TCP ----
 
 def _atender(conn) -> None:
     with conn:
@@ -47,11 +67,7 @@ def _atender(conn) -> None:
                 continue
             if cmd == "__quit__":
                 break
-            holder: dict = {}
-            ev = threading.Event()
-            _PENDIENTES.put((cmd, holder, ev))
-            ev.wait(timeout=30.0)
-            resp = holder.get("r", "(sin respuesta del editor)")
+            resp = en_game_thread(lambda c=cmd: api.run(c)) or "(sin respuesta del editor)"
             f.write(resp.encode("utf-8") + b"\x00")
             f.flush()
 
@@ -67,25 +83,21 @@ def _loop(sock) -> None:
 
 def iniciar(port: int = _PORT_DEFECTO) -> None:
     """Arranca el receptor TCP + el drenaje en game thread. Idempotente."""
+    asegurar_tick()
     if _S["corriendo"]:
-        unreal.log(f"[Jam] serve: ya está escuchando")
+        unreal.log("[Jam] serve: ya está escuchando")
         return
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     sock.bind(("127.0.0.1", port))
     sock.listen(4)
     _S.update(sock=sock, corriendo=True)
-    _S["hilo"] = threading.Thread(target=_loop, args=(sock,), daemon=True)
-    _S["hilo"].start()
-    _S["tick"] = unreal.register_slate_post_tick_callback(_tick)
+    threading.Thread(target=_loop, args=(sock,), daemon=True).start()
     unreal.log(f"[Jam] serve: escuchando en 127.0.0.1:{port} — cliente externo → jam.api → oráculo")
 
 
 def detener() -> None:
     _S["corriendo"] = False
-    if _S["tick"] is not None:
-        unreal.unregister_slate_post_tick_callback(_S["tick"])
-        _S["tick"] = None
     if _S["sock"] is not None:
         try:
             _S["sock"].close()
