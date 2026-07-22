@@ -13,12 +13,12 @@ from __future__ import annotations
 
 import unreal
 
-from . import oracle_placement
+from . import oracle_placement, ue
 
 
 def verificar(nuevo, objetivo: dict, *, tol: float = oracle_placement._TOL_CM, tol_fp: float = 2.0) -> dict:
     """Compara el AABB de `nuevo` con el footprint `objetivo` del blockout."""
-    on, en = oracle_placement.aabb(nuevo)
+    on, en = ue.aabb(nuevo)
     dcx = on.x - objetivo["cx"]
     dcy = on.y - objetivo["cy"]
     dbase = (on.z - en.z) - objetivo["base"]

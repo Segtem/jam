@@ -11,11 +11,11 @@ from __future__ import annotations
 import unreal
 
 from . import (
+    geometry,
     library,
     oracle_espacio,
     oracle_pared,
     oracle_physics,
-    oracle_placement,
     oracle_reemplazo,
     oracle_scatter,
     oracle_snap,
@@ -28,6 +28,7 @@ from . import (
     reemplazar,
     scatter,
     snap,
+    ue,
 )
 
 _MENU_MAIN = "LevelEditor.MainMenu"
@@ -100,7 +101,7 @@ def on_colocar_primero() -> str:
         return msg
     otros = unreal.get_editor_subsystem(unreal.EditorActorSubsystem).get_all_level_actors()
     cuerpo = f"Colocado «{elegido['nombre']}» en el origen.\n\n" + \
-        oracle_placement.verificar_texto(actor, otros)
+        ue.placement_texto(actor, otros)
     _log(cuerpo)
     _mostrar_dialogo("Jam · Colocar (oráculo)", cuerpo)
     return cuerpo
@@ -422,14 +423,14 @@ def selftest_colocar() -> bool:
         _log("falló el spawn de alguna pieza")
         return False
     todos = [a, b, c, fondo]
-    _log(oracle_placement.verificar_texto(b, todos))
-    _log(oracle_placement.verificar_texto(c, todos))
-    v_b = oracle_placement.verificar(b, todos)   # coincide con a (normal) → interpenetra; fondo se ignora
-    v_c = oracle_placement.verificar(c, todos)   # lejos de a; el fondo enorme NO debe marcarlo
+    _log(ue.placement_texto(b, todos))
+    _log(ue.placement_texto(c, todos))
+    v_b = ue.placement(b, todos)   # coincide con a (normal) → interpenetra; fondo se ignora
+    v_c = ue.placement(c, todos)   # lejos de a; el fondo enorme NO debe marcarlo
     fondo_ignorado = all("fondo" not in n for n, _ in v_c["interpenetra"])
     ok = (v_b["bounds_ok"] and bool(v_b["interpenetra"])
           and not v_c["interpenetra"] and fondo_ignorado
-          and oracle_placement.es_fondo(fondo) and not oracle_placement.es_fondo(a))
+          and geometry.es_fondo(ue.aabb(fondo)) and not geometry.es_fondo(ue.aabb(a)))
     # limpieza: son actores de prueba en un mapa transitorio, igual los borramos
     actor_sub = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
     for x in todos:

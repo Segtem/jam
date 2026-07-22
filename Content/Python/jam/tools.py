@@ -24,11 +24,11 @@ def _corto(ruta: str) -> str:
 # español y estas funciones traducen los kwargs.
 
 def t_place(asset, *, x=0.0, y=0.0, z=0.0) -> str:
-    from . import oracle_placement, place
+    from . import place, ue
     actor = place.colocar(asset, (x, y, z))
     if actor is None:
         return f"no se pudo colocar {_corto(asset)}"
-    return oracle_placement.verificar_texto(actor, _sub().get_all_level_actors())
+    return ue.placement_texto(actor, _sub().get_all_level_actors())
 
 
 def t_scatter(asset, *, count=9, area=500.0, seed=7) -> str:

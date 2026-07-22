@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import unreal
 
-from . import oracle_placement, place
+from . import oracle_placement, place, ue
 
 
 def _actor_sub() -> unreal.EditorActorSubsystem:
@@ -25,7 +25,7 @@ def _actor_sub() -> unreal.EditorActorSubsystem:
 def reemplazar(blockout, asset, *, ajustar_escala: bool = True, borrar_blockout: bool = True):
     """Sustituye `blockout` por `asset`. Si `ajustar_escala`, escala el asset para calzar el AABB
     del blockout. Alinea centro-XY + base. Devuelve (nuevo_actor, objetivo_footprint)."""
-    ob, eb = oracle_placement.aabb(blockout)
+    ob, eb = ue.aabb(blockout)
     objetivo = {"cx": ob.x, "cy": ob.y, "base": ob.z - eb.z, "ex": eb.x, "ey": eb.y, "ez": eb.z}
     rot = blockout.get_actor_rotation()
     loc = blockout.get_actor_location()
@@ -34,14 +34,14 @@ def reemplazar(blockout, asset, *, ajustar_escala: bool = True, borrar_blockout:
         return None, objetivo
 
     if ajustar_escala:
-        _, en = oracle_placement.aabb(nuevo)  # AABB nativo (escala 1)
+        _, en = ue.aabb(nuevo)  # AABB nativo (escala 1)
         sx = eb.x / en.x if en.x > 1e-4 else 1.0
         sy = eb.y / en.y if en.y > 1e-4 else 1.0
         sz = eb.z / en.z if en.z > 1e-4 else 1.0
         nuevo.set_actor_scale3d(unreal.Vector(sx, sy, sz))
 
     # realinear centro-XY + base al footprint del blockout (el pivote puede no estar en el centro)
-    on2, en2 = oracle_placement.aabb(nuevo)
+    on2, en2 = ue.aabb(nuevo)
     dx = objetivo["cx"] - on2.x
     dy = objetivo["cy"] - on2.y
     dz = objetivo["base"] - (on2.z - en2.z)

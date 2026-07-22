@@ -15,11 +15,11 @@ from __future__ import annotations
 
 import unreal
 
-from . import oracle_placement
+from . import geometry, oracle_placement, ue
 
 
 def _centro_xy(actor: unreal.Actor) -> tuple[float, float]:
-    origin, _ = oracle_placement.aabb(actor)
+    origin, _ = ue.aabb(actor)
     return origin.x, origin.y
 
 
@@ -47,7 +47,7 @@ def verificar(
     choques = []
     for i in range(len(actores)):
         for j in range(i + 1, len(actores)):
-            d = oracle_placement._penetracion(actores[i], actores[j], tol)
+            d = geometry.penetracion(ue.aabb(actores[i]), ue.aabb(actores[j]), tol)
             if d > 0.0:
                 choques.append((actores[i].get_actor_label(), actores[j].get_actor_label(), round(d, 1)))
 

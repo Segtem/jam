@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import unreal
 
-from . import oracle_placement
+from . import oracle_placement, ue
 from .snap import _EJES, _vec_comp
 
 
@@ -34,8 +34,8 @@ def verificar_grilla(actor, grilla: float = 100.0, *, paso_yaw: float = 90.0,
 def verificar_ras(actor, objetivo, eje: str = "x", *, tol: float = oracle_placement._TOL_CM) -> dict:
     """¿`actor` quedó al ras contra `objetivo` sobre `eje`? Devuelve estado + gap del eje."""
     i = _EJES[eje]
-    oa, ea = oracle_placement.aabb(actor)
-    ob, eb = oracle_placement.aabb(objetivo)
+    oa, ea = ue.aabb(actor)
+    ob, eb = ue.aabb(objetivo)
     ca, cb = _vec_comp(oa), _vec_comp(ob)
     va, vb = _vec_comp(ea), _vec_comp(eb)
     gap = abs(ca[i] - cb[i]) - (va[i] + vb[i])            # >0 hueco, ~0 al ras, <0 solapado

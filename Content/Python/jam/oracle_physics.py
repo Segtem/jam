@@ -14,14 +14,14 @@ from __future__ import annotations
 
 import unreal
 
-from . import oracle_placement, physics
+from . import oracle_placement, physics, ue
 
 
 def verificar(actor, soportes=None, *, tol: float = oracle_placement._TOL_CM) -> dict:
     """Veredicto de asentamiento de `actor`. `soportes` None = todos los actores del nivel."""
     if soportes is None:
         soportes = physics.soportes_del_nivel()
-    oa, ea = oracle_placement.aabb(actor)
+    oa, ea = ue.aabb(actor)
     base = oa.z - ea.z
     z_top, label = physics._soporte_top(actor, soportes, tol)
     if z_top is None:

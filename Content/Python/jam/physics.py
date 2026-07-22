@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import unreal
 
-from . import oracle_placement
+from . import oracle_placement, ue
 
 
 def _actor_sub() -> unreal.EditorActorSubsystem:
@@ -38,12 +38,12 @@ def soportes_del_nivel():
 def _soporte_top(actor, soportes, tol):
     """Top del AABB del soporte más alto que solapa a `actor` en XY y no está por encima de su centro.
     Devuelve (z_top, label), o (None, None) si no hay nada debajo."""
-    oa, ea = oracle_placement.aabb(actor)
+    oa, ea = ue.aabb(actor)
     mejor = None
     for s in soportes:
         if s == actor:
             continue
-        os_, es = oracle_placement.aabb(s)
+        os_, es = ue.aabb(s)
         if abs(os_.x - oa.x) > (es.x + ea.x) or abs(os_.y - oa.y) > (es.y + ea.y):
             continue  # no solapa en XY → no es soporte
         s_top = os_.z + es.z
@@ -59,7 +59,7 @@ def soltar(actor, soportes=None, *, tol=oracle_placement._TOL_CM):
     = todos los actores del nivel. Devuelve {cayo, z_apoyo, soporte, caida} (caida en cm, >0 flotaba)."""
     if soportes is None:
         soportes = soportes_del_nivel()
-    oa, ea = oracle_placement.aabb(actor)
+    oa, ea = ue.aabb(actor)
     base = oa.z - ea.z
     z_top, label = _soporte_top(actor, soportes, tol)
     if z_top is None:

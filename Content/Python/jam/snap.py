@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import unreal
 
-from . import oracle_placement
+from . import oracle_placement, ue
 
 _EJES = {"x": 0, "y": 1, "z": 2}
 
@@ -41,8 +41,8 @@ def al_ras(actor, objetivo, eje: str = "x", *, tol: float = oracle_placement._TO
     """Desliza `actor` sobre `eje` hasta que su cara toque la de `objetivo` (gap 0, sin solapar).
     El lado (±) se toma del signo de la posición relativa actual sobre ese eje."""
     i = _EJES[eje]
-    oa, ea = oracle_placement.aabb(actor)
-    ob, eb = oracle_placement.aabb(objetivo)
+    oa, ea = ue.aabb(actor)
+    ob, eb = ue.aabb(objetivo)
     ca, cb = _vec_comp(oa), _vec_comp(ob)
     eai, ebi = _vec_comp(ea)[i], _vec_comp(eb)[i]
     lado = 1.0 if ca[i] >= cb[i] else -1.0

@@ -104,13 +104,13 @@ def _aplicar_scatter(preset: dict) -> dict:
 
 
 def _aplicar_colocar(preset: dict) -> dict:
-    from . import oracle_placement, place
+    from . import place, ue
     p = preset["params"]
     asset = _resolver_asset(p)
     actor = place.colocar(asset, tuple(p.get("location", [0, 0, 0])))
     todos = unreal.get_editor_subsystem(unreal.EditorActorSubsystem).get_all_level_actors()
-    r = oracle_placement.verificar(actor, todos)
-    texto = oracle_placement.verificar_texto(actor, todos)
+    r = ue.placement(actor, todos)
+    texto = ue.placement_texto(actor, todos)
     return {"ok": r["bounds_ok"] and not r["interpenetra"], "texto": texto, "actores": [actor]}
 
 
