@@ -159,3 +159,53 @@ def esparcir_rico(
         "patron": patron,
     }
     return actores, veredicto
+
+
+# ---------- nodos del FLOW que SÍ tocan el motor (el resto vive puro en `jam.flow`) ----------
+# Con esto, una cadena estilo Houdini `source_surface → mask_* → instance` corre por el evaluador de
+# `jam.flow` sin que ese módulo importe unreal. `jam.flow` sigue siendo el cerebro; acá el adaptador.
+
+def _op_source_surface(entradas, p):
+    """Fuente que muestrea la SUPERFICIE REAL: candidatos + raycast → Samples con normal y pendiente
+    de verdad (lo que las máscaras de ángulo necesitan). Es el `Scatter SOP` sobre geometría."""
+    centro, semi = p["centro"], p["semi"]
+    patron = p.get("patron", "poisson")
+    seed = int(p.get("seed", 0))
+    if patron == "grid":
+        pts = sc.grid_jitter(centro, semi, int(p.get("cantidad", 24)), seed)
+    elif patron == "radial":
+        pts = sc.radial(centro, min(semi), int(p.get("cantidad", 24)), int(p.get("anillos", 3)), seed)
+    else:
+        pts = sc.poisson_disk(centro, semi, p.get("spacing", 150.0), seed)
+        lim = int(p.get("cantidad", 0))
+        if lim and len(pts) > lim:
+            pts = pts[:lim]
+    return _muestrear(centro, semi, pts, suelo_z=p.get("suelo_z", 0.0), seed_base=seed, ignorar=[])
+
+
+def _op_instance(entradas, p):
+    """Terminal: instancia una malla en cada punto del stream (el `Copy to Points` de Houdini).
+    Devuelve el stream tal cual (para encadenar) y deja los actores en `p['_actores']`."""
+    rutas = p.get("assets") or []
+    if isinstance(rutas, str):
+        rutas = [rutas]
+    mallas = [m for m in (library.cargar_malla(r) for r in rutas) if m is not None]
+    stream = entradas[0] if entradas else []
+    actores = []
+    if mallas:
+        for i, s in enumerate(stream):
+            malla = mallas[s.seed % len(mallas)]
+            esc, yaw = sc.variacion(s, (p.get("scale_min", 1.0), p.get("scale_max", 1.0)))
+            a = place.colocar(malla, (s.pos.x, s.pos.y, s.pos.z - p.get("sink", 0.0)),
+                              (0.0, 0.0, yaw), esc, surface=False,
+                              anchor=p.get("anchor", ""), align=p.get("align", False), view=False)
+            if a is not None:
+                a.set_actor_label(f"Jam_scatter_{i}")
+                actores.append(a)
+    p["_actores"] = actores
+    return stream
+
+
+def ops_flow() -> dict:
+    """Las operaciones del flow que necesitan el motor, para pasarle a `flow.Flow.evaluar(ops=…)`."""
+    return {"source_surface": (_op_source_surface, 0), "instance": (_op_instance, 1)}
