@@ -322,14 +322,24 @@ def t_replace(asset, *, sx=2.0, sy=2.0, sz=3.0) -> str:
     return ue.reemplazo_texto(nuevo, objetivo)
 
 
-def t_spline(asset, *, height=300.0, thickness=40.0, segment=200.0) -> str:
-    """Scatter «a lo largo de un spline»: coloca piezas modulares sobre el spline seleccionado
-    (o crea uno) orientadas a la tangente. El oráculo verifica continuidad de juntas. Una PARED de
-    piedra es un PRESET de este tool (asset + height/thickness/segment)."""
-    from . import oracle_pared, pared
+def t_spline(asset, *, gap=0.0, axis="x", anchor="base", align=False, surface=False,
+             scale=1.0, jitter_yaw=0.0, seed=7) -> str:
+    """Coloca piezas MODULARES a lo largo del spline seleccionado (o crea uno), cada una a su LARGO
+    REAL (sin estirar), orientada a la tangente. `asset` puede ser una lista (kit → varía por pieza).
+    `axis`=eje de avance de la malla, `gap`=separación entre piezas, `surface`=apoyar cada pieza en el
+    terreno. El oráculo verifica que la cadena tile la curva sin solaparse. Con esto se hacen calles
+    con adoquines, cercas, molduras y muros — una PARED es este tool con un asset de muro."""
+    from . import pared, spline
     actor = pared.seleccionado_con_spline() or pared.crear_spline()
-    build = pared.construir(actor, asset, alto=height, espesor=thickness, largo_segmento=segment)
-    return oracle_pared.verificar_texto(build)
+    actores, v = spline.construir(actor, asset, gap=gap, seed=int(seed), eje=axis, anchor=anchor,
+                                  align=align, surface=surface, scale=scale, jitter_yaw=jitter_yaw)
+    if "error" in v:
+        return v["error"]
+    from . import spline_core, ue
+    ue.seleccionar(actores)
+    cab = (f"SPLINE · {len(actores)} piezas modulares ({v['assets']} asset(s), módulos {v['modulos']}cm) "
+           f"sobre curva de {v['largo_curva']}cm")
+    return cab + "\n" + spline_core.texto_continuidad(v, v["largo_curva"])
 
 
 def t_create_spline(asset=None) -> str:
@@ -389,8 +399,11 @@ REGISTRO = {
                      "doc": "snap a grilla y verifica alineación"},
     "replace":      {"fn": t_replace, "cat": "Create",  "params": {"sx": 2.0, "sy": 2.0, "sz": 3.0},
                      "doc": "blockout → asset conservando footprint"},
-    "spline":       {"fn": t_spline,  "cat": "Scatter", "params": {"height": 300.0, "thickness": 40.0, "segment": 200.0},
-                     "doc": "coloca piezas modulares a lo largo de un spline (verifica juntas)"},
+    "spline":       {"fn": t_spline,  "cat": "Scatter",
+                     "params": {"gap": 0.0, "axis": "x", "anchor": "base", "align": False,
+                                "surface": False, "scale": 1.0, "jitter_yaw": 0.0, "seed": 7},
+                     "opciones": {"axis": ["x", "y"], "anchor": list(_ANCLAS)},
+                     "doc": "piezas modulares a su largo real a lo largo de un spline (verifica que tile sin solaparse)"},
     "create_spline": {"fn": t_create_spline, "cat": "Create", "params": {},
                       "doc": "agrega un spline editable a la escena (primitiva de curva)"},
     "gizmo":        {"fn": t_gizmo,   "cat": "Edit",    "params": {"on": True},
