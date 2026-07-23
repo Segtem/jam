@@ -86,14 +86,20 @@ def _veredicto_entorno(actor) -> str:
         apoyo = (f"APOYADO ✓ sobre «{soporte}» (pendiente {pend:.0f}°)" if abs(gap) <= 5.0
                  else f"MAL APOYADO ✗ — {gap:+.1f}cm de «{soporte}»")
 
-    # 2) vecinos = geometría real, sin el propio, sin el soporte, sin landscape
-    def es_landscape(a):
+    # 2) vecinos = geometría real, sin el propio, sin el soporte, sin terreno ni proxies
+    def es_terreno_o_proxy(a) -> bool:
+        """Landscape y HLOD no son «vecinos»: el landscape es el suelo (ya lo mide el apoyo) y los
+        HLOD de World Partition son COPIAS de baja resolución de lo que ya está en el nivel —
+        contarlos daba «CLAVA ✗» contra todo en cualquier mapa de mundo abierto."""
         try:
-            return isinstance(a, U.LandscapeProxy)
+            if isinstance(a, U.LandscapeProxy):
+                return True
         except Exception:  # noqa: BLE001
-            return False
+            pass
+        return "HLOD" in type(a).__name__ or a.get_actor_label().startswith("HLOD")
+
     vecinos = [a for a in ue.actores_nivel()
-               if a != actor and physics._es_geometria(a) and not es_landscape(a)
+               if a != actor and physics._es_geometria(a) and not es_terreno_o_proxy(a)
                and a.get_actor_label() != soporte]
     r = oracle_placement.verificar(ue.pieza(actor), ue.piezas(vecinos))
     if r["interpenetra"]:
@@ -109,14 +115,25 @@ def _veredicto_entorno(actor) -> str:
 
 def _donde(actor) -> str:
     """Coordenadas + nivel de lo que se acaba de colocar. Que el veredicto diga DÓNDE quedó es lo que
-    evita el «dice confirmado pero no lo veo»: con eso lo buscás en el Outliner o volás con F."""
+    evita el «dice confirmado pero no lo veo»: con eso lo buscás en el Outliner o volás con F.
+    Y si quedó fuera de cuadro, lo AVISA — una pieza invisible se siente igual que ninguna pieza."""
+    from . import ue
     loc = actor.get_actor_location()
     try:
         nivel = actor.get_level().get_outer().get_name()
     except Exception:  # noqa: BLE001
         nivel = "?"
-    return (f"    en ({loc.x:.0f}, {loc.y:.0f}, {loc.z:.0f}) del nivel «{nivel}» — "
-            f"seleccionado en el editor (F en el viewport para volar hasta él)")
+    linea = (f"    en ({loc.x:.0f}, {loc.y:.0f}, {loc.z:.0f}) del nivel «{nivel}» — "
+             f"seleccionado en el editor (F en el viewport para volar hasta él)")
+
+    cam = ue.camara()
+    if cam is not None:
+        c = cam["loc"]
+        d = ((loc.x - c.x) ** 2 + (loc.y - c.y) ** 2 + (loc.z - c.z) ** 2) ** 0.5
+        if d > 5000.0:   # más de 50 m: no lo vas a ver, no importa cuánto insistas
+            linea += (f"\n    ⚠ quedó a {d / 100.0:.0f} m de la cámara — NO lo vas a ver en pantalla. "
+                      f"Usá «view=true» (coloca donde mirás) o apretá F.")
+    return linea
 
 
 def _grados_normal(normal) -> float:

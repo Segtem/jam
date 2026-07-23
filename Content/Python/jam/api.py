@@ -58,6 +58,33 @@ def confirm() -> str:
     return panel.ejecutar_dsl("confirm", None)
 
 
+def commit(command: str = "") -> str:
+    """«Poné esto»: si hay una preview activa la FIJA; si no hay ninguna, corre `command` y la fija
+    en el acto. Así el botón Confirmar hace lo que uno espera cuando está apuntando con el gizmo —
+    apretar y que el objeto aparezca ahí — sin dejar de servir para el flujo previsualizar→confirmar."""
+    from . import panel
+    if panel.hay_preview():
+        return panel.ejecutar_dsl("confirm", None)
+    if not command.strip():
+        return "no hay preview activa ni comando para colocar."
+    salida = panel.ejecutar_dsl(command, None)
+    if not panel.hay_preview():
+        return salida          # el comando no creó nada (error o verbo de selección): no hay qué fijar
+    return f"{salida}\n{panel.ejecutar_dsl('confirm', None)}"
+
+
+def aim() -> str:
+    """JSON {hit, x, y, z} del punto de mira del viewport — dónde está parado Jam."""
+    import json
+
+    from . import ue
+    m = ue.punto_de_mira()
+    if m is None or m["punto"] is None:
+        return json.dumps({"hit": False, "x": 0.0, "y": 0.0, "z": 0.0})
+    p = m["punto"]
+    return json.dumps({"hit": bool(m["hit"]), "x": p.x, "y": p.y, "z": p.z})
+
+
 def discard() -> str:
     from . import panel
     return panel.ejecutar_dsl("discard", None)

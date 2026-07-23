@@ -29,6 +29,10 @@
 #include "Dom/JsonObject.h"
 #include "Dom/JsonValue.h"
 #include "HAL/PlatformProcess.h"
+#include "LevelEditorViewport.h"
+#include "Editor.h"
+#include "Engine/World.h"
+#include "CollisionQueryParams.h"
 
 #define LOCTEXT_NAMESPACE "JamEditor"
 
@@ -165,6 +169,25 @@ void FJamEditorModule::OpenDashBar()
 
 	FSlateApplication::Get().AddWindow(Win);
 	DashWindow = Win;
+
+	// Refresco del punto de mira a 20 Hz, todo en C++ (los campos x/y/z en vivo no pagan Python).
+	Win->RegisterActiveTimer(0.05f, FWidgetActiveTimerDelegate::CreateLambda(
+		[this](double, float) -> EActiveTimerReturnType
+		{
+			if (!DashWindow.IsValid())
+			{
+				return EActiveTimerReturnType::Stop;
+			}
+			if (IsLiveAim())
+			{
+				FVector P;
+				if (ComputeAimPoint(P))
+				{
+					LiveAim = P;
+				}
+			}
+			return EActiveTimerReturnType::Continue;
+		}));
 
 	if (Tools.Num() > 0)
 	{
@@ -439,7 +462,9 @@ TSharedRef<SWidget> FJamEditorModule::BuildDashContent()
 			.Padding(0.0f, 0.0f, 4.0f, 0.0f)
 			[
 				SNew(SButton)
-				.Text(LOCTEXT("Confirmar", "✓ Confirmar"))
+				.Text(LOCTEXT("Confirmar", "✓ Confirmar / Colocar"))
+				.ToolTipText(LOCTEXT("ConfirmarTip",
+					"Fija la preview activa; si no hay ninguna, ejecuta el comando de la línea y lo coloca (con el gizmo encendido: coloca donde apunta)"))
 				.OnClicked_Raw(this, &FJamEditorModule::OnConfirmarClicked)
 			]
 			+ SHorizontalBox::Slot()
@@ -480,6 +505,47 @@ TSharedRef<SWidget> FJamEditorModule::BuildDashContent()
 				})
 			]
 		];
+}
+
+bool FJamEditorModule::ComputeAimPoint(FVector& Out) const
+{
+	// Mismo punto que calcula `jam.ue.punto_de_mira()`, pero en C++: se refresca a 20 Hz para los
+	// campos en vivo sin pagar una llamada a Python (ni ensuciar el Output Log) por frame.
+	FEditorViewportClient* VC = GCurrentLevelEditingViewportClient;
+	if (VC == nullptr || GEditor == nullptr)
+	{
+		return false;
+	}
+	UWorld* World = GEditor->GetEditorWorldContext().World();
+	if (World == nullptr)
+	{
+		return false;
+	}
+	const FVector Start = VC->GetViewLocation();
+	const FVector Dir = VC->GetViewRotation().Vector();
+	const FVector End = Start + Dir * 100000.0;
+
+	FHitResult Hit;
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(JamAim), /*bTraceComplex*/ true);
+	if (World->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params))
+	{
+		Out = Hit.ImpactPoint;
+	}
+	else
+	{
+		Out = Start + Dir * 1000.0;   // sin superficie: 10 m adelante, igual que en Python
+	}
+	return true;
+}
+
+bool FJamEditorModule::IsLiveAim() const
+{
+	if (!bGizmoOn)
+	{
+		return false;
+	}
+	const TSharedPtr<SCheckBox>* View = ParamChecks.Find(TEXT("view"));
+	return View != nullptr && (*View)->IsChecked();
 }
 
 void FJamEditorModule::SelectTool(const FString& Verb)
@@ -902,6 +968,7 @@ void FJamEditorModule::RebuildParams()
 	ParamChecks.Empty();
 	ParamSpins.Empty();
 	ParamIsInt.Empty();
+	ParamValues.Empty();
 	if (!ParamsBox.IsValid())
 	{
 		return;
@@ -940,16 +1007,40 @@ void FJamEditorModule::RebuildParams()
 		else if (P.Type == TEXT("int") || P.Type == TEXT("float"))
 		{
 			const bool bInt = (P.Type == TEXT("int"));
+			// x/y/z son los ejes que el gizmo maneja en modo vivo: ahí se bloquean y muestran el
+			// punto de mira en tiempo real en vez del offset editable.
+			const int32 Axis = (Key == TEXT("x")) ? 0 : (Key == TEXT("y")) ? 1 : (Key == TEXT("z")) ? 2 : INDEX_NONE;
+			ParamValues.Add(Key, FCString::Atof(*P.Default));
+
 			TSharedPtr<SSpinBox<float>> Spin;
 			Control = SAssignNew(Spin, SSpinBox<float>)
-				.Value(FCString::Atof(*P.Default))
+				.Value_Lambda([this, Key, Axis]()
+				{
+					if (Axis != INDEX_NONE && IsLiveAim())
+					{
+						return static_cast<float>(LiveAim[Axis]);
+					}
+					const float* V = ParamValues.Find(Key);
+					return V ? *V : 0.0f;
+				})
+				.IsEnabled_Lambda([this, Axis]() { return !(Axis != INDEX_NONE && IsLiveAim()); })
+				.ToolTipText_Lambda([this, Axis]()
+				{
+					return (Axis != INDEX_NONE && IsLiveAim())
+						? LOCTEXT("LiveAxis", "lo manda el gizmo: es el punto de mira del viewport (Confirmar coloca ahí)")
+						: LOCTEXT("FreeAxis", "offset respecto del punto de colocación");
+				})
 				.MinValue(TOptional<float>())     // sin tope: son cm, semillas, cantidades…
 				.MaxValue(TOptional<float>())
 				.MinSliderValue(bInt ? 0.0f : -1000.0f)
 				.MaxSliderValue(bInt ? 100.0f : 1000.0f)
 				.Delta(bInt ? 1.0f : 0.0f)
 				.MinDesiredWidth(70.0f)
-				.OnValueChanged_Lambda([this](float) { ComposeCommandFromParams(); });
+				.OnValueChanged_Lambda([this, Key](float V)
+				{
+					ParamValues.Add(Key, V);
+					ComposeCommandFromParams();
+				});
 			ParamSpins.Add(Key, Spin);
 			ParamIsInt.Add(Key, bInt);
 		}
@@ -1001,9 +1092,17 @@ void FJamEditorModule::ComposeCommandFromParams()
 			{
 				Val = (*Check)->IsChecked() ? TEXT("true") : TEXT("false");
 			}
-			else if (const TSharedPtr<SSpinBox<float>>* Spin = ParamSpins.Find(P.Name))
+			else if (ParamSpins.Contains(P.Name))
 			{
-				const float V = (*Spin)->GetValue();
+				// En modo vivo, x/y/z NO viajan en el comando: el punto lo resuelve `view=true` al
+				// ejecutar (mandarlos sería sumar dos veces el punto de mira).
+				const bool bAxis = (P.Name == TEXT("x") || P.Name == TEXT("y") || P.Name == TEXT("z"));
+				if (bAxis && IsLiveAim())
+				{
+					continue;
+				}
+				const float* Stored = ParamValues.Find(P.Name);
+				const float V = Stored ? *Stored : 0.0f;
 				const bool* bInt = ParamIsInt.Find(P.Name);
 				Val = (bInt && *bInt) ? FString::FromInt(FMath::RoundToInt(V))
 				                      : FString::SanitizeFloat(V);
@@ -1036,7 +1135,18 @@ FReply FJamEditorModule::OnPreviewClicked()
 
 FReply FJamEditorModule::OnConfirmarClicked()
 {
-	RunCommand(TEXT("confirm"));
+	// «Confirmar» = PONÉ ESTO. Si hay una preview, la fija; si no hay ninguna (el caso típico
+	// apuntando con el gizmo), corre el comando compuesto y lo fija en el acto: apretás y el objeto
+	// aparece donde está el gizmo. La decisión la toma el cerebro (`jam.api.commit`).
+	const FString Cmd = CmdBox.IsValid() ? CmdBox->GetText().ToString() : FString();
+	const FString Statement = FString::Printf(
+		TEXT("import jam.api as _a; print(_a.commit(%s))"), *ToPyStr(Cmd));
+	FString Out = ExecPythonCapture(Statement);
+	if (Out.IsEmpty())
+	{
+		Out = TEXT("(sin salida)");
+	}
+	AppendLog(TEXT("confirm"), Out);
 	return FReply::Handled();
 }
 

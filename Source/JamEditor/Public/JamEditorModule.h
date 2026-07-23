@@ -101,6 +101,15 @@ private:
 	/** Recorre el historial de comandos con ↑ (-1) / ↓ (+1) y lo vuelca en la línea. */
 	void RecallHistory(int32 Step);
 
+	/**
+	 * MODO VIVO: con el gizmo encendido y `view` tildado, la posición la manda el viewport — los
+	 * campos x/y/z se bloquean y muestran EN VIVO dónde está apuntando Jam (y el comando deja de
+	 * mandar x/y/z, porque el punto lo resuelve `view=true` al ejecutar).
+	 */
+	bool IsLiveAim() const;
+	/** Punto de mira calculado en C++ (línea desde la cámara del viewport). false si no hay viewport. */
+	bool ComputeAimPoint(FVector& Out) const;
+
 	FReply OnPreviewClicked();
 	FReply OnConfirmarClicked();
 	FReply OnDescartarClicked();
@@ -123,6 +132,11 @@ private:
 	TMap<FString, TSharedPtr<SCheckBox>> ParamChecks;
 	TMap<FString, TSharedPtr<SSpinBox<float>>> ParamSpins;
 	TMap<FString, bool> ParamIsInt;
+
+	// Valor vivo de cada spinner (la fuente de verdad cuando NO está en modo vivo).
+	TMap<FString, float> ParamValues;
+	// Última posición del gizmo, refrescada por un timer del propio Slate (sin tocar Python).
+	FVector LiveAim = FVector::ZeroVector;
 
 	// Historial de comandos (↑/↓ en la línea, como Rhino).
 	TArray<FString> History;

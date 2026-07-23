@@ -109,6 +109,11 @@ def _preview(fn, widget=None) -> str:
             "«Confirmar» las fija · «Descartar» las borra.")
 
 
+def hay_preview() -> bool:
+    """¿Hay algo esperando que lo confirmen o descarten?"""
+    return bool(_PREVIEW)
+
+
 def _h_confirmar(widget=None) -> str:
     if not _PREVIEW:
         return "no hay preview activa para confirmar."
