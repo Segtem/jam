@@ -178,7 +178,8 @@ void FJamEditorModule::OpenDashBar()
 			{
 				return EActiveTimerReturnType::Stop;
 			}
-			if (IsLiveAim())
+			const bool bLive = IsLiveAim();
+			if (bLive)
 			{
 				FVector P;
 				if (ComputeAimPoint(P))
@@ -186,6 +187,12 @@ void FJamEditorModule::OpenDashBar()
 					LiveAim = P;
 				}
 			}
+			else if (bWasLiveAim)
+			{
+				// se soltó el modo vivo: dejar la última posición cargada para retocarla a mano
+				FreezeAimIntoParams();
+			}
+			bWasLiveAim = bLive;
 			return EActiveTimerReturnType::Continue;
 		}));
 
@@ -413,6 +420,27 @@ TSharedRef<SWidget> FJamEditorModule::BuildDashContent()
 			+ SHorizontalBox::Slot()
 			.AutoWidth()
 			.VAlign(VAlign_Center)
+			.Padding(0.0f, 0.0f, 4.0f, 0.0f)
+			[
+				SNew(SButton)
+				.Text(LOCTEXT("Ghost", "👻 Fantasma"))
+				.ToolTipText(LOCTEXT("GhostTip",
+					"Muestra la malla que se va a colocar siguiendo el punto de mira (sin colisión, fuera del oráculo)"))
+				.OnClicked_Lambda([this]()
+				{
+					bGhostOn = !bGhostOn;
+					RunCommand(bGhostOn ? TEXT("ghost on=true") : TEXT("ghost on=false"));
+					return FReply::Handled();
+				})
+				.ButtonColorAndOpacity_Lambda([this]()
+				{
+					return bGhostOn ? FLinearColor(0.75f, 0.45f, 1.0f, 1.0f)
+					                : FLinearColor(0.09f, 0.09f, 0.1f, 1.0f);
+				})
+			]
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.VAlign(VAlign_Center)
 			[
 				SNew(SButton)
 				.Text(LOCTEXT("Gizmo", "◎ Gizmo"))
@@ -536,6 +564,28 @@ bool FJamEditorModule::ComputeAimPoint(FVector& Out) const
 		Out = Start + Dir * 1000.0;   // sin superficie: 10 m adelante, igual que en Python
 	}
 	return true;
+}
+
+void FJamEditorModule::FreezeAimIntoParams()
+{
+	if (!ParamSpins.Contains(TEXT("x")))
+	{
+		return;   // la herramienta activa no tiene ejes (no hay nada que congelar)
+	}
+	ParamValues.Add(TEXT("x"), static_cast<float>(LiveAim.X));
+	ParamValues.Add(TEXT("y"), static_cast<float>(LiveAim.Y));
+	ParamValues.Add(TEXT("z"), static_cast<float>(LiveAim.Z));
+
+	// x/y/z ahora son ABSOLUTAS: con `view` tildado el tool las tomaría como offset y sumaría dos
+	// veces el punto de mira, así que se destilda.
+	if (const TSharedPtr<SCheckBox>* View = ParamChecks.Find(TEXT("view")))
+	{
+		if ((*View)->IsChecked())
+		{
+			(*View)->SetIsChecked(ECheckBoxState::Unchecked);
+		}
+	}
+	ComposeCommandFromParams();
 }
 
 bool FJamEditorModule::IsLiveAim() const

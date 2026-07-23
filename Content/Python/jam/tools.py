@@ -53,6 +53,13 @@ def t_gizmo(asset, *, on=True) -> str:
     return gizmo.encender() if on else gizmo.apagar()
 
 
+def t_ghost(asset, *, on=True) -> str:
+    """Enciende/apaga el FANTASMA: la malla del asset activo siguiendo el punto de mira, para ver
+    qué y de qué tamaño va a caer antes de colocarlo."""
+    from . import ghost
+    return ghost.encender() if on else ghost.apagar()
+
+
 def t_place(asset, *, x=0.0, y=0.0, z=0.0, view=True, surface=True, align=False, physics=False,
             yaw=0.0, scale=1.0) -> str:
     """Coloca un ladrillo en relación a su entorno: `view`=en el punto de mira del viewport (x/y/z
@@ -98,8 +105,10 @@ def _veredicto_entorno(actor) -> str:
             pass
         return "HLOD" in type(a).__name__ or a.get_actor_label().startswith("HLOD")
 
+    from . import ghost
     vecinos = [a for a in ue.actores_nivel()
                if a != actor and physics._es_geometria(a) and not es_terreno_o_proxy(a)
+               and ghost.TAG not in ue.tags(a)   # el fantasma está justo donde colocás: no es vecino
                and a.get_actor_label() != soporte]
     r = oracle_placement.verificar(ue.pieza(actor), ue.piezas(vecinos))
     if r["interpenetra"]:
@@ -218,11 +227,14 @@ REGISTRO = {
                       "doc": "agrega un spline editable a la escena (primitiva de curva)"},
     "gizmo":        {"fn": t_gizmo,   "cat": "Edit",    "params": {"on": True},
                      "doc": "marca en el viewport dónde está parado Jam + la huella del asset activo"},
+    "ghost":        {"fn": t_ghost,   "cat": "Edit",    "params": {"on": True},
+                     "doc": "muestra la malla que se va a colocar siguiendo el punto de mira"},
 }
 
-# Verbos que NO crean nada en el nivel: son selección o estado de la herramienta, así que no pasan
-# por el preview (si pasaran, «Confirmar/Descartar» quedarían apuntando a una preview vacía).
-SIN_SPAWN = {"asset", "pick", "gizmo"}
+# Verbos que NO crean nada COLOCABLE: son selección o estado de la herramienta, así que no pasan por
+# el preview (si pasaran, «Confirmar/Descartar» quedarían apuntando a una preview vacía). El
+# fantasma sí crea un actor, pero es un ayudante efímero, no una pieza del nivel.
+SIN_SPAWN = {"asset", "pick", "gizmo", "ghost"}
 
 # Orden de las categorías en la barra (como Dash). Las vacías no se muestran.
 CATEGORIAS = ["Content", "Place", "Scatter", "Create", "Edit"]

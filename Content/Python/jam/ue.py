@@ -84,6 +84,22 @@ def punto_de_mira(*, alcance: float = 100000.0) -> dict:
     return {"hit": False, "punto": lejos, "normal": Vec3(0.0, 0.0, 1.0), "actor": None}
 
 
+def tags(actor) -> list[str]:
+    """Tags del actor como strings. Jam marca con tags lo suyo (`jam:preview`, `jam:ghost`) para
+    poder distinguirlo del resto del nivel sin depender de nombres."""
+    try:
+        return [str(t) for t in actor.get_editor_property("tags")]
+    except Exception:  # noqa: BLE001
+        return []
+
+
+def set_tags(actor, valores: list[str]) -> None:
+    try:
+        actor.set_editor_property("tags", [unreal.Name(t) for t in valores])
+    except Exception:  # noqa: BLE001
+        pass
+
+
 def seleccionar(actores) -> None:
     """Deja los actores SELECCIONADOS en el editor: aparecen resaltados, en el Outliner y en Details
     (y con F la cámara vuela hasta ellos). Sin esto, lo que Jam coloca es invisible si cae fuera de

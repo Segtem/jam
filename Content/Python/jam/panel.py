@@ -46,17 +46,13 @@ def _todos():
 
 
 def _tags_de(actor) -> list[str]:
-    try:
-        return [str(t) for t in actor.get_editor_property("tags")]
-    except Exception:  # noqa: BLE001
-        return []
+    from . import ue
+    return ue.tags(actor)
 
 
 def _set_tags(actor, tags: list[str]) -> None:
-    try:
-        actor.set_editor_property("tags", [unreal.Name(t) for t in tags])
-    except Exception:  # noqa: BLE001
-        pass
+    from . import ue
+    ue.set_tags(actor, tags)
 
 
 def _marcar_preview(actores) -> None:

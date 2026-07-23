@@ -109,6 +109,12 @@ private:
 	bool IsLiveAim() const;
 	/** Punto de mira calculado en C++ (línea desde la cámara del viewport). false si no hay viewport. */
 	bool ComputeAimPoint(FVector& Out) const;
+	/**
+	 * Al salir del modo vivo, x/y/z se quedan con la ÚLTIMA posición del gizmo (ya absolutas) para
+	 * poder retocarlas a mano. Como pasan a ser absolutas, `view` queda destildado: es la condición
+	 * que mantiene coherente el comando (con view=true esos campos serían offsets).
+	 */
+	void FreezeAimIntoParams();
 
 	FReply OnPreviewClicked();
 	FReply OnConfirmarClicked();
@@ -151,6 +157,8 @@ private:
 	int32 ContentAll = 0;                // cuántas mallas tiene el proyecto entero
 	TArray<FJamFolder> ContentFolders;
 	bool bGizmoOn = false;
+	bool bGhostOn = false;
+	bool bWasLiveAim = false;   // para detectar cuándo se SALE del modo vivo y congelar x/y/z
 	TSharedPtr<STextBlock> AssetLabel;
 	TSharedPtr<SBox> ActiveThumbBox;          // miniatura grande del asset activo
 	TSharedPtr<FAssetThumbnail> ActiveThumb;
