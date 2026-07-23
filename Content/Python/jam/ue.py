@@ -116,6 +116,15 @@ def aabb(actor) -> AABB:
     return AABB(Vec3(origin.x, origin.y, origin.z), Vec3(extent.x, extent.y, extent.z))
 
 
+def aabb_malla(malla) -> AABB:
+    """AABB (datos) de una StaticMesh SIN spawnearla, en su espacio local (cm). Para medir la huella
+    del asset antes de colocarlo (scatter usa esto para la separación automática)."""
+    caja = malla.get_bounding_box()
+    mn, mx = caja.min, caja.max
+    return AABB(Vec3((mx.x + mn.x) / 2.0, (mx.y + mn.y) / 2.0, (mx.z + mn.z) / 2.0),
+                Vec3((mx.x - mn.x) / 2.0, (mx.y - mn.y) / 2.0, (mx.z - mn.z) / 2.0))
+
+
 def pieza(actor) -> Pieza:
     """Pieza (dato puro) del actor: nombre + AABB + location (pivote) + yaw. Todo lo que un oráculo
     puede necesitar, extraído acá para que el cerebro no toque `unreal`."""

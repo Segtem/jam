@@ -224,6 +224,37 @@ def variacion(sample, escala=(1.0, 1.0), yaw_rango=360.0, escala_por_eje=False):
     return s, yaw
 
 
+def radio_footprint(aabb):
+    """Radio en planta (XY) de la caja de una malla: su «huella» para no pisarse con las vecinas.
+    Es lo que convierte una separación adivinada a mano en una separación que respeta el tamaño real
+    del asset — el paso que le faltaba a scatter para que el oráculo no encuentre nada clavado."""
+    return math.hypot(aabb.extent.x, aabb.extent.y)
+
+
+def dedup_por_radio(samples, radios, factor=1.0):
+    """Elimina, greedy, los samples cuya huella se solaparía con una ya aceptada. `radios` = radio de
+    footprint por sample (índice a índice). Modela cada huella como una CAJA (semilado = radio) y las
+    rechaza si sus cajas se solapan en AMBOS ejes — el mismo criterio que el oráculo (AABB), no un
+    círculo: dos círculos que no se tocan pueden tener AABBs que sí (vecinos en diagonal). Puro: sólo
+    puntos y radios. Devuelve (aceptados, rechazados)."""
+    aceptados, idx_ok, rechazados = [], [], []
+    for i, s in enumerate(samples):
+        ri = radios[i] * factor
+        choca = False
+        for k in idx_ok:
+            q = samples[k]
+            suma = ri + radios[k] * factor
+            if abs(s.pos.x - q.pos.x) < suma and abs(s.pos.y - q.pos.y) < suma:
+                choca = True
+                break
+        if choca:
+            rechazados.append(s)
+        else:
+            aceptados.append(s)
+            idx_ok.append(i)
+    return aceptados, rechazados
+
+
 def semilla_de(seed_base, x, y):
     """Semilla estable por posición (no por índice): reordenar la lista no cambia la variación."""
     ix, iy = int(round(x)), int(round(y))

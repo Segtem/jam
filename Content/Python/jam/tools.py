@@ -257,14 +257,15 @@ def _grados_normal(normal) -> float:
     return math.degrees(math.asin(z))   # 90° = normal vertical (piso plano)
 
 
-def t_scatter(asset, *, count=24, area=800.0, pattern="poisson", spacing=150.0,
+def t_scatter(asset, *, count=24, area=800.0, pattern="poisson", spacing=0.0, rings=3,
               surface=True, align=False, slope_max=90.0, height_min=0.0, height_max=0.0,
-              noise=0.0, density=1.0, scale_min=1.0, scale_max=1.0, sink=0.0, anchor="",
-              view=True, seed=7) -> str:
+              noise=0.0, density=1.0, scale_min=1.0, scale_max=1.0, spread=1.0,
+              sink=0.0, anchor="", view=True, seed=7) -> str:
     """Surface Scatter con máscaras componibles (el «Scatter Suite» de Dash): reparte sobre la
     superficie real (raycast) con patrón poisson/grid/radial, filtra por pendiente/altura/ruido/
-    densidad, y varía escala y rotación. `view`=centra el área en el punto de mira. El oráculo
-    verifica cantidad, contención, no-clavado y cobertura."""
+    densidad, y varía escala y rotación. `spacing`=0 usa la HUELLA REAL de la malla (nada se pisa);
+    `spread`=factor de separación; `view`=centra el área en el punto de mira. El oráculo verifica
+    cantidad, contención, no-clavado y cobertura."""
     from . import scatter, ue
     count, seed = int(count), int(seed)
 
@@ -277,11 +278,11 @@ def t_scatter(asset, *, count=24, area=800.0, pattern="poisson", spacing=150.0,
     centro, semi = (cx, cy), (area, area)
 
     actores, v = scatter.esparcir_rico(
-        asset, centro, semi, cantidad=count, patron=pattern, spacing=spacing, seed=seed,
-        surface=surface, align=align, slope_max=slope_max,
+        asset, centro, semi, cantidad=count, patron=pattern, spacing=spacing, anillos=int(rings),
+        seed=seed, surface=surface, align=align, slope_max=slope_max,
         height_min=(height_min if height_min else None),
         height_max=(height_max if height_max else None),
-        noise=noise, density=density, scale_min=scale_min, scale_max=scale_max,
+        noise=noise, density=density, scale_min=scale_min, scale_max=scale_max, espaciado=spread,
         sink=sink, anchor=anchor)
     if "error" in v:
         return v["error"]
@@ -293,8 +294,8 @@ def _veredicto_scatter(actores, centro, semi, v) -> str:
     """Reporte del reparto: cuánto pasó el filtro + el oráculo (cantidad/contención/clavado/cobertura)."""
     from . import ue
     cab = (f"SCATTER · {v['colocados']} colocados de {v['candidatos']} candidatos "
-           f"({v['patron']}, {v['assets']} asset(s), {v['mascaras']} máscara(s), "
-           f"{v['filtrados']} filtrados)")
+           f"({v['patron']}, sep {v['spacing']}cm, {v['assets']} asset(s), {v['mascaras']} máscara(s), "
+           f"{v['filtrados']} filtrados, {v['pisados']} evitados por huella)")
     oraculo = ue.scatter_texto(actores, centro, semi, len(actores))
     return f"{cab}\n{oraculo}"
 
@@ -374,11 +375,11 @@ REGISTRO = {
                      "opciones": {"anchor": list(_ANCLAS)},
                      "doc": "coloca un ladrillo donde mirás: raycast a superficie, align a la normal, física, rot/escala; verifica entorno"},
     "scatter":      {"fn": t_scatter, "cat": "Scatter",
-                     "params": {"count": 24, "area": 800.0, "pattern": "poisson", "spacing": 150.0,
-                                "surface": True, "align": False, "slope_max": 90.0,
+                     "params": {"count": 24, "area": 800.0, "pattern": "poisson", "spacing": 0.0,
+                                "rings": 3, "surface": True, "align": False, "slope_max": 90.0,
                                 "height_min": 0.0, "height_max": 0.0, "noise": 0.0, "density": 1.0,
-                                "scale_min": 1.0, "scale_max": 1.0, "sink": 0.0, "anchor": "",
-                                "view": True, "seed": 7},
+                                "scale_min": 1.0, "scale_max": 1.0, "spread": 1.0, "sink": 0.0,
+                                "anchor": "", "view": True, "seed": 7},
                      "opciones": {"pattern": ["poisson", "grid", "radial"],
                                   "anchor": [""] + list(_ANCLAS)},
                      "doc": "esparce sobre la superficie real con máscaras (pendiente/altura/ruido/densidad) y variación"},

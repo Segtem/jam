@@ -85,7 +85,7 @@ def esparcir_rico(
     *,
     cantidad=24,
     patron="poisson",       # poisson | grid | radial
-    spacing=150.0,          # cm, separación mínima (patrón poisson)
+    spacing=0.0,            # cm, separación mínima; 0 = AUTO desde la huella real de la malla
     anillos=3,              # patrón radial
     seed=0,
     surface=True,           # raycast a la geometría real
@@ -96,16 +96,26 @@ def esparcir_rico(
     noise_scale=500.0,      # cm por mancha de ruido
     density=1.0,            # fracción a conservar (add/remove)
     scale_min=1.0, scale_max=1.0,
+    espaciado=1.0,          # factor del footprint para el dedup (1.0 = huellas justo sin pisarse)
     sink=0.0,
     anchor="",
     suelo_z=0.0,
 ):
     """Surface Scatter con tubería de máscaras. `assets` = una ruta o una lista (se elige por semilla,
-    como el mesh selector de PCG). Devuelve (actores, veredicto_dict)."""
+    como el mesh selector de PCG). La separación por defecto sale de la HUELLA REAL de la malla, y un
+    dedup final por footprint garantiza que nada quede clavado (lo que el oráculo verifica).
+    Devuelve (actores, veredicto_dict)."""
     rutas = [assets] if isinstance(assets, str) else list(assets)
     mallas = [m for m in (library.cargar_malla(r) for r in rutas) if m is not None]
     if not mallas:
         return [], {"error": f"ningún asset cargable en {rutas!r}"}
+
+    # footprint real de la malla más grande × la escala máxima: la separación mínima honesta
+    from . import ue
+    radios = [sc.radio_footprint(ue.aabb_malla(m)) for m in mallas]
+    radio_max = max(radios) * max(scale_min, scale_max)
+    if spacing <= 0.0:
+        spacing = radio_max * 2.0 * espaciado   # diámetro: dos huellas juntas sin pisarse
 
     # 1) candidatos
     if patron == "poisson":
@@ -138,6 +148,11 @@ def esparcir_rico(
         mascaras.append(sc.mask_density(density, seed))
     vivos, descartes = sc.aplicar_mascaras(samples, mascaras)
 
+    # 3b) dedup por FOOTPRINT real: aunque poisson dé separación 2D, con multi-asset o escala variada
+    # dos huellas pueden pisarse. Acá se garantiza que ninguna quede clavada (lo que el oráculo mide).
+    radio_por_sample = [radios[s.seed % len(mallas)] * max(scale_min, scale_max) for s in vivos]
+    vivos, pisados = sc.dedup_por_radio(vivos, radio_por_sample, espaciado)
+
     # 4) colocar con variación (asset, escala, yaw por semilla estable)
     actores = []
     for i, s in enumerate(vivos):
@@ -154,6 +169,8 @@ def esparcir_rico(
         "candidatos": len(pts),
         "colocados": len(actores),
         "filtrados": len(descartes),
+        "pisados": len(pisados),
+        "spacing": round(spacing, 1),
         "mascaras": len(mascaras),
         "assets": len(mallas),
         "patron": patron,
