@@ -257,12 +257,46 @@ def _grados_normal(normal) -> float:
     return math.degrees(math.asin(z))   # 90° = normal vertical (piso plano)
 
 
-def t_scatter(asset, *, count=9, area=500.0, seed=7) -> str:
+def t_scatter(asset, *, count=24, area=800.0, pattern="poisson", spacing=150.0,
+              surface=True, align=False, slope_max=90.0, height_min=0.0, height_max=0.0,
+              noise=0.0, density=1.0, scale_min=1.0, scale_max=1.0, sink=0.0, anchor="",
+              view=True, seed=7) -> str:
+    """Surface Scatter con máscaras componibles (el «Scatter Suite» de Dash): reparte sobre la
+    superficie real (raycast) con patrón poisson/grid/radial, filtra por pendiente/altura/ruido/
+    densidad, y varía escala y rotación. `view`=centra el área en el punto de mira. El oráculo
+    verifica cantidad, contención, no-clavado y cobertura."""
     from . import scatter, ue
     count, seed = int(count), int(seed)
-    centro, semi = (0.0, 0.0), (area, area)
-    actores = scatter.esparcir(asset, centro, semi, count, seed=seed)
-    return ue.scatter_texto(actores, centro, semi, count)
+
+    # centrar el área donde mirás (como place view), para no scatterear en el origen del mundo
+    cx, cy = 0.0, 0.0
+    if view:
+        mira = ue.punto_de_mira()
+        if mira is not None and mira["punto"] is not None:
+            cx, cy = mira["punto"].x, mira["punto"].y
+    centro, semi = (cx, cy), (area, area)
+
+    actores, v = scatter.esparcir_rico(
+        asset, centro, semi, cantidad=count, patron=pattern, spacing=spacing, seed=seed,
+        surface=surface, align=align, slope_max=slope_max,
+        height_min=(height_min if height_min else None),
+        height_max=(height_max if height_max else None),
+        noise=noise, density=density, scale_min=scale_min, scale_max=scale_max,
+        sink=sink, anchor=anchor)
+    if "error" in v:
+        return v["error"]
+    ue.seleccionar(actores)
+    return _veredicto_scatter(actores, centro, semi, v)
+
+
+def _veredicto_scatter(actores, centro, semi, v) -> str:
+    """Reporte del reparto: cuánto pasó el filtro + el oráculo (cantidad/contención/clavado/cobertura)."""
+    from . import ue
+    cab = (f"SCATTER · {v['colocados']} colocados de {v['candidatos']} candidatos "
+           f"({v['patron']}, {v['assets']} asset(s), {v['mascaras']} máscara(s), "
+           f"{v['filtrados']} filtrados)")
+    oraculo = ue.scatter_texto(actores, centro, semi, len(actores))
+    return f"{cab}\n{oraculo}"
 
 
 def t_drop(asset, *, height=800.0) -> str:
@@ -339,8 +373,15 @@ REGISTRO = {
                                 "yaw": 0.0, "scale": 1.0},
                      "opciones": {"anchor": list(_ANCLAS)},
                      "doc": "coloca un ladrillo donde mirás: raycast a superficie, align a la normal, física, rot/escala; verifica entorno"},
-    "scatter":      {"fn": t_scatter, "cat": "Scatter", "params": {"count": 9, "area": 500.0, "seed": 7},
-                     "doc": "esparce N copias en un área y verifica cobertura"},
+    "scatter":      {"fn": t_scatter, "cat": "Scatter",
+                     "params": {"count": 24, "area": 800.0, "pattern": "poisson", "spacing": 150.0,
+                                "surface": True, "align": False, "slope_max": 90.0,
+                                "height_min": 0.0, "height_max": 0.0, "noise": 0.0, "density": 1.0,
+                                "scale_min": 1.0, "scale_max": 1.0, "sink": 0.0, "anchor": "",
+                                "view": True, "seed": 7},
+                     "opciones": {"pattern": ["poisson", "grid", "radial"],
+                                  "anchor": [""] + list(_ANCLAS)},
+                     "doc": "esparce sobre la superficie real con máscaras (pendiente/altura/ruido/densidad) y variación"},
     "drop":         {"fn": t_drop,    "cat": "Place",   "params": {"height": 800.0},
                      "doc": "deja caer el asset sobre el piso real y verifica apoyo"},
     "snap":         {"fn": t_snap,    "cat": "Place",   "params": {"grid": 100.0},
