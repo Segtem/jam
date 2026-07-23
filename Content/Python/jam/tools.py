@@ -23,12 +23,63 @@ def _corto(ruta: str) -> str:
 # veredictos del oráculo) queda en español. Los módulos internos (place/scatter/pared…) siguen en
 # español y estas funciones traducen los kwargs.
 
-def t_place(asset, *, x=0.0, y=0.0, z=0.0) -> str:
-    from . import place, ue
-    actor = place.colocar(asset, (x, y, z))
+def t_place(asset, *, x=0.0, y=0.0, z=0.0, surface=True, align=False, physics=False,
+            yaw=0.0, scale=1.0) -> str:
+    """Coloca un ladrillo en relación a su entorno: `surface`=raycast al piso, `align`=orientar a la
+    normal, `physics`=asentar por caída, `yaw`/`scale`. El oráculo del entorno verifica APOYADO sobre
+    una superficie (gap≈0) + SIN CLAVARSE con los vecinos (geometría, no el soporte ni el landscape)."""
+    from . import place
+    actor = place.colocar(asset, (x, y, z), (0.0, 0.0, yaw), (scale, scale, scale),
+                          surface=surface, align=align, physics=physics)
     if actor is None:
         return f"no se pudo colocar {_corto(asset)}"
-    return ue.placement_texto(actor, _sub().get_all_level_actors())
+    return _veredicto_entorno(actor)
+
+
+def _veredicto_entorno(actor) -> str:
+    """Oráculo de PLACE: ¿el ladrillo quedó bien en su entorno? APOYADO sobre superficie (raycast,
+    gap≈0, con su pendiente) + SIN CLAVARSE con vecinos reales (excluye soporte, landscape y no-geometría)."""
+    import unreal as U
+    from . import geometry, oracle_placement, physics, ue
+    aabb = ue.aabb(actor)
+    base_z = aabb.origin.z - aabb.extent.z
+
+    # 1) superficie debajo (raycast desde la base, ignorando el propio actor)
+    hit = ue.raycast(aabb.origin.x, aabb.origin.y, desde=base_z + 20.0, ignorar=[actor])
+    soporte = hit["actor"] if hit["hit"] else None
+    if not hit["hit"]:
+        apoyo = "SIN SUELO ✗ — flota (no hay superficie debajo)"
+    else:
+        gap = base_z - hit["punto"].z
+        pend = 90.0 - _grados_normal(hit["normal"])
+        apoyo = (f"APOYADO ✓ sobre «{soporte}» (pendiente {pend:.0f}°)" if abs(gap) <= 5.0
+                 else f"MAL APOYADO ✗ — {gap:+.1f}cm de «{soporte}»")
+
+    # 2) vecinos = geometría real, sin el propio, sin el soporte, sin landscape
+    def es_landscape(a):
+        try:
+            return isinstance(a, U.LandscapeProxy)
+        except Exception:  # noqa: BLE001
+            return False
+    vecinos = [a for a in ue.actores_nivel()
+               if a != actor and physics._es_geometria(a) and not es_landscape(a)
+               and a.get_actor_label() != soporte]
+    r = oracle_placement.verificar(ue.pieza(actor), ue.piezas(vecinos))
+    if r["interpenetra"]:
+        det = ", ".join(f"{n} ({d}cm)" for n, d in r["interpenetra"])
+        clava = f"CLAVA ✗ con {det}"
+    else:
+        clava = "sin clavarse con vecinos ✓"
+
+    ok = hit["hit"] and (soporte is None or abs(base_z - hit["punto"].z) <= 5.0) and not r["interpenetra"]
+    cab = f"[{actor.get_actor_label()}] {'BIEN COLOCADO ✓' if ok else 'REVISAR ✗'}"
+    return f"{cab} — {apoyo} · {clava}"
+
+
+def _grados_normal(normal) -> float:
+    import math
+    z = max(-1.0, min(1.0, normal.z))
+    return math.degrees(math.asin(z))   # 90° = normal vertical (piso plano)
 
 
 def t_scatter(asset, *, count=9, area=500.0, seed=7) -> str:
@@ -85,8 +136,10 @@ def t_create_spline(asset=None) -> str:
 # `cat` = categoría estilo Dash (Content/Place/Scatter/Create/Edit) → agrupa los verbos en la
 # Dash Bar. Es dato: mover una herramienta de categoría es cambiar este campo, sin tocar C++.
 REGISTRO = {
-    "place":        {"fn": t_place,   "cat": "Place",   "params": {"x": 0.0, "y": 0.0, "z": 0.0},
-                     "doc": "coloca el asset en (x,y,z) y verifica solape/vecino"},
+    "place":        {"fn": t_place,   "cat": "Place",
+                     "params": {"x": 0.0, "y": 0.0, "z": 0.0, "surface": True, "align": False,
+                                "physics": False, "yaw": 0.0, "scale": 1.0},
+                     "doc": "coloca un ladrillo: raycast a superficie, align a la normal, física, rot/escala; verifica entorno"},
     "scatter":      {"fn": t_scatter, "cat": "Scatter", "params": {"count": 9, "area": 500.0, "seed": 7},
                      "doc": "esparce N copias en un área y verifica cobertura"},
     "drop":         {"fn": t_drop,    "cat": "Place",   "params": {"height": 800.0},

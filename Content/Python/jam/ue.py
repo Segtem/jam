@@ -16,6 +16,29 @@ def _sub():
     return unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
 
 
+def _mundo():
+    return unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).get_editor_world()
+
+
+def raycast(x: float, y: float, *, desde: float = 1.0e6, hasta: float = -1.0e6, ignorar=None) -> dict:
+    """Traza un rayo VERTICAL hacia abajo en (x,y) contra la geometría real del nivel (trace complejo).
+    Devuelve {hit, punto: Vec3, normal: Vec3, actor: str|None} — la superficie bajo (x,y). El HitResult
+    se lee por `to_tuple()` (5.7 no expone sus campos como atributos): [0]=blocking_hit, [5]=impact_point,
+    [7]=impact_normal, [9]=actor."""
+    r = unreal.SystemLibrary.line_trace_single(
+        _mundo(), unreal.Vector(x, y, desde), unreal.Vector(x, y, hasta),
+        unreal.TraceTypeQuery.TRACE_TYPE_QUERY1, True, ignorar or [],
+        unreal.DrawDebugTrace.NONE, True)
+    t = r.to_tuple()
+    if not t[0]:   # blocking_hit
+        return {"hit": False, "punto": None, "normal": None, "actor": None}
+    p, n, act = t[5], t[7], t[9]
+    return {"hit": True,
+            "punto": Vec3(p.x, p.y, p.z),
+            "normal": Vec3(n.x, n.y, n.z),
+            "actor": act.get_actor_label() if act else None}
+
+
 def aabb(actor) -> AABB:
     """AABB (datos) del actor, en cm."""
     origin, extent = actor.get_actor_bounds(False)
