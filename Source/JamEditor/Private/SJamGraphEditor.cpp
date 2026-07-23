@@ -9,9 +9,11 @@
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/Layout/SScrollBox.h"
 #include "Widgets/Input/SButton.h"
+#include "Widgets/Input/SComboButton.h"
 #include "Widgets/Input/SEditableTextBox.h"
 #include "Widgets/Input/SMultiLineEditableTextBox.h"
 #include "Widgets/Text/STextBlock.h"
+#include "Framework/MultiBox/MultiBoxBuilder.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Styling/AppStyle.h"
 #include "Rendering/DrawElements.h"
@@ -69,7 +71,8 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 	ActiveAsset = InArgs._ActiveAsset;
 	OnOpenContent = InArgs._OnOpenContent;
 
-	// Paleta: un botón por verbo → agrega un nodo. Primero, Content (el asset del que se alimenta).
+	// Paleta agrupada por categoría (como Dash): un combo por categoría → sus nodos. Con verbos +
+	// flow serían ~21 botones sueltos; agrupados es navegable. El doble clic en el lienzo busca igual.
 	TSharedRef<SHorizontalBox> Palette = SNew(SHorizontalBox);
 	Palette->AddSlot().AutoWidth().Padding(2.0f, 0.0f)
 	[
@@ -78,15 +81,33 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 		.ToolTipText(LOCTEXT("PaletteContentTip", "Elegir el asset activo (abre la ventana de Content)"))
 		.OnClicked_Lambda([this]() { OnOpenContent.ExecuteIfBound(); return FReply::Handled(); })
 	];
+	// orden de categorías: primero las de las tools, después las de flow
+	TArray<FString> Cats;
 	for (const FJamTool& T : Tools)
 	{
-		const FString Verb = T.Verb;
+		Cats.AddUnique(T.Cat);
+	}
+	for (const FString& Cat : Cats)
+	{
 		Palette->AddSlot().AutoWidth().Padding(2.0f, 0.0f)
 		[
-			SNew(SButton)
-			.Text(FText::FromString(Verb))
-			.ToolTipText(FText::FromString(T.Doc))
-			.OnClicked_Lambda([this, Verb]() { AddNode(Verb); return FReply::Handled(); })
+			SNew(SComboButton)
+			.ButtonContent()[ SNew(STextBlock).Text(FText::FromString(Cat)) ]
+			.OnGetMenuContent_Lambda([this, Cat]()
+			{
+				FMenuBuilder MB(true, nullptr);
+				for (const FJamTool& T : Tools)
+				{
+					if (T.Cat != Cat)
+					{
+						continue;
+					}
+					const FString Verb = T.Verb;
+					MB.AddMenuEntry(FText::FromString(T.Verb), FText::FromString(T.Doc), FSlateIcon(),
+						FUIAction(FExecuteAction::CreateLambda([this, Verb]() { AddNode(Verb); })));
+				}
+				return MB.MakeWidget();
+			})
 		];
 	}
 
@@ -220,7 +241,8 @@ void SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At)
 
 	const FString Id = Node.Id;
 	// Nodos FUENTE (producen el dato, no lo reciben): sin pin de entrada, convención de Grasshopper.
-	const bool bHasInput = (Verb != TEXT("asset") && Verb != TEXT("pick") && Verb != TEXT("create_spline"));
+	// El flag viene del spec (data-driven): asset/pick/create_spline y las fuentes de flow.
+	const bool bHasInput = !T->bSource;
 
 	TSharedRef<SJamGraphNode> Widget = SNew(SJamGraphNode)
 		.Verb(Verb)

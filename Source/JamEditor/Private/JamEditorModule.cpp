@@ -119,7 +119,7 @@ void FJamEditorModule::OpenGraph()
 		GraphWindow->BringToFront();
 		return;
 	}
-	LoadSpec();
+	LoadSpec(/*bIncludeFlow*/ true);
 
 	TSharedRef<SWindow> Win = SNew(SWindow)
 		.Title(LOCTEXT("GraphTitle", "Jam — Graph (Grasshopper)"))
@@ -213,12 +213,14 @@ void FJamEditorModule::OnDashClosed(const TSharedRef<SWindow>& /*Window*/)
 	LogText.Empty();
 }
 
-void FJamEditorModule::LoadSpec()
+void FJamEditorModule::LoadSpec(bool bIncludeFlow)
 {
 	Tools.Reset();
 	Categories.Reset();
+	// El canvas del grafo pide el spec COMBINADO (verbos + ops de flow); la Dash Bar sólo los verbos.
+	const TCHAR* Fn = bIncludeFlow ? TEXT("spec_all") : TEXT("spec");
 	const FString Raw = ExecPythonCapture(
-		TEXT("import jam.api as _a; print('JAMSPEC:' + _a.spec())"));
+		FString::Printf(TEXT("import jam.api as _a; print('JAMSPEC:' + _a.%s())"), Fn));
 
 	const FString Marker(TEXT("JAMSPEC:"));
 	const int32 M = Raw.Find(Marker);
@@ -263,6 +265,7 @@ void FJamEditorModule::LoadSpec()
 		T.Verb = O->GetStringField(TEXT("verbo"));
 		O->TryGetStringField(TEXT("cat"), T.Cat);
 		O->TryGetStringField(TEXT("doc"), T.Doc);
+		O->TryGetBoolField(TEXT("source"), T.bSource);
 		const TArray<TSharedPtr<FJsonValue>>* Ps = nullptr;
 		if (O->TryGetArrayField(TEXT("params"), Ps) && Ps)
 		{

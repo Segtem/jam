@@ -192,6 +192,46 @@ def ejecutar_grafo(g_json: str, widget=None) -> str:
     return _preview(lambda _w: graph.ejecutar(g))
 
 
+def ejecutar_flow_json(g_json: str, widget=None) -> str:
+    """Corre un FLOW (cadena estilo Houdini: source → máscaras → instance) como UN preview, y devuelve
+    JSON {report, nodes:{id:{estado,texto}}} para que el canvas pinte cada nodo. El estado sale del
+    stream que produjo: verde = pasó puntos, naranja = quedó vacío (el filtro comió todo)."""
+    import json
+
+    from . import flow, scatter
+
+    f = flow.Flow.from_json(g_json)
+    caja: dict = {}
+
+    def correr(_w):
+        try:
+            salida = f.evaluar(ops=scatter.ops_flow())
+        except ValueError as e:   # ciclo
+            caja["_err"] = str(e)
+            return f"[flow] {e}"
+        lineas = []
+        for nid, nodo in f.nodos.items():
+            stream = salida.get(nid, [])
+            kind = nodo["kind"]
+            if kind == "instance":
+                out = nodo["params"].get("_out", {})
+                txt = (f"{out.get('colocados', 0)} instancias"
+                       + (f" · {out['pisados']} evitadas por huella" if out.get("pisados") else "")
+                       + ("" if out.get("assets") else " · SIN asset activo ✗"))
+                estado = "ok" if out.get("colocados") else "warn"
+            else:
+                txt = f"{len(stream)} puntos"
+                estado = "ok" if stream else "warn"
+            caja[nid] = {"estado": estado, "texto": f"{kind}: {txt}"}
+            lineas.append(f"[{nid}·{kind}] {txt}")
+        return "\n".join(lineas)
+
+    reporte = _preview(correr)
+    if "_err" in caja:
+        return json.dumps({"report": reporte, "nodes": {}}, ensure_ascii=True)
+    return json.dumps({"report": reporte, "nodes": caja}, ensure_ascii=True)
+
+
 def ejecutar_grafo_json(g_json: str, widget=None) -> str:
     """Igual que `ejecutar_grafo` pero devuelve JSON {report, nodes:{nid:{estado,texto}}}: el canvas
     pinta cada nodo con SU veredicto (verde/naranja/rojo, como los estados de Grasshopper)."""

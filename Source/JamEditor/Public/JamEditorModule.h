@@ -35,6 +35,7 @@ struct FJamTool
 	FString Verb;
 	FString Cat;
 	FString Doc;
+	bool bSource = false;   // en el grafo, nodo FUENTE (sin pin de entrada)
 	TArray<FJamParam> Params;
 };
 
@@ -69,7 +70,9 @@ private:
 	/** Corre un JamGraph (JSON) vía Python (jam.panel.ejecutar_grafo) y devuelve el reporte. */
 	FString RunGraphJson(const FString& Json);
 
-	void LoadSpec();
+	/** Carga el spec en `Tools`. `bIncludeFlow`=true suma las ops de flow (source/mask/instance) para
+	 *  el canvas estilo Houdini; false = sólo verbos (Dash Bar). */
+	void LoadSpec(bool bIncludeFlow = false);
 	TSharedRef<SWidget> BuildDashContent();
 	TSharedRef<SWidget> MakeCategoryMenu(const FString& Category);
 	void SelectTool(const FString& Verb);

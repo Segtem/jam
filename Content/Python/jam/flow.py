@@ -33,6 +33,62 @@ def op(kind: str, entradas: int):
     return deco
 
 
+# Metadata para la UI (categoría, params, aridad). Es DATO puro — incluye las ops del adaptador
+# (source_surface, instance), cuyas FUNCIONES viven en `jam.scatter` pero cuya descripción no toca el
+# motor. El canvas se arma desde acá; `Flow.evaluar` recibe las funciones del adaptador aparte.
+# cat: Source (fuente, sin entrada) · Mask (filtra) · Combine · Output (instancia).
+OPS_META: dict = {
+    "source_surface": {"cat": "Source", "source": True,
+                       "params": {"area": 800.0, "count": 40, "pattern": "poisson",
+                                  "spacing": 0.0, "seed": 7},
+                       "opciones": {"pattern": ["poisson", "grid", "radial"]},
+                       "doc": "puntos sobre la superficie real (raycast) — el Scatter SOP"},
+    "mask_slope":   {"cat": "Mask", "params": {"min": 0.0, "max": 90.0},
+                     "doc": "descarta por pendiente (Angle Mask)"},
+    "mask_height":  {"cat": "Mask", "params": {"min": 0.0, "max": 0.0},
+                     "doc": "recorta por altura (Min/Max Height); 0/0 = sin límite"},
+    "mask_noise":   {"cat": "Mask", "params": {"threshold": 0.5, "scale": 500.0, "seed": 7},
+                     "doc": "rompe la uniformidad → manchones (Noise Mask)"},
+    "mask_density": {"cat": "Mask", "params": {"keep": 0.6, "seed": 7},
+                     "doc": "conserva una fracción al azar (Add/Remove)"},
+    "merge":        {"cat": "Combine", "aridad": -1, "params": {},
+                     "doc": "junta varios streams de puntos en uno"},
+    "instance":     {"cat": "Output", "params": {"scale_min": 1.0, "scale_max": 1.0, "anchor": "base",
+                                                 "align": False, "sink": 0.0},
+                     "doc": "instancia el asset activo en cada punto (Copy to Points)"},
+}
+
+
+def spec_json() -> str:
+    """El registro de ops de flow como JSON (mismo formato que `tools.spec_json`) para que el canvas
+    dibuje los nodos. `source`=sin pin de entrada; `aridad -1`=varias entradas (merge)."""
+    import json
+
+    def tipo(v):
+        if isinstance(v, bool):
+            return "bool"
+        if isinstance(v, int):
+            return "int"
+        if isinstance(v, float):
+            return "float"
+        return "str"
+
+    cats = ["Source", "Mask", "Combine", "Output"]
+    nodos = []
+    for kind, m in OPS_META.items():
+        ops_val = m.get("opciones", {})
+        nodos.append({
+            "verbo": kind,
+            "cat": m["cat"],
+            "doc": m["doc"],
+            "source": bool(m.get("source", False)),
+            "aridad": m.get("aridad", 0 if m.get("source") else 1),
+            "params": [{"nombre": k, "default": str(v), "tipo": tipo(v),
+                        "opciones": ops_val.get(k, [])} for k, v in m["params"].items()],
+        })
+    return json.dumps({"categorias": cats, "tools": nodos}, ensure_ascii=True)
+
+
 # ---------- fuentes (sin entrada): región → puntos ----------
 
 @op("source_grid", 0)
@@ -113,6 +169,26 @@ def _merge(e, _p):
 
 # ---------- evaluación (orden topológico, como cualquier grafo dataflow) ----------
 
+def _coaccionar(kind: str, params: dict) -> dict:
+    """Convierte cada param al tipo de su default en OPS_META (el canvas manda todo como string)."""
+    spec = OPS_META.get(kind, {}).get("params", {})
+    out = {}
+    for k, v in params.items():
+        d = spec.get(k)
+        try:
+            if isinstance(d, bool):
+                out[k] = str(v).lower() in ("1", "true", "si", "sí", "yes", "on")
+            elif isinstance(d, int):
+                out[k] = int(float(v))
+            elif isinstance(d, float):
+                out[k] = float(v)
+            else:
+                out[k] = v
+        except (TypeError, ValueError):
+            out[k] = v
+    return out
+
+
 class Flow:
     """Grafo de operaciones de stream. `nodos`: id → {kind, params}. `enlaces`: [(origen, destino)],
     en orden (para nodos con varias entradas, el orden de los enlaces es el orden de las entradas)."""
@@ -129,6 +205,23 @@ class Flow:
     def connect(self, origen: str, destino: str) -> None:
         if origen in self.nodos and destino in self.nodos:
             self.enlaces.append((origen, destino))
+
+    @classmethod
+    def from_json(cls, s: str) -> "Flow":
+        """Construye desde el JSON del canvas: {nodes:{id:{verb,params}}, edges:[[from,to]]}. `verb`
+        es el kind. Los params se coaccionan al tipo de su default en OPS_META."""
+        import json
+        d = json.loads(s) if s else {}
+        f = cls()
+        for nid, nd in d.get("nodes", {}).items():
+            kind = nd.get("verb") or nd.get("kind", "")
+            f.nodos[nid] = {"kind": kind, "params": _coaccionar(kind, nd.get("params", {}))}
+        f.enlaces = [(e[0], e[1]) for e in d.get("edges", []) if len(e) == 2]
+        return f
+
+    def solo_flow(self) -> bool:
+        """¿Todos los nodos son ops de flow? (para que el runner distinga flow de grafo de verbos)."""
+        return bool(self.nodos) and all(n["kind"] in OPS_META for n in self.nodos.values())
 
     def _entradas(self, nid: str) -> list[str]:
         return [a for a, b in self.enlaces if b == nid]

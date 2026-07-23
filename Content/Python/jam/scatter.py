@@ -182,44 +182,66 @@ def esparcir_rico(
 # Con esto, una cadena estilo Houdini `source_surface → mask_* → instance` corre por el evaluador de
 # `jam.flow` sin que ese módulo importe unreal. `jam.flow` sigue siendo el cerebro; acá el adaptador.
 
+def _centro_mira(p):
+    """`centro` del nodo, o el punto de mira del viewport (así el flow siembra donde mirás, no en el
+    origen del mundo). El área es cuadrada de semilado `area`."""
+    from . import ue
+    if "centro" in p:
+        return p["centro"], p.get("semi", (p.get("area", 800.0), p.get("area", 800.0)))
+    a = float(p.get("area", 800.0))
+    mira = ue.punto_de_mira()
+    c = (mira["punto"].x, mira["punto"].y) if (mira and mira["punto"]) else (0.0, 0.0)
+    return c, (a, a)
+
+
 def _op_source_surface(entradas, p):
     """Fuente que muestrea la SUPERFICIE REAL: candidatos + raycast → Samples con normal y pendiente
     de verdad (lo que las máscaras de ángulo necesitan). Es el `Scatter SOP` sobre geometría."""
-    centro, semi = p["centro"], p["semi"]
-    patron = p.get("patron", "poisson")
+    centro, semi = _centro_mira(p)
+    patron = p.get("pattern", p.get("patron", "poisson"))
     seed = int(p.get("seed", 0))
+    cant = int(p.get("count", p.get("cantidad", 40)))
     if patron == "grid":
-        pts = sc.grid_jitter(centro, semi, int(p.get("cantidad", 24)), seed)
+        pts = sc.grid_jitter(centro, semi, cant, seed)
     elif patron == "radial":
-        pts = sc.radial(centro, min(semi), int(p.get("cantidad", 24)), int(p.get("anillos", 3)), seed)
+        pts = sc.radial(centro, min(semi), cant, int(p.get("rings", p.get("anillos", 3))), seed)
     else:
-        pts = sc.poisson_disk(centro, semi, p.get("spacing", 150.0), seed)
-        lim = int(p.get("cantidad", 0))
-        if lim and len(pts) > lim:
-            pts = pts[:lim]
+        spacing = p.get("spacing", 0.0) or 200.0   # 0 = default razonable para la fuente sola
+        pts = sc.poisson_disk(centro, semi, spacing, seed)
+        if cant and len(pts) > cant:
+            pts = pts[:cant]
     return _muestrear(centro, semi, pts, suelo_z=p.get("suelo_z", 0.0), seed_base=seed, ignorar=[])
 
 
 def _op_instance(entradas, p):
-    """Terminal: instancia una malla en cada punto del stream (el `Copy to Points` de Houdini).
-    Devuelve el stream tal cual (para encadenar) y deja los actores en `p['_actores']`."""
-    rutas = p.get("assets") or []
+    """Terminal: instancia una malla en cada punto del stream (el `Copy to Points` de Houdini). El
+    asset sale de los params o del ACTIVO de la sesión. Dedup por huella real (nada clavado).
+    Devuelve el stream tal cual y deja los actores + un resumen en `p['_out']`."""
+    from . import session, ue
+    rutas = p.get("assets") or ([session.asset()] if session.asset() else [])
     if isinstance(rutas, str):
         rutas = [rutas]
     mallas = [m for m in (library.cargar_malla(r) for r in rutas) if m is not None]
     stream = entradas[0] if entradas else []
     actores = []
+    pisados = 0
     if mallas:
-        for i, s in enumerate(stream):
+        sm = p.get("scale_max", 1.0)
+        radios = [sc.radio_footprint(ue.aabb_malla(m)) * sm for m in mallas]
+        rad_por = [radios[s.seed % len(mallas)] for s in stream]
+        stream_ok, rechazados = sc.dedup_por_radio(stream, rad_por, 1.0)
+        pisados = len(rechazados)
+        for i, s in enumerate(stream_ok):
             malla = mallas[s.seed % len(mallas)]
             esc, yaw = sc.variacion(s, (p.get("scale_min", 1.0), p.get("scale_max", 1.0)))
             a = place.colocar(malla, (s.pos.x, s.pos.y, s.pos.z - p.get("sink", 0.0)),
                               (0.0, 0.0, yaw), esc, surface=False,
-                              anchor=p.get("anchor", ""), align=p.get("align", False), view=False)
+                              anchor=p.get("anchor", "base"), align=p.get("align", False), view=False)
             if a is not None:
                 a.set_actor_label(f"Jam_scatter_{i}")
                 actores.append(a)
-    p["_actores"] = actores
+    p["_out"] = {"actores": actores, "colocados": len(actores), "pisados": pisados,
+                 "assets": len(mallas)}
     return stream
 
 

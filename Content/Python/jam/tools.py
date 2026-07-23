@@ -437,6 +437,8 @@ def spec_json() -> str:
             return "float"
         return "str"
 
+    # verbos que en el grafo son FUENTE (no reciben nada aguas arriba): sin pin de entrada
+    fuentes = {"asset", "pick", "create_spline", "gizmo", "ghost", "pivot"}
     salida = []
     for nombre, info in REGISTRO.items():
         opciones = info.get("opciones", {})
@@ -444,6 +446,7 @@ def spec_json() -> str:
             "verbo": nombre,
             "cat": info.get("cat", "Place"),
             "doc": info["doc"],
+            "source": nombre in fuentes,
             # `opciones` → la UI dibuja una LISTA en vez de un campo de texto (anclas, modos…)
             "params": [{"nombre": k, "default": str(v), "tipo": tipo(v),
                         "opciones": opciones.get(k, [])}

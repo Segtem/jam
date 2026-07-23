@@ -48,9 +48,32 @@ def run_graph(graph_json: str) -> str:
 
 
 def run_graph_json(graph_json: str) -> str:
-    """JSON {report, nodes:{nid:{estado,texto}}} — para que el canvas pinte cada nodo por su veredicto."""
-    from . import panel
+    """JSON {report, nodes:{nid:{estado,texto}}} para pintar el canvas. Detecta SOLO: si el grafo son
+    ops de flow (source/mask/instance) lo corre como cadena Houdini; si son verbos, como grafo de
+    verbos. Así el mismo botón Run del canvas hace lo correcto sin que la UI sepa la diferencia."""
+    from . import flow, panel
+    if flow.Flow.from_json(graph_json).solo_flow():
+        return panel.ejecutar_flow_json(graph_json, None)
     return panel.ejecutar_grafo_json(graph_json, None)
+
+
+def flow_spec() -> str:
+    """JSON de las ops de flow (source/mask/combine/output) para el canvas estilo Houdini."""
+    from . import flow
+    return flow.spec_json()
+
+
+def spec_all() -> str:
+    """Spec COMBINADO: verbos de herramienta + ops de flow, para que el canvas ofrezca ambos. Cada
+    entrada trae su `cat`; las de flow además `source`/`aridad`."""
+    import json
+
+    from . import flow, tools
+    verbos = json.loads(tools.spec_json())
+    ops = json.loads(flow.spec_json())
+    cats = verbos["categorias"] + [c for c in ops["categorias"] if c not in verbos["categorias"]]
+    return json.dumps({"categorias": cats, "tools": verbos["tools"] + ops["tools"]},
+                      ensure_ascii=True)
 
 
 def confirm() -> str:
