@@ -50,7 +50,7 @@ class _Handler(http.server.BaseHTTPRequestHandler):
             return self._send(200, r, "application/json; charset=utf-8")
         if parsed.path == "/assets":
             q = urllib.parse.parse_qs(parsed.query).get("q", [""])[0]
-            r = serve.en_game_thread(lambda: api.assets(q)) or "[]"
+            r = serve.en_game_thread(lambda: api.assets(q)) or "{}"
             return self._send(200, r, "application/json; charset=utf-8")
         return self._send(404, "not found", "text/plain; charset=utf-8")
 

@@ -77,14 +77,20 @@ class JamGraph:
 # ---- ejecución (reusa las tools y el oráculo; asset por nodo) ----
 
 def _resolver_asset(nombre: str | None) -> str | None:
-    from . import library
+    from . import library, session
     if nombre:
         if "/" in nombre or "." in nombre:   # ya es un ObjectPath
             return nombre
         hits = library.buscar(nombre, limit=1)
         return hits[0]["ruta"] if hits else None
+    if session.asset():                      # lo elegido en Content
+        return session.asset()
     hits = library.buscar("", limit=1)       # default: 1º de la biblioteca
     return hits[0]["ruta"] if hits else None
+
+
+def _entradas(g: "JamGraph", nid: str) -> list[str]:
+    return [a for a, b in g.edges if b == nid]
 
 
 def ejecutar(g: JamGraph) -> str:
@@ -98,6 +104,9 @@ def ejecutar(g: JamGraph) -> str:
     if not orden:
         return "[grafo] vacío — agregá nodos."
     lineas = []
+    # asset que sale de cada nodo por su pin: el nodo «asset» lo produce, los demás lo dejan pasar.
+    # Como corremos en orden topológico, aguas abajo ya está resuelto cuando se lo pide.
+    porta: dict[str, str | None] = {}
     for nid in orden:
         n = g.nodes[nid]
         verb = n["verb"]
@@ -105,7 +114,11 @@ def ejecutar(g: JamGraph) -> str:
         if not info:
             lineas.append(f"[{nid}·{verb}] verbo desconocido")
             continue
-        asset = _resolver_asset(n.get("asset"))
+        pedido = n.get("asset") or (n.get("params", {}).get("name") if verb == "asset" else None)
+        if not pedido:   # sin asset propio: hereda el del cable (nodo «asset» aguas arriba)
+            pedido = next((porta[e] for e in _entradas(g, nid) if porta.get(e)), None)
+        asset = _resolver_asset(pedido)
+        porta[nid] = asset
         if not asset:
             lineas.append(f"[{nid}·{verb}] biblioteca vacía")
             continue

@@ -53,10 +53,13 @@ void FJamEditorModule::ShutdownModule()
 {
 	UToolMenus::UnRegisterStartupCallback(this);
 	UToolMenus::UnregisterOwner(this);
-	if (DashWindow.IsValid())
+	for (TSharedPtr<SWindow>* W : { &DashWindow, &GraphWindow, &ContentWindow })
 	{
-		DashWindow->RequestDestroyWindow();
-		DashWindow.Reset();
+		if (W->IsValid())
+		{
+			(*W)->RequestDestroyWindow();
+			W->Reset();
+		}
 	}
 }
 
@@ -76,6 +79,12 @@ void FJamEditorModule::RegisterMenus()
 		LOCTEXT("OpenJamDashBarTip", "Abrir la Dash Bar de Jam (secciones + params + oráculo)"),
 		FSlateIcon(),
 		FUIAction(FExecuteAction::CreateRaw(this, &FJamEditorModule::OpenDashBar)));
+	Section.AddMenuEntry(
+		"OpenJamContent",
+		LOCTEXT("OpenJamContent", "Jam: Content"),
+		LOCTEXT("OpenJamContentTip", "Navegador de assets con miniaturas (ventana propia)"),
+		FSlateIcon(),
+		FUIAction(FExecuteAction::CreateRaw(this, &FJamEditorModule::OpenContentWindow)));
 	Section.AddMenuEntry(
 		"OpenJamGraph",
 		LOCTEXT("OpenJamGraph", "Jam: Graph (Grasshopper)"),
@@ -113,7 +122,9 @@ void FJamEditorModule::OpenGraph()
 
 	Win->SetContent(
 		SNew(SJamGraphEditor, Tools)
-		.OnRunGraph_Raw(this, &FJamEditorModule::RunGraphJson));
+		.OnRunGraph_Raw(this, &FJamEditorModule::RunGraphJson)
+		.ActiveAsset_Lambda([this]() { return SelectedAssetName; })
+		.OnOpenContent_Raw(this, &FJamEditorModule::OpenContentWindow));
 	Win->SetOnWindowClosed(FOnWindowClosed::CreateLambda(
 		[this](const TSharedRef<SWindow>&) { GraphWindow.Reset(); }));
 
@@ -137,11 +148,6 @@ void FJamEditorModule::OpenDashBar()
 	}
 
 	LoadSpec();
-
-	if (!ThumbnailPool.IsValid())
-	{
-		ThumbnailPool = MakeShareable(new FAssetThumbnailPool(64));
-	}
 
 	TSharedRef<SWindow> Win = SNew(SWindow)
 		.Title(LOCTEXT("DashTitle", "Jam — Dash Bar"))
@@ -170,10 +176,6 @@ void FJamEditorModule::OnDashClosed(const TSharedRef<SWindow>& /*Window*/)
 	OutputBox.Reset();
 	ParamFields.Empty();
 	AssetLabel.Reset();
-	ContentGrid.Reset();
-	ContentSearchBox.Reset();
-	ThumbnailsKeepAlive.Reset();
-	bContentOpen = false;
 	LogText.Empty();
 }
 
@@ -280,15 +282,16 @@ TSharedRef<SWidget> FJamEditorModule::BuildDashContent()
 	// + un buscador «Find Tools». Las categorías vacías se saltan.
 	TSharedRef<SHorizontalBox> Bar = SNew(SHorizontalBox);
 
-	// Content: botón que abre/cierra el navegador de assets con miniaturas.
+	// Content: abre el navegador de assets en SU PROPIA VENTANA (los paneles de Dash son ventanas
+	// aparte; embebido acá le comía la mitad de la Dash Bar).
 	Bar->AddSlot()
 		.AutoWidth()
 		.Padding(2.0f, 0.0f)
 		[
 			SNew(SButton)
 			.Text(LOCTEXT("Content", "Content"))
-			.ToolTipText(LOCTEXT("ContentTip", "Navegador de assets con miniaturas"))
-			.OnClicked_Lambda([this]() { ToggleContent(); return FReply::Handled(); })
+			.ToolTipText(LOCTEXT("ContentTip", "Navegador de assets con miniaturas (ventana aparte)"))
+			.OnClicked_Lambda([this]() { OpenContentWindow(); return FReply::Handled(); })
 		];
 
 	for (const FString& Cat : Categories)
@@ -339,20 +342,7 @@ TSharedRef<SWidget> FJamEditorModule::BuildDashContent()
 			Bar
 		]
 
-		// Content browser (colapsable): grilla de miniaturas de assets.
-		+ SVerticalBox::Slot()
-		.AutoHeight()
-		.Padding(6.0f, 2.0f)
-		[
-			SNew(SBox)
-			.HeightOverride(250.0f)
-			.Visibility_Lambda([this]() { return bContentOpen ? EVisibility::Visible : EVisibility::Collapsed; })
-			[
-				BuildContentBrowser()
-			]
-		]
-
-		// Asset activo (lo elegido en Content alimenta las herramientas).
+		// Asset activo (lo elegido en la ventana de Content alimenta las herramientas).
 		+ SVerticalBox::Slot()
 		.AutoHeight()
 		.Padding(6.0f, 2.0f)
@@ -455,42 +445,130 @@ void FJamEditorModule::FindAndSelectTool(const FString& Query)
 	}
 }
 
+void FJamEditorModule::OpenContentWindow()
+{
+	if (ContentWindow.IsValid())
+	{
+		ContentWindow->BringToFront();
+		return;
+	}
+	if (!ThumbnailPool.IsValid())
+	{
+		ThumbnailPool = MakeShareable(new FAssetThumbnailPool(256));
+	}
+
+	TSharedRef<SWindow> Win = SNew(SWindow)
+		.Title(LOCTEXT("ContentTitle", "Jam — Content"))
+		.ClientSize(FVector2D(820.0f, 620.0f))
+		.AutoCenter(EAutoCenter::PreferredWorkArea);
+
+	Win->SetContent(BuildContentBrowser());
+	Win->SetOnWindowClosed(FOnWindowClosed::CreateRaw(this, &FJamEditorModule::OnContentClosed));
+
+	FSlateApplication::Get().AddWindow(Win);
+	ContentWindow = Win;
+
+	PopulateContent(FString());
+}
+
+void FJamEditorModule::OnContentClosed(const TSharedRef<SWindow>& /*Window*/)
+{
+	ContentWindow.Reset();
+	ContentGrid.Reset();
+	ContentFolderList.Reset();
+	ContentSearchBox.Reset();
+	ContentCountLabel.Reset();
+	ThumbnailsKeepAlive.Reset();
+}
+
 TSharedRef<SWidget> FJamEditorModule::BuildContentBrowser()
 {
 	return SNew(SVerticalBox)
+
+		// Buscador + conteo real (total vs mostrados: nunca más "parece que faltan mallas").
 		+ SVerticalBox::Slot()
 		.AutoHeight()
-		.Padding(0.0f, 0.0f, 0.0f, 4.0f)
+		.Padding(6.0f, 6.0f, 6.0f, 4.0f)
 		[
-			SAssignNew(ContentSearchBox, SEditableTextBox)
-			.HintText(LOCTEXT("SearchAssets", "buscar assets…"))
-			.OnTextCommitted_Lambda([this](const FText& Text, ETextCommit::Type Type)
-			{
-				if (Type == ETextCommit::OnEnter)
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot()
+			.FillWidth(1.0f)
+			[
+				SAssignNew(ContentSearchBox, SEditableTextBox)
+				.HintText(LOCTEXT("SearchAssets", "buscar mallas…  (Enter)"))
+				.OnTextCommitted_Lambda([this](const FText& Text, ETextCommit::Type Type)
 				{
-					PopulateContent(Text.ToString());
-				}
-			})
+					if (Type == ETextCommit::OnEnter)
+					{
+						ContentLimit = 200;   // buscar arranca de nuevo el paginado
+						PopulateContent(Text.ToString());
+					}
+				})
+			]
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.VAlign(VAlign_Center)
+			.Padding(8.0f, 0.0f, 0.0f, 0.0f)
+			[
+				SAssignNew(ContentCountLabel, STextBlock)
+				.Text(LOCTEXT("Loading", "cargando…"))
+			]
 		]
+
+		// Carpetas (izq, el "árbol" del pack) + grilla de miniaturas (der).
 		+ SVerticalBox::Slot()
 		.FillHeight(1.0f)
+		.Padding(6.0f, 2.0f)
 		[
-			SNew(SScrollBox)
-			+ SScrollBox::Slot()
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
 			[
-				SAssignNew(ContentGrid, SWrapBox).UseAllottedSize(true)
+				SNew(SBox)
+				.WidthOverride(200.0f)
+				[
+					SNew(SScrollBox)
+					+ SScrollBox::Slot()
+					[
+						SAssignNew(ContentFolderList, SVerticalBox)
+					]
+				]
 			]
+			+ SHorizontalBox::Slot()
+			.FillWidth(1.0f)
+			.Padding(6.0f, 0.0f, 0.0f, 0.0f)
+			[
+				SNew(SScrollBox)
+				+ SScrollBox::Slot()
+				[
+					SAssignNew(ContentGrid, SWrapBox).UseAllottedSize(true)
+				]
+			]
+		]
+
+		// Paginado: el resto de las mallas está a un clic (no escondidas por un límite mudo).
+		+ SVerticalBox::Slot()
+		.AutoHeight()
+		.Padding(6.0f, 2.0f, 6.0f, 6.0f)
+		[
+			SNew(SButton)
+			.Text(LOCTEXT("MasAssets", "▼ mostrar más (+200)"))
+			.Visibility_Lambda([this]()
+			{
+				return ContentTotal > ContentLimit ? EVisibility::Visible : EVisibility::Collapsed;
+			})
+			.OnClicked_Lambda([this]()
+			{
+				ContentLimit += 200;
+				RefreshContent();
+				return FReply::Handled();
+			})
 		];
 }
 
-void FJamEditorModule::ToggleContent()
+void FJamEditorModule::RefreshContent()
 {
-	bContentOpen = !bContentOpen;
-	if (bContentOpen)
-	{
-		const FString Query = ContentSearchBox.IsValid() ? ContentSearchBox->GetText().ToString() : FString();
-		PopulateContent(Query);
-	}
+	PopulateContent(ContentSearchBox.IsValid() ? ContentSearchBox->GetText().ToString() : FString());
 }
 
 void FJamEditorModule::PopulateContent(const FString& Query)
@@ -503,7 +581,8 @@ void FJamEditorModule::PopulateContent(const FString& Query)
 	ThumbnailsKeepAlive.Reset();
 
 	const FString Stmt = FString::Printf(
-		TEXT("import jam.api as _a; print('JAMASSETS:' + _a.assets(%s))"), *ToPyStr(Query));
+		TEXT("import jam.api as _a; print('JAMASSETS:' + _a.assets(%s, %d, %s))"),
+		*ToPyStr(Query), ContentLimit, *ToPyStr(ContentFolder));
 	const FString Raw = ExecPythonCapture(Stmt);
 
 	const FString Marker(TEXT("JAMASSETS:"));
@@ -515,25 +594,102 @@ void FJamEditorModule::PopulateContent(const FString& Query)
 	FString Json = Raw.Mid(M + Marker.Len());
 	Json.TrimStartAndEndInline();
 
-	TArray<TSharedPtr<FJsonValue>> Arr;
+	TSharedPtr<FJsonObject> Root;
 	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Json);
-	if (!FJsonSerializer::Deserialize(Reader, Arr))
+	if (!FJsonSerializer::Deserialize(Reader, Root) || !Root.IsValid())
 	{
 		return;
 	}
-	for (const TSharedPtr<FJsonValue>& V : Arr)
+	ContentTotal = static_cast<int32>(Root->GetNumberField(TEXT("total")));
+	ContentAll = static_cast<int32>(Root->GetNumberField(TEXT("all")));
+
+	// carpetas (el árbol se rearma con los conteos frescos)
+	ContentFolders.Reset();
+	const TArray<TSharedPtr<FJsonValue>>* Fs = nullptr;
+	if (Root->TryGetArrayField(TEXT("folders"), Fs) && Fs)
 	{
-		const TSharedPtr<FJsonObject> O = V->AsObject();
-		if (!O.IsValid())
+		for (const TSharedPtr<FJsonValue>& FV : *Fs)
 		{
-			continue;
+			const TSharedPtr<FJsonObject> FO = FV->AsObject();
+			if (!FO.IsValid())
+			{
+				continue;
+			}
+			FJamFolder F;
+			F.Path = FO->GetStringField(TEXT("ruta"));
+			F.Name = FO->GetStringField(TEXT("nombre"));
+			F.Count = static_cast<int32>(FO->GetNumberField(TEXT("count")));
+			ContentFolders.Add(F);
 		}
-		const FString Nombre = O->GetStringField(TEXT("nombre"));
-		const FString Ruta = O->GetStringField(TEXT("ruta"));
-		ContentGrid->AddSlot().Padding(4.0f)
-		[
-			MakeAssetTile(Nombre, Ruta)
-		];
+	}
+	RebuildFolderList();
+
+	const TArray<TSharedPtr<FJsonValue>>* Arr = nullptr;
+	if (Root->TryGetArrayField(TEXT("assets"), Arr) && Arr)
+	{
+		for (const TSharedPtr<FJsonValue>& V : *Arr)
+		{
+			const TSharedPtr<FJsonObject> O = V->AsObject();
+			if (!O.IsValid())
+			{
+				continue;
+			}
+			ContentGrid->AddSlot().Padding(4.0f)
+			[
+				MakeAssetTile(O->GetStringField(TEXT("nombre")), O->GetStringField(TEXT("ruta")))
+			];
+		}
+	}
+
+	if (ContentCountLabel.IsValid())
+	{
+		const int32 Shown = FMath::Min(ContentTotal, ContentLimit);
+		const FString Filtro = ContentFolder.IsEmpty() ? TEXT("todo") : ContentFolder;
+		ContentCountLabel->SetText(FText::FromString(FString::Printf(
+			TEXT("%d de %d  ·  %d mallas en el proyecto  ·  %s"),
+			Shown, ContentTotal, ContentAll, *Filtro)));
+	}
+}
+
+void FJamEditorModule::RebuildFolderList()
+{
+	if (!ContentFolderList.IsValid())
+	{
+		return;
+	}
+	ContentFolderList->ClearChildren();
+
+	auto AddFolderButton = [this](const FString& Path, const FString& Label, int32 Count)
+	{
+		ContentFolderList->AddSlot()
+			.AutoHeight()
+			.Padding(0.0f, 1.0f)
+			[
+				SNew(SButton)
+				.HAlign(HAlign_Left)
+				.Text(FText::FromString(FString::Printf(TEXT("%s  (%d)"), *Label, Count)))
+				.ToolTipText(FText::FromString(Path.IsEmpty() ? TEXT("/Game") : Path))
+				// alto contraste sobre la carpeta activa (misma regla que las miniaturas)
+				.ButtonColorAndOpacity_Lambda([this, Path]()
+				{
+					return ContentFolder == Path
+						? FLinearColor(0.12f, 0.5f, 1.0f, 1.0f)
+						: FLinearColor(0.09f, 0.09f, 0.1f, 1.0f);
+				})
+				.OnClicked_Lambda([this, Path]()
+				{
+					ContentFolder = Path;
+					ContentLimit = 200;
+					RefreshContent();
+					return FReply::Handled();
+				})
+			];
+	};
+
+	AddFolderButton(FString(), TEXT("Todo"), ContentAll);
+	for (const FJamFolder& F : ContentFolders)
+	{
+		AddFolderButton(F.Path, F.Name, F.Count);
 	}
 }
 
@@ -590,9 +746,19 @@ void FJamEditorModule::SelectAsset(const FString& Name, const FString& Path)
 {
 	SelectedAssetName = Name;
 	SelectedAssetPath = Path;
+
+	// El asset activo vive en el CEREBRO (jam.session), no en esta ventana: así lo heredan por igual
+	// la línea de comando, el grafo y cualquier interfaz futura, esté abierta la Dash Bar o no.
+	const FString Out = ExecPythonCapture(FString::Printf(
+		TEXT("import jam.api as _a; print(_a.select_asset(%s))"), *ToPyStr(Path)));
+
 	if (AssetLabel.IsValid())
 	{
 		AssetLabel->SetText(FText::FromString(FString::Printf(TEXT("Asset: %s"), *Name)));
+	}
+	if (DashWindow.IsValid())
+	{
+		AppendLog(FString::Printf(TEXT("asset %s"), *Name), Out);
 	}
 	ComposeCommandFromParams();  // que el comando incluya asset=…
 }

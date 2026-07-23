@@ -62,9 +62,18 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 {
 	Tools = InTools;
 	OnRunGraph = InArgs._OnRunGraph;
+	ActiveAsset = InArgs._ActiveAsset;
+	OnOpenContent = InArgs._OnOpenContent;
 
-	// Paleta: un botón por verbo → agrega un nodo.
+	// Paleta: un botón por verbo → agrega un nodo. Primero, Content (el asset del que se alimenta).
 	TSharedRef<SHorizontalBox> Palette = SNew(SHorizontalBox);
+	Palette->AddSlot().AutoWidth().Padding(2.0f, 0.0f)
+	[
+		SNew(SButton)
+		.Text(LOCTEXT("PaletteContent", "Content…"))
+		.ToolTipText(LOCTEXT("PaletteContentTip", "Elegir el asset activo (abre la ventana de Content)"))
+		.OnClicked_Lambda([this]() { OnOpenContent.ExecuteIfBound(); return FReply::Handled(); })
+	];
 	for (const FJamTool& T : Tools)
 	{
 		const FString Verb = T.Verb;
@@ -156,7 +165,13 @@ void SJamGraphEditor::AddNode(const FString& Verb)
 	TArray<FJamNodeParam> Params;
 	for (const TPair<FString, FString>& P : T->Params)
 	{
-		Params.Add(FJamNodeParam(P.Key, P.Value));
+		FString Value = P.Value;
+		// El nodo «asset» nace apuntando a lo elegido en Content (Content → nodo, sin tipear).
+		if (Verb == TEXT("asset") && P.Key == TEXT("name") && Value.IsEmpty() && ActiveAsset.IsSet())
+		{
+			Value = ActiveAsset.Get();
+		}
+		Params.Add(FJamNodeParam(P.Key, Value));
 	}
 
 	const FString Id = Node.Id;

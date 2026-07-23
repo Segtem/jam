@@ -168,7 +168,7 @@ async function loadAssets(q){
   try{
     const r = await (await jget('/assets?q='+encodeURIComponent(q||''))).json();
     const box=$('#assets'); box.innerHTML='';
-    r.forEach(a=>{
+    (r.assets || r).forEach(a=>{
       const c=document.createElement('span'); c.className='chip'+(a.nombre===activeAsset?' on':'');
       c.textContent=a.nombre; c.title=a.ruta;
       c.addEventListener('click',()=>{ activeAsset=a.nombre; $('#assetName').textContent=a.nombre;

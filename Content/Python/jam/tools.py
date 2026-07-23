@@ -23,6 +23,16 @@ def _corto(ruta: str) -> str:
 # veredictos del oráculo) queda en español. Los módulos internos (place/scatter/pared…) siguen en
 # español y estas funciones traducen los kwargs.
 
+def t_asset(asset, *, name="") -> str:
+    """Content: fija el ASSET ACTIVO de la sesión. No spawnea nada — es una selección. Lo usan por
+    igual la ventana de Content (clic en una miniatura), la línea de comando (`asset SM_Foo`) y el
+    nodo «asset» del grafo (que se lo pasa aguas abajo por el cable). `name` es el mismo nombre que
+    se tipea en el campo del nodo; quien llama ya lo resolvió a ObjectPath en `asset`."""
+    from . import session
+    session.set_asset(asset)
+    return f"ASSET ACTIVO ✓ — {session.nombre()}  ({asset})"
+
+
 def t_place(asset, *, x=0.0, y=0.0, z=0.0, surface=True, align=False, physics=False,
             yaw=0.0, scale=1.0) -> str:
     """Coloca un ladrillo en relación a su entorno: `surface`=raycast al piso, `align`=orientar a la
@@ -136,6 +146,8 @@ def t_create_spline(asset=None) -> str:
 # `cat` = categoría estilo Dash (Content/Place/Scatter/Create/Edit) → agrupa los verbos en la
 # Dash Bar. Es dato: mover una herramienta de categoría es cambiar este campo, sin tocar C++.
 REGISTRO = {
+    "asset":        {"fn": t_asset,   "cat": "Content", "params": {"name": ""},
+                     "doc": "elige el asset activo (Content); las demás herramientas lo heredan"},
     "place":        {"fn": t_place,   "cat": "Place",
                      "params": {"x": 0.0, "y": 0.0, "z": 0.0, "surface": True, "align": False,
                                 "physics": False, "yaw": 0.0, "scale": 1.0},

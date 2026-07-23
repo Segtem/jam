@@ -1,8 +1,11 @@
 """Biblioteca — el "Content Browser" de Jam: buscar assets del proyecto para colocar.
 
-Equivalente al Content Browser de Dash (buscar en el proyecto/Megascans/etc.), pero acotado
-por ahora a lo que ya vive en el proyecto (AssetRegistry). Devuelve StaticMesh; el que coloca
-(`jam.place`) los spawnea. Fuentes externas (Fab/Megascans online) son un crecimiento posterior.
+Equivalente al Content Browser de Dash, acotado a lo que ya vive en el proyecto (AssetRegistry).
+Devuelve StaticMesh; el que coloca (`jam.place`) los spawnea.
+
+Además del listado, expone el CONTEO REAL y las CARPETAS (con cuántas mallas tiene cada una): sin
+eso la UI muestra "los primeros N" y parece que faltan assets. La ventana de Content usa
+`carpetas()` como árbol y `buscar()` con `carpeta=` para filtrar.
 """
 
 from __future__ import annotations
@@ -16,28 +19,63 @@ def _registry() -> unreal.AssetRegistry:
     return unreal.AssetRegistryHelpers.get_asset_registry()
 
 
-def buscar(query: str = "", *, limit: int = 25, raiz: str = "/Game") -> list[dict]:
-    """Busca StaticMesh cuyo nombre contenga `query` (case-insensitive) bajo `raiz`.
-    Devuelve dicts {'nombre', 'ruta'} (ruta = ObjectPath cargable), ordenados por nombre."""
+def _todos(raiz: str = "/Game") -> list[dict]:
+    """Todas las StaticMesh bajo `raiz` como dicts {'nombre','ruta','carpeta'} (sin filtrar ni cortar)."""
     filt = unreal.ARFilter(
         class_paths=[_SM_CLASS], package_paths=[raiz], recursive_paths=True,
     )
-    q = query.lower()
     out: list[dict] = []
     for ad in _registry().get_assets(filt):
         nombre = str(ad.asset_name)
-        if q and q not in nombre.lower():
-            continue
-        ruta = f"{ad.package_name}.{ad.asset_name}"
-        out.append({"nombre": nombre, "ruta": ruta})
+        paquete = str(ad.package_name)
+        out.append({"nombre": nombre,
+                    "ruta": f"{paquete}.{nombre}",
+                    "carpeta": paquete.rsplit("/", 1)[0]})
+    return out
+
+
+def buscar(query: str = "", *, limit: int = 25, raiz: str = "/Game",
+           carpeta: str = "") -> list[dict]:
+    """StaticMesh cuyo nombre contenga `query` (case-insensitive), opcionalmente dentro de `carpeta`.
+    Devuelve dicts {'nombre','ruta','carpeta'} ordenados por nombre. `limit<=0` = sin tope."""
+    return _filtrar(_todos(raiz), query, carpeta)[:limit] if limit > 0 \
+        else _filtrar(_todos(raiz), query, carpeta)
+
+
+def _filtrar(assets: list[dict], query: str, carpeta: str) -> list[dict]:
+    q = (query or "").lower()
+    c = (carpeta or "").rstrip("/")
+    out = [a for a in assets
+           if (not q or q in a["nombre"].lower())
+           and (not c or a["carpeta"] == c or a["carpeta"].startswith(c + "/"))]
     out.sort(key=lambda d: d["nombre"].lower())
-    return out[:limit]
+    return out
 
 
-def buscar_json(query: str = "", *, limit: int = 60) -> str:
-    """Los resultados de `buscar` como JSON, para el Content browser en C++ (Dash Bar)."""
+def carpetas(raiz: str = "/Game") -> list[dict]:
+    """Carpetas que contienen StaticMesh, con su conteo: el «árbol» del Content browser.
+    Ordenadas por cantidad (las gordas primero) — así los packs grandes saltan a la vista."""
+    cuenta: dict[str, int] = {}
+    for a in _todos(raiz):
+        cuenta[a["carpeta"]] = cuenta.get(a["carpeta"], 0) + 1
+    out = [{"ruta": k, "nombre": k[len(raiz) + 1:] or k, "count": v} for k, v in cuenta.items()]
+    out.sort(key=lambda d: (-d["count"], d["ruta"]))
+    return out
+
+
+def buscar_json(query: str = "", *, limit: int = 200, carpeta: str = "") -> str:
+    """Lo que consume el Content browser (C++ y web):
+    {"total": cuántos matchean, "shown": cuántos van, "folders": [...], "assets": [...]}.
+    `total` vs `shown` es lo que evita el "no veo todos los mesh"."""
     import json
-    return json.dumps(buscar(query, limit=limit), ensure_ascii=True)
+    todos = _todos()
+    hits = _filtrar(todos, query, carpeta)
+    vista = hits[:limit] if limit > 0 else hits
+    return json.dumps({"total": len(hits),
+                       "shown": len(vista),
+                       "all": len(todos),
+                       "folders": carpetas(),
+                       "assets": vista}, ensure_ascii=True)
 
 
 def cargar_malla(ruta: str) -> unreal.StaticMesh | None:

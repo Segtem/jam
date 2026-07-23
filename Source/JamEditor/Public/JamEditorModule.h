@@ -24,6 +24,14 @@ struct FJamTool
 	TArray<TPair<FString, FString>> Params;
 };
 
+/** Una carpeta del proyecto con mallas: ruta + nombre corto + cuántas tiene (árbol de Content). */
+struct FJamFolder
+{
+	FString Path;
+	FString Name;
+	int32 Count = 0;
+};
+
 /**
  * Módulo de editor de Jam. Arma en Slate/C++ una "Dash Bar" flotante estilo PolygonFlow Dash:
  * barra de herramientas por sección (una por verbo), panel de params vivo del tool activo, una
@@ -57,10 +65,14 @@ private:
 	const FJamTool* FindTool(const FString& Verb) const;
 	bool CategoryHasTools(const FString& Category) const;
 
-	// Content browser (miniaturas de assets).
+	// Content browser — VENTANA APARTE (como los paneles de Dash): no le come lugar a la Dash Bar
+	// y se puede dejar abierta al lado. Trae árbol de carpetas + conteo real + «mostrar más».
+	void OpenContentWindow();
+	void OnContentClosed(const TSharedRef<SWindow>& Window);
 	TSharedRef<SWidget> BuildContentBrowser();
-	void ToggleContent();
 	void PopulateContent(const FString& Query);
+	void RefreshContent();
+	void RebuildFolderList();
 	TSharedRef<SWidget> MakeAssetTile(const FString& Name, const FString& Path);
 	void SelectAsset(const FString& Name, const FString& Path);
 
@@ -83,6 +95,7 @@ private:
 
 	TSharedPtr<SWindow> DashWindow;
 	TSharedPtr<SWindow> GraphWindow;
+	TSharedPtr<SWindow> ContentWindow;
 	TSharedPtr<SVerticalBox> ParamsBox;
 	TSharedPtr<SEditableTextBox> CmdBox;
 	TSharedPtr<SEditableTextBox> SearchBox;
@@ -90,11 +103,17 @@ private:
 	TMap<FString, TSharedPtr<SEditableTextBox>> ParamFields;
 
 	// Content browser.
-	bool bContentOpen = false;
 	FString SelectedAssetName;
 	FString SelectedAssetPath;
+	FString ContentFolder;               // "" = todas las carpetas
+	int32 ContentLimit = 200;            // tope de miniaturas; «mostrar más» lo sube
+	int32 ContentTotal = 0;              // cuántas matchean de verdad (para no ocultar assets)
+	int32 ContentAll = 0;                // cuántas mallas tiene el proyecto entero
+	TArray<FJamFolder> ContentFolders;
 	TSharedPtr<STextBlock> AssetLabel;
+	TSharedPtr<STextBlock> ContentCountLabel;
 	TSharedPtr<SWrapBox> ContentGrid;
+	TSharedPtr<SVerticalBox> ContentFolderList;
 	TSharedPtr<SEditableTextBox> ContentSearchBox;
 	TSharedPtr<FAssetThumbnailPool> ThumbnailPool;
 	TArray<TSharedPtr<FAssetThumbnail>> ThumbnailsKeepAlive;

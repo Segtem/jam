@@ -24,13 +24,15 @@ def _asset_biblioteca():
 
 
 def _resolver_asset(nombre) -> str | None:
-    """asset del comando (por nombre/ObjectPath) → si no se da, el 1º de la biblioteca."""
+    """asset del comando (por nombre/ObjectPath) → si no se da, el ACTIVO de la sesión (lo que se
+    eligió en Content) → y recién ahí el 1º de la biblioteca."""
+    from . import session
     if nombre:
         if "/" in nombre or "." in nombre:   # ya es un ObjectPath
             return nombre
         hits = library.buscar(nombre, limit=1)
         return hits[0]["ruta"] if hits else None
-    return _asset_biblioteca()
+    return session.asset() or _asset_biblioteca()
 
 
 # ---- Preview → Submit ----
@@ -143,6 +145,13 @@ def ejecutar_dsl(linea: str, widget=None) -> str:
             return f"sin resultados para «{r['asset'] or ''}»."
         nombres = ", ".join(h["nombre"] for h in hits)
         return f"{len(hits)} assets: {nombres}"
+    if verbo == "asset":
+        # selección, no spawn: no pasa por preview (no agrega actores al nivel)
+        pedido = r["asset"] or r["params"].get("name") or ""
+        asset = _resolver_asset(pedido)
+        if asset is None:
+            return f"asset «{pedido}» no encontrado en la biblioteca."
+        return tools.t_asset(asset)
     if verbo in tools.REGISTRO:
         asset = _resolver_asset(r["asset"])
         if r["asset"] and asset is None:

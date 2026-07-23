@@ -22,6 +22,10 @@ class SJamGraphEditor : public SCompoundWidget
 public:
 	SLATE_BEGIN_ARGS(SJamGraphEditor) {}
 		SLATE_EVENT(FOnRunGraph, OnRunGraph)
+		/** Nombre del asset activo (lo elegido en Content): precarga el nodo «asset». */
+		SLATE_ATTRIBUTE(FString, ActiveAsset)
+		/** Abre la ventana de Content (para elegir el asset sin salir del grafo). */
+		SLATE_EVENT(FSimpleDelegate, OnOpenContent)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs, const TArray<FJamTool>& InTools);
@@ -53,6 +57,8 @@ private:
 	int32 NextId = 1;
 
 	FOnRunGraph OnRunGraph;
+	FSimpleDelegate OnOpenContent;
+	TAttribute<FString> ActiveAsset;
 	TSharedPtr<SCanvas> Canvas;
 	TSharedPtr<SMultiLineEditableTextBox> Output;
 

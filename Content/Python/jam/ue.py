@@ -29,6 +29,10 @@ def raycast(x: float, y: float, *, desde: float = 1.0e6, hasta: float = -1.0e6, 
         _mundo(), unreal.Vector(x, y, desde), unreal.Vector(x, y, hasta),
         unreal.TraceTypeQuery.TRACE_TYPE_QUERY1, True, ignorar or [],
         unreal.DrawDebugTrace.NONE, True)
+    # Sin impacto, la función devuelve None (no un HitResult vacío): sin esta guarda, colocar en un
+    # punto al aire tiraba AttributeError en vez de decir "no hay superficie".
+    if r is None:
+        return {"hit": False, "punto": None, "normal": None, "actor": None}
     t = r.to_tuple()
     if not t[0]:   # blocking_hit
         return {"hit": False, "punto": None, "normal": None, "actor": None}

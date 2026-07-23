@@ -8,7 +8,8 @@ contra ESTE contrato; el cerebro no se toca.
 
 Contrato:
     spec()                → JSON {categorias, tools} para armar la UI
-    assets(query, limit)  → JSON de assets del proyecto (Content browser)
+    assets(q, limit, dir) → JSON {total, shown, folders, assets} del proyecto (Content browser)
+    select_asset(path)    → fija el asset activo de la sesión (lo heredan las herramientas)
     run(command)          → corre una línea de DSL, devuelve el veredicto (texto)
     run_graph(json)       → corre un JamGraph (JSON), devuelve el reporte (texto)
     confirm() / discard() → fija o descarta el preview activo
@@ -22,9 +23,18 @@ def spec() -> str:
     return tools.spec_json()
 
 
-def assets(query: str = "", limit: int = 60) -> str:
+def assets(query: str = "", limit: int = 200, folder: str = "") -> str:
+    """JSON {total, shown, all, folders, assets} — `total` vs `shown` le dice a la UI cuántos quedan
+    fuera del tope (que era el "no veo todos los mesh")."""
     from . import library
-    return library.buscar_json(query, limit=limit)
+    return library.buscar_json(query, limit=limit, carpeta=folder)
+
+
+def select_asset(path: str) -> str:
+    """Fija el asset activo de la sesión (lo que hereda cualquier herramienta sin asset explícito).
+    Es el mismo verbo `asset` del DSL/grafo: Content escribe UN estado, no una variable de la UI."""
+    from . import tools
+    return tools.t_asset(path)
 
 
 def run(command: str) -> str:
