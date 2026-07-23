@@ -1,10 +1,10 @@
 {
-  "tool": "scatter",
+  "kind": "tool",
   "nombre": "Escombros densos",
   "categoria": "BotOO/deco",
-  "descripcion": "Reparto denso de props sobre un área media (8x8 m).",
+  "descripcion": "Reparto denso de props sobre un area media, separacion por huella real.",
   "tags": ["escombros", "deco", "suelo"],
-  "params": { "asset": null, "centro": [0, 0], "semi": [400, 400], "cantidad": 16, "seed": 7 },
-  "oraculo": {},
+  "command": "scatter count=40 area=600 pattern=poisson surface=true scale_min=0.8 scale_max=1.4 spread=0.9",
+  "oraculo": { "debe_ok": false },
   "scope": "global"
 }

@@ -303,43 +303,49 @@ def selftest_pared() -> bool:
 
 
 def selftest_presets() -> bool:
-    """Presets: hay ≥3 de fábrica; aplicar el de scatter da REPARTO SANO; guardar+cargar+aplicar un
-    preset local roundtrip funciona. Limpia actores y el archivo temporal al final."""
+    """Presets (modelo maduro): hay ≥3 de fábrica; aplicar el de tool (scatter) y el compound (flow)
+    corre por el camino maduro; guardar+cargar+aplicar+borrar un preset local roundtrip funciona.
+    Limpia los actores del preview y el archivo temporal al final."""
     _log("--- selftest: presets ---")
     globales = preset.listar(scope="global")
     _log(f"presets de fábrica: {len(globales)} — " + ", ".join(p["nombre"] for p in globales))
     if len(globales) < 3:
         _log("faltan presets de fábrica")
         return False
+    hay_compound = any(p.get("kind") == "flow" for p in globales)
 
-    # aplicar el preset de scatter de fábrica
-    res_scatter = preset.aplicar("Escombros densos")
-    _log("aplicar built-in → " + res_scatter["texto"])
+    from . import panel
 
-    # roundtrip local: guardar → cargar → aplicar
-    demo = {"tool": "colocar", "nombre": "Jam Selftest Prop", "categoria": "test",
-            "tags": ["test"], "params": {"asset": None, "location": [700000, 0, 0]},
-            "oraculo": {}, "scope": "local"}
+    # aplicar el preset de tool de fábrica (scatter) — pasa por preview
+    res_tool = preset.aplicar("Escombros densos")
+    _log("aplicar tool built-in → " + res_tool["texto"].splitlines()[0])
+    tool_ok = "SCATTER" in res_tool["texto"]
+    panel._descartar_preview()
+
+    # aplicar el compound (flow) de fábrica — pasa por el evaluador de flow
+    res_flow = preset.aplicar("Piso disperso natural")
+    _log("aplicar compound built-in → " + res_flow["texto"].splitlines()[0][:90])
+    flow_ok = "instance" in res_flow["texto"] or "puntos" in res_flow["texto"]
+    panel._descartar_preview()
+
+    # roundtrip local: construir desde comando → guardar → cargar → aplicar → borrar
+    demo = preset.desde_comando("Jam Selftest Prop", "place view=false surface=false anchor=base",
+                                categoria="test", scope="local")
     ruta = preset.guardar(demo)
     cargado = preset.cargar("Jam Selftest Prop")
-    res_local = preset.aplicar(cargado) if cargado else {"ok": False, "texto": "no cargó", "actores": []}
-    _log("roundtrip local → " + res_local["texto"])
-
-    # limpieza
-    actor_sub = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
-    for a in res_scatter["actores"] + res_local["actores"]:
-        actor_sub.destroy_actor(a)
+    res_local = preset.aplicar(cargado) if cargado else {"ok": False, "texto": "no cargó"}
+    _log("roundtrip local → " + res_local["texto"].splitlines()[0])
+    borrado = preset.borrar("Jam Selftest Prop")
+    panel._descartar_preview()
     try:
-        __import__("pathlib").Path(ruta).unlink()
+        __import__("pathlib").Path(ruta).unlink(missing_ok=True)
     except Exception:  # noqa: BLE001
         pass
 
-    # El roundtrip prueba el MOTOR (guardó → cargó → aplicó → spawneó), no el veredicto del oráculo
-    # de colocar (que en este mapa da falso positivo por el AABB gigante del SM_SkySphere).
-    roundtrip_ok = (cargado is not None) and bool(res_local["actores"])
-    ok = res_scatter["ok"] and roundtrip_ok
+    roundtrip_ok = (cargado is not None) and ("[Jam Selftest Prop]" in res_local["texto"]) and borrado
+    ok = tool_ok and flow_ok and hay_compound and roundtrip_ok
     _log(f"presets {'OK ✓' if ok else 'FALLÓ ✗'} "
-         f"(scatter.ok={res_scatter['ok']}, roundtrip={roundtrip_ok})")
+         f"(tool={tool_ok}, compound={flow_ok}, roundtrip={roundtrip_ok})")
     return ok
 
 

@@ -153,6 +153,21 @@ def ejecutar_dsl(linea: str, widget=None) -> str:
         return _h_descartar()
     if verbo in ("verify", "verificar", "oracle"):
         return menu.on_verificar_espacio()
+    if verbo == "preset":
+        from . import preset
+        nombre = (linea.split(None, 1)[1].strip() if len(linea.split(None, 1)) > 1 else "").strip('"')
+        if not nombre or nombre in ("list", "listar"):
+            ps = preset.listar()
+            if not ps:
+                return "no hay presets. Guardá uno con «guardar preset» o poné JSON en <plugin>/presets/."
+            return "presets:\n" + "\n".join(
+                f"  · {p['nombre']}  [{p.get('kind','tool')}·{p['scope']}]  {p.get('descripcion','')}"
+                for p in ps)
+        # aplicar por nombre pasa por preview (confirm/discard lo resuelven)
+        p = preset.cargar(nombre)
+        if not p:
+            return f"preset «{nombre}» no encontrado. «preset list» los muestra."
+        return preset.aplicar(p)["texto"]
     if verbo in ("search", "list", "buscar", "listar"):
         hits = library.buscar(r["asset"] or "", limit=15)
         if not hits:

@@ -1,16 +1,20 @@
-"""Presets de Jam — la configuración de una herramienta, guardada como JSON para reusar (como Dash).
+"""Presets de Jam — una config guardada para reusar (como Dash), y su twist: recrea Y VERIFICA.
 
-Un preset guarda los parámetros de una tool + metadata (nombre, categoría, tags) para recrear un setup
-en cualquier escena. **El twist de Jam:** guarda TAMBIÉN las expectativas del oráculo (`oraculo`), así
-aplicar un preset = recrear el setup Y verificarlo. Y como es puro JSON (texto), los presets globales se
-versionan en el repo del plugin y hasta un LLM puede escribirlos (1er escalón del DSL de la Fase ∞).
+Un preset guarda cómo se usa una herramienta, más metadata (nombre, categoría, descripción, tags),
+como JSON. Hay dos clases, que cubren las dos caras de Jam:
+
+  · kind "tool"  → una línea de DSL: `scatter count=24 pattern=poisson spread=1.2`. Aplicarlo = correr
+                   esa línea (con su preview y su oráculo).
+  · kind "flow"  → un GRAFO de flow (source → máscaras → instance). Es el «Compound» de Dash: varias
+                   piezas combinadas en una unidad reusable. Aplicarlo = correr el grafo.
+
+Aplicar un preset pasa por el MISMO camino maduro que la UI (`jam.panel`), así hereda el preview
+(Confirmar/Descartar) y el veredicto del oráculo — un preset no es un atajo que se saltea la
+verificación, es un setup verificado. Como es puro JSON, los presets globales se versionan en el repo
+del plugin y hasta un LLM puede escribirlos.
 
   scope 'global' → <plugin>/presets/*.json   (versionado, sirve en cualquier proyecto)
   scope 'local'  → <proyecto>/Saved/JamPresets/*.json  (por proyecto)
-
-Tools soportadas hoy (las generativas): scatter · colocar · pared. El resto se suma extendiendo _TOOLS.
-Si el `asset` del preset no existe en el proyecto, se resuelve a la primera malla de la biblioteca
-(como hacen las demos), para que un preset global funcione en cualquier escena.
 """
 
 from __future__ import annotations
@@ -21,7 +25,7 @@ from pathlib import Path
 
 import unreal
 
-from . import bridge, library
+from . import bridge
 
 
 def _dir_global() -> Path:
@@ -36,6 +40,8 @@ def _slug(nombre: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", nombre.lower()).strip("-")
 
 
+# ---- almacenamiento (JSON en global/local) ----
+
 def guardar(preset: dict) -> str:
     """Escribe el preset como JSON en global o local según `preset['scope']`. Devuelve la ruta."""
     scope = preset.get("scope", "local")
@@ -47,8 +53,8 @@ def guardar(preset: dict) -> str:
     return str(ruta)
 
 
-def listar(tool: str | None = None, scope: str | None = None) -> list[dict]:
-    """Lista presets (opcionalmente filtrando por tool y/o scope). Marca cada uno con su scope real."""
+def listar(kind: str | None = None, scope: str | None = None, categoria: str | None = None) -> list[dict]:
+    """Lista presets (filtrando opcionalmente por kind/scope/categoría). Marca cada uno con su scope."""
     out: list[dict] = []
     dirs = []
     if scope in (None, "global"):
@@ -65,7 +71,8 @@ def listar(tool: str | None = None, scope: str | None = None) -> list[dict]:
                 unreal.log_error(f"[Jam] preset ilegible {f}: {e}")
                 continue
             p["scope"] = sc
-            if tool is None or p.get("tool") == tool:
+            if (kind is None or p.get("kind", "tool") == kind) and \
+               (categoria is None or p.get("categoria") == categoria):
                 out.append(p)
     return out
 
@@ -76,81 +83,67 @@ def cargar(nombre: str) -> dict | None:
     encontrado = None
     for p in listar():
         if _slug(p.get("nombre", "")) == slug:
-            encontrado = p  # el orden global→local hace que local gane
+            encontrado = p   # el orden global→local hace que local gane
     return encontrado
 
 
-def _resolver_asset(params: dict) -> str | None:
-    a = params.get("asset")
-    if a and library.cargar_malla(a) is not None:
-        return a
-    libro = library.buscar(limit=1)
-    return libro[0]["ruta"] if libro else None
+def borrar(nombre: str) -> bool:
+    slug = _slug(nombre)
+    for d in (_dir_local(), _dir_global()):
+        f = d / f"{slug}.json"
+        if f.exists():
+            f.unlink()
+            return True
+    return False
 
 
-# ---- appliers por tool (build + oráculo) ----
+# ---- construir un preset desde el estado actual (lo que hace el botón «guardar preset») ----
 
-def _aplicar_scatter(preset: dict) -> dict:
-    from . import oracle_scatter, scatter, ue
-    p = preset["params"]
-    asset = _resolver_asset(p)
-    centro = tuple(p.get("centro", [0, 0]))
-    semi = tuple(p.get("semi", [500, 500]))
-    cant = int(p.get("cantidad", 9))
-    actores = scatter.esparcir(asset, centro, semi, cant, seed=int(p.get("seed", 0)))
-    piezas = ue.piezas(actores)
-    r = oracle_scatter.verificar(piezas, centro, semi, cant)
-    texto = oracle_scatter.verificar_texto(piezas, centro, semi, cant)
-    return {"ok": oracle_scatter.es_ok(r), "texto": texto, "actores": actores}
+def desde_comando(nombre, comando, *, categoria="", descripcion="", tags=None, scope="local",
+                  debe_ok=False) -> dict:
+    """Preset de tool a partir de una línea de DSL (lo que la Dash Bar ya compone)."""
+    return {"kind": "tool", "nombre": nombre, "categoria": categoria, "descripcion": descripcion,
+            "tags": tags or [], "scope": scope, "command": comando, "oraculo": {"debe_ok": debe_ok}}
 
 
-def _aplicar_colocar(preset: dict) -> dict:
-    from . import place, ue
-    p = preset["params"]
-    asset = _resolver_asset(p)
-    actor = place.colocar(asset, tuple(p.get("location", [0, 0, 0])))
-    todos = unreal.get_editor_subsystem(unreal.EditorActorSubsystem).get_all_level_actors()
-    r = ue.placement(actor, todos)
-    texto = ue.placement_texto(actor, todos)
-    return {"ok": r["bounds_ok"] and not r["interpenetra"], "texto": texto, "actores": [actor]}
+def desde_grafo(nombre, grafo, *, categoria="", descripcion="", tags=None, scope="local",
+                debe_ok=False) -> dict:
+    """Preset de flow (Compound) a partir de un grafo (dict o JSON string)."""
+    if isinstance(grafo, str):
+        grafo = json.loads(grafo)
+    return {"kind": "flow", "nombre": nombre, "categoria": categoria, "descripcion": descripcion,
+            "tags": tags or [], "scope": scope, "graph": grafo, "oraculo": {"debe_ok": debe_ok}}
 
 
-def _aplicar_pared(preset: dict) -> dict:
-    from . import oracle_pared, pared
-    p = preset["params"]
-    orc = preset.get("oraculo", {})
-    asset = _resolver_asset(p)
-    actor = pared.seleccionado_con_spline() or pared.crear_spline()
-    build = pared.construir(actor, asset, alto=float(p.get("alto", 300)),
-                            espesor=float(p.get("espesor", 40)),
-                            largo_segmento=float(p.get("largo_segmento", 200)))
-    tol = float(orc.get("tol_junta", 50))
-    r = oracle_pared.verificar(build, tol=tol)
-    texto = oracle_pared.verificar_texto(build, tol=tol)
-    return {"ok": oracle_pared.es_ok(r), "texto": texto, "actores": build["segmentos"] + [actor]}
-
-
-_TOOLS = {
-    "scatter": _aplicar_scatter,
-    "place": _aplicar_colocar,
-    "spline": _aplicar_pared,   # «a lo largo de spline»: una pared es un preset de este tool
-    # alias español por compatibilidad con presets viejos
-    "colocar": _aplicar_colocar,
-    "pared": _aplicar_pared,
-}
-
+# ---- aplicar (recrear + verificar, por el camino maduro de la UI) ----
 
 def aplicar(preset) -> dict:
-    """Aplica un preset (dict o nombre): construye con sus params y corre el oráculo de la tool.
-    Devuelve {ok, texto, actores}."""
+    """Aplica un preset (dict o nombre): lo corre por `jam.panel` (con preview + oráculo). Devuelve
+    {ok, texto, nombre}. `ok` = el veredicto salió limpio (o cumple `oraculo.debe_ok`)."""
     if isinstance(preset, str):
         preset = cargar(preset)
     if not preset:
-        return {"ok": False, "texto": "preset no encontrado", "actores": []}
-    fn = _TOOLS.get(preset.get("tool"))
-    if fn is None:
-        return {"ok": False, "texto": f"tool «{preset.get('tool')}» aún no soportada en presets", "actores": []}
+        return {"ok": False, "texto": "preset no encontrado", "nombre": "?"}
+
+    from . import panel
     nombre = preset.get("nombre", "?")
-    res = fn(preset)
-    res["texto"] = f"[{nombre}] {res['texto']}"
-    return res
+    kind = preset.get("kind", "tool")
+    if kind == "flow":
+        salida = panel.ejecutar_flow_json(json.dumps(preset["graph"]))
+        try:
+            texto = json.loads(salida).get("report", salida)
+        except Exception:  # noqa: BLE001
+            texto = salida
+    else:
+        texto = panel.ejecutar_dsl(preset.get("command", ""))
+
+    # veredicto limpio = hay ✓ y no hay ✗. `debe_ok` lo exige; si no, basta que no haya ✗.
+    limpio = ("✓" in texto) and ("✗" not in texto)
+    ok = limpio if preset.get("oraculo", {}).get("debe_ok") else ("✗" not in texto)
+    return {"ok": ok, "texto": f"[{nombre}] {texto}", "nombre": nombre}
+
+
+def listar_json(**filtros) -> str:
+    """Los presets como JSON liviano (nombre/kind/categoria/descripcion/tags/scope) para la UI."""
+    campos = ("nombre", "kind", "categoria", "descripcion", "tags", "scope")
+    return json.dumps([{k: p.get(k) for k in campos} for p in listar(**filtros)], ensure_ascii=True)

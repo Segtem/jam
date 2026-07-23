@@ -57,6 +57,35 @@ def run_graph_json(graph_json: str) -> str:
     return panel.ejecutar_grafo_json(graph_json, None)
 
 
+def presets(kind: str = "", scope: str = "") -> str:
+    """JSON de los presets disponibles (nombre/kind/categoria/descripcion/tags/scope) para la UI."""
+    from . import preset
+    return preset.listar_json(kind=(kind or None), scope=(scope or None))
+
+
+def preset_apply(nombre: str) -> str:
+    """Aplica un preset por nombre (recrea como preview + oráculo). Confirmar/Descartar lo resuelven."""
+    from . import preset
+    r = preset.aplicar(nombre)
+    return r["texto"]
+
+
+def preset_save_command(nombre: str, command: str, categoria: str = "", scope: str = "local") -> str:
+    """Guarda la línea de comando actual como preset de tool."""
+    from . import preset
+    p = preset.desde_comando(nombre, command, categoria=categoria, scope=scope)
+    ruta = preset.guardar(p)
+    return f"PRESET guardado ✓ — «{nombre}» ({scope})  {ruta}"
+
+
+def preset_save_graph(nombre: str, graph_json: str, categoria: str = "", scope: str = "local") -> str:
+    """Guarda un grafo de flow como preset compound."""
+    from . import preset
+    p = preset.desde_grafo(nombre, graph_json, categoria=categoria, scope=scope)
+    ruta = preset.guardar(p)
+    return f"PRESET (compound) guardado ✓ — «{nombre}» ({scope})  {ruta}"
+
+
 def flow_spec() -> str:
     """JSON de las ops de flow (source/mask/combine/output) para el canvas estilo Houdini."""
     from . import flow

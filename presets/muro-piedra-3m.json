@@ -1,10 +1,10 @@
 {
-  "tool": "spline",
+  "kind": "tool",
   "nombre": "Muro de piedra 3m",
   "categoria": "BotOO/estructura",
-  "descripcion": "Pared modular de 3 m de alto levantada sobre un spline.",
+  "descripcion": "Pared modular a lo largo de un spline; piezas a su largo real, apoyadas.",
   "tags": ["piedra", "modular", "exterior"],
-  "params": { "asset": null, "alto": 300, "espesor": 40, "largo_segmento": 200 },
-  "oraculo": { "tol_junta": 50 },
+  "command": "spline axis=x anchor=base surface=true",
+  "oraculo": { "debe_ok": false },
   "scope": "global"
 }

@@ -1,10 +1,10 @@
 {
-  "tool": "place",
+  "kind": "tool",
   "nombre": "Prop suelto",
   "categoria": "BotOO/deco",
-  "descripcion": "Coloca un prop de la biblioteca en el origen.",
+  "descripcion": "Coloca un prop en el punto de mira, apoyado y verificado.",
   "tags": ["prop"],
-  "params": { "asset": null, "location": [0, 0, 0] },
-  "oraculo": {},
+  "command": "place view=true surface=true anchor=base",
+  "oraculo": { "debe_ok": false },
   "scope": "global"
 }
