@@ -65,6 +65,12 @@ private:
 	virtual FReply OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual FReply OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual FReply OnMouseButtonDoubleClick(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+	virtual FReply OnMouseWheel(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+
+	/** Local (píxeles del canvas) → coords del MODELO, deshaciendo zoom y pan. */
+	FVector2D LocalToModel(const FVector2D& Local) const { return Local / Zoom - PanOffset; }
+	/** Aplica el zoom actual como render transform del canvas (ZUI). */
+	void ApplyZoom();
 
 	TArray<FJamTool> Tools;
 	TArray<FGNode> Nodes;
@@ -86,9 +92,10 @@ private:
 	FVector2D SearchAt = FVector2D::ZeroVector;
 	bool bSearchOpen = false;
 
-	// Pan del canvas (botón derecho arrastrando sobre el fondo).
+	// Pan del canvas (botón derecho arrastrando sobre el fondo) + zoom con la rueda (ZUI).
 	FVector2D PanOffset = FVector2D::ZeroVector;
 	bool bPanning = false;
+	float Zoom = 1.0f;
 
 	static constexpr float NodeWidth = 168.0f;
 	static constexpr float HeaderY = 14.0f;

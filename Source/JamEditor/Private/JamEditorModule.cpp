@@ -10,8 +10,10 @@
 #include "Widgets/Layout/SScrollBox.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Input/SButton.h"
+#include "Widgets/Input/SCheckBox.h"
 #include "Widgets/Input/SComboButton.h"
 #include "Widgets/Input/SEditableTextBox.h"
+#include "Widgets/Input/SSpinBox.h"
 #include "Widgets/Input/SMultiLineEditableTextBox.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
@@ -239,9 +241,14 @@ void FJamEditorModule::LoadSpec()
 				const TSharedPtr<FJsonObject> PO = PV->AsObject();
 				if (PO.IsValid())
 				{
-					T.Params.Add(TPair<FString, FString>(
-						PO->GetStringField(TEXT("nombre")),
-						PO->GetStringField(TEXT("default"))));
+					FJamParam P;
+					P.Name = PO->GetStringField(TEXT("nombre"));
+					P.Default = PO->GetStringField(TEXT("default"));
+					if (!PO->TryGetStringField(TEXT("tipo"), P.Type))
+					{
+						P.Type = TEXT("str");
+					}
+					T.Params.Add(P);
 				}
 			}
 		}
@@ -356,13 +363,50 @@ TSharedRef<SWidget> FJamEditorModule::BuildDashContent()
 			Bar
 		]
 
-		// Asset activo (lo elegido en la ventana de Content alimenta las herramientas).
+		// Asset activo: miniatura GRANDE + nombre (lo elegido alimenta todas las herramientas), y el
+		// interruptor del gizmo que marca dónde está parado Jam en el viewport.
 		+ SVerticalBox::Slot()
 		.AutoHeight()
 		.Padding(6.0f, 2.0f)
 		[
-			SAssignNew(AssetLabel, STextBlock)
-			.Text(LOCTEXT("NoAsset", "Asset: (elegí uno en Content)"))
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.Padding(0.0f, 0.0f, 6.0f, 0.0f)
+			[
+				SNew(SBox).WidthOverride(48.0f).HeightOverride(48.0f)
+				[
+					SAssignNew(ActiveThumbBox, SBox)
+				]
+			]
+			+ SHorizontalBox::Slot()
+			.FillWidth(1.0f)
+			.VAlign(VAlign_Center)
+			[
+				SAssignNew(AssetLabel, STextBlock)
+				.Text(LOCTEXT("NoAsset", "Asset: (elegí uno en Content)"))
+				.AutoWrapText(true)
+			]
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.VAlign(VAlign_Center)
+			[
+				SNew(SButton)
+				.Text(LOCTEXT("Gizmo", "◎ Gizmo"))
+				.ToolTipText(LOCTEXT("GizmoTip",
+					"Marca en el viewport dónde está parado Jam (el punto de mira donde coloca) y la huella del asset activo"))
+				.OnClicked_Lambda([this]()
+				{
+					bGizmoOn = !bGizmoOn;
+					RunCommand(bGizmoOn ? TEXT("gizmo on=true") : TEXT("gizmo on=false"));
+					return FReply::Handled();
+				})
+				.ButtonColorAndOpacity_Lambda([this]()
+				{
+					return bGizmoOn ? FLinearColor(0.0f, 0.75f, 0.85f, 1.0f)
+					                : FLinearColor(0.09f, 0.09f, 0.1f, 1.0f);
+				})
+			]
 		]
 
 		// Params vivos del tool activo (se reconstruyen al elegir sección).
@@ -425,8 +469,15 @@ TSharedRef<SWidget> FJamEditorModule::BuildDashContent()
 			.VAlign(VAlign_Center)
 			[
 				SAssignNew(CmdBox, SEditableTextBox)
-				.HintText(LOCTEXT("CmdHint", "escribí un comando (o elegí una herramienta arriba) y Enter"))
+				.HintText(LOCTEXT("CmdHint", "escribí un comando (o elegí una herramienta arriba) y Enter · ↑↓ historial"))
 				.OnTextCommitted_Raw(this, &FJamEditorModule::OnCmdCommitted)
+				// ↑/↓ recorren el historial, como la línea de comando de Rhino.
+				.OnKeyDownHandler_Lambda([this](const FGeometry&, const FKeyEvent& Key)
+				{
+					if (Key.GetKey() == EKeys::Up)   { RecallHistory(-1); return FReply::Handled(); }
+					if (Key.GetKey() == EKeys::Down) { RecallHistory(+1); return FReply::Handled(); }
+					return FReply::Unhandled();
+				})
 			]
 		];
 }
@@ -590,6 +641,28 @@ TSharedRef<SWidget> FJamEditorModule::BuildContentBrowser()
 		];
 }
 
+void FJamEditorModule::ShowActiveThumbnail(const FString& Path)
+{
+	if (!ActiveThumbBox.IsValid() || Path.IsEmpty())
+	{
+		return;
+	}
+	if (!ThumbnailPool.IsValid())
+	{
+		ThumbnailPool = MakeShareable(new FAssetThumbnailPool(256));
+	}
+	FAssetRegistryModule& ARM = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+	const FAssetData Data = ARM.Get().GetAssetByObjectPath(FSoftObjectPath(Path));
+	if (!Data.IsValid())
+	{
+		return;
+	}
+	ActiveThumb = MakeShareable(new FAssetThumbnail(Data, 48, 48, ThumbnailPool));
+	FAssetThumbnailConfig Cfg;
+	Cfg.bAllowFadeIn = true;
+	ActiveThumbBox->SetContent(ActiveThumb->MakeThumbnailWidget(Cfg));
+}
+
 void FJamEditorModule::PickFromUnrealSelection()
 {
 	// El verbo `pick` lee la selección del Content Browser de Unreal y fija el asset activo en el
@@ -598,26 +671,31 @@ void FJamEditorModule::PickFromUnrealSelection()
 		TEXT("import jam.api as _a; print(_a.run('pick'))"));
 	AppendLog(TEXT("pick"), Out);
 
-	// leer de vuelta el nombre del activo para el rótulo/composición del comando
+	// leer de vuelta el activo (nombre|ruta) para el rótulo, la miniatura y el comando compuesto
 	const FString Raw = ExecPythonCapture(
-		TEXT("import jam.session as _s; print('JAMSEL:' + (_s.nombre() or ''))"));
+		TEXT("import jam.session as _s; print('JAMSEL:' + (_s.nombre() or '') + '|' + (_s.asset() or ''))"));
 	const FString Marker(TEXT("JAMSEL:"));
 	const int32 M = Raw.Find(Marker);
-	if (M != INDEX_NONE)
+	if (M == INDEX_NONE)
 	{
-		FString Name = Raw.Mid(M + Marker.Len());
-		Name.TrimStartAndEndInline();
-		if (!Name.IsEmpty())
-		{
-			SelectedAssetName = Name;
-			if (AssetLabel.IsValid())
-			{
-				AssetLabel->SetText(FText::FromString(
-					FString::Printf(TEXT("Asset: %s  (selección de Unreal)"), *Name)));
-			}
-			ComposeCommandFromParams();
-		}
+		return;
 	}
+	FString Payload = Raw.Mid(M + Marker.Len());
+	Payload.TrimStartAndEndInline();
+	FString Name, Path;
+	if (!Payload.Split(TEXT("|"), &Name, &Path) || Name.IsEmpty())
+	{
+		return;
+	}
+	SelectedAssetName = Name;
+	SelectedAssetPath = Path;
+	if (AssetLabel.IsValid())
+	{
+		AssetLabel->SetText(FText::FromString(
+			FString::Printf(TEXT("Asset: %s  (selección de Unreal)"), *Name)));
+	}
+	ShowActiveThumbnail(Path);
+	ComposeCommandFromParams();
 }
 
 void FJamEditorModule::RefreshContent()
@@ -810,6 +888,7 @@ void FJamEditorModule::SelectAsset(const FString& Name, const FString& Path)
 	{
 		AssetLabel->SetText(FText::FromString(FString::Printf(TEXT("Asset: %s"), *Name)));
 	}
+	ShowActiveThumbnail(Path);
 	if (DashWindow.IsValid())
 	{
 		AppendLog(FString::Printf(TEXT("asset %s"), *Name), Out);
@@ -820,6 +899,9 @@ void FJamEditorModule::SelectAsset(const FString& Name, const FString& Path)
 void FJamEditorModule::RebuildParams()
 {
 	ParamFields.Empty();
+	ParamChecks.Empty();
+	ParamSpins.Empty();
+	ParamIsInt.Empty();
 	if (!ParamsBox.IsValid())
 	{
 		return;
@@ -839,10 +921,47 @@ void FJamEditorModule::RebuildParams()
 			SNew(STextBlock).Text(FText::FromString(FString::Printf(TEXT("%s  —  %s"), *T->Verb, *T->Doc)))
 		];
 
-	for (const TPair<FString, FString>& P : T->Params)
+	for (const FJamParam& P : T->Params)
 	{
-		const FString Key = P.Key;
-		TSharedPtr<SEditableTextBox> Field;
+		const FString Key = P.Name;
+
+		// Control expresivo por tipo: checkbox para los bool, spinner para los números, texto para
+		// el resto. Un bool NO debería obligarte a tipear "True".
+		TSharedRef<SWidget> Control = SNullWidget::NullWidget;
+		if (P.Type == TEXT("bool"))
+		{
+			const bool bOn = P.Default.Equals(TEXT("True"), ESearchCase::IgnoreCase);
+			TSharedPtr<SCheckBox> Check;
+			Control = SAssignNew(Check, SCheckBox)
+				.IsChecked(bOn ? ECheckBoxState::Checked : ECheckBoxState::Unchecked)
+				.OnCheckStateChanged_Lambda([this](ECheckBoxState) { ComposeCommandFromParams(); });
+			ParamChecks.Add(Key, Check);
+		}
+		else if (P.Type == TEXT("int") || P.Type == TEXT("float"))
+		{
+			const bool bInt = (P.Type == TEXT("int"));
+			TSharedPtr<SSpinBox<float>> Spin;
+			Control = SAssignNew(Spin, SSpinBox<float>)
+				.Value(FCString::Atof(*P.Default))
+				.MinValue(TOptional<float>())     // sin tope: son cm, semillas, cantidades…
+				.MaxValue(TOptional<float>())
+				.MinSliderValue(bInt ? 0.0f : -1000.0f)
+				.MaxSliderValue(bInt ? 100.0f : 1000.0f)
+				.Delta(bInt ? 1.0f : 0.0f)
+				.MinDesiredWidth(70.0f)
+				.OnValueChanged_Lambda([this](float) { ComposeCommandFromParams(); });
+			ParamSpins.Add(Key, Spin);
+			ParamIsInt.Add(Key, bInt);
+		}
+		else
+		{
+			TSharedPtr<SEditableTextBox> Field;
+			Control = SAssignNew(Field, SEditableTextBox)
+				.Text(FText::FromString(P.Default))
+				.OnTextChanged_Lambda([this](const FText&) { ComposeCommandFromParams(); });
+			ParamFields.Add(Key, Field);
+		}
+
 		ParamsBox->AddSlot()
 			.AutoHeight()
 			.Padding(0.0f, 1.0f)
@@ -856,13 +975,11 @@ void FJamEditorModule::RebuildParams()
 				]
 				+ SHorizontalBox::Slot()
 				.FillWidth(0.6f)
+				.VAlign(VAlign_Center)
 				[
-					SAssignNew(Field, SEditableTextBox)
-					.Text(FText::FromString(P.Value))
-					.OnTextChanged_Lambda([this](const FText&) { ComposeCommandFromParams(); })
+					Control
 				]
 			];
-		ParamFields.Add(Key, Field);
 	}
 
 	ComposeCommandFromParams();
@@ -877,15 +994,27 @@ void FJamEditorModule::ComposeCommandFromParams()
 	FString Cmd = ActiveVerb;
 	if (const FJamTool* T = FindTool(ActiveVerb))
 	{
-		for (const TPair<FString, FString>& P : T->Params)
+		for (const FJamParam& P : T->Params)
 		{
-			if (const TSharedPtr<SEditableTextBox>* Field = ParamFields.Find(P.Key))
+			FString Val;
+			if (const TSharedPtr<SCheckBox>* Check = ParamChecks.Find(P.Name))
 			{
-				const FString Val = (*Field)->GetText().ToString().TrimStartAndEnd();
-				if (!Val.IsEmpty())
-				{
-					Cmd += FString::Printf(TEXT(" %s=%s"), *P.Key, *Val);
-				}
+				Val = (*Check)->IsChecked() ? TEXT("true") : TEXT("false");
+			}
+			else if (const TSharedPtr<SSpinBox<float>>* Spin = ParamSpins.Find(P.Name))
+			{
+				const float V = (*Spin)->GetValue();
+				const bool* bInt = ParamIsInt.Find(P.Name);
+				Val = (bInt && *bInt) ? FString::FromInt(FMath::RoundToInt(V))
+				                      : FString::SanitizeFloat(V);
+			}
+			else if (const TSharedPtr<SEditableTextBox>* Field = ParamFields.Find(P.Name))
+			{
+				Val = (*Field)->GetText().ToString().TrimStartAndEnd();
+			}
+			if (!Val.IsEmpty())
+			{
+				Cmd += FString::Printf(TEXT(" %s=%s"), *P.Name, *Val);
 			}
 		}
 	}
@@ -949,8 +1078,29 @@ FString FJamEditorModule::ExecPythonCapture(const FString& Statement)
 	return Out;
 }
 
+void FJamEditorModule::RecallHistory(int32 Step)
+{
+	if (History.Num() == 0 || !CmdBox.IsValid())
+	{
+		return;
+	}
+	if (HistoryPos == INDEX_NONE)
+	{
+		HistoryPos = History.Num();   // arranca "después del último"
+	}
+	HistoryPos = FMath::Clamp(HistoryPos + Step, 0, History.Num() - 1);
+	CmdBox->SetText(FText::FromString(History[HistoryPos]));
+}
+
 void FJamEditorModule::RunCommand(const FString& Command)
 {
+	const FString Trimmed = Command.TrimStartAndEnd();
+	if (!Trimmed.IsEmpty() && (History.Num() == 0 || History.Last() != Trimmed))
+	{
+		History.Add(Trimmed);
+	}
+	HistoryPos = INDEX_NONE;
+
 	const FString Statement = FString::Printf(
 		TEXT("import jam.api as _a; print(_a.run(%s))"), *ToPyStr(Command));
 

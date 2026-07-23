@@ -158,15 +158,16 @@ def ejecutar_dsl(linea: str, widget=None) -> str:
             return f"sin resultados para «{r['asset'] or ''}»."
         nombres = ", ".join(h["nombre"] for h in hits)
         return f"{len(hits)} assets: {nombres}"
-    if verbo == "pick":
-        return tools.t_pick(None)   # lee la selección del Content Browser de Unreal
-    if verbo == "asset":
-        # selección, no spawn: no pasa por preview (no agrega actores al nivel)
+    if verbo in tools.SIN_SPAWN:
+        # selección/estado, no spawn: no pasan por preview (no agregan actores al nivel)
+        kw, _desc = dsl.coaccionar(verbo, r["params"])
+        if verbo == "pick":
+            return tools.t_pick(None)   # lee la selección del Content Browser de Unreal
         pedido = r["asset"] or r["params"].get("name") or ""
         asset = _resolver_asset(pedido)
-        if asset is None:
+        if pedido and asset is None:
             return f"asset «{pedido}» no encontrado en la biblioteca."
-        return tools.t_asset(asset)
+        return tools.REGISTRO[verbo]["fn"](asset, **kw)
     if verbo in tools.REGISTRO:
         asset = _resolver_asset(r["asset"])
         if r["asset"] and asset is None:

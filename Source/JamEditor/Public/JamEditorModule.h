@@ -7,21 +7,33 @@
 
 class SWindow;
 class SWidget;
+class SBox;
 class SVerticalBox;
 class SWrapBox;
 class SEditableTextBox;
 class SMultiLineEditableTextBox;
 class STextBlock;
+class SCheckBox;
+template <typename NumericType> class SSpinBox;
 class FAssetThumbnail;
 class FAssetThumbnailPool;
 
-/** Una herramienta de Jam vista desde la UI: verbo + doc + params (nombre → default). */
+/** Un parámetro de una herramienta: nombre + valor por defecto + tipo (bool/int/float/str).
+ *  El tipo llega en el spec para que la UI use el control que corresponde (checkbox, spinner…). */
+struct FJamParam
+{
+	FString Name;
+	FString Default;
+	FString Type;
+};
+
+/** Una herramienta de Jam vista desde la UI: verbo + doc + params. */
 struct FJamTool
 {
 	FString Verb;
 	FString Cat;
 	FString Doc;
-	TArray<TPair<FString, FString>> Params;
+	TArray<FJamParam> Params;
 };
 
 /** Una carpeta del proyecto con mallas: ruta + nombre corto + cuántas tiene (árbol de Content). */
@@ -77,6 +89,8 @@ private:
 	void SelectAsset(const FString& Name, const FString& Path);
 	/** Toma como asset activo lo seleccionado en el Content Browser DE UNREAL (verbo `pick`). */
 	void PickFromUnrealSelection();
+	/** Pone la miniatura grande del asset activo en la Dash Bar. */
+	void ShowActiveThumbnail(const FString& Path);
 
 	/** Corre un statement de Python y devuelve lo capturado por LogOutput (stdout/log). */
 	FString ExecPythonCapture(const FString& Statement);
@@ -84,6 +98,8 @@ private:
 	void RunCommand(const FString& Command);
 	/** Agrega «> comando» + resultado al log acumulativo (estilo Rhino) y hace autoscroll. */
 	void AppendLog(const FString& Command, const FString& Result);
+	/** Recorre el historial de comandos con ↑ (-1) / ↓ (+1) y lo vuelca en la línea. */
+	void RecallHistory(int32 Step);
 
 	FReply OnPreviewClicked();
 	FReply OnConfirmarClicked();
@@ -102,7 +118,15 @@ private:
 	TSharedPtr<SEditableTextBox> CmdBox;
 	TSharedPtr<SEditableTextBox> SearchBox;
 	TSharedPtr<SMultiLineEditableTextBox> OutputBox;
+	// Un control por tipo de param: checkbox (bool), spinner (números), texto (el resto).
 	TMap<FString, TSharedPtr<SEditableTextBox>> ParamFields;
+	TMap<FString, TSharedPtr<SCheckBox>> ParamChecks;
+	TMap<FString, TSharedPtr<SSpinBox<float>>> ParamSpins;
+	TMap<FString, bool> ParamIsInt;
+
+	// Historial de comandos (↑/↓ en la línea, como Rhino).
+	TArray<FString> History;
+	int32 HistoryPos = INDEX_NONE;
 
 	// Content browser.
 	FString SelectedAssetName;
@@ -112,7 +136,10 @@ private:
 	int32 ContentTotal = 0;              // cuántas matchean de verdad (para no ocultar assets)
 	int32 ContentAll = 0;                // cuántas mallas tiene el proyecto entero
 	TArray<FJamFolder> ContentFolders;
+	bool bGizmoOn = false;
 	TSharedPtr<STextBlock> AssetLabel;
+	TSharedPtr<SBox> ActiveThumbBox;          // miniatura grande del asset activo
+	TSharedPtr<FAssetThumbnail> ActiveThumb;
 	TSharedPtr<STextBlock> ContentCountLabel;
 	TSharedPtr<SWrapBox> ContentGrid;
 	TSharedPtr<SVerticalBox> ContentFolderList;

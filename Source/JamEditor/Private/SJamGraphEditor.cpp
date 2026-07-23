@@ -15,6 +15,7 @@
 #include "Framework/Application/SlateApplication.h"
 #include "Styling/AppStyle.h"
 #include "Rendering/DrawElements.h"
+#include "Math/TransformCalculus2D.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 #include "Serialization/JsonWriter.h"
@@ -206,15 +207,15 @@ void SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At)
 	}
 
 	TArray<FJamNodeParam> Params;
-	for (const TPair<FString, FString>& P : T->Params)
+	for (const FJamParam& P : T->Params)
 	{
-		FString Value = P.Value;
+		FString Value = P.Default;
 		// El nodo «asset» nace apuntando a lo elegido en Content (Content → nodo, sin tipear).
-		if (Verb == TEXT("asset") && P.Key == TEXT("name") && Value.IsEmpty() && ActiveAsset.IsSet())
+		if (Verb == TEXT("asset") && P.Name == TEXT("name") && Value.IsEmpty() && ActiveAsset.IsSet())
 		{
 			Value = ActiveAsset.Get();
 		}
-		Params.Add(FJamNodeParam(P.Key, Value));
+		Params.Add(FJamNodeParam(P.Name, Value));
 	}
 
 	const FString Id = Node.Id;
@@ -227,7 +228,8 @@ void SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At)
 		.HasInput(bHasInput)
 		.OnDragDelta_Lambda([this, Id](const FVector2D& D)
 		{
-			if (FGNode* N = FindNode(Id)) { N->Pos += D; }
+			// D viene en píxeles de pantalla; el modelo vive antes del zoom (render transform).
+			if (FGNode* N = FindNode(Id)) { N->Pos += D / Zoom; }
 		})
 		.OnOutputClicked_Lambda([this, Id]() { OnPinClicked(Id, true); })
 		.OnInputClicked_Lambda([this, Id]() { OnPinClicked(Id, false); })
@@ -302,9 +304,10 @@ TArray<TPair<FVector2D, FVector2D>> SJamGraphEditor::GetWireEndpoints() const
 		const FGNode* B = Nodes.FindByPredicate([&E](const FGNode& N) { return N.Id == E.Value; });
 		if (A && B)
 		{
+			// La capa de wires NO está bajo el render transform del canvas → se aplica acá a mano.
 			Out.Add(TPair<FVector2D, FVector2D>(
-				FVector2D(A->Pos.X + NodeWidth, A->Pos.Y + HeaderY) + PanOffset,
-				FVector2D(B->Pos.X, B->Pos.Y + HeaderY) + PanOffset));
+				(FVector2D(A->Pos.X + NodeWidth, A->Pos.Y + HeaderY) + PanOffset) * Zoom,
+				(FVector2D(B->Pos.X, B->Pos.Y + HeaderY) + PanOffset) * Zoom));
 		}
 	}
 	return Out;
@@ -436,7 +439,7 @@ void SJamGraphEditor::RebuildSearchResults(const FString& Query)
 			.Text(FText::FromString(FString::Printf(TEXT("%s  —  %s"), *T.Verb, *T.Doc)))
 			.OnClicked_Lambda([this, Verb, At]()
 			{
-				const FVector2D Local = At - PanOffset;   // el nodo vive en coords del modelo
+				const FVector2D Local = LocalToModel(At);   // el nodo vive en coords del modelo
 				AddNode(Verb, &Local);
 				CloseSearch();
 				return FReply::Handled();
@@ -453,7 +456,7 @@ void SJamGraphEditor::CommitSearch()
 {
 	if (SearchHits.Num() > 0)
 	{
-		const FVector2D Local = SearchAt - PanOffset;
+		const FVector2D Local = LocalToModel(SearchAt);
 		AddNode(SearchHits[0], &Local);
 	}
 	CloseSearch();
@@ -467,6 +470,31 @@ FReply SJamGraphEditor::OnMouseButtonDoubleClick(const FGeometry& MyGeometry, co
 		return FReply::Handled();
 	}
 	return FReply::Unhandled();
+}
+
+void SJamGraphEditor::ApplyZoom()
+{
+	if (Canvas.IsValid())
+	{
+		Canvas->SetRenderTransformPivot(FVector2D::ZeroVector);
+		Canvas->SetRenderTransform(FSlateRenderTransform(FScale2D(Zoom, Zoom)));
+	}
+}
+
+FReply SJamGraphEditor::OnMouseWheel(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+{
+	// ZUI: la rueda acerca/aleja el lienzo entero (nodos y wires), como en Grasshopper.
+	const float Antes = Zoom;
+	Zoom = FMath::Clamp(Zoom * (1.0f + MouseEvent.GetWheelDelta() * 0.1f), 0.35f, 2.5f);
+	if (FMath::IsNearlyEqual(Antes, Zoom))
+	{
+		return FReply::Handled();
+	}
+	// zoom "hacia el cursor": el punto del modelo bajo el mouse se queda donde está
+	const FVector2D Local = MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition());
+	PanOffset += Local / Zoom - Local / Antes;
+	ApplyZoom();
+	return FReply::Handled();
 }
 
 FReply SJamGraphEditor::OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
@@ -490,7 +518,7 @@ FReply SJamGraphEditor::OnMouseMove(const FGeometry& MyGeometry, const FPointerE
 	if (bPanning && HasMouseCapture())
 	{
 		const float S = MyGeometry.GetAccumulatedLayoutTransform().GetScale();
-		PanOffset += MouseEvent.GetCursorDelta() / (S > 0.0f ? S : 1.0f);
+		PanOffset += MouseEvent.GetCursorDelta() / ((S > 0.0f ? S : 1.0f) * Zoom);
 		return FReply::Handled();
 	}
 	return FReply::Unhandled();

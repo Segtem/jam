@@ -46,6 +46,13 @@ def t_pick(asset, *, name="") -> str:
     return f"ASSET ACTIVO ✓ (selección de Unreal) — {sel[0]['nombre']}{extra}"
 
 
+def t_gizmo(asset, *, on=True) -> str:
+    """Enciende/apaga el gizmo que marca DÓNDE ESTÁ PARADO Jam en el viewport (el punto de mira,
+    que es donde coloca `place`) + la huella del asset activo."""
+    from . import gizmo
+    return gizmo.encender() if on else gizmo.apagar()
+
+
 def t_place(asset, *, x=0.0, y=0.0, z=0.0, view=True, surface=True, align=False, physics=False,
             yaw=0.0, scale=1.0) -> str:
     """Coloca un ladrillo en relación a su entorno: `view`=en el punto de mira del viewport (x/y/z
@@ -192,7 +199,13 @@ REGISTRO = {
                      "doc": "coloca piezas modulares a lo largo de un spline (verifica juntas)"},
     "create_spline": {"fn": t_create_spline, "cat": "Create", "params": {},
                       "doc": "agrega un spline editable a la escena (primitiva de curva)"},
+    "gizmo":        {"fn": t_gizmo,   "cat": "Edit",    "params": {"on": True},
+                     "doc": "marca en el viewport dónde está parado Jam + la huella del asset activo"},
 }
+
+# Verbos que NO crean nada en el nivel: son selección o estado de la herramienta, así que no pasan
+# por el preview (si pasaran, «Confirmar/Descartar» quedarían apuntando a una preview vacía).
+SIN_SPAWN = {"asset", "pick", "gizmo"}
 
 # Orden de las categorías en la barra (como Dash). Las vacías no se muestran.
 CATEGORIAS = ["Content", "Place", "Scatter", "Create", "Edit"]
@@ -202,12 +215,25 @@ def spec_json() -> str:
     """El registro como JSON (categoría/verbo/doc/params) para que la Dash Bar en C++ se arme sola.
     Agregar una herramienta a REGISTRO la hace aparecer en su sección sin tocar C++."""
     import json
+
+    def tipo(v) -> str:
+        # el TIPO viaja en el spec para que la UI use el control expresivo que corresponde
+        # (checkbox para bool, spinner para números) en vez de un campo de texto para todo.
+        if isinstance(v, bool):
+            return "bool"
+        if isinstance(v, int):
+            return "int"
+        if isinstance(v, float):
+            return "float"
+        return "str"
+
     salida = []
     for nombre, info in REGISTRO.items():
         salida.append({
             "verbo": nombre,
             "cat": info.get("cat", "Place"),
             "doc": info["doc"],
-            "params": [{"nombre": k, "default": str(v)} for k, v in info["params"].items()],
+            "params": [{"nombre": k, "default": str(v), "tipo": tipo(v)}
+                       for k, v in info["params"].items()],
         })
     return json.dumps({"categorias": CATEGORIAS, "tools": salida}, ensure_ascii=True)
