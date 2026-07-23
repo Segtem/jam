@@ -96,12 +96,16 @@ def _limpiar_huerfanos() -> int:
 def _preview(fn, widget=None) -> str:
     """Corre una herramienta como PREVIEW: descarta el preview anterior, spawnea, y captura por
     diff del nivel todo lo que la herramienta agregó (así Descartar limpia hasta los helpers)."""
+    from . import ue
     _descartar_preview()
     antes = {a.get_path_name() for a in _todos()}
     texto = fn(widget)
     nuevos = [a for a in _todos() if a.get_path_name() not in antes]
     _marcar_preview(nuevos)
-    return (f"{texto}\n\nPREVIEW · {len(nuevos)} piezas en escena — "
+    # Dejarlas SELECCIONADAS en el editor: se ven resaltadas, aparecen en el Outliner y en Details,
+    # y con F la cámara vuela hasta ellas. Es la diferencia entre "lo colocó" y "no veo nada".
+    ue.seleccionar(nuevos)
+    return (f"{texto}\n\nPREVIEW · {len(nuevos)} piezas en escena (seleccionadas) — "
             "«Confirmar» las fija · «Descartar» las borra.")
 
 
@@ -111,8 +115,17 @@ def _h_confirmar(widget=None) -> str:
     n = len(_PREVIEW)
     for a in _PREVIEW:
         _set_tags(a, [t for t in _tags_de(a) if t != _TAG_PREVIEW])
+    # decir QUÉ quedó y DÓNDE: sin esto, un confirm sobre algo fuera de cuadro no se distingue de
+    # un confirm que no hizo nada.
+    detalle = []
+    for a in _PREVIEW[:4]:
+        loc = a.get_actor_location()
+        detalle.append(f"«{a.get_actor_label()}» ({loc.x:.0f}, {loc.y:.0f}, {loc.z:.0f})")
+    if n > 4:
+        detalle.append(f"…+{n - 4}")
     _PREVIEW.clear()
-    return f"CONFIRMADO ✓ — {n} piezas fijadas en el nivel."
+    return (f"CONFIRMADO ✓ — {n} piezas fijadas en el nivel: " + ", ".join(detalle)
+            + "\n    siguen seleccionadas: F en el viewport vuela hasta ellas.")
 
 
 def _h_descartar(widget=None) -> str:
@@ -145,6 +158,8 @@ def ejecutar_dsl(linea: str, widget=None) -> str:
             return f"sin resultados para «{r['asset'] or ''}»."
         nombres = ", ".join(h["nombre"] for h in hits)
         return f"{len(hits)} assets: {nombres}"
+    if verbo == "pick":
+        return tools.t_pick(None)   # lee la selección del Content Browser de Unreal
     if verbo == "asset":
         # selección, no spawn: no pasa por preview (no agrega actores al nivel)
         pedido = r["asset"] or r["params"].get("name") or ""
@@ -173,3 +188,21 @@ def ejecutar_grafo(g_json: str, widget=None) -> str:
     from . import graph
     g = graph.JamGraph.from_json(g_json)
     return _preview(lambda _w: graph.ejecutar(g))
+
+
+def ejecutar_grafo_json(g_json: str, widget=None) -> str:
+    """Igual que `ejecutar_grafo` pero devuelve JSON {report, nodes:{nid:{estado,texto}}}: el canvas
+    pinta cada nodo con SU veredicto (verde/naranja/rojo, como los estados de Grasshopper)."""
+    import json
+
+    from . import graph
+    g = graph.JamGraph.from_json(g_json)
+    caja: dict = {}
+
+    def correr(_w):
+        texto, por_nodo = graph.ejecutar_detalle(g)
+        caja.update(por_nodo)
+        return texto
+
+    reporte = _preview(correr)
+    return json.dumps({"report": reporte, "nodes": caja}, ensure_ascii=True)

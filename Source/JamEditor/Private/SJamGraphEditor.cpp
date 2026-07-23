@@ -9,10 +9,13 @@
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/Layout/SScrollBox.h"
 #include "Widgets/Input/SButton.h"
+#include "Widgets/Input/SEditableTextBox.h"
 #include "Widgets/Input/SMultiLineEditableTextBox.h"
 #include "Widgets/Text/STextBlock.h"
+#include "Framework/Application/SlateApplication.h"
 #include "Styling/AppStyle.h"
 #include "Rendering/DrawElements.h"
+#include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 #include "Serialization/JsonWriter.h"
 #include "Dom/JsonObject.h"
@@ -113,6 +116,38 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 				[
 					SAssignNew(Canvas, SCanvas)
 				]
+				// Buscador de nodos (doble clic en el fondo), como el search box de Grasshopper.
+				+ SOverlay::Slot()
+				.HAlign(HAlign_Left)
+				.VAlign(VAlign_Top)
+				[
+					SAssignNew(SearchPopup, SBorder)
+					.BorderImage(FAppStyle::GetBrush("Menu.Background"))
+					.Padding(4.0f)
+					.Visibility_Lambda([this]() { return bSearchOpen ? EVisibility::Visible : EVisibility::Collapsed; })
+					.RenderTransform_Lambda([this]() { return FSlateRenderTransform(SearchAt); })
+					[
+						SNew(SBox).WidthOverride(220.0f)
+						[
+							SNew(SVerticalBox)
+							+ SVerticalBox::Slot().AutoHeight()
+							[
+								SAssignNew(SearchField, SEditableTextBox)
+								.HintText(LOCTEXT("SearchNode", "buscar nodo…"))
+								.OnTextChanged_Lambda([this](const FText& T) { RebuildSearchResults(T.ToString()); })
+								.OnTextCommitted_Lambda([this](const FText&, ETextCommit::Type Type)
+								{
+									if (Type == ETextCommit::OnEnter) { CommitSearch(); }
+									else if (Type == ETextCommit::OnCleared) { CloseSearch(); }
+								})
+							]
+							+ SVerticalBox::Slot().AutoHeight().Padding(0.0f, 2.0f, 0.0f, 0.0f)
+							[
+								SAssignNew(SearchResults, SVerticalBox)
+							]
+						]
+					]
+				]
 			]
 		]
 
@@ -127,7 +162,8 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 			]
 			+ SHorizontalBox::Slot().FillWidth(1.0f).VAlign(VAlign_Center).Padding(8.0f, 0.0f, 0.0f, 0.0f)
 			[
-				SNew(STextBlock).Text(LOCTEXT("Hint", "agregá nodos desde la paleta · arrastrá · ○→○ conecta · Run"))
+				SNew(STextBlock).Text(LOCTEXT("Hint",
+					"doble clic = buscar nodo · botón derecho arrastra el lienzo · ○→○ conecta · Run pinta cada nodo con su veredicto"))
 			]
 		]
 		+ SVerticalBox::Slot().AutoHeight().Padding(6.0f, 2.0f, 6.0f, 6.0f).MaxHeight(140.0f)
@@ -147,7 +183,7 @@ SJamGraphEditor::FGNode* SJamGraphEditor::FindNode(const FString& Id)
 	return Nodes.FindByPredicate([&Id](const FGNode& N) { return N.Id == Id; });
 }
 
-void SJamGraphEditor::AddNode(const FString& Verb)
+void SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At)
 {
 	const FJamTool* T = FindTool(Verb);
 	if (T == nullptr || !Canvas.IsValid())
@@ -158,9 +194,16 @@ void SJamGraphEditor::AddNode(const FString& Verb)
 	FGNode Node;
 	Node.Id = FString::Printf(TEXT("n%d"), NextId++);
 	Node.Verb = Verb;
-	// cascada para que no se apilen exactamente encima
-	const int32 K = Nodes.Num();
-	Node.Pos = FVector2D(30.0f + (K % 4) * 190.0f, 30.0f + (K / 4) * 40.0f + (K % 4) * 20.0f);
+	if (At != nullptr)
+	{
+		Node.Pos = *At;   // nace donde hiciste doble clic (como Grasshopper)
+	}
+	else
+	{
+		// cascada para que no se apilen exactamente encima
+		const int32 K = Nodes.Num();
+		Node.Pos = FVector2D(30.0f + (K % 4) * 190.0f, 30.0f + (K / 4) * 40.0f + (K % 4) * 20.0f);
+	}
 
 	TArray<FJamNodeParam> Params;
 	for (const TPair<FString, FString>& P : T->Params)
@@ -175,9 +218,13 @@ void SJamGraphEditor::AddNode(const FString& Verb)
 	}
 
 	const FString Id = Node.Id;
+	// Nodos FUENTE (producen el dato, no lo reciben): sin pin de entrada, convención de Grasshopper.
+	const bool bHasInput = (Verb != TEXT("asset") && Verb != TEXT("pick") && Verb != TEXT("create_spline"));
+
 	TSharedRef<SJamGraphNode> Widget = SNew(SJamGraphNode)
 		.Verb(Verb)
 		.Params(Params)
+		.HasInput(bHasInput)
 		.OnDragDelta_Lambda([this, Id](const FVector2D& D)
 		{
 			if (FGNode* N = FindNode(Id)) { N->Pos += D; }
@@ -193,7 +240,7 @@ void SJamGraphEditor::AddNode(const FString& Verb)
 		.Position(TAttribute<FVector2D>::CreateLambda([this, Id]()
 		{
 			const FGNode* N = Nodes.FindByPredicate([&Id](const FGNode& X) { return X.Id == Id; });
-			return N ? N->Pos : FVector2D::ZeroVector;
+			return N ? N->Pos + PanOffset : FVector2D::ZeroVector;   // el modelo no se mueve: se mueve la vista
 		}))
 		.Size(FVector2D(NodeWidth, Height))
 		[
@@ -256,8 +303,8 @@ TArray<TPair<FVector2D, FVector2D>> SJamGraphEditor::GetWireEndpoints() const
 		if (A && B)
 		{
 			Out.Add(TPair<FVector2D, FVector2D>(
-				FVector2D(A->Pos.X + NodeWidth, A->Pos.Y + HeaderY),
-				FVector2D(B->Pos.X, B->Pos.Y + HeaderY)));
+				FVector2D(A->Pos.X + NodeWidth, A->Pos.Y + HeaderY) + PanOffset,
+				FVector2D(B->Pos.X, B->Pos.Y + HeaderY) + PanOffset));
 		}
 	}
 	return Out;
@@ -312,10 +359,152 @@ void SJamGraphEditor::RunGraph()
 	}
 	const FString Json = BuildJson();
 	const FString Result = OnRunGraph.IsBound() ? OnRunGraph.Execute(Json) : FString(TEXT("(sin runner)"));
+
+	// El runner devuelve {report, nodes:{nid:{estado,texto}}}: el reporte va al log y CADA NODO se
+	// pinta con su veredicto del oráculo (verde ✓ / naranja REVISAR / rojo error), como los estados
+	// de Grasshopper. Si no parsea (versión vieja), se muestra el texto tal cual.
+	FString Report = Result;
+	TSharedPtr<FJsonObject> Root;
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Result);
+	if (FJsonSerializer::Deserialize(Reader, Root) && Root.IsValid())
+	{
+		Root->TryGetStringField(TEXT("report"), Report);
+		const TSharedPtr<FJsonObject>* NodesObj = nullptr;
+		if (Root->TryGetObjectField(TEXT("nodes"), NodesObj) && NodesObj)
+		{
+			for (FGNode& N : Nodes)
+			{
+				const TSharedPtr<FJsonObject>* R = nullptr;
+				if (N.Widget.IsValid() && (*NodesObj)->TryGetObjectField(N.Id, R) && R)
+				{
+					N.Widget->SetResult((*R)->GetStringField(TEXT("estado")),
+						(*R)->GetStringField(TEXT("texto")));
+				}
+			}
+		}
+	}
 	if (Output.IsValid())
 	{
-		Output->SetText(FText::FromString(Result));
+		Output->SetText(FText::FromString(Report));
 	}
+}
+
+
+// ---- buscador de nodos (doble clic en el canvas) + pan, como el canvas de Grasshopper ----
+
+void SJamGraphEditor::OpenSearch(const FVector2D& AtLocal)
+{
+	SearchAt = AtLocal;
+	bSearchOpen = true;
+	if (SearchField.IsValid())
+	{
+		SearchField->SetText(FText::GetEmpty());
+		FSlateApplication::Get().SetKeyboardFocus(SearchField, EFocusCause::SetDirectly);
+	}
+	RebuildSearchResults(FString());
+}
+
+void SJamGraphEditor::CloseSearch()
+{
+	bSearchOpen = false;
+	SearchHits.Reset();
+}
+
+void SJamGraphEditor::RebuildSearchResults(const FString& Query)
+{
+	SearchHits.Reset();
+	if (!SearchResults.IsValid())
+	{
+		return;
+	}
+	SearchResults->ClearChildren();
+
+	const FString Q = Query.TrimStartAndEnd();
+	for (const FJamTool& T : Tools)
+	{
+		if (!Q.IsEmpty() && !T.Verb.Contains(Q) && !T.Doc.Contains(Q))
+		{
+			continue;
+		}
+		SearchHits.Add(T.Verb);
+		const FString Verb = T.Verb;
+		const FVector2D At = SearchAt;
+		SearchResults->AddSlot().AutoHeight().Padding(0.0f, 1.0f)
+		[
+			SNew(SButton)
+			.HAlign(HAlign_Left)
+			.Text(FText::FromString(FString::Printf(TEXT("%s  —  %s"), *T.Verb, *T.Doc)))
+			.OnClicked_Lambda([this, Verb, At]()
+			{
+				const FVector2D Local = At - PanOffset;   // el nodo vive en coords del modelo
+				AddNode(Verb, &Local);
+				CloseSearch();
+				return FReply::Handled();
+			})
+		];
+		if (SearchHits.Num() >= 8)
+		{
+			break;
+		}
+	}
+}
+
+void SJamGraphEditor::CommitSearch()
+{
+	if (SearchHits.Num() > 0)
+	{
+		const FVector2D Local = SearchAt - PanOffset;
+		AddNode(SearchHits[0], &Local);
+	}
+	CloseSearch();
+}
+
+FReply SJamGraphEditor::OnMouseButtonDoubleClick(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+{
+	if (MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
+	{
+		OpenSearch(MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition()));
+		return FReply::Handled();
+	}
+	return FReply::Unhandled();
+}
+
+FReply SJamGraphEditor::OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+{
+	if (MouseEvent.GetEffectingButton() == EKeys::RightMouseButton
+		|| MouseEvent.GetEffectingButton() == EKeys::MiddleMouseButton)
+	{
+		bPanning = true;
+		return FReply::Handled().CaptureMouse(SharedThis(this));
+	}
+	if (MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton && bSearchOpen)
+	{
+		CloseSearch();   // clic afuera cierra el buscador
+		return FReply::Handled();
+	}
+	return FReply::Unhandled();
+}
+
+FReply SJamGraphEditor::OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+{
+	if (bPanning && HasMouseCapture())
+	{
+		const float S = MyGeometry.GetAccumulatedLayoutTransform().GetScale();
+		PanOffset += MouseEvent.GetCursorDelta() / (S > 0.0f ? S : 1.0f);
+		return FReply::Handled();
+	}
+	return FReply::Unhandled();
+}
+
+FReply SJamGraphEditor::OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+{
+	if (bPanning && (MouseEvent.GetEffectingButton() == EKeys::RightMouseButton
+		|| MouseEvent.GetEffectingButton() == EKeys::MiddleMouseButton))
+	{
+		bPanning = false;
+		return FReply::Handled().ReleaseMouseCapture();
+	}
+	return FReply::Unhandled();
 }
 
 #undef LOCTEXT_NAMESPACE

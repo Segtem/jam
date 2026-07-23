@@ -1,6 +1,7 @@
 """Colocar — el "place" de Dash, grado producción.
 
 Spawnea un StaticMesh con control real de su relación con el entorno:
+  · view:       lo pone DONDE MIRA EL VIEWPORT (la mira de Dash); x/y/z pasan a ser offset.
   · superficie: raycast vertical → lo apoya sobre la geometría real bajo (x,y).
   · base:       corre el actor para que su BASE (no el pivote) toque esa superficie (a prueba de
                 pivotes descentrados de KitBash3D).
@@ -35,13 +36,15 @@ def colocar(
     base: bool | None = None,
     align: bool = False,
     physics: bool = False,
+    view: bool = False,
     jitter_yaw: float = 0.0,
     seed: int | None = None,
 ) -> unreal.Actor | None:
     """Coloca `asset` (ObjectPath o StaticMesh). `location` (cm), `rotation` (roll,pitch,yaw grados),
-    `scale`. Con `surface` raycastea en (x,y) y apoya ahí; `base` corre para que la base toque el
-    piso (default = `surface`); `align` orienta a la normal; `physics` asienta por caída. Devuelve el
-    actor o None. Además deja `actor.jam_surface` = dict del raycast (para el oráculo del tool)."""
+    `scale`. Con `view` el origen es el punto de mira del viewport (y `location` es un offset); con
+    `surface` raycastea en (x,y) y apoya ahí; `base` corre para que la base toque el piso
+    (default = `surface`); `align` orienta a la normal; `physics` asienta por caída. Devuelve el
+    actor o None."""
     mesh = library.cargar_malla(asset) if isinstance(asset, str) else asset
     if mesh is None:
         unreal.log_error(f"[Jam] colocar: no se pudo cargar el asset {asset!r}")
@@ -50,6 +53,17 @@ def colocar(
     rng = random.Random(seed)
     x, y, z = location
     roll, pitch, yaw = rotation
+
+    # `view`: el origen NO es el (0,0,0) del mundo sino DONDE MIRA EL VIEWPORT (la mira de Dash), y
+    # location pasa a ser un offset. Sin esto, en un mundo abierto todo aterriza en el origen — a
+    # kilómetros de la cámara — y parece que la herramienta "no hizo nada".
+    if view:
+        from . import ue
+        mira = ue.punto_de_mira()
+        if mira is not None:
+            x += mira["punto"].x
+            y += mira["punto"].y
+            z += mira["punto"].z
     if jitter_yaw:
         yaw += rng.uniform(-jitter_yaw, jitter_yaw)
     if base is None:

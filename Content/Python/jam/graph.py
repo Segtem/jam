@@ -93,16 +93,33 @@ def _entradas(g: "JamGraph", nid: str) -> list[str]:
     return [a for a, b in g.edges if b == nid]
 
 
+def _estado(texto: str) -> str:
+    """Convención de Grasshopper llevada al oráculo: cada nodo se pinta por su VEREDICTO.
+    error (rojo) = reventó · warn (naranja) = el oráculo dice REVISAR ✗ · ok (verde) = ✓."""
+    if texto.startswith("[error]"):
+        return "error"
+    if "✗" in texto:
+        return "warn"
+    return "ok" if "✓" in texto else "info"
+
+
 def ejecutar(g: JamGraph) -> str:
-    """Corre el grafo en orden topológico: cada nodo dispara su tool y su oráculo. Devuelve el
-    reporte por nodo. Los actores quedan en el nivel (quien llama decide preview/confirm)."""
+    """Reporte de texto de correr el grafo (ver `ejecutar_detalle`)."""
+    return ejecutar_detalle(g)[0]
+
+
+def ejecutar_detalle(g: JamGraph) -> tuple[str, dict]:
+    """Corre el grafo en orden topológico: cada nodo dispara su tool y su oráculo. Devuelve
+    (reporte, {nid: {'estado','texto'}}) — el estado es lo que pinta cada nodo en el canvas.
+    Los actores quedan en el nivel (quien llama decide preview/confirm)."""
     from . import dsl, tools
+    por_nodo: dict[str, dict] = {}
     try:
         orden = g.topo_order()
     except ValueError as e:
-        return f"[grafo] {e}"
+        return f"[grafo] {e}", por_nodo
     if not orden:
-        return "[grafo] vacío — agregá nodos."
+        return "[grafo] vacío — agregá nodos.", por_nodo
     lineas = []
     # asset que sale de cada nodo por su pin: el nodo «asset» lo produce, los demás lo dejan pasar.
     # Como corremos en orden topológico, aguas abajo ya está resuelto cuando se lo pide.
@@ -113,6 +130,7 @@ def ejecutar(g: JamGraph) -> str:
         info = tools.REGISTRO.get(verb)
         if not info:
             lineas.append(f"[{nid}·{verb}] verbo desconocido")
+            por_nodo[nid] = {"estado": "error", "texto": "verbo desconocido"}
             continue
         pedido = n.get("asset") or (n.get("params", {}).get("name") if verb == "asset" else None)
         if not pedido:   # sin asset propio: hereda el del cable (nodo «asset» aguas arriba)
@@ -121,6 +139,7 @@ def ejecutar(g: JamGraph) -> str:
         porta[nid] = asset
         if not asset:
             lineas.append(f"[{nid}·{verb}] biblioteca vacía")
+            por_nodo[nid] = {"estado": "error", "texto": "biblioteca vacía"}
             continue
         kw, _desc = dsl.coaccionar(verb, {k: str(v) for k, v in n.get("params", {}).items()})
         try:
@@ -128,4 +147,5 @@ def ejecutar(g: JamGraph) -> str:
         except Exception as e:  # noqa: BLE001
             txt = f"[error] {type(e).__name__}: {e}"
         lineas.append(f"[{nid}·{verb}] {txt}")
-    return "\n".join(lineas)
+        por_nodo[nid] = {"estado": _estado(txt), "texto": txt}
+    return "\n".join(lineas), por_nodo

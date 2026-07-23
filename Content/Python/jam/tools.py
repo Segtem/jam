@@ -33,14 +33,28 @@ def t_asset(asset, *, name="") -> str:
     return f"ASSET ACTIVO ✓ — {session.nombre()}  ({asset})"
 
 
-def t_place(asset, *, x=0.0, y=0.0, z=0.0, surface=True, align=False, physics=False,
+def t_pick(asset, *, name="") -> str:
+    """Content: toma como asset activo lo que esté SELECCIONADO en el Content Browser de Unreal.
+    Es el puente con el flujo normal del editor: elegís la malla donde siempre y Jam la usa."""
+    from . import library, session
+    sel = library.seleccion_ue()
+    if not sel:
+        return ("no hay ninguna StaticMesh seleccionada en el Content Browser de Unreal — "
+                "elegí una ahí y volvé a apretar.")
+    session.set_asset(sel[0]["ruta"], sel[0]["nombre"])
+    extra = f"  (+{len(sel) - 1} más seleccionadas)" if len(sel) > 1 else ""
+    return f"ASSET ACTIVO ✓ (selección de Unreal) — {sel[0]['nombre']}{extra}"
+
+
+def t_place(asset, *, x=0.0, y=0.0, z=0.0, view=True, surface=True, align=False, physics=False,
             yaw=0.0, scale=1.0) -> str:
-    """Coloca un ladrillo en relación a su entorno: `surface`=raycast al piso, `align`=orientar a la
-    normal, `physics`=asentar por caída, `yaw`/`scale`. El oráculo del entorno verifica APOYADO sobre
-    una superficie (gap≈0) + SIN CLAVARSE con los vecinos (geometría, no el soporte ni el landscape)."""
+    """Coloca un ladrillo en relación a su entorno: `view`=en el punto de mira del viewport (x/y/z
+    son offset), `surface`=raycast al piso, `align`=orientar a la normal, `physics`=asentar por
+    caída, `yaw`/`scale`. El oráculo del entorno verifica APOYADO sobre una superficie (gap≈0) +
+    SIN CLAVARSE con los vecinos (geometría, no el soporte ni el landscape)."""
     from . import place
     actor = place.colocar(asset, (x, y, z), (0.0, 0.0, yaw), (scale, scale, scale),
-                          surface=surface, align=align, physics=physics)
+                          view=view, surface=surface, align=align, physics=physics)
     if actor is None:
         return f"no se pudo colocar {_corto(asset)}"
     return _veredicto_entorno(actor)
@@ -83,7 +97,19 @@ def _veredicto_entorno(actor) -> str:
 
     ok = hit["hit"] and (soporte is None or abs(base_z - hit["punto"].z) <= 5.0) and not r["interpenetra"]
     cab = f"[{actor.get_actor_label()}] {'BIEN COLOCADO ✓' if ok else 'REVISAR ✗'}"
-    return f"{cab} — {apoyo} · {clava}"
+    return f"{cab} — {apoyo} · {clava}\n{_donde(actor)}"
+
+
+def _donde(actor) -> str:
+    """Coordenadas + nivel de lo que se acaba de colocar. Que el veredicto diga DÓNDE quedó es lo que
+    evita el «dice confirmado pero no lo veo»: con eso lo buscás en el Outliner o volás con F."""
+    loc = actor.get_actor_location()
+    try:
+        nivel = actor.get_level().get_outer().get_name()
+    except Exception:  # noqa: BLE001
+        nivel = "?"
+    return (f"    en ({loc.x:.0f}, {loc.y:.0f}, {loc.z:.0f}) del nivel «{nivel}» — "
+            f"seleccionado en el editor (F en el viewport para volar hasta él)")
 
 
 def _grados_normal(normal) -> float:
@@ -148,10 +174,12 @@ def t_create_spline(asset=None) -> str:
 REGISTRO = {
     "asset":        {"fn": t_asset,   "cat": "Content", "params": {"name": ""},
                      "doc": "elige el asset activo (Content); las demás herramientas lo heredan"},
+    "pick":         {"fn": t_pick,    "cat": "Content", "params": {},
+                     "doc": "usa la malla SELECCIONADA en el Content Browser de Unreal como asset activo"},
     "place":        {"fn": t_place,   "cat": "Place",
-                     "params": {"x": 0.0, "y": 0.0, "z": 0.0, "surface": True, "align": False,
-                                "physics": False, "yaw": 0.0, "scale": 1.0},
-                     "doc": "coloca un ladrillo: raycast a superficie, align a la normal, física, rot/escala; verifica entorno"},
+                     "params": {"x": 0.0, "y": 0.0, "z": 0.0, "view": True, "surface": True,
+                                "align": False, "physics": False, "yaw": 0.0, "scale": 1.0},
+                     "doc": "coloca un ladrillo donde mirás: raycast a superficie, align a la normal, física, rot/escala; verifica entorno"},
     "scatter":      {"fn": t_scatter, "cat": "Scatter", "params": {"count": 9, "area": 500.0, "seed": 7},
                      "doc": "esparce N copias en un área y verifica cobertura"},
     "drop":         {"fn": t_drop,    "cat": "Place",   "params": {"height": 800.0},

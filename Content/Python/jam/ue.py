@@ -20,27 +20,78 @@ def _mundo():
     return unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).get_editor_world()
 
 
-def raycast(x: float, y: float, *, desde: float = 1.0e6, hasta: float = -1.0e6, ignorar=None) -> dict:
-    """Traza un rayo VERTICAL hacia abajo en (x,y) contra la geometría real del nivel (trace complejo).
-    Devuelve {hit, punto: Vec3, normal: Vec3, actor: str|None} — la superficie bajo (x,y). El HitResult
-    se lee por `to_tuple()` (5.7 no expone sus campos como atributos): [0]=blocking_hit, [5]=impact_point,
-    [7]=impact_normal, [9]=actor."""
+_SIN_HIT = {"hit": False, "punto": None, "normal": None, "actor": None}
+
+
+def raycast_entre(a: Vec3, b: Vec3, *, ignorar=None) -> dict:
+    """Traza un rayo de `a` a `b` contra la geometría real del nivel (trace complejo). Devuelve
+    {hit, punto: Vec3, normal: Vec3, actor: str|None}. Es la primitiva: el rayo vertical (piso) y el
+    de la cámara (dónde estoy mirando) son casos de esto, y sirve igual para pegar contra una pared.
+    El HitResult se lee por `to_tuple()` (5.7 no expone sus campos como atributos):
+    [0]=blocking_hit, [5]=impact_point, [7]=impact_normal, [9]=actor."""
     r = unreal.SystemLibrary.line_trace_single(
-        _mundo(), unreal.Vector(x, y, desde), unreal.Vector(x, y, hasta),
+        _mundo(), unreal.Vector(a.x, a.y, a.z), unreal.Vector(b.x, b.y, b.z),
         unreal.TraceTypeQuery.TRACE_TYPE_QUERY1, True, ignorar or [],
         unreal.DrawDebugTrace.NONE, True)
-    # Sin impacto, la función devuelve None (no un HitResult vacío): sin esta guarda, colocar en un
-    # punto al aire tiraba AttributeError en vez de decir "no hay superficie".
+    # Sin impacto, la función devuelve None (no un HitResult vacío): sin esta guarda, trazar al aire
+    # tiraba AttributeError en vez de decir "no hay superficie".
     if r is None:
-        return {"hit": False, "punto": None, "normal": None, "actor": None}
+        return dict(_SIN_HIT)
     t = r.to_tuple()
     if not t[0]:   # blocking_hit
-        return {"hit": False, "punto": None, "normal": None, "actor": None}
+        return dict(_SIN_HIT)
     p, n, act = t[5], t[7], t[9]
     return {"hit": True,
             "punto": Vec3(p.x, p.y, p.z),
             "normal": Vec3(n.x, n.y, n.z),
             "actor": act.get_actor_label() if act else None}
+
+
+def raycast(x: float, y: float, *, desde: float = 1.0e6, hasta: float = -1.0e6, ignorar=None) -> dict:
+    """Rayo VERTICAL hacia abajo en (x,y): la superficie bajo ese punto."""
+    return raycast_entre(Vec3(x, y, desde), Vec3(x, y, hasta), ignorar=ignorar)
+
+
+def camara() -> dict | None:
+    """Cámara del viewport del editor: {'loc': Vec3, 'rot': (pitch,yaw,roll), 'adelante': Vec3}.
+    None si no hay viewport (headless). Es lo que permite colocar DONDE MIRÁS en vez del origen."""
+    try:
+        info = unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).get_level_viewport_camera_info()
+    except Exception:  # noqa: BLE001
+        return None
+    if not info or info[0] is None or info[1] is None:
+        return None
+    loc, rot = info[0], info[1]
+    f = unreal.MathLibrary.get_forward_vector(rot)
+    return {"loc": Vec3(loc.x, loc.y, loc.z),
+            "rot": (rot.pitch, rot.yaw, rot.roll),
+            "adelante": Vec3(f.x, f.y, f.z)}
+
+
+def punto_de_mira(*, alcance: float = 100000.0) -> dict:
+    """Dónde está mirando el viewport: traza desde la cámara hacia adelante y devuelve el impacto
+    (como la mira de Dash). Si no pega nada, devuelve un punto a 10 m adelante con hit=False.
+    Devuelve {hit, punto, normal, actor} o None si no hay viewport."""
+    cam = camara()
+    if cam is None:
+        return None
+    o, d = cam["loc"], cam["adelante"]
+    fin = Vec3(o.x + d.x * alcance, o.y + d.y * alcance, o.z + d.z * alcance)
+    r = raycast_entre(o, fin)
+    if r["hit"]:
+        return r
+    lejos = Vec3(o.x + d.x * 1000.0, o.y + d.y * 1000.0, o.z + d.z * 1000.0)
+    return {"hit": False, "punto": lejos, "normal": Vec3(0.0, 0.0, 1.0), "actor": None}
+
+
+def seleccionar(actores) -> None:
+    """Deja los actores SELECCIONADOS en el editor: aparecen resaltados, en el Outliner y en Details
+    (y con F la cámara vuela hasta ellos). Sin esto, lo que Jam coloca es invisible si cae fuera de
+    cuadro — que es exactamente cómo se siente un «Confirmar» que "no hizo nada"."""
+    try:
+        _sub().set_selected_level_actors(list(actores))
+    except Exception:  # noqa: BLE001
+        pass
 
 
 def aabb(actor) -> AABB:

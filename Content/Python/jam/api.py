@@ -47,6 +47,12 @@ def run_graph(graph_json: str) -> str:
     return panel.ejecutar_grafo(graph_json, None)
 
 
+def run_graph_json(graph_json: str) -> str:
+    """JSON {report, nodes:{nid:{estado,texto}}} — para que el canvas pinte cada nodo por su veredicto."""
+    from . import panel
+    return panel.ejecutar_grafo_json(graph_json, None)
+
+
 def confirm() -> str:
     from . import panel
     return panel.ejecutar_dsl("confirm", None)

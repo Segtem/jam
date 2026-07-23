@@ -5,9 +5,12 @@
 #include "Widgets/DeclarativeSyntaxSupport.h"
 #include "JamEditorModule.h"   // FJamTool
 
+class SBorder;
 class SCanvas;
+class SEditableTextBox;
 class SJamGraphNode;
 class SMultiLineEditableTextBox;
+class SVerticalBox;
 
 /** Devuelve el reporte de correr un grafo (JSON JamGraph) — la implementa el módulo (llama a Python). */
 DECLARE_DELEGATE_RetVal_OneParam(FString, FOnRunGraph, const FString& /*json*/);
@@ -42,13 +45,26 @@ private:
 		TSharedPtr<SJamGraphNode> Widget;
 	};
 
-	void AddNode(const FString& Verb);
+	void AddNode(const FString& Verb, const FVector2D* At = nullptr);
 	void DeleteNode(const FString& Id);
 	void OnPinClicked(const FString& Id, bool bOutput);
 	void RunGraph();
 	FString BuildJson() const;
 	const FJamTool* FindTool(const FString& Verb) const;
 	FGNode* FindNode(const FString& Id);
+
+	/** Buscador de nodos al doble clic en el canvas vacío (como el search box de Grasshopper). */
+	void OpenSearch(const FVector2D& AtLocal);
+	void CloseSearch();
+	void RebuildSearchResults(const FString& Query);
+	/** Crea el primer resultado del buscador (Enter). */
+	void CommitSearch();
+
+	// Canvas: doble clic → buscador · arrastre con botón derecho/medio → pan.
+	virtual FReply OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+	virtual FReply OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+	virtual FReply OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+	virtual FReply OnMouseButtonDoubleClick(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 
 	TArray<FJamTool> Tools;
 	TArray<FGNode> Nodes;
@@ -61,6 +77,18 @@ private:
 	TAttribute<FString> ActiveAsset;
 	TSharedPtr<SCanvas> Canvas;
 	TSharedPtr<SMultiLineEditableTextBox> Output;
+
+	// Buscador estilo Grasshopper (doble clic en el canvas).
+	TSharedPtr<SBorder> SearchPopup;
+	TSharedPtr<SEditableTextBox> SearchField;
+	TSharedPtr<SVerticalBox> SearchResults;
+	TArray<FString> SearchHits;
+	FVector2D SearchAt = FVector2D::ZeroVector;
+	bool bSearchOpen = false;
+
+	// Pan del canvas (botón derecho arrastrando sobre el fondo).
+	FVector2D PanOffset = FVector2D::ZeroVector;
+	bool bPanning = false;
 
 	static constexpr float NodeWidth = 168.0f;
 	static constexpr float HeaderY = 14.0f;

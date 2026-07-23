@@ -36,6 +36,50 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 		Fields.Add(Key, Field);
 	}
 
+	// Header: fondo pintado por el ESTADO del oráculo (neutro hasta que corre el grafo).
+	TSharedRef<SHorizontalBox> Header = SNew(SHorizontalBox);
+	if (InArgs._HasInput)
+	{
+		Header->AddSlot().AutoWidth().VAlign(VAlign_Center)
+		[
+			SNew(SButton)
+			.ToolTipText(LOCTEXT("InPin", "entrada (clic para conectar)"))
+			.ContentPadding(FMargin(2.0f, 0.0f))
+			.OnClicked_Lambda([this]() { OnInputClickedDelegate.ExecuteIfBound(); return FReply::Handled(); })
+			[ SNew(STextBlock).Text(FText::FromString(TEXT("○"))) ]
+		];
+	}
+	else
+	{
+		// Nodo FUENTE: sin pin de entrada, se marca el borde como "acá empieza el dato".
+		Header->AddSlot().AutoWidth().VAlign(VAlign_Center).Padding(4.0f, 0.0f, 0.0f, 0.0f)
+		[
+			SNew(STextBlock)
+			.Text(FText::FromString(TEXT("▌")))
+			.ToolTipText(LOCTEXT("SourceNode", "nodo fuente: no recibe entrada, produce el dato"))
+		];
+	}
+	Header->AddSlot().FillWidth(1.0f).VAlign(VAlign_Center).Padding(4.0f, 0.0f)
+	[
+		SNew(STextBlock).Text(FText::FromString(Verb))
+	];
+	Header->AddSlot().AutoWidth().VAlign(VAlign_Center)
+	[
+		SNew(SButton)
+		.ToolTipText(LOCTEXT("Del", "borrar nodo"))
+		.ContentPadding(FMargin(2.0f, 0.0f))
+		.OnClicked_Lambda([this]() { OnDeleteClickedDelegate.ExecuteIfBound(); return FReply::Handled(); })
+		[ SNew(STextBlock).Text(FText::FromString(TEXT("×"))) ]
+	];
+	Header->AddSlot().AutoWidth().VAlign(VAlign_Center)
+	[
+		SNew(SButton)
+		.ToolTipText(LOCTEXT("OutPin", "salida (clic para conectar)"))
+		.ContentPadding(FMargin(2.0f, 0.0f))
+		.OnClicked_Lambda([this]() { OnOutputClickedDelegate.ExecuteIfBound(); return FReply::Handled(); })
+		[ SNew(STextBlock).Text(FText::FromString(TEXT("○"))) ]
+	];
+
 	ChildSlot
 	[
 		SNew(SBorder)
@@ -50,37 +94,10 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 			[
 				SNew(SBorder)
 				.BorderImage(FAppStyle::GetBrush("Brushes.Header"))
+				.BorderBackgroundColor_Lambda([this]() { return StateColor(); })
 				.Padding(2.0f)
 				[
-					SNew(SHorizontalBox)
-					+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
-					[
-						SNew(SButton)
-						.ToolTipText(LOCTEXT("InPin", "entrada (clic para conectar)"))
-						.ContentPadding(FMargin(2.0f, 0.0f))
-						.OnClicked_Lambda([this]() { OnInputClickedDelegate.ExecuteIfBound(); return FReply::Handled(); })
-						[ SNew(STextBlock).Text(FText::FromString(TEXT("○"))) ]
-					]
-					+ SHorizontalBox::Slot().FillWidth(1.0f).VAlign(VAlign_Center).Padding(4.0f, 0.0f)
-					[
-						SNew(STextBlock).Text(FText::FromString(Verb))
-					]
-					+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
-					[
-						SNew(SButton)
-						.ToolTipText(LOCTEXT("Del", "borrar nodo"))
-						.ContentPadding(FMargin(2.0f, 0.0f))
-						.OnClicked_Lambda([this]() { OnDeleteClickedDelegate.ExecuteIfBound(); return FReply::Handled(); })
-						[ SNew(STextBlock).Text(FText::FromString(TEXT("×"))) ]
-					]
-					+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
-					[
-						SNew(SButton)
-						.ToolTipText(LOCTEXT("OutPin", "salida (clic para conectar)"))
-						.ContentPadding(FMargin(2.0f, 0.0f))
-						.OnClicked_Lambda([this]() { OnOutputClickedDelegate.ExecuteIfBound(); return FReply::Handled(); })
-						[ SNew(STextBlock).Text(FText::FromString(TEXT("○"))) ]
-					]
+					Header
 				]
 			]
 
@@ -97,6 +114,22 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 	OnInputClickedDelegate = InArgs._OnInputClicked;
 	OnOutputClickedDelegate = InArgs._OnOutputClicked;
 	OnDeleteClickedDelegate = InArgs._OnDeleteClicked;
+}
+
+void SJamGraphNode::SetResult(const FString& State, const FString& Text)
+{
+	ResultState = State;
+	SetToolTipText(Text.IsEmpty()
+		? FText::FromString(Verb)
+		: FText::FromString(FString::Printf(TEXT("%s\n%s"), *Verb, *Text)));
+}
+
+FLinearColor SJamGraphNode::StateColor() const
+{
+	if (ResultState == TEXT("ok"))    { return FLinearColor(0.15f, 0.85f, 0.35f, 1.0f); }
+	if (ResultState == TEXT("warn"))  { return FLinearColor(1.0f, 0.6f, 0.05f, 1.0f); }
+	if (ResultState == TEXT("error")) { return FLinearColor(1.0f, 0.18f, 0.18f, 1.0f); }
+	return FLinearColor::White;   // neutro: todavía no corrió
 }
 
 TMap<FString, FString> SJamGraphNode::GetParamValues() const

@@ -75,6 +75,8 @@ private:
 	void RebuildFolderList();
 	TSharedRef<SWidget> MakeAssetTile(const FString& Name, const FString& Path);
 	void SelectAsset(const FString& Name, const FString& Path);
+	/** Toma como asset activo lo seleccionado en el Content Browser DE UNREAL (verbo `pick`). */
+	void PickFromUnrealSelection();
 
 	/** Corre un statement de Python y devuelve lo capturado por LogOutput (stdout/log). */
 	FString ExecPythonCapture(const FString& Statement);

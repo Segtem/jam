@@ -78,6 +78,25 @@ def buscar_json(query: str = "", *, limit: int = 200, carpeta: str = "") -> str:
                        "assets": vista}, ensure_ascii=True)
 
 
+def seleccion_ue() -> list[dict]:
+    """Lo que está SELECCIONADO ahora mismo en el Content Browser de Unreal (sólo StaticMesh), como
+    {'nombre','ruta','carpeta'}. Puente con el flujo normal del editor: elegís la malla donde
+    siempre y Jam la toma, sin duplicar la navegación."""
+    try:
+        sel = unreal.EditorUtilityLibrary.get_selected_assets()
+    except Exception:  # noqa: BLE001
+        return []
+    out: list[dict] = []
+    for obj in sel or []:
+        if not isinstance(obj, unreal.StaticMesh):
+            continue
+        paquete = obj.get_outer().get_path_name()
+        out.append({"nombre": obj.get_name(),
+                    "ruta": f"{paquete}.{obj.get_name()}",
+                    "carpeta": paquete.rsplit("/", 1)[0]})
+    return out
+
+
 def cargar_malla(ruta: str) -> unreal.StaticMesh | None:
     """Carga el StaticMesh por su ObjectPath. None si no existe."""
     obj = unreal.load_asset(ruta)

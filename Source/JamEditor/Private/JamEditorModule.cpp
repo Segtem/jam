@@ -134,8 +134,10 @@ void FJamEditorModule::OpenGraph()
 
 FString FJamEditorModule::RunGraphJson(const FString& Json)
 {
+	// `run_graph_json` devuelve {report, nodes:{nid:{estado,texto}}} para que el canvas pinte cada
+	// nodo con el veredicto de SU oráculo.
 	const FString Stmt = FString::Printf(
-		TEXT("import jam.api as _a; print(_a.run_graph(%s))"), *ToPyStr(Json));
+		TEXT("import jam.api as _a; print(_a.run_graph_json(%s))"), *ToPyStr(Json));
 	return ExecPythonCapture(Stmt);
 }
 
@@ -292,6 +294,18 @@ TSharedRef<SWidget> FJamEditorModule::BuildDashContent()
 			.Text(LOCTEXT("Content", "Content"))
 			.ToolTipText(LOCTEXT("ContentTip", "Navegador de assets con miniaturas (ventana aparte)"))
 			.OnClicked_Lambda([this]() { OpenContentWindow(); return FReply::Handled(); })
+		];
+
+	// Puente con el flujo normal del editor: usar lo que esté marcado en el Content Browser de UE.
+	Bar->AddSlot()
+		.AutoWidth()
+		.Padding(2.0f, 0.0f)
+		[
+			SNew(SButton)
+			.Text(LOCTEXT("PickUE", "◧ Selección de UE"))
+			.ToolTipText(LOCTEXT("PickUETip",
+				"Usar la malla seleccionada en el Content Browser de Unreal como asset activo"))
+			.OnClicked_Lambda([this]() { PickFromUnrealSelection(); return FReply::Handled(); })
 		];
 
 	for (const FString& Cat : Categories)
@@ -507,6 +521,16 @@ TSharedRef<SWidget> FJamEditorModule::BuildContentBrowser()
 			]
 			+ SHorizontalBox::Slot()
 			.AutoWidth()
+			.Padding(6.0f, 0.0f, 0.0f, 0.0f)
+			[
+				SNew(SButton)
+				.Text(LOCTEXT("PickUE2", "◧ Selección de UE"))
+				.ToolTipText(LOCTEXT("PickUETip2",
+					"Usar la malla marcada en el Content Browser de Unreal (sin buscarla de nuevo acá)"))
+				.OnClicked_Lambda([this]() { PickFromUnrealSelection(); return FReply::Handled(); })
+			]
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
 			.VAlign(VAlign_Center)
 			.Padding(8.0f, 0.0f, 0.0f, 0.0f)
 			[
@@ -564,6 +588,36 @@ TSharedRef<SWidget> FJamEditorModule::BuildContentBrowser()
 				return FReply::Handled();
 			})
 		];
+}
+
+void FJamEditorModule::PickFromUnrealSelection()
+{
+	// El verbo `pick` lee la selección del Content Browser de Unreal y fija el asset activo en el
+	// cerebro. La UI sólo refleja lo que el cerebro ya decidió.
+	const FString Out = ExecPythonCapture(
+		TEXT("import jam.api as _a; print(_a.run('pick'))"));
+	AppendLog(TEXT("pick"), Out);
+
+	// leer de vuelta el nombre del activo para el rótulo/composición del comando
+	const FString Raw = ExecPythonCapture(
+		TEXT("import jam.session as _s; print('JAMSEL:' + (_s.nombre() or ''))"));
+	const FString Marker(TEXT("JAMSEL:"));
+	const int32 M = Raw.Find(Marker);
+	if (M != INDEX_NONE)
+	{
+		FString Name = Raw.Mid(M + Marker.Len());
+		Name.TrimStartAndEndInline();
+		if (!Name.IsEmpty())
+		{
+			SelectedAssetName = Name;
+			if (AssetLabel.IsValid())
+			{
+				AssetLabel->SetText(FText::FromString(
+					FString::Printf(TEXT("Asset: %s  (selección de Unreal)"), *Name)));
+			}
+			ComposeCommandFromParams();
+		}
+	}
 }
 
 void FJamEditorModule::RefreshContent()

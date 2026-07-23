@@ -23,6 +23,9 @@ public:
 		SLATE_ARGUMENT(FString, Verb)
 		/** (nombre, default) por cada param. */
 		SLATE_ARGUMENT(TArray<FJamNodeParam>, Params)
+		/** false en los nodos FUENTE (asset, create_spline): no reciben nada, van sin pin de entrada
+		 *  — la convención de Grasshopper para componentes sin inputs. */
+		SLATE_ARGUMENT(bool, HasInput)
 		SLATE_EVENT(FOnNodeDragDelta, OnDragDelta)
 		SLATE_EVENT(FSimpleDelegate, OnOutputClicked)
 		SLATE_EVENT(FSimpleDelegate, OnInputClicked)
@@ -35,13 +38,25 @@ public:
 	TMap<FString, FString> GetParamValues() const;
 	const FString& GetVerb() const { return Verb; }
 
+	/**
+	 * Pinta el nodo con el veredicto del ORÁCULO tras correr el grafo. Es la convención de estados de
+	 * Grasshopper (naranja = warning, rojo = error) pero alimentada por lo que Jam sabe verificar:
+	 * "ok" ✓ verde · "warn" (REVISAR ✗) naranja · "error" rojo · "" vuelve a neutro. El texto queda
+	 * como tooltip del nodo.
+	 */
+	void SetResult(const FString& State, const FString& Text);
+
 	// Arrastre: si el click no lo toma un hijo interactivo (param/pin), arrastra el nodo.
 	virtual FReply OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual FReply OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual FReply OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 
 private:
+	/** Color del header según el veredicto del oráculo (verde/naranja/rojo/neutro). */
+	FLinearColor StateColor() const;
+
 	FString Verb;
+	FString ResultState;
 	bool bDragging = false;
 	FOnNodeDragDelta OnDragDelta;
 	FSimpleDelegate OnInputClickedDelegate;
