@@ -30,7 +30,9 @@ def t_asset(asset, *, name="") -> str:
     se tipea en el campo del nodo; quien llama ya lo resolvió a ObjectPath en `asset`."""
     from . import session
     session.set_asset(asset)
-    return f"ASSET ACTIVO ✓ — {session.nombre()}  ({asset})"
+    # El veredicto del pivote sale SOLO al elegir el asset: es una propiedad del asset, no una tarea
+    # que uno tenga que acordarse de correr. Así te enterás de que no tilea ANTES de repetirlo 200 veces.
+    return f"ASSET ACTIVO ✓ — {session.nombre()}  ({asset})\n{t_pivot(asset)}"
 
 
 def t_pick(asset, *, name="") -> str:
@@ -43,7 +45,8 @@ def t_pick(asset, *, name="") -> str:
                 "elegí una ahí y volvé a apretar.")
     session.set_asset(sel[0]["ruta"], sel[0]["nombre"])
     extra = f"  (+{len(sel) - 1} más seleccionadas)" if len(sel) > 1 else ""
-    return f"ASSET ACTIVO ✓ (selección de Unreal) — {sel[0]['nombre']}{extra}"
+    return (f"ASSET ACTIVO ✓ (selección de Unreal) — {sel[0]['nombre']}{extra}\n"
+            f"{t_pivot(sel[0]['ruta'])}")
 
 
 def t_gizmo(asset, *, on=True) -> str:
@@ -85,15 +88,42 @@ def t_pivot(asset, *, anchor="") -> str:
     return texto
 
 
-def t_place(asset, *, x=0.0, y=0.0, z=0.0, view=True, surface=True, anchor="base", align=False,
-            physics=False, yaw=0.0, scale=1.0) -> str:
+def t_pivot_set(asset, *, to="base") -> str:
+    """Mueve el PIVOTE de los actores SELECCIONADOS al ancla `to` (base/center/top/corner…), como los
+    «Center/Bottom/Top Pivot» de Dash pero con las 10 anclas. Toca el `pivot_offset` DEL ACTOR (lo
+    que agarra el gizmo del editor), no la malla: el asset del disco queda intacto."""
+    import unreal as U
+
+    from . import pivot as pv, ue
+    from .geometry import Vec3
+    if to not in pv.ANCLAS:
+        return f"ancla «{to}» desconocida — hay: {', '.join(pv.ANCLAS)}"
+    sel = ue._sub().get_selected_level_actors()
+    if not sel:
+        return "no hay actores seleccionados en el nivel: elegí uno y volvé a intentar."
+    n = 0
+    for a in sel:
+        try:
+            loc = a.get_actor_location()
+            off = pv.offset_pivote(ue.aabb(a), Vec3(loc.x, loc.y, loc.z), to)
+            a.set_editor_property("pivot_offset", U.Vector(off.x, off.y, off.z))
+            n += 1
+        except Exception:  # noqa: BLE001
+            continue
+    return (f"PIVOTE → «{to}» ✓ en {n} de {len(sel)} actores (pivot_offset del actor; la malla del "
+            f"disco no se toca).")
+
+
+def t_place(asset, *, x=0.0, y=0.0, z=0.0, view=True, surface=True, anchor="base", sink=0.0,
+            align=False, physics=False, yaw=0.0, scale=1.0) -> str:
     """Coloca un ladrillo en relación a su entorno: `view`=en el punto de mira del viewport (x/y/z
     son offset), `surface`=raycast al piso, `anchor`=por qué punto de la pieza se coloca (base,
-    center, corner, xmin…), `align`=orientar a la normal, `physics`=asentar por caída, `yaw`/`scale`.
+    center, corner, xmin…), `sink`=cuántos cm hundirla en la superficie (para que una roca no se vea
+    apoyada como una calcomanía), `align`=orientar a la normal, `physics`=asentar por caída, `yaw`/`scale`.
     El oráculo del entorno verifica APOYADO sobre una superficie (gap≈0) + SIN CLAVARSE con los
     vecinos (geometría, no el soporte ni el landscape)."""
     from . import place
-    actor = place.colocar(asset, (x, y, z), (0.0, 0.0, yaw), (scale, scale, scale),
+    actor = place.colocar(asset, (x, y, z - sink), (0.0, 0.0, yaw), (scale, scale, scale),
                           view=view, surface=surface, anchor=anchor, align=align, physics=physics)
     if actor is None:
         return f"no se pudo colocar {_corto(asset)}"
@@ -228,6 +258,15 @@ def t_create_spline(asset=None) -> str:
 
 # ---- el registro: verbo → acción param-driven + defaults (fuente de verdad para DSL, help y panel) ----
 
+# Anclas disponibles, para que los params que eligen una se dibujen como LISTA y no como campo de
+# texto donde hay que acordarse el nombre (se lee del cerebro puro, una sola fuente de verdad).
+def _anclas() -> list:
+    from . import pivot
+    return list(pivot.ANCLAS)
+
+
+_ANCLAS = _anclas()
+
 # `cat` = categoría estilo Dash (Content/Place/Scatter/Create/Edit) → agrupa los verbos en la
 # Dash Bar. Es dato: mover una herramienta de categoría es cambiar este campo, sin tocar C++.
 REGISTRO = {
@@ -236,11 +275,16 @@ REGISTRO = {
     "pick":         {"fn": t_pick,    "cat": "Content", "params": {},
                      "doc": "usa la malla SELECCIONADA en el Content Browser de Unreal como asset activo"},
     "pivot":        {"fn": t_pivot,   "cat": "Edit",    "params": {"anchor": ""},
+                     "opciones": {"anchor": [""] + list(_ANCLAS)},
                      "doc": "dónde está el pivote del asset y si sirve para repetir (o hay que anclarlo)"},
+    "pivot_set":    {"fn": t_pivot_set, "cat": "Edit",  "params": {"to": "base"},
+                     "opciones": {"to": list(_ANCLAS)},
+                     "doc": "mueve el pivote de los actores seleccionados al ancla elegida"},
     "place":        {"fn": t_place,   "cat": "Place",
                      "params": {"x": 0.0, "y": 0.0, "z": 0.0, "view": True, "surface": True,
-                                "anchor": "base", "align": False, "physics": False,
+                                "anchor": "base", "sink": 0.0, "align": False, "physics": False,
                                 "yaw": 0.0, "scale": 1.0},
+                     "opciones": {"anchor": list(_ANCLAS)},
                      "doc": "coloca un ladrillo donde mirás: raycast a superficie, align a la normal, física, rot/escala; verifica entorno"},
     "scatter":      {"fn": t_scatter, "cat": "Scatter", "params": {"count": 9, "area": 500.0, "seed": 7},
                      "doc": "esparce N copias en un área y verifica cobertura"},
@@ -263,7 +307,7 @@ REGISTRO = {
 # Verbos que NO crean nada COLOCABLE: son selección o estado de la herramienta, así que no pasan por
 # el preview (si pasaran, «Confirmar/Descartar» quedarían apuntando a una preview vacía). El
 # fantasma sí crea un actor, pero es un ayudante efímero, no una pieza del nivel.
-SIN_SPAWN = {"asset", "pick", "gizmo", "ghost", "pivot"}
+SIN_SPAWN = {"asset", "pick", "gizmo", "ghost", "pivot", "pivot_set"}
 
 # Orden de las categorías en la barra (como Dash). Las vacías no se muestran.
 CATEGORIAS = ["Content", "Place", "Scatter", "Create", "Edit"]
@@ -287,11 +331,14 @@ def spec_json() -> str:
 
     salida = []
     for nombre, info in REGISTRO.items():
+        opciones = info.get("opciones", {})
         salida.append({
             "verbo": nombre,
             "cat": info.get("cat", "Place"),
             "doc": info["doc"],
-            "params": [{"nombre": k, "default": str(v), "tipo": tipo(v)}
+            # `opciones` → la UI dibuja una LISTA en vez de un campo de texto (anclas, modos…)
+            "params": [{"nombre": k, "default": str(v), "tipo": tipo(v),
+                        "opciones": opciones.get(k, [])}
                        for k, v in info["params"].items()],
         })
     return json.dumps({"categorias": CATEGORIAS, "tools": salida}, ensure_ascii=True)

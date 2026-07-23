@@ -278,6 +278,14 @@ void FJamEditorModule::LoadSpec()
 					{
 						P.Type = TEXT("str");
 					}
+					const TArray<TSharedPtr<FJsonValue>>* Opts = nullptr;
+					if (PO->TryGetArrayField(TEXT("opciones"), Opts) && Opts)
+					{
+						for (const TSharedPtr<FJsonValue>& OV : *Opts)
+						{
+							P.Options.Add(MakeShared<FString>(OV->AsString()));
+						}
+					}
 					T.Params.Add(P);
 				}
 			}
@@ -585,12 +593,11 @@ void FJamEditorModule::PushGhostTarget()
 		bView = (*V)->IsChecked();
 	}
 	FString Anchor(TEXT("base"));
-	if (const TSharedPtr<SEditableTextBox>* A = ParamFields.Find(TEXT("anchor")))
+	if (const FString* A = ParamChoice.Find(TEXT("anchor")))
 	{
-		const FString S = (*A)->GetText().ToString().TrimStartAndEnd();
-		if (!S.IsEmpty())
+		if (!A->IsEmpty())
 		{
-			Anchor = S;
+			Anchor = *A;
 		}
 	}
 
@@ -1052,6 +1059,8 @@ void FJamEditorModule::RebuildParams()
 	ParamSpins.Empty();
 	ParamIsInt.Empty();
 	ParamValues.Empty();
+	ParamOptions.Empty();
+	ParamChoice.Empty();
 	if (!ParamsBox.IsValid())
 	{
 		return;
@@ -1127,6 +1136,43 @@ void FJamEditorModule::RebuildParams()
 			ParamSpins.Add(Key, Spin);
 			ParamIsInt.Add(Key, bInt);
 		}
+		else if (P.Options.Num() > 0)
+		{
+			// Param con dominio cerrado (las anclas): lista, no texto libre — no hay que acordarse
+			// los nombres ni se puede escribir mal uno.
+			ParamOptions.Add(Key, P.Options);
+			ParamChoice.Add(Key, P.Default);
+			TSharedPtr<STextBlock> Etiqueta;
+			Control = SNew(SComboButton)
+				.OnGetMenuContent_Lambda([this, Key]()
+				{
+					FMenuBuilder MB(true, nullptr);
+					if (const TArray<TSharedPtr<FString>>* Opts = ParamOptions.Find(Key))
+					{
+						for (const TSharedPtr<FString>& O : *Opts)
+						{
+							const FString V = *O;
+							MB.AddMenuEntry(
+								FText::FromString(V.IsEmpty() ? TEXT("(ninguna)") : V),
+								FText::GetEmpty(), FSlateIcon(),
+								FUIAction(FExecuteAction::CreateLambda([this, Key, V]()
+								{
+									ParamChoice.Add(Key, V);
+									ComposeCommandFromParams();
+								})));
+						}
+					}
+					return MB.MakeWidget();
+				})
+				.ButtonContent()
+				[
+					SNew(STextBlock).Text_Lambda([this, Key]()
+					{
+						const FString* V = ParamChoice.Find(Key);
+						return FText::FromString((V && !V->IsEmpty()) ? *V : TEXT("(ninguna)"));
+					})
+				];
+		}
 		else
 		{
 			TSharedPtr<SEditableTextBox> Field;
@@ -1189,6 +1235,10 @@ void FJamEditorModule::ComposeCommandFromParams()
 				const bool* bInt = ParamIsInt.Find(P.Name);
 				Val = (bInt && *bInt) ? FString::FromInt(FMath::RoundToInt(V))
 				                      : FString::SanitizeFloat(V);
+			}
+			else if (const FString* Choice = ParamChoice.Find(P.Name))
+			{
+				Val = *Choice;
 			}
 			else if (const TSharedPtr<SEditableTextBox>* Field = ParamFields.Find(P.Name))
 			{

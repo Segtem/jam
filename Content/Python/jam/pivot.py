@@ -85,6 +85,14 @@ def diagnostico(aabb: AABB, location: Vec3 | None = None) -> dict:
             "tileable": (not fuera) and en_base and (centrado_planta or en_esquina)}
 
 
+def offset_pivote(aabb: AABB, location: Vec3, ancla: str) -> Vec3:
+    """Desplazamiento (en mundo) del pivote del actor hasta su ancla. Es lo que hay que cargarle al
+    `pivot_offset` del actor para que el gizmo del editor agarre la pieza por ahí — el equivalente
+    de los «Center/Bottom/Top Pivot» de Dash, pero con las 10 anclas."""
+    p = punto_ancla(aabb, ancla, location)
+    return Vec3(p.x - location.x, p.y - location.y, p.z - location.z)
+
+
 def _altura(uz: float) -> str:
     if abs(uz) <= TOL_REL:
         return "en la BASE"

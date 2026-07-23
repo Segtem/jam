@@ -25,6 +25,8 @@ struct FJamParam
 	FString Name;
 	FString Default;
 	FString Type;
+	/** Si viene con valores, el param se dibuja como LISTA (anclas, modos…) y no como texto libre. */
+	TArray<TSharedPtr<FString>> Options;
 };
 
 /** Una herramienta de Jam vista desde la UI: verbo + doc + params. */
@@ -140,6 +142,8 @@ private:
 	TMap<FString, TSharedPtr<SCheckBox>> ParamChecks;
 	TMap<FString, TSharedPtr<SSpinBox<float>>> ParamSpins;
 	TMap<FString, bool> ParamIsInt;
+	TMap<FString, TArray<TSharedPtr<FString>>> ParamOptions;   // dominio cerrado → lista
+	TMap<FString, FString> ParamChoice;                        // opción elegida por param
 
 	// Valor vivo de cada spinner (la fuente de verdad cuando NO está en modo vivo).
 	TMap<FString, float> ParamValues;
