@@ -73,6 +73,13 @@ def commit(command: str = "") -> str:
     return f"{salida}\n{panel.ejecutar_dsl('confirm', None)}"
 
 
+def ghost_target(x: float, y: float, z: float, view: bool = True, anchor: str = "base") -> str:
+    """Le dice al fantasma GRIS dónde va a caer la pieza (los valores de los campos de la
+    herramienta). Es plomería de la UI: cada vez que cambian x/y/z, el gris se mueve."""
+    from . import ghost
+    return ghost.objetivo(x, y, z, view, anchor)
+
+
 def aim() -> str:
     """JSON {hit, x, y, z} del punto de mira del viewport — dónde está parado Jam."""
     import json

@@ -115,6 +115,8 @@ private:
 	 * que mantiene coherente el comando (con view=true esos campos serían offsets).
 	 */
 	void FreezeAimIntoParams();
+	/** Avisa al fantasma GRIS dónde va a caer la pieza (x/y/z + view + anchor de los campos). */
+	void PushGhostTarget();
 
 	FReply OnPreviewClicked();
 	FReply OnConfirmarClicked();

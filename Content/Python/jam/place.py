@@ -3,8 +3,8 @@
 Spawnea un StaticMesh con control real de su relación con el entorno:
   · view:       lo pone DONDE MIRA EL VIEWPORT (la mira de Dash); x/y/z pasan a ser offset.
   · superficie: raycast vertical → lo apoya sobre la geometría real bajo (x,y).
-  · base:       corre el actor para que su BASE (no el pivote) toque esa superficie (a prueba de
-                pivotes descentrados de KitBash3D).
+  · anchor:     POR QUÉ PUNTO se coloca (base/center/corner/xmin…, ver `jam.pivot`) — a prueba de
+                pivotes descentrados o fuera de la malla, como los de KitBash3D. `base` es el atajo.
   · align:      orienta el "arriba" del asset a la NORMAL de la superficie (para pendientes).
   · physics:    tras colocar, lo asienta por caída AABB sobre lo que tenga debajo (apilar).
   · rotación / escala / jitter de yaw.
@@ -20,6 +20,7 @@ import random
 import unreal
 
 from . import library
+from .geometry import Vec3
 
 
 def _actor_sub() -> unreal.EditorActorSubsystem:
@@ -34,6 +35,7 @@ def colocar(
     *,
     surface: bool = False,
     base: bool | None = None,
+    anchor: str = "",
     align: bool = False,
     physics: bool = False,
     view: bool = False,
@@ -91,12 +93,18 @@ def colocar(
     if tuple(scale) != (1.0, 1.0, 1.0):
         actor.set_actor_scale3d(unreal.Vector(*scale))
 
-    # base sobre la superficie/z objetivo (mide el AABB REAL ya rotado+escalado → a prueba de pivote)
-    if base:
-        o, e = actor.get_actor_bounds(False)
-        dz = z - (o.z - e.z)
+    # ANCLA: por qué punto de la pieza se coloca. Se mide sobre el AABB REAL (ya rotado y escalado),
+    # así que funciona con cualquier pivote — incluso los que vienen fuera de la malla. `base` es el
+    # atajo histórico de `anchor="base"`, y sólo corrige Z.
+    ancla = anchor or ("base" if base else "")
+    if ancla:
+        from . import pivot as pv
+        from . import ue
         loc = actor.get_actor_location()
-        actor.set_actor_location(unreal.Vector(loc.x, loc.y, loc.z + dz), False, False)
+        actual = Vec3(loc.x, loc.y, loc.z)
+        objetivo = Vec3(x, y, z) if anchor else Vec3(actual.x, actual.y, z)
+        nueva = pv.location_para(ue.aabb(actor), actual, ancla, objetivo)
+        actor.set_actor_location(unreal.Vector(nueva.x, nueva.y, nueva.z), False, False)
 
     if physics:
         from . import physics as ph

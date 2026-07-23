@@ -24,3 +24,6 @@ DerivedDataCache/
 
 # Reference: la GIF de 15MB es pesada para la historia (el PNG/AVIF chicos sí se versionan)
 Reference/*.gif
+
+# Material de ayudantes visuales: se fabrica solo la primera vez (jam.materials)
+Content/Materials/

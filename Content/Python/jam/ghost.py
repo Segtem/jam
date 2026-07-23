@@ -1,30 +1,37 @@
-"""Fantasma — la malla real siguiendo el punto de mira, antes de colocarla.
+"""Fantasmas — la malla real antes de colocarla. DOS, y cada uno contesta una pregunta distinta:
 
-El gizmo dice DÓNDE va a caer la pieza; el fantasma muestra QUÉ va a caer, con su forma y su tamaño
-reales, apoyado en el piso como quedaría. Es el paso previo natural a «Confirmar / Colocar».
+  · AZUL «en vivo»: sigue el punto de mira. Contesta *dónde estoy apuntando*.
+  · GRIS «objetivo»: está en lo que dicen los campos x/y/z. Contesta *dónde va a caer si coloco*.
 
-Reglas para que el fantasma no contamine nada:
-  · va marcado con el tag `jam:ghost` → los oráculos lo ignoran como vecino (si no, cada pieza
-    «CLAVA» contra su propio fantasma, que está exactamente donde uno va a colocar).
-  · sin colisión → no puede bloquear el raycast del punto de mira (si no, se apuntaría a sí mismo).
-  · se le intenta poner un material translúcido del motor para que se lea como fantasma y no como
-    una pieza ya colocada.
+Con `view` encendido y offsets en cero, los dos coinciden. Al separarlos (offset, o `view` apagado y
+coordenadas a mano) se ve exactamente la diferencia entre la mira y el destino — que es lo que se
+sentía raro cuando había un solo fantasma que a veces seguía la mira y a veces no.
+
+Los dos se colocan por el ANCLA (`jam.pivot`), así que apoyan como apoyaría la pieza de verdad.
+
+Reglas para que no contaminen nada:
+  · tag `jam:ghost` → los oráculos los excluyen como vecinos (si no, cada pieza «CLAVA» contra su
+    propio fantasma, que está justo donde uno va a colocar).
+  · sin colisión → no pueden bloquear el raycast del punto de mira (si no, se apuntaría a sí mismo).
+  · material translúcido con color (`jam.materials`) para leerlos como lo que son.
 """
 
 from __future__ import annotations
 
 import unreal
 
+from .geometry import Vec3
+
 TAG = "jam:ghost"
 
-# Materiales translúcidos que trae el motor (los del editor de físicas). Se usa el primero que cargue.
-_MATERIALES = (
-    "/Engine/EditorMaterials/PhAT_ElemSelectedMaterial",
-    "/Engine/EditorMaterials/PhAT_ElemUnselectedMaterial",
-    "/Engine/EngineMaterials/Widget3DPassThrough_Translucent",
-)
+AZUL = unreal.LinearColor(0.1, 0.55, 1.0, 1.0)    # en vivo: dónde apunto
+GRIS = unreal.LinearColor(0.6, 0.6, 0.62, 1.0)    # objetivo: dónde cae
 
-_ESTADO: dict = {"handle": None, "actor": None, "ruta": None, "dz": 0.0, "fallos": 0}
+# objetivo = lo que dicen los campos de la herramienta (x/y/z + si son offset de la mira)
+_OBJETIVO: dict = {"x": 0.0, "y": 0.0, "z": 0.0, "view": True, "anchor": "base"}
+_ESTADO: dict = {"handle": None, "fallos": 0,
+                 "live": {"actor": None, "ruta": None},
+                 "fixed": {"actor": None, "ruta": None}}
 
 
 def encendido() -> bool:
@@ -42,38 +49,29 @@ def _vivo(actor) -> bool:
         return False
 
 
-def _material():
-    for ruta in _MATERIALES:
+def _destruir(modo: str) -> None:
+    slot = _ESTADO[modo]
+    if _vivo(slot["actor"]):
         try:
-            m = unreal.load_asset(ruta)
-            if isinstance(m, unreal.MaterialInterface):
-                return m
-        except Exception:  # noqa: BLE001
-            continue
-    return None
-
-
-def _destruir() -> None:
-    if _vivo(_ESTADO["actor"]):
-        try:
-            _sub().destroy_actor(_ESTADO["actor"])
+            _sub().destroy_actor(slot["actor"])
         except Exception:  # noqa: BLE001
             pass
-    _ESTADO["actor"] = None
-    _ESTADO["ruta"] = None
+    slot["actor"] = None
+    slot["ruta"] = None
 
 
-def _asegurar_actor():
-    """El fantasma del asset ACTIVO. Si cambió el asset (o alguien lo borró), lo rehace."""
-    from . import session, ue
+def _asegurar(modo: str, color):
+    """El fantasma de ese modo, para el asset ACTIVO. Lo rehace si cambió el asset o lo borraron."""
+    from . import materials, session, ue
+    slot = _ESTADO[modo]
     ruta = session.asset()
     if not ruta:
-        _destruir()
+        _destruir(modo)
         return None
-    if _vivo(_ESTADO["actor"]) and _ESTADO["ruta"] == ruta:
-        return _ESTADO["actor"]
+    if _vivo(slot["actor"]) and slot["ruta"] == ruta:
+        return slot["actor"]
 
-    _destruir()
+    _destruir(modo)
     malla = unreal.load_asset(ruta)
     if not isinstance(malla, unreal.StaticMesh):
         return None
@@ -81,11 +79,11 @@ def _asegurar_actor():
     if actor is None:
         return None
 
-    actor.set_actor_label(f"JamGhost_{malla.get_name()}")
+    actor.set_actor_label(f"JamGhost_{modo}_{malla.get_name()}")
     ue.set_tags(actor, [TAG])
     actor.set_actor_enable_collision(False)   # no debe bloquear el raycast de la mira
 
-    mat = _material()
+    mat = materials.instancia(color, 0.35, actor)
     if mat is not None:
         try:
             comp = actor.static_mesh_component
@@ -94,45 +92,82 @@ def _asegurar_actor():
         except Exception:  # noqa: BLE001
             pass
 
-    # offset del pivote a la base: para apoyarlo, no para clavarlo a medias en el piso
-    o, e = actor.get_actor_bounds(False)
-    loc = actor.get_actor_location()
-    _ESTADO["dz"] = loc.z - (o.z - e.z)
-    _ESTADO["actor"] = actor
-    _ESTADO["ruta"] = ruta
+    slot["actor"] = actor
+    slot["ruta"] = ruta
     return actor
+
+
+def _poner_en(actor, destino: Vec3) -> None:
+    """Mueve el actor para que su ANCLA caiga en `destino` (mismo cálculo que hace `place`)."""
+    from . import pivot as pv
+    from . import ue
+    loc = actor.get_actor_location()
+    nueva = pv.location_para(ue.aabb(actor), Vec3(loc.x, loc.y, loc.z),
+                             _OBJETIVO["anchor"] or "base", destino)
+    actor.set_actor_location(unreal.Vector(nueva.x, nueva.y, nueva.z), False, False)
+
+
+def objetivo(x: float, y: float, z: float, view: bool = True, anchor: str = "base") -> str:
+    """Fija lo que muestra el fantasma GRIS: los valores de los campos de la herramienta."""
+    _OBJETIVO.update({"x": float(x), "y": float(y), "z": float(z),
+                      "view": bool(view), "anchor": anchor or "base"})
+    if encendido():
+        _tick()
+    return (f"objetivo del fantasma: ({x:.0f}, {y:.0f}, {z:.0f})"
+            + (" como offset de la mira" if view else " en absolutas"))
+
+
+def _destinos():
+    """(destino del azul, destino del gris). El azul es la mira cruda; el gris, donde caería la
+    pieza según los campos: mira+offset si `view`, o las coordenadas absolutas si no."""
+    from . import ue
+    mira = ue.punto_de_mira()
+    p = mira["punto"] if mira else None
+    obj = _OBJETIVO
+    if obj["view"]:
+        if p is None:
+            return None, None
+        return p, Vec3(p.x + obj["x"], p.y + obj["y"], p.z + obj["z"])
+    return p, Vec3(obj["x"], obj["y"], obj["z"])
 
 
 def _tick(_delta=0.0) -> None:
     try:
-        from . import ue
-        actor = _asegurar_actor()
-        if actor is None:
-            return
-        mira = ue.punto_de_mira()
-        if mira is None or mira["punto"] is None:
-            return
-        p = mira["punto"]
-        actor.set_actor_location(unreal.Vector(p.x, p.y, p.z + _ESTADO["dz"]), False, False)
+        live_dest, fixed_dest = _destinos()
+
+        # el azul sólo tiene sentido cuando la mira participa (view): si no, sería un fantasma
+        # siguiendo al mouse mientras la pieza cae en otro lado — justo lo que confundía.
+        if _OBJETIVO["view"] and live_dest is not None:
+            a = _asegurar("live", AZUL)
+            if a is not None:
+                _poner_en(a, live_dest)
+        else:
+            _destruir("live")
+
+        if fixed_dest is not None:
+            g = _asegurar("fixed", GRIS)
+            if g is not None:
+                _poner_en(g, fixed_dest)
+
         _ESTADO["fallos"] = 0
     except Exception as e:  # noqa: BLE001
         _ESTADO["fallos"] += 1
         if _ESTADO["fallos"] >= 5:
-            unreal.log_warning(f"[Jam] fantasma apagado tras 5 fallos: {e}")
+            unreal.log_warning(f"[Jam] fantasmas apagados tras 5 fallos: {e}")
             apagar()
 
 
 def encender() -> str:
     from . import session
     if encendido():
-        return "el fantasma ya estaba encendido."
+        return "los fantasmas ya estaban encendidos."
     if not session.asset():
         return "no hay asset activo: elegí uno en Content (o «pick») y volvé a encender el fantasma."
     _ESTADO["fallos"] = 0
     _ESTADO["handle"] = unreal.register_slate_post_tick_callback(_tick)
     _tick()
-    return ("FANTASMA ON ✓ — la malla sigue el punto de mira (sin colisión y fuera del oráculo). "
-            "«Confirmar / Colocar» pone la pieza de verdad ahí.")
+    return ("FANTASMAS ON ✓ — AZUL sigue el punto de mira · GRIS está donde va a caer la pieza "
+            "según x/y/z. «Confirmar / Colocar» pone la pieza de verdad en el gris.")
 
 
 def apagar() -> str:
@@ -143,9 +178,10 @@ def apagar() -> str:
         except Exception:  # noqa: BLE001
             pass
         _ESTADO["handle"] = None
-    tenia = _vivo(_ESTADO["actor"])
-    _destruir()
-    return "fantasma OFF — borrado del nivel." if tenia else "el fantasma ya estaba apagado."
+    tenia = _vivo(_ESTADO["live"]["actor"]) or _vivo(_ESTADO["fixed"]["actor"])
+    _destruir("live")
+    _destruir("fixed")
+    return "fantasmas OFF — borrados del nivel." if tenia else "los fantasmas ya estaban apagados."
 
 
 def limpiar_huerfanos() -> int:
@@ -159,6 +195,7 @@ def limpiar_huerfanos() -> int:
                 n += 1
             except Exception:  # noqa: BLE001
                 pass
-    _ESTADO["actor"] = None
-    _ESTADO["ruta"] = None
+    for modo in ("live", "fixed"):
+        _ESTADO[modo]["actor"] = None
+        _ESTADO[modo]["ruta"] = None
     return n

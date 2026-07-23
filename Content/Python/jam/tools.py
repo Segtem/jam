@@ -60,15 +60,41 @@ def t_ghost(asset, *, on=True) -> str:
     return ghost.encender() if on else ghost.apagar()
 
 
-def t_place(asset, *, x=0.0, y=0.0, z=0.0, view=True, surface=True, align=False, physics=False,
-            yaw=0.0, scale=1.0) -> str:
+def t_pivot(asset, *, anchor="") -> str:
+    """Diagnóstico del PIVOTE del asset: dónde está dentro de su propia caja y si el asset sirve
+    para repetir tal cual o hay que colocarlo por un ancla. No toca la escena: mide la malla en su
+    espacio local, donde el pivote es el origen por definición."""
+    import unreal as U
+
+    from . import library, pivot as pv
+    from .geometry import AABB, Vec3
+    malla = library.cargar_malla(asset) if isinstance(asset, str) else asset
+    if malla is None:
+        return f"no pude cargar {_corto(asset)}"
+    caja = malla.get_bounding_box()
+    mn, mx = caja.min, caja.max
+    aabb = AABB(Vec3((mx.x + mn.x) / 2.0, (mx.y + mn.y) / 2.0, (mx.z + mn.z) / 2.0),
+                Vec3((mx.x - mn.x) / 2.0, (mx.y - mn.y) / 2.0, (mx.z - mn.z) / 2.0))
+    texto = pv.diagnostico_texto(malla.get_name(), aabb, Vec3(0.0, 0.0, 0.0))
+    if anchor:
+        if anchor not in pv.ANCLAS:
+            return f"{texto}\n    ancla «{anchor}» desconocida — hay: {', '.join(pv.ANCLAS)}"
+        p = pv.punto_ancla(aabb, anchor, Vec3(0.0, 0.0, 0.0))
+        texto += (f"\n    ancla «{anchor}» = ({p.x:.0f}, {p.y:.0f}, {p.z:.0f}) respecto del pivote "
+                  f"→ «place anchor={anchor}» corrige eso al colocar")
+    return texto
+
+
+def t_place(asset, *, x=0.0, y=0.0, z=0.0, view=True, surface=True, anchor="base", align=False,
+            physics=False, yaw=0.0, scale=1.0) -> str:
     """Coloca un ladrillo en relación a su entorno: `view`=en el punto de mira del viewport (x/y/z
-    son offset), `surface`=raycast al piso, `align`=orientar a la normal, `physics`=asentar por
-    caída, `yaw`/`scale`. El oráculo del entorno verifica APOYADO sobre una superficie (gap≈0) +
-    SIN CLAVARSE con los vecinos (geometría, no el soporte ni el landscape)."""
+    son offset), `surface`=raycast al piso, `anchor`=por qué punto de la pieza se coloca (base,
+    center, corner, xmin…), `align`=orientar a la normal, `physics`=asentar por caída, `yaw`/`scale`.
+    El oráculo del entorno verifica APOYADO sobre una superficie (gap≈0) + SIN CLAVARSE con los
+    vecinos (geometría, no el soporte ni el landscape)."""
     from . import place
     actor = place.colocar(asset, (x, y, z), (0.0, 0.0, yaw), (scale, scale, scale),
-                          view=view, surface=surface, align=align, physics=physics)
+                          view=view, surface=surface, anchor=anchor, align=align, physics=physics)
     if actor is None:
         return f"no se pudo colocar {_corto(asset)}"
     return _veredicto_entorno(actor)
@@ -209,9 +235,12 @@ REGISTRO = {
                      "doc": "elige el asset activo (Content); las demás herramientas lo heredan"},
     "pick":         {"fn": t_pick,    "cat": "Content", "params": {},
                      "doc": "usa la malla SELECCIONADA en el Content Browser de Unreal como asset activo"},
+    "pivot":        {"fn": t_pivot,   "cat": "Edit",    "params": {"anchor": ""},
+                     "doc": "dónde está el pivote del asset y si sirve para repetir (o hay que anclarlo)"},
     "place":        {"fn": t_place,   "cat": "Place",
                      "params": {"x": 0.0, "y": 0.0, "z": 0.0, "view": True, "surface": True,
-                                "align": False, "physics": False, "yaw": 0.0, "scale": 1.0},
+                                "anchor": "base", "align": False, "physics": False,
+                                "yaw": 0.0, "scale": 1.0},
                      "doc": "coloca un ladrillo donde mirás: raycast a superficie, align a la normal, física, rot/escala; verifica entorno"},
     "scatter":      {"fn": t_scatter, "cat": "Scatter", "params": {"count": 9, "area": 500.0, "seed": 7},
                      "doc": "esparce N copias en un área y verifica cobertura"},
@@ -234,7 +263,7 @@ REGISTRO = {
 # Verbos que NO crean nada COLOCABLE: son selección o estado de la herramienta, así que no pasan por
 # el preview (si pasaran, «Confirmar/Descartar» quedarían apuntando a una preview vacía). El
 # fantasma sí crea un actor, pero es un ayudante efímero, no una pieza del nivel.
-SIN_SPAWN = {"asset", "pick", "gizmo", "ghost"}
+SIN_SPAWN = {"asset", "pick", "gizmo", "ghost", "pivot"}
 
 # Orden de las categorías en la barra (como Dash). Las vacías no se muestran.
 CATEGORIAS = ["Content", "Place", "Scatter", "Create", "Edit"]

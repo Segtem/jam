@@ -430,6 +430,7 @@ TSharedRef<SWidget> FJamEditorModule::BuildDashContent()
 				{
 					bGhostOn = !bGhostOn;
 					RunCommand(bGhostOn ? TEXT("ghost on=true") : TEXT("ghost on=false"));
+					PushGhostTarget();   // que el gris nazca en los valores actuales
 					return FReply::Handled();
 				})
 				.ButtonColorAndOpacity_Lambda([this]()
@@ -564,6 +565,38 @@ bool FJamEditorModule::ComputeAimPoint(FVector& Out) const
 		Out = Start + Dir * 1000.0;   // sin superficie: 10 m adelante, igual que en Python
 	}
 	return true;
+}
+
+void FJamEditorModule::PushGhostTarget()
+{
+	// El fantasma GRIS vive en los valores de los campos: cada vez que cambian, se lo avisamos.
+	// Sólo mientras esté encendido (si no, sería una llamada a Python al cuete por cada tecla).
+	if (!bGhostOn)
+	{
+		return;
+	}
+	const float X = ParamValues.Contains(TEXT("x")) ? ParamValues[TEXT("x")] : 0.0f;
+	const float Y = ParamValues.Contains(TEXT("y")) ? ParamValues[TEXT("y")] : 0.0f;
+	const float Z = ParamValues.Contains(TEXT("z")) ? ParamValues[TEXT("z")] : 0.0f;
+
+	bool bView = false;
+	if (const TSharedPtr<SCheckBox>* V = ParamChecks.Find(TEXT("view")))
+	{
+		bView = (*V)->IsChecked();
+	}
+	FString Anchor(TEXT("base"));
+	if (const TSharedPtr<SEditableTextBox>* A = ParamFields.Find(TEXT("anchor")))
+	{
+		const FString S = (*A)->GetText().ToString().TrimStartAndEnd();
+		if (!S.IsEmpty())
+		{
+			Anchor = S;
+		}
+	}
+
+	ExecPythonCapture(FString::Printf(
+		TEXT("import jam.api as _a; _a.ghost_target(%f, %f, %f, %s, '%s')"),
+		X, Y, Z, bView ? TEXT("True") : TEXT("False"), *Anchor));
 }
 
 void FJamEditorModule::FreezeAimIntoParams()
@@ -1167,6 +1200,7 @@ void FJamEditorModule::ComposeCommandFromParams()
 			}
 		}
 	}
+	PushGhostTarget();
 	if (!SelectedAssetName.IsEmpty())
 	{
 		Cmd += FString::Printf(TEXT(" asset=%s"), *SelectedAssetName);
