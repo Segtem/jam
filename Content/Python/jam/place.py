@@ -27,6 +27,25 @@ def _actor_sub() -> unreal.EditorActorSubsystem:
     return unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
 
 
+def normalizar_agarre(actor, ancla: str = "base") -> bool:
+    """Deja el `pivot_offset` del actor en su ancla: el gizmo del editor lo agarra POR AHÍ (y rota
+    alrededor de ahí). Es lo que hace que una pieza con el pivote en una esquina se mueva bien.
+    Editor-only y por actor: la malla del disco no se toca."""
+    from . import pivot as pv
+    from . import ue
+    try:
+        loc = actor.get_actor_location()
+        p = pv.punto_ancla(ue.aabb(actor), ancla, Vec3(loc.x, loc.y, loc.z))
+        # `pivot_offset` es en espacio LOCAL del actor (el editor lo pasa por su transform), así que
+        # el punto del ancla hay que llevarlo al local — si no, falla en cuanto hay rotación o escala.
+        local = unreal.MathLibrary.inverse_transform_location(
+            actor.get_actor_transform(), unreal.Vector(p.x, p.y, p.z))
+        actor.set_editor_property("pivot_offset", local)
+        return True
+    except Exception:  # noqa: BLE001
+        return False
+
+
 def colocar(
     asset: str | unreal.StaticMesh,
     location=(0.0, 0.0, 0.0),
@@ -94,17 +113,23 @@ def colocar(
         actor.set_actor_scale3d(unreal.Vector(*scale))
 
     # ANCLA: por qué punto de la pieza se coloca. Se mide sobre el AABB REAL (ya rotado y escalado),
-    # así que funciona con cualquier pivote — incluso los que vienen fuera de la malla. `base` es el
-    # atajo histórico de `anchor="base"`, y sólo corrige Z.
-    ancla = anchor or ("base" if base else "")
-    if ancla:
-        from . import pivot as pv
-        from . import ue
+    # así que funciona con cualquier pivote — incluso los que vienen fuera de la malla. Si no se pide
+    # una, se usa la que el asset tenga NORMALIZADA en el kit (default `base`).
+    from . import kit, pivot as pv, ue
+    explicita = bool(anchor)
+    ruta = asset if isinstance(asset, str) else mesh.get_path_name()
+    ancla = anchor or kit.ancla(ruta, "base" if base or base is None else "")
+    if ancla and ancla != "pivot":
         loc = actor.get_actor_location()
         actual = Vec3(loc.x, loc.y, loc.z)
-        objetivo = Vec3(x, y, z) if anchor else Vec3(actual.x, actual.y, z)
+        objetivo = Vec3(x, y, z) if explicita or kit.normalizado(ruta) else Vec3(actual.x, actual.y, z)
         nueva = pv.location_para(ue.aabb(actor), actual, ancla, objetivo)
         actor.set_actor_location(unreal.Vector(nueva.x, nueva.y, nueva.z), False, False)
+
+    # NORMALIZAR EL AGARRE: el gizmo del editor toma la pieza por el `pivot_offset` del actor. Sin
+    # esto, un asset con el pivote abajo en una esquina (casa_kit) se agarra de la esquina y al
+    # rotarlo se va de paseo en vez de girar en su lugar. No se toca la malla del disco.
+    normalizar_agarre(actor, ancla or "base")
 
     if physics:
         from . import physics as ph

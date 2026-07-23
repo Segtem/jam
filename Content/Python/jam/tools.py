@@ -78,7 +78,14 @@ def t_pivot(asset, *, anchor="") -> str:
     mn, mx = caja.min, caja.max
     aabb = AABB(Vec3((mx.x + mn.x) / 2.0, (mx.y + mn.y) / 2.0, (mx.z + mn.z) / 2.0),
                 Vec3((mx.x - mn.x) / 2.0, (mx.y - mn.y) / 2.0, (mx.z - mn.z) / 2.0))
+    from . import kit, store
+    store.cargar_kit()
+    ruta = asset if isinstance(asset, str) else malla.get_path_name()
     texto = pv.diagnostico_texto(malla.get_name(), aabb, Vec3(0.0, 0.0, 0.0))
+    if kit.normalizado(ruta):
+        texto += f"\n    NORMALIZADO en el kit: se agarra por «{kit.ancla(ruta)}» ✓"
+    elif not pv.diagnostico(aabb, Vec3(0.0, 0.0, 0.0))["tileable"]:
+        texto += "\n    → «normalize» lo arregla de una vez para todas las herramientas"
     if anchor:
         if anchor not in pv.ANCLAS:
             return f"{texto}\n    ancla «{anchor}» desconocida — hay: {', '.join(pv.ANCLAS)}"
@@ -86,6 +93,56 @@ def t_pivot(asset, *, anchor="") -> str:
         texto += (f"\n    ancla «{anchor}» = ({p.x:.0f}, {p.y:.0f}, {p.z:.0f}) respecto del pivote "
                   f"→ «place anchor={anchor}» corrige eso al colocar")
     return texto
+
+
+def t_normalize(asset, *, anchor="", scene=True) -> str:
+    """NORMALIZA el pivote del asset: anota en el kit por qué punto hay que agarrarlo, y arregla las
+    piezas de ese asset que ya estén en el nivel. Se hace UNA vez por asset y desde entonces todas
+    las herramientas lo tratan normalizado. No toca la malla del disco.
+
+    Sin `anchor`, elige solo: si el pivote ya está en la base y centrado no hace nada; si está en una
+    esquina o fuera de la malla, lo normaliza a `base` (el punto natural de agarre)."""
+    from . import kit, pivot as pv, place, store, ue
+    from .geometry import AABB, Vec3
+    from . import library
+    ruta = asset if isinstance(asset, str) else (asset.get_path_name() if asset else "")
+    malla = library.cargar_malla(ruta) if ruta else None
+    if malla is None:
+        return f"no pude cargar {_corto(ruta)}"
+
+    caja = malla.get_bounding_box()
+    mn, mx = caja.min, caja.max
+    aabb = AABB(Vec3((mx.x + mn.x) / 2.0, (mx.y + mn.y) / 2.0, (mx.z + mn.z) / 2.0),
+                Vec3((mx.x - mn.x) / 2.0, (mx.y - mn.y) / 2.0, (mx.z - mn.z) / 2.0))
+    diag = pv.diagnostico(aabb, Vec3(0.0, 0.0, 0.0))
+    elegida = anchor or kit.sugerir(diag)
+    if elegida not in pv.ANCLAS:
+        return f"ancla «{elegida}» desconocida — hay: {', '.join(pv.ANCLAS)}"
+
+    kit.set_ancla(ruta, elegida)
+    guardado = store.guardar_kit()
+
+    # arreglar lo que ya está en el nivel: el agarre de cada pieza de ese asset
+    tocados = 0
+    if scene:
+        objetivo = malla.get_name()
+        for a in ue.actores_nivel():
+            try:
+                comp = a.static_mesh_component
+                if comp and comp.static_mesh and comp.static_mesh.get_name() == objetivo:
+                    tocados += 1 if place.normalizar_agarre(a, elegida) else 0
+            except Exception:  # noqa: BLE001
+                continue
+
+    ux, uy, uz = diag["u"]
+    antes = (f"pivote original: x {ux * 100:.0f}%, y {uy * 100:.0f}%, z {uz * 100:.0f}% de su caja"
+             + (" (FUERA de la malla)" if diag["fuera"] else ""))
+    if elegida == "pivot":
+        return (f"[{malla.get_name()}] YA ESTABA NORMALIZADO ✓ — {antes}. Se agarra por su propio "
+                f"pivote; no hay nada que corregir.")
+    return (f"[{malla.get_name()}] NORMALIZADO ✓ → se agarra por «{elegida}» — {antes}.\n"
+            f"    {tocados} piezas del nivel reajustadas · todas las tools usan esta ancla"
+            + (f" · guardado en {guardado}" if guardado else " · (no pude guardarlo en disco)"))
 
 
 def t_pivot_set(asset, *, to="base") -> str:
@@ -98,18 +155,11 @@ def t_pivot_set(asset, *, to="base") -> str:
     from .geometry import Vec3
     if to not in pv.ANCLAS:
         return f"ancla «{to}» desconocida — hay: {', '.join(pv.ANCLAS)}"
+    from . import place
     sel = ue._sub().get_selected_level_actors()
     if not sel:
         return "no hay actores seleccionados en el nivel: elegí uno y volvé a intentar."
-    n = 0
-    for a in sel:
-        try:
-            loc = a.get_actor_location()
-            off = pv.offset_pivote(ue.aabb(a), Vec3(loc.x, loc.y, loc.z), to)
-            a.set_editor_property("pivot_offset", U.Vector(off.x, off.y, off.z))
-            n += 1
-        except Exception:  # noqa: BLE001
-            continue
+    n = sum(1 for a in sel if place.normalizar_agarre(a, to))
     return (f"PIVOTE → «{to}» ✓ en {n} de {len(sel)} actores (pivot_offset del actor; la malla del "
             f"disco no se toca).")
 
@@ -277,6 +327,9 @@ REGISTRO = {
     "pivot":        {"fn": t_pivot,   "cat": "Edit",    "params": {"anchor": ""},
                      "opciones": {"anchor": [""] + list(_ANCLAS)},
                      "doc": "dónde está el pivote del asset y si sirve para repetir (o hay que anclarlo)"},
+    "normalize":    {"fn": t_normalize, "cat": "Edit",  "params": {"anchor": "", "scene": True},
+                     "opciones": {"anchor": [""] + list(_ANCLAS)},
+                     "doc": "normaliza el pivote del asset (una vez): todas las tools lo agarran por ahí"},
     "pivot_set":    {"fn": t_pivot_set, "cat": "Edit",  "params": {"to": "base"},
                      "opciones": {"to": list(_ANCLAS)},
                      "doc": "mueve el pivote de los actores seleccionados al ancla elegida"},
@@ -307,7 +360,7 @@ REGISTRO = {
 # Verbos que NO crean nada COLOCABLE: son selección o estado de la herramienta, así que no pasan por
 # el preview (si pasaran, «Confirmar/Descartar» quedarían apuntando a una preview vacía). El
 # fantasma sí crea un actor, pero es un ayudante efímero, no una pieza del nivel.
-SIN_SPAWN = {"asset", "pick", "gizmo", "ghost", "pivot", "pivot_set"}
+SIN_SPAWN = {"asset", "pick", "gizmo", "ghost", "pivot", "pivot_set", "normalize"}
 
 # Orden de las categorías en la barra (como Dash). Las vacías no se muestran.
 CATEGORIAS = ["Content", "Place", "Scatter", "Create", "Edit"]
