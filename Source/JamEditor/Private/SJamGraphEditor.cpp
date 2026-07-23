@@ -68,6 +68,7 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 {
 	Tools = InTools;
 	OnRunGraph = InArgs._OnRunGraph;
+	OnSaveGraph = InArgs._OnSaveGraph;
 	ActiveAsset = InArgs._ActiveAsset;
 	OnOpenContent = InArgs._OnOpenContent;
 
@@ -181,6 +182,19 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 			[
 				SNew(SButton).Text(LOCTEXT("Run", "▶ Run graph"))
 				.OnClicked_Lambda([this]() { RunGraph(); return FReply::Handled(); })
+			]
+			+ SHorizontalBox::Slot().AutoWidth().Padding(4.0f, 0.0f, 0.0f, 0.0f)
+			[
+				SNew(SButton).Text(LOCTEXT("SaveCompound", "★ Guardar como preset"))
+				.ToolTipText(LOCTEXT("SaveCompoundTip", "Guarda este grafo como preset compound reusable"))
+				.OnClicked_Lambda([this]()
+				{
+					if (Nodes.Num() > 0 && OnSaveGraph.IsBound())
+					{
+						OnSaveGraph.Execute(BuildJson());
+					}
+					return FReply::Handled();
+				})
 			]
 			+ SHorizontalBox::Slot().FillWidth(1.0f).VAlign(VAlign_Center).Padding(8.0f, 0.0f, 0.0f, 0.0f)
 			[

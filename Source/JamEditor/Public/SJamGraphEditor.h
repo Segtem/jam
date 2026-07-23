@@ -29,6 +29,8 @@ public:
 		SLATE_ATTRIBUTE(FString, ActiveAsset)
 		/** Abre la ventana de Content (para elegir el asset sin salir del grafo). */
 		SLATE_EVENT(FSimpleDelegate, OnOpenContent)
+		/** Guarda el grafo (JSON) como preset compound. */
+		SLATE_EVENT(FOnRunGraph, OnSaveGraph)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs, const TArray<FJamTool>& InTools);
@@ -79,6 +81,7 @@ private:
 	int32 NextId = 1;
 
 	FOnRunGraph OnRunGraph;
+	FOnRunGraph OnSaveGraph;
 	FSimpleDelegate OnOpenContent;
 	TAttribute<FString> ActiveAsset;
 	TSharedPtr<SCanvas> Canvas;

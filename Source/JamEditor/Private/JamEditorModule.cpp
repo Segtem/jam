@@ -130,12 +130,24 @@ void FJamEditorModule::OpenGraph()
 		SNew(SJamGraphEditor, Tools)
 		.OnRunGraph_Raw(this, &FJamEditorModule::RunGraphJson)
 		.ActiveAsset_Lambda([this]() { return SelectedAssetName; })
-		.OnOpenContent_Raw(this, &FJamEditorModule::OpenContentWindow));
+		.OnOpenContent_Raw(this, &FJamEditorModule::OpenContentWindow)
+		.OnSaveGraph_Raw(this, &FJamEditorModule::SaveGraphAsPreset));
 	Win->SetOnWindowClosed(FOnWindowClosed::CreateLambda(
 		[this](const TSharedRef<SWindow>&) { GraphWindow.Reset(); }));
 
 	FSlateApplication::Get().AddWindow(Win);
 	GraphWindow = Win;
+}
+
+FString FJamEditorModule::SaveGraphAsPreset(const FString& Json)
+{
+	const FString Nombre = FString::Printf(TEXT("Compound %s"), *FDateTime::Now().ToString(TEXT("%H%M%S")));
+	const FString Stmt = FString::Printf(
+		TEXT("import jam.api as _a; print(_a.preset_save_graph(%s, %s))"),
+		*ToPyStr(Nombre), *ToPyStr(Json));
+	const FString Out = ExecPythonCapture(Stmt);
+	UE_LOG(LogTemp, Display, TEXT("[JamEditor] %s"), *Out);
+	return Out;
 }
 
 FString FJamEditorModule::RunGraphJson(const FString& Json)
@@ -469,6 +481,27 @@ TSharedRef<SWidget> FJamEditorModule::BuildDashContent()
 					return bGizmoOn ? FLinearColor(0.0f, 0.75f, 0.85f, 1.0f)
 					                : FLinearColor(0.09f, 0.09f, 0.1f, 1.0f);
 				})
+			]
+		]
+
+		// Presets: aplicar uno (combo) o guardar el comando actual como preset. Como en Dash.
+		+ SVerticalBox::Slot()
+		.AutoHeight()
+		.Padding(6.0f, 2.0f)
+		[
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot().AutoWidth().Padding(0.0f, 0.0f, 4.0f, 0.0f)
+			[
+				SNew(SComboButton)
+				.ButtonContent()[ SNew(STextBlock).Text(LOCTEXT("Presets", "★ Presets")) ]
+				.OnGetMenuContent_Raw(this, &FJamEditorModule::MakePresetMenu)
+			]
+			+ SHorizontalBox::Slot().AutoWidth()
+			[
+				SNew(SButton)
+				.Text(LOCTEXT("SavePreset", "★ Guardar preset"))
+				.ToolTipText(LOCTEXT("SavePresetTip", "Guarda el comando actual como preset local reusable"))
+				.OnClicked_Raw(this, &FJamEditorModule::OnSavePresetClicked)
 			]
 		]
 
@@ -820,6 +853,62 @@ void FJamEditorModule::ShowActiveThumbnail(const FString& Path)
 	FAssetThumbnailConfig Cfg;
 	Cfg.bAllowFadeIn = true;
 	ActiveThumbBox->SetContent(ActiveThumb->MakeThumbnailWidget(Cfg));
+}
+
+TSharedRef<SWidget> FJamEditorModule::MakePresetMenu()
+{
+	FMenuBuilder MB(true, nullptr);
+	// leer la lista de presets (JSON) y armar una entrada por cada uno; aplicar corre por preview.
+	const FString Raw = ExecPythonCapture(
+		TEXT("import jam.api as _a; print('JAMPRE:' + _a.presets())"));
+	const int32 M = Raw.Find(TEXT("JAMPRE:"));
+	if (M != INDEX_NONE)
+	{
+		FString Json = Raw.Mid(M + 7);
+		Json.TrimStartAndEndInline();
+		TArray<TSharedPtr<FJsonValue>> Arr;
+		TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Json);
+		if (FJsonSerializer::Deserialize(Reader, Arr))
+		{
+			for (const TSharedPtr<FJsonValue>& V : Arr)
+			{
+				const TSharedPtr<FJsonObject> O = V->AsObject();
+				if (!O.IsValid())
+				{
+					continue;
+				}
+				const FString Nombre = O->GetStringField(TEXT("nombre"));
+				FString Kind = TEXT("tool");
+				O->TryGetStringField(TEXT("kind"), Kind);
+				FString Desc;
+				O->TryGetStringField(TEXT("descripcion"), Desc);
+				const FString Etiqueta = FString::Printf(TEXT("%s  [%s]"), *Nombre, *Kind);
+				MB.AddMenuEntry(FText::FromString(Etiqueta), FText::FromString(Desc), FSlateIcon(),
+					FUIAction(FExecuteAction::CreateLambda([this, Nombre]()
+					{
+						RunCommand(FString::Printf(TEXT("preset %s"), *Nombre));
+					})));
+			}
+		}
+	}
+	return MB.MakeWidget();
+}
+
+FReply FJamEditorModule::OnSavePresetClicked()
+{
+	const FString Cmd = CmdBox.IsValid() ? CmdBox->GetText().ToString().TrimStartAndEnd() : FString();
+	if (Cmd.IsEmpty())
+	{
+		AppendLog(FString(), TEXT("no hay comando para guardar como preset."));
+		return FReply::Handled();
+	}
+	// nombre autogenerado a partir del verbo + timestamp; el usuario lo renombra editando el JSON.
+	const FString Nombre = FString::Printf(TEXT("Preset %s"), *FDateTime::Now().ToString(TEXT("%H%M%S")));
+	const FString Stmt = FString::Printf(
+		TEXT("import jam.api as _a; print(_a.preset_save_command(%s, %s))"),
+		*ToPyStr(Nombre), *ToPyStr(Cmd));
+	AppendLog(TEXT("save preset"), ExecPythonCapture(Stmt));
+	return FReply::Handled();
 }
 
 void FJamEditorModule::PickFromUnrealSelection()

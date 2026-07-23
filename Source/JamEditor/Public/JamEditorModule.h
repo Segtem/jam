@@ -69,6 +69,8 @@ private:
 	void OpenWebUI();
 	/** Corre un JamGraph (JSON) vía Python (jam.panel.ejecutar_grafo) y devuelve el reporte. */
 	FString RunGraphJson(const FString& Json);
+	/** Guarda el grafo del canvas como preset compound. */
+	FString SaveGraphAsPreset(const FString& Json);
 
 	/** Carga el spec en `Tools`. `bIncludeFlow`=true suma las ops de flow (source/mask/instance) para
 	 *  el canvas estilo Houdini; false = sólo verbos (Dash Bar). */
@@ -122,6 +124,10 @@ private:
 	void FreezeAimIntoParams();
 	/** Avisa al fantasma GRIS dónde va a caer la pieza (x/y/z + view + anchor de los campos). */
 	void PushGhostTarget();
+
+	// Presets: menú para aplicar uno (corre por preview) y botón para guardar el comando actual.
+	TSharedRef<SWidget> MakePresetMenu();
+	FReply OnSavePresetClicked();
 
 	FReply OnPreviewClicked();
 	FReply OnConfirmarClicked();
