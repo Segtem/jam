@@ -212,7 +212,14 @@ void FJamEditorModule::OpenDashBar()
 
 	if (Tools.Num() > 0)
 	{
-		SelectTool(ActiveVerb.IsEmpty() ? Tools[0].Verb : ActiveVerb);
+		// Arrancar en una herramienta VISIBLE del ribbon: el 1º del registro es `asset`, que vive en la
+		// ventana de Content y no tiene tab propia → se abría en un verbo que no se ve en ninguna tab.
+		FString Inicial = ActiveVerb;
+		if (Inicial.IsEmpty())
+		{
+			Inicial = (FindTool(TEXT("place")) != nullptr) ? TEXT("place") : Tools[0].Verb;
+		}
+		SelectTool(Inicial);
 	}
 }
 
@@ -761,6 +768,16 @@ bool FJamEditorModule::IsLiveAim() const
 void FJamEditorModule::SelectTool(const FString& Verb)
 {
 	ActiveVerb = Verb;
+	// El ribbon SIGUE al verbo activo: si el verbo vive en otra tab (p.ej. lo eligió «Find Tools»),
+	// se abre esa tab. Si no, quedaba resaltada una tab que NO contiene la herramienta en uso.
+	if (const FJamTool* T = FindTool(Verb))
+	{
+		if (!T->Cat.IsEmpty() && T->Cat != TEXT("Content"))
+		{
+			ActiveDashTab = T->Cat;
+		}
+	}
+	RebuildDashTabContent();
 	RebuildParams();
 }
 
