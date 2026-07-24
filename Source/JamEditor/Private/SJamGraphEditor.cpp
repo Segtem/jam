@@ -9,13 +9,12 @@
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/Layout/SScrollBox.h"
 #include "Widgets/Input/SButton.h"
-#include "Widgets/Input/SComboButton.h"
 #include "Widgets/Input/SEditableTextBox.h"
 #include "Widgets/Input/SMultiLineEditableTextBox.h"
 #include "Widgets/Text/STextBlock.h"
-#include "Framework/MultiBox/MultiBoxBuilder.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Styling/AppStyle.h"
+#include "Styling/CoreStyle.h"
 #include "Rendering/DrawElements.h"
 #include "Math/TransformCalculus2D.h"
 #include "Serialization/JsonReader.h"
@@ -72,43 +71,46 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 	ActiveAsset = InArgs._ActiveAsset;
 	OnOpenContent = InArgs._OnOpenContent;
 
-	// Paleta agrupada por categoría (como Dash): un combo por categoría → sus nodos. Con verbos +
-	// flow serían ~21 botones sueltos; agrupados es navegable. El doble clic en el lienzo busca igual.
-	TSharedRef<SHorizontalBox> Palette = SNew(SHorizontalBox);
-	Palette->AddSlot().AutoWidth().Padding(2.0f, 0.0f)
+	// Ribbon estilo Grasshopper: una fila de TABS (categorías) y, debajo, las fichas de la categoría
+	// activa con ICONO (badge de color + código) + nombre. El tab activo se pinta con el tono de su
+	// categoría. El doble clic en el lienzo abre el buscador igual (los dos caminos conviven).
+	Categories.Reset();
+	for (const FJamTool& T : Tools)
+	{
+		Categories.AddUnique(T.Cat);
+	}
+	if (ActiveTab.IsEmpty() && Categories.Num() > 0)
+	{
+		ActiveTab = Categories[0];
+	}
+
+	TSharedRef<SHorizontalBox> TabStrip = SNew(SHorizontalBox);
+	TabStrip->AddSlot().AutoWidth().Padding(2.0f, 0.0f)
 	[
 		SNew(SButton)
 		.Text(LOCTEXT("PaletteContent", "Content…"))
 		.ToolTipText(LOCTEXT("PaletteContentTip", "Elegir el asset activo (abre la ventana de Content)"))
 		.OnClicked_Lambda([this]() { OnOpenContent.ExecuteIfBound(); return FReply::Handled(); })
 	];
-	// orden de categorías: primero las de las tools, después las de flow
-	TArray<FString> Cats;
-	for (const FJamTool& T : Tools)
+	for (const FString& Cat : Categories)
 	{
-		Cats.AddUnique(T.Cat);
-	}
-	for (const FString& Cat : Cats)
-	{
-		Palette->AddSlot().AutoWidth().Padding(2.0f, 0.0f)
+		TabStrip->AddSlot().AutoWidth().Padding(1.0f, 0.0f)
 		[
-			SNew(SComboButton)
-			.ButtonContent()[ SNew(STextBlock).Text(FText::FromString(Cat)) ]
-			.OnGetMenuContent_Lambda([this, Cat]()
+			SNew(SButton)
+			.ToolTipText(FText::FromString(FString::Printf(TEXT("Tab «%s»"), *Cat)))
+			// activo = tono de la categoría; inactivo = gris apagado (así se lee cuál está abierto)
+			.ButtonColorAndOpacity_Lambda([this, Cat]()
 			{
-				FMenuBuilder MB(true, nullptr);
-				for (const FJamTool& T : Tools)
-				{
-					if (T.Cat != Cat)
-					{
-						continue;
-					}
-					const FString Verb = T.Verb;
-					MB.AddMenuEntry(FText::FromString(T.Verb), FText::FromString(T.Doc), FSlateIcon(),
-						FUIAction(FExecuteAction::CreateLambda([this, Verb]() { AddNode(Verb); })));
-				}
-				return MB.MakeWidget();
+				return ActiveTab == Cat ? CategoryColor(Cat) : FLinearColor(0.22f, 0.22f, 0.24f, 1.0f);
 			})
+			.OnClicked_Lambda([this, Cat]() { ActiveTab = Cat; RebuildTabContent(); return FReply::Handled(); })
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+				[ MakeBadge(CategoryColor(Cat), Cat.Left(2).ToUpper(), 14.0f) ]
+				+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(4.0f, 0.0f, 2.0f, 0.0f)
+				[ SNew(STextBlock).Text(FText::FromString(Cat)) ]
+			]
 		];
 	}
 
@@ -116,11 +118,23 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 	[
 		SNew(SVerticalBox)
 
-		// Paleta (con scroll horizontal por si hay muchos verbos).
-		+ SVerticalBox::Slot().AutoHeight().Padding(6.0f, 6.0f, 6.0f, 2.0f)
+		// Ribbon: fila de TABS (categorías).
+		+ SVerticalBox::Slot().AutoHeight().Padding(6.0f, 6.0f, 6.0f, 0.0f)
 		[
 			SNew(SScrollBox).Orientation(Orient_Horizontal)
-			+ SScrollBox::Slot()[ Palette ]
+			+ SScrollBox::Slot()[ TabStrip ]
+		]
+
+		// Ribbon: fichas con icono de la categoría activa (se rellena en RebuildTabContent).
+		+ SVerticalBox::Slot().AutoHeight().Padding(6.0f, 2.0f, 6.0f, 2.0f)
+		[
+			SNew(SBorder)
+			.BorderImage(FAppStyle::GetBrush("Brushes.Header"))
+			.Padding(2.0f)
+			[
+				SNew(SScrollBox).Orientation(Orient_Horizontal)
+				+ SScrollBox::Slot()[ SAssignNew(TabContentBox, SHorizontalBox) ]
+			]
 		]
 
 		// Canvas: wires detrás, nodos encima.
@@ -207,6 +221,109 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 			SAssignNew(Output, SMultiLineEditableTextBox).IsReadOnly(true).AllowMultiLine(true)
 		]
 	];
+
+	RebuildTabContent();   // abre el primer tab con sus fichas
+}
+
+
+// ---- Ribbon estilo Grasshopper: tabs + fichas con icono ----
+
+FLinearColor SJamGraphEditor::CategoryColor(const FString& Cat)
+{
+	// un tono por categoría (como los tabs de Grasshopper): tools + flow.
+	if (Cat == TEXT("Content"))  { return FLinearColor(0.40f, 0.44f, 0.50f, 1.0f); }
+	if (Cat == TEXT("Place"))    { return FLinearColor(0.20f, 0.52f, 0.72f, 1.0f); }
+	if (Cat == TEXT("Scatter"))  { return FLinearColor(0.24f, 0.60f, 0.32f, 1.0f); }
+	if (Cat == TEXT("Create"))   { return FLinearColor(0.62f, 0.34f, 0.66f, 1.0f); }
+	if (Cat == TEXT("Edit"))     { return FLinearColor(0.72f, 0.50f, 0.16f, 1.0f); }
+	if (Cat == TEXT("Source"))   { return FLinearColor(0.24f, 0.58f, 0.40f, 1.0f); }
+	if (Cat == TEXT("Mask"))     { return FLinearColor(0.78f, 0.46f, 0.14f, 1.0f); }
+	if (Cat == TEXT("Combine"))  { return FLinearColor(0.26f, 0.46f, 0.70f, 1.0f); }
+	if (Cat == TEXT("Output"))   { return FLinearColor(0.58f, 0.30f, 0.62f, 1.0f); }
+	return FLinearColor(0.35f, 0.35f, 0.38f, 1.0f);
+}
+
+FString SJamGraphEditor::VerbCode(const FString& Verb)
+{
+	// código curado de 2 letras para el badge (legible siempre, sin depender de glifos raros).
+	static const TMap<FString, FString> Codes = {
+		{TEXT("asset"), TEXT("AS")}, {TEXT("pick"), TEXT("PK")},
+		{TEXT("place"), TEXT("PL")}, {TEXT("drop"), TEXT("DR")}, {TEXT("snap"), TEXT("SN")},
+		{TEXT("scatter"), TEXT("SC")}, {TEXT("spline"), TEXT("SP")}, {TEXT("pcg"), TEXT("PC")},
+		{TEXT("replace"), TEXT("RP")}, {TEXT("create_spline"), TEXT("CS")},
+		{TEXT("pivot"), TEXT("PV")}, {TEXT("pivot_set"), TEXT("PS")}, {TEXT("normalize"), TEXT("NR")},
+		{TEXT("gizmo"), TEXT("GZ")}, {TEXT("ghost"), TEXT("GH")},
+		{TEXT("source_surface"), TEXT("SF")}, {TEXT("source_grid"), TEXT("GR")},
+		{TEXT("source_poisson"), TEXT("PO")}, {TEXT("source_radial"), TEXT("RA")},
+		{TEXT("mask_slope"), TEXT("SL")}, {TEXT("mask_height"), TEXT("HT")},
+		{TEXT("mask_noise"), TEXT("NO")}, {TEXT("mask_density"), TEXT("DN")},
+		{TEXT("mask_circle"), TEXT("CI")}, {TEXT("merge"), TEXT("MG")}, {TEXT("instance"), TEXT("IN")},
+	};
+	if (const FString* Found = Codes.Find(Verb))
+	{
+		return *Found;
+	}
+	// derivado: iniciales de las partes separadas por «_», o las 2 primeras letras.
+	FString A, B;
+	if (Verb.Split(TEXT("_"), &A, &B) && A.Len() > 0 && B.Len() > 0)
+	{
+		return (A.Left(1) + B.Left(1)).ToUpper();
+	}
+	return Verb.Left(2).ToUpper();
+}
+
+TSharedRef<SWidget> SJamGraphEditor::MakeBadge(const FLinearColor& Color, const FString& Code, float Size)
+{
+	return SNew(SBox).WidthOverride(Size).HeightOverride(Size)
+	[
+		SNew(SBorder)
+		.BorderImage(FAppStyle::GetBrush("WhiteBrush"))
+		.BorderBackgroundColor(Color)
+		.HAlign(HAlign_Center).VAlign(VAlign_Center)
+		.Padding(0.0f)
+		[
+			SNew(STextBlock)
+			.Text(FText::FromString(Code))
+			.ColorAndOpacity(FLinearColor::White)
+			.Font(FCoreStyle::GetDefaultFontStyle("Bold", FMath::Max(6, FMath::RoundToInt(Size * 0.42f))))
+		]
+	];
+}
+
+void SJamGraphEditor::RebuildTabContent()
+{
+	if (!TabContentBox.IsValid())
+	{
+		return;
+	}
+	TabContentBox->ClearChildren();
+	for (const FJamTool& T : Tools)
+	{
+		if (T.Cat != ActiveTab)
+		{
+			continue;
+		}
+		const FString Verb = T.Verb;
+		const FLinearColor Color = CategoryColor(T.Cat);
+		TabContentBox->AddSlot().AutoWidth().Padding(3.0f, 2.0f)
+		[
+			SNew(SButton)
+			.ToolTipText(FText::FromString(FString::Printf(TEXT("%s — %s"), *T.Verb, *T.Doc)))
+			.ContentPadding(FMargin(3.0f, 3.0f))
+			.OnClicked_Lambda([this, Verb]() { AddNode(Verb); return FReply::Handled(); })
+			[
+				SNew(SVerticalBox)
+				+ SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center)
+				[ MakeBadge(Color, VerbCode(Verb), 30.0f) ]
+				+ SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center).Padding(0.0f, 2.0f, 0.0f, 0.0f)
+				[
+					SNew(STextBlock)
+					.Text(FText::FromString(Verb))
+					.Font(FCoreStyle::GetDefaultFontStyle("Regular", 7))
+				]
+			]
+		];
+	}
 }
 
 const FJamTool* SJamGraphEditor::FindTool(const FString& Verb) const
@@ -260,6 +377,8 @@ void SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At)
 
 	TSharedRef<SJamGraphNode> Widget = SNew(SJamGraphNode)
 		.Verb(Verb)
+		.Icon(VerbCode(Verb))
+		.IconColor(CategoryColor(T->Cat))
 		.Params(Params)
 		.HasInput(bHasInput)
 		.OnDragDelta_Lambda([this, Id](const FVector2D& D)

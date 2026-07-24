@@ -21,6 +21,9 @@ class SJamGraphNode : public SCompoundWidget
 public:
 	SLATE_BEGIN_ARGS(SJamGraphNode) {}
 		SLATE_ARGUMENT(FString, Verb)
+		/** Código corto del badge (icono) y su color de categoría — como el ribbon. */
+		SLATE_ARGUMENT(FString, Icon)
+		SLATE_ARGUMENT(FLinearColor, IconColor)
 		/** (nombre, default) por cada param. */
 		SLATE_ARGUMENT(TArray<FJamNodeParam>, Params)
 		/** false en los nodos FUENTE (asset, create_spline): no reciben nada, van sin pin de entrada
@@ -56,6 +59,8 @@ private:
 	FLinearColor StateColor() const;
 
 	FString Verb;
+	FString Icon;
+	FLinearColor IconColor = FLinearColor(0.35f, 0.35f, 0.38f, 1.0f);
 	FString ResultState;
 	bool bDragging = false;
 	FOnNodeDragDelta OnDragDelta;

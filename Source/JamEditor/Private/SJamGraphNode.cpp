@@ -1,17 +1,21 @@
 #include "SJamGraphNode.h"
 
 #include "Widgets/SBoxPanel.h"
+#include "Widgets/Layout/SBox.h"
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Input/SEditableTextBox.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Styling/AppStyle.h"
+#include "Styling/CoreStyle.h"
 
 #define LOCTEXT_NAMESPACE "JamGraphNode"
 
 void SJamGraphNode::Construct(const FArguments& InArgs)
 {
 	Verb = InArgs._Verb;
+	Icon = InArgs._Icon;
+	IconColor = InArgs._IconColor;
 	OnDragDelta = InArgs._OnDragDelta;
 
 	TSharedRef<SVerticalBox> Params = SNew(SVerticalBox);
@@ -57,6 +61,27 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 			SNew(STextBlock)
 			.Text(FText::FromString(TEXT("▌")))
 			.ToolTipText(LOCTEXT("SourceNode", "nodo fuente: no recibe entrada, produce el dato"))
+		];
+	}
+	// Icono de categoría (badge de color + código), igual que en el ribbon: el nodo colocado se
+	// reconoce de un vistazo por color, como un componente de Grasshopper.
+	if (!Icon.IsEmpty())
+	{
+		Header->AddSlot().AutoWidth().VAlign(VAlign_Center).Padding(3.0f, 0.0f, 0.0f, 0.0f)
+		[
+			SNew(SBox).WidthOverride(16.0f).HeightOverride(16.0f)
+			[
+				SNew(SBorder)
+				.BorderImage(FAppStyle::GetBrush("WhiteBrush"))
+				.BorderBackgroundColor(IconColor)
+				.HAlign(HAlign_Center).VAlign(VAlign_Center)
+				.Padding(0.0f)
+				[
+					SNew(STextBlock).Text(FText::FromString(Icon))
+					.ColorAndOpacity(FLinearColor::White)
+					.Font(FCoreStyle::GetDefaultFontStyle("Bold", 7))
+				]
+			]
 		];
 	}
 	Header->AddSlot().FillWidth(1.0f).VAlign(VAlign_Center).Padding(4.0f, 0.0f)

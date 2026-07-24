@@ -8,9 +8,11 @@
 class SBorder;
 class SCanvas;
 class SEditableTextBox;
+class SHorizontalBox;
 class SJamGraphNode;
 class SMultiLineEditableTextBox;
 class SVerticalBox;
+class SWidget;
 
 /** Devuelve el reporte de correr un grafo (JSON JamGraph) — la implementa el módulo (llama a Python). */
 DECLARE_DELEGATE_RetVal_OneParam(FString, FOnRunGraph, const FString& /*json*/);
@@ -49,6 +51,15 @@ private:
 
 	void AddNode(const FString& Verb, const FVector2D* At = nullptr);
 	void DeleteNode(const FString& Id);
+
+	/** Ribbon estilo Grasshopper: al elegir un tab (categoría) se rellenan sus fichas con icono. */
+	void RebuildTabContent();
+	/** Color de la categoría (cada tab su tono, como los tabs de Grasshopper). */
+	static FLinearColor CategoryColor(const FString& Cat);
+	/** Código corto del verbo para el badge del icono (curado; si no, derivado del verbo). */
+	static FString VerbCode(const FString& Verb);
+	/** Ficha con ICONO (badge de color + código) — se usa en el ribbon y como header de nodo. */
+	static TSharedRef<SWidget> MakeBadge(const FLinearColor& Color, const FString& Code, float Size);
 	void OnPinClicked(const FString& Id, bool bOutput);
 	void RunGraph();
 	FString BuildJson() const;
@@ -75,6 +86,9 @@ private:
 	void ApplyZoom();
 
 	TArray<FJamTool> Tools;
+	TArray<FString> Categories;        // tabs del ribbon, en orden de aparición
+	FString ActiveTab;                 // categoría abierta ahora
+	TSharedPtr<SHorizontalBox> TabContentBox;   // fichas de la categoría activa
 	TArray<FGNode> Nodes;
 	TArray<TPair<FString, FString>> Edges;   // (origen, destino)
 	FString PendingSource;                    // pin de salida armado, esperando una entrada
