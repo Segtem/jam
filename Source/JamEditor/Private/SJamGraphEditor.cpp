@@ -204,12 +204,14 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 			]
 		]
 
-		// Canvas: wires detrás, nodos encima.
+		// Canvas: wires detrás, nodos encima. RECORTADO a su área: sin esto, un nodo arrastrado cerca
+		// del borde superior se dibuja por encima del ribbon y del menú.
 		+ SVerticalBox::Slot().FillHeight(1.0f).Padding(6.0f, 2.0f)
 		[
 			SNew(SBorder)
 			.BorderImage(FAppStyle::GetBrush("Brushes.Recessed"))
 			.Padding(0.0f)
+			.Clipping(EWidgetClipping::ClipToBounds)
 			[
 				SNew(SOverlay)
 				+ SOverlay::Slot()
