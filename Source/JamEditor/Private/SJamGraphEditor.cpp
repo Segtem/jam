@@ -47,9 +47,9 @@ public:
 		const FSlateBrush* White = FAppStyle::GetBrush("WhiteBrush");
 		const FVector2D Size = AllottedGeometry.GetLocalSize();
 
-		// Fondo del canvas (gris neutro, como el lienzo de GH).
+		// Fondo del canvas: gris claro clásico de Grasshopper/Rhino 7.
 		FSlateDrawElement::MakeBox(OutDrawElements, LayerId, AllottedGeometry.ToPaintGeometry(),
-			White, ESlateDrawEffect::None, FLinearColor(0.145f, 0.150f, 0.155f, 1.0f));
+			White, ESlateDrawEffect::None, FLinearColor(0.827f, 0.835f, 0.812f, 1.0f));
 
 		// Grilla: líneas cada 24 u de modelo, mayores cada 4. Alineada al pan/zoom (se mueve y escala
 		// con el lienzo, como GH). Se saltea si el paso en pantalla es muy chico (zoom out).
@@ -59,8 +59,8 @@ public:
 		const float Step = 24.0f * Zoom;
 		if (Step >= 9.0f)
 		{
-			const FLinearColor Minor(1.0f, 1.0f, 1.0f, 0.05f);
-			const FLinearColor Major(1.0f, 1.0f, 1.0f, 0.10f);
+			const FLinearColor Minor(0.0f, 0.0f, 0.0f, 0.06f);
+			const FLinearColor Major(0.0f, 0.0f, 0.0f, 0.13f);
 			auto Line = [&](const FVector2D& A, const FVector2D& B, const FLinearColor& C)
 			{
 				TArray<FVector2D> Pts; Pts.Add(A); Pts.Add(B);
@@ -85,7 +85,7 @@ public:
 		if (Getter)
 		{
 			const FPaintGeometry PG = AllottedGeometry.ToPaintGeometry();
-			const FLinearColor Tint(0.62f, 0.66f, 0.70f, 0.95f);
+			const FLinearColor Tint(0.20f, 0.22f, 0.25f, 0.95f);
 			for (const TPair<FVector2D, FVector2D>& W : Getter())
 			{
 				const float dx = FMath::Max(50.0f, FMath::Abs(W.Value.X - W.Key.X) * 0.6f);
@@ -435,13 +435,13 @@ void SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At)
 			// D viene en píxeles de pantalla; el modelo vive antes del zoom (render transform).
 			if (FGNode* N = FindNode(Id)) { N->Pos += D / Zoom; }
 		})
-		.OnOutputClicked_Lambda([this, Id]() { OnPinClicked(Id, true); })
-		.OnInputClicked_Lambda([this, Id]() { OnPinClicked(Id, false); })
+		.OnOutputClicked_Lambda([this, Id]() { OnPinClicked(Id, TEXT("out"), true); })
+		.OnInputClicked_Lambda([this, Id](const FString& Pin) { OnPinClicked(Id, Pin, false); })
 		.OnDeleteClicked_Lambda([this, Id]() { DeleteNode(Id); });
 
 	Node.Widget = Widget;
 
-	const float Height = 40.0f + T->Params.Num() * 26.0f;
+	const float Height = SJamGraphNode::NodeHeight(T->Params.Num());
 	Node.Height = Height;
 	Canvas->AddSlot()
 		.Position(TAttribute<FVector2D>::CreateLambda([this, Id]()
@@ -468,52 +468,81 @@ void SJamGraphEditor::DeleteNode(const FString& Id)
 	{
 		Canvas->RemoveSlot(N->Widget.ToSharedRef());
 	}
-	Edges.RemoveAll([&Id](const TPair<FString, FString>& E) { return E.Key == Id || E.Value == Id; });
+	Edges.RemoveAll([&Id](const FGEdge& E) { return E.From == Id || E.To == Id; });
 	if (PendingSource == Id) { PendingSource.Empty(); }
 	Nodes.RemoveAll([&Id](const FGNode& X) { return X.Id == Id; });
 }
 
-void SJamGraphEditor::OnPinClicked(const FString& Id, bool bOutput)
+int32 SJamGraphEditor::PinIndex(const FString& Id, const FString& Pin) const
+{
+	if (Pin == TEXT("in") || Pin == TEXT("out"))
+	{
+		return -1;   // header (stream / salida)
+	}
+	const FGNode* N = Nodes.FindByPredicate([&Id](const FGNode& X) { return X.Id == Id; });
+	if (N == nullptr) { return -1; }
+	const FJamTool* T = FindTool(N->Verb);
+	if (T == nullptr) { return -1; }
+	return T->Params.IndexOfByPredicate([&Pin](const FJamParam& P) { return P.Name == Pin; });
+}
+
+void SJamGraphEditor::OnPinClicked(const FString& Id, const FString& Pin, bool bOutput)
 {
 	if (bOutput)
 	{
-		PendingSource = Id;   // armar la salida
+		PendingSource = Id;       // armar la salida
+		PendingSourcePin = Pin;   // (por ahora siempre «out»)
 		if (Output.IsValid())
 		{
-			Output->SetText(FText::FromString(FString::Printf(TEXT("conectá: %s → (clic en una entrada)"), *Id)));
+			Output->SetText(FText::FromString(FString::Printf(
+				TEXT("conectá: %s.%s → (clic en un pin de entrada)"), *Id, *Pin)));
 		}
 		return;
 	}
 	// clic en una entrada: cierra la conexión si hay una salida armada
 	if (!PendingSource.IsEmpty() && PendingSource != Id)
 	{
-		const TPair<FString, FString> Wire(PendingSource, Id);
-		if (!Edges.Contains(Wire))   // sin duplicar
+		const bool bDup = Edges.ContainsByPredicate([&](const FGEdge& E)
 		{
-			Edges.Add(Wire);
+			return E.From == PendingSource && E.FromPin == PendingSourcePin && E.To == Id && E.ToPin == Pin;
+		});
+		if (!bDup)
+		{
+			// un pin de entrada acepta UN cable (salvo «in», que junta varios): reemplazá el previo.
+			if (Pin != TEXT("in"))
+			{
+				Edges.RemoveAll([&](const FGEdge& E) { return E.To == Id && E.ToPin == Pin; });
+			}
+			Edges.Add(FGEdge{PendingSource, PendingSourcePin, Id, Pin});
 		}
 		if (Output.IsValid())
 		{
-			Output->SetText(FText::FromString(FString::Printf(TEXT("wire: %s → %s"), *PendingSource, *Id)));
+			Output->SetText(FText::FromString(FString::Printf(
+				TEXT("wire: %s.%s → %s.%s"), *PendingSource, *PendingSourcePin, *Id, *Pin)));
 		}
 	}
 	PendingSource.Empty();
+	PendingSourcePin.Empty();
 }
 
 TArray<TPair<FVector2D, FVector2D>> SJamGraphEditor::GetWireEndpoints() const
 {
 	TArray<TPair<FVector2D, FVector2D>> Out;
-	for (const TPair<FString, FString>& E : Edges)
+	const float Half = SJamGraphNode::PinColW * 0.5f;
+	for (const FGEdge& E : Edges)
 	{
-		const FGNode* A = Nodes.FindByPredicate([&E](const FGNode& N) { return N.Id == E.Key; });
-		const FGNode* B = Nodes.FindByPredicate([&E](const FGNode& N) { return N.Id == E.Value; });
+		const FGNode* A = Nodes.FindByPredicate([&E](const FGNode& N) { return N.Id == E.From; });
+		const FGNode* B = Nodes.FindByPredicate([&E](const FGNode& N) { return N.Id == E.To; });
 		if (A && B)
 		{
 			// La capa de wires NO está bajo el render transform del canvas → se aplica acá a mano.
-			// Los wires salen/entran por el CENTRO vertical del nodo (donde están los nubs), como GH.
+			// Salida por el centro del pin «out» (header, derecha); entrada por el pin exacto (por su
+			// índice de parámetro), como los grips por parámetro de Grasshopper.
+			const float AY = SJamGraphNode::PinLocalY(-1);
+			const float BY = SJamGraphNode::PinLocalY(PinIndex(E.To, E.ToPin));
 			Out.Add(TPair<FVector2D, FVector2D>(
-				(FVector2D(A->Pos.X + NodeWidth, A->Pos.Y + A->Height * 0.5f) + PanOffset) * Zoom,
-				(FVector2D(B->Pos.X, B->Pos.Y + B->Height * 0.5f) + PanOffset) * Zoom));
+				(FVector2D(A->Pos.X + NodeWidth - Half, A->Pos.Y + AY) + PanOffset) * Zoom,
+				(FVector2D(B->Pos.X + Half, B->Pos.Y + BY) + PanOffset) * Zoom));
 		}
 	}
 	return Out;
@@ -544,12 +573,15 @@ FString SJamGraphEditor::BuildJson() const
 	Root->SetObjectField(TEXT("nodes"), NodesObj);
 
 	TArray<TSharedPtr<FJsonValue>> EdgesArr;
-	for (const TPair<FString, FString>& E : Edges)
+	for (const FGEdge& E : Edges)
 	{
-		TArray<TSharedPtr<FJsonValue>> Pair;
-		Pair.Add(MakeShared<FJsonValueString>(E.Key));
-		Pair.Add(MakeShared<FJsonValueString>(E.Value));
-		EdgesArr.Add(MakeShared<FJsonValueArray>(Pair));
+		// [from, from_pin, to, to_pin] — conexión por pin (jam.flow lo entiende; también acepta [from,to]).
+		TArray<TSharedPtr<FJsonValue>> Quad;
+		Quad.Add(MakeShared<FJsonValueString>(E.From));
+		Quad.Add(MakeShared<FJsonValueString>(E.FromPin));
+		Quad.Add(MakeShared<FJsonValueString>(E.To));
+		Quad.Add(MakeShared<FJsonValueString>(E.ToPin));
+		EdgesArr.Add(MakeShared<FJsonValueArray>(Quad));
 	}
 	Root->SetArrayField(TEXT("edges"), EdgesArr);
 

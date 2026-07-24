@@ -58,12 +58,24 @@ private:
 		TSharedPtr<SJamGraphNode> Widget;
 	};
 
+	/** Una arista con PIN en ambas puntas (como Grasshopper): salida de un nodo → un pin de otro
+	 *  («in» = stream, o el nombre de un parámetro). */
+	struct FGEdge
+	{
+		FString From;
+		FString FromPin;   // siempre «out» por ahora
+		FString To;
+		FString ToPin;     // «in» (stream) o el nombre de un parámetro
+	};
+
 	void AddNode(const FString& Verb, const FVector2D* At = nullptr);
 	void DeleteNode(const FString& Id);
+	/** Índice del parámetro `Pin` en el verbo del nodo `Id`, o -1 si es «in»/«out» (header). */
+	int32 PinIndex(const FString& Id, const FString& Pin) const;
 
 	/** Ribbon estilo Grasshopper: al elegir un tab (categoría) se rellenan sus fichas con icono. */
 	void RebuildTabContent();
-	void OnPinClicked(const FString& Id, bool bOutput);
+	void OnPinClicked(const FString& Id, const FString& Pin, bool bOutput);
 	void RunGraph();
 	FString BuildJson() const;
 	const FJamTool* FindTool(const FString& Verb) const;
@@ -93,8 +105,9 @@ private:
 	FString ActiveTab;                 // categoría abierta ahora
 	TSharedPtr<SHorizontalBox> TabContentBox;   // fichas de la categoría activa
 	TArray<FGNode> Nodes;
-	TArray<TPair<FString, FString>> Edges;   // (origen, destino)
-	FString PendingSource;                    // pin de salida armado, esperando una entrada
+	TArray<FGEdge> Edges;                      // aristas con pin (origen.out → destino.pin)
+	FString PendingSource;                     // nodo de salida armado, esperando una entrada
+	FString PendingSourcePin;                  // pin de salida armado (por ahora «out»)
 	int32 NextId = 1;
 
 	FOnRunGraph OnRunGraph;
@@ -117,6 +130,5 @@ private:
 	bool bPanning = false;
 	float Zoom = 1.0f;
 
-	static constexpr float NodeWidth = 168.0f;
-	static constexpr float HeaderY = 14.0f;
+	static constexpr float NodeWidth = 172.0f;
 };

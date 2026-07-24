@@ -258,34 +258,52 @@ def _coaccionar(kind: str, params: dict) -> dict:
     return out
 
 
+#: pin de entrada del STREAM de puntos (el cable «gordo»). Los demás pines de entrada son PARÁMETROS
+#: (count, spacing, keep…): un cable a ese pin ata el valor de una variable a ese parámetro, como en GH.
+PIN_STREAM_IN = "in"
+PIN_OUT = "out"
+
+
 class Flow:
-    """Grafo de operaciones de stream. `nodos`: id → {kind, params}. `enlaces`: [(origen, destino)],
-    en orden (para nodos con varias entradas, el orden de los enlaces es el orden de las entradas)."""
+    """Grafo de operaciones de stream, con conexión POR PIN (como Grasshopper). `nodos`: id →
+    {kind, params}. `enlaces`: [(origen, origen_pin, destino, destino_pin)] en orden.
+
+    Cada nodo tiene: un pin de salida «out» (a la derecha), un pin de entrada de stream «in» (el cable
+    de puntos), y UN PIN POR PARÁMETRO a la izquierda. Cablear la salida de un `number`/`math` a un pin
+    de parámetro (p.ej. `count`) ATA ese parámetro al valor de la variable — el equivalente visual de la
+    expresión «=». El pin «in» acepta varios cables (se juntan, como el input de lista de GH)."""
 
     def __init__(self):
         self.nodos: dict[str, dict] = {}
-        self.enlaces: list[tuple[str, str]] = []
+        self.enlaces: list[tuple[str, str, str, str]] = []
 
     def add(self, kind: str, params: dict | None = None, nid: str | None = None) -> str:
         nid = nid or f"f{len(self.nodos) + 1}"
         self.nodos[nid] = {"kind": kind, "params": dict(params or {})}
         return nid
 
-    def connect(self, origen: str, destino: str) -> None:
+    def connect(self, origen: str, destino: str, destino_pin: str = PIN_STREAM_IN,
+                origen_pin: str = PIN_OUT) -> None:
+        """Conecta `origen.origen_pin` → `destino.destino_pin`. Por defecto stream out→in; pasá
+        `destino_pin="count"` (u otro parámetro) para atar una variable a ese parámetro (estilo GH)."""
         if origen in self.nodos and destino in self.nodos:
-            self.enlaces.append((origen, destino))
+            self.enlaces.append((origen, origen_pin, destino, destino_pin))
 
     @classmethod
     def from_json(cls, s: str) -> "Flow":
-        """Construye desde el JSON del canvas: {nodes:{id:{verb,params}}, edges:[[from,to]]}. `verb`
-        es el kind. Los params se coaccionan al tipo de su default en OPS_META."""
+        """Construye desde el JSON del canvas: {nodes:{id:{verb,params}}, edges:[…]}. Cada arista es
+        `[from, to]` (stream out→in, compat) o `[from, from_pin, to, to_pin]` (conexión por pin)."""
         import json
         d = json.loads(s) if s else {}
         f = cls()
         for nid, nd in d.get("nodes", {}).items():
             kind = nd.get("verb") or nd.get("kind", "")
             f.nodos[nid] = {"kind": kind, "params": _coaccionar(kind, nd.get("params", {}))}
-        f.enlaces = [(e[0], e[1]) for e in d.get("edges", []) if len(e) == 2]
+        for e in d.get("edges", []):
+            if len(e) == 4:
+                f.enlaces.append((e[0], e[1], e[2], e[3]))
+            elif len(e) == 2:
+                f.enlaces.append((e[0], PIN_OUT, e[1], PIN_STREAM_IN))
         return f
 
     def solo_flow(self) -> bool:
@@ -293,14 +311,25 @@ class Flow:
         return bool(self.nodos) and all(n["kind"] in OPS_META for n in self.nodos.values())
 
     def _entradas(self, nid: str) -> list[str]:
-        return [a for a, b in self.enlaces if b == nid]
+        """Orígenes cableados al pin de STREAM «in» de `nid`, en orden (para merge = lista de entradas)."""
+        return [a for a, ap, b, bp in self.enlaces if b == nid and bp == PIN_STREAM_IN]
+
+    def _param_wires(self, nid: str) -> dict:
+        """{ pin_de_parámetro: origen } de los cables que entran a un PARÁMETRO de `nid` (no al stream).
+        Si un parámetro recibe varios cables, gana el último (como reconectar en GH)."""
+        out: dict = {}
+        for a, ap, b, bp in self.enlaces:
+            if b == nid and bp not in (PIN_STREAM_IN,):
+                out[bp] = a
+        return out
 
     def topo(self) -> list[str]:
         indeg = {n: 0 for n in self.nodos}
         adj: dict[str, list[str]] = {n: [] for n in self.nodos}
-        for a, b in self.enlaces:
-            adj[a].append(b)
-            indeg[b] += 1
+        for a, ap, b, bp in self.enlaces:
+            if a in self.nodos and b in self.nodos:
+                adj[a].append(b)
+                indeg[b] += 1
         cola = [n for n in self.nodos if indeg[n] == 0]
         orden = []
         while cola:
@@ -340,6 +369,9 @@ class Flow:
         del adaptador (p.ej. `source_surface` que raycastea, o `instance` que spawnea) sin tocar esto."""
         tabla_fn = {**OPS, **(ops or {})}
         variables = self._valores()
+        # escalar de cada nodo de valor (lo que un cable suyo lleva a un pin de parámetro).
+        escalar_de = {nid: variables.get(str(n["params"].get("name") or nid))
+                      for nid, n in self.nodos.items() if n["kind"] in ("number", "math")}
         salida: dict[str, list] = {}
         for nid in self.topo():
             nodo = self.nodos[nid]
@@ -356,6 +388,11 @@ class Flow:
                 continue
             fn, _n = fn_ent
             entradas = [salida.get(e, []) for e in self._entradas(nid)]
+            # primero resolver expresiones «=», después pisar con lo que llegue por CABLE a cada pin de
+            # parámetro (un cable manda sobre el texto del campo, como en Grasshopper).
             params = _resolver_params(nodo["params"], variables)
+            for pin, origen in self._param_wires(nid).items():
+                if escalar_de.get(origen) is not None:
+                    params[pin] = escalar_de[origen]
             salida[nid] = fn(entradas, params)
         return salida

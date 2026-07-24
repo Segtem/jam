@@ -11,6 +11,9 @@ class SEditableTextBox;
 using FJamNodeParam = TPair<FString, FString>;
 
 DECLARE_DELEGATE_OneParam(FOnNodeDragDelta, const FVector2D&);
+/** Clic en un pin de ENTRADA: pasa el nombre del pin — «in» = stream, o el nombre de un parámetro
+ *  (count, spacing…). Cada parámetro es un pin propio, como en Grasshopper. */
+DECLARE_DELEGATE_OneParam(FOnPinClicked, const FString& /*pin*/);
 
 /**
  * Un nodo del canvas «Grasshopper» de Jam: caja arrastrable con título (verbo), campos de params,
@@ -32,7 +35,8 @@ public:
 		SLATE_ARGUMENT(bool, HasInput)
 		SLATE_EVENT(FOnNodeDragDelta, OnDragDelta)
 		SLATE_EVENT(FSimpleDelegate, OnOutputClicked)
-		SLATE_EVENT(FSimpleDelegate, OnInputClicked)
+		/** Recibe el nombre del pin: «in» (stream) o el de un parámetro. */
+		SLATE_EVENT(FOnPinClicked, OnInputClicked)
 		SLATE_EVENT(FSimpleDelegate, OnDeleteClicked)
 	SLATE_END_ARGS()
 
@@ -41,6 +45,21 @@ public:
 	/** Valores actuales de los params (leídos de los text boxes). */
 	TMap<FString, FString> GetParamValues() const;
 	const FString& GetVerb() const { return Verb; }
+
+	// Métrica FIJA del layout del nodo (filas de alto conocido) para que el editor calcule dónde cae
+	// cada pin y ancle los wires exactamente ahí — como los grips por parámetro de Grasshopper.
+	static constexpr float PadTop = 6.0f;
+	static constexpr float HeaderH = 24.0f;
+	static constexpr float RowH = 24.0f;
+	static constexpr float PinColW = 14.0f;   // ancho de las columnas de pines (izq/der)
+	/** Y local del pin: índice de parámetro (0..n-1) o -1 para el header (stream «in» / salida «out»). */
+	static float PinLocalY(int32 ParamIndex)
+	{
+		return ParamIndex < 0 ? PadTop + HeaderH * 0.5f
+		                      : PadTop + HeaderH + ParamIndex * RowH + RowH * 0.5f;
+	}
+	/** Alto total del nodo con N parámetros (una fila fija por parámetro). */
+	static float NodeHeight(int32 NumParams) { return PadTop * 2.0f + HeaderH + NumParams * RowH; }
 
 	/**
 	 * Pinta el nodo con el veredicto del ORÁCULO tras correr el grafo. Es la convención de estados de
@@ -74,7 +93,7 @@ private:
 	FSlateRoundedBoxBrush BodyBrush = FSlateRoundedBoxBrush(
 		FLinearColor(0.80f, 0.80f, 0.78f, 1.0f), 6.0f, FLinearColor(0.10f, 0.10f, 0.10f, 1.0f), 1.0f);
 	FOnNodeDragDelta OnDragDelta;
-	FSimpleDelegate OnInputClickedDelegate;
+	FOnPinClicked OnInputClickedDelegate;
 	FSimpleDelegate OnOutputClickedDelegate;
 	FSimpleDelegate OnDeleteClickedDelegate;
 	TMap<FString, TSharedPtr<SEditableTextBox>> Fields;

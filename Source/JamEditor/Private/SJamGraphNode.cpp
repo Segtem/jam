@@ -1,7 +1,7 @@
 #include "SJamGraphNode.h"
 
 #include "Widgets/SBoxPanel.h"
-#include "Widgets/SOverlay.h"
+#include "Widgets/SNullWidget.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/Input/SButton.h"
@@ -46,37 +46,21 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 	OnDeleteClickedDelegate = InArgs._OnDeleteClicked;
 	RebuildBodyBrush();
 
-	TSharedRef<SVerticalBox> Params = SNew(SVerticalBox);
-	for (const FJamNodeParam& P : InArgs._Params)
+	// Celda de alto FIJO (los pines se alinean a las filas por construcción; la métrica la comparte el
+	// editor para anclar los wires exactamente en cada pin — como los grips por parámetro de GH).
+	auto Cell = [](float H, TSharedRef<SWidget> W)
 	{
-		const FString Key = P.Key;
-		TSharedPtr<SEditableTextBox> Field;
-		Params->AddSlot()
-			.AutoHeight()
-			.Padding(0.0f, 1.0f)
-			[
-				SNew(SHorizontalBox)
-				+ SHorizontalBox::Slot().FillWidth(0.42f).VAlign(VAlign_Center)
-				[
-					SNew(STextBlock).Text(FText::FromString(Key))
-					.ColorAndOpacity(JamInk)
-					.Font(FCoreStyle::GetDefaultFontStyle("Regular", 7))
-				]
-				+ SHorizontalBox::Slot().FillWidth(0.58f)
-				[
-					SAssignNew(Field, SEditableTextBox).Text(FText::FromString(P.Value))
-				]
-			];
-		Fields.Add(Key, Field);
-	}
+		return SNew(SBox).HeightOverride(H).VAlign(VAlign_Center)[ W ];
+	};
+	auto Spacer = [](float H) { return SNew(SBox).HeightOverride(H); };
 
-	// Header: ICONO grande (badge de categoría) · título (zona de arrastre) · borrar.
+	// Header del cuerpo: ICONO (badge de categoría) · título (zona de arrastre) · borrar.
 	TSharedRef<SHorizontalBox> Header = SNew(SHorizontalBox);
 	if (!Icon.IsEmpty())
 	{
 		Header->AddSlot().AutoWidth().VAlign(VAlign_Center)
 		[
-			SNew(SBox).WidthOverride(22.0f).HeightOverride(22.0f)
+			SNew(SBox).WidthOverride(18.0f).HeightOverride(18.0f)
 			[
 				SNew(SBorder)
 				.BorderImage(FAppStyle::GetBrush("WhiteBrush"))
@@ -86,7 +70,7 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 				[
 					SNew(STextBlock).Text(FText::FromString(Icon))
 					.ColorAndOpacity(FLinearColor::White)
-					.Font(FCoreStyle::GetDefaultFontStyle("Bold", 9))
+					.Font(FCoreStyle::GetDefaultFontStyle("Bold", 8))
 				]
 			]
 		];
@@ -97,7 +81,7 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 		.ColorAndOpacity(JamInk)
 		.Font(FCoreStyle::GetDefaultFontStyle("Bold", 9))
 	];
-	Header->AddSlot().AutoWidth().VAlign(VAlign_Top)
+	Header->AddSlot().AutoWidth().VAlign(VAlign_Center)
 	[
 		SNew(SButton)
 		.ButtonStyle(&FAppStyle::Get(), "NoBorder")
@@ -107,35 +91,75 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 		[ SNew(STextBlock).Text(FText::FromString(TEXT("×"))).ColorAndOpacity(JamInk) ]
 	];
 
-	// Cuerpo (header + params), con margen L/R para que los nubs de los bordes no lo tapen.
-	TSharedRef<SVerticalBox> Body = SNew(SVerticalBox)
-		+ SVerticalBox::Slot().AutoHeight().Padding(0.0f, 0.0f, 0.0f, 2.0f)
-		[ Header ]
-		+ SVerticalBox::Slot().AutoHeight()
-		[ Params ];
+	// TRES columnas: pines de ENTRADA (izq, uno por parámetro), cuerpo, pin de SALIDA (der). Cada
+	// columna tiene la MISMA estructura vertical (spacer + header + una fila por parámetro) → los pines
+	// quedan alineados a su fila. Cablear a un pin de parámetro ata una variable a ese parámetro.
+	TSharedRef<SVerticalBox> LeftCol  = SNew(SVerticalBox);
+	TSharedRef<SVerticalBox> BodyCol  = SNew(SVerticalBox);
+	TSharedRef<SVerticalBox> RightCol = SNew(SVerticalBox);
 
-	// Cápsula GH: cuerpo redondeado (lo pinta OnPaint) con los nubs sobre los bordes izq/der,
-	// verticalmente centrados (entrada a la izquierda, salida a la derecha).
-	TSharedRef<SOverlay> Root = SNew(SOverlay)
-		+ SOverlay::Slot().Padding(11.0f, 5.0f)
-		[ Body ];
-	if (InArgs._HasInput)
+	LeftCol->AddSlot().AutoHeight()[ Spacer(PadTop) ];
+	BodyCol->AddSlot().AutoHeight()[ Spacer(PadTop) ];
+	RightCol->AddSlot().AutoHeight()[ Spacer(PadTop) ];
+
+	// fila header
+	LeftCol->AddSlot().AutoHeight()
+	[
+		Cell(HeaderH, InArgs._HasInput
+			? MakeNub(TEXT("entrada de stream (clic para conectar)"),
+				[this]() { OnInputClickedDelegate.ExecuteIfBound(TEXT("in")); })
+			: StaticCastSharedRef<SWidget>(SNullWidget::NullWidget))
+	];
+	BodyCol->AddSlot().AutoHeight()[ Cell(HeaderH, Header) ];
+	RightCol->AddSlot().AutoHeight()
+	[
+		Cell(HeaderH, MakeNub(TEXT("salida (clic para conectar)"),
+			[this]() { OnOutputClickedDelegate.ExecuteIfBound(); }))
+	];
+
+	// una fila por parámetro: pin de entrada · [label + campo] · (sin salida)
+	for (const FJamNodeParam& P : InArgs._Params)
 	{
-		Root->AddSlot().HAlign(HAlign_Left).VAlign(VAlign_Center)
-		[ MakeNub(TEXT("entrada (clic para conectar)"),
-			[this]() { OnInputClickedDelegate.ExecuteIfBound(); }) ];
-	}
-	Root->AddSlot().HAlign(HAlign_Right).VAlign(VAlign_Center)
-	[ MakeNub(TEXT("salida (clic para conectar)"),
-		[this]() { OnOutputClickedDelegate.ExecuteIfBound(); }) ];
+		const FString Key = P.Key;
+		TSharedPtr<SEditableTextBox> Field;
 
-	ChildSlot [ Root ];
+		LeftCol->AddSlot().AutoHeight()
+		[
+			Cell(RowH, MakeNub(FString::Printf(TEXT("pin «%s» (cableá una variable para manejarlo)"), *Key),
+				[this, Key]() { OnInputClickedDelegate.ExecuteIfBound(Key); }))
+		];
+		BodyCol->AddSlot().AutoHeight()
+		[
+			Cell(RowH,
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot().FillWidth(0.42f).VAlign(VAlign_Center)
+				[
+					SNew(STextBlock).Text(FText::FromString(Key))
+					.ColorAndOpacity(JamInk)
+					.Font(FCoreStyle::GetDefaultFontStyle("Regular", 7))
+				]
+				+ SHorizontalBox::Slot().FillWidth(0.58f).VAlign(VAlign_Center)
+				[
+					SAssignNew(Field, SEditableTextBox).Text(FText::FromString(P.Value))
+				])
+		];
+		RightCol->AddSlot().AutoHeight()[ Cell(RowH, StaticCastSharedRef<SWidget>(SNullWidget::NullWidget)) ];
+		Fields.Add(Key, Field);
+	}
+
+	ChildSlot
+	[
+		SNew(SHorizontalBox)
+		+ SHorizontalBox::Slot().AutoWidth()[ SNew(SBox).WidthOverride(PinColW)[ LeftCol ] ]
+		+ SHorizontalBox::Slot().FillWidth(1.0f)[ BodyCol ]
+		+ SHorizontalBox::Slot().AutoWidth()[ SNew(SBox).WidthOverride(PinColW)[ RightCol ] ]
+	];
 }
 
 void SJamGraphNode::RebuildBodyBrush()
 {
-	// relleno gris claro (cápsula GH) + borde = veredicto del oráculo.
-	BodyBrush = FSlateRoundedBoxBrush(FLinearColor(0.80f, 0.80f, 0.78f, 1.0f), 6.0f, StateColor(), 1.4f);
+	// relleno gris claro (cápsula GH, tema claro clásico) + borde = veredicto del oráculo.
+	BodyBrush = FSlateRoundedBoxBrush(FLinearColor(0.90f, 0.90f, 0.88f, 1.0f), 5.0f, StateColor(), 1.4f);
 }
 
 int32 SJamGraphNode::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
@@ -163,10 +187,10 @@ void SJamGraphNode::SetResult(const FString& State, const FString& Text)
 
 FLinearColor SJamGraphNode::StateColor() const
 {
-	if (ResultState == TEXT("ok"))    { return FLinearColor(0.13f, 0.62f, 0.25f, 1.0f); }
-	if (ResultState == TEXT("warn"))  { return FLinearColor(0.90f, 0.52f, 0.04f, 1.0f); }
-	if (ResultState == TEXT("error")) { return FLinearColor(0.85f, 0.14f, 0.14f, 1.0f); }
-	return FLinearColor(0.10f, 0.10f, 0.10f, 1.0f);   // neutro: borde oscuro fino
+	if (ResultState == TEXT("ok"))    { return FLinearColor(0.13f, 0.55f, 0.22f, 1.0f); }
+	if (ResultState == TEXT("warn"))  { return FLinearColor(0.85f, 0.48f, 0.03f, 1.0f); }
+	if (ResultState == TEXT("error")) { return FLinearColor(0.80f, 0.12f, 0.12f, 1.0f); }
+	return FLinearColor(0.34f, 0.34f, 0.33f, 1.0f);   // neutro: borde gris medio (sobre cápsula clara)
 }
 
 TMap<FString, FString> SJamGraphNode::GetParamValues() const
