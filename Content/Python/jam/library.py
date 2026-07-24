@@ -101,3 +101,18 @@ def cargar_malla(ruta: str) -> unreal.StaticMesh | None:
     """Carga el StaticMesh por su ObjectPath. None si no existe."""
     obj = unreal.load_asset(ruta)
     return obj if isinstance(obj, unreal.StaticMesh) else None
+
+
+def es_geometry_collection(obj) -> bool:
+    """¿Es una Geometry Collection (el asset destructible de Chaos)?"""
+    return isinstance(obj, unreal.GeometryCollection)
+
+
+def cargar_placeable(ruta: str):
+    """Carga un asset COLOCABLE por su ObjectPath: StaticMesh (spawnea StaticMeshActor) o
+    GeometryCollection (spawnea GeometryCollectionActor destructible). None si no es ninguno.
+    `spawn_actor_from_object` elige el actor según el tipo — Jam sólo tiene que cargar el asset."""
+    obj = unreal.load_asset(ruta)
+    if isinstance(obj, (unreal.StaticMesh, unreal.GeometryCollection)):
+        return obj
+    return None

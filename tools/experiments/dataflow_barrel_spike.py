@@ -1,127 +1,151 @@
-"""SPIKE (2026-07-24): barril DESTRUCTIBLE con Dataflow/Chaos + explosión, donde Jam sólo COLOCA.
+"""SPIKE (2026-07-24): barril DESTRUCTIBLE con Dataflow/Chaos, donde Jam sólo COLOCA. La AUTORÍA del
+grafo está verificada contra la fuente del motor (Codex); el ROMPE-EN-PIE sigue EN DIAGNÓSTICO (con la
+receta anterior sin puntos NO fracturaba; con puntos+proximity la GC tiene pedazos pero falta confirmar
+que rompe al impacto). Correr en el editor INTERACTIVO (headless cuelga en FieldSystem/Dataflow).
 
-Pregunta de Brian: ¿se puede un barril + explosión con Dataflow, y Jam sólo lo coloca?
-RESPUESTA MEDIDA: SÍ es scripteable de punta a punta — PERO hay que correrlo en el editor
-INTERACTIVO, no headless (dos operaciones cuelgan/crashean sin GUI, y la simulación de física
-sólo corre en PIE). Es el mismo patrón que el gotcha del landscape en pcg_spike.py.
+EL BUG QUE COSTÓ (diagnosticado por Codex leyendo la fuente del motor): el barril fracturaba «vacío»
+o caía entero por DOS motivos:
+  1) FVoronoiFractureDataflowNode NO tiene una prop «NumSites»: tiene un INPUT `Points` (TArray<FVector>).
+     Sin puntos NO corta (deja 1 pieza sólida). Hay que GENERAR los puntos:
+        FBoundingBoxDataflowNode (de la colección) → FUniformScatterPointsDataflowNode_v2 (Min/MaxNumberOfPoints)
+        → cablear `Points` al Voronoi.
+  2) Para que ROMPA en PIE hace falta el GRAFO DE CONEXIÓN: un FProximityDataflowNode con
+     bUseAsConnectionGraph=true. Y los umbrales de daño por defecto son ENORMES ({500000,50000,5000});
+     hay que poner damage_model=USER_DEFINED_DAMAGE_THRESHOLD + damage_threshold bajo, clustering ON,
+     object_type DYNAMIC, max_cluster_level/max_simulated_level altos, enable_damage_from_collision.
+El material se lleva cableando `src.Materials`→`term.Materials` (+ InstancedMeshes) — si no, queda gris.
 
-QUÉ SE MIDIÓ (headless, `-RenderOffScreen`):
-  ✓ Dataflow ES scripteable: `unreal.DataflowAssetFactory` crea el asset;
-    `DataflowEditorBlueprintLibrary.add_dataflow_node / connect_dataflow_nodes /
-    set_dataflow_node_property` autoran el grafo; `DataflowBlueprintLibrary.
-    evaluate_terminal_node_by_name / regenerate_asset_from_dataflow / override_dataflow_variable_*`
-    lo evalúan (las variables = nuestros number/text).
-  ✓ El barril existe: SM_barrel_crates_group_a (VictorianAlley).
-  ✓ `GeometryCollectionActor` COLOCA bien headless (el rol de «colocar» de Jam).
-  ✓ `RadialFalloff` (strain: rompe) y `RadialVector` (impulso: dispersa) son instanciables — la
-    explosión de Chaos es un FieldSystem con esos dos campos.
-  ✗ HEADLESS CUELGA: `spawn_actor_from_class(unreal.FieldSystemActor, ...)` no retorna (exit 124).
-  ✗ HEADLESS CORTA: `add_dataflow_node` sobre el asset recién creado corta la corrida (API de editor
-    Experimental que espera el editor de Dataflow abierto).
-  → La explosión (física Chaos) sólo se ve en PIE de todos modos. Jam vive EN el editor, así que
-    esto corre donde tiene que correr; el headless es sólo el banco de pruebas y acá no aplica.
+GOTCHAS de la API (todos verificados):
+  - `set_dataflow_node_property(df, node, prop, VALOR)` toma el valor como STRING (object path para
+    objetos; "true"/"false" para bools).
+  - GC↔dataflow: `gc.dataflow_instance.dataflow_asset=df` + `.dataflow_terminal=<nombre del terminal>`;
+    SIN el terminal la GC sale vacía (thumbnail damero). Luego `regenerate_asset_from_dataflow(gc)`.
+  - Headless (`-RenderOffScreen`) CUELGA en `spawn(FieldSystemActor)` y corta en `add_dataflow_node`
+    → correr con render real (DISPLAY del editor). Jam vive en el editor, así que está OK.
+  - Conteo de pedazos: NO hay API Python (la GC no expone NumElements a py). En C++:
+    `GC->GetGeometryCollection()->NumElements(FGeometryCollection::TransformGroup)`.
 
-TIPOS DE NODO (registrados, para add_dataflow_node) y PINES (para connect):
-  FStaticMeshToCollectionDataflowNode   (prop StaticMesh)      out: "Collection"
-  FCollectionTransformSelectionAllDataflowNode                 in/out: "Collection"/"TransformSelection"
-  FVoronoiFractureDataflowNode          in: "Collection","TransformSelection"  out: "Collection"
-  FUniformFractureDataflowNode          (alternativa a Voronoi)
-  FGeometryCollectionTerminalDataflowNode  (terminal: escribe la GC)  in: "Collection"
-El pin de colección estándar se llama "Collection".
+EXPLOSIÓN radial (pedazos disparados desde el centro) = PENDIENTE: es runtime — FieldSystemComponent
+`apply_strain_field` (rompe) + `apply_radial_force` (empuja); necesita un disparador (BeginPlay de un BP).
+Este spike deja el barril rompiéndose por IMPACTO; el estallido radial es el paso siguiente.
 
-CÓMO CORRERLO (en el editor GUI, Tools → o consola Python del editor):
+CÓMO CORRERLO (consola Python del editor):
   py exec(open("<ruta>/dataflow_barrel_spike.py").read())
 """
-
 import unreal
+
+MESH = "/Game/VictorianAlley/Meshes/SM_barrel_crates_single_barrel.SM_barrel_crates_single_barrel"
+N_PEDAZOS = 20
+
+DFE = unreal.DataflowEditorBlueprintLibrary
+DFB = unreal.DataflowBlueprintLibrary
+AT = unreal.AssetToolsHelpers.get_asset_tools()
 
 
 def log(m):
     unreal.log("[barrel-spike] " + m)
 
 
-def autorar_fractura(static_mesh, ruta="/Game/JamDF/BarrelFrac"):
-    """Autora un grafo Dataflow: StaticMesh → (selección) → VoronoiFracture → Terminal.
-    Devuelve el UDataflow. CORRER EN EDITOR INTERACTIVO (headless cuelga)."""
-    DFE = unreal.DataflowEditorBlueprintLibrary
-    at = unreal.AssetToolsHelpers.get_asset_tools()
+def _setp(df, node, prop, value):
+    if isinstance(value, bool):
+        value = "true" if value else "false"
+    if not DFE.set_dataflow_node_property(df, node, prop, str(value)):
+        raise RuntimeError("set %s.%s falló" % (node, prop))
+
+
+def _conn(df, a, ao, b, bi):
+    if not DFE.connect_dataflow_nodes(df, a, ao, b, bi):
+        raise RuntimeError("connect %s.%s -> %s.%s falló" % (a, ao, b, bi))
+
+
+def autorar_fractura(mesh_path=MESH, ruta="/Game/JamDF/BarrelFrac", n=N_PEDAZOS):
+    """Grafo Dataflow que SÍ fractura: StaticMesh_v2 → BoundingBox → UniformScatterPoints_v2 →
+    VoronoiFracture_v2(Points) → Proximity(connection graph) → Terminal_v2(+Materials/+InstancedMeshes).
+    Devuelve (df, nombre_del_terminal). CORRER EN EDITOR."""
+    mesh = unreal.load_asset(mesh_path)
     carpeta, nombre = ruta.rsplit("/", 1)
     if unreal.EditorAssetLibrary.does_asset_exist(ruta):
         unreal.EditorAssetLibrary.delete_asset(ruta)
-    df = at.create_asset(nombre, carpeta, unreal.Dataflow, unreal.DataflowAssetFactory())
+    df = AT.create_asset(nombre, carpeta, unreal.Dataflow, unreal.DataflowAssetFactory())
 
-    v = unreal.Vector2D
-    n_src = DFE.add_dataflow_node(df, "FStaticMeshToCollectionDataflowNode", "src", v(0, 0))
-    n_sel = DFE.add_dataflow_node(df, "FCollectionTransformSelectionAllDataflowNode", "sel", v(200, 120))
-    n_fr = DFE.add_dataflow_node(df, "FVoronoiFractureDataflowNode", "frac", v(400, 0))
-    n_tm = DFE.add_dataflow_node(df, "FGeometryCollectionTerminalDataflowNode", "term", v(620, 0))
+    V = unreal.Vector2D
+    src  = DFE.add_dataflow_node(df, "FStaticMeshToCollectionDataflowNode_v2", "src",  V(0, 0))
+    bbox = DFE.add_dataflow_node(df, "FBoundingBoxDataflowNode",               "bbox", V(220, 0))
+    pts  = DFE.add_dataflow_node(df, "FUniformScatterPointsDataflowNode_v2",   "pts",  V(440, 0))
+    frac = DFE.add_dataflow_node(df, "FVoronoiFractureDataflowNode_v2",        "frac", V(660, 0))
+    prox = DFE.add_dataflow_node(df, "FProximityDataflowNode",                 "prox", V(880, 0))
+    term = DFE.add_dataflow_node(df, "FGeometryCollectionTerminalDataflowNode_v2", "term", V(1100, 0))
 
-    DFE.set_dataflow_node_property(df, n_src, "StaticMesh", static_mesh)
-    DFE.connect_dataflow_nodes(df, n_src, "Collection", n_sel, "Collection")
-    DFE.connect_dataflow_nodes(df, n_src, "Collection", n_fr, "Collection")
-    DFE.connect_dataflow_nodes(df, n_sel, "TransformSelection", n_fr, "TransformSelection")
-    DFE.connect_dataflow_nodes(df, n_fr, "Collection", n_tm, "Collection")
+    _setp(df, src, "StaticMesh", mesh.get_path_name())
+    _setp(df, pts, "MinNumberOfPoints", n)
+    _setp(df, pts, "MaxNumberOfPoints", n)
+    _setp(df, pts, "RandomSeed", 123)
+    _setp(df, frac, "ChanceToFracture", 1.0)
+    _setp(df, frac, "SplitIslands", True)
+    _setp(df, prox, "bUseAsConnectionGraph", True)
+
+    _conn(df, src, "Collection", bbox, "Collection")
+    _conn(df, bbox, "BoundingBox", pts, "BoundingBox")
+    _conn(df, src, "Collection", frac, "Collection")
+    _conn(df, pts, "Points", frac, "Points")
+    _conn(df, frac, "Collection", prox, "Collection")
+    _conn(df, prox, "Collection", term, "Collection")
+    _conn(df, src, "Materials", term, "Materials")
+    _conn(df, src, "InstancedMeshes", term, "InstancedMeshes")
     unreal.EditorAssetLibrary.save_asset(ruta, only_if_is_dirty=False)
-    log("grafo de fractura autorado: " + ruta)
-    return df
+    log("grafo de fractura autorado (con puntos + proximity): " + ruta)
+    return df, term
 
 
-def generar_gc(df, ruta="/Game/JamDF/BarrelGC"):
-    """Crea una GeometryCollection, la liga al dataflow `df` Y —EL FIX CLAVE— fija el nodo TERMINAL en
-    su DataflowInstance; sin el terminal, `regenerate` corre pero deja la GC VACÍA (thumbnail damero).
-    Devuelve la GC ya con geometría fracturada. CORRER EN EDITOR."""
-    at = unreal.AssetToolsHelpers.get_asset_tools()
+def generar_gc(df, terminal, ruta="/Game/JamDF/BarrelGC"):
+    """Crea la GeometryCollection, la liga al dataflow + FIJA EL TERMINAL (sin esto sale vacía) y la
+    regenera. Devuelve la GC ya con geometría fracturada."""
     carpeta, nombre = ruta.rsplit("/", 1)
     if unreal.EditorAssetLibrary.does_asset_exist(ruta):
         unreal.EditorAssetLibrary.delete_asset(ruta)
-    gc = at.create_asset(nombre, carpeta, unreal.GeometryCollection, unreal.GeometryCollectionFactory())
-    inst = gc.get_editor_property("dataflow_instance")   # FDataflowInstance
+    gc = AT.create_asset(nombre, carpeta, unreal.GeometryCollection, unreal.GeometryCollectionFactory())
+    inst = gc.get_editor_property("dataflow_instance")
     inst.set_editor_property("dataflow_asset", df)
-    inst.set_editor_property("dataflow_terminal", "term")  # nombre del FGeometryCollectionTerminal
+    inst.set_editor_property("dataflow_terminal", terminal)
     gc.set_editor_property("dataflow_instance", inst)
-    unreal.DataflowBlueprintLibrary.regenerate_asset_from_dataflow(gc)
+    assert DFB.regenerate_asset_from_dataflow(gc), "regenerate falló"
     unreal.EditorAssetLibrary.save_asset(ruta, only_if_is_dirty=False)
-    log("GC regenerada: " + ruta + " (verificar bounds != 0 = hay geometría)")
+    log("GC regenerada: " + ruta)
     return gc
 
 
-def colocar_barril_destructible(gc_asset, centro):
-    """El rol de JAM: colocar un GeometryCollectionActor (la GC fracturada) + un FieldSystemActor con
-    RadialFalloff (strain=rompe) + RadialVector (impulso=dispersa) = la explosión. CORRER EN EDITOR."""
+def colocar_barril_destructible(gc, centro):
+    """El rol de JAM: colocar el GeometryCollectionActor con las props que hacen que ROMPA AL IMPACTO
+    (umbrales bajos + clustering + connection graph ya en la GC). Devuelve el actor."""
     sub = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
-    gc = sub.spawn_actor_from_class(unreal.GeometryCollectionActor, centro)
-    comp = gc.get_component_by_class(unreal.GeometryCollectionComponent)
-    if gc_asset is not None:
-        comp.set_editor_property("rest_collection", gc_asset)
-    # ROMPE AL CAER: enable_damage_from_collision estaba en False → caía entero. Con esto + umbral 0
-    # se hace pedazos al impactar el piso (el «cae pero no rompe» de Brian).
-    comp.set_editor_property("enable_clustering", True)
-    comp.set_editor_property("enable_damage_from_collision", True)
-    comp.set_editor_property("damage_threshold", [0.0])
-    # ESTALLIDO (opcional): velocidad/giro iniciales. El enum es CHAOS_INITIAL_VELOCITY_USER_DEFINED.
-    comp.set_editor_property("initial_velocity_type",
-                             unreal.InitialVelocityTypeEnum.CHAOS_INITIAL_VELOCITY_USER_DEFINED)
-    comp.set_editor_property("initial_linear_velocity", unreal.Vector(0, 0, 500))
-    comp.set_editor_property("initial_angular_velocity", unreal.Vector(0, 0, 720))
+    actor = sub.spawn_actor_from_class(unreal.GeometryCollectionActor, centro)
+    comp = actor.get_component_by_class(unreal.GeometryCollectionComponent)
+    comp.set_rest_collection(gc, True)   # aplica defaults del asset; los de daño se pisan DESPUÉS
+    comp.set_simulate_physics(True)
 
-    # Field system de Chaos: la explosión REAL (radial) es runtime — FieldSystemComponent.
-    # apply_strain_field (rompe) + apply_radial_force (empuja). Necesita un disparador (BeginPlay de un
-    # BP) para dispararse SOLA en Play; para el demo alcanza el rompe-al-caer de arriba.
-    campo = sub.spawn_actor_from_class(unreal.FieldSystemActor, centro)
-    log("colocado: barril destructible (rompe al caer) + FieldSystem. Dale Play.")
-    return gc, campo
+    def sp(prop, val):
+        try:
+            comp.set_editor_property(prop, val)
+        except Exception as e:  # noqa: BLE001
+            log("%s: %s" % (prop, type(e).__name__))
+
+    sp("object_type", getattr(unreal.ObjectStateTypeEnum, "CHAOS_OBJECT_DYNAMIC", None))
+    sp("enable_clustering", True)
+    sp("max_cluster_level", 100)
+    sp("max_simulated_level", 100)
+    sp("damage_model", getattr(unreal.DamageModelTypeEnum,
+                               "CHAOS_DAMAGE_MODEL_USER_DEFINED_DAMAGE_THRESHOLD", None))
+    comp.set_enable_damage_from_collision(True)
+    comp.set_damage_threshold([0.0])
+    log("colocado: barril destructible (rompe al caer/impacto). Dale Play.")
+    return actor
 
 
 def main():
-    import jam.library as library
-    # UN barril SOLO (no el _group_a, que son varios barriles+cajones y no se lee como destructible)
-    barril = library.buscar("SM_barrel_crates_single_barrel", limit=1)[0]
-    sm = unreal.load_asset(barril["ruta"])
-    log("barril: " + barril["nombre"])
-    df = autorar_fractura(sm)
-    gc = generar_gc(df)   # VERIFICADO: bounds (88.7, 70.2, 93.3) = geometría fracturada
-    colocar_barril_destructible(gc, unreal.Vector(0, 0, 300))
-    log("FIN — recordá: correr en el editor GUI (headless cuelga en FieldSystem/Dataflow)")
+    df, term = autorar_fractura()
+    gc = generar_gc(df, term)
+    colocar_barril_destructible(gc, unreal.Vector(0, 0, 350))
+    log("FIN — grafo autorado; el ROMPE-EN-PIE está en diagnóstico.")
 
 
 if __name__ == "__main__":

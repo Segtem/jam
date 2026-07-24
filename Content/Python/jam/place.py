@@ -27,6 +27,35 @@ def _actor_sub() -> unreal.EditorActorSubsystem:
     return unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
 
 
+def _config_destructible(actor) -> bool:
+    """Deja un GeometryCollectionActor listo para ROMPER al impacto. Los defaults de umbral de daño
+    de Chaos son enormes ({500000,50000,5000}) → sin esto el destructible no se rompe. Verificado en
+    el spike del barril (jam/tools/experiments/dataflow_barrel_spike.py)."""
+    comp = actor.get_component_by_class(unreal.GeometryCollectionComponent)
+    if comp is None:
+        return False
+
+    def sp(prop, val):
+        try:
+            comp.set_editor_property(prop, val)
+        except Exception:  # noqa: BLE001
+            pass
+
+    try:
+        comp.set_simulate_physics(True)
+    except Exception:  # noqa: BLE001
+        pass
+    sp("object_type", getattr(unreal.ObjectStateTypeEnum, "CHAOS_OBJECT_DYNAMIC", None))
+    sp("enable_clustering", True)
+    sp("max_cluster_level", 100)
+    sp("max_simulated_level", 100)
+    sp("damage_model",
+       getattr(unreal.DamageModelTypeEnum, "CHAOS_DAMAGE_MODEL_USER_DEFINED_DAMAGE_THRESHOLD", None))
+    sp("enable_damage_from_collision", True)
+    sp("damage_threshold", [0.0])
+    return True
+
+
 def normalizar_agarre(actor, ancla: str = "base") -> bool:
     """Deja el `pivot_offset` del actor en su ancla: el gizmo del editor lo agarra POR AHÍ (y rota
     alrededor de ahí). Es lo que hace que una pieza con el pivote en una esquina se mueva bien.
@@ -66,10 +95,11 @@ def colocar(
     `surface` raycastea en (x,y) y apoya ahí; `base` corre para que la base toque el piso
     (default = `surface`); `align` orienta a la normal; `physics` asienta por caída. Devuelve el
     actor o None."""
-    mesh = library.cargar_malla(asset) if isinstance(asset, str) else asset
+    mesh = library.cargar_placeable(asset) if isinstance(asset, str) else asset
     if mesh is None:
         unreal.log_error(f"[Jam] colocar: no se pudo cargar el asset {asset!r}")
         return None
+    es_gc = library.es_geometry_collection(mesh)
 
     rng = random.Random(seed)
     x, y, z = location
@@ -112,6 +142,13 @@ def colocar(
     if tuple(scale) != (1.0, 1.0, 1.0):
         actor.set_actor_scale3d(unreal.Vector(*scale))
 
+    # Geometry Collection: el `spawn_actor_from_object` ya creó un GeometryCollectionActor con su
+    # rest_collection; lo dejamos DESTRUCTIBLE (los umbrales por defecto son enormes → no rompería).
+    # Se coloca por ancla igual que una malla (el AABB del actor sirve), pero no se le normaliza el
+    # pivote (no aplica a un GC).
+    if es_gc:
+        _config_destructible(actor)
+
     # ANCLA: por qué punto de la pieza se coloca. Se mide sobre el AABB REAL (ya rotado y escalado),
     # así que funciona con cualquier pivote — incluso los que vienen fuera de la malla. Si no se pide
     # una, se usa la que el asset tenga NORMALIZADA en el kit (default `base`).
@@ -129,7 +166,9 @@ def colocar(
     # NORMALIZAR EL AGARRE: el gizmo del editor toma la pieza por el `pivot_offset` del actor. Sin
     # esto, un asset con el pivote abajo en una esquina (casa_kit) se agarra de la esquina y al
     # rotarlo se va de paseo en vez de girar en su lugar. No se toca la malla del disco.
-    normalizar_agarre(actor, ancla or "base")
+    # (Un GC no tiene pivot_offset de StaticMeshComponent → se saltea.)
+    if not es_gc:
+        normalizar_agarre(actor, ancla or "base")
 
     if physics:
         from . import physics as ph
