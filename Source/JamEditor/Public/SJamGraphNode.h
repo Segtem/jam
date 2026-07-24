@@ -92,6 +92,8 @@ private:
 	/** Cuerpo redondeado (cápsula GH): relleno gris claro + borde = veredicto. */
 	FSlateRoundedBoxBrush BodyBrush = FSlateRoundedBoxBrush(
 		FLinearColor(0.80f, 0.80f, 0.78f, 1.0f), 6.0f, FLinearColor(0.10f, 0.10f, 0.10f, 1.0f), 1.0f);
+	/** Slot redondeado del icono de categoría (como el recuadro del pictograma en GH). */
+	FSlateRoundedBoxBrush IconBrush = FSlateRoundedBoxBrush(FLinearColor(0.35f, 0.35f, 0.38f, 1.0f), 3.0f);
 	FOnNodeDragDelta OnDragDelta;
 	FOnPinClicked OnInputClickedDelegate;
 	FSimpleDelegate OnOutputClickedDelegate;

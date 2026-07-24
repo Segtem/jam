@@ -4,6 +4,7 @@
 #include "Widgets/SNullWidget.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Layout/SBorder.h"
+#include "Widgets/Images/SImage.h"
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Input/SEditableTextBox.h"
 #include "Widgets/Text/STextBlock.h"
@@ -17,20 +18,23 @@ namespace
 {
 	// Texto oscuro sobre el cuerpo gris claro de la cápsula (como GH).
 	const FLinearColor JamInk(0.10f, 0.10f, 0.11f, 1.0f);
-	const FLinearColor JamNub(0.16f, 0.16f, 0.17f, 1.0f);
 
-	// Nub redondo (pin) al estilo Grasshopper: botón sin borde con un ● en el color del nub.
+	// El GRIP (pin) al estilo Grasshopper: una pastilla oscura sobre el borde de la cápsula, en vez de
+	// un punto. Es estático (todos los grips son iguales; el color no cambia) → vive lo que el widget.
+	const FSlateRoundedBoxBrush GGripBrush(FLinearColor(0.16f, 0.16f, 0.17f, 1.0f), 4.0f);
+
+	// Nub = botón sin borde con la pastilla del grip (clicable para conectar), como el grip de GH.
 	TSharedRef<SWidget> MakeNub(const FString& Tip, TFunction<void()> OnClick)
 	{
 		return SNew(SButton)
 			.ButtonStyle(&FAppStyle::Get(), "NoBorder")
 			.ToolTipText(FText::FromString(Tip))
 			.ContentPadding(FMargin(0.0f))
+			.HAlign(HAlign_Center).VAlign(VAlign_Center)
 			.OnClicked_Lambda([OnClick]() { OnClick(); return FReply::Handled(); })
 			[
-				SNew(STextBlock).Text(FText::FromString(TEXT("●")))
-				.ColorAndOpacity(JamNub)
-				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 11))
+				SNew(SBox).WidthOverride(8.0f).HeightOverride(11.0f)
+				[ SNew(SImage).Image(&GGripBrush) ]
 			];
 	}
 }
@@ -45,6 +49,7 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 	OnOutputClickedDelegate = InArgs._OnOutputClicked;
 	OnDeleteClickedDelegate = InArgs._OnDeleteClicked;
 	RebuildBodyBrush();
+	IconBrush = FSlateRoundedBoxBrush(IconColor, 3.0f);   // slot del icono en el color de su categoría
 
 	// Celda de alto FIJO (los pines se alinean a las filas por construcción; la métrica la comparte el
 	// editor para anclar los wires exactamente en cada pin — como los grips por parámetro de GH).
@@ -60,11 +65,10 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 	{
 		Header->AddSlot().AutoWidth().VAlign(VAlign_Center)
 		[
-			SNew(SBox).WidthOverride(18.0f).HeightOverride(18.0f)
+			SNew(SBox).WidthOverride(19.0f).HeightOverride(19.0f)
 			[
 				SNew(SBorder)
-				.BorderImage(FAppStyle::GetBrush("WhiteBrush"))
-				.BorderBackgroundColor(IconColor)
+				.BorderImage(&IconBrush)
 				.HAlign(HAlign_Center).VAlign(VAlign_Center)
 				.Padding(0.0f)
 				[
@@ -166,14 +170,36 @@ int32 SJamGraphNode::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGe
 	const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId,
 	const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
-	// Cápsula redondeada detrás de los hijos, insetada para que los nubs queden sobre el borde.
+	// Cápsula redondeada detrás de los hijos, insetada para que los grips queden sobre el borde.
 	const FVector2D Size = AllottedGeometry.GetLocalSize();
+	const float BodyW = FMath::Max(0.0f, (float)Size.X - 14.0f);
+	const float BodyH = FMath::Max(0.0f, (float)Size.Y - 2.0f);
 	const FPaintGeometry PG = AllottedGeometry.ToPaintGeometry(
-		FVector2D(FMath::Max(0.0f, (float)Size.X - 14.0f), FMath::Max(0.0f, (float)Size.Y - 2.0f)),
-		FSlateLayoutTransform(FVector2D(7.0f, 1.0f)));
+		FVector2D(BodyW, BodyH), FSlateLayoutTransform(FVector2D(7.0f, 1.0f)));
 	FSlateDrawElement::MakeBox(OutDrawElements, LayerId, PG, &BodyBrush);
+
+	// Bevel suave estilo GH: un degradé vertical (transparente arriba → sombra abajo) inset por el
+	// radio para no asomar en las esquinas, + una línea de luz apenas bajo el borde superior.
+	const float R = 5.0f;
+	if (BodyW > 2.0f * R && BodyH > 2.0f * R)
+	{
+		const FVector2D GSize(BodyW - 2.0f * R, BodyH - 2.0f * R);
+		const FPaintGeometry GPG = AllottedGeometry.ToPaintGeometry(
+			GSize, FSlateLayoutTransform(FVector2D(7.0f + R, 1.0f + R)));
+		TArray<FSlateGradientStop> Stops;
+		Stops.Add(FSlateGradientStop(FVector2D(0.0f, 0.0f), FLinearColor(0.0f, 0.0f, 0.0f, 0.0f)));
+		Stops.Add(FSlateGradientStop(FVector2D(0.0f, GSize.Y), FLinearColor(0.0f, 0.0f, 0.0f, 0.09f)));
+		FSlateDrawElement::MakeGradient(OutDrawElements, LayerId + 1, GPG, Stops, Orient_Vertical);
+
+		TArray<FVector2D> Hi;
+		Hi.Add(FVector2D(7.0f + R, 2.0f));
+		Hi.Add(FVector2D(7.0f + BodyW - R, 2.0f));
+		FSlateDrawElement::MakeLines(OutDrawElements, LayerId + 1, AllottedGeometry.ToPaintGeometry(),
+			Hi, ESlateDrawEffect::None, FLinearColor(1.0f, 1.0f, 1.0f, 0.35f), true, 1.0f);
+	}
+
 	return SCompoundWidget::OnPaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements,
-		LayerId + 1, InWidgetStyle, bParentEnabled);
+		LayerId + 2, InWidgetStyle, bParentEnabled);
 }
 
 void SJamGraphNode::SetResult(const FString& State, const FString& Text)
