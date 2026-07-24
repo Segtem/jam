@@ -111,6 +111,35 @@ def poisson_disk(centro, semi, radio, seed, k=30, maximo=100000):
     return pts
 
 
+def hexagonal(centro, semi, paso, seed, jitter=0.0):
+    """Grilla HEXAGONAL (Vector/Grid de GH): filas desfasadas media celda → empaque hexagonal. `paso`
+    = separación entre centros (cm). Bueno para adoquines/mosaicos sin el patrón cuadrado obvio."""
+    rng = random.Random(seed)
+    cx, cy = centro
+    sx, sy = semi
+    dy = paso * math.sqrt(3) / 2.0
+    pts = []
+    fila = 0
+    y = cy - sy
+    while y <= cy + sy:
+        offset = (paso / 2.0) if (fila % 2) else 0.0
+        x = cx - sx + offset
+        while x <= cx + sx:
+            jx = rng.uniform(-jitter, jitter) * paso
+            jy = rng.uniform(-jitter, jitter) * paso
+            pts.append((x + jx, y + jy))
+            x += paso
+        y += dy
+        fila += 1
+    return pts
+
+
+def triangular(centro, semi, paso, seed, jitter=0.0):
+    """Grilla TRIANGULAR (Vector/Grid de GH): igual que hexagonal pero con densidad mayor; acá se
+    modela como hexagonal con paso reducido (los centros triangulares equivalen a hex más denso)."""
+    return hexagonal(centro, semi, paso * 0.9, seed, jitter)
+
+
 def radial(centro, radio, cantidad, anillos, seed, jitter=0.0):
     """Anillos concéntricos de puntos alrededor de `centro` (el Radial Scatter de Dash)."""
     rng = random.Random(seed)

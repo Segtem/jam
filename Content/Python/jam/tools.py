@@ -18,6 +18,11 @@ def _corto(ruta: str) -> str:
     return ruta.rsplit(".", 1)[-1] if ruta else "asset"
 
 
+def _slug_preset(nombre: str) -> str:
+    import re
+    return re.sub(r"[^A-Za-z0-9]+", "_", nombre).strip("_") or "JamPCG"
+
+
 # ---- herramientas (asset = ObjectPath; el resto, params con default) ----
 # Nota: los NOMBRES de programación (verbos + params) están en inglés (API/CLI); la PROSA (docs y
 # veredictos del oráculo) queda en español. Los módulos internos (place/scatter/pared…) siguen en
@@ -47,6 +52,38 @@ def t_pick(asset, *, name="") -> str:
     extra = f"  (+{len(sel) - 1} más seleccionadas)" if len(sel) > 1 else ""
     return (f"ASSET ACTIVO ✓ (selección de Unreal) — {sel[0]['nombre']}{extra}\n"
             f"{t_pivot(sel[0]['ruta'])}")
+
+
+def t_pcg(asset, *, area=1600.0, count=200, density=0.0, view=True, name="JamPCG", preset="") -> str:
+    """Realiza un scatter con el PCG NATIVO de Unreal (HISM, no-destructivo, regenerable) en vez de
+    actores sueltos — el último eslabón del pipeline (tools → presets → PCG usando presets). Con
+    `preset` toma sus params (área/cantidad/asset); si no, usa el asset activo. Arma el grafo
+    (superficie→sampler→spawner), pone un PCGVolume en el punto de mira y lo genera (asíncrono)."""
+    from . import pcg
+    nombre = name
+    # PCG USANDO PRESETS: si se da un preset de scatter, sus params dirigen la realización.
+    if preset:
+        from . import dsl, preset as pre
+        p = pre.cargar(preset)
+        if not p:
+            return f"preset «{preset}» no encontrado."
+        if p.get("kind") == "tool":
+            r = dsl.parsear(p.get("command", ""))
+            kw, _ = dsl.coaccionar(r["verbo"], r["params"])
+            area = float(kw.get("area", area))
+            count = int(kw.get("count", count))
+            if r["asset"]:
+                asset = r["asset"]
+        nombre = _slug_preset(preset)
+    r = pcg.realizar(asset, nombre=nombre, area=area, count=int(count), density=density, view=view)
+    if "error" in r:
+        return r["error"]
+    from . import ue
+    ue.seleccionar([r["volumen"]])
+    loc = r["volumen"].get_actor_location()
+    return (f"PCG realizado ✓ — «{r['volumen'].get_actor_label()}» ({r['assets']} asset(s), "
+            f"{r['density']} pts/m², {r['cables']}/4 cables) en ({loc.x:.0f}, {loc.y:.0f}), "
+            f"área {area:.0f}cm. Genera asíncrono (HISM); F para volar hasta él.")
 
 
 def t_gizmo(asset, *, on=True) -> str:
@@ -390,7 +427,7 @@ REGISTRO = {
                                 "height_min": 0.0, "height_max": 0.0, "noise": 0.0, "density": 1.0,
                                 "scale_min": 1.0, "scale_max": 1.0, "spread": 1.0, "sink": 0.0,
                                 "anchor": "", "view": True, "seed": 7},
-                     "opciones": {"pattern": ["poisson", "grid", "radial"],
+                     "opciones": {"pattern": ["poisson", "grid", "radial", "hexagonal", "triangular"],
                                   "anchor": [""] + list(_ANCLAS)},
                      "doc": "esparce sobre la superficie real con máscaras (pendiente/altura/ruido/densidad) y variación"},
     "drop":         {"fn": t_drop,    "cat": "Place",   "params": {"height": 800.0},
@@ -406,6 +443,10 @@ REGISTRO = {
                      "doc": "piezas modulares a su largo real a lo largo de un spline (verifica que tile sin solaparse)"},
     "create_spline": {"fn": t_create_spline, "cat": "Create", "params": {},
                       "doc": "agrega un spline editable a la escena (primitiva de curva)"},
+    "pcg":          {"fn": t_pcg,     "cat": "Scatter",
+                     "params": {"area": 1600.0, "count": 200, "density": 0.0, "view": True,
+                                "name": "JamPCG", "preset": ""},
+                     "doc": "realiza el scatter (o un preset) con el PCG nativo (HISM, regenerable)"},
     "gizmo":        {"fn": t_gizmo,   "cat": "Edit",    "params": {"on": True},
                      "doc": "marca en el viewport dónde está parado Jam + la huella del asset activo"},
     "ghost":        {"fn": t_ghost,   "cat": "Edit",    "params": {"on": True},
@@ -415,7 +456,7 @@ REGISTRO = {
 # Verbos que NO crean nada COLOCABLE: son selección o estado de la herramienta, así que no pasan por
 # el preview (si pasaran, «Confirmar/Descartar» quedarían apuntando a una preview vacía). El
 # fantasma sí crea un actor, pero es un ayudante efímero, no una pieza del nivel.
-SIN_SPAWN = {"asset", "pick", "gizmo", "ghost", "pivot", "pivot_set", "normalize"}
+SIN_SPAWN = {"asset", "pick", "gizmo", "ghost", "pivot", "pivot_set", "normalize", "pcg"}
 
 # Orden de las categorías en la barra (como Dash). Las vacías no se muestran.
 CATEGORIAS = ["Content", "Place", "Scatter", "Create", "Edit"]

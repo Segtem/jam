@@ -179,7 +179,8 @@ def ejecutar_dsl(linea: str, widget=None) -> str:
         kw, _desc = dsl.coaccionar(verbo, r["params"])
         if verbo == "pick":
             return tools.t_pick(None)   # lee la selección del Content Browser de Unreal
-        pedido = r["asset"] or r["params"].get("name") or ""
+        # `name` como nombre de asset es SÓLO para el verbo `asset` (en pcg, `name` es el del volumen).
+        pedido = r["asset"] or (r["params"].get("name") if verbo == "asset" else "") or ""
         asset = _resolver_asset(pedido)
         if pedido and asset is None:
             return f"asset «{pedido}» no encontrado en la biblioteca."

@@ -41,7 +41,7 @@ OPS_META: dict = {
     "source_surface": {"cat": "Source", "source": True,
                        "params": {"area": 800.0, "count": 40, "pattern": "poisson",
                                   "spacing": 0.0, "seed": 7},
-                       "opciones": {"pattern": ["poisson", "grid", "radial"]},
+                       "opciones": {"pattern": ["poisson", "grid", "radial", "hexagonal", "triangular"]},
                        "doc": "puntos sobre la superficie real (raycast) — el Scatter SOP"},
     "mask_slope":   {"cat": "Mask", "params": {"min": 0.0, "max": 90.0},
                      "doc": "descarta por pendiente (Angle Mask)"},

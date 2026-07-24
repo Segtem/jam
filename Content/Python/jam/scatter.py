@@ -124,6 +124,10 @@ def esparcir_rico(
             pts = pts[:cantidad]
     elif patron == "radial":
         pts = sc.radial(centro, min(semi), cantidad, anillos, seed)
+    elif patron == "hexagonal":
+        pts = sc.hexagonal(centro, semi, spacing, seed, jitter=0.15)
+    elif patron == "triangular":
+        pts = sc.triangular(centro, semi, spacing, seed, jitter=0.15)
     else:
         pts = sc.grid_jitter(centro, semi, cantidad, seed)
 
@@ -205,6 +209,10 @@ def _op_source_surface(entradas, p):
         pts = sc.grid_jitter(centro, semi, cant, seed)
     elif patron == "radial":
         pts = sc.radial(centro, min(semi), cant, int(p.get("rings", p.get("anillos", 3))), seed)
+    elif patron == "hexagonal":
+        pts = sc.hexagonal(centro, semi, p.get("spacing", 0.0) or 200.0, seed, jitter=0.15)
+    elif patron == "triangular":
+        pts = sc.triangular(centro, semi, p.get("spacing", 0.0) or 200.0, seed, jitter=0.15)
     else:
         spacing = p.get("spacing", 0.0) or 200.0   # 0 = default razonable para la fuente sola
         pts = sc.poisson_disk(centro, semi, spacing, seed)
