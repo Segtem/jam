@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/DeclarativeSyntaxSupport.h"
+#include "Brushes/SlateRoundedBoxBrush.h"
 
 class SEditableTextBox;
 
@@ -53,16 +54,25 @@ public:
 	virtual FReply OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual FReply OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual FReply OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+	// Dibuja el cuerpo CÁPSULA (redondeado, con borde = veredicto) detrás de los hijos, como GH.
+	virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
+		const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId,
+		const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
 
 private:
-	/** Color del header según el veredicto del oráculo (verde/naranja/rojo/neutro). */
+	/** Color del borde de la cápsula según el veredicto del oráculo (verde/naranja/rojo/neutro). */
 	FLinearColor StateColor() const;
+	/** Rehace el pincel del cuerpo con el borde del estado actual. */
+	void RebuildBodyBrush();
 
 	FString Verb;
 	FString Icon;
 	FLinearColor IconColor = FLinearColor(0.35f, 0.35f, 0.38f, 1.0f);
 	FString ResultState;
 	bool bDragging = false;
+	/** Cuerpo redondeado (cápsula GH): relleno gris claro + borde = veredicto. */
+	FSlateRoundedBoxBrush BodyBrush = FSlateRoundedBoxBrush(
+		FLinearColor(0.80f, 0.80f, 0.78f, 1.0f), 6.0f, FLinearColor(0.10f, 0.10f, 0.10f, 1.0f), 1.0f);
 	FOnNodeDragDelta OnDragDelta;
 	FSimpleDelegate OnInputClickedDelegate;
 	FSimpleDelegate OnOutputClickedDelegate;

@@ -24,42 +24,84 @@
 
 #define LOCTEXT_NAMESPACE "JamGraphEditor"
 
-// Capa que dibuja los wires (splines) detrás de los nodos. Pide los endpoints por delegate.
+// Capa de fondo del canvas (como el de Grasshopper): pinta el color de fondo, una GRILLA fina
+// alineada al pan/zoom, y los WIRES (splines) — todo detrás de los nodos.
 class SJamWireLayer : public SLeafWidget
 {
 public:
 	SLATE_BEGIN_ARGS(SJamWireLayer) {}
-		SLATE_EVENT(FSimpleDelegate, Unused)
 	SLATE_END_ARGS()
 
-	void Construct(const FArguments&, TFunction<TArray<TPair<FVector2D, FVector2D>>()> InGetter)
+	void Construct(const FArguments&,
+		TFunction<TArray<TPair<FVector2D, FVector2D>>()> InGetter,
+		TFunction<void(FVector2D&, float&)> InXform)
 	{
 		Getter = MoveTemp(InGetter);
+		XformGetter = MoveTemp(InXform);
 	}
 
 	virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
 		const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId,
 		const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override
 	{
+		const FSlateBrush* White = FAppStyle::GetBrush("WhiteBrush");
+		const FVector2D Size = AllottedGeometry.GetLocalSize();
+
+		// Fondo del canvas (gris neutro, como el lienzo de GH).
+		FSlateDrawElement::MakeBox(OutDrawElements, LayerId, AllottedGeometry.ToPaintGeometry(),
+			White, ESlateDrawEffect::None, FLinearColor(0.145f, 0.150f, 0.155f, 1.0f));
+
+		// Grilla: líneas cada 24 u de modelo, mayores cada 4. Alineada al pan/zoom (se mueve y escala
+		// con el lienzo, como GH). Se saltea si el paso en pantalla es muy chico (zoom out).
+		FVector2D Pan = FVector2D::ZeroVector;
+		float Zoom = 1.0f;
+		if (XformGetter) { XformGetter(Pan, Zoom); }
+		const float Step = 24.0f * Zoom;
+		if (Step >= 9.0f)
+		{
+			const FLinearColor Minor(1.0f, 1.0f, 1.0f, 0.05f);
+			const FLinearColor Major(1.0f, 1.0f, 1.0f, 0.10f);
+			auto Line = [&](const FVector2D& A, const FVector2D& B, const FLinearColor& C)
+			{
+				TArray<FVector2D> Pts; Pts.Add(A); Pts.Add(B);
+				FSlateDrawElement::MakeLines(OutDrawElements, LayerId + 1,
+					AllottedGeometry.ToPaintGeometry(), Pts, ESlateDrawEffect::None, C, false, 1.0f);
+			};
+			float ox = FMath::Fmod(Pan.X * Zoom, Step); if (ox < 0) { ox += Step; }
+			for (float x = ox; x < Size.X; x += Step)
+			{
+				const int32 k = FMath::RoundToInt((x / Zoom - Pan.X) / 24.0f);
+				Line(FVector2D(x, 0.0f), FVector2D(x, Size.Y), (k % 4 == 0) ? Major : Minor);
+			}
+			float oy = FMath::Fmod(Pan.Y * Zoom, Step); if (oy < 0) { oy += Step; }
+			for (float y = oy; y < Size.Y; y += Step)
+			{
+				const int32 k = FMath::RoundToInt((y / Zoom - Pan.Y) / 24.0f);
+				Line(FVector2D(0.0f, y), FVector2D(Size.X, y), (k % 4 == 0) ? Major : Minor);
+			}
+		}
+
+		// Wires (splines) entre nodos, sobre la grilla.
 		if (Getter)
 		{
 			const FPaintGeometry PG = AllottedGeometry.ToPaintGeometry();
-			const FLinearColor Tint(0.55f, 0.75f, 1.0f, 1.0f);
+			const FLinearColor Tint(0.62f, 0.66f, 0.70f, 0.95f);
 			for (const TPair<FVector2D, FVector2D>& W : Getter())
 			{
 				const float dx = FMath::Max(50.0f, FMath::Abs(W.Value.X - W.Key.X) * 0.6f);
-				FSlateDrawElement::MakeSpline(OutDrawElements, LayerId, PG,
-					W.Key, FVector2D(dx, 0.0f), W.Value, FVector2D(dx, 0.0f), 2.0f,
+				FSlateDrawElement::MakeSpline(OutDrawElements, LayerId + 2, PG,
+					W.Key, FVector2D(dx, 0.0f), W.Value, FVector2D(dx, 0.0f), 2.2f,
 					ESlateDrawEffect::None, Tint);
 			}
 		}
-		return LayerId;
+		return LayerId + 2;
 	}
 
 	virtual FVector2D ComputeDesiredSize(float) const override { return FVector2D::ZeroVector; }
 
 private:
 	TFunction<TArray<TPair<FVector2D, FVector2D>>()> Getter;
+	TFunction<void(FVector2D&, float&)> XformGetter;
 };
 
 
@@ -142,12 +184,16 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 		[
 			SNew(SBorder)
 			.BorderImage(FAppStyle::GetBrush("Brushes.Recessed"))
+			.Padding(0.0f)
 			[
 				SNew(SOverlay)
 				+ SOverlay::Slot()
 				[
-					SNew(SJamWireLayer, TFunction<TArray<TPair<FVector2D, FVector2D>>()>(
-						[this]() { return GetWireEndpoints(); }))
+					SNew(SJamWireLayer,
+						TFunction<TArray<TPair<FVector2D, FVector2D>>()>(
+							[this]() { return GetWireEndpoints(); }),
+						TFunction<void(FVector2D&, float&)>(
+							[this](FVector2D& P, float& Z) { P = PanOffset; Z = Zoom; }))
 				]
 				+ SOverlay::Slot()
 				[
@@ -395,7 +441,8 @@ void SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At)
 
 	Node.Widget = Widget;
 
-	const float Height = 34.0f + T->Params.Num() * 28.0f;
+	const float Height = 40.0f + T->Params.Num() * 26.0f;
+	Node.Height = Height;
 	Canvas->AddSlot()
 		.Position(TAttribute<FVector2D>::CreateLambda([this, Id]()
 		{
@@ -463,9 +510,10 @@ TArray<TPair<FVector2D, FVector2D>> SJamGraphEditor::GetWireEndpoints() const
 		if (A && B)
 		{
 			// La capa de wires NO está bajo el render transform del canvas → se aplica acá a mano.
+			// Los wires salen/entran por el CENTRO vertical del nodo (donde están los nubs), como GH.
 			Out.Add(TPair<FVector2D, FVector2D>(
-				(FVector2D(A->Pos.X + NodeWidth, A->Pos.Y + HeaderY) + PanOffset) * Zoom,
-				(FVector2D(B->Pos.X, B->Pos.Y + HeaderY) + PanOffset) * Zoom));
+				(FVector2D(A->Pos.X + NodeWidth, A->Pos.Y + A->Height * 0.5f) + PanOffset) * Zoom,
+				(FVector2D(B->Pos.X, B->Pos.Y + B->Height * 0.5f) + PanOffset) * Zoom));
 		}
 	}
 	return Out;

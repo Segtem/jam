@@ -54,6 +54,7 @@ private:
 		FString Id;
 		FString Verb;
 		FVector2D Pos = FVector2D::ZeroVector;
+		float Height = 34.0f;   // alto del nodo → los wires salen/entran por su CENTRO vertical (como GH)
 		TSharedPtr<SJamGraphNode> Widget;
 	};
 

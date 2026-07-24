@@ -1,6 +1,7 @@
 #include "SJamGraphNode.h"
 
 #include "Widgets/SBoxPanel.h"
+#include "Widgets/SOverlay.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/Input/SButton.h"
@@ -8,8 +9,31 @@
 #include "Widgets/Text/STextBlock.h"
 #include "Styling/AppStyle.h"
 #include "Styling/CoreStyle.h"
+#include "Rendering/DrawElements.h"
 
 #define LOCTEXT_NAMESPACE "JamGraphNode"
+
+namespace
+{
+	// Texto oscuro sobre el cuerpo gris claro de la cápsula (como GH).
+	const FLinearColor JamInk(0.10f, 0.10f, 0.11f, 1.0f);
+	const FLinearColor JamNub(0.16f, 0.16f, 0.17f, 1.0f);
+
+	// Nub redondo (pin) al estilo Grasshopper: botón sin borde con un ● en el color del nub.
+	TSharedRef<SWidget> MakeNub(const FString& Tip, TFunction<void()> OnClick)
+	{
+		return SNew(SButton)
+			.ButtonStyle(&FAppStyle::Get(), "NoBorder")
+			.ToolTipText(FText::FromString(Tip))
+			.ContentPadding(FMargin(0.0f))
+			.OnClicked_Lambda([OnClick]() { OnClick(); return FReply::Handled(); })
+			[
+				SNew(STextBlock).Text(FText::FromString(TEXT("●")))
+				.ColorAndOpacity(JamNub)
+				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 11))
+			];
+	}
+}
 
 void SJamGraphNode::Construct(const FArguments& InArgs)
 {
@@ -17,6 +41,10 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 	Icon = InArgs._Icon;
 	IconColor = InArgs._IconColor;
 	OnDragDelta = InArgs._OnDragDelta;
+	OnInputClickedDelegate = InArgs._OnInputClicked;
+	OnOutputClickedDelegate = InArgs._OnOutputClicked;
+	OnDeleteClickedDelegate = InArgs._OnDeleteClicked;
+	RebuildBodyBrush();
 
 	TSharedRef<SVerticalBox> Params = SNew(SVerticalBox);
 	for (const FJamNodeParam& P : InArgs._Params)
@@ -25,14 +53,16 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 		TSharedPtr<SEditableTextBox> Field;
 		Params->AddSlot()
 			.AutoHeight()
-			.Padding(2.0f, 1.0f)
+			.Padding(0.0f, 1.0f)
 			[
 				SNew(SHorizontalBox)
-				+ SHorizontalBox::Slot().FillWidth(0.45f).VAlign(VAlign_Center)
+				+ SHorizontalBox::Slot().FillWidth(0.42f).VAlign(VAlign_Center)
 				[
 					SNew(STextBlock).Text(FText::FromString(Key))
+					.ColorAndOpacity(JamInk)
+					.Font(FCoreStyle::GetDefaultFontStyle("Regular", 7))
 				]
-				+ SHorizontalBox::Slot().FillWidth(0.55f)
+				+ SHorizontalBox::Slot().FillWidth(0.58f)
 				[
 					SAssignNew(Field, SEditableTextBox).Text(FText::FromString(P.Value))
 				]
@@ -40,36 +70,13 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 		Fields.Add(Key, Field);
 	}
 
-	// Header: fondo pintado por el ESTADO del oráculo (neutro hasta que corre el grafo).
+	// Header: ICONO grande (badge de categoría) · título (zona de arrastre) · borrar.
 	TSharedRef<SHorizontalBox> Header = SNew(SHorizontalBox);
-	if (InArgs._HasInput)
+	if (!Icon.IsEmpty())
 	{
 		Header->AddSlot().AutoWidth().VAlign(VAlign_Center)
 		[
-			SNew(SButton)
-			.ToolTipText(LOCTEXT("InPin", "entrada (clic para conectar)"))
-			.ContentPadding(FMargin(2.0f, 0.0f))
-			.OnClicked_Lambda([this]() { OnInputClickedDelegate.ExecuteIfBound(); return FReply::Handled(); })
-			[ SNew(STextBlock).Text(FText::FromString(TEXT("○"))) ]
-		];
-	}
-	else
-	{
-		// Nodo FUENTE: sin pin de entrada, se marca el borde como "acá empieza el dato".
-		Header->AddSlot().AutoWidth().VAlign(VAlign_Center).Padding(4.0f, 0.0f, 0.0f, 0.0f)
-		[
-			SNew(STextBlock)
-			.Text(FText::FromString(TEXT("▌")))
-			.ToolTipText(LOCTEXT("SourceNode", "nodo fuente: no recibe entrada, produce el dato"))
-		];
-	}
-	// Icono de categoría (badge de color + código), igual que en el ribbon: el nodo colocado se
-	// reconoce de un vistazo por color, como un componente de Grasshopper.
-	if (!Icon.IsEmpty())
-	{
-		Header->AddSlot().AutoWidth().VAlign(VAlign_Center).Padding(3.0f, 0.0f, 0.0f, 0.0f)
-		[
-			SNew(SBox).WidthOverride(16.0f).HeightOverride(16.0f)
+			SNew(SBox).WidthOverride(22.0f).HeightOverride(22.0f)
 			[
 				SNew(SBorder)
 				.BorderImage(FAppStyle::GetBrush("WhiteBrush"))
@@ -79,71 +86,76 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 				[
 					SNew(STextBlock).Text(FText::FromString(Icon))
 					.ColorAndOpacity(FLinearColor::White)
-					.Font(FCoreStyle::GetDefaultFontStyle("Bold", 7))
+					.Font(FCoreStyle::GetDefaultFontStyle("Bold", 9))
 				]
 			]
 		];
 	}
-	Header->AddSlot().FillWidth(1.0f).VAlign(VAlign_Center).Padding(4.0f, 0.0f)
+	Header->AddSlot().FillWidth(1.0f).VAlign(VAlign_Center).Padding(5.0f, 0.0f, 2.0f, 0.0f)
 	[
 		SNew(STextBlock).Text(FText::FromString(Verb))
+		.ColorAndOpacity(JamInk)
+		.Font(FCoreStyle::GetDefaultFontStyle("Bold", 9))
 	];
-	Header->AddSlot().AutoWidth().VAlign(VAlign_Center)
+	Header->AddSlot().AutoWidth().VAlign(VAlign_Top)
 	[
 		SNew(SButton)
+		.ButtonStyle(&FAppStyle::Get(), "NoBorder")
 		.ToolTipText(LOCTEXT("Del", "borrar nodo"))
 		.ContentPadding(FMargin(2.0f, 0.0f))
 		.OnClicked_Lambda([this]() { OnDeleteClickedDelegate.ExecuteIfBound(); return FReply::Handled(); })
-		[ SNew(STextBlock).Text(FText::FromString(TEXT("×"))) ]
-	];
-	Header->AddSlot().AutoWidth().VAlign(VAlign_Center)
-	[
-		SNew(SButton)
-		.ToolTipText(LOCTEXT("OutPin", "salida (clic para conectar)"))
-		.ContentPadding(FMargin(2.0f, 0.0f))
-		.OnClicked_Lambda([this]() { OnOutputClickedDelegate.ExecuteIfBound(); return FReply::Handled(); })
-		[ SNew(STextBlock).Text(FText::FromString(TEXT("○"))) ]
+		[ SNew(STextBlock).Text(FText::FromString(TEXT("×"))).ColorAndOpacity(JamInk) ]
 	];
 
-	ChildSlot
-	[
-		SNew(SBorder)
-		.BorderImage(FAppStyle::GetBrush("Menu.Background"))
-		.Padding(0.0f)
-		[
-			SNew(SVerticalBox)
+	// Cuerpo (header + params), con margen L/R para que los nubs de los bordes no lo tapen.
+	TSharedRef<SVerticalBox> Body = SNew(SVerticalBox)
+		+ SVerticalBox::Slot().AutoHeight().Padding(0.0f, 0.0f, 0.0f, 2.0f)
+		[ Header ]
+		+ SVerticalBox::Slot().AutoHeight()
+		[ Params ];
 
-			// Header: pin entrada · verbo (zona de arrastre) · borrar · pin salida
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			[
-				SNew(SBorder)
-				.BorderImage(FAppStyle::GetBrush("Brushes.Header"))
-				.BorderBackgroundColor_Lambda([this]() { return StateColor(); })
-				.Padding(2.0f)
-				[
-					Header
-				]
-			]
+	// Cápsula GH: cuerpo redondeado (lo pinta OnPaint) con los nubs sobre los bordes izq/der,
+	// verticalmente centrados (entrada a la izquierda, salida a la derecha).
+	TSharedRef<SOverlay> Root = SNew(SOverlay)
+		+ SOverlay::Slot().Padding(11.0f, 5.0f)
+		[ Body ];
+	if (InArgs._HasInput)
+	{
+		Root->AddSlot().HAlign(HAlign_Left).VAlign(VAlign_Center)
+		[ MakeNub(TEXT("entrada (clic para conectar)"),
+			[this]() { OnInputClickedDelegate.ExecuteIfBound(); }) ];
+	}
+	Root->AddSlot().HAlign(HAlign_Right).VAlign(VAlign_Center)
+	[ MakeNub(TEXT("salida (clic para conectar)"),
+		[this]() { OnOutputClickedDelegate.ExecuteIfBound(); }) ];
 
-			// Cuerpo: params
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(2.0f)
-			[
-				Params
-			]
-		]
-	];
+	ChildSlot [ Root ];
+}
 
-	OnInputClickedDelegate = InArgs._OnInputClicked;
-	OnOutputClickedDelegate = InArgs._OnOutputClicked;
-	OnDeleteClickedDelegate = InArgs._OnDeleteClicked;
+void SJamGraphNode::RebuildBodyBrush()
+{
+	// relleno gris claro (cápsula GH) + borde = veredicto del oráculo.
+	BodyBrush = FSlateRoundedBoxBrush(FLinearColor(0.80f, 0.80f, 0.78f, 1.0f), 6.0f, StateColor(), 1.4f);
+}
+
+int32 SJamGraphNode::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
+	const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId,
+	const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
+{
+	// Cápsula redondeada detrás de los hijos, insetada para que los nubs queden sobre el borde.
+	const FVector2D Size = AllottedGeometry.GetLocalSize();
+	const FPaintGeometry PG = AllottedGeometry.ToPaintGeometry(
+		FVector2D(FMath::Max(0.0f, (float)Size.X - 14.0f), FMath::Max(0.0f, (float)Size.Y - 2.0f)),
+		FSlateLayoutTransform(FVector2D(7.0f, 1.0f)));
+	FSlateDrawElement::MakeBox(OutDrawElements, LayerId, PG, &BodyBrush);
+	return SCompoundWidget::OnPaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements,
+		LayerId + 1, InWidgetStyle, bParentEnabled);
 }
 
 void SJamGraphNode::SetResult(const FString& State, const FString& Text)
 {
 	ResultState = State;
+	RebuildBodyBrush();
 	SetToolTipText(Text.IsEmpty()
 		? FText::FromString(Verb)
 		: FText::FromString(FString::Printf(TEXT("%s\n%s"), *Verb, *Text)));
@@ -151,10 +163,10 @@ void SJamGraphNode::SetResult(const FString& State, const FString& Text)
 
 FLinearColor SJamGraphNode::StateColor() const
 {
-	if (ResultState == TEXT("ok"))    { return FLinearColor(0.15f, 0.85f, 0.35f, 1.0f); }
-	if (ResultState == TEXT("warn"))  { return FLinearColor(1.0f, 0.6f, 0.05f, 1.0f); }
-	if (ResultState == TEXT("error")) { return FLinearColor(1.0f, 0.18f, 0.18f, 1.0f); }
-	return FLinearColor::White;   // neutro: todavía no corrió
+	if (ResultState == TEXT("ok"))    { return FLinearColor(0.13f, 0.62f, 0.25f, 1.0f); }
+	if (ResultState == TEXT("warn"))  { return FLinearColor(0.90f, 0.52f, 0.04f, 1.0f); }
+	if (ResultState == TEXT("error")) { return FLinearColor(0.85f, 0.14f, 0.14f, 1.0f); }
+	return FLinearColor(0.10f, 0.10f, 0.10f, 1.0f);   // neutro: borde oscuro fino
 }
 
 TMap<FString, FString> SJamGraphNode::GetParamValues() const
