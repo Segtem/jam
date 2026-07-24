@@ -36,7 +36,8 @@ struct FJamTool
 	FString Verb;
 	FString Cat;
 	FString Doc;
-	bool bSource = false;   // en el grafo, nodo FUENTE (sin pin de entrada)
+	bool bSource = false;     // en el grafo, nodo FUENTE (sin pin de entrada)
+	bool bAssetPin = false;   // consume un asset → en el grafo lleva un pin «asset» explícito
 	TArray<FJamParam> Params;
 };
 

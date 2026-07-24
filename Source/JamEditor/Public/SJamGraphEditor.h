@@ -54,7 +54,10 @@ private:
 		FString Id;
 		FString Verb;
 		FVector2D Pos = FVector2D::ZeroVector;
-		float Height = 34.0f;   // alto del nodo → los wires salen/entran por su CENTRO vertical (como GH)
+		float Height = 34.0f;
+		/** Pines de entrada en ORDEN de fila (incluye «asset» si el verbo lo tiene): el índice acá es
+		 *  la fila donde se ancla el wire. */
+		TArray<FString> PinNames;
 		TSharedPtr<SJamGraphNode> Widget;
 	};
 

@@ -45,6 +45,8 @@ OPS_META: dict = {
                "doc": "variable: un número con nombre (como un Number Slider de Grasshopper)"},
     "math":   {"cat": "Maths", "source": True, "params": {"name": "m", "expr": "0"},
                "doc": "expresión sobre variables: sin/cos/sqrt/min/max/clamp/lerp/remap/rand (el Expression)"},
+    "text":   {"cat": "Params", "source": True, "params": {"name": "t", "value": ""},
+               "doc": "variable de TEXTO con nombre (para anclas, nombres de asset, modos…)"},
     "source_surface": {"cat": "Source", "source": True,
                        "params": {"area": 800.0, "count": 40, "pattern": "poisson",
                                   "spacing": 0.0, "seed": 7},
@@ -263,6 +265,9 @@ def _coaccionar(kind: str, params: dict) -> dict:
 PIN_STREAM_IN = "in"
 PIN_OUT = "out"
 
+#: nodos de VALOR: no producen puntos, aportan un valor con nombre (number/math = número, text = texto).
+VALOR_KINDS = ("number", "math", "text")
+
 
 class Flow:
     """Grafo de operaciones de stream, con conexión POR PIN (como Grasshopper). `nodos`: id →
@@ -346,7 +351,7 @@ class Flow:
     def _valores(self) -> dict:
         """Tabla de variables { nombre: valor } de los nodos `number`/`math`. Resuelve por PASADAS
         (una expresión puede referenciar otra variable) hasta que se asienta o se agotan las pasadas."""
-        val_nodos = [(nid, n) for nid, n in self.nodos.items() if n["kind"] in ("number", "math")]
+        val_nodos = [(nid, n) for nid, n in self.nodos.items() if n["kind"] in VALOR_KINDS]
         tabla: dict = {}
         for _ in range(len(val_nodos) + 1):
             cambio = False
@@ -354,8 +359,11 @@ class Flow:
                 nombre = str(n["params"].get("name") or nid)
                 if n["kind"] == "number":
                     v = _num(n["params"].get("value", 0.0))
+                elif n["kind"] == "text":
+                    v = str(n["params"].get("value", ""))
                 else:
-                    v = _eval_expr(n["params"].get("expr", "0"), tabla)
+                    v = _eval_expr(n["params"].get("expr", "0"),
+                                   {k: x for k, x in tabla.items() if isinstance(x, (int, float))})
                 if v is not None and tabla.get(nombre) != v:
                     tabla[nombre] = v
                     cambio = True
@@ -371,13 +379,13 @@ class Flow:
         variables = self._valores()
         # escalar de cada nodo de valor (lo que un cable suyo lleva a un pin de parámetro).
         escalar_de = {nid: variables.get(str(n["params"].get("name") or nid))
-                      for nid, n in self.nodos.items() if n["kind"] in ("number", "math")}
+                      for nid, n in self.nodos.items() if n["kind"] in VALOR_KINDS}
         salida: dict[str, list] = {}
         for nid in self.topo():
             nodo = self.nodos[nid]
             kind = nodo["kind"]
             # nodos de valor: no producen puntos, aportan su número a la tabla (y lo dejan para la UI).
-            if kind in ("number", "math"):
+            if kind in VALOR_KINDS:
                 nombre = str(nodo["params"].get("name") or nid)
                 nodo["params"]["_val"] = variables.get(nombre)
                 salida[nid] = []

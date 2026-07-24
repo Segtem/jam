@@ -280,6 +280,7 @@ void FJamEditorModule::LoadSpec(bool bIncludeFlow)
 		O->TryGetStringField(TEXT("cat"), T.Cat);
 		O->TryGetStringField(TEXT("doc"), T.Doc);
 		O->TryGetBoolField(TEXT("source"), T.bSource);
+		O->TryGetBoolField(TEXT("asset_pin"), T.bAssetPin);
 		const TArray<TSharedPtr<FJsonValue>>* Ps = nullptr;
 		if (O->TryGetArrayField(TEXT("params"), Ps) && Ps)
 		{

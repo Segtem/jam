@@ -408,6 +408,13 @@ void SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At)
 	}
 
 	TArray<FJamNodeParam> Params;
+	// Pin «asset» EXPLÍCITO primero (es la entrada principal): se puede cablear la salida de un nodo
+	// `asset` acá, o escribir el nombre. Sin cable ni texto, cae al asset activo/heredado como antes.
+	if (T->bAssetPin)
+	{
+		Params.Add(FJamNodeParam(TEXT("asset"), FString()));
+		Node.PinNames.Add(TEXT("asset"));
+	}
 	for (const FJamParam& P : T->Params)
 	{
 		FString Value = P.Default;
@@ -417,6 +424,7 @@ void SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At)
 			Value = ActiveAsset.Get();
 		}
 		Params.Add(FJamNodeParam(P.Name, Value));
+		Node.PinNames.Add(P.Name);
 	}
 
 	const FString Id = Node.Id;
@@ -441,7 +449,7 @@ void SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At)
 
 	Node.Widget = Widget;
 
-	const float Height = SJamGraphNode::NodeHeight(T->Params.Num());
+	const float Height = SJamGraphNode::NodeHeight(Params.Num());
 	Node.Height = Height;
 	Canvas->AddSlot()
 		.Position(TAttribute<FVector2D>::CreateLambda([this, Id]()
@@ -481,9 +489,7 @@ int32 SJamGraphEditor::PinIndex(const FString& Id, const FString& Pin) const
 	}
 	const FGNode* N = Nodes.FindByPredicate([&Id](const FGNode& X) { return X.Id == Id; });
 	if (N == nullptr) { return -1; }
-	const FJamTool* T = FindTool(N->Verb);
-	if (T == nullptr) { return -1; }
-	return T->Params.IndexOfByPredicate([&Pin](const FJamParam& P) { return P.Name == Pin; });
+	return N->PinNames.IndexOfByKey(Pin);
 }
 
 void SJamGraphEditor::OnPinClicked(const FString& Id, const FString& Pin, bool bOutput)
