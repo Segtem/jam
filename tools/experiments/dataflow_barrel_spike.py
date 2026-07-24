@@ -93,11 +93,22 @@ def colocar_barril_destructible(gc_asset, centro):
     comp = gc.get_component_by_class(unreal.GeometryCollectionComponent)
     if gc_asset is not None:
         comp.set_editor_property("rest_collection", gc_asset)
-    comp.set_editor_property("simulating", True)   # física on (se ve en PIE)
+    # ROMPE AL CAER: enable_damage_from_collision estaba en False → caía entero. Con esto + umbral 0
+    # se hace pedazos al impactar el piso (el «cae pero no rompe» de Brian).
+    comp.set_editor_property("enable_clustering", True)
+    comp.set_editor_property("enable_damage_from_collision", True)
+    comp.set_editor_property("damage_threshold", [0.0])
+    # ESTALLIDO (opcional): velocidad/giro iniciales. El enum es CHAOS_INITIAL_VELOCITY_USER_DEFINED.
+    comp.set_editor_property("initial_velocity_type",
+                             unreal.InitialVelocityTypeEnum.CHAOS_INITIAL_VELOCITY_USER_DEFINED)
+    comp.set_editor_property("initial_linear_velocity", unreal.Vector(0, 0, 500))
+    comp.set_editor_property("initial_angular_velocity", unreal.Vector(0, 0, 720))
 
-    campo = sub.spawn_actor_from_class(unreal.FieldSystemComponent and unreal.FieldSystemActor, centro)
-    # el field se compone con RadialFalloff (magnitud de strain) + RadialVector (impulso radial)
-    log("colocado: barril destructible + FieldSystem de explosión (dale Play para ver la sim)")
+    # Field system de Chaos: la explosión REAL (radial) es runtime — FieldSystemComponent.
+    # apply_strain_field (rompe) + apply_radial_force (empuja). Necesita un disparador (BeginPlay de un
+    # BP) para dispararse SOLA en Play; para el demo alcanza el rompe-al-caer de arriba.
+    campo = sub.spawn_actor_from_class(unreal.FieldSystemActor, centro)
+    log("colocado: barril destructible (rompe al caer) + FieldSystem. Dale Play.")
     return gc, campo
 
 
