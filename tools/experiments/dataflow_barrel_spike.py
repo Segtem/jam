@@ -66,6 +66,25 @@ def autorar_fractura(static_mesh, ruta="/Game/JamDF/BarrelFrac"):
     return df
 
 
+def generar_gc(df, ruta="/Game/JamDF/BarrelGC"):
+    """Crea una GeometryCollection, la liga al dataflow `df` Y —EL FIX CLAVE— fija el nodo TERMINAL en
+    su DataflowInstance; sin el terminal, `regenerate` corre pero deja la GC VACÍA (thumbnail damero).
+    Devuelve la GC ya con geometría fracturada. CORRER EN EDITOR."""
+    at = unreal.AssetToolsHelpers.get_asset_tools()
+    carpeta, nombre = ruta.rsplit("/", 1)
+    if unreal.EditorAssetLibrary.does_asset_exist(ruta):
+        unreal.EditorAssetLibrary.delete_asset(ruta)
+    gc = at.create_asset(nombre, carpeta, unreal.GeometryCollection, unreal.GeometryCollectionFactory())
+    inst = gc.get_editor_property("dataflow_instance")   # FDataflowInstance
+    inst.set_editor_property("dataflow_asset", df)
+    inst.set_editor_property("dataflow_terminal", "term")  # nombre del FGeometryCollectionTerminal
+    gc.set_editor_property("dataflow_instance", inst)
+    unreal.DataflowBlueprintLibrary.regenerate_asset_from_dataflow(gc)
+    unreal.EditorAssetLibrary.save_asset(ruta, only_if_is_dirty=False)
+    log("GC regenerada: " + ruta + " (verificar bounds != 0 = hay geometría)")
+    return gc
+
+
 def colocar_barril_destructible(gc_asset, centro):
     """El rol de JAM: colocar un GeometryCollectionActor (la GC fracturada) + un FieldSystemActor con
     RadialFalloff (strain=rompe) + RadialVector (impulso=dispersa) = la explosión. CORRER EN EDITOR."""
@@ -88,9 +107,8 @@ def main():
     sm = unreal.load_asset(barril["ruta"])
     log("barril: " + barril["nombre"])
     df = autorar_fractura(sm)
-    # tras evaluar/regenerar la GC desde el dataflow, se coloca:
-    # gc_asset = <la GeometryCollection generada por el dataflow>
-    colocar_barril_destructible(None, unreal.Vector(0, 0, 200))
+    gc = generar_gc(df)   # VERIFICADO: bounds (88.7, 70.2, 93.3) = geometría fracturada
+    colocar_barril_destructible(gc, unreal.Vector(0, 0, 300))
     log("FIN — recordá: correr en el editor GUI (headless cuelga en FieldSystem/Dataflow)")
 
 
