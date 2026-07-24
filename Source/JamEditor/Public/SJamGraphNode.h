@@ -53,7 +53,8 @@ public:
 	static constexpr float PadTop = 6.0f;
 	static constexpr float HeaderH = 24.0f;
 	static constexpr float RowH = 24.0f;
-	static constexpr float PinColW = 14.0f;   // ancho de las columnas de pines (izq/der)
+	static constexpr float PinColW = 14.0f;    // ancho de las columnas de pines (izq/der)
+	static constexpr float ParamColW = 104.0f; // ancho de la columna de params (nombre+valor)
 	/** Y local del pin: índice de parámetro (0..n-1) o -1 para el header (stream «in» / salida «out»). */
 	static float PinLocalY(int32 ParamIndex)
 	{

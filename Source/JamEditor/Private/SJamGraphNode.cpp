@@ -3,6 +3,7 @@
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/SNullWidget.h"
 #include "Widgets/Layout/SBox.h"
+#include "Widgets/Layout/SSpacer.h"
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Input/SButton.h"
@@ -11,6 +12,9 @@
 #include "Styling/AppStyle.h"
 #include "Styling/CoreStyle.h"
 #include "Rendering/DrawElements.h"
+#include "Framework/Application/SlateApplication.h"
+#include "Fonts/FontMeasure.h"
+#include "Math/TransformCalculus2D.h"
 
 #define LOCTEXT_NAMESPACE "JamGraphNode"
 
@@ -59,54 +63,19 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 	};
 	auto Spacer = [](float H) { return SNew(SBox).HeightOverride(H); };
 
-	// Header del cuerpo: ICONO (badge de categoría) · título (zona de arrastre) · borrar.
-	TSharedRef<SHorizontalBox> Header = SNew(SHorizontalBox);
-	if (!Icon.IsEmpty())
-	{
-		Header->AddSlot().AutoWidth().VAlign(VAlign_Center)
-		[
-			SNew(SBox).WidthOverride(19.0f).HeightOverride(19.0f)
-			[
-				SNew(SBorder)
-				.BorderImage(&IconBrush)
-				.HAlign(HAlign_Center).VAlign(VAlign_Center)
-				.Padding(0.0f)
-				[
-					SNew(STextBlock).Text(FText::FromString(Icon))
-					.ColorAndOpacity(FLinearColor::White)
-					.Font(FCoreStyle::GetDefaultFontStyle("Bold", 8))
-				]
-			]
-		];
-	}
-	Header->AddSlot().FillWidth(1.0f).VAlign(VAlign_Center).Padding(5.0f, 0.0f, 2.0f, 0.0f)
-	[
-		SNew(STextBlock).Text(FText::FromString(Verb))
-		.ColorAndOpacity(JamInk)
-		.Font(FCoreStyle::GetDefaultFontStyle("Bold", 9))
-	];
-	Header->AddSlot().AutoWidth().VAlign(VAlign_Center)
-	[
-		SNew(SButton)
-		.ButtonStyle(&FAppStyle::Get(), "NoBorder")
-		.ToolTipText(LOCTEXT("Del", "borrar nodo"))
-		.ContentPadding(FMargin(2.0f, 0.0f))
-		.OnClicked_Lambda([this]() { OnDeleteClickedDelegate.ExecuteIfBound(); return FReply::Handled(); })
-		[ SNew(STextBlock).Text(FText::FromString(TEXT("×"))).ColorAndOpacity(JamInk) ]
-	];
-
-	// TRES columnas: pines de ENTRADA (izq, uno por parámetro), cuerpo, pin de SALIDA (der). Cada
-	// columna tiene la MISMA estructura vertical (spacer + header + una fila por parámetro) → los pines
-	// quedan alineados a su fila. Cablear a un pin de parámetro ata una variable a ese parámetro.
+	// Anatomía de componente de Grasshopper: NO hay barra de título arriba. El NOMBRE del verbo va
+	// VERTICAL en el centro (lo dibuja OnPaint); los PARÁMETROS son filas a la izquierda [nub][nombre]
+	// [valor]; el pin de SALIDA a la derecha. Sin Execution Pins (Jam es dataflow como GH).
+	//   col pines-in (izq) · col params (nombre+valor) · centro libre (nombre vertical) · col pin-out (der)
 	TSharedRef<SVerticalBox> LeftCol  = SNew(SVerticalBox);
-	TSharedRef<SVerticalBox> BodyCol  = SNew(SVerticalBox);
+	TSharedRef<SVerticalBox> ParamCol = SNew(SVerticalBox);
 	TSharedRef<SVerticalBox> RightCol = SNew(SVerticalBox);
 
 	LeftCol->AddSlot().AutoHeight()[ Spacer(PadTop) ];
-	BodyCol->AddSlot().AutoHeight()[ Spacer(PadTop) ];
+	ParamCol->AddSlot().AutoHeight()[ Spacer(PadTop) ];
 	RightCol->AddSlot().AutoHeight()[ Spacer(PadTop) ];
 
-	// fila header
+	// fila header: nub de stream «in» (izq) · botón borrar (der de la col de params) · nub «out» (der)
 	LeftCol->AddSlot().AutoHeight()
 	[
 		Cell(HeaderH, InArgs._HasInput
@@ -114,14 +83,28 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 				[this]() { OnInputClickedDelegate.ExecuteIfBound(TEXT("in")); })
 			: StaticCastSharedRef<SWidget>(SNullWidget::NullWidget))
 	];
-	BodyCol->AddSlot().AutoHeight()[ Cell(HeaderH, Header) ];
+	ParamCol->AddSlot().AutoHeight()
+	[
+		Cell(HeaderH,
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot().FillWidth(1.0f)[ SNew(SSpacer) ]   // zona de arrastre
+			+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+			[
+				SNew(SButton)
+				.ButtonStyle(&FAppStyle::Get(), "NoBorder")
+				.ToolTipText(LOCTEXT("Del", "borrar nodo"))
+				.ContentPadding(FMargin(2.0f, 0.0f))
+				.OnClicked_Lambda([this]() { OnDeleteClickedDelegate.ExecuteIfBound(); return FReply::Handled(); })
+				[ SNew(STextBlock).Text(FText::FromString(TEXT("×"))).ColorAndOpacity(JamInk) ]
+			])
+	];
 	RightCol->AddSlot().AutoHeight()
 	[
 		Cell(HeaderH, MakeNub(TEXT("salida (clic para conectar)"),
 			[this]() { OnOutputClickedDelegate.ExecuteIfBound(); }))
 	];
 
-	// una fila por parámetro: pin de entrada · [label + campo] · (sin salida)
+	// una fila por parámetro: [nub] · [nombre][valor] · (sin salida)
 	for (const FJamNodeParam& P : InArgs._Params)
 	{
 		const FString Key = P.Key;
@@ -132,17 +115,17 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 			Cell(RowH, MakeNub(FString::Printf(TEXT("pin «%s» (cableá una variable para manejarlo)"), *Key),
 				[this, Key]() { OnInputClickedDelegate.ExecuteIfBound(Key); }))
 		];
-		BodyCol->AddSlot().AutoHeight()
+		ParamCol->AddSlot().AutoHeight()
 		[
 			Cell(RowH,
 				SNew(SHorizontalBox)
-				+ SHorizontalBox::Slot().FillWidth(0.42f).VAlign(VAlign_Center)
+				+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(1.0f, 0.0f, 3.0f, 0.0f)
 				[
 					SNew(STextBlock).Text(FText::FromString(Key))
 					.ColorAndOpacity(JamInk)
 					.Font(FCoreStyle::GetDefaultFontStyle("Regular", 7))
 				]
-				+ SHorizontalBox::Slot().FillWidth(0.58f).VAlign(VAlign_Center)
+				+ SHorizontalBox::Slot().FillWidth(1.0f).VAlign(VAlign_Center)
 				[
 					SAssignNew(Field, SEditableTextBox).Text(FText::FromString(P.Value))
 				])
@@ -155,15 +138,18 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 	[
 		SNew(SHorizontalBox)
 		+ SHorizontalBox::Slot().AutoWidth()[ SNew(SBox).WidthOverride(PinColW)[ LeftCol ] ]
-		+ SHorizontalBox::Slot().FillWidth(1.0f)[ BodyCol ]
+		+ SHorizontalBox::Slot().AutoWidth()[ SNew(SBox).WidthOverride(ParamColW)[ ParamCol ] ]
+		+ SHorizontalBox::Slot().FillWidth(1.0f)[ SNew(SSpacer) ]   // centro: nombre vertical (OnPaint)
 		+ SHorizontalBox::Slot().AutoWidth()[ SNew(SBox).WidthOverride(PinColW)[ RightCol ] ]
 	];
 }
 
 void SJamGraphNode::RebuildBodyBrush()
 {
-	// relleno gris claro (cápsula GH, tema claro clásico) + borde = veredicto del oráculo.
-	BodyBrush = FSlateRoundedBoxBrush(FLinearColor(0.90f, 0.90f, 0.88f, 1.0f), 5.0f, StateColor(), 1.4f);
+	// cápsula tintada por su CATEGORÍA (como los componentes lavanda/color de GH): un pastel claro del
+	// color de categoría; borde = veredicto del oráculo.
+	const FLinearColor Fill = FMath::Lerp(IconColor, FLinearColor(0.96f, 0.96f, 0.95f, 1.0f), 0.74f);
+	BodyBrush = FSlateRoundedBoxBrush(Fill, 5.0f, StateColor(), 1.4f);
 }
 
 int32 SJamGraphNode::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
@@ -196,6 +182,23 @@ int32 SJamGraphNode::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGe
 		Hi.Add(FVector2D(7.0f + BodyW - R, 2.0f));
 		FSlateDrawElement::MakeLines(OutDrawElements, LayerId + 1, AllottedGeometry.ToPaintGeometry(),
 			Hi, ESlateDrawEffect::None, FLinearColor(1.0f, 1.0f, 1.0f, 0.35f), true, 1.0f);
+	}
+
+	// NOMBRE DEL VERBO en VERTICAL, centrado en la zona libre (como los componentes en modo texto de
+	// GH): rotado -90° alrededor de su centro. Se dibuja acá para no pelear con el layout de Slate.
+	{
+		const FSlateFontInfo Font = FCoreStyle::GetDefaultFontStyle("Bold", 9);
+		const TSharedRef<FSlateFontMeasure> FM =
+			FSlateApplication::Get().GetRenderer()->GetFontMeasureService();
+		const FVector2D TS = FM->Measure(Verb, Font);
+		const float FreeLeft = PinColW + ParamColW;
+		const float Cx = FMath::Min((FreeLeft + (Size.X - PinColW)) * 0.5f, Size.X - PinColW - 4.0f);
+		const FVector2D TopLeft(Cx - TS.X * 0.5f, Size.Y * 0.5f - TS.Y * 0.5f);
+		const FPaintGeometry TPG = AllottedGeometry.ToPaintGeometry(
+			TS, FSlateLayoutTransform(TopLeft),
+			FSlateRenderTransform(FQuat2D(FMath::DegreesToRadians(-90.0f))), FVector2D(0.5f, 0.5f));
+		FSlateDrawElement::MakeText(OutDrawElements, LayerId + 1, TPG, Verb, Font,
+			ESlateDrawEffect::None, JamInk);
 	}
 
 	return SCompoundWidget::OnPaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements,

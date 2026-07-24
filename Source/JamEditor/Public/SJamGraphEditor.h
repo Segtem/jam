@@ -153,5 +153,5 @@ private:
 	bool bPanning = false;
 	float Zoom = 1.0f;
 
-	static constexpr float NodeWidth = 172.0f;
+	static constexpr float NodeWidth = 184.0f;   // pines(14) + params(104) + centro(~52) + pines(14)
 };
