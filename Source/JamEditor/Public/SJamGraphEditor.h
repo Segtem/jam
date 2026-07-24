@@ -71,8 +71,27 @@ private:
 		FString ToPin;     // «in» (stream) o el nombre de un parámetro
 	};
 
-	void AddNode(const FString& Verb, const FVector2D* At = nullptr);
+	/** Agrega un nodo; devuelve su Id (para reconstruir grafos al cargar un diagrama). */
+	FString AddNode(const FString& Verb, const FVector2D* At = nullptr);
 	void DeleteNode(const FString& Id);
+
+	// ---- menú principal estilo Grasshopper (File / Edit / View / Display / Solution) ----
+	void FillFileMenu(class FMenuBuilder& MB);
+	void FillEditMenu(class FMenuBuilder& MB);
+	void FillViewMenu(class FMenuBuilder& MB);
+	void FillDisplayMenu(class FMenuBuilder& MB);
+	void FillSolutionMenu(class FMenuBuilder& MB);
+	/** Vacía el grafo (nodos + wires). */
+	void NewGraph();
+	/** Reconstruye el grafo desde JSON (nodos con sus params/posición + aristas por pin). */
+	void LoadGraphJson(const FString& Json);
+	/** Diálogos de archivo (DesktopPlatform): guardar/abrir un diagrama .jamgraph (JSON). */
+	void SaveDiagram(bool bForceDialog);
+	void OpenDiagram();
+	/** Galería: reemplaza el grafo por UNO DE CADA nodo en grilla (para sacarle un screenshot). */
+	void InsertAllNodes();
+	/** Reencuadra: pan/zoom a un estado legible. */
+	void ResetView();
 	/** Índice del parámetro `Pin` en el verbo del nodo `Id`, o -1 si es «in»/«out» (header). */
 	int32 PinIndex(const FString& Id, const FString& Pin) const;
 
@@ -111,6 +130,7 @@ private:
 	TArray<FGEdge> Edges;                      // aristas con pin (origen.out → destino.pin)
 	FString PendingSource;                     // nodo de salida armado, esperando una entrada
 	FString PendingSourcePin;                  // pin de salida armado (por ahora «out»)
+	FString CurrentPath;                       // archivo del diagrama actual (para «Guardar» sin diálogo)
 	int32 NextId = 1;
 
 	FOnRunGraph OnRunGraph;

@@ -13,8 +13,14 @@
 #include "Widgets/Input/SMultiLineEditableTextBox.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Framework/Application/SlateApplication.h"
+#include "Framework/MultiBox/MultiBoxBuilder.h"
 #include "Styling/AppStyle.h"
 #include "Styling/CoreStyle.h"
+#include "DesktopPlatformModule.h"
+#include "IDesktopPlatform.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
+#include "HAL/FileManager.h"
 #include "Rendering/DrawElements.h"
 #include "Math/TransformCalculus2D.h"
 #include "Serialization/JsonReader.h"
@@ -156,9 +162,28 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 		];
 	}
 
+	// Menú principal estilo Grasshopper (File / Edit / View / Display / Solution).
+	FMenuBarBuilder MenuBar(nullptr);
+	MenuBar.AddPullDownMenu(LOCTEXT("MenuFile", "File"), LOCTEXT("MenuFileTip", "Diagrama: nuevo, abrir, guardar"),
+		FNewMenuDelegate::CreateSP(this, &SJamGraphEditor::FillFileMenu));
+	MenuBar.AddPullDownMenu(LOCTEXT("MenuEdit", "Edit"), FText::GetEmpty(),
+		FNewMenuDelegate::CreateSP(this, &SJamGraphEditor::FillEditMenu));
+	MenuBar.AddPullDownMenu(LOCTEXT("MenuView", "View"), FText::GetEmpty(),
+		FNewMenuDelegate::CreateSP(this, &SJamGraphEditor::FillViewMenu));
+	MenuBar.AddPullDownMenu(LOCTEXT("MenuDisplay", "Display"), FText::GetEmpty(),
+		FNewMenuDelegate::CreateSP(this, &SJamGraphEditor::FillDisplayMenu));
+	MenuBar.AddPullDownMenu(LOCTEXT("MenuSolution", "Solution"), LOCTEXT("MenuSolutionTip", "Correr el grafo"),
+		FNewMenuDelegate::CreateSP(this, &SJamGraphEditor::FillSolutionMenu));
+
 	ChildSlot
 	[
 		SNew(SVerticalBox)
+
+		// Barra de menú (File / Edit / View / Display / Solution), como Grasshopper.
+		+ SVerticalBox::Slot().AutoHeight()
+		[
+			MenuBar.MakeWidget()
+		]
 
 		// Ribbon: fila de TABS (categorías).
 		+ SVerticalBox::Slot().AutoHeight().Padding(6.0f, 6.0f, 6.0f, 0.0f)
@@ -385,12 +410,12 @@ SJamGraphEditor::FGNode* SJamGraphEditor::FindNode(const FString& Id)
 	return Nodes.FindByPredicate([&Id](const FGNode& N) { return N.Id == Id; });
 }
 
-void SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At)
+FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At)
 {
 	const FJamTool* T = FindTool(Verb);
 	if (T == nullptr || !Canvas.IsValid())
 	{
-		return;
+		return FString();
 	}
 
 	FGNode Node;
@@ -463,6 +488,7 @@ void SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At)
 		];
 
 	Nodes.Add(Node);
+	return Id;
 }
 
 void SJamGraphEditor::DeleteNode(const FString& Id)
@@ -777,6 +803,210 @@ FReply SJamGraphEditor::OnMouseButtonUp(const FGeometry& MyGeometry, const FPoin
 		return FReply::Handled().ReleaseMouseCapture();
 	}
 	return FReply::Unhandled();
+}
+
+// ---- menú principal estilo Grasshopper ----
+
+void SJamGraphEditor::FillFileMenu(FMenuBuilder& MB)
+{
+	MB.AddMenuEntry(LOCTEXT("New", "Nuevo"), LOCTEXT("NewTip", "Vaciar el grafo"), FSlateIcon(),
+		FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::NewGraph)));
+	MB.AddMenuEntry(LOCTEXT("Open", "Abrir diagrama…"), LOCTEXT("OpenTip", "Cargar un .jamgraph"), FSlateIcon(),
+		FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::OpenDiagram)));
+	MB.AddMenuEntry(LOCTEXT("Save", "Guardar"), LOCTEXT("SaveTip", "Guardar en el archivo actual"), FSlateIcon(),
+		FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::SaveDiagram, false)));
+	MB.AddMenuEntry(LOCTEXT("SaveAs", "Guardar como…"), LOCTEXT("SaveAsTip", "Elegir archivo"), FSlateIcon(),
+		FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::SaveDiagram, true)));
+}
+
+void SJamGraphEditor::FillEditMenu(FMenuBuilder& MB)
+{
+	MB.AddMenuEntry(LOCTEXT("ClearAll", "Vaciar el grafo"), FText::GetEmpty(), FSlateIcon(),
+		FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::NewGraph)));
+}
+
+void SJamGraphEditor::FillViewMenu(FMenuBuilder& MB)
+{
+	MB.AddMenuEntry(LOCTEXT("ResetView", "Reencuadrar (reset zoom/pan)"), FText::GetEmpty(), FSlateIcon(),
+		FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::ResetView)));
+}
+
+void SJamGraphEditor::FillDisplayMenu(FMenuBuilder& MB)
+{
+	MB.AddMenuEntry(LOCTEXT("Gallery", "Galería: insertar todos los nodos"),
+		LOCTEXT("GalleryTip", "Reemplaza el grafo por UNO DE CADA nodo en grilla (para un screenshot)"),
+		FSlateIcon(), FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::InsertAllNodes)));
+}
+
+void SJamGraphEditor::FillSolutionMenu(FMenuBuilder& MB)
+{
+	MB.AddMenuEntry(LOCTEXT("Recompute", "Run graph (recompute)"), FText::GetEmpty(), FSlateIcon(),
+		FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::RunGraph)));
+}
+
+void SJamGraphEditor::NewGraph()
+{
+	if (Canvas.IsValid())
+	{
+		for (const FGNode& N : Nodes)
+		{
+			if (N.Widget.IsValid())
+			{
+				Canvas->RemoveSlot(N.Widget.ToSharedRef());
+			}
+		}
+	}
+	Nodes.Reset();
+	Edges.Reset();
+	PendingSource.Empty();
+	PendingSourcePin.Empty();
+	NextId = 1;
+	if (Output.IsValid())
+	{
+		Output->SetText(LOCTEXT("NewDone", "grafo vacío."));
+	}
+}
+
+void SJamGraphEditor::LoadGraphJson(const FString& Json)
+{
+	TSharedPtr<FJsonObject> Root;
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Json);
+	if (!FJsonSerializer::Deserialize(Reader, Root) || !Root.IsValid())
+	{
+		if (Output.IsValid()) { Output->SetText(LOCTEXT("BadFile", "el archivo no es un diagrama válido.")); }
+		return;
+	}
+	NewGraph();
+
+	// nodos: crear por verbo, fijar posición y valores de params; mapear id-de-archivo → id-nuevo.
+	TMap<FString, FString> IdMap;
+	const TSharedPtr<FJsonObject>* NodesObj = nullptr;
+	if (Root->TryGetObjectField(TEXT("nodes"), NodesObj) && NodesObj)
+	{
+		for (const TPair<FString, TSharedPtr<FJsonValue>>& KV : (*NodesObj)->Values)
+		{
+			const TSharedPtr<FJsonObject> NO = KV.Value->AsObject();
+			if (!NO.IsValid()) { continue; }
+			const FString Verb = NO->GetStringField(TEXT("verb"));
+			const FString NewId = AddNode(Verb);
+			if (NewId.IsEmpty()) { continue; }
+			IdMap.Add(KV.Key, NewId);
+			if (FGNode* N = FindNode(NewId))
+			{
+				N->Pos = FVector2D(NO->GetNumberField(TEXT("x")), NO->GetNumberField(TEXT("y")));
+				const TSharedPtr<FJsonObject>* PO = nullptr;
+				if (NO->TryGetObjectField(TEXT("params"), PO) && PO && N->Widget.IsValid())
+				{
+					TMap<FString, FString> Vals;
+					for (const TPair<FString, TSharedPtr<FJsonValue>>& PV : (*PO)->Values)
+					{
+						FString S;
+						if (PV.Value->TryGetString(S)) { Vals.Add(PV.Key, S); }
+					}
+					N->Widget->SetParamValues(Vals);
+				}
+			}
+		}
+	}
+	// aristas: [from,to] o [from,from_pin,to,to_pin], con ids traducidos.
+	const TArray<TSharedPtr<FJsonValue>>* EdgesArr = nullptr;
+	if (Root->TryGetArrayField(TEXT("edges"), EdgesArr) && EdgesArr)
+	{
+		for (const TSharedPtr<FJsonValue>& EV : *EdgesArr)
+		{
+			const TArray<TSharedPtr<FJsonValue>>* E = nullptr;
+			if (!EV->TryGetArray(E) || !E) { continue; }
+			FString From, FromPin = TEXT("out"), To, ToPin = TEXT("in");
+			if (E->Num() == 2) { From = (*E)[0]->AsString(); To = (*E)[1]->AsString(); }
+			else if (E->Num() == 4)
+			{
+				From = (*E)[0]->AsString(); FromPin = (*E)[1]->AsString();
+				To = (*E)[2]->AsString();   ToPin = (*E)[3]->AsString();
+			}
+			const FString* NF = IdMap.Find(From);
+			const FString* NT = IdMap.Find(To);
+			if (NF && NT) { Edges.Add(FGEdge{*NF, FromPin, *NT, ToPin}); }
+		}
+	}
+	if (Output.IsValid())
+	{
+		Output->SetText(FText::FromString(FString::Printf(TEXT("cargado: %d nodos, %d wires."),
+			Nodes.Num(), Edges.Num())));
+	}
+}
+
+void SJamGraphEditor::SaveDiagram(bool bForceDialog)
+{
+	FString Path = CurrentPath;
+	if (Path.IsEmpty() || bForceDialog)
+	{
+		IDesktopPlatform* DP = FDesktopPlatformModule::Get();
+		if (DP == nullptr) { return; }
+		const FString Dir = FPaths::ProjectSavedDir() / TEXT("JamGraphs");
+		IFileManager::Get().MakeDirectory(*Dir, true);
+		TArray<FString> Files;
+		const bool bOk = DP->SaveFileDialog(nullptr, TEXT("Guardar diagrama Jam"), Dir,
+			TEXT("diagrama.jamgraph"), TEXT("Jam Graph (*.jamgraph)|*.jamgraph|JSON (*.json)|*.json"),
+			EFileDialogFlags::None, Files);
+		if (!bOk || Files.Num() == 0) { return; }
+		Path = Files[0];
+	}
+	if (FFileHelper::SaveStringToFile(BuildJson(), *Path))
+	{
+		CurrentPath = Path;
+		if (Output.IsValid())
+		{
+			Output->SetText(FText::FromString(FString::Printf(TEXT("guardado: %s"), *Path)));
+		}
+	}
+}
+
+void SJamGraphEditor::OpenDiagram()
+{
+	IDesktopPlatform* DP = FDesktopPlatformModule::Get();
+	if (DP == nullptr) { return; }
+	const FString Dir = FPaths::ProjectSavedDir() / TEXT("JamGraphs");
+	TArray<FString> Files;
+	const bool bOk = DP->OpenFileDialog(nullptr, TEXT("Abrir diagrama Jam"), Dir, TEXT(""),
+		TEXT("Jam Graph (*.jamgraph)|*.jamgraph|JSON (*.json)|*.json"), EFileDialogFlags::None, Files);
+	if (!bOk || Files.Num() == 0) { return; }
+	FString Json;
+	if (FFileHelper::LoadFileToString(Json, *Files[0]))
+	{
+		LoadGraphJson(Json);
+		CurrentPath = Files[0];
+	}
+}
+
+void SJamGraphEditor::InsertAllNodes()
+{
+	NewGraph();
+	// una ficha de CADA verbo/op, en grilla, agrupadas por su orden en el spec. Alto generoso para que
+	// los nodos altos (place tiene muchos params) no pisen la fila de abajo.
+	const int32 Cols = 6;
+	const float StepX = 210.0f;
+	const float StepY = 340.0f;
+	int32 K = 0;
+	for (const FJamTool& T : Tools)
+	{
+		const FVector2D At(30.0f + (K % Cols) * StepX, 30.0f + (K / Cols) * StepY);
+		AddNode(T.Verb, &At);
+		++K;
+	}
+	ResetView();
+	if (Output.IsValid())
+	{
+		Output->SetText(FText::FromString(FString::Printf(
+			TEXT("galería: %d nodos (uno de cada tipo). Reencuadrá con la rueda para el screenshot."),
+			Nodes.Num())));
+	}
+}
+
+void SJamGraphEditor::ResetView()
+{
+	PanOffset = FVector2D(20.0f, 20.0f);
+	Zoom = 1.0f;
+	ApplyZoom();
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -25,6 +25,7 @@ public class JamEditor : ModuleRules
 			"Json",
 			"AssetRegistry",
 			"PythonScriptPlugin",
+			"DesktopPlatform",   // diálogos Abrir/Guardar diagrama
 		});
 	}
 }

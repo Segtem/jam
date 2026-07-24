@@ -232,6 +232,20 @@ TMap<FString, FString> SJamGraphNode::GetParamValues() const
 	return Out;
 }
 
+void SJamGraphNode::SetParamValues(const TMap<FString, FString>& Values)
+{
+	for (const TPair<FString, FString>& KV : Values)
+	{
+		if (const TSharedPtr<SEditableTextBox>* F = Fields.Find(KV.Key))
+		{
+			if (F->IsValid())
+			{
+				(*F)->SetText(FText::FromString(KV.Value));
+			}
+		}
+	}
+}
+
 FReply SJamGraphNode::OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
 	if (MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)

@@ -44,6 +44,8 @@ public:
 
 	/** Valores actuales de los params (leídos de los text boxes). */
 	TMap<FString, FString> GetParamValues() const;
+	/** Fija los valores de los params (al cargar un diagrama desde archivo). */
+	void SetParamValues(const TMap<FString, FString>& Values);
 	const FString& GetVerb() const { return Verb; }
 
 	// Métrica FIJA del layout del nodo (filas de alto conocido) para que el editor calcule dónde cae
