@@ -4,6 +4,7 @@
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/DeclarativeSyntaxSupport.h"
 #include "Brushes/SlateRoundedBoxBrush.h"
+#include "Styling/SlateTypes.h"
 
 class SEditableTextBox;
 
@@ -28,6 +29,8 @@ public:
 		/** Código corto del badge (icono) y su color de categoría — como el ribbon. */
 		SLATE_ARGUMENT(FString, Icon)
 		SLATE_ARGUMENT(FLinearColor, IconColor)
+		/** Nombre de la salida (la «variable» del pin de salida, estilo GH: P/N/T/A…). */
+		SLATE_ARGUMENT(FString, OutName)
 		/** (nombre, default) por cada param. */
 		SLATE_ARGUMENT(TArray<FJamNodeParam>, Params)
 		/** false en los nodos FUENTE (asset, create_spline): no reciben nada, van sin pin de entrada
@@ -89,9 +92,12 @@ private:
 
 	FString Verb;
 	FString Icon;
+	FString OutName;
 	FLinearColor IconColor = FLinearColor(0.35f, 0.35f, 0.38f, 1.0f);
 	FString ResultState;
 	bool bDragging = false;
+	/** Estilo CLARO de los campos de valor (fondo claro, texto negro), como los inputs de GH. */
+	FEditableTextBoxStyle FieldStyle;
 	/** Cuerpo redondeado (cápsula GH): relleno gris claro + borde = veredicto. */
 	FSlateRoundedBoxBrush BodyBrush = FSlateRoundedBoxBrush(
 		FLinearColor(0.80f, 0.80f, 0.78f, 1.0f), 6.0f, FLinearColor(0.10f, 0.10f, 0.10f, 1.0f), 1.0f);

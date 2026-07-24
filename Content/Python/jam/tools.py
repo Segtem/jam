@@ -483,6 +483,9 @@ def spec_json() -> str:
     # verbos que CONSUMEN un asset: en el grafo llevan un pin «asset» explícito (se puede cablear
     # la salida de un nodo `asset` ahí, en vez de que el asset viaje escondido por el cable).
     sin_asset = {"asset", "pick", "gizmo", "ghost"}
+    # nombre de la SALIDA (la «variable» del pin de salida, estilo GH). Casi todos los verbos producen
+    # o pasan un actor/asset → «A»; number/math/text son de valor → N/T; create_spline → «S» (spline).
+    out_names = {"number": "N", "math": "N", "text": "T", "create_spline": "S"}
     salida = []
     for nombre, info in REGISTRO.items():
         opciones = info.get("opciones", {})
@@ -492,6 +495,7 @@ def spec_json() -> str:
             "doc": info["doc"],
             "source": nombre in fuentes,
             "asset_pin": nombre not in sin_asset,
+            "out_name": out_names.get(nombre, "A"),
             # `opciones` → la UI dibuja una LISTA en vez de un campo de texto (anclas, modos…)
             "params": [{"nombre": k, "default": str(v), "tipo": tipo(v),
                         "opciones": opciones.get(k, [])}

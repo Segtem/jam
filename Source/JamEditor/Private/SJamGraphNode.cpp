@@ -47,6 +47,7 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 {
 	Verb = InArgs._Verb;
 	Icon = InArgs._Icon;
+	OutName = InArgs._OutName;
 	IconColor = InArgs._IconColor;
 	OnDragDelta = InArgs._OnDragDelta;
 	OnInputClickedDelegate = InArgs._OnInputClicked;
@@ -54,6 +55,17 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 	OnDeleteClickedDelegate = InArgs._OnDeleteClicked;
 	RebuildBodyBrush();
 	IconBrush = FSlateRoundedBoxBrush(IconColor, 3.0f);   // slot del icono en el color de su categoría
+
+	// Campos de valor CLAROS con texto negro (como los inputs de GH), en vez del text-box oscuro del
+	// editor. Fondo claro redondeado + foreground negro en todos los estados.
+	FieldStyle = FAppStyle::Get().GetWidgetStyle<FEditableTextBoxStyle>("NormalEditableTextBox");
+	const FSlateRoundedBoxBrush FieldBg(FLinearColor(0.95f, 0.95f, 0.93f, 1.0f), 2.0f,
+		FLinearColor(0.45f, 0.45f, 0.43f, 1.0f), 1.0f);
+	FieldStyle.SetBackgroundImageNormal(FieldBg);
+	FieldStyle.SetBackgroundImageHovered(FieldBg);
+	FieldStyle.SetBackgroundImageFocused(FieldBg);
+	FieldStyle.SetBackgroundImageReadOnly(FieldBg);
+	FieldStyle.SetForegroundColor(FLinearColor::Black);
 
 	// Celda de alto FIJO (los pines se alinean a las filas por construcción; la métrica la comparte el
 	// editor para anclar los wires exactamente en cada pin — como los grips por parámetro de GH).
@@ -127,7 +139,7 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 				]
 				+ SHorizontalBox::Slot().FillWidth(1.0f).VAlign(VAlign_Center)
 				[
-					SAssignNew(Field, SEditableTextBox).Text(FText::FromString(P.Value))
+					SAssignNew(Field, SEditableTextBox).Style(&FieldStyle).Text(FText::FromString(P.Value))
 				])
 		];
 		RightCol->AddSlot().AutoHeight()[ Cell(RowH, StaticCastSharedRef<SWidget>(SNullWidget::NullWidget)) ];
@@ -198,6 +210,20 @@ int32 SJamGraphNode::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGe
 			TS, FSlateLayoutTransform(TopLeft),
 			FSlateRenderTransform(FQuat2D(FMath::DegreesToRadians(-90.0f))), FVector2D(0.5f, 0.5f));
 		FSlateDrawElement::MakeText(OutDrawElements, LayerId + 1, TPG, Verb, Font,
+			ESlateDrawEffect::None, JamInk);
+	}
+
+	// NOMBRE DE LA SALIDA (la «variable» del pin de salida, estilo GH: S/E/P/T…), pegado a la
+	// izquierda del nub «out» a la altura del header.
+	if (!OutName.IsEmpty())
+	{
+		const FSlateFontInfo OFont = FCoreStyle::GetDefaultFontStyle("Bold", 8);
+		const TSharedRef<FSlateFontMeasure> FM2 =
+			FSlateApplication::Get().GetRenderer()->GetFontMeasureService();
+		const FVector2D OS = FM2->Measure(OutName, OFont);
+		const FVector2D OTL(Size.X - PinColW - OS.X - 1.0f, PinLocalY(-1) - OS.Y * 0.5f);
+		FSlateDrawElement::MakeText(OutDrawElements, LayerId + 1,
+			AllottedGeometry.ToPaintGeometry(OS, FSlateLayoutTransform(OTL)), OutName, OFont,
 			ESlateDrawEffect::None, JamInk);
 	}
 

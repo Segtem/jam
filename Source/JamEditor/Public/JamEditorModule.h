@@ -38,6 +38,7 @@ struct FJamTool
 	FString Doc;
 	bool bSource = false;     // en el grafo, nodo FUENTE (sin pin de entrada)
 	bool bAssetPin = false;   // consume un asset → en el grafo lleva un pin «asset» explícito
+	FString OutName;          // nombre de la salida (la «variable» del pin de salida, estilo GH)
 	TArray<FJamParam> Params;
 };
 

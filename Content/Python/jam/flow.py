@@ -82,6 +82,10 @@ def spec_json() -> str:
             return "float"
         return "str"
 
+    # nombre de la SALIDA de cada op (la «variable» que sale por el pin de salida, estilo GH):
+    # P = stream de puntos · N = número · T = texto · A = actores instanciados.
+    out_names = {"number": "N", "math": "N", "text": "T", "instance": "A"}
+
     cats = ["Params", "Maths", "Source", "Mask", "Combine", "Output"]
     nodos = []
     for kind, m in OPS_META.items():
@@ -92,6 +96,7 @@ def spec_json() -> str:
             "doc": m["doc"],
             "source": bool(m.get("source", False)),
             "aridad": m.get("aridad", 0 if m.get("source") else 1),
+            "out_name": out_names.get(kind, "P"),
             "params": [{"nombre": k, "default": str(v), "tipo": tipo(v),
                         "opciones": ops_val.get(k, [])} for k, v in m["params"].items()],
         })
