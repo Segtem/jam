@@ -103,7 +103,8 @@ def colocar_barril_destructible(gc_asset, centro):
 
 def main():
     import jam.library as library
-    barril = library.buscar("SM_barrel", limit=1)[0]
+    # UN barril SOLO (no el _group_a, que son varios barriles+cajones y no se lee como destructible)
+    barril = library.buscar("SM_barrel_crates_single_barrel", limit=1)[0]
     sm = unreal.load_asset(barril["ruta"])
     log("barril: " + barril["nombre"])
     df = autorar_fractura(sm)
