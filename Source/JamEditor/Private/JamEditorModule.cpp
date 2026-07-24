@@ -17,6 +17,8 @@
 #include "Widgets/Input/SMultiLineEditableTextBox.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
+#include "Styling/AppStyle.h"
+#include "Styling/CoreStyle.h"
 #include "ToolMenus.h"
 #include "IPythonScriptPlugin.h"
 #include "AssetThumbnail.h"
@@ -368,28 +370,6 @@ TSharedRef<SWidget> FJamEditorModule::BuildDashContent()
 			.OnClicked_Lambda([this]() { PickFromUnrealSelection(); return FReply::Handled(); })
 		];
 
-	for (const FString& Cat : Categories)
-	{
-		if (Cat == TEXT("Content"))
-		{
-			continue;  // Content ya está como botón propio (browser), no como combo de verbos
-		}
-		if (!CategoryHasTools(Cat))
-		{
-			continue;
-		}
-		Bar->AddSlot()
-			.AutoWidth()
-			.Padding(2.0f, 0.0f)
-			[
-				SNew(SComboButton)
-				.ButtonContent()
-				[
-					SNew(STextBlock).Text(FText::FromString(Cat))
-				]
-				.OnGetMenuContent_Lambda([this, Cat]() { return MakeCategoryMenu(Cat); })
-			];
-	}
 	Bar->AddSlot()
 		.FillWidth(1.0f)
 		.Padding(8.0f, 0.0f, 0.0f, 0.0f)
@@ -406,14 +386,73 @@ TSharedRef<SWidget> FJamEditorModule::BuildDashContent()
 			})
 		];
 
-	return SNew(SVerticalBox)
+	// Ribbon estilo Grasshopper (mismo look que el Graph): fila de TABS por categoría; el tab activo se
+	// pinta con su tono. Content queda como botón propio (browser), no como tab de verbos.
+	if (ActiveDashTab.IsEmpty())
+	{
+		for (const FString& Cat : Categories)
+		{
+			if (Cat != TEXT("Content") && CategoryHasTools(Cat)) { ActiveDashTab = Cat; break; }
+		}
+	}
+	TSharedRef<SHorizontalBox> TabStrip = SNew(SHorizontalBox);
+	for (const FString& Cat : Categories)
+	{
+		if (Cat == TEXT("Content") || !CategoryHasTools(Cat))
+		{
+			continue;
+		}
+		TabStrip->AddSlot().AutoWidth().Padding(1.0f, 0.0f)
+		[
+			SNew(SButton)
+			.ToolTipText(FText::FromString(FString::Printf(TEXT("Tab «%s»"), *Cat)))
+			.ButtonColorAndOpacity_Lambda([this, Cat]()
+			{
+				return ActiveDashTab == Cat ? SJamGraphEditor::CategoryColor(Cat)
+				                            : FLinearColor(0.22f, 0.22f, 0.24f, 1.0f);
+			})
+			.OnClicked_Lambda([this, Cat]() { ActiveDashTab = Cat; RebuildDashTabContent(); return FReply::Handled(); })
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+				[ SJamGraphEditor::MakeBadge(SJamGraphEditor::CategoryColor(Cat), Cat.Left(2).ToUpper(), 14.0f) ]
+				+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(4.0f, 0.0f, 2.0f, 0.0f)
+				[ SNew(STextBlock).Text(FText::FromString(Cat)) ]
+			]
+		];
+	}
 
-		// Barra de secciones horizontal (Dash bar).
+	TSharedRef<SWidget> Content = SNew(SVerticalBox)
+
+		// Fila utilitaria: Content · Selección UE · Find Tools.
 		+ SVerticalBox::Slot()
 		.AutoHeight()
-		.Padding(6.0f, 6.0f, 6.0f, 4.0f)
+		.Padding(6.0f, 6.0f, 6.0f, 2.0f)
 		[
 			Bar
+		]
+
+		// Ribbon: fila de TABS (categorías).
+		+ SVerticalBox::Slot()
+		.AutoHeight()
+		.Padding(6.0f, 0.0f, 6.0f, 0.0f)
+		[
+			SNew(SScrollBox).Orientation(Orient_Horizontal)
+			+ SScrollBox::Slot()[ TabStrip ]
+		]
+
+		// Ribbon: fichas con icono de la categoría activa (SelectTool activa el verbo → panel de params).
+		+ SVerticalBox::Slot()
+		.AutoHeight()
+		.Padding(6.0f, 2.0f, 6.0f, 4.0f)
+		[
+			SNew(SBorder)
+			.BorderImage(FAppStyle::GetBrush("Brushes.Header"))
+			.Padding(2.0f)
+			[
+				SNew(SScrollBox).Orientation(Orient_Horizontal)
+				+ SScrollBox::Slot()[ SAssignNew(DashTabContent, SHorizontalBox) ]
+			]
 		]
 
 		// Asset activo: miniatura GRANDE + nombre (lo elegido alimenta todas las herramientas), y el
@@ -578,6 +617,50 @@ TSharedRef<SWidget> FJamEditorModule::BuildDashContent()
 				})
 			]
 		];
+
+	RebuildDashTabContent();   // llena el tab activo con sus fichas
+	return Content;
+}
+
+void FJamEditorModule::RebuildDashTabContent()
+{
+	if (!DashTabContent.IsValid())
+	{
+		return;
+	}
+	DashTabContent->ClearChildren();
+	for (const FJamTool& T : Tools)
+	{
+		if (T.Cat != ActiveDashTab)
+		{
+			continue;
+		}
+		const FString Verb = T.Verb;
+		const FLinearColor Color = SJamGraphEditor::CategoryColor(T.Cat);
+		DashTabContent->AddSlot().AutoWidth().Padding(3.0f, 2.0f)
+		[
+			SNew(SButton)
+			.ToolTipText(FText::FromString(FString::Printf(TEXT("%s — %s"), *T.Verb, *T.Doc)))
+			.ContentPadding(FMargin(3.0f, 3.0f))
+			// el verbo activo se resalta (como el tool seleccionado en Dash)
+			.ButtonColorAndOpacity_Lambda([this, Verb]()
+			{
+				return ActiveVerb == Verb ? FLinearColor(0.30f, 0.55f, 0.85f, 1.0f) : FLinearColor::White;
+			})
+			.OnClicked_Lambda([this, Verb]() { SelectTool(Verb); return FReply::Handled(); })
+			[
+				SNew(SVerticalBox)
+				+ SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center)
+				[ SJamGraphEditor::MakeBadge(Color, SJamGraphEditor::VerbCode(Verb), 30.0f) ]
+				+ SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center).Padding(0.0f, 2.0f, 0.0f, 0.0f)
+				[
+					SNew(STextBlock)
+					.Text(FText::FromString(Verb))
+					.Font(FCoreStyle::GetDefaultFontStyle("Regular", 7))
+				]
+			]
+		];
+	}
 }
 
 bool FJamEditorModule::ComputeAimPoint(FVector& Out) const

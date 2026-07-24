@@ -235,6 +235,12 @@ def ejecutar_flow_json(g_json: str, widget=None) -> str:
                        + (f" · {out['pisados']} evitadas por huella" if out.get("pisados") else "")
                        + ("" if out.get("assets") else " · SIN asset activo ✗"))
                 estado = "ok" if out.get("colocados") else "warn"
+            elif kind in ("number", "math"):
+                # nodos de valor: muestran el número que aportan a la tabla de variables.
+                val = nodo["params"].get("_val")
+                nombre = nodo["params"].get("name") or nid
+                txt = f"{nombre} = {val:.4g}" if isinstance(val, (int, float)) else f"{nombre} = (sin resolver)"
+                estado = "ok" if isinstance(val, (int, float)) else "warn"
             else:
                 txt = f"{len(stream)} puntos"
                 estado = "ok" if stream else "warn"

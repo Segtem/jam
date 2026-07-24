@@ -40,6 +40,14 @@ public:
 	/** Endpoints (inicio,fin) de cada wire, en coords locales del canvas — los usa la capa de wires. */
 	TArray<TPair<FVector2D, FVector2D>> GetWireEndpoints() const;
 
+	// Iconografía del ribbon (pública para que la Dash Bar reuse el mismo look):
+	/** Color de la categoría (cada tab su tono, como los tabs de Grasshopper). */
+	static FLinearColor CategoryColor(const FString& Cat);
+	/** Código corto del verbo para el badge del icono (curado; si no, derivado del verbo). */
+	static FString VerbCode(const FString& Verb);
+	/** Ficha con ICONO (badge de color + código) — se usa en el ribbon y como header de nodo. */
+	static TSharedRef<SWidget> MakeBadge(const FLinearColor& Color, const FString& Code, float Size);
+
 private:
 	struct FGNode
 	{
@@ -54,12 +62,6 @@ private:
 
 	/** Ribbon estilo Grasshopper: al elegir un tab (categoría) se rellenan sus fichas con icono. */
 	void RebuildTabContent();
-	/** Color de la categoría (cada tab su tono, como los tabs de Grasshopper). */
-	static FLinearColor CategoryColor(const FString& Cat);
-	/** Código corto del verbo para el badge del icono (curado; si no, derivado del verbo). */
-	static FString VerbCode(const FString& Verb);
-	/** Ficha con ICONO (badge de color + código) — se usa en el ribbon y como header de nodo. */
-	static TSharedRef<SWidget> MakeBadge(const FLinearColor& Color, const FString& Code, float Size);
 	void OnPinClicked(const FString& Id, bool bOutput);
 	void RunGraph();
 	FString BuildJson() const;

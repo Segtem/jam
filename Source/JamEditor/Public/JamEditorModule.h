@@ -8,6 +8,7 @@
 class SWindow;
 class SWidget;
 class SBox;
+class SHorizontalBox;
 class SVerticalBox;
 class SWrapBox;
 class SEditableTextBox;
@@ -77,6 +78,8 @@ private:
 	void LoadSpec(bool bIncludeFlow = false);
 	TSharedRef<SWidget> BuildDashContent();
 	TSharedRef<SWidget> MakeCategoryMenu(const FString& Category);
+	/** Ribbon estilo Grasshopper en la Dash Bar: al elegir un tab, sus verbos como fichas con icono. */
+	void RebuildDashTabContent();
 	void SelectTool(const FString& Verb);
 	void FindAndSelectTool(const FString& Query);
 	void RebuildParams();
@@ -137,6 +140,8 @@ private:
 	TArray<FJamTool> Tools;
 	TArray<FString> Categories;
 	FString ActiveVerb;
+	FString ActiveDashTab;                        // tab (categoría) abierto en el ribbon de la Dash Bar
+	TSharedPtr<SHorizontalBox> DashTabContent;    // fichas con icono de la categoría activa
 	FString LogText;
 
 	TSharedPtr<SWindow> DashWindow;

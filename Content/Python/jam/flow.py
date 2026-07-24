@@ -38,6 +38,13 @@ def op(kind: str, entradas: int):
 # motor. El canvas se arma desde acá; `Flow.evaluar` recibe las funciones del adaptador aparte.
 # cat: Source (fuente, sin entrada) · Mask (filtra) · Combine · Output (instancia).
 OPS_META: dict = {
+    # Params/Maths: el «cerebro paramétrico» de Grasshopper. NO producen puntos: aportan un VALOR con
+    # nombre a una tabla de variables. Cualquier param de cualquier nodo puede ser una EXPRESIÓN
+    # (empieza con «=») que se evalúa contra esa tabla → un slider maneja `count`, `spacing`, etc.
+    "number": {"cat": "Params", "source": True, "params": {"name": "n", "value": 0.0},
+               "doc": "variable: un número con nombre (como un Number Slider de Grasshopper)"},
+    "math":   {"cat": "Maths", "source": True, "params": {"name": "m", "expr": "0"},
+               "doc": "expresión sobre variables: sin/cos/sqrt/min/max/clamp/lerp/remap/rand (el Expression)"},
     "source_surface": {"cat": "Source", "source": True,
                        "params": {"area": 800.0, "count": 40, "pattern": "poisson",
                                   "spacing": 0.0, "seed": 7},
@@ -73,7 +80,7 @@ def spec_json() -> str:
             return "float"
         return "str"
 
-    cats = ["Source", "Mask", "Combine", "Output"]
+    cats = ["Params", "Maths", "Source", "Mask", "Combine", "Output"]
     nodos = []
     for kind, m in OPS_META.items():
         ops_val = m.get("opciones", {})
@@ -167,6 +174,68 @@ def _merge(e, _p):
     return out
 
 
+# ---------- variables + matemática (el «cerebro paramétrico» de Grasshopper) ----------
+
+import math as _math
+
+
+def _rand(semilla) -> float:
+    """Aleatorio DETERMINISTA en [0,1) a partir de una semilla (como el Random de Grasshopper, pero
+    puro: la misma semilla da el mismo número). Evita `random` global para que el grafo sea reproducible."""
+    h = (int(semilla) * 2654435761) & 0xFFFFFFFF
+    h ^= (h >> 16)
+    h = (h * 2246822519) & 0xFFFFFFFF
+    h ^= (h >> 13)
+    return (h & 0xFFFFFF) / float(0x1000000)
+
+
+# funciones disponibles en las expresiones (sin builtins peligrosos: se evalúa con __builtins__ vacío).
+_FUNCS: dict = {
+    "sin": _math.sin, "cos": _math.cos, "tan": _math.tan, "atan": _math.atan,
+    "asin": _math.asin, "acos": _math.acos, "sqrt": _math.sqrt, "exp": _math.exp,
+    "log": _math.log, "floor": _math.floor, "ceil": _math.ceil,
+    "radians": _math.radians, "degrees": _math.degrees, "pi": _math.pi, "e": _math.e,
+    "abs": abs, "min": min, "max": max, "round": round, "pow": pow,
+    "clamp": lambda x, a, b: a if x < a else (b if x > b else x),
+    "lerp": lambda a, b, t: a + (b - a) * t,
+    "remap": lambda x, a, b, c, d: c + (d - c) * ((x - a) / (b - a)) if b != a else c,
+    "rand": _rand,
+}
+
+
+def _eval_expr(expr, tabla: dict):
+    """Evalúa una expresión matemática contra la tabla de variables + `_FUNCS`. Devuelve float, o None
+    si referencia algo que todavía no existe (para que la resolución multi-pasada se asiente)."""
+    ns = dict(_FUNCS)
+    ns.update(tabla)
+    try:
+        return float(eval(str(expr), {"__builtins__": {}}, ns))  # noqa: S307 (expr del propio usuario)
+    except (NameError, TypeError):
+        return None   # variable aún no definida → otra pasada la resolverá
+    except (ValueError, ZeroDivisionError, SyntaxError, ArithmeticError):
+        return None
+
+
+def _num(v, defecto=0.0) -> float:
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return defecto
+
+
+def _resolver_params(params: dict, tabla: dict) -> dict:
+    """Reemplaza cada param que sea EXPRESIÓN (string que empieza con «=») por su valor evaluado contra
+    la tabla. Los demás pasan tal cual. Si la expresión no resuelve, cae a 0.0 (para no romper el nodo)."""
+    out = {}
+    for k, v in params.items():
+        if isinstance(v, str) and v.startswith("="):
+            r = _eval_expr(v[1:], tabla)
+            out[k] = r if r is not None else 0.0
+        else:
+            out[k] = v
+    return out
+
+
 # ---------- evaluación (orden topológico, como cualquier grafo dataflow) ----------
 
 def _coaccionar(kind: str, params: dict) -> dict:
@@ -245,18 +314,48 @@ class Flow:
             raise ValueError("el flow tiene un ciclo")
         return orden
 
+    def _valores(self) -> dict:
+        """Tabla de variables { nombre: valor } de los nodos `number`/`math`. Resuelve por PASADAS
+        (una expresión puede referenciar otra variable) hasta que se asienta o se agotan las pasadas."""
+        val_nodos = [(nid, n) for nid, n in self.nodos.items() if n["kind"] in ("number", "math")]
+        tabla: dict = {}
+        for _ in range(len(val_nodos) + 1):
+            cambio = False
+            for nid, n in val_nodos:
+                nombre = str(n["params"].get("name") or nid)
+                if n["kind"] == "number":
+                    v = _num(n["params"].get("value", 0.0))
+                else:
+                    v = _eval_expr(n["params"].get("expr", "0"), tabla)
+                if v is not None and tabla.get(nombre) != v:
+                    tabla[nombre] = v
+                    cambio = True
+            if not cambio:
+                break
+        return tabla
+
     def evaluar(self, ops: dict | None = None) -> dict[str, list]:
-        """Corre el grafo; devuelve {id: stream}. `ops` permite sumar operaciones del adaptador
-        (p.ej. `source_surface` que raycastea, o `instance` que spawnea) sin tocar este módulo."""
-        tabla = {**OPS, **(ops or {})}
+        """Corre el grafo; devuelve {id: stream}. Primero arma la tabla de variables (number/math) y con
+        ella resuelve las EXPRESIONES de los params (los que empiezan con «=»). `ops` suma operaciones
+        del adaptador (p.ej. `source_surface` que raycastea, o `instance` que spawnea) sin tocar esto."""
+        tabla_fn = {**OPS, **(ops or {})}
+        variables = self._valores()
         salida: dict[str, list] = {}
         for nid in self.topo():
             nodo = self.nodos[nid]
-            fn_ent = tabla.get(nodo["kind"])
+            kind = nodo["kind"]
+            # nodos de valor: no producen puntos, aportan su número a la tabla (y lo dejan para la UI).
+            if kind in ("number", "math"):
+                nombre = str(nodo["params"].get("name") or nid)
+                nodo["params"]["_val"] = variables.get(nombre)
+                salida[nid] = []
+                continue
+            fn_ent = tabla_fn.get(kind)
             if fn_ent is None:
                 salida[nid] = []
                 continue
             fn, _n = fn_ent
             entradas = [salida.get(e, []) for e in self._entradas(nid)]
-            salida[nid] = fn(entradas, nodo["params"])
+            params = _resolver_params(nodo["params"], variables)
+            salida[nid] = fn(entradas, params)
         return salida
