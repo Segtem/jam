@@ -312,6 +312,7 @@ FLinearColor SJamGraphEditor::CategoryColor(const FString& Cat)
 	if (Cat == TEXT("Params"))   { return FLinearColor(0.44f, 0.44f, 0.48f, 1.0f); }
 	if (Cat == TEXT("Maths"))    { return FLinearColor(0.78f, 0.28f, 0.42f, 1.0f); }
 	if (Cat == TEXT("Source"))   { return FLinearColor(0.24f, 0.58f, 0.40f, 1.0f); }
+	if (Cat == TEXT("Vector"))   { return FLinearColor(0.36f, 0.44f, 0.62f, 1.0f); }
 	if (Cat == TEXT("Mask"))     { return FLinearColor(0.78f, 0.46f, 0.14f, 1.0f); }
 	if (Cat == TEXT("Sets"))     { return FLinearColor(0.30f, 0.52f, 0.56f, 1.0f); }
 	if (Cat == TEXT("Transform")){ return FLinearColor(0.50f, 0.40f, 0.24f, 1.0f); }
@@ -339,6 +340,8 @@ FString SJamGraphEditor::VerbCode(const FString& Verb)
 		{TEXT("cull_nth"), TEXT("CN")}, {TEXT("sub_list"), TEXT("SB")}, {TEXT("shift"), TEXT("SH")},
 		{TEXT("reverse"), TEXT("RV")}, {TEXT("move"), TEXT("MV")}, {TEXT("scale_pts"), TEXT("SZ")},
 		{TEXT("rotate_pts"), TEXT("RT")}, {TEXT("jitter"), TEXT("JT")},
+		{TEXT("pts_line"), TEXT("LN")}, {TEXT("pts_circle"), TEXT("CR")}, {TEXT("pts_rect"), TEXT("RC")},
+		{TEXT("pts_arc"), TEXT("AR")}, {TEXT("relax"), TEXT("RX")}, {TEXT("weave"), TEXT("WV")},
 	};
 	if (const FString* Found = Codes.Find(Verb))
 	{

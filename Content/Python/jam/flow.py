@@ -52,6 +52,22 @@ OPS_META: dict = {
                                   "spacing": 0.0, "seed": 7},
                        "opciones": {"pattern": ["poisson", "grid", "radial", "hexagonal", "triangular"]},
                        "doc": "puntos sobre la superficie real (raycast) — el Scatter SOP"},
+    # Vector: GENERADORES de puntos planos (sin raycast), el tab Vector/Point de GH. Producen un stream
+    # que después se transforma/enmascara/instancia (o se sube a la superficie con otro nodo).
+    "pts_line":     {"cat": "Vector", "source": True,
+                     "params": {"ax": 0.0, "ay": 0.0, "bx": 500.0, "by": 0.0, "count": 10, "seed": 0},
+                     "doc": "puntos equiespaciados de A a B (Points on a line)"},
+    "pts_circle":   {"cat": "Vector", "source": True,
+                     "params": {"cx": 0.0, "cy": 0.0, "radius": 300.0, "count": 12, "seed": 0},
+                     "doc": "puntos sobre una circunferencia (Points on a circle)"},
+    "pts_rect":     {"cat": "Vector", "source": True,
+                     "params": {"cx": 0.0, "cy": 0.0, "size_x": 600.0, "size_y": 600.0,
+                                "cols": 5, "rows": 5, "seed": 0},
+                     "doc": "grilla rectangular de cols×rows puntos (Rectangular grid)"},
+    "pts_arc":      {"cat": "Vector", "source": True,
+                     "params": {"cx": 0.0, "cy": 0.0, "radius": 300.0, "start_deg": 0.0,
+                                "end_deg": 90.0, "count": 10, "seed": 0},
+                     "doc": "puntos sobre un arco (Points on an arc)"},
     "mask_slope":   {"cat": "Mask", "params": {"min": 0.0, "max": 90.0},
                      "doc": "descarta por pendiente (Angle Mask)"},
     "mask_height":  {"cat": "Mask", "params": {"min": 0.0, "max": 0.0},
@@ -69,6 +85,8 @@ OPS_META: dict = {
                      "doc": "rota el orden de la lista `by` posiciones (Shift List)"},
     "reverse":      {"cat": "Sets", "params": {},
                      "doc": "invierte el orden de los puntos (Reverse List)"},
+    "relax":        {"cat": "Sets", "params": {"min_dist": 100.0},
+                     "doc": "descarta puntos más cerca que `min_dist` entre sí (cull duplicados / relax)"},
     # Transform: mueven/escalan/rotan/jitterean las POSICIONES del stream (el tab Transform de GH).
     "move":         {"cat": "Transform", "params": {"dx": 0.0, "dy": 0.0, "dz": 0.0},
                      "doc": "desplaza todos los puntos por (dx,dy,dz) — Move"},
@@ -80,6 +98,8 @@ OPS_META: dict = {
                      "doc": "offset aleatorio DETERMINISTA por punto (Jitter) — rompe la regularidad"},
     "merge":        {"cat": "Combine", "aridad": -1, "params": {},
                      "doc": "junta varios streams de puntos en uno"},
+    "weave":        {"cat": "Combine", "aridad": -1, "params": {},
+                     "doc": "intercala varios streams alternando uno de cada uno (Weave)"},
     "instance":     {"cat": "Output", "params": {"scale_min": 1.0, "scale_max": 1.0, "anchor": "base",
                                                  "align": False, "sink": 0.0},
                      "doc": "instancia el asset activo en cada punto (Copy to Points)"},
@@ -104,7 +124,7 @@ def spec_json() -> str:
     # P = stream de puntos · N = número · T = texto · A = actores instanciados.
     out_names = {"number": "N", "math": "N", "text": "T", "instance": "A"}
 
-    cats = ["Params", "Maths", "Source", "Mask", "Sets", "Transform", "Combine", "Output"]
+    cats = ["Params", "Maths", "Source", "Vector", "Mask", "Sets", "Transform", "Combine", "Output"]
     nodos = []
     for kind, m in OPS_META.items():
         ops_val = m.get("opciones", {})
@@ -154,6 +174,55 @@ def _samples_planos(pts, p):
     seed = int(p.get("seed", 0))
     return [sc.Sample(Vec3(x, y, z), Vec3(0.0, 0.0, 1.0), 0.0, sc.semilla_de(seed, x, y),
                       (0.0, 0.0)) for (x, y) in pts]
+
+
+# ---------- Vector: generadores de puntos planos (línea, círculo, grilla, arco) ----------
+
+@op("pts_line", 0)
+def _pts_line(_e, p):
+    ax, ay = p.get("ax", 0.0), p.get("ay", 0.0)
+    bx, by = p.get("bx", 500.0), p.get("by", 0.0)
+    n = max(1, int(p.get("count", 10)))
+    pts = [(ax + (bx - ax) * (i / (n - 1) if n > 1 else 0.0),
+            ay + (by - ay) * (i / (n - 1) if n > 1 else 0.0)) for i in range(n)]
+    return _samples_planos(pts, p)
+
+
+@op("pts_circle", 0)
+def _pts_circle(_e, p):
+    import math
+    cx, cy, r = p.get("cx", 0.0), p.get("cy", 0.0), p.get("radius", 300.0)
+    n = max(1, int(p.get("count", 12)))
+    pts = [(cx + r * math.cos(2 * math.pi * i / n), cy + r * math.sin(2 * math.pi * i / n))
+           for i in range(n)]
+    return _samples_planos(pts, p)
+
+
+@op("pts_rect", 0)
+def _pts_rect(_e, p):
+    cx, cy = p.get("cx", 0.0), p.get("cy", 0.0)
+    sx, sy = p.get("size_x", 600.0), p.get("size_y", 600.0)
+    cols, rows = max(1, int(p.get("cols", 5))), max(1, int(p.get("rows", 5)))
+    pts = []
+    for j in range(rows):
+        for i in range(cols):
+            fx = (i / (cols - 1) - 0.5) if cols > 1 else 0.0
+            fy = (j / (rows - 1) - 0.5) if rows > 1 else 0.0
+            pts.append((cx + fx * sx, cy + fy * sy))
+    return _samples_planos(pts, p)
+
+
+@op("pts_arc", 0)
+def _pts_arc(_e, p):
+    import math
+    cx, cy, r = p.get("cx", 0.0), p.get("cy", 0.0), p.get("radius", 300.0)
+    a0, a1 = math.radians(p.get("start_deg", 0.0)), math.radians(p.get("end_deg", 90.0))
+    n = max(1, int(p.get("count", 10)))
+    pts = []
+    for i in range(n):
+        a = a0 + (a1 - a0) * (i / (n - 1) if n > 1 else 0.0)
+        pts.append((cx + r * math.cos(a), cy + r * math.sin(a)))
+    return _samples_planos(pts, p)
 
 
 # ---------- máscaras (1 entrada): stream → stream ----------
@@ -222,6 +291,18 @@ def _reverse(e, _p):
     return list(reversed(e[0]))
 
 
+@op("relax", 1)
+def _relax(e, p):
+    """Descarta puntos más cerca que `min_dist` de uno ya aceptado (cull duplicados / relax)."""
+    d = p.get("min_dist", 100.0)
+    d2 = d * d
+    kept: list = []
+    for s in e[0]:
+        if all((s.pos.x - k.pos.x) ** 2 + (s.pos.y - k.pos.y) ** 2 >= d2 for k in kept):
+            kept.append(s)
+    return kept
+
+
 # ---------- Transform: mueven / escalan / rotan / jitterean las POSICIONES del stream ----------
 
 def _con_pos(s, x, y, z):
@@ -287,6 +368,19 @@ def _merge(e, _p):
     out = []
     for stream in e:
         out.extend(stream)
+    return out
+
+
+@op("weave", -1)
+def _weave(e, _p):
+    """Intercala varios streams: 1º de cada uno, 2º de cada uno… hasta agotar el más largo (Weave)."""
+    out = []
+    i = 0
+    while any(i < len(stream) for stream in e):
+        for stream in e:
+            if i < len(stream):
+                out.append(stream[i])
+        i += 1
     return out
 
 
