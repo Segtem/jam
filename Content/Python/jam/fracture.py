@@ -43,16 +43,26 @@ def _conn(df, a, ao, b, bi):
         raise RuntimeError(f"connect {a}.{ao} -> {b}.{bi}")
 
 
+def _setp_any(df, node, prop, valores):
+    """Prueba varios valores para una prop (para enums donde no sé si toma el nombre o el DisplayName)."""
+    for v in valores:
+        if unreal.DataflowEditorBlueprintLibrary.set_dataflow_node_property(df, node, prop, str(v)):
+            return
+    raise RuntimeError(f"set {node}.{prop} (probé {valores})")
+
+
 def _vec(x, y, z) -> str:
-    return f"X={x:.6f} Y={y:.6f} Z={z:.6f}"
+    # SetDataflowNodeProperty parsea FVector con FDefaultValueHelper::ParseVector → formato "x,y,z"
+    # (comas), NO "X=.. Y=.. Z=..".
+    return f"{x:.6f},{y:.6f},{z:.6f}"
 
 
 def _fuente_hueca(df, DFE, mesh, thickness):
     """Rama HUECA GENERAL (idea de Brian): le resta al modelo una COPIA de SÍ MISMO encogida hacia el
     centro → una CÁSCARA que sigue la silueta real, para CUALQUIER forma (barril, cajón, estatua), no
-    sólo cilindros. Encoger por `f` alrededor del centroide `c` = UniformScale=f + Translate=c·(1−f).
-    StaticMesh→Mesh → [Transform: encoge] → Boolean Difference (original − encogida) → MeshToCollection.
-    Devuelve el nodo cuya salida «Collection» alimenta la fractura."""
+    sólo cilindros. Encoge con UniformScale=f alrededor de `ScalePivot`=centroide (el propio nodo hace
+    la matemática del pivote). StaticMesh→Mesh → [Transform: encoge] → Boolean Difference (original −
+    encogida) → MeshToCollection. Devuelve el nodo cuya salida «Collection» alimenta la fractura."""
     box = mesh.get_bounding_box()
     mn, mx = box.min, box.max
     sx, sy, sz = mx.x - mn.x, mx.y - mn.y, mx.z - mn.z
@@ -69,8 +79,10 @@ def _fuente_hueca(df, DFE, mesh, thickness):
 
     _setp(df, src, "StaticMesh", mesh.get_path_name())
     _setp(df, xfm, "UniformScale", f)
-    _setp(df, xfm, "Translate", _vec(cx * (1.0 - f), cy * (1.0 - f), cz * (1.0 - f)))
-    _setp(df, sub, "Operation", "Dataflow_MeshBoolean_Difference")
+    _setp(df, xfm, "ScalePivot", _vec(cx, cy, cz))     # escala alrededor del centroide
+    _setp_any(df, sub, "Operation",
+              ["Dataflow_MeshBoolean_Difference", "Difference",
+               "EMeshBooleanOperationEnum::Dataflow_MeshBoolean_Difference"])
 
     _conn(df, src, "Mesh", sub, "Mesh1")     # original
     _conn(df, src, "Mesh", xfm, "Mesh")      # copia
