@@ -100,6 +100,8 @@ OPS_META: dict = {
                      "doc": "junta varios streams de puntos en uno"},
     "weave":        {"cat": "Combine", "aridad": -1, "params": {},
                      "doc": "intercala varios streams alternando uno de cada uno (Weave)"},
+    "info":         {"cat": "Display", "params": {},
+                     "doc": "passthrough: reporta cantidad + caja (bbox) del stream (Panel/Info de GH)"},
     "instance":     {"cat": "Output", "params": {"scale_min": 1.0, "scale_max": 1.0, "anchor": "base",
                                                  "align": False, "sink": 0.0},
                      "doc": "instancia el asset activo en cada punto (Copy to Points)"},
@@ -124,7 +126,8 @@ def spec_json() -> str:
     # P = stream de puntos · N = número · T = texto · A = actores instanciados.
     out_names = {"number": "N", "math": "N", "text": "T", "instance": "A"}
 
-    cats = ["Params", "Maths", "Source", "Vector", "Mask", "Sets", "Transform", "Combine", "Output"]
+    cats = ["Params", "Maths", "Source", "Vector", "Mask", "Sets", "Transform", "Combine",
+            "Output", "Display"]
     nodos = []
     for kind, m in OPS_META.items():
         ops_val = m.get("opciones", {})
@@ -382,6 +385,22 @@ def _weave(e, _p):
                 out.append(stream[i])
         i += 1
     return out
+
+
+# ---------- Display: inspeccionar el stream (passthrough) ----------
+
+@op("info", 1)
+def _info(e, p):
+    """Passthrough que MIDE el stream (cantidad + caja) y lo deja en `_stats` para que el nodo lo
+    muestre en el canvas — como un Panel de GH. No modifica el stream."""
+    xs = e[0]
+    if xs:
+        w = round(max(s.pos.x for s in xs) - min(s.pos.x for s in xs), 1)
+        h = round(max(s.pos.y for s in xs) - min(s.pos.y for s in xs), 1)
+        p["_stats"] = {"n": len(xs), "w": w, "h": h}
+    else:
+        p["_stats"] = {"n": 0}
+    return xs
 
 
 # ---------- variables + matemática (el «cerebro paramétrico» de Grasshopper) ----------

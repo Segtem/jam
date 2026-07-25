@@ -241,6 +241,11 @@ def ejecutar_flow_json(g_json: str, widget=None) -> str:
                 nombre = nodo["params"].get("name") or nid
                 txt = f"{nombre} = {val:.4g}" if isinstance(val, (int, float)) else f"{nombre} = (sin resolver)"
                 estado = "ok" if isinstance(val, (int, float)) else "warn"
+            elif kind == "info":
+                # Display: muestra las stats que midió el nodo (cantidad + caja).
+                st = nodo["params"].get("_stats", {})
+                txt = f"{st['n']} pts · caja {st['w']}×{st['h']}cm" if st.get("n") else "0 puntos"
+                estado = "ok" if st.get("n") else "warn"
             else:
                 txt = f"{len(stream)} puntos"
                 estado = "ok" if stream else "warn"

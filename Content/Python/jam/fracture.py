@@ -43,9 +43,51 @@ def _conn(df, a, ao, b, bi):
         raise RuntimeError(f"connect {a}.{ao} -> {b}.{bi}")
 
 
-def fracturar(asset, *, sites: int = 20, seed: int = 123, carpeta: str = CARPETA) -> dict:
+def _vec(x, y, z) -> str:
+    return f"X={x:.6f} Y={y:.6f} Z={z:.6f}"
+
+
+def _fuente_hueca(df, DFE, mesh, thickness):
+    """Rama HUECA (piñata/barril): StaticMesh→Mesh → cilindro interior → Transform → Boolean Difference
+    → MeshToCollection. Vacía el volumen antes de fracturar → rompe en CÁSCARA, no en macizo. Devuelve
+    el nodo cuya salida «Collection» alimenta la fractura. Receta verificada por Codex contra la fuente
+    del motor. Dimensiona el cilindro interior desde la bbox del mesh."""
+    box = mesh.get_bounding_box()
+    mn, mx = box.min, box.max
+    sx, sy, sz = mx.x - mn.x, mx.y - mn.y, mx.z - mn.z
+    cx, cy = (mn.x + mx.x) * 0.5, (mn.y + mx.y) * 0.5
+    t = float(thickness)
+    radius = max(0.1, min(sx, sy) * 0.5 - t)
+    height = max(0.1, sz - 2.0 * t)
+
+    V = unreal.Vector2D
+    src = DFE.add_dataflow_node(df, "FStaticMeshToMeshDataflowNode", "src", V(0, 0))
+    cyl = DFE.add_dataflow_node(df, "FMakeCylinderMeshDataflowNode", "cyl", V(0, 220))
+    xfm = DFE.add_dataflow_node(df, "FTransformMeshDataflowNode", "xfm", V(240, 220))
+    sub = DFE.add_dataflow_node(df, "FMeshBooleanDataflowNode", "hollow", V(480, 100))
+    col = DFE.add_dataflow_node(df, "FMeshToCollectionDataflowNode", "col", V(720, 100))
+
+    _setp(df, src, "StaticMesh", mesh.get_path_name())
+    _setp(df, cyl, "Radius1", radius)
+    _setp(df, cyl, "Radius2", radius)
+    _setp(df, cyl, "Height", height)
+    _setp(df, cyl, "AngleSamples", 48)
+    _setp(df, xfm, "Translate", _vec(cx, cy, mn.z + t))
+    _setp(df, sub, "Operation", "Dataflow_MeshBoolean_Difference")
+
+    _conn(df, src, "Mesh", sub, "Mesh1")            # barril
+    _conn(df, cyl, "Mesh", xfm, "Mesh")
+    _conn(df, xfm, "Mesh", sub, "Mesh2")            # menos el cilindro interior
+    _conn(df, sub, "Mesh", col, "Mesh")             # cáscara → colección
+    return col
+
+
+def fracturar(asset, *, sites: int = 20, seed: int = 123, hollow: bool = False,
+              thickness: float = 4.0, carpeta: str = CARPETA) -> dict:
     """StaticMesh (path o objeto) → Geometry Collection FRACTURADA. Autora el grafo Dataflow, liga la
-    GC (con su terminal — sin eso sale vacía) y la regenera. Devuelve {gc, ruta, sites} o {error}."""
+    GC (con su terminal — sin eso sale vacía) y la regenera. `hollow` vacía el volumen antes de
+    fracturar (barril/piñata → rompe en cáscara, no en macizo); `thickness` = espesor de pared (cm).
+    Devuelve {gc, ruta, sites} o {error}."""
     mesh = library.cargar_malla(asset) if isinstance(asset, str) else asset
     if mesh is None:
         return {"error": f"«{asset}» no es un StaticMesh (fracture necesita una malla)."}
@@ -61,13 +103,18 @@ def fracturar(asset, *, sites: int = 20, seed: int = 123, carpeta: str = CARPETA
 
     df = at.create_asset(f"DF_{base}", carpeta, unreal.Dataflow, unreal.DataflowAssetFactory())
     V = unreal.Vector2D
-    src  = DFE.add_dataflow_node(df, "FStaticMeshToCollectionDataflowNode", "src",  V(0, 0))
-    sel  = DFE.add_dataflow_node(df, "FCollectionTransformSelectionAllDataflowNode", "sel", V(240, 140))
-    frac = DFE.add_dataflow_node(df, "FUniformFractureDataflowNode", "frac", V(480, 0))
-    prox = DFE.add_dataflow_node(df, "FProximityDataflowNode", "prox", V(720, 0))
-    term = DFE.add_dataflow_node(df, "FGeometryCollectionTerminalDataflowNode", "term", V(960, 0))
+    # La FUENTE de la colección: hueca (mesh→boolean→collection) o sólida (staticmesh→collection).
+    if hollow:
+        fuente = _fuente_hueca(df, DFE, mesh, thickness)   # nodo con salida «Collection»
+    else:
+        fuente = DFE.add_dataflow_node(df, "FStaticMeshToCollectionDataflowNode", "src", V(0, 0))
+        _setp(df, fuente, "StaticMesh", mesh.get_path_name())
 
-    _setp(df, src, "StaticMesh", mesh.get_path_name())
+    sel  = DFE.add_dataflow_node(df, "FCollectionTransformSelectionAllDataflowNode", "sel", V(1000, 200))
+    frac = DFE.add_dataflow_node(df, "FUniformFractureDataflowNode", "frac", V(1240, 60))
+    prox = DFE.add_dataflow_node(df, "FProximityDataflowNode", "prox", V(1480, 60))
+    term = DFE.add_dataflow_node(df, "FGeometryCollectionTerminalDataflowNode", "term", V(1720, 60))
+
     _setp(df, frac, "MinVoronoiSites", int(sites))
     _setp(df, frac, "MaxVoronoiSites", int(sites))
     _setp(df, frac, "RandomSeed", int(seed))
@@ -75,8 +122,8 @@ def fracturar(asset, *, sites: int = 20, seed: int = 123, carpeta: str = CARPETA
     _setp(df, frac, "SplitIslands", True)
     _setp(df, prox, "bUseAsConnectionGraph", True)
 
-    _conn(df, src, "Collection", sel, "Collection")
-    _conn(df, src, "Collection", frac, "Collection")
+    _conn(df, fuente, "Collection", sel, "Collection")
+    _conn(df, fuente, "Collection", frac, "Collection")
     _conn(df, sel, "TransformSelection", frac, "TransformSelection")
     _conn(df, frac, "Collection", prox, "Collection")
     _conn(df, prox, "Collection", term, "Collection")

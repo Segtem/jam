@@ -388,17 +388,20 @@ def t_create_spline(asset=None) -> str:
     return f"SPLINE creado ✓ — «{etiqueta}»: editá sus puntos y usá «spline» para levantar piezas."
 
 
-def t_fracture(asset, *, sites=20, seed=123, view=True) -> str:
+def t_fracture(asset, *, sites=20, seed=123, hollow=False, thickness=4.0, view=True) -> str:
     """CONVIERTE un StaticMesh en un DESTRUCTIBLE (Geometry Collection de Chaos, vía Dataflow). NO lo
     coloca: produce la GC y la deja como asset ACTIVO — colocarla es de `place` (que maneja GCs).
-    Compone: `asset → fracture → place`. `sites` = pedazos. EDITOR-ONLY (Dataflow no corre headless).
-    El modo HUECO (barril/piñata) es el paso siguiente. (`view` se ignora: fracture no coloca.)"""
+    Compone: `asset → fracture → place`. `sites` = pedazos. `hollow` vacía el volumen antes de
+    fracturar (barril/piñata → rompe en CÁSCARA, no en macizo); `thickness` = espesor de pared (cm).
+    EDITOR-ONLY (Dataflow no corre headless). (`view` se ignora: fracture no coloca.)"""
     from . import fracture, session
-    r = fracture.fracturar(asset, sites=int(sites), seed=int(seed))
+    r = fracture.fracturar(asset, sites=int(sites), seed=int(seed), hollow=bool(hollow),
+                           thickness=float(thickness))
     if "error" in r:
         return r["error"]
     session.set_asset(r["ruta"], r["gc"].get_name())   # la GC queda como asset activo (place la coloca)
-    return (f"DESTRUCTIBLE ✓ — GC «{r['gc'].get_name()}» ({r['sites']} pedazos) creada en {r['ruta']}. "
+    modo = "hueca" if hollow else "sólida"
+    return (f"DESTRUCTIBLE ✓ — GC «{r['gc'].get_name()}» ({r['sites']} pedazos, {modo}) en {r['ruta']}. "
             f"Queda como asset activo → usá «place» (o cableá a un nodo place) para colocarla.")
 
 
@@ -467,9 +470,11 @@ REGISTRO = {
     "create_spline": {"fn": t_create_spline, "cat": "Create", "params": {},
                       "doc": "agrega un spline editable a la escena (primitiva de curva)"},
     "fracture":     {"fn": t_fracture, "cat": "Create",
-                     "params": {"sites": 20, "seed": 123, "view": True},
-                     "doc": "convierte un StaticMesh en destructible (Geometry Collection de Chaos) y "
-                            "lo coloca — rompe al impacto (editor-only, Dataflow)"},
+                     "params": {"sites": 20, "seed": 123, "hollow": False, "thickness": 4.0,
+                                "view": True},
+                     "doc": "convierte un StaticMesh en destructible (Geometry Collection de Chaos). "
+                            "hollow=vacía el volumen (barril/piñata). Conversor: place lo coloca "
+                            "(editor-only, Dataflow)"},
     "pcg":          {"fn": t_pcg,     "cat": "Scatter",
                      "params": {"area": 1600.0, "count": 200, "density": 0.0, "view": True,
                                 "name": "JamPCG", "preset": ""},
