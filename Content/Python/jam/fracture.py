@@ -48,37 +48,34 @@ def _vec(x, y, z) -> str:
 
 
 def _fuente_hueca(df, DFE, mesh, thickness):
-    """Rama HUECA (piñata/barril): StaticMesh→Mesh → cilindro interior → Transform → Boolean Difference
-    → MeshToCollection. Vacía el volumen antes de fracturar → rompe en CÁSCARA, no en macizo. Devuelve
-    el nodo cuya salida «Collection» alimenta la fractura. Receta verificada por Codex contra la fuente
-    del motor. Dimensiona el cilindro interior desde la bbox del mesh."""
+    """Rama HUECA GENERAL (idea de Brian): le resta al modelo una COPIA de SÍ MISMO encogida hacia el
+    centro → una CÁSCARA que sigue la silueta real, para CUALQUIER forma (barril, cajón, estatua), no
+    sólo cilindros. Encoger por `f` alrededor del centroide `c` = UniformScale=f + Translate=c·(1−f).
+    StaticMesh→Mesh → [Transform: encoge] → Boolean Difference (original − encogida) → MeshToCollection.
+    Devuelve el nodo cuya salida «Collection» alimenta la fractura."""
     box = mesh.get_bounding_box()
     mn, mx = box.min, box.max
     sx, sy, sz = mx.x - mn.x, mx.y - mn.y, mx.z - mn.z
-    cx, cy = (mn.x + mx.x) * 0.5, (mn.y + mx.y) * 0.5
-    t = float(thickness)
-    radius = max(0.1, min(sx, sy) * 0.5 - t)
-    height = max(0.1, sz - 2.0 * t)
+    cx, cy, cz = (mn.x + mx.x) * 0.5, (mn.y + mx.y) * 0.5, (mn.z + mx.z) * 0.5
+    dmin = max(0.1, min(sx, sy, sz))
+    # factor de encogido: la pared en la dimensión más chica ≈ thickness → f = 1 − 2·t/dmin
+    f = max(0.05, 1.0 - 2.0 * float(thickness) / dmin)
 
     V = unreal.Vector2D
     src = DFE.add_dataflow_node(df, "FStaticMeshToMeshDataflowNode", "src", V(0, 0))
-    cyl = DFE.add_dataflow_node(df, "FMakeCylinderMeshDataflowNode", "cyl", V(0, 220))
-    xfm = DFE.add_dataflow_node(df, "FTransformMeshDataflowNode", "xfm", V(240, 220))
+    xfm = DFE.add_dataflow_node(df, "FTransformMeshDataflowNode", "shrink", V(240, 220))
     sub = DFE.add_dataflow_node(df, "FMeshBooleanDataflowNode", "hollow", V(480, 100))
     col = DFE.add_dataflow_node(df, "FMeshToCollectionDataflowNode", "col", V(720, 100))
 
     _setp(df, src, "StaticMesh", mesh.get_path_name())
-    _setp(df, cyl, "Radius1", radius)
-    _setp(df, cyl, "Radius2", radius)
-    _setp(df, cyl, "Height", height)
-    _setp(df, cyl, "AngleSamples", 48)
-    _setp(df, xfm, "Translate", _vec(cx, cy, mn.z + t))
+    _setp(df, xfm, "UniformScale", f)
+    _setp(df, xfm, "Translate", _vec(cx * (1.0 - f), cy * (1.0 - f), cz * (1.0 - f)))
     _setp(df, sub, "Operation", "Dataflow_MeshBoolean_Difference")
 
-    _conn(df, src, "Mesh", sub, "Mesh1")            # barril
-    _conn(df, cyl, "Mesh", xfm, "Mesh")
-    _conn(df, xfm, "Mesh", sub, "Mesh2")            # menos el cilindro interior
-    _conn(df, sub, "Mesh", col, "Mesh")             # cáscara → colección
+    _conn(df, src, "Mesh", sub, "Mesh1")     # original
+    _conn(df, src, "Mesh", xfm, "Mesh")      # copia
+    _conn(df, xfm, "Mesh", sub, "Mesh2")     # encogida hacia el centro
+    _conn(df, sub, "Mesh", col, "Mesh")      # cáscara → colección
     return col
 
 
