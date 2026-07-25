@@ -66,6 +66,15 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 	FieldStyle.SetBackgroundImageFocused(FieldBg);
 	FieldStyle.SetBackgroundImageReadOnly(FieldBg);
 	FieldStyle.SetForegroundColor(FLinearColor::Black);
+	FieldStyle.SetFocusedForegroundColor(FLinearColor::Black);
+	FieldStyle.SetReadOnlyForegroundColor(FLinearColor(0.15f, 0.15f, 0.15f, 1.0f));
+	// SELECCIÓN de texto: el TextStyle heredado es del tema OSCURO (texto blanco + resalte claro) →
+	// al seleccionar quedaba blanco sobre blanco. Texto negro + resalte AZUL para que se lea.
+	FTextBlockStyle TextStyle = FieldStyle.TextStyle;
+	TextStyle.SetColorAndOpacity(FLinearColor::Black);
+	TextStyle.SetSelectedBackgroundColor(FLinearColor(0.20f, 0.45f, 0.85f, 1.0f));
+	TextStyle.SetHighlightColor(FLinearColor::Black);
+	FieldStyle.SetTextStyle(TextStyle);
 
 	// Celda de alto FIJO (los pines se alinean a las filas por construcción; la métrica la comparte el
 	// editor para anclar los wires exactamente en cada pin — como los grips por parámetro de GH).
