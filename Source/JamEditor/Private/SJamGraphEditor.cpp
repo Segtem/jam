@@ -313,6 +313,8 @@ FLinearColor SJamGraphEditor::CategoryColor(const FString& Cat)
 	if (Cat == TEXT("Maths"))    { return FLinearColor(0.78f, 0.28f, 0.42f, 1.0f); }
 	if (Cat == TEXT("Source"))   { return FLinearColor(0.24f, 0.58f, 0.40f, 1.0f); }
 	if (Cat == TEXT("Mask"))     { return FLinearColor(0.78f, 0.46f, 0.14f, 1.0f); }
+	if (Cat == TEXT("Sets"))     { return FLinearColor(0.30f, 0.52f, 0.56f, 1.0f); }
+	if (Cat == TEXT("Transform")){ return FLinearColor(0.50f, 0.40f, 0.24f, 1.0f); }
 	if (Cat == TEXT("Combine"))  { return FLinearColor(0.26f, 0.46f, 0.70f, 1.0f); }
 	if (Cat == TEXT("Output"))   { return FLinearColor(0.58f, 0.30f, 0.62f, 1.0f); }
 	return FLinearColor(0.35f, 0.35f, 0.38f, 1.0f);
@@ -333,7 +335,10 @@ FString SJamGraphEditor::VerbCode(const FString& Verb)
 		{TEXT("mask_slope"), TEXT("SL")}, {TEXT("mask_height"), TEXT("HT")},
 		{TEXT("mask_noise"), TEXT("NO")}, {TEXT("mask_density"), TEXT("DN")},
 		{TEXT("mask_circle"), TEXT("CI")}, {TEXT("merge"), TEXT("MG")}, {TEXT("instance"), TEXT("IN")},
-		{TEXT("number"), TEXT("N#")}, {TEXT("math"), TEXT("fx")},
+		{TEXT("number"), TEXT("N#")}, {TEXT("math"), TEXT("fx")}, {TEXT("text"), TEXT("Tx")},
+		{TEXT("cull_nth"), TEXT("CN")}, {TEXT("sub_list"), TEXT("SB")}, {TEXT("shift"), TEXT("SH")},
+		{TEXT("reverse"), TEXT("RV")}, {TEXT("move"), TEXT("MV")}, {TEXT("scale_pts"), TEXT("SZ")},
+		{TEXT("rotate_pts"), TEXT("RT")}, {TEXT("jitter"), TEXT("JT")},
 	};
 	if (const FString* Found = Codes.Find(Verb))
 	{

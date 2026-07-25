@@ -60,6 +60,24 @@ OPS_META: dict = {
                      "doc": "rompe la uniformidad → manchones (Noise Mask)"},
     "mask_density": {"cat": "Mask", "params": {"keep": 0.6, "seed": 7},
                      "doc": "conserva una fracción al azar (Add/Remove)"},
+    # Sets: operaciones de LISTA sobre el stream (el tab Sets de GH) — reordenan/recortan los puntos.
+    "cull_nth":     {"cat": "Sets", "params": {"n": 2, "offset": 0},
+                     "doc": "conserva 1 de cada N puntos (Cull Nth) — diezma de forma regular"},
+    "sub_list":     {"cat": "Sets", "params": {"start": 0, "count": 0},
+                     "doc": "toma un tramo de la lista [start, start+count) (Sub List); count 0 = hasta el final"},
+    "shift":        {"cat": "Sets", "params": {"by": 1},
+                     "doc": "rota el orden de la lista `by` posiciones (Shift List)"},
+    "reverse":      {"cat": "Sets", "params": {},
+                     "doc": "invierte el orden de los puntos (Reverse List)"},
+    # Transform: mueven/escalan/rotan/jitterean las POSICIONES del stream (el tab Transform de GH).
+    "move":         {"cat": "Transform", "params": {"dx": 0.0, "dy": 0.0, "dz": 0.0},
+                     "doc": "desplaza todos los puntos por (dx,dy,dz) — Move"},
+    "scale_pts":    {"cat": "Transform", "params": {"factor": 1.0, "cx": 0.0, "cy": 0.0, "cz": 0.0},
+                     "doc": "escala las posiciones desde un centro (0/0/0 = centroide del stream) — Scale"},
+    "rotate_pts":   {"cat": "Transform", "params": {"deg": 0.0, "cx": 0.0, "cy": 0.0},
+                     "doc": "rota las posiciones en Z alrededor de un centro (0/0 = centroide) — Rotate"},
+    "jitter":       {"cat": "Transform", "params": {"amount": 20.0, "seed": 7},
+                     "doc": "offset aleatorio DETERMINISTA por punto (Jitter) — rompe la regularidad"},
     "merge":        {"cat": "Combine", "aridad": -1, "params": {},
                      "doc": "junta varios streams de puntos en uno"},
     "instance":     {"cat": "Output", "params": {"scale_min": 1.0, "scale_max": 1.0, "anchor": "base",
@@ -86,7 +104,7 @@ def spec_json() -> str:
     # P = stream de puntos · N = número · T = texto · A = actores instanciados.
     out_names = {"number": "N", "math": "N", "text": "T", "instance": "A"}
 
-    cats = ["Params", "Maths", "Source", "Mask", "Combine", "Output"]
+    cats = ["Params", "Maths", "Source", "Mask", "Sets", "Transform", "Combine", "Output"]
     nodos = []
     for kind, m in OPS_META.items():
         ops_val = m.get("opciones", {})
@@ -171,6 +189,97 @@ def _mk_circle(e, p):
     v, _ = sc.aplicar_mascaras(e[0], [sc.mask_circle(
         p["centro"], p.get("radio", 300.0), p.get("keep_inside", True))])
     return v
+
+
+# ---------- Sets (listas): reordenan / recortan el stream, como el tab Sets de GH ----------
+
+@op("cull_nth", 1)
+def _cull_nth(e, p):
+    n = max(1, int(p.get("n", 2)))
+    off = int(p.get("offset", 0))
+    return [s for i, s in enumerate(e[0]) if (i - off) % n == 0]
+
+
+@op("sub_list", 1)
+def _sub_list(e, p):
+    start = max(0, int(p.get("start", 0)))
+    count = int(p.get("count", 0))
+    xs = e[0][start:]
+    return xs[:count] if count > 0 else xs
+
+
+@op("shift", 1)
+def _shift(e, p):
+    xs = e[0]
+    if not xs:
+        return xs
+    k = int(p.get("by", 1)) % len(xs)
+    return xs[k:] + xs[:k]
+
+
+@op("reverse", 1)
+def _reverse(e, _p):
+    return list(reversed(e[0]))
+
+
+# ---------- Transform: mueven / escalan / rotan / jitterean las POSICIONES del stream ----------
+
+def _con_pos(s, x, y, z):
+    """Un Sample nuevo con la misma info pero otra posición (los Sample son inmutables)."""
+    from .geometry import Vec3
+    return sc.Sample(Vec3(x, y, z), s.normal, s.slope, s.seed, s.uv)
+
+
+def _centro(xs, p):
+    """Centro para escala/rotación: el dado (cx/cy/cz) o, si es (0,0,0), el CENTROIDE del stream."""
+    cx, cy, cz = p.get("cx", 0.0), p.get("cy", 0.0), p.get("cz", 0.0)
+    if cx == 0.0 and cy == 0.0 and cz == 0.0 and xs:
+        cx = sum(s.pos.x for s in xs) / len(xs)
+        cy = sum(s.pos.y for s in xs) / len(xs)
+        cz = sum(s.pos.z for s in xs) / len(xs)
+    return cx, cy, cz
+
+
+@op("move", 1)
+def _move(e, p):
+    dx, dy, dz = p.get("dx", 0.0), p.get("dy", 0.0), p.get("dz", 0.0)
+    return [_con_pos(s, s.pos.x + dx, s.pos.y + dy, s.pos.z + dz) for s in e[0]]
+
+
+@op("scale_pts", 1)
+def _scale_pts(e, p):
+    f = p.get("factor", 1.0)
+    xs = e[0]
+    cx, cy, cz = _centro(xs, p)
+    return [_con_pos(s, cx + (s.pos.x - cx) * f, cy + (s.pos.y - cy) * f, cz + (s.pos.z - cz) * f)
+            for s in xs]
+
+
+@op("rotate_pts", 1)
+def _rotate_pts(e, p):
+    import math
+    r = math.radians(p.get("deg", 0.0))
+    ca, sa = math.cos(r), math.sin(r)
+    xs = e[0]
+    cx, cy, _cz = _centro(xs, p)
+    out = []
+    for s in xs:
+        dx, dy = s.pos.x - cx, s.pos.y - cy
+        out.append(_con_pos(s, cx + dx * ca - dy * sa, cy + dx * sa + dy * ca, s.pos.z))
+    return out
+
+
+@op("jitter", 1)
+def _jitter(e, p):
+    import random
+    amt = p.get("amount", 20.0)
+    seed = int(p.get("seed", 0))
+    out = []
+    for s in e[0]:
+        rng = random.Random(sc.semilla_de(seed, s.pos.x, s.pos.y))
+        out.append(_con_pos(s, s.pos.x + rng.uniform(-amt, amt),
+                            s.pos.y + rng.uniform(-amt, amt), s.pos.z))
+    return out
 
 
 @op("merge", -1)
