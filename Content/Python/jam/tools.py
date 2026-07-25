@@ -388,6 +388,24 @@ def t_create_spline(asset=None) -> str:
     return f"SPLINE creado ✓ — «{etiqueta}»: editá sus puntos y usá «spline» para levantar piezas."
 
 
+def t_fracture(asset, *, sites=20, seed=123, view=True) -> str:
+    """Convierte un StaticMesh en un DESTRUCTIBLE (Geometry Collection de Chaos, vía Dataflow) y lo
+    coloca en el punto de mira. Rompe al impacto (umbrales configurados). `sites` = cantidad de
+    pedazos. EDITOR-ONLY: el Dataflow no corre headless. El modo HUECO (barril/piñata) es el paso
+    siguiente."""
+    from . import fracture, ue
+    r = fracture.realizar(asset, sites=int(sites), seed=int(seed), view=view)
+    if "error" in r:
+        return r["error"]
+    actor = r.get("actor")
+    if actor is None:
+        return f"GC fracturada ✓ — {r['ruta']} ({r['sites']} pedazos), pero no se colocó el actor."
+    ue.seleccionar([actor])
+    loc = actor.get_actor_location()
+    return (f"DESTRUCTIBLE ✓ — «{actor.get_actor_label()}» ({r['sites']} pedazos) en "
+            f"({loc.x:.0f}, {loc.y:.0f}, {loc.z:.0f}). GC: {r['ruta']}. Rompe al impacto (dale Play).")
+
+
 # ---- el registro: verbo → acción param-driven + defaults (fuente de verdad para DSL, help y panel) ----
 
 # Anclas disponibles, para que los params que eligen una se dibujen como LISTA y no como campo de
@@ -443,6 +461,10 @@ REGISTRO = {
                      "doc": "piezas modulares a su largo real a lo largo de un spline (verifica que tile sin solaparse)"},
     "create_spline": {"fn": t_create_spline, "cat": "Create", "params": {},
                       "doc": "agrega un spline editable a la escena (primitiva de curva)"},
+    "fracture":     {"fn": t_fracture, "cat": "Create",
+                     "params": {"sites": 20, "seed": 123, "view": True},
+                     "doc": "convierte un StaticMesh en destructible (Geometry Collection de Chaos) y "
+                            "lo coloca — rompe al impacto (editor-only, Dataflow)"},
     "pcg":          {"fn": t_pcg,     "cat": "Scatter",
                      "params": {"area": 1600.0, "count": 200, "density": 0.0, "view": True,
                                 "name": "JamPCG", "preset": ""},
@@ -456,7 +478,7 @@ REGISTRO = {
 # Verbos que NO crean nada COLOCABLE: son selección o estado de la herramienta, así que no pasan por
 # el preview (si pasaran, «Confirmar/Descartar» quedarían apuntando a una preview vacía). El
 # fantasma sí crea un actor, pero es un ayudante efímero, no una pieza del nivel.
-SIN_SPAWN = {"asset", "pick", "gizmo", "ghost", "pivot", "pivot_set", "normalize", "pcg"}
+SIN_SPAWN = {"asset", "pick", "gizmo", "ghost", "pivot", "pivot_set", "normalize", "pcg", "fracture"}
 
 # Orden de las categorías en la barra (como Dash). Las vacías no se muestran.
 CATEGORIAS = ["Content", "Place", "Scatter", "Create", "Edit"]

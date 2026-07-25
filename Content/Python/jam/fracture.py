@@ -1,0 +1,110 @@
+"""Fracture — convierte un StaticMesh en un DESTRUCTIBLE (Geometry Collection de Chaos) vía Dataflow,
+y lo coloca. Es el verbo `fracture`: Jam decide (qué malla, cuántos pedazos), Dataflow ejecuta la
+fractura (adaptador, como PCG — anti-lock-in), y el oráculo verifica.
+
+EDITOR-ONLY: la autoría de Dataflow CUELGA headless (`-RenderOffScreen`); corre con el editor real,
+que es donde Jam vive. Receta VERIFICADA en el spike del barril
+(jam/tools/experiments/dataflow_barrel_spike.py): `FUniformFractureDataflowNode` genera los sitios
+Voronoi internamente (Min/MaxVoronoiSites — NO hace falta cablear `Points`), + `FProximityDataflowNode`
+(grafo de conexión) para que ROMPA, + umbrales de daño bajos en el componente (los defaults son
+enormes: {500000,50000,5000}).
+
+PENDIENTE — modo HUECO (barril/piñata): hoy Voronoi rellena el volumen sólido → pedazos macizos. El
+fix (PDF «Rigging Moderno»): mesh→volumen, booleana de vaciado (FMeshBooleanDataflowNode +
+FMakeCylinderMeshDataflowNode), y recién ahí fracturar. Se agrega como `hollow=true`.
+"""
+
+from __future__ import annotations
+
+import re
+
+import unreal
+
+from . import library
+
+CARPETA = "/Game/JamDF/Fractures"
+
+
+def _slug(n: str) -> str:
+    return re.sub(r"[^A-Za-z0-9]+", "_", n).strip("_") or "GC"
+
+
+def _setp(df, node, prop, value):
+    if isinstance(value, bool):
+        value = "true" if value else "false"
+    if not unreal.DataflowEditorBlueprintLibrary.set_dataflow_node_property(df, node, prop, str(value)):
+        raise RuntimeError(f"set {node}.{prop}")
+
+
+def _conn(df, a, ao, b, bi):
+    if not unreal.DataflowEditorBlueprintLibrary.connect_dataflow_nodes(df, a, ao, b, bi):
+        raise RuntimeError(f"connect {a}.{ao} -> {b}.{bi}")
+
+
+def fracturar(asset, *, sites: int = 20, seed: int = 123, carpeta: str = CARPETA) -> dict:
+    """StaticMesh (path o objeto) → Geometry Collection FRACTURADA. Autora el grafo Dataflow, liga la
+    GC (con su terminal — sin eso sale vacía) y la regenera. Devuelve {gc, ruta, sites} o {error}."""
+    mesh = library.cargar_malla(asset) if isinstance(asset, str) else asset
+    if mesh is None:
+        return {"error": f"«{asset}» no es un StaticMesh (fracture necesita una malla)."}
+
+    DFE = unreal.DataflowEditorBlueprintLibrary
+    DFB = unreal.DataflowBlueprintLibrary
+    at = unreal.AssetToolsHelpers.get_asset_tools()
+    base = _slug(mesh.get_name())
+    df_ruta, gc_ruta = f"{carpeta}/DF_{base}", f"{carpeta}/GC_{base}"
+    for p in (df_ruta, gc_ruta):
+        if unreal.EditorAssetLibrary.does_asset_exist(p):
+            unreal.EditorAssetLibrary.delete_asset(p)
+
+    df = at.create_asset(f"DF_{base}", carpeta, unreal.Dataflow, unreal.DataflowAssetFactory())
+    V = unreal.Vector2D
+    src  = DFE.add_dataflow_node(df, "FStaticMeshToCollectionDataflowNode", "src",  V(0, 0))
+    sel  = DFE.add_dataflow_node(df, "FCollectionTransformSelectionAllDataflowNode", "sel", V(240, 140))
+    frac = DFE.add_dataflow_node(df, "FUniformFractureDataflowNode", "frac", V(480, 0))
+    prox = DFE.add_dataflow_node(df, "FProximityDataflowNode", "prox", V(720, 0))
+    term = DFE.add_dataflow_node(df, "FGeometryCollectionTerminalDataflowNode", "term", V(960, 0))
+
+    _setp(df, src, "StaticMesh", mesh.get_path_name())
+    _setp(df, frac, "MinVoronoiSites", int(sites))
+    _setp(df, frac, "MaxVoronoiSites", int(sites))
+    _setp(df, frac, "RandomSeed", int(seed))
+    _setp(df, frac, "ChanceToFracture", 1.0)
+    _setp(df, frac, "SplitIslands", True)
+    _setp(df, prox, "bUseAsConnectionGraph", True)
+
+    _conn(df, src, "Collection", sel, "Collection")
+    _conn(df, src, "Collection", frac, "Collection")
+    _conn(df, sel, "TransformSelection", frac, "TransformSelection")
+    _conn(df, frac, "Collection", prox, "Collection")
+    _conn(df, prox, "Collection", term, "Collection")
+    unreal.EditorAssetLibrary.save_asset(df_ruta, only_if_is_dirty=False)
+
+    gc = at.create_asset(f"GC_{base}", carpeta, unreal.GeometryCollection, unreal.GeometryCollectionFactory())
+    inst = gc.get_editor_property("dataflow_instance")
+    inst.set_editor_property("dataflow_asset", df)
+    inst.set_editor_property("dataflow_terminal", term)
+    gc.set_editor_property("dataflow_instance", inst)
+    if not DFB.regenerate_asset_from_dataflow(gc):
+        return {"error": "regenerate del Dataflow falló."}
+    # material del static mesh → la GC (si no, queda gris)
+    try:
+        mats = mesh.get_editor_property("static_materials")
+        m0 = mats[0].get_editor_property("material_interface") if mats else None
+        if m0:
+            gc.set_editor_property("materials", [m0, m0])
+    except Exception:  # noqa: BLE001
+        pass
+    unreal.EditorAssetLibrary.save_asset(gc_ruta, only_if_is_dirty=False)
+    return {"gc": gc, "ruta": gc_ruta, "sites": int(sites)}
+
+
+def realizar(asset, *, sites: int = 20, seed: int = 123, view: bool = True) -> dict:
+    """`fracturar` + COLOCAR el destructible (place ya maneja GCs y les configura la ruptura).
+    Devuelve {actor, gc, ruta, sites} o {error}."""
+    r = fracturar(asset, sites=sites, seed=seed)
+    if "error" in r:
+        return r
+    from . import place
+    r["actor"] = place.colocar(r["ruta"], view=view, surface=True, anchor="base")
+    return r
