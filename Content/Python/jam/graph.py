@@ -242,6 +242,12 @@ def ejecutar_detalle(g: JamGraph) -> tuple[str, dict]:
             txt = info["fn"](asset, **kw)
         except Exception as e:  # noqa: BLE001
             txt = f"[error] {type(e).__name__}: {e}"
+        # Verbos que TRANSFORMAN el asset (fracture: mesh→GC): lo que sale por su pin es la GC, no el
+        # mesh de entrada — así `place` aguas abajo coloca el destructible y no el mesh original.
+        if not txt.startswith("[error]"):
+            producido = tools.asset_producido(verb, asset)
+            if producido:
+                porta[nid] = producido
         lineas.append(f"[{nid}·{verb}] {txt}")
         por_nodo[nid] = {"estado": _estado(txt), "texto": txt}
     return "\n".join(lineas), por_nodo

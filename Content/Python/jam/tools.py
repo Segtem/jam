@@ -389,21 +389,26 @@ def t_create_spline(asset=None) -> str:
 
 
 def t_fracture(asset, *, sites=20, seed=123, view=True) -> str:
-    """Convierte un StaticMesh en un DESTRUCTIBLE (Geometry Collection de Chaos, vía Dataflow) y lo
-    coloca en el punto de mira. Rompe al impacto (umbrales configurados). `sites` = cantidad de
-    pedazos. EDITOR-ONLY: el Dataflow no corre headless. El modo HUECO (barril/piñata) es el paso
-    siguiente."""
-    from . import fracture, ue
-    r = fracture.realizar(asset, sites=int(sites), seed=int(seed), view=view)
+    """CONVIERTE un StaticMesh en un DESTRUCTIBLE (Geometry Collection de Chaos, vía Dataflow). NO lo
+    coloca: produce la GC y la deja como asset ACTIVO — colocarla es de `place` (que maneja GCs).
+    Compone: `asset → fracture → place`. `sites` = pedazos. EDITOR-ONLY (Dataflow no corre headless).
+    El modo HUECO (barril/piñata) es el paso siguiente. (`view` se ignora: fracture no coloca.)"""
+    from . import fracture, session
+    r = fracture.fracturar(asset, sites=int(sites), seed=int(seed))
     if "error" in r:
         return r["error"]
-    actor = r.get("actor")
-    if actor is None:
-        return f"GC fracturada ✓ — {r['ruta']} ({r['sites']} pedazos), pero no se colocó el actor."
-    ue.seleccionar([actor])
-    loc = actor.get_actor_location()
-    return (f"DESTRUCTIBLE ✓ — «{actor.get_actor_label()}» ({r['sites']} pedazos) en "
-            f"({loc.x:.0f}, {loc.y:.0f}, {loc.z:.0f}). GC: {r['ruta']}. Rompe al impacto (dale Play).")
+    session.set_asset(r["ruta"], r["gc"].get_name())   # la GC queda como asset activo (place la coloca)
+    return (f"DESTRUCTIBLE ✓ — GC «{r['gc'].get_name()}» ({r['sites']} pedazos) creada en {r['ruta']}. "
+            f"Queda como asset activo → usá «place» (o cableá a un nodo place) para colocarla.")
+
+
+def asset_producido(verbo: str, asset_entrada) -> str | None:
+    """Para verbos que TRANSFORMAN el asset (fracture: mesh→GC), la ruta del asset que sale por su pin
+    — el grafo la pasa aguas abajo en vez del asset de entrada. None si el verbo no transforma."""
+    if verbo == "fracture":
+        from . import fracture
+        return fracture.gc_path_for(asset_entrada)
+    return None
 
 
 # ---- el registro: verbo → acción param-driven + defaults (fuente de verdad para DSL, help y panel) ----

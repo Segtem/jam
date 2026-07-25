@@ -1,6 +1,8 @@
-"""Fracture — convierte un StaticMesh en un DESTRUCTIBLE (Geometry Collection de Chaos) vía Dataflow,
-y lo coloca. Es el verbo `fracture`: Jam decide (qué malla, cuántos pedazos), Dataflow ejecuta la
-fractura (adaptador, como PCG — anti-lock-in), y el oráculo verifica.
+"""Fracture — CONVIERTE un StaticMesh en un DESTRUCTIBLE (Geometry Collection de Chaos) vía Dataflow.
+Es un CONVERSOR, no un colocador: produce la GC y la deja como asset (y como asset activo). Colocarla
+es trabajo de `place` (que ya maneja GCs). Así compone limpio: `asset → fracture → place` = UN
+destructible. Jam decide (qué malla, cuántos pedazos), Dataflow ejecuta (adaptador, como PCG), place
+coloca, el oráculo verifica.
 
 EDITOR-ONLY: la autoría de Dataflow CUELGA headless (`-RenderOffScreen`); corre con el editor real,
 que es donde Jam vive. Receta VERIFICADA en el spike del barril
@@ -99,12 +101,8 @@ def fracturar(asset, *, sites: int = 20, seed: int = 123, carpeta: str = CARPETA
     return {"gc": gc, "ruta": gc_ruta, "sites": int(sites)}
 
 
-def realizar(asset, *, sites: int = 20, seed: int = 123, view: bool = True) -> dict:
-    """`fracturar` + COLOCAR el destructible (place ya maneja GCs y les configura la ruptura).
-    Devuelve {actor, gc, ruta, sites} o {error}."""
-    r = fracturar(asset, sites=sites, seed=seed)
-    if "error" in r:
-        return r
-    from . import place
-    r["actor"] = place.colocar(r["ruta"], view=view, surface=True, anchor="base")
-    return r
+def gc_path_for(asset) -> str:
+    """Ruta DETERMINISTA de la GC que `fracture` produce para un mesh dado. La usa el grafo para pasar
+    la GC aguas abajo (a `place`), en vez del mesh original — `fracture` es un CONVERSOR, no coloca."""
+    nombre = asset.rsplit("/", 1)[-1].split(".")[0] if isinstance(asset, str) else asset.get_name()
+    return f"{CARPETA}/GC_{_slug(nombre)}"
