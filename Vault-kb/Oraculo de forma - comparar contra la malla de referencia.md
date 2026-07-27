@@ -49,17 +49,19 @@ Tab **Mesh**. Consume la malla, exige un StaticMesh de referencia por el pin lat
 **deja pasar la malla intacta**: es un oráculo, no un transformador. Se intercala antes de
 `Mesh to Static` para que el mismo Run que construye el árbol diga cuánto se parece al de referencia.
 
-Mide seis cosas y las ordena por gravedad, de modo que lo primero que se lee es lo que más separa a
+Mide ocho cosas y las ordena por gravedad, de modo que lo primero que se lee es lo que más separa a
 las dos mallas:
 
 | Métrica | Tolerancia por defecto | Por qué |
 |---|---|---|
 | `alto` | ±30% | tamaño general |
 | `ancho` | ±35% | la copa abre más o menos |
+| `esbeltez` | ±20% | la **proporción** alto/ancho |
 | `vertices` | ±50% | densidad de geometría |
 | `triangulos` | ±50% | idem |
 | `secciones` | **exacta** | una sección menos = falta un material entero |
-| `perfil` | distancia ≤ 0.15 | **la que más discrimina** |
+| `perfil` | distancia ≤ 0.15 | dónde está la masa a lo alto |
+| `silueta` | distancia ≤ 0.18 | el contorno: cono contra cilindro |
 
 `secciones` no admite tolerancia a propósito: en un árbol, una sección de menos suele significar que
 falta todo el follaje.
@@ -127,8 +129,9 @@ masa por franja (base → copa):
   referencia     7%   10%   16%   16%   16%   17%   18%    1%
 ```
 
-Las seis métricas dentro de tolerancia. **Ese es el lazo que faltaba**: de «no se parece» a un número
-por eje, y del número al parámetro que hay que mover.
+Las seis métricas de entonces, dentro de tolerancia. **Ese es el lazo que faltaba**: de «no se parece»
+a un número por eje, y del número al parámetro que hay que mover. Pero el árbol seguía estando mal —
+ver la corrección más abajo, que agregó las dos métricas que faltaban.
 
 ### Lo que el perfil todavía marca
 
@@ -172,7 +175,7 @@ Jam, y ahí se corre el grafo y la comparación. No se importó ni se modificó 
 
 ## Verificación
 
-- Suite Python headless: **116/116** (`test_compare.py` es nuevo con 11).
+- Suite Python headless: **122/122** (`test_compare.py` tiene 17).
 - El núcleo puro se prueba solo: invariancia de escala del perfil, mallas planas y vacías, ancho por el
   eje más ancho, sección faltante sin tolerancia, orden por gravedad, perfil que detecta masa ausente
   abajo, tolerancias configurables y simetría de la distancia.
@@ -186,6 +189,81 @@ Jam, y ahí se corre el grafo y la comparación. No se importó ni se modificó 
 - `Content/Python/jam/tools.py`: verbo `mesh_compare`.
 - `Resources/Examples/TreeGen-Two-Level.jamgraph`: la unión + parámetros ajustados por el oráculo.
 - `Content/Python/tests/test_compare.py`: regresiones puras.
+
+## Corrección 2026-07-27 — el oráculo aprobó y el árbol estaba mal
+
+Con las seis métricas en verde, Brian abrió el editor y miró: un **poste** de 33 metros con muñones
+uniformes, no un pino. Un humano lo vio en un segundo; el oráculo no.
+
+Dos agujeros estructurales:
+
+**No había métrica de proporción.** `alto` 0.93× y `ancho` 0.73× pasaban cada uno su tolerancia, pero
+la relación alto/ancho daba 3.43 contra 2.69 — 28% más esbelto. La proporción no era ninguna de las
+seis, y es lo primero que lee el ojo.
+
+**El perfil vertical no distingue un cono de un cilindro.** Los dos reparten la masa igual a lo largo
+del eje. Hay un test que lo demuestra: `cono.perfil == cilindro.perfil`, distancia 0.0. Y esa es
+exactamente la diferencia entre un pino y un poste con muñones.
+
+### Las dos métricas nuevas
+
+- **`esbeltez`** = alto/ancho, tolerancia ±20% (más estrecha que alto y ancho por separado).
+- **`silueta`** = radio máximo de cada franja respecto del eje, normalizado al mayor. Distancia por
+  diferencia media, no variación total: una silueta no es una distribución, no suma 1.
+
+Sobre el mismo árbol que antes daba ✓:
+
+```text
+JAM vs TreeGen Pine — ok=False  peor=esbeltez
+  ✗ esbeltez         3.43 vs     2.69  (1.28×)
+  ✗ silueta       distancia 0.246 (límite 0.18)
+  ✓ ancho             966 vs     1329  (0.73×)
+  ✓ perfil        distancia 0.123 (límite 0.15)
+  ✓ vertices        16473 vs    18424  (0.89×)
+  ✓ alto             3313 vs     3574  (0.93×)
+  ✓ triangulos      25055 vs    25268  (0.99×)
+  ✓ secciones           2 vs        2  (1.00×)
+
+silueta: radio de cada franja, normalizado al mayor:
+  generada      41%   84%  100%   88%   91%   82%   86%   71%
+  referencia    57%  100%   91%   70%   63%   56%   41%   32%
+```
+
+La línea de silueta es el diagnóstico entero: la referencia se angosta monótonamente desde la segunda
+franja; la generada se queda ancha hasta arriba.
+
+### La causa de fondo: parámetros absolutos en nodos agnósticos
+
+Los nodos del grafo son agnósticos a propósito — `Branch From Frames` no sabe que hace un árbol. El
+costo es que **ningún nodo sabe cómo se ve un árbol**: las relaciones entre niveles tienen que viajar
+como datos por los cables.
+
+`branch_from_frames` toma `length_min`/`length_max` en **centímetros absolutos**:
+
+```python
+inherited_scale = frame.scale if inherit_scale else 1.0
+length = rng.uniform(length_min, length_max) * inherited_scale
+```
+
+`inherited_scale` es un factor (~0.82), no el largo del padre. Al subir el tronco 5× para igualar la
+altura de la referencia, las ramas quedaron en 324–542cm: **10-16% del tronco, igual abajo que
+arriba** (correlación altura↔largo r = −0.41, que es ruido del jitter). Un cilindro de muñones.
+
+TreeGen no tiene el problema porque sus parámetros son **relativos**: `Scale/ParentLength` y
+`BranchScaleCurve`. Jam ya tiene el mecanismo —`Graph Curve` produce esa serie `N[]` y
+`Pipe with Profile` la consume para el radio— pero no está cableado al largo de las ramas.
+
+**Pendiente**: que `branch_from_frames` acepte un `N[]` por pin lateral para modular el largo a lo
+largo del padre, y/o un modo de largo relativo al padre.
+
+### Lección
+
+Esto fue Goodhart, y lo cometió quien escribió el oráculo: los parámetros se ajustaron *leyendo las
+métricas*. Un verde no es una garantía, es la ausencia de una refutación — sólo dice que las métricas
+que tenés no vieron nada.
+
+El ciclo sano: el oráculo caza lo que ya sabemos mirar, el humano caza lo nuevo, y lo nuevo se
+convierte en oráculo. Desarrollado en `docs/Oraculo de Jam - guia completa.md` §9.9.
 
 ## Relacionado
 

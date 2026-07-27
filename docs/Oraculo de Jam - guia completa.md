@@ -1161,10 +1161,16 @@ class Medida:
 |---|---|---|
 | `alto` | ±30% | escala general equivocada |
 | `ancho` | ±35% | copa demasiado abierta o cerrada |
+| `esbeltez` | ±20% | la **proporción** alto/ancho |
 | `vertices` | ±50% | densidad de geometría |
 | `triangulos` | ±50% | ídem |
 | `secciones` | **exacta** | falta un material entero |
-| `perfil` | distancia ≤ 0.15 | **dónde** está mal distribuida la masa |
+| `perfil` | distancia ≤ 0.15 | **dónde** está distribuida la masa a lo alto |
+| `silueta` | distancia ≤ 0.18 | el **contorno**: cono contra cilindro |
+
+> Las dos últimas —`esbeltez` y `silueta`— se agregaron después, cuando el oráculo aprobó un árbol
+> que a simple vista estaba mal. La historia completa está en §9.9, y es la lección más importante
+> de esta sección.
 
 **Por qué `secciones` no admite tolerancia.** Porque una sección de menos no es una desviación
 cuantitativa: es una ausencia estructural. En un árbol, típicamente significa que falta todo el
@@ -1478,6 +1484,122 @@ Aun con todo en verde, el perfil sigue señalando dos diferencias reales:
 
 Ninguna rompe la tolerancia, pero ambas son *información accionable* para el siguiente paso. Un
 oráculo bien diseñado sigue enseñando después de que el test pasa.
+
+---
+
+## 9.9 El oráculo aprobó y el resultado estaba mal
+
+Ésta es la parte más instructiva de todo el documento, y ocurrió **después** de que las seis métricas
+dieran verde.
+
+### Lo que pasó
+
+Con el oráculo en ✓, se abrió el editor y se miró el árbol. Era un **poste** de 33 metros con muñones
+uniformes, no un pino. Un humano lo vio en un segundo; seis métricas no lo habían visto.
+
+### Por qué se le escapó
+
+Dos agujeros, ambos estructurales:
+
+**1. No había métrica de proporción.** `alto` daba 0.93× y `ancho` 0.73×: cada uno cómodo dentro de su
+tolerancia. Pero la relación alto/ancho era 3.43 contra 2.69 de la referencia — 28% más esbelto. La
+proporción no era ninguna de las seis, y es lo primero que lee el ojo.
+
+**2. El perfil vertical no puede distinguir un cono de un cilindro.** Los dos reparten la masa
+uniformemente a lo largo del eje. Éste es el test que lo demuestra:
+
+```python
+    def test_a_cone_and_a_cylinder_have_the_same_vertical_profile(self):
+        # Éste es el agujero que motivó la silueta: los dos reparten la masa igual a lo largo del
+        # eje, así que el perfil vertical no puede distinguirlos.
+        cono = compare.medir(solido(lambda u: 1.0 - 0.9 * u), triangulos=1, secciones=1)
+        cilindro = compare.medir(solido(lambda _u: 1.0), triangulos=1, secciones=1)
+
+        self.assertEqual(cono.perfil, cilindro.perfil)
+        self.assertAlmostEqual(compare.distancia_perfil(cono.perfil, cilindro.perfil), 0.0)
+        # Pero la silueta sí los separa.
+        self.assertGreater(compare.distancia_silueta(cono.silueta, cilindro.silueta), 0.3)
+```
+
+Un cono y un cilindro tienen **exactamente el mismo perfil vertical**. Y la diferencia entre un pino y
+un poste con muñones es justamente ésa.
+
+### La métrica que faltaba: la silueta
+
+```python
+    # SILUETA: radio máximo de cada franja respecto del eje central, normalizado al mayor.
+    # El perfil vertical no distingue un cono de un cilindro —ambos reparten la masa parejo a lo
+    # largo del eje—, y esa es justo la diferencia entre un pino y un poste con muñones. La silueta
+    # sí: en un cono el radio cae con la altura, en un cilindro se queda.
+    cx = (max(p[0] for p in puntos) + min(p[0] for p in puntos)) / 2.0
+    cy = (max(p[1] for p in puntos) + min(p[1] for p in puntos)) / 2.0
+    radios = [0.0] * franjas
+    for x, y, z in puntos:
+        indice = 0 if alto <= 1e-6 else min(int((z - z_min) / alto * franjas), franjas - 1)
+        radio = math.hypot(x - cx, y - cy)
+        if radio > radios[indice]:
+            radios[indice] = radio
+    mayor = max(radios)
+    silueta = tuple((r / mayor) if mayor > 1e-9 else 0.0 for r in radios)
+```
+
+Y su distancia, que **no** es variación total:
+
+```python
+def distancia_silueta(a, b) -> float:
+    """Diferencia media entre dos siluetas normalizadas: 0 = mismo contorno, 1 = opuestos.
+
+    No es variación total porque una silueta no es una distribución: no suma 1. Como cada radio ya
+    está normalizado a [0, 1], el promedio de las diferencias absolutas queda acotado en [0, 1].
+    """
+```
+
+**Detalle conceptual**: el perfil de masa *es* una distribución (suma 1), así que la variación total
+es la distancia correcta. La silueta *no* lo es —son ocho radios independientes—, así que la métrica
+correcta es la diferencia media. Usar variación total ahí habría sido un error de tipo.
+
+### El veredicto con el ojo nuevo
+
+Sobre exactamente el mismo árbol que antes daba ✓:
+
+```
+JAM vs TreeGen Pine — ok=False  peor=esbeltez
+  ✗ esbeltez         3.43 vs     2.69  (1.28×)
+  ✗ silueta       distancia 0.246 (límite 0.18)
+  ✓ ancho             966 vs     1329  (0.73×)
+  ✓ perfil        distancia 0.123 (límite 0.15)
+  ✓ vertices        16473 vs    18424  (0.89×)
+  ✓ alto             3313 vs     3574  (0.93×)
+  ✓ triangulos      25055 vs    25268  (0.99×)
+  ✓ secciones           2 vs        2  (1.00×)
+
+silueta: radio de cada franja, normalizado al mayor:
+  generada      41%   84%  100%   88%   91%   82%   86%   71%
+  referencia    57%  100%   91%   70%   63%   56%   41%   32%
+```
+
+La línea de silueta es el diagnóstico entero: la referencia **se angosta monótonamente** desde la
+segunda franja (100 → 91 → 70 → 63 → 56 → 41 → 32); la generada se queda ancha hasta arriba. Cono
+contra cilindro, en dos filas de números.
+
+### Las tres lecciones
+
+**1. Esto es Goodhart, y lo cometió quien escribió el oráculo.** Los parámetros del árbol se
+ajustaron *leyendo las métricas*. Se optimizó la métrica, no el objetivo. El principio anti-Goodhart
+dice que no hay que inyectarle al generador lo que se va a medir — y ajustar a mano mirando el
+veredicto es exactamente esa inyección, con un humano de intermediario.
+
+**2. Un oráculo verde no es una garantía, es la ausencia de una refutación.** Sólo prueba que no
+detectó nada, y eso depende enteramente de qué mira. Las métricas acotan el error por abajo, nunca por
+arriba.
+
+**3. El ojo humano sigue siendo parte del sistema.** No como sustituto del oráculo sino como su
+fuente: cada vez que alguien mira el resultado y encuentra algo que las métricas no vieron, ese
+hallazgo se convierte en una métrica nueva. El oráculo no reemplaza al artista; **acumula** lo que el
+artista descubre, para que no haya que volver a descubrirlo.
+
+> El ciclo sano es: el oráculo caza lo que ya sabemos mirar, el humano caza lo nuevo, y lo nuevo se
+> convierte en oráculo.
 
 **Éste es el lazo que hacía falta**: de «no se parece» a un número por eje, y del número al parámetro
 que hay que mover.
@@ -2176,7 +2298,7 @@ Qué pieza, qué falló, cuánto, y —entre paréntesis— por qué importa. Si
 | `oracle_espacio` | `SpaceGraph` | alcanzabilidad con llaves | `solvable` |
 | `pivot.diagnostico` | `AABB` + pivote | posición normalizada 0..1 | `tileable` |
 | `spline_core` | colocaciones + largo | solapes, cobertura | sin solape y ≥90% |
-| `compare` | posiciones + conteos | 6 métricas de forma | todas en tolerancia |
+| `compare` | posiciones + conteos | 8 métricas de forma | todas en tolerancia |
 
 ## Oráculos de contrato
 
@@ -2309,9 +2431,10 @@ meta respetando las llaves.
     ocupa en el espacio UV, verificá que el *texel density* sea consistente entre piezas de un kit.
     ¿Qué tolerancia usarías y por qué?
 
-14. **Extendé `compare.py`** con una séptima métrica: la distribución **radial** de masa (fracción de
-    vértices por anillo de distancia al eje central). ¿Qué defecto detectaría que el perfil vertical
-    no detecta? Escribí `medir_radial()` y sus tests, incluyendo la invariancia de escala.
+14. **Ya resuelto en §9.9** — la silueta radial. Antes de leer esa sección, intentá responder por tu
+    cuenta: ¿qué defecto detecta que el perfil vertical no puede detectar? Después compará tu
+    respuesta con el test del cono y el cilindro. Variante abierta: la silueta usa el radio MÁXIMO
+    por franja. ¿Qué cambiaría si usara el percentil 90? ¿Y la media?
 
 15. **Diseñá el oráculo de silueta.** Proyectá la malla sobre un plano y compará la silueta resultante
     contra la de la referencia. Definí cómo representar la silueta, cómo compararlas, y qué tolerancia
@@ -2328,13 +2451,14 @@ meta respetando las llaves.
 18. Toda la disciplina de tests puros tiene un techo: no ve la integración. Proponé un mecanismo
     adicional —distinto de los tres que Jam ya usa— para cerrar más ese hueco.
 
-19. El principio anti-Goodhart dice que no hay que inyectarle al generador lo que se va a medir. Pero
-    en la sección 9.8 los parámetros del árbol se ajustaron **leyendo el oráculo**. ¿Es una violación
-    del principio? Argumentá las dos posturas.
+19. El principio anti-Goodhart dice que no hay que inyectarle al generador lo que se va a medir. En
+    §9.8 los parámetros del árbol se ajustaron **leyendo el oráculo**, y §9.9 muestra el resultado:
+    seis métricas en verde y un poste de 33 metros. Dado eso, ¿cómo debería ajustarse un generador
+    sin caer en Goodhart? ¿Alcanza con tener más métricas, o el problema es de método?
 
-20. El oráculo de forma da ✓ con seis métricas dentro de tolerancia, pero el perfil sigue mostrando
-    0% vs 7% en la franja inferior. ¿Debería el oráculo reportar «✓ con observaciones»? Diseñá ese
-    tercer estado y decidí si vale la pena.
+20. El oráculo puede dar ✓ y aun así mostrar 0% vs 7% en la franja inferior del perfil. ¿Debería
+    reportar «✓ con observaciones»? Diseñá ese tercer estado y decidí si vale la pena, sabiendo lo
+    que cuenta §9.9 sobre lo que un verde realmente significa.
 
 ---
 
@@ -2429,4 +2553,7 @@ Content/Python/tests/
    accionable.
 9. **Los tests mockeados verifican tu lógica, no tu integración.** Hace falta una capa que toque el
    motor real.
+9b. **Un verde no es una garantía: es la ausencia de una refutación.** Sólo dice que las métricas que
+   tenés no vieron nada. Cuando el ojo humano encuentra lo que se les escapó, eso se convierte en la
+   métrica siguiente.
 10. **Un oráculo que hay que acordarse de correr no se corre.** Intercalalo en el flujo.
