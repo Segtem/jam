@@ -72,11 +72,16 @@ estuvo»**, que a ojo son lo mismo y significan cosas muy distintas.
 
 ## Cómo probarlo
 
-**File → Abrir ejemplo: banco de pruebas de Debug** (`Debug-Playground.jamgraph`, 14 nodos). Tiene
+**File → Abrir ejemplo: banco de pruebas de Debug** (`Debug-Playground.jamgraph`, 19 nodos). Tiene
 una fuente de cada tipo, cada una con su nodo `Debug` al lado, y todos los resultados mergeados a una
-StaticMesh que se coloca. `Run graph` y se ve todo junto en el viewport; `Discard` lo borra.
+StaticMesh que se coloca. `Run graph` y se ve todo en el viewport; `Discard` lo borra.
 
-Corrido en UE 5.7.4, 13 nodos, 0 errores:
+La primera versión los mergeaba directo y **todo se apilaba en el origen**: la serie `N[]` producía
+sus 600 vértices y no se distinguía porque quedaba enterrada bajo la esfera y la curva. Cada debug
+pasa ahora por un `mesh_transform` que lo corre a su propio carril, 5 m de separación en Y — 23 m de
+extensión total. Es la diferencia entre «lo dibujó» y «lo puedo mirar».
+
+Corrido en UE 5.7.4, 18 nodos, 0 errores:
 
 ```text
 [ver_S·debug] DEBUG M ✓ — 640 verts · S · 16 trazos
@@ -88,6 +93,10 @@ Corrido en UE 5.7.4, 13 nodos, 0 errores:
 ```
 
 El mismo verbo sirviendo cinco tipos en una sola corrida.
+
+Verificado además que las espinas de `M` apuntan **para afuera**: sobre una esfera, las 74 se alejan
+del centro. Una normal dada vuelta es justamente lo que este modo tiene que delatar, así que valía
+comprobar que el propio ayudante no estuviera mintiendo.
 
 ## Rendimiento
 

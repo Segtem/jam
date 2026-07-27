@@ -8,8 +8,8 @@
 			{
 				"cx": "0",
 				"cy": "0",
-				"size_x": "700",
-				"size_y": "700",
+				"size_x": "400",
+				"size_y": "400",
 				"cols": "4",
 				"rows": "4",
 				"seed": "3"
@@ -46,6 +46,25 @@
 			"x": 690,
 			"y": 40
 		},
+		"sep_P":
+		{
+			"verb": "mesh_transform",
+			"params":
+			{
+				"x": "0.0",
+				"y": "-1000",
+				"z": "0.0",
+				"pitch": "0.0",
+				"yaw": "0.0",
+				"roll": "0.0",
+				"scale_x": "1.0",
+				"scale_y": "1.0",
+				"scale_z": "1.0"
+			},
+			"asset": null,
+			"x": 1020,
+			"y": 40
+		},
 		"frames":
 		{
 			"verb": "points_to_frames",
@@ -74,6 +93,25 @@
 			},
 			"asset": null,
 			"x": 1020,
+			"y": 300
+		},
+		"sep_F":
+		{
+			"verb": "mesh_transform",
+			"params":
+			{
+				"x": "0.0",
+				"y": "-500",
+				"z": "0.0",
+				"pitch": "0.0",
+				"yaw": "0.0",
+				"roll": "0.0",
+				"scale_x": "1.0",
+				"scale_y": "1.0",
+				"scale_z": "1.0"
+			},
+			"asset": null,
+			"x": 1350,
 			"y": 300
 		},
 		"curva":
@@ -111,6 +149,25 @@
 			"x": 360,
 			"y": 560
 		},
+		"sep_S":
+		{
+			"verb": "mesh_transform",
+			"params":
+			{
+				"x": "0.0",
+				"y": "0",
+				"z": "0.0",
+				"pitch": "0.0",
+				"yaw": "0.0",
+				"roll": "0.0",
+				"scale_x": "1.0",
+				"scale_y": "1.0",
+				"scale_z": "1.0"
+			},
+			"asset": null,
+			"x": 690,
+			"y": 560
+		},
 		"serie":
 		{
 			"verb": "graph_curve",
@@ -143,6 +200,25 @@
 			"x": 360,
 			"y": 820
 		},
+		"sep_N":
+		{
+			"verb": "mesh_transform",
+			"params":
+			{
+				"x": "0.0",
+				"y": "500",
+				"z": "150",
+				"pitch": "0.0",
+				"yaw": "0.0",
+				"roll": "0.0",
+				"scale_x": "1.0",
+				"scale_y": "1.0",
+				"scale_z": "1.0"
+			},
+			"asset": null,
+			"x": 690,
+			"y": 820
+		},
 		"esfera":
 		{
 			"verb": "mesh_sphere",
@@ -164,11 +240,30 @@
 				"tamano": "40",
 				"grosor": "1.5",
 				"escalar_con_dato": "true",
-				"cada": "4",
+				"cada": "2",
 				"solo_direccion": "false"
 			},
 			"asset": null,
 			"x": 360,
+			"y": 1080
+		},
+		"sep_M":
+		{
+			"verb": "mesh_transform",
+			"params":
+			{
+				"x": "0.0",
+				"y": "1000",
+				"z": "150",
+				"pitch": "0.0",
+				"yaw": "0.0",
+				"roll": "0.0",
+				"scale_x": "1.0",
+				"scale_y": "1.0",
+				"scale_z": "1.0"
+			},
+			"asset": null,
+			"x": 690,
 			"y": 1080
 		},
 		"juntar":
@@ -176,7 +271,7 @@
 			"verb": "mesh_merge",
 			"params": {},
 			"asset": null,
-			"x": 1400,
+			"x": 1700,
 			"y": 560
 		},
 		"horno":
@@ -191,7 +286,7 @@
 				"show_vertex_colors": "true"
 			},
 			"asset": null,
-			"x": 1730,
+			"x": 2030,
 			"y": 560
 		},
 		"colocar":
@@ -213,7 +308,7 @@
 				"scale": "1.0"
 			},
 			"asset": null,
-			"x": 2060,
+			"x": 2360,
 			"y": 560
 		}
 	},
@@ -232,6 +327,12 @@
 			"in"
 		],
 		[
+			"ver_P",
+			"out",
+			"sep_P",
+			"in"
+		],
+		[
 			"peso",
 			"out",
 			"frames",
@@ -244,9 +345,21 @@
 			"in"
 		],
 		[
+			"ver_F",
+			"out",
+			"sep_F",
+			"in"
+		],
+		[
 			"curva",
 			"out",
 			"ver_S",
+			"in"
+		],
+		[
+			"ver_S",
+			"out",
+			"sep_S",
 			"in"
 		],
 		[
@@ -256,37 +369,49 @@
 			"in"
 		],
 		[
+			"ver_N",
+			"out",
+			"sep_N",
+			"in"
+		],
+		[
 			"esfera",
 			"out",
 			"ver_M",
 			"in"
 		],
 		[
-			"ver_P",
-			"out",
-			"juntar",
-			"in"
-		],
-		[
-			"ver_F",
-			"out",
-			"juntar",
-			"in"
-		],
-		[
-			"ver_S",
-			"out",
-			"juntar",
-			"in"
-		],
-		[
-			"ver_N",
-			"out",
-			"juntar",
-			"in"
-		],
-		[
 			"ver_M",
+			"out",
+			"sep_M",
+			"in"
+		],
+		[
+			"sep_P",
+			"out",
+			"juntar",
+			"in"
+		],
+		[
+			"sep_F",
+			"out",
+			"juntar",
+			"in"
+		],
+		[
+			"sep_S",
+			"out",
+			"juntar",
+			"in"
+		],
+		[
+			"sep_N",
+			"out",
+			"juntar",
+			"in"
+		],
+		[
+			"sep_M",
 			"out",
 			"juntar",
 			"in"
