@@ -722,6 +722,23 @@ FString SJamGraphEditor::InputDataTypeFor(const FString& NodeId, const FString& 
 	return P ? (P->DataType.IsEmpty() ? JamParamDataType(P->Name, P->Type) : P->DataType) : FString();
 }
 
+/** Regla ÚNICA de compatibilidad de tipos entre un pin de salida y uno de entrada.
+ *
+ *  Vivía duplicada en `CanConnect` (al tender un cable) y en `LoadGraphJson` (al abrir un archivo).
+ *  Agregar el comodín en una sola dejó el otro camino rechazando lo que la UI aceptaba: un ejemplo
+ *  con un nodo Debug se tendía bien a mano pero no se podía abrir. Con la regla en un solo lugar el
+ *  desfasaje no puede volver a pasar.
+ *
+ *  «*» es un pin COMODÍN: lo usa el ayudante de Debug, que dibuja cualquier cosa que llegue. */
+static bool JamTiposCompatibles(const FString& OutType, const FString& InType)
+{
+	if (OutType.IsEmpty() || InType.IsEmpty())
+	{
+		return false;
+	}
+	return InType == TEXT("*") || OutType == InType;
+}
+
 bool SJamGraphEditor::CanConnect(const FString& From, const FString& FromPin, const FString& To,
 	const FString& ToPin, FString& OutError) const
 {
@@ -742,9 +759,7 @@ bool SJamGraphEditor::CanConnect(const FString& From, const FString& FromPin, co
 		OutError = FString::Printf(TEXT("%s.%s no es una entrada válida"), *To, *ToPin);
 		return false;
 	}
-	// «*» es un pin COMODÍN: lo usa el ayudante de Debug, que dibuja cualquier cosa que llegue.
-	// Sin esto haría falta un nodo de debug por tipo, y había que saber de antemano cuál usar.
-	if (InType != TEXT("*") && OutType != InType)
+	if (!JamTiposCompatibles(OutType, InType))
 	{
 		OutError = FString::Printf(TEXT("tipo incompatible: %s.%s entrega %s; %s.%s espera %s"),
 			*From, *FromPin, *OutType, *To, *ToPin, *InType);
@@ -1495,7 +1510,7 @@ bool SJamGraphEditor::LoadGraphJson(const FString& Json)
 						? JamParamDataType(Param->Name, Param->Type) : Param->DataType;
 				}
 			}
-			if (OutType.IsEmpty() || InType.IsEmpty() || OutType != InType)
+			if (!JamTiposCompatibles(OutType, InType))
 			{
 				return Fail(FString::Printf(TEXT("edge %d tiene pines o tipos incompatibles."), EdgeIndex));
 			}

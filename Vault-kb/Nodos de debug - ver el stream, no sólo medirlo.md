@@ -119,7 +119,42 @@ Corrido en UE 5.7.4 sobre la cadena Flow → Mesh, 7 nodos, 0 errores:
 [malla·mesh_to_static] STATIC MESH ✓
 ```
 
-Suite headless: **165/165** (`test_debug.py` tiene 14, incluidos los del comodín).
+Suite headless: **166/166** (`test_debug.py` tiene 15).
+
+## Fix — la regla de tipos estaba duplicada
+
+Al abrir el ejemplo, Brian: *«me sale edge 1 tiene pines o tipos incompatibles»*.
+
+El comodín se había agregado en `CanConnect` —el camino que valida un cable **tendido a mano**— pero
+`LoadGraphJson`, el que valida al **abrir un archivo**, tenía la misma condición escrita aparte:
+
+```cpp
+if (OutType.IsEmpty() || InType.IsEmpty() || OutType != InType)   // sin comodín
+```
+
+Resultado: el nodo Debug se conectaba bien arrastrando, pero el ejemplo que lo usaba no se podía
+abrir. La UI aceptaba algo que el cargador rechazaba.
+
+El arreglo no fue agregar el comodín en el segundo lugar sino **eliminar la duplicación**:
+
+```cpp
+static bool JamTiposCompatibles(const FString& OutType, const FString& InType)
+{
+    if (OutType.IsEmpty() || InType.IsEmpty()) { return false; }
+    return InType == TEXT("*") || OutType == InType;
+}
+```
+
+Los dos caminos la llaman. Con la regla en un solo lugar el desfasaje no puede volver a pasar.
+
+### El test que faltaba
+
+Ninguna prueba abría los ejemplos: se verificaba que **compilaran** (Preflight de Python), no que se
+pudieran **cargar** (validación de Slate). Son dos contratos distintos y sólo uno estaba cubierto.
+
+`EjemplosCargablesTests` recorre los cinco `.jamgraph` distribuidos aplicando los mismos pasos que el
+cargador. Verificado por mutación: sacándole el comodín reproduce el error exacto —
+`edge 1 peso.out(P) → ver_P.in(*) sería rechazado al abrir`.
 
 ## Relacionado
 

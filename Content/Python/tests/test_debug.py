@@ -176,5 +176,53 @@ class ContratoDeGrafoTests(unittest.TestCase):
         self.assertIn("esperaba S, recibió P", r["nodes"]["pipe"]["texto"])
 
 
+class EjemplosCargablesTests(unittest.TestCase):
+    """Todo ejemplo empaquetado tiene que poder ABRIRSE, no sólo compilar.
+
+    `SJamGraphEditor::LoadGraphJson` valida cada arista por su cuenta antes de reemplazar el canvas.
+    Esa regla vivía duplicada con la de `CanConnect`, así que agregar el comodín en una sola dejó el
+    otro camino rechazando lo que la UI aceptaba: el ejemplo de Debug se armaba a mano pero no se
+    podía abrir («edge 1 tiene pines o tipos incompatibles»). Este test recorre los mismos pasos que
+    el cargador sobre cada archivo distribuido.
+    """
+
+    @staticmethod
+    def _tipo_entrada_del_cargador(verb, pin, registro):
+        from jam import graph
+        info = registro.get(verb)
+        if not info:
+            return ""
+        if pin == "in":
+            return "" if info["source"] or info["aridad"] == 0 else info["in_name"]
+        if pin == "asset":
+            return "A" if info["asset_pin"] else ""
+        return graph._tipo_entrada(verb, pin, registro) or ""
+
+    def test_every_bundled_example_passes_the_loader_edge_check(self):
+        import json
+        from pathlib import Path
+        from jam import graph
+
+        ejemplos = sorted((Path(__file__).resolve().parents[3] / "Resources" / "Examples")
+                          .glob("*.jamgraph"))
+        self.assertGreaterEqual(len(ejemplos), 5)
+        for ruta in ejemplos:
+            with self.subTest(ejemplo=ruta.name):
+                documento = json.loads(ruta.read_text(encoding="utf-8"))
+                nodos = documento["nodes"]
+                for indice, arista in enumerate(documento["edges"]):
+                    origen, pin_origen, destino, pin_destino = arista
+                    self.assertIn(origen, nodos, f"edge {indice}")
+                    self.assertIn(destino, nodos, f"edge {indice}")
+                    salida = graph._tipo_salida(nodos[origen]["verb"], tools.REGISTRO) \
+                        if pin_origen == "out" else ""
+                    entrada = self._tipo_entrada_del_cargador(
+                        nodos[destino]["verb"], pin_destino, tools.REGISTRO)
+                    # La misma regla que `JamTiposCompatibles` en C++, comodín incluido.
+                    self.assertTrue(
+                        salida and entrada and (entrada == "*" or salida == entrada),
+                        f"{ruta.name}: edge {indice} {origen}.{pin_origen}({salida}) → "
+                        f"{destino}.{pin_destino}({entrada}) sería rechazado al abrir")
+
 if __name__ == "__main__":
     unittest.main()
