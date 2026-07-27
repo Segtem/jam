@@ -832,6 +832,20 @@ def t_mesh_normals(mesh_input, *, angle_weighted=True, area_weighted=True) -> st
     return _mesh_output("mesh_normals", result, "NORMALS M")
 
 
+def t_points_to_frames(stream_input, *, orientacion="normal", escala=1.0,
+                       escala_desde_peso=True, giro_al_azar=True, seed=7) -> str:
+    """Puente P → F: convierte el stream de puntos de Flow en frames que consume el tab Mesh."""
+    from . import curve
+    result = curve.frames_desde_puntos(
+        stream_input, orientacion=str(orientacion), escala=float(escala),
+        escala_desde_peso=bool(escala_desde_peso), giro_al_azar=bool(giro_al_azar),
+        seed=int(seed))
+    if "error" in result:
+        raise RuntimeError(result["error"])
+    _RUNTIME_DATA_OUTPUTS["points_to_frames"] = result["frame_set"]
+    return f"POINTS TO F ✓ — {result['info']}"
+
+
 def t_mesh_bark(mesh_input, *, amplitud=2.0, escala=0.06, alargue=0.25,
                 octavas=3, surcos=0.6, seed=7) -> str:
     """Relieve de corteza sobre M: desplaza cada vértice por su normal con ruido estirado."""
@@ -1134,6 +1148,11 @@ REGISTRO = {
     "mesh_normals": {"fn": t_mesh_normals, "cat": "Mesh", "graph_only": True,
                      "params": {"angle_weighted": True, "area_weighted": True},
                      "doc": "recalcula normales conservando los atributos de la malla M"},
+    "points_to_frames": {"fn": t_points_to_frames, "cat": "Mesh", "graph_only": True,
+                         "params": {"orientacion": "normal", "escala": 1.0,
+                                    "escala_desde_peso": True, "giro_al_azar": True, "seed": 7},
+                         "opciones": {"orientacion": ["normal", "vertical"]},
+                         "doc": "PUENTE P → F: convierte el stream de puntos de Flow en frames. El peso de la máscara pasa a ser la escala de cada pieza"},
     "mesh_bark": {"fn": t_mesh_bark, "cat": "Mesh", "graph_only": True,
                   "params": {"amplitud": 2.0, "escala": 0.06, "alargue": 0.25,
                              "octavas": 3, "surcos": 0.6, "seed": 7},
@@ -1166,7 +1185,11 @@ REGISTRO = {
 SIN_SPAWN = {"asset", "pick", "gizmo", "ghost", "pivot", "pivot_set", "normalize", "fracture"}
 
 # Orden de las categorías en la barra (como Dash). Las vacías no se muestran.
-CATEGORIAS = ["Content", "Place", "Scatter", "Create", "Mesh", "Edit"]
+# Las seis primeras son verbos de herramienta; las que siguen llegan de las ops de Flow que ahora
+# también son verbos del Graph (ver `_registrar_ops_flow`). El orden agrupa por lo que hace cada
+# familia: generar puntos → filtrarlos → pesarlos → reordenarlos → moverlos → juntarlos → mirarlos.
+CATEGORIAS = ["Content", "Place", "Scatter", "Create", "Mesh", "Edit",
+              "Vector", "Mask", "Weight", "Sets", "Transform", "Combine", "Display"]
 
 # Contrato del Graph. Vive junto al REGISTRO para que Slate y el Preflight lean la misma verdad.
 # `source` significa sin pin gordo `in`; una fuente todavía puede tener un pin de parámetro `asset`.
@@ -1183,9 +1206,9 @@ GRAPH_NO_ASSET = {"asset", "pick", "create_spline", "pivot_set",
                   "branch_from_frames",
                   "asset_set", "choose_asset", "curve_branches", "mesh_leaf",
                   "copy_asset_selection", "hism_output",
-                  "mesh_color", "mesh_uv_scale", "mesh_material", "mesh_bark",
+                  "mesh_color", "mesh_uv_scale", "mesh_material", "mesh_bark", "points_to_frames",
                   "mesh_normals", "mesh_to_static"}
-GRAPH_IN_NAMES = {"curve_child": "S", "curve_frames": "S", "distribute_frames": "F",
+GRAPH_IN_NAMES = {"points_to_frames": "P", "curve_child": "S", "curve_frames": "S", "distribute_frames": "F",
                   "transform_frames": "F", "branch_from_frames": "F", "curve_branches": "S",
                   "asset_set": "A", "choose_asset": "F",
                   "mesh_from_asset": "A", "mesh_pipe": "S", "mesh_pipe_profile": "S",
@@ -1195,7 +1218,7 @@ GRAPH_IN_NAMES = {"curve_child": "S", "curve_frames": "S", "distribute_frames": 
                   "mesh_uv_scale": "M", "mesh_material": "M", "mesh_bark": "M",
                   "mesh_merge": "M", "mesh_normals": "M",
                   "mesh_compare": "M", "mesh_to_static": "M"}
-GRAPH_OUT_NAMES = {"asset": "A", "pick": "A", "create_spline": "S",
+GRAPH_OUT_NAMES = {"points_to_frames": "F", "asset": "A", "pick": "A", "create_spline": "S",
                    "curve_bezier": "S", "curve_child": "S", "curve_frames": "F",
                    "distribute_frames": "F", "transform_frames": "F",
                    "branch_from_frames": "S", "curve_branches": "S",
@@ -1210,8 +1233,65 @@ GRAPH_OUT_NAMES = {"asset": "A", "pick": "A", "create_spline": "S",
                    "mesh_uv_scale": "M", "mesh_material": "M", "mesh_bark": "M",
                    "mesh_merge": "M", "mesh_normals": "M",
                    "mesh_compare": "M", "mesh_to_static": "A"}
+# ---- las ops de Flow como verbos del Graph ----
+# Hasta acá Jam tenía dos vocabularios que no se tocaban: 29 ops de Flow que producen un stream de
+# puntos `P`, y 50 verbos de herramienta de los que NINGUNO consumía `P`. Un canvas mixto caía entero
+# al runner de verbos, donde cada op de Flow era desconocida.
+# El ejecutor del Graph es genérico —`info["fn"](entrada, **params)` más `dato_producido_runtime`—,
+# así que envolver una op es mecánico. Con esto las máscaras, los weights y los generadores de puntos
+# alimentan el tab Mesh, y `points_to_frames` cierra el puente `P → F`.
+# `instance` y `source_surface` quedan afuera: sus funciones viven en el adaptador de Unreal.
+# `number`, `math` y `text` también: el Graph ya los maneja como nodos de VALOR.
+
+def _envolver_op_flow(kind: str, aridad: int):
+    """Adapta la firma de una op de Flow —(list[stream], params) → stream— a la de un verbo."""
+    def fn(entrada=None, **params):
+        from . import flow
+        implementacion = flow.OPS[kind][0]
+        if aridad == 0:
+            entradas = []
+        elif aridad == -1:
+            entradas = [e for e in (entrada or []) if e is not None]
+        else:
+            entradas = [entrada] if entrada is not None else []
+        salida = implementacion(entradas, params)
+        _RUNTIME_DATA_OUTPUTS[kind] = salida
+        cantidad = len(salida) if isinstance(salida, (list, tuple)) else 0
+        etiqueta = kind.replace("_", " ").upper()
+        return f"{etiqueta} P ✓ — {cantidad} puntos"
+    fn.__name__ = f"t_{kind}"
+    return fn
+
+
+def _registrar_ops_flow() -> list[str]:
+    from . import flow
+    registradas = []
+    for kind, meta in flow.OPS_META.items():
+        if kind in REGISTRO or kind not in flow.OPS or kind in ("number", "math", "text"):
+            continue
+        aridad = flow.OPS[kind][1]
+        REGISTRO[kind] = {
+            "fn": _envolver_op_flow(kind, aridad), "cat": meta.get("cat", "Flow"),
+            "graph_only": True, "params": dict(meta.get("params", {})),
+            "opciones": dict(meta.get("opciones", {})),
+            "doc": meta.get("doc", ""), "_flow_op": True,
+        }
+        GRAPH_IN_NAMES[kind] = "" if aridad == 0 else "P"
+        GRAPH_OUT_NAMES[kind] = "P"
+        if aridad == 0:
+            GRAPH_SOURCES.add(kind)
+        else:
+            GRAPH_ARITY[kind] = aridad
+            if aridad == -1:
+                GRAPH_MIN_INPUTS[kind] = 2
+        GRAPH_NO_ASSET.add(kind)
+        registradas.append(kind)
+    return registradas
+
+
 GRAPH_ARITY = {"mesh_merge": -1, "asset_set": -1}
 GRAPH_MIN_INPUTS = {"mesh_merge": 2, "asset_set": 2}
+OPS_FLOW_EN_GRAPH = _registrar_ops_flow()
 
 for _nombre, _info in REGISTRO.items():
     _source = _nombre in GRAPH_SOURCES

@@ -144,8 +144,15 @@ def spec_all() -> str:
     # DynamicMesh `M`. La Dash Bar conserva sólo verbos útiles como acción aislada.
     verbos = json.loads(tools.spec_json(include_graph_only=True))
     ops = json.loads(flow.spec_json())
-    cats = verbos["categorias"] + [c for c in ops["categorias"] if c not in verbos["categorias"]]
-    return json.dumps({"categorias": cats, "tools": verbos["tools"] + ops["tools"]},
+    # Las ops puras de Flow ahora TAMBIÉN son verbos del Graph (`tools.OPS_FLOW_EN_GRAPH`), así que
+    # llegan por los dos lados. Gana la entrada del registro de verbos: es la que trae el contrato de
+    # tipos (`in_name`/`out_name` = P) que usan el Preflight y el canvas.
+    ya_estan = {item["verbo"] for item in verbos["tools"]}
+    solo_flow = [item for item in ops["tools"] if item["verbo"] not in ya_estan]
+    cats_flow = [item["cat"] for item in solo_flow]
+    cats = verbos["categorias"] + [c for c in ops["categorias"]
+                                   if c not in verbos["categorias"] and c in cats_flow]
+    return json.dumps({"categorias": cats, "tools": verbos["tools"] + solo_flow},
                       ensure_ascii=True)
 
 

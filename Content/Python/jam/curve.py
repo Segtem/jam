@@ -527,6 +527,82 @@ def transform_frames(value, *, offset_x: float = 0.0, offset_y: float = 0.0,
     }
 
 
+def frames_desde_puntos(muestras, *, orientacion: str = "normal", escala: float = 1.0,
+                        escala_desde_peso: bool = True, giro_al_azar: bool = True,
+                        seed: int = 7) -> dict:
+    """Convierte un stream de puntos ``P`` (Flow) en un stream de frames ``F`` (Mesh).
+
+    Es el puente entre los dos vocabularios de Jam: hasta acá, las 29 ops de Flow —poisson, máscaras
+    de pendiente y altura, los nueve weights— no podían alimentar ningún verbo de malla, y los verbos
+    de malla no podían aprovechar ninguna distribución de Flow.
+
+    No hay nada que inventar: un ``Sample`` ya trae todo lo que un frame necesita.
+
+        pos     → position
+        normal  → orientación (o vertical, según `orientacion`)
+        seed    → seed  (la variación de cada pieza sigue siendo estable)
+        weight  → scale (con `escala_desde_peso`)
+
+    Que el **peso** mande la **escala** es lo que vuelve útil todo el tab Weight: una máscara de ruido
+    o de altura pasa a decidir el tamaño de cada árbol, no sólo si aparece o no.
+
+    `parent_length` queda en 0 porque estos frames no nacen de una curva: un `branch_from_frames` con
+    `relative_to_parent` los rechaza con su mensaje, que es lo correcto.
+    """
+    import random
+
+    orientacion = str(orientacion or "normal").strip().lower()
+    if orientacion not in ("normal", "vertical"):
+        return {"error": "orientacion debe ser «normal» o «vertical»."}
+    try:
+        escala, seed = float(escala), int(seed)
+    except (TypeError, ValueError):
+        return {"error": "los parámetros de points_to_frames deben ser numéricos."}
+    if not math.isfinite(escala) or escala <= 0.0:
+        return {"error": "escala debe ser un número finito mayor que cero."}
+
+    puntos = list(muestras or [])
+    if not puntos:
+        return {"error": "points_to_frames necesita un stream P con al menos un punto."}
+    if len(puntos) > 4096:
+        return {"error": "points_to_frames no puede producir más de 4096 frames por nodo."}
+
+    salida = []
+    for indice, muestra in enumerate(puntos):
+        try:
+            posicion = (float(muestra.pos.x), float(muestra.pos.y), float(muestra.pos.z))
+            normal = (float(muestra.normal.x), float(muestra.normal.y), float(muestra.normal.z))
+            peso = float(getattr(muestra, "weight", 1.0))
+            semilla = int(getattr(muestra, "seed", 0))
+        except (AttributeError, TypeError, ValueError):
+            return {"error": "el stream P no contiene muestras válidas (pos/normal/seed)."}
+
+        tangente = _normalized(normal) if orientacion == "normal" else (0.0, 0.0, 1.0)
+        if tangente == (0.0, 0.0, 0.0):
+            tangente = (0.0, 0.0, 1.0)
+        # Una referencia que no sea paralela a la tangente, para sacar la perpendicular.
+        referencia = (1.0, 0.0, 0.0) if abs(tangente[0]) < 0.9 else (0.0, 1.0, 0.0)
+        hacia_afuera = _normalized(_cross(tangente, referencia))
+        if giro_al_azar:
+            angulo = random.Random(semilla ^ (seed * 2_654_435_761)).uniform(0.0, 360.0)
+            hacia_afuera = _rotate_vector(hacia_afuera, tangente, angulo)
+
+        salida.append(CurveFrame(
+            posicion, tangente, hacia_afuera,
+            indice / (len(puntos) - 1) if len(puntos) > 1 else 0.0,
+            parent_index=0, local_index=indice,
+            scale=escala * (peso if escala_desde_peso else 1.0),
+            radius=0.0, seed=semilla, pivot_index=indice, parent_length=0.0,
+        ))
+
+    conjunto = FrameSet(tuple(salida), 1)
+    escalas = [f.scale for f in salida]
+    detalle = (f" · escala {min(escalas):.2f}→{max(escalas):.2f} desde el peso"
+               if escala_desde_peso else f" · escala {escala:g}")
+    return {"frame_set": conjunto,
+            "info": f"{len(conjunto)} frames desde P · orientación {orientacion}{detalle}"}
+
+
 def branch_from_frames(value, *, length_min: float = 200.0,
                        length_max: float = 400.0, angle: float = 55.0,
                        angle_jitter: float = 0.0, curl: float = 20.0,
