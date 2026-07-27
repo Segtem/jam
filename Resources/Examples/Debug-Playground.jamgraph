@@ -1,0 +1,308 @@
+{
+	"nodes":
+	{
+		"pts":
+		{
+			"verb": "pts_rect",
+			"params":
+			{
+				"cx": "0",
+				"cy": "0",
+				"size_x": "700",
+				"size_y": "700",
+				"cols": "4",
+				"rows": "4",
+				"seed": "3"
+			},
+			"asset": null,
+			"x": 30,
+			"y": 40
+		},
+		"peso":
+		{
+			"verb": "weight_noise",
+			"params":
+			{
+				"scale": "500.0",
+				"seed": "7",
+				"contrast": "1.0"
+			},
+			"asset": null,
+			"x": 360,
+			"y": 40
+		},
+		"ver_P":
+		{
+			"verb": "debug",
+			"params":
+			{
+				"tamano": "40",
+				"grosor": "2.0",
+				"escalar_con_dato": "true",
+				"cada": "1",
+				"solo_direccion": "false"
+			},
+			"asset": null,
+			"x": 690,
+			"y": 40
+		},
+		"frames":
+		{
+			"verb": "points_to_frames",
+			"params":
+			{
+				"orientacion": "vertical",
+				"escala": "1.0",
+				"escala_desde_peso": "true",
+				"giro_al_azar": "true",
+				"seed": "7"
+			},
+			"asset": null,
+			"x": 690,
+			"y": 300
+		},
+		"ver_F":
+		{
+			"verb": "debug",
+			"params":
+			{
+				"tamano": "60",
+				"grosor": "2.0",
+				"escalar_con_dato": "true",
+				"cada": "1",
+				"solo_direccion": "false"
+			},
+			"asset": null,
+			"x": 1020,
+			"y": 300
+		},
+		"curva":
+		{
+			"verb": "curve_bezier",
+			"params":
+			{
+				"start_x": "0.0",
+				"start_y": "0.0",
+				"start_z": "0",
+				"end_x": "0.0",
+				"end_y": "0.0",
+				"end_z": "500",
+				"bend_x": "180",
+				"bend_y": "0.0",
+				"bend_z": "0.0",
+				"segments": "14"
+			},
+			"asset": null,
+			"x": 30,
+			"y": 560
+		},
+		"ver_S":
+		{
+			"verb": "debug",
+			"params":
+			{
+				"tamano": "30",
+				"grosor": "2.5",
+				"escalar_con_dato": "true",
+				"cada": "1",
+				"solo_direccion": "false"
+			},
+			"asset": null,
+			"x": 360,
+			"y": 560
+		},
+		"serie":
+		{
+			"verb": "graph_curve",
+			"params":
+			{
+				"start_value": "1.0",
+				"end_value": "0.15",
+				"shape": "ease_in",
+				"power": "1.8",
+				"midpoint": "0.55",
+				"mid_value": "0.72",
+				"samples": "15"
+			},
+			"asset": null,
+			"x": 30,
+			"y": 820
+		},
+		"ver_N":
+		{
+			"verb": "debug",
+			"params":
+			{
+				"tamano": "25",
+				"grosor": "2.0",
+				"escalar_con_dato": "true",
+				"cada": "1",
+				"solo_direccion": "false"
+			},
+			"asset": null,
+			"x": 360,
+			"y": 820
+		},
+		"esfera":
+		{
+			"verb": "mesh_sphere",
+			"params":
+			{
+				"radius": "90",
+				"latitude_steps": "8",
+				"longitude_steps": "12"
+			},
+			"asset": null,
+			"x": 30,
+			"y": 1080
+		},
+		"ver_M":
+		{
+			"verb": "debug",
+			"params":
+			{
+				"tamano": "40",
+				"grosor": "1.5",
+				"escalar_con_dato": "true",
+				"cada": "4",
+				"solo_direccion": "false"
+			},
+			"asset": null,
+			"x": 360,
+			"y": 1080
+		},
+		"juntar":
+		{
+			"verb": "mesh_merge",
+			"params": {},
+			"asset": null,
+			"x": 1400,
+			"y": 560
+		},
+		"horno":
+		{
+			"verb": "mesh_to_static",
+			"params":
+			{
+				"name": "DebugPlayground",
+				"folder": "/Game/Jam/Meshes",
+				"collision": "false",
+				"recompute_tangents": "true",
+				"show_vertex_colors": "true"
+			},
+			"asset": null,
+			"x": 1730,
+			"y": 560
+		},
+		"colocar":
+		{
+			"verb": "place",
+			"params":
+			{
+				"asset": "",
+				"x": "0",
+				"y": "0",
+				"z": "0",
+				"view": "false",
+				"surface": "false",
+				"anchor": "base",
+				"sink": "0.0",
+				"align": "false",
+				"physics": "false",
+				"yaw": "0.0",
+				"scale": "1.0"
+			},
+			"asset": null,
+			"x": 2060,
+			"y": 560
+		}
+	},
+	"edges":
+	[
+		[
+			"pts",
+			"out",
+			"peso",
+			"in"
+		],
+		[
+			"peso",
+			"out",
+			"ver_P",
+			"in"
+		],
+		[
+			"peso",
+			"out",
+			"frames",
+			"in"
+		],
+		[
+			"frames",
+			"out",
+			"ver_F",
+			"in"
+		],
+		[
+			"curva",
+			"out",
+			"ver_S",
+			"in"
+		],
+		[
+			"serie",
+			"out",
+			"ver_N",
+			"in"
+		],
+		[
+			"esfera",
+			"out",
+			"ver_M",
+			"in"
+		],
+		[
+			"ver_P",
+			"out",
+			"juntar",
+			"in"
+		],
+		[
+			"ver_F",
+			"out",
+			"juntar",
+			"in"
+		],
+		[
+			"ver_S",
+			"out",
+			"juntar",
+			"in"
+		],
+		[
+			"ver_N",
+			"out",
+			"juntar",
+			"in"
+		],
+		[
+			"ver_M",
+			"out",
+			"juntar",
+			"in"
+		],
+		[
+			"juntar",
+			"out",
+			"horno",
+			"in"
+		],
+		[
+			"horno",
+			"out",
+			"colocar",
+			"in"
+		]
+	],
+	"schema_version": 1
+}

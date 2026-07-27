@@ -123,20 +123,57 @@ class MarcadoresTests(unittest.TestCase):
 
 
 class ContratoDeGrafoTests(unittest.TestCase):
-    def test_the_debug_verbs_consume_a_stream_and_produce_a_mesh(self):
-        for verbo, entrada in (("debug_frames", "F"), ("debug_points", "P")):
-            with self.subTest(verbo=verbo):
-                info = tools.REGISTRO[verbo]
-                self.assertEqual(info["in_name"], entrada)
-                # Salen por M: se mergean, hornean o colocan como cualquier malla, y participan del
-                # Preview/Discard sin necesitar un camino aparte.
-                self.assertEqual(info["out_name"], "M")
-                self.assertEqual(info["cat"], "Debug")
-                self.assertTrue(info["graph_only"])
-                self.assertFalse(info["asset_required"])
+    def test_a_single_debug_verb_accepts_any_cable(self):
+        """Un verbo por tipo obligaba a saber de antemano cuál conectar. Ahora es uno solo."""
+        info = tools.REGISTRO["debug"]
+        self.assertEqual(info["in_name"], "*")
+        # Sale por M: se mergea, hornea o coloca como cualquier malla, y participa del
+        # Preview/Discard sin necesitar un camino aparte.
+        self.assertEqual(info["out_name"], "M")
+        self.assertEqual(info["cat"], "Debug")
+        self.assertTrue(info["graph_only"])
+        self.assertFalse(info["asset_required"])
+        # Los verbos tipados ya no existen: había que elegir entre ellos sin saber cuál.
+        for viejo in ("debug_frames", "debug_points"):
+            self.assertNotIn(viejo, tools.REGISTRO)
 
     def test_debug_has_its_own_tab(self):
         self.assertIn("Debug", tools.CATEGORIAS)
+
+    def test_the_wildcard_accepts_every_stream_type_in_the_preflight(self):
+        import json
+        from unittest import mock
+        from jam import api, graph
+
+        # Cada tipo del grafo enchufado al mismo nodo de debug tiene que compilar.
+        casos = {
+            "P": {"verb": "pts_line", "params": {}},
+            "S": {"verb": "curve_bezier", "params": {}},
+            "N[]": {"verb": "graph_curve", "params": {}},
+            "M": {"verb": "mesh_sphere", "params": {}},
+        }
+        for tipo, fuente in casos.items():
+            with self.subTest(tipo=tipo):
+                doc = {"nodes": {"src": dict(fuente, x=0, y=0),
+                                 "ver": {"verb": "debug", "params": {}, "x": 300, "y": 0}},
+                       "edges": [["src", "out", "ver", "in"]]}
+                with mock.patch.object(graph, "_resolver_asset_runtime", side_effect=lambda p: p):
+                    r = json.loads(api.compile_graph_json(json.dumps(doc)))
+                self.assertTrue(r["ok"], f"{tipo}: {r['report']}")
+
+    def test_the_wildcard_does_not_disable_the_rest_of_the_type_system(self):
+        import json
+        from unittest import mock
+        from jam import api, graph
+
+        # El comodín es del pin de Debug, no una amnistía general: los demás siguen exigiendo.
+        doc = {"nodes": {"src": {"verb": "pts_line", "params": {}, "x": 0, "y": 0},
+                         "pipe": {"verb": "mesh_pipe", "params": {}, "x": 300, "y": 0}},
+               "edges": [["src", "out", "pipe", "in"]]}
+        with mock.patch.object(graph, "_resolver_asset_runtime", side_effect=lambda p: p):
+            r = json.loads(api.compile_graph_json(json.dumps(doc)))
+        self.assertFalse(r["ok"])
+        self.assertIn("esperaba S, recibió P", r["nodes"]["pipe"]["texto"])
 
 
 if __name__ == "__main__":

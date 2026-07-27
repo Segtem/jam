@@ -26,6 +26,8 @@ PIN_ASSET = "asset"
 #: nodos de VALOR (de `jam.flow`): no ejecutan un verbo, aportan un valor con nombre que se puede
 #: cablear a cualquier pin de parámetro. number/math = número · text = texto (anclas, nombres…).
 VALOR_KINDS = ("number", "math", "text")
+# Tipo de pin que acepta cualquier salida (el ayudante de Debug).
+COMODIN = "*"
 
 
 class JamGraph:
@@ -315,7 +317,9 @@ def compilar(g: JamGraph, *, registro: dict | None = None, resolver_asset=None,
         if tipo_in is None:
             error(destino, f"pin de entrada desconocido o no permitido: «{destino_pin}»")
             continue
-        if tipo_out != tipo_in:
+        # «*» es un pin COMODÍN: lo usa el ayudante de Debug, que dibuja cualquier cosa que llegue.
+        # Sin esto haría falta un nodo de debug por tipo, y había que saber de antemano cuál usar.
+        if tipo_in != COMODIN and tipo_out != tipo_in:
             error(origen, f"salida {tipo_out} incompatible con {destino}.{destino_pin} ({tipo_in})")
             error(destino, f"{destino_pin} esperaba {tipo_in}, recibió {tipo_out}")
             continue

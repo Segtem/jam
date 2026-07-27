@@ -27,12 +27,27 @@ entonces ya no se sabe qué nodo tuvo la culpa.
 Es exactamente el patrón que se viene repitiendo: **las métricas cazan lo que alguien formalizó, el
 ojo caza lo demás**. Estos nodos le dan al ojo algo que mirar en el medio del grafo.
 
-## Los dos verbos
+## Un solo verbo con pin comodín
 
-### `Debug Frames` `F → M`
+La primera versión fueron dos verbos tipados (`debug_frames` `F → M` y `debug_points` `P → M`).
+Brian, al mirarlo: *«no sé bien en qué nodos se conectan»*. Y tenía razón: el problema no era la
+documentación, era el diseño. Un verbo por tipo obliga a saber de antemano cuál usar, y cuantos más
+tipos hay peor se pone.
 
-Tres ejes de colores sobre cada frame, con la convención de siempre —la misma que usa
-`make_rot_from_xz` al orientar geometría, para que **lo que se ve sea lo que se orienta**:
+Ahora es **un solo nodo** `Debug` con pin de entrada `*`, un **comodín** que acepta cualquier cable.
+Se arrastra y el nodo se da cuenta solo de qué llegó:
+
+| Cable | Qué dibuja |
+|---|---|
+| `F` frames | ejes de colores: posición, orientación y escala |
+| `P` puntos | un cubo por punto, con el peso de la máscara como tamaño |
+| `S` curva | el recorrido de cada polilínea, con arranque y punta marcados |
+| `N[]` serie | la serie como gráfico, para editar un taper viendo su forma |
+| `M` malla | caja envolvente + espinas de normales (delata normales dadas vuelta) |
+| `AF` variantes | los frames, coloreados por la variante que les tocó |
+
+Los ejes usan la convención de siempre —la misma que `make_rot_from_xz` al orientar geometría, para
+que **lo que se ve sea lo que se orienta**:
 
 ```text
 X rojo   = tangent   — hacia dónde crece
@@ -40,26 +55,39 @@ Y verde  = lateral   — cross(tangent, outward)
 Z azul   = outward   — hacia afuera
 ```
 
-Con `escalar_con_frame`, el largo de los ejes sigue la escala del frame. Eso es la mitad del valor: se
-ve de un vistazo si la escala cae en cascada entre niveles o si una máscara la está manejando.
-`solo_tangente` deja una sola flecha por frame cuando tres ejes tapan todo.
+### El comodín en el sistema de tipos
 
-### `Debug Points` `P → M`
+`*` se agregó en los **dos** validadores, porque si no el cable se rechazaba antes de llegar:
 
-Un cubo por punto, con el **peso de la máscara como tamaño**. El detalle que lo hace útil: `minimo`
-evita que un peso 0 lo vuelva invisible, así se distingue **«la máscara lo apagó»** de **«nunca
-estuvo»** — que a ojo son lo mismo y significan cosas muy distintas.
+- `graph.compilar()`: `if tipo_in != COMODIN and tipo_out != tipo_in`
+- `SJamGraphEditor::CanConnect()`: `if (InType != TEXT("*") && OutType != InType)`
 
-## Por qué salen por `M` y no dibujan líneas
+Y **no es una amnistía general**: hay un test que comprueba que un `P` conectado a `mesh_pipe` sigue
+fallando con `esperaba S, recibió P`. El comodín es del pin de Debug, no del sistema.
 
-Podrían haber sido `draw_debug_line` transitorias. Salen por un cable `M` a propósito:
+Detalles que valen: `escalar_con_dato` hace que el largo de los ejes siga la escala del frame —así se
+ve de un vistazo si cae en cascada entre niveles o si la maneja una máscara—, y en los puntos `minimo`
+evita que un peso 0 los vuelva invisibles, para distinguir **«la máscara lo apagó»** de **«nunca
+estuvo»**, que a ojo son lo mismo y significan cosas muy distintas.
 
-- se **mergean** con el resultado real, se hornean o se colocan sueltos;
-- participan del Preview/Bake/Discard sin necesitar un camino aparte;
-- son **verificables**: se puede afirmar sobre la geometría producida en un test headless, cosa
-  imposible con un dibujo de viewport.
+## Cómo probarlo
 
-El costo es que hay que borrarlas después, y para eso ya existe `Discard`.
+**File → Abrir ejemplo: banco de pruebas de Debug** (`Debug-Playground.jamgraph`, 14 nodos). Tiene
+una fuente de cada tipo, cada una con su nodo `Debug` al lado, y todos los resultados mergeados a una
+StaticMesh que se coloca. `Run graph` y se ve todo junto en el viewport; `Discard` lo borra.
+
+Corrido en UE 5.7.4, 13 nodos, 0 errores:
+
+```text
+[ver_S·debug] DEBUG M ✓ — 640 verts · S · 16 trazos
+[ver_N·debug] DEBUG M ✓ — 600 verts · N[] · 15 trazos
+[ver_M·debug] DEBUG M ✓ — 1240 verts · M · 31 trazos
+[ver_P·debug] DEBUG M ✓ — 128 verts · P · 16 puntos · peso 0.36→0.76
+[ver_F·debug] DEBUG M ✓ — 1920 verts · F · 48 trazos
+[juntar·mesh_merge] MERGE M ✓ — 4528 verts
+```
+
+El mismo verbo sirviendo cinco tipos en una sola corrida.
 
 ## Rendimiento
 
@@ -91,7 +119,7 @@ Corrido en UE 5.7.4 sobre la cadena Flow → Mesh, 7 nodos, 0 errores:
 [malla·mesh_to_static] STATIC MESH ✓
 ```
 
-Suite headless: **163/163** (`test_debug.py` es nuevo con 12).
+Suite headless: **165/165** (`test_debug.py` tiene 14, incluidos los del comodín).
 
 ## Relacionado
 

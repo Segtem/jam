@@ -832,27 +832,17 @@ def t_mesh_normals(mesh_input, *, angle_weighted=True, area_weighted=True) -> st
     return _mesh_output("mesh_normals", result, "NORMALS M")
 
 
-def t_debug_frames(frame_input, *, largo=30.0, grosor=1.2,
-                   escalar_con_frame=True, solo_tangente=False) -> str:
-    """Ayudante visual: ejes de colores sobre cada frame para ver posición y orientación."""
+def t_debug(entrada, *, tamano=30.0, grosor=1.2, escalar_con_dato=True,
+            cada=1, solo_direccion=False) -> str:
+    """AYUDANTE universal: dibuja lo que llegue por el cable, sea del tipo que sea."""
     from . import mesh
     return _mesh_output(
-        "debug_frames",
-        mesh.debug_ejes(frame_input, largo=float(largo), grosor=float(grosor),
-                        escalar_con_frame=bool(escalar_con_frame),
-                        solo_tangente=bool(solo_tangente)),
-        "DEBUG F M",
-    )
-
-
-def t_debug_points(stream_input, *, tamano=10.0, escalar_con_peso=True, minimo=0.15) -> str:
-    """Ayudante visual: un cubo por punto, con el peso de la máscara como tamaño."""
-    from . import mesh
-    return _mesh_output(
-        "debug_points",
-        mesh.debug_puntos(stream_input, tamano=float(tamano),
-                          escalar_con_peso=bool(escalar_con_peso), minimo=float(minimo)),
-        "DEBUG P M",
+        "debug",
+        mesh.debug_de_cualquier_cosa(
+            entrada, tamano=float(tamano), grosor=float(grosor),
+            escalar_con_dato=bool(escalar_con_dato), cada=int(cada),
+            solo_direccion=bool(solo_direccion)),
+        "DEBUG M",
     )
 
 
@@ -1172,13 +1162,11 @@ REGISTRO = {
     "mesh_normals": {"fn": t_mesh_normals, "cat": "Mesh", "graph_only": True,
                      "params": {"angle_weighted": True, "area_weighted": True},
                      "doc": "recalcula normales conservando los atributos de la malla M"},
-    "debug_frames": {"fn": t_debug_frames, "cat": "Debug", "graph_only": True,
-                     "params": {"largo": 30.0, "grosor": 1.2,
-                                "escalar_con_frame": True, "solo_tangente": False},
-                     "doc": "AYUDANTE: ejes de colores sobre cada frame F (X rojo=tangente, Y verde=lateral, Z azul=outward). Sale por M, así que se mergea, hornea o coloca como cualquier malla"},
-    "debug_points": {"fn": t_debug_points, "cat": "Debug", "graph_only": True,
-                     "params": {"tamano": 10.0, "escalar_con_peso": True, "minimo": 0.15},
-                     "doc": "AYUDANTE: un cubo por punto P, con el peso de la máscara como tamaño; un punto casi apagado se ve chico en vez de desaparecer"},
+    "debug": {"fn": t_debug, "cat": "Debug", "graph_only": True,
+              "params": {"tamano": 30.0, "grosor": 1.2, "escalar_con_dato": True,
+                         "cada": 1, "solo_direccion": False},
+              "doc": "AYUDANTE universal: conectale CUALQUIER cable y dibuja lo que corresponde. F→ejes por frame · P→cubo por punto (tamaño=peso) · S→recorrido de la curva · N[]→la serie como gráfico · M→caja + normales · AF→frames por variante. Sale por M: se mergea, hornea o coloca",
+              },
     "points_to_frames": {"fn": t_points_to_frames, "cat": "Mesh", "graph_only": True,
                          "params": {"orientacion": "normal", "escala": 1.0,
                                     "escala_desde_peso": True, "giro_al_azar": True, "seed": 7},
@@ -1237,9 +1225,9 @@ GRAPH_NO_ASSET = {"asset", "pick", "create_spline", "pivot_set",
                   "branch_from_frames",
                   "asset_set", "choose_asset", "curve_branches", "mesh_leaf",
                   "copy_asset_selection", "hism_output",
-                  "mesh_color", "mesh_uv_scale", "mesh_material", "mesh_bark", "points_to_frames", "debug_frames", "debug_points",
+                  "mesh_color", "mesh_uv_scale", "mesh_material", "mesh_bark", "points_to_frames", "debug",
                   "mesh_normals", "mesh_to_static"}
-GRAPH_IN_NAMES = {"points_to_frames": "P", "debug_frames": "F", "debug_points": "P", "curve_child": "S", "curve_frames": "S", "distribute_frames": "F",
+GRAPH_IN_NAMES = {"points_to_frames": "P", "debug": "*", "curve_child": "S", "curve_frames": "S", "distribute_frames": "F",
                   "transform_frames": "F", "branch_from_frames": "F", "curve_branches": "S",
                   "asset_set": "A", "choose_asset": "F",
                   "mesh_from_asset": "A", "mesh_pipe": "S", "mesh_pipe_profile": "S",
@@ -1249,7 +1237,7 @@ GRAPH_IN_NAMES = {"points_to_frames": "P", "debug_frames": "F", "debug_points": 
                   "mesh_uv_scale": "M", "mesh_material": "M", "mesh_bark": "M",
                   "mesh_merge": "M", "mesh_normals": "M",
                   "mesh_compare": "M", "mesh_to_static": "M"}
-GRAPH_OUT_NAMES = {"points_to_frames": "F", "debug_frames": "M", "debug_points": "M", "asset": "A", "pick": "A", "create_spline": "S",
+GRAPH_OUT_NAMES = {"points_to_frames": "F", "debug": "M", "asset": "A", "pick": "A", "create_spline": "S",
                    "curve_bezier": "S", "curve_child": "S", "curve_frames": "F",
                    "distribute_frames": "F", "transform_frames": "F",
                    "branch_from_frames": "S", "curve_branches": "S",

@@ -117,6 +117,7 @@ private:
 	/** Carga el ejemplo mínimo que convierte una spline S en frames jerárquicos F. */
 	void LoadCurveFramesExample();
 	void LoadTwoLevelExample();
+	void LoadDebugExample();
 	void LoadBundledExample(const FString& Filename, const FText& LoadedMessage);
 	/** Galería: reemplaza el grafo por UNO DE CADA nodo en grilla (para sacarle un screenshot). */
 	void InsertAllNodes();

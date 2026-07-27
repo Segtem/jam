@@ -742,7 +742,9 @@ bool SJamGraphEditor::CanConnect(const FString& From, const FString& FromPin, co
 		OutError = FString::Printf(TEXT("%s.%s no es una entrada válida"), *To, *ToPin);
 		return false;
 	}
-	if (OutType != InType)
+	// «*» es un pin COMODÍN: lo usa el ayudante de Debug, que dibuja cualquier cosa que llegue.
+	// Sin esto haría falta un nodo de debug por tipo, y había que saber de antemano cuál usar.
+	if (InType != TEXT("*") && OutType != InType)
 	{
 		OutError = FString::Printf(TEXT("tipo incompatible: %s.%s entrega %s; %s.%s espera %s"),
 			*From, *FromPin, *OutType, *To, *ToPin, *InType);
@@ -881,6 +883,7 @@ FLinearColor SJamGraphEditor::DataColor(const FString& OutName)
 	if (OutName == TEXT("A[]")) { return FLinearColor(0.28f, 0.62f, 0.36f, 1.0f); } // verde (set assets)
 	if (OutName == TEXT("AF")) { return FLinearColor(0.38f, 0.66f, 0.28f, 1.0f); }  // lima (asset/frame)
 	if (OutName == TEXT("H")) { return FLinearColor(0.16f, 0.50f, 0.46f, 1.0f); }   // verde azulado (HISM)
+	if (OutName == TEXT("*")) { return FLinearColor(0.72f, 0.72f, 0.76f, 1.0f); }   // gris claro (comodín: acepta cualquier cable)
 	if (OutName == TEXT("S")) { return FLinearColor(0.60f, 0.42f, 0.14f, 1.0f); }   // dorado (spline)
 	if (OutName == TEXT("F")) { return FLinearColor(0.70f, 0.28f, 0.48f, 1.0f); }   // rosa  (frames)
 	if (OutName == TEXT("M")) { return FLinearColor(0.08f, 0.58f, 0.62f, 1.0f); }   // cian (DynamicMesh)
@@ -1244,6 +1247,9 @@ void SJamGraphEditor::FillFileMenu(FMenuBuilder& MB)
 	MB.AddMenuEntry(LOCTEXT("CurveFramesExample", "Abrir ejemplo: frames de TreeGen"),
 		LOCTEXT("CurveFramesExampleTip", "Carga el flow S → F → ramas → malla para generar un árbol de prueba visible"),
 		FSlateIcon(), FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::LoadCurveFramesExample)));
+	MB.AddMenuEntry(LOCTEXT("DebugExample", "Abrir ejemplo: banco de pruebas de Debug"),
+		LOCTEXT("DebugExampleTip", "El mismo nodo Debug conectado a cinco tipos distintos: puntos, frames, curva, serie y malla"),
+		FSlateIcon(), FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::LoadDebugExample)));
 	MB.AddMenuEntry(LOCTEXT("TwoLevelExample", "Abrir ejemplo: árbol de dos niveles"),
 		LOCTEXT("TwoLevelExampleTip", "Carga la réplica completa de TreeGen: tronco → ramas → ramitas → follaje HISM"),
 		FSlateIcon(), FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::LoadTwoLevelExample)));
@@ -1621,6 +1627,13 @@ void SJamGraphEditor::LoadTwoLevelExample()
 	LoadBundledExample(TEXT("TreeGen-Two-Level.jamgraph"),
 		LOCTEXT("TwoLevelExampleLoaded",
 			"ejemplo cargado: árbol de dos niveles · Compile y luego Run graph; el follaje sale como HISM aparte."));
+}
+
+void SJamGraphEditor::LoadDebugExample()
+{
+	LoadBundledExample(TEXT("Debug-Playground.jamgraph"),
+		LOCTEXT("DebugExampleLoaded",
+			"banco de pruebas cargado: un solo nodo Debug sirve para los cinco tipos · Run graph y mirá el resultado en el viewport."));
 }
 
 void SJamGraphEditor::LoadBundledExample(const FString& Filename, const FText& LoadedMessage)

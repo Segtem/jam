@@ -917,55 +917,88 @@ def _pintado(malla, color_hex: str):
     return malla
 
 
-def debug_ejes(frame_input, *, largo: float = 30.0, grosor: float = 1.2,
-               escalar_con_frame: bool = True, solo_tangente: bool = False) -> dict:
-    """Ejes de colores sobre cada frame de ``F``: se ve la posición Y la orientación."""
-    from . import curve, debug
+def _describir(entrada) -> str:
+    """Nombre legible del tipo que llegó por el cable, para el veredicto del nodo."""
+    from . import curve, fields, variants
+    if isinstance(entrada, curve.FrameSet):
+        return "F"
+    if isinstance(entrada, (curve.CurvePath, curve.CurveSet)):
+        return "S"
+    if isinstance(entrada, fields.ScalarSeries):
+        return "N[]"
+    if isinstance(entrada, variants.FrameAssetSelection):
+        return "AF"
+    if _dynamic_mesh(entrada) is not None:
+        return "M"
+    if isinstance(entrada, (list, tuple)) and entrada and hasattr(entrada[0], "pos"):
+        return "P"
+    return "?"
 
-    if not isinstance(frame_input, curve.FrameSet):
-        return {"error": "debug_frames necesita un stream F válido."}
+
+def debug_de_cualquier_cosa(entrada, *, tamano: float = 30.0, grosor: float = 1.2,
+                            escalar_con_dato: bool = True, cada: int = 1,
+                            solo_direccion: bool = False) -> dict:
+    """Un solo nodo para ver CUALQUIER cable: dibuja lo que corresponde al tipo que llegó.
+
+    Tener un verbo por tipo obligaba a saber de antemano cuál conectar. Con un pin comodín se
+    arrastra el cable y el nodo se da cuenta solo:
+
+        F     → ejes de colores por frame (posición + orientación + escala)
+        P     → un cubo por punto, con el peso de la máscara como tamaño
+        S     → el recorrido de cada curva, con arranque y punta marcados
+        N[]   → la serie dibujada como gráfico, para editar un taper viendo su forma
+        M     → caja envolvente + espinas de normales (delata normales dadas vuelta)
+        AF    → los frames, coloreados por la variante que les tocó
+    """
+    from . import curve, debug, fields, variants
+
     if grosor <= 0.0:
         return {"error": "grosor debe ser mayor que cero."}
+    tipo = _describir(entrada)
     try:
-        ejes = debug.ejes_de_frames(
-            frame_input.frames, largo=float(largo),
-            escalar_con_frame=bool(escalar_con_frame), solo_tangente=bool(solo_tangente))
+        if tipo == "F":
+            piezas = debug.ejes_de_frames(
+                entrada.frames, largo=float(tamano),
+                escalar_con_frame=bool(escalar_con_dato), solo_tangente=bool(solo_direccion))
+        elif tipo == "AF":
+            piezas = debug.ejes_de_frames(
+                entrada.frames.frames, largo=float(tamano),
+                escalar_con_frame=bool(escalar_con_dato), solo_tangente=True)
+            variantes = list(dict.fromkeys(entrada.assets))
+            piezas = [pieza._replace(eje=variantes.index(ruta) % 3)
+                      for pieza, ruta in zip(piezas, entrada.assets)]
+        elif tipo == "S":
+            piezas = debug.tramos_de_curvas(curve.paths_of(entrada, samples=32))
+        elif tipo == "N[]":
+            piezas = debug.perfil_de_serie(
+                entrada.values, ancho=float(tamano) * 8.0, alto=float(tamano) * 4.0)
+        elif tipo == "M":
+            malla = _dynamic_mesh(entrada)
+            piezas = debug.espinas_de_normales(
+                _posiciones(malla), _normales(malla), largo=float(tamano) * 0.3,
+                cada=max(1, int(cada)))
+            caja = unreal.GeometryScript_MeshQueries.get_mesh_bounding_box(malla)
+            if isinstance(caja, tuple):
+                caja = caja[1] if len(caja) > 1 else caja[0]
+            centro, extension = caja.get_editor_property("min"), caja.get_editor_property("max")
+            piezas += debug.aristas_de_caja(
+                (centro.x, centro.y, centro.z), (extension.x, extension.y, extension.z))
+        elif tipo == "P":
+            marcadores = debug.marcadores_de_puntos(
+                entrada, tamano=float(tamano) * 0.35,
+                escalar_con_peso=bool(escalar_con_dato))
+            return _dibujar_marcadores(marcadores)
+        else:
+            return {"error": "debug no reconoce lo que llegó por el cable "
+                             "(espera P, F, S, N[], M o AF)."}
     except ValueError as exc:
         return {"error": str(exc)}
 
-    plantilla = _flecha_unitaria(float(grosor))
-    resultado = _new_mesh()
-    por_eje: dict[int, list] = {}
-    for eje in ejes:
-        transform = unreal.Transform(
-            location=unreal.Vector(*eje.origen),
-            rotation=unreal.MathLibrary.make_rot_from_z(unreal.Vector(*eje.direccion)),
-            scale=unreal.Vector(1.0, 1.0, eje.largo))
-        por_eje.setdefault(eje.eje, []).append(transform)
-    for indice in sorted(por_eje):
-        rama = _new_mesh()
-        _estampar(rama, plantilla, por_eje[indice])
-        _pintado(rama, COLORES_EJE[indice])
-        unreal.GeometryScript_MeshEdits.append_mesh(resultado, rama, _identity())
-
-    cuantos = len(frame_input.frames)
-    return {"mesh": resultado,
-            "info": (f"{_info(resultado)} · {cuantos} frames · "
-                     f"{'sólo tangente' if solo_tangente else 'ejes XYZ'}")}
+    resultado = _dibujar_ejes(piezas, float(grosor))
+    return {"mesh": resultado, "info": f"{_info(resultado)} · {tipo} · {len(piezas)} trazos"}
 
 
-def debug_puntos(stream_input, *, tamano: float = 10.0, escalar_con_peso: bool = True,
-                 minimo: float = 0.15) -> dict:
-    """Un cubo por punto de ``P``, con el peso de la máscara como tamaño."""
-    from . import debug
-
-    try:
-        marcadores = debug.marcadores_de_puntos(
-            stream_input, tamano=float(tamano),
-            escalar_con_peso=bool(escalar_con_peso), minimo=float(minimo))
-    except ValueError as exc:
-        return {"error": str(exc)}
-
+def _dibujar_marcadores(marcadores) -> dict:
     plantilla = _new_mesh()
     unreal.GeometryScript_Primitives.append_box(
         plantilla, _primitive_options(), _identity(),
@@ -978,8 +1011,26 @@ def debug_puntos(stream_input, *, tamano: float = 10.0, escalar_con_peso: bool =
     _pintado(resultado, "#E0A020")
     pesos = [m.peso for m in marcadores]
     return {"mesh": resultado,
-            "info": (f"{_info(resultado)} · {len(marcadores)} puntos · "
+            "info": (f"{_info(resultado)} · P · {len(marcadores)} puntos · "
                      f"peso {min(pesos):.2f}→{max(pesos):.2f}")}
+
+
+def _dibujar_ejes(ejes, grosor: float):
+    plantilla = _flecha_unitaria(grosor)
+    resultado = _new_mesh()
+    por_color: dict[int, list] = {}
+    for eje in ejes:
+        transform = unreal.Transform(
+            location=unreal.Vector(*eje.origen),
+            rotation=unreal.MathLibrary.make_rot_from_z(unreal.Vector(*eje.direccion)),
+            scale=unreal.Vector(1.0, 1.0, eje.largo))
+        por_color.setdefault(eje.eje, []).append(transform)
+    for indice in sorted(por_color):
+        rama = _new_mesh()
+        _estampar(rama, plantilla, por_color[indice])
+        _pintado(rama, COLORES_EJE[indice % len(COLORES_EJE)])
+        unreal.GeometryScript_MeshEdits.append_mesh(resultado, rama, _identity())
+    return resultado
 
 
 def _normales(dynamic) -> list[tuple[float, float, float]]:
