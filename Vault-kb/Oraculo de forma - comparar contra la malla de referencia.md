@@ -341,6 +341,56 @@ absolutos**. Bajar el árbol de 33 a 12 m requirió tocar seis números (altura 
 cuatro radios) en vez de uno. El paso siguiente natural es un radio relativo al padre —`ParentRadius`
 en TreeGen— o una escala global del grafo.
 
+## Corrección 2026-07-27 — tres defectos que el oráculo no vio
+
+Con el tamaño ya resuelto, las capturas del editor mostraron tres cosas que ninguna de las ocho
+métricas marcaba:
+
+1. **El tronco terminaba en un cilindro romo que sobresalía desnudo** por encima del follaje. Era lo
+   que más rompía la lectura del árbol.
+2. **Las ramas eran caños gruesos y lisos** que se veían atravesando el follaje.
+3. **El follaje no llenaba el volumen** que definían las ramas: las puntas quedaban peladas.
+
+### Por qué se le escaparon
+
+El primero es el más interesante. La punta del tronco es **fina y de poca masa**, así que:
+
+- el perfil de masa no la ve (aporta ~0% en su franja);
+- la silueta tampoco, porque mide el radio MÁXIMO de la franja, y ahí arriba el máximo lo pone alguna
+  rama, no el tronco pelado.
+
+Es decir: un defecto que ocupa un cuarto de la altura del árbol y salta a la vista es invisible para
+las dos métricas de forma, porque **es delgado**. Ninguna métrica pregunta «¿hay un tramo donde lo
+único que existe es el tronco?».
+
+Los otros dos son de grosor y densidad locales; las métricas actuales son todas globales o por franja.
+
+### Los arreglos
+
+| | antes | ahora |
+|---|---|---|
+| `trunk_profile.end_value` | 0.24 (romo) | **0.03** (afina a punta) |
+| ramas hasta | 0.92 del tronco | **0.95**, y frames hasta 0.99 |
+| `branch_pipe.radius` | 8cm | **5cm** |
+| `twig_pipe.radius` | 2cm | **1.2cm** |
+| follaje por ramita | 3 | **4**, desde 0.25 |
+
+Resultado medido: silueta **0.129 → 0.101**, perfil 0.133 → 0.130, y la franja de la base pasó de 26%
+a **71%** de radio (la referencia tiene 57%). El árbol dejó de ser un poste con un penacho.
+
+Quedó en 31.571 triángulos (1.25× la referencia). Una pasada intermedia con follaje 5 se fue a 1.52×
+y el oráculo lo marcó, que es exactamente para lo que sirve.
+
+### Lección que se repite
+
+Es el tercer defecto que encuentra el ojo y no las métricas. El patrón ya es claro y vale como
+principio: **las métricas cazan lo que alguien ya se tomó el trabajo de formalizar; todo lo demás lo
+sigue encontrando quien mira.** Por eso el ciclo no termina — cada hallazgo visual es candidato a
+métrica nueva.
+
+Candidata concreta que dejó este episodio: *fracción de la altura donde el radio cae por debajo de un
+umbral del máximo* — cazaría el «poste pelado» y cualquier tramo donde sólo exista el eje.
+
 ## Relacionado
 
 - [[TreeGen - ejemplo de dos niveles y presets de Graph]]

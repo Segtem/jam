@@ -755,16 +755,16 @@ class MeshTests(unittest.TestCase):
             )
             for key in runtime_keys:
                 self.assertEqual(states[key]["estado"], "ok", report)
-            # 26 ramas madre; cada una recibe frames propios y produce 4 ramitas.
-            self.assertIn("BRANCH FROM F ✓ — 26 ramas", report)
-            self.assertIn("FRAMES F ✓ — 156 frames/26 curvas", report)
-            self.assertIn("BRANCH FROM F ✓ — 104 ramas", report)
-            self.assertIn("FRAMES F ✓ — 312 frames/104 curvas", report)
+            # 28 ramas madre; cada una recibe frames propios y produce 4 ramitas.
+            self.assertIn("BRANCH FROM F ✓ — 28 ramas", report)
+            self.assertIn("FRAMES F ✓ — 168 frames/28 curvas", report)
+            self.assertIn("BRANCH FROM F ✓ — 112 ramas", report)
+            self.assertIn("FRAMES F ✓ — 448 frames/112 curvas", report)
 
             # La escala cae en cascada: tronco → rama → ramita. El helper de runtime guarda el
             # ÚLTIMO resultado por verbo, así que acá vuelven las 60 ramitas del nivel 2.
             ramitas = tools.dato_producido_runtime("branch_from_frames")
-            self.assertEqual(len(ramitas.paths), 104)
+            self.assertEqual(len(ramitas.paths), 112)
             escalas = [path.scale for path in ramitas.paths]
             promedio = sum(escalas) / len(escalas)
             nominal_l2 = float(document["nodes"]["l2_transform"]["params"]["scale"])

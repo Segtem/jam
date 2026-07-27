@@ -2,7 +2,7 @@
   "kind": "graph",
   "nombre": "Árbol TreeGen dos niveles",
   "categoria": "TreeGen/vegetacion",
-  "descripcion": "Pino de ~12 m: largo de rama relativo al padre y modulado por perfil N[], follaje horneado como segunda sección. La FORMA está verificada contra el Pine de TreeGen; el tamaño es el del juego.",
+  "descripcion": "Pino de ~12 m: largo de rama relativo al padre modulado por perfil N[], tronco que afina a punta, follaje horneado como segunda sección. FORMA verificada contra el Pine de TreeGen.",
   "tags": [
     "treegen",
     "arbol",
@@ -33,9 +33,9 @@
       "l1_frames": {
         "verb": "curve_frames",
         "params": {
-          "count": "14",
-          "start": "0.08",
-          "end": "0.94",
+          "count": "16",
+          "start": "0.06",
+          "end": "0.99",
           "radial_offset": "16",
           "turns": "1.6",
           "angle_offset": "0",
@@ -51,9 +51,9 @@
       "l1_distribute": {
         "verb": "distribute_frames",
         "params": {
-          "count": "26",
-          "start": "0.1",
-          "end": "0.92",
+          "count": "28",
+          "start": "0.06",
+          "end": "0.95",
           "rotate_per_index": "137.5",
           "angle_offset": "0",
           "angle_jitter": "6",
@@ -187,9 +187,9 @@
       "leaf_frames": {
         "verb": "curve_frames",
         "params": {
-          "count": "3",
-          "start": "0.35",
-          "end": "0.98",
+          "count": "4",
+          "start": "0.25",
+          "end": "0.99",
           "radial_offset": "2",
           "turns": "0.8",
           "angle_offset": "0",
@@ -309,12 +309,12 @@
         "verb": "graph_curve",
         "params": {
           "start_value": "1.0",
-          "end_value": "0.24",
+          "end_value": "0.03",
           "shape": "custom",
           "power": "2.0",
-          "midpoint": "0.58",
-          "mid_value": "0.72",
-          "samples": "17"
+          "midpoint": "0.55",
+          "mid_value": "0.58",
+          "samples": "21"
         },
         "asset": null,
         "x": 350,
@@ -354,7 +354,7 @@
         "verb": "mesh_pipe_profile",
         "params": {
           "profile": "",
-          "radius": "8",
+          "radius": "5",
           "sides": "8",
           "samples": "18",
           "capped": "true",
@@ -384,7 +384,7 @@
         "verb": "mesh_pipe_profile",
         "params": {
           "profile": "",
-          "radius": "2",
+          "radius": "1.2",
           "sides": "5",
           "samples": "8",
           "capped": "true",
