@@ -31,6 +31,13 @@ def _slug(n: str) -> str:
     return re.sub(r"[^A-Za-z0-9]+", "_", n).strip("_") or "GC"
 
 
+def asset_paths_for(asset, carpeta: str = CARPETA) -> tuple[str, str]:
+    """Rutas finales deterministas (Dataflow, GeometryCollection) para una malla fuente."""
+    nombre = asset.rsplit("/", 1)[-1].split(".")[0] if isinstance(asset, str) else asset.get_name()
+    base = _slug(nombre)
+    return f"{carpeta}/DF_{base}", f"{carpeta}/GC_{base}"
+
+
 def _setp(df, node, prop, value):
     if isinstance(value, bool):
         value = "true" if value else "false"
@@ -105,12 +112,20 @@ def fracturar(asset, *, sites: int = 20, seed: int = 123, hollow: bool = False,
     DFB = unreal.DataflowBlueprintLibrary
     at = unreal.AssetToolsHelpers.get_asset_tools()
     base = _slug(mesh.get_name())
-    df_ruta, gc_ruta = f"{carpeta}/DF_{base}", f"{carpeta}/GC_{base}"
+    df_final, gc_final = asset_paths_for(mesh, carpeta)
+    # En Graph, panel registra ambos writers de Content y entrega rutas únicas bajo JamPreview. Así
+    # un Run posterior jamás borra la GC que usa un actor ya baked. Fuera de Preview conserva el
+    # comportamiento histórico de rutas deterministas.
+    from . import panel
+    df_ruta = panel.preview_asset_path(df_final)
+    gc_ruta = panel.preview_asset_path(gc_final)
     for p in (df_ruta, gc_ruta):
         if unreal.EditorAssetLibrary.does_asset_exist(p):
             unreal.EditorAssetLibrary.delete_asset(p)
 
-    df = at.create_asset(f"DF_{base}", carpeta, unreal.Dataflow, unreal.DataflowAssetFactory())
+    df_carpeta, df_nombre = df_ruta.rsplit("/", 1)
+    gc_carpeta, gc_nombre = gc_ruta.rsplit("/", 1)
+    df = at.create_asset(df_nombre, df_carpeta, unreal.Dataflow, unreal.DataflowAssetFactory())
     V = unreal.Vector2D
     # La FUENTE de la colección: hueca (mesh→boolean→collection) o sólida (staticmesh→collection).
     if hollow:
@@ -138,7 +153,8 @@ def fracturar(asset, *, sites: int = 20, seed: int = 123, hollow: bool = False,
     _conn(df, prox, "Collection", term, "Collection")
     unreal.EditorAssetLibrary.save_asset(df_ruta, only_if_is_dirty=False)
 
-    gc = at.create_asset(f"GC_{base}", carpeta, unreal.GeometryCollection, unreal.GeometryCollectionFactory())
+    gc = at.create_asset(
+        gc_nombre, gc_carpeta, unreal.GeometryCollection, unreal.GeometryCollectionFactory())
     inst = gc.get_editor_property("dataflow_instance")
     inst.set_editor_property("dataflow_asset", df)
     inst.set_editor_property("dataflow_terminal", term)
@@ -154,11 +170,10 @@ def fracturar(asset, *, sites: int = 20, seed: int = 123, hollow: bool = False,
     except Exception:  # noqa: BLE001
         pass
     unreal.EditorAssetLibrary.save_asset(gc_ruta, only_if_is_dirty=False)
-    return {"gc": gc, "ruta": gc_ruta, "sites": int(sites)}
+    return {"gc": gc, "ruta": gc_ruta, "dataflow_ruta": df_ruta, "sites": int(sites)}
 
 
 def gc_path_for(asset) -> str:
     """Ruta DETERMINISTA de la GC que `fracture` produce para un mesh dado. La usa el grafo para pasar
     la GC aguas abajo (a `place`), en vez del mesh original — `fracture` es un CONVERSOR, no coloca."""
-    nombre = asset.rsplit("/", 1)[-1].split(".")[0] if isinstance(asset, str) else asset.get_name()
-    return f"{CARPETA}/GC_{_slug(nombre)}"
+    return asset_paths_for(asset)[1]

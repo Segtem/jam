@@ -27,6 +27,10 @@ def _slug(nombre: str) -> str:
     return re.sub(r"[^A-Za-z0-9]+", "_", nombre).strip("_") or "JamPCG"
 
 
+def graph_path(nombre: str) -> str:
+    return f"{CARPETA}/{_slug(nombre)}"
+
+
 def _pin(nodo, prop, label):
     for p in nodo.get_editor_property(prop):
         if str(p.get_editor_property("properties").get_editor_property("label")) == label:
@@ -41,14 +45,15 @@ def _conectar(grafo, a, la, b, lb) -> bool:
     return bool(p and len(p.get_editor_property("edges")) > 0)
 
 
-def construir_grafo(nombre: str, mallas: list, *, density: float) -> tuple:
+def construir_grafo(nombre: str, mallas: list, *, density: float, ruta: str | None = None) -> tuple:
     """Arma (o rehace) el grafo PCG: GetLandscape → SurfaceSampler → StaticMeshSpawner(mallas).
     `density` = puntos por m². Devuelve (grafo, cables_ok:int)."""
-    ruta = f"{CARPETA}/{_slug(nombre)}"
+    ruta = ruta or graph_path(nombre)
+    carpeta, asset_name = ruta.rsplit("/", 1)
     if unreal.EditorAssetLibrary.does_asset_exist(ruta):
         unreal.EditorAssetLibrary.delete_asset(ruta)
     grafo = unreal.AssetToolsHelpers.get_asset_tools().create_asset(
-        _slug(nombre), CARPETA, unreal.PCGGraph, unreal.PCGGraphFactory())
+        asset_name, carpeta, unreal.PCGGraph, unreal.PCGGraphFactory())
 
     land, _l = grafo.add_node_of_type(unreal.PCGGetLandscapeSettings)
     samp_n, samp = grafo.add_node_of_type(unreal.PCGSurfaceSamplerSettings)
@@ -97,7 +102,11 @@ def realizar(assets, *, nombre="JamPCG", area=1600.0, density=0.0, count=0, cent
         lado_m = max(0.01, 2.0 * area / 100.0)
         density = max(0.0001, (count or 40) / (lado_m * lado_m))
 
-    grafo, cables = construir_grafo(nombre, mallas, density=density)
+    # Dentro de Preview, `panel` entrega una ruta temporal bajo /Game/JamPreview y registra cómo
+    # promoverla en Bake. Fuera de Preview devuelve la ruta definitiva histórica.
+    from . import panel
+    ruta_grafo = panel.preview_asset_path(graph_path(nombre))
+    grafo, cables = construir_grafo(nombre, mallas, density=density, ruta=ruta_grafo)
 
     # centro: punto de mira (como las demás tools) salvo que se pase explícito
     cx, cy, cz = 0.0, 0.0, 200.0
@@ -116,8 +125,8 @@ def realizar(assets, *, nombre="JamPCG", area=1600.0, density=0.0, count=0, cent
     comp = vol.get_component_by_class(unreal.PCGComponent)
     comp.set_graph(grafo)
     comp.generate(True)
-    return {"volumen": vol, "grafo": grafo, "cables": cables, "density": round(density, 4),
-            "assets": len(mallas)}
+    return {"volumen": vol, "grafo": grafo, "grafo_ruta": ruta_grafo,
+            "cables": cables, "density": round(density, 4), "assets": len(mallas)}
 
 
 def contar_instancias(vol=None) -> int:
