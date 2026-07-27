@@ -885,6 +885,103 @@ def _secciones(dynamic, asset=None) -> int:
         return 1
 
 
+COLORES_EJE = ("#E03A3A", "#3AC04A", "#3A7AE0")   # X rojo, Y verde, Z azul — la convención de siempre
+
+
+def _flecha_unitaria(grosor: float):
+    """Flecha de 1cm de largo apuntando a +Z: vástago + punta. Se estampa escalada por cada eje."""
+    plantilla = _new_mesh()
+    unreal.GeometryScript_Primitives.append_cylinder(
+        plantilla, _primitive_options(), _identity(),
+        radius=grosor * 0.5, height=0.78, radial_steps=6, height_steps=1)
+    cabeza = unreal.Transform()
+    cabeza.set_editor_property("translation", unreal.Vector(0.0, 0.0, 0.78))
+    unreal.GeometryScript_Primitives.append_cone(
+        plantilla, _primitive_options(), cabeza,
+        base_radius=grosor * 1.6, top_radius=0.0, height=0.22, radial_steps=6, height_steps=1)
+    return plantilla
+
+
+def _estampar(destino, plantilla, transforms) -> None:
+    """Una sola llamada para las N copias: `append_mesh_transformed` acepta la lista entera."""
+    if not transforms:
+        return
+    unreal.GeometryScript_MeshEdits.append_mesh_transformed(
+        destino, plantilla, transforms, _identity(), constant_transform_is_relative=True)
+
+
+def _pintado(malla, color_hex: str):
+    unreal.GeometryScript_VertexColors.set_mesh_constant_vertex_color(
+        malla, _linear_color_from_hex(color_hex), unreal.GeometryScriptColorFlags(),
+        clear_existing=True)
+    return malla
+
+
+def debug_ejes(frame_input, *, largo: float = 30.0, grosor: float = 1.2,
+               escalar_con_frame: bool = True, solo_tangente: bool = False) -> dict:
+    """Ejes de colores sobre cada frame de ``F``: se ve la posición Y la orientación."""
+    from . import curve, debug
+
+    if not isinstance(frame_input, curve.FrameSet):
+        return {"error": "debug_frames necesita un stream F válido."}
+    if grosor <= 0.0:
+        return {"error": "grosor debe ser mayor que cero."}
+    try:
+        ejes = debug.ejes_de_frames(
+            frame_input.frames, largo=float(largo),
+            escalar_con_frame=bool(escalar_con_frame), solo_tangente=bool(solo_tangente))
+    except ValueError as exc:
+        return {"error": str(exc)}
+
+    plantilla = _flecha_unitaria(float(grosor))
+    resultado = _new_mesh()
+    por_eje: dict[int, list] = {}
+    for eje in ejes:
+        transform = unreal.Transform(
+            location=unreal.Vector(*eje.origen),
+            rotation=unreal.MathLibrary.make_rot_from_z(unreal.Vector(*eje.direccion)),
+            scale=unreal.Vector(1.0, 1.0, eje.largo))
+        por_eje.setdefault(eje.eje, []).append(transform)
+    for indice in sorted(por_eje):
+        rama = _new_mesh()
+        _estampar(rama, plantilla, por_eje[indice])
+        _pintado(rama, COLORES_EJE[indice])
+        unreal.GeometryScript_MeshEdits.append_mesh(resultado, rama, _identity())
+
+    cuantos = len(frame_input.frames)
+    return {"mesh": resultado,
+            "info": (f"{_info(resultado)} · {cuantos} frames · "
+                     f"{'sólo tangente' if solo_tangente else 'ejes XYZ'}")}
+
+
+def debug_puntos(stream_input, *, tamano: float = 10.0, escalar_con_peso: bool = True,
+                 minimo: float = 0.15) -> dict:
+    """Un cubo por punto de ``P``, con el peso de la máscara como tamaño."""
+    from . import debug
+
+    try:
+        marcadores = debug.marcadores_de_puntos(
+            stream_input, tamano=float(tamano),
+            escalar_con_peso=bool(escalar_con_peso), minimo=float(minimo))
+    except ValueError as exc:
+        return {"error": str(exc)}
+
+    plantilla = _new_mesh()
+    unreal.GeometryScript_Primitives.append_box(
+        plantilla, _primitive_options(), _identity(),
+        dimension_x=1.0, dimension_y=1.0, dimension_z=1.0)
+    resultado = _new_mesh()
+    _estampar(resultado, plantilla, [
+        unreal.Transform(location=unreal.Vector(*m.origen), rotation=unreal.Rotator(),
+                         scale=unreal.Vector(m.tamano, m.tamano, m.tamano))
+        for m in marcadores])
+    _pintado(resultado, "#E0A020")
+    pesos = [m.peso for m in marcadores]
+    return {"mesh": resultado,
+            "info": (f"{_info(resultado)} · {len(marcadores)} puntos · "
+                     f"peso {min(pesos):.2f}→{max(pesos):.2f}")}
+
+
 def _normales(dynamic) -> list[tuple[float, float, float]]:
     """Normal por vértice, promediando los splits para que el desplazamiento no abra costuras."""
     devuelto = unreal.GeometryScript_Normals.get_mesh_per_vertex_normals(dynamic, True)

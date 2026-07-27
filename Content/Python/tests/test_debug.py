@@ -1,0 +1,143 @@
+"""Ayudantes visuales: ver un stream en vez de sólo medirlo."""
+
+from __future__ import annotations
+
+import math
+import sys
+import types
+import unittest
+
+_unreal_fake = sys.modules.setdefault("unreal", types.ModuleType("unreal"))
+if not hasattr(_unreal_fake, "TopLevelAssetPath"):
+    _unreal_fake.TopLevelAssetPath = lambda package, name: (package, name)
+
+from jam import curve, debug, scatter_core, tools  # noqa: E402
+
+
+def frames(n=3, *, escalas=None):
+    return curve.FrameSet(tuple(
+        curve.CurveFrame(
+            (float(i) * 100.0, 0.0, 0.0), (0.0, 0.0, 1.0), (1.0, 0.0, 0.0),
+            i / max(n - 1, 1), local_index=i,
+            scale=1.0 if escalas is None else escalas[i],
+        )
+        for i in range(n)
+    ), parent_count=1)
+
+
+def puntos(pesos):
+    from jam.geometry import Vec3
+    return [
+        scatter_core.Sample(pos=Vec3(float(i) * 50.0, 0.0, 0.0), normal=Vec3(0.0, 0.0, 1.0),
+                            slope=0.0, seed=i, uv=(0.0, 0.0), weight=w)
+        for i, w in enumerate(pesos)
+    ]
+
+
+class EjesTests(unittest.TestCase):
+    def test_three_axes_per_frame_follow_the_frame_basis(self):
+        ejes = debug.ejes_de_frames(frames(2).frames, largo=10.0)
+
+        self.assertEqual(len(ejes), 6)
+        primero = [e for e in ejes if e.origen == (0.0, 0.0, 0.0)]
+        self.assertEqual(len(primero), 3)
+        por_eje = {e.eje: e for e in primero}
+        # X = tangente, Z = outward, Y = el lateral que los cierra. Es la misma convención que usa
+        # `make_rot_from_xz` en los verbos de malla, para que lo que se ve sea lo que se orienta.
+        self.assertEqual(por_eje[0].direccion, (0.0, 0.0, 1.0))
+        self.assertEqual(por_eje[2].direccion, (1.0, 0.0, 0.0))
+        producto = sum(a * b for a, b in zip(por_eje[1].direccion, por_eje[0].direccion))
+        self.assertAlmostEqual(producto, 0.0, places=6)
+
+    def test_the_axis_length_follows_the_frame_scale(self):
+        """Ver la escala es la mitad del valor: se nota si cae en cascada o si la maneja una máscara."""
+        ejes = debug.ejes_de_frames(frames(3, escalas=[0.5, 1.0, 2.0]).frames, largo=10.0)
+        tangentes = [e.largo for e in ejes if e.eje == 0]
+        self.assertEqual(tangentes, [5.0, 10.0, 20.0])
+
+        fijos = debug.ejes_de_frames(frames(3, escalas=[0.5, 1.0, 2.0]).frames,
+                                     largo=10.0, escalar_con_frame=False)
+        self.assertEqual({e.largo for e in fijos if e.eje == 0}, {10.0})
+
+    def test_only_tangent_mode_draws_one_axis(self):
+        ejes = debug.ejes_de_frames(frames(4).frames, solo_tangente=True)
+        self.assertEqual(len(ejes), 4)
+        self.assertEqual({e.eje for e in ejes}, {0})
+
+    def test_a_degenerate_basis_still_produces_perpendicular_axes(self):
+        # tangente y outward paralelos: hay que elegir una perpendicular estable en vez de fallar.
+        roto = curve.FrameSet((curve.CurveFrame(
+            (0.0, 0.0, 0.0), (0.0, 0.0, 1.0), (0.0, 0.0, 1.0), 0.0),), parent_count=1)
+        ejes = debug.ejes_de_frames(roto.frames, largo=10.0)
+        self.assertEqual(len(ejes), 3)
+        direcciones = {e.eje: e.direccion for e in ejes}
+        for a, b in ((0, 1), (0, 2), (1, 2)):
+            producto = sum(x * y for x, y in zip(direcciones[a], direcciones[b]))
+            self.assertAlmostEqual(producto, 0.0, places=6, msg=f"ejes {a} y {b} no perpendiculares")
+
+    def test_it_validates_its_input(self):
+        with self.assertRaises(ValueError):
+            debug.ejes_de_frames([])
+        with self.assertRaises(ValueError):
+            debug.ejes_de_frames(frames(2).frames, largo=0.0)
+        # Un frame sin tangente no se puede dibujar; si no queda ninguno, se avisa.
+        sin_tangente = curve.FrameSet((curve.CurveFrame(
+            (0.0, 0.0, 0.0), (0.0, 0.0, 0.0), (1.0, 0.0, 0.0), 0.0),), parent_count=1)
+        with self.assertRaises(ValueError):
+            debug.ejes_de_frames(sin_tangente.frames)
+        with self.assertRaises(ValueError):
+            debug.ejes_de_frames(frames(2000).frames)
+
+
+class MarcadoresTests(unittest.TestCase):
+    def test_the_mask_weight_becomes_the_marker_size(self):
+        ms = debug.marcadores_de_puntos(puntos([1.0, 0.5, 0.25]), tamano=20.0)
+        self.assertEqual([m.tamano for m in ms], [20.0, 10.0, 5.0])
+        # El peso original se conserva para poder reportarlo aunque el tamaño esté acotado.
+        self.assertEqual([m.peso for m in ms], [1.0, 0.5, 0.25])
+
+    def test_a_zero_weight_point_stays_visible(self):
+        """Distinguir «la máscara lo apagó» de «nunca estuvo» es justamente para lo que sirve."""
+        ms = debug.marcadores_de_puntos(puntos([0.0]), tamano=20.0, minimo=0.15)
+        self.assertAlmostEqual(ms[0].tamano, 3.0)
+        self.assertGreater(ms[0].tamano, 0.0)
+        self.assertEqual(ms[0].peso, 0.0)
+
+    def test_weights_above_one_do_not_blow_up_the_marker(self):
+        ms = debug.marcadores_de_puntos(puntos([5.0]), tamano=20.0)
+        self.assertEqual(ms[0].tamano, 20.0)
+
+    def test_scaling_can_be_turned_off(self):
+        ms = debug.marcadores_de_puntos(puntos([1.0, 0.2]), tamano=8.0, escalar_con_peso=False)
+        self.assertEqual({m.tamano for m in ms}, {8.0})
+
+    def test_it_validates_its_input(self):
+        with self.assertRaises(ValueError):
+            debug.marcadores_de_puntos([])
+        with self.assertRaises(ValueError):
+            debug.marcadores_de_puntos(puntos([1.0]), tamano=-1.0)
+        with self.assertRaises(ValueError):
+            debug.marcadores_de_puntos(puntos([1.0]), minimo=2.0)
+        with self.assertRaises(ValueError):
+            debug.marcadores_de_puntos([object()])
+
+
+class ContratoDeGrafoTests(unittest.TestCase):
+    def test_the_debug_verbs_consume_a_stream_and_produce_a_mesh(self):
+        for verbo, entrada in (("debug_frames", "F"), ("debug_points", "P")):
+            with self.subTest(verbo=verbo):
+                info = tools.REGISTRO[verbo]
+                self.assertEqual(info["in_name"], entrada)
+                # Salen por M: se mergean, hornean o colocan como cualquier malla, y participan del
+                # Preview/Discard sin necesitar un camino aparte.
+                self.assertEqual(info["out_name"], "M")
+                self.assertEqual(info["cat"], "Debug")
+                self.assertTrue(info["graph_only"])
+                self.assertFalse(info["asset_required"])
+
+    def test_debug_has_its_own_tab(self):
+        self.assertIn("Debug", tools.CATEGORIAS)
+
+
+if __name__ == "__main__":
+    unittest.main()
