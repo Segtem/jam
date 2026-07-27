@@ -2,12 +2,12 @@
   "kind": "graph",
   "nombre": "Árbol TreeGen dos niveles",
   "categoria": "TreeGen/vegetacion",
-  "descripcion": "Pino de ~12 m: largo de rama relativo al padre modulado por perfil N[], tronco que afina a punta, follaje horneado como segunda sección. FORMA verificada contra el Pine de TreeGen.",
+  "descripcion": "Pino de ~12 m con relieve de corteza: largo de rama relativo al padre modulado por perfil N[], tronco con surcos verticales, follaje horneado como segunda sección.",
   "tags": [
     "treegen",
     "arbol",
     "vegetacion",
-    "secciones"
+    "corteza"
   ],
   "scope": "global",
   "graph": {
@@ -309,7 +309,7 @@
         "verb": "graph_curve",
         "params": {
           "start_value": "1.0",
-          "end_value": "0.03",
+          "end_value": "0.08",
           "shape": "custom",
           "power": "2.0",
           "midpoint": "0.55",
@@ -333,6 +333,20 @@
         },
         "asset": null,
         "x": 680,
+        "y": 560
+      },
+      "trunk_bark": {
+        "verb": "mesh_bark",
+        "params": {
+          "amplitud": "1.2",
+          "escala": "0.09",
+          "alargue": "0.18",
+          "octavas": "3",
+          "surcos": "0.65",
+          "seed": "1977"
+        },
+        "asset": null,
+        "x": 1010,
         "y": 560
       },
       "branch_profile": {
@@ -619,6 +633,12 @@
       ],
       [
         "trunk_pipe",
+        "out",
+        "trunk_bark",
+        "in"
+      ],
+      [
+        "trunk_bark",
         "out",
         "merge",
         "in"

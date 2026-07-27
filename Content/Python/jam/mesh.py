@@ -885,6 +885,52 @@ def _secciones(dynamic, asset=None) -> int:
         return 1
 
 
+def _normales(dynamic) -> list[tuple[float, float, float]]:
+    """Normal por vértice, promediando los splits para que el desplazamiento no abra costuras."""
+    devuelto = unreal.GeometryScript_Normals.get_mesh_per_vertex_normals(dynamic, True)
+    crudo = devuelto[1] if isinstance(devuelto, tuple) and len(devuelto) > 1 else devuelto
+    convertir = getattr(crudo, "convert_vector_list_to_array", None)
+    if convertir is not None:
+        crudo = convertir()
+        if isinstance(crudo, tuple):
+            crudo = crudo[-1]
+    return [(float(v.x), float(v.y), float(v.z)) for v in crudo]
+
+
+def corteza(source, *, amplitud: float = 2.0, escala: float = 0.06, alargue: float = 0.25,
+            octavas: int = 3, surcos: float = 0.6, seed: int = 7) -> dict:
+    """Da relieve de corteza a `M` desplazando cada vértice por su normal con ruido estirado."""
+    from . import bark
+
+    try:
+        result = _clone(source)
+    except TypeError as exc:
+        return {"error": str(exc)}
+
+    lista = unreal.GeometryScript_MeshQueries.get_all_vertex_positions(result, True)
+    lista = lista[1] if isinstance(lista, tuple) and len(lista) > 1 else lista
+    posiciones = _posiciones(result)
+    normales = _normales(result)
+    if len(normales) != len(posiciones):
+        return {"error": "la malla no tiene una normal por vértice; recalculá normales antes."}
+    try:
+        nuevas = bark.desplazar(
+            posiciones, normales, amplitud=float(amplitud), escala=float(escala),
+            alargue=float(alargue), octavas=int(octavas), surcos=float(surcos), seed=int(seed))
+    except ValueError as exc:
+        return {"error": str(exc)}
+
+    # `GeometryScriptVectorList` no se puede construir desde Python: se muta la que devolvió el motor
+    # (ya viene con el tamaño correcto) y se escribe de vuelta en bloque.
+    for indice, (x, y, z) in enumerate(nuevas):
+        lista.set_vector_list_item(indice, unreal.Vector(x, y, z))
+    unreal.GeometryScript_MeshEdits.set_all_mesh_vertex_positions(result, lista)
+    unreal.GeometryScript_Normals.recompute_normals(
+        result, unreal.GeometryScriptCalculateNormalsOptions())
+    return {"mesh": result,
+            "info": f"{_info(result)} · relieve ±{amplitud:g}cm · surcos {surcos:g}"}
+
+
 def medir(source, *, franjas: int = 8) -> dict:
     """Firma de forma de una malla `M` o de un StaticMesh `A`, para el oráculo de `compare`."""
     from . import compare

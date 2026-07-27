@@ -832,6 +832,19 @@ def t_mesh_normals(mesh_input, *, angle_weighted=True, area_weighted=True) -> st
     return _mesh_output("mesh_normals", result, "NORMALS M")
 
 
+def t_mesh_bark(mesh_input, *, amplitud=2.0, escala=0.06, alargue=0.25,
+                octavas=3, surcos=0.6, seed=7) -> str:
+    """Relieve de corteza sobre M: desplaza cada vértice por su normal con ruido estirado."""
+    from . import mesh
+    return _mesh_output(
+        "mesh_bark",
+        mesh.corteza(mesh_input, amplitud=float(amplitud), escala=float(escala),
+                     alargue=float(alargue), octavas=int(octavas),
+                     surcos=float(surcos), seed=int(seed)),
+        "BARK M",
+    )
+
+
 def t_mesh_compare(mesh_input, *, asset=None, franjas=8, solo_forma=False,
                    alto=0.30, ancho=0.35, esbeltez=0.20, vertices=0.50,
                    triangulos=0.50, perfil=0.15, silueta=0.18) -> str:
@@ -1121,6 +1134,10 @@ REGISTRO = {
     "mesh_normals": {"fn": t_mesh_normals, "cat": "Mesh", "graph_only": True,
                      "params": {"angle_weighted": True, "area_weighted": True},
                      "doc": "recalcula normales conservando los atributos de la malla M"},
+    "mesh_bark": {"fn": t_mesh_bark, "cat": "Mesh", "graph_only": True,
+                  "params": {"amplitud": 2.0, "escala": 0.06, "alargue": 0.25,
+                             "octavas": 3, "surcos": 0.6, "seed": 7},
+                  "doc": "relieve de corteza sobre M: ruido estirado a lo largo del eje (surcos verticales) desplazando cada vértice por su normal. «amplitud» debe ser menor que el radio más fino de la malla o la punta se invierte"},
     "mesh_compare": {"fn": t_mesh_compare, "cat": "Mesh", "graph_only": True,
                      "asset_argument": True,
                      "params": {"franjas": 8, "solo_forma": False,
@@ -1166,7 +1183,7 @@ GRAPH_NO_ASSET = {"asset", "pick", "create_spline", "pivot_set",
                   "branch_from_frames",
                   "asset_set", "choose_asset", "curve_branches", "mesh_leaf",
                   "copy_asset_selection", "hism_output",
-                  "mesh_color", "mesh_uv_scale", "mesh_material",
+                  "mesh_color", "mesh_uv_scale", "mesh_material", "mesh_bark",
                   "mesh_normals", "mesh_to_static"}
 GRAPH_IN_NAMES = {"curve_child": "S", "curve_frames": "S", "distribute_frames": "F",
                   "transform_frames": "F", "branch_from_frames": "F", "curve_branches": "S",
@@ -1175,7 +1192,7 @@ GRAPH_IN_NAMES = {"curve_child": "S", "curve_frames": "S", "distribute_frames": 
                   "mesh_along_curve": "S", "copy_mesh_to_frames": "F", "mesh_leaf": "S",
                   "copy_asset_selection": "AF",
                   "hism_output": "AF", "mesh_transform": "M", "mesh_color": "M",
-                  "mesh_uv_scale": "M", "mesh_material": "M",
+                  "mesh_uv_scale": "M", "mesh_material": "M", "mesh_bark": "M",
                   "mesh_merge": "M", "mesh_normals": "M",
                   "mesh_compare": "M", "mesh_to_static": "M"}
 GRAPH_OUT_NAMES = {"asset": "A", "pick": "A", "create_spline": "S",
@@ -1190,7 +1207,7 @@ GRAPH_OUT_NAMES = {"asset": "A", "pick": "A", "create_spline": "S",
                    "copy_mesh_to_frames": "M", "mesh_leaf": "M",
                    "copy_asset_selection": "M",
                    "hism_output": "H", "mesh_transform": "M", "mesh_color": "M",
-                   "mesh_uv_scale": "M", "mesh_material": "M",
+                   "mesh_uv_scale": "M", "mesh_material": "M", "mesh_bark": "M",
                    "mesh_merge": "M", "mesh_normals": "M",
                    "mesh_compare": "M", "mesh_to_static": "A"}
 GRAPH_ARITY = {"mesh_merge": -1, "asset_set": -1}

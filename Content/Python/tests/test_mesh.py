@@ -696,8 +696,8 @@ class MeshTests(unittest.TestCase):
 
         self.assertTrue(result["ok"], result)
         document = json.loads(source)
-        self.assertEqual(len(document["nodes"]), 33)
-        self.assertEqual(len(document["edges"]), 35)
+        self.assertEqual(len(document["nodes"]), 34)
+        self.assertEqual(len(document["edges"]), 36)
 
         # Los dos niveles son la MISMA cadena de cuatro verbos aplicada dos veces; que el segundo
         # arranque desde la salida S del primero es lo que hace la jerarquía real.
@@ -719,11 +719,20 @@ class MeshTests(unittest.TestCase):
             self.assertIn([f"{nivel}_length_profile", "out", f"{nivel}_branches", "profile"],
                           document["edges"])
         self.assertIn(["l2_branches", "out", "leaf_frames", "in"], document["edges"])
-        # Un barrido con perfil propio por nivel, los tres al mismo Merge variádico.
+        # Un barrido con perfil propio por nivel, los tres al mismo Merge variádico. El tronco
+        # entra por la corteza: va sobre él y no sobre el merge porque las ramitas de 1.2cm de
+        # radio no tolerarían un relieve de ±1.2cm sin invertirse.
         self.assertEqual(
             sorted(edge[0] for edge in document["edges"] if edge[2] == "merge"),
-            ["branch_pipe", "trunk_pipe", "twig_pipe"],
+            ["branch_pipe", "trunk_bark", "twig_pipe"],
         )
+        self.assertIn(["trunk_pipe", "out", "trunk_bark", "in"], document["edges"])
+        self.assertEqual(document["nodes"]["trunk_bark"]["verb"], "mesh_bark")
+        # El relieve tiene que ser MENOR que el radio más fino del tronco: si no, la punta cruza
+        # el eje y la geometría se invierte.
+        self.assertLess(float(document["nodes"]["trunk_bark"]["params"]["amplitud"]),
+                        float(document["nodes"]["trunk_pipe"]["params"]["radius"])
+                        * float(document["nodes"]["trunk_profile"]["params"]["end_value"]))
         for pipe, curva in (("trunk_pipe", "trunk"), ("branch_pipe", "l1_branches"),
                             ("twig_pipe", "l2_branches")):
             self.assertIn([curva, "out", pipe, "in"], document["edges"])
@@ -934,6 +943,12 @@ class MeshTests(unittest.TestCase):
         self.assertEqual(compare_params["esbeltez"]["tipo"], "float")
         # Comparar la forma sin exigir el mismo tamaño que el ejemplo de referencia.
         self.assertEqual(compare_params["solo_forma"]["tipo"], "bool")
+        self.assertEqual(graph_tools["mesh_bark"]["in_name"], "M")
+        self.assertEqual(graph_tools["mesh_bark"]["out_name"], "M")
+        self.assertFalse(graph_tools["mesh_bark"]["asset_pin"])
+        bark_params = {item["nombre"]: item for item in graph_tools["mesh_bark"]["params"]}
+        self.assertEqual(bark_params["amplitud"]["tipo"], "float")
+        self.assertEqual(bark_params["octavas"]["tipo"], "int")
         hism_params = {item["nombre"]: item for item in graph_tools["hism_output"]["params"]}
         self.assertEqual(hism_params["name"]["tipo"], "str")
         self.assertEqual(hism_params["inherit_scale"]["tipo"], "bool")
