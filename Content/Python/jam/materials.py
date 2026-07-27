@@ -81,7 +81,12 @@ def instancia(color: unreal.LinearColor, opacidad: float = 0.35, dueno=None):
     if b is None:
         return None
     try:
-        mid = unreal.MaterialInstanceDynamic.create(b, dueno)
+        # `unreal.MaterialInstanceDynamic` NO expone `create` desde Python: la fábrica vive en
+        # MaterialLibrary. Como el except devolvía el material base, el fantasma venía saliendo
+        # opaco y sin color en silencio.
+        mid = unreal.MaterialLibrary.create_dynamic_material_instance(dueno, b)
+        if mid is None:
+            return b
         mid.set_vector_parameter_value("Color", color)
         mid.set_scalar_parameter_value("Opacity", opacidad)
         return mid
