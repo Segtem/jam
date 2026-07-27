@@ -1,0 +1,379 @@
+{
+	"nodes":
+	{
+		"n1":
+		{
+			"verb": "curve_bezier",
+			"params":
+			{
+				"start_x": "0",
+				"start_y": "0",
+				"start_z": "0",
+				"end_x": "20",
+				"end_y": "-15",
+				"end_z": "650",
+				"bend_x": "35",
+				"bend_y": "20",
+				"bend_z": "10",
+				"segments": "16"
+			},
+			"asset": null,
+			"x": 30,
+			"y": 40
+		},
+		"n2":
+		{
+			"verb": "mesh_pipe",
+			"params":
+			{
+				"radius_start": "60",
+				"radius_end": "18",
+				"sides": "12",
+				"samples": "20",
+				"capped": "true",
+				"profile_rotation": "0",
+				"miter_limit": "4"
+			},
+			"asset": null,
+			"x": 350,
+			"y": 40
+		},
+		"n3":
+		{
+			"verb": "curve_branches",
+			"params":
+			{
+				"count": "64",
+				"start": "0.20",
+				"end": "0.92",
+				"length_min": "300",
+				"length_max": "400",
+				"parent_scale_start": "1.0",
+				"parent_scale_end": "0.32",
+				"angle": "78",
+				"angle_jitter": "10",
+				"rotate_per_index": "137",
+				"azimuth": "0",
+				"azimuth_jitter": "5",
+				"bend": "45",
+				"bend_jitter": "22",
+				"radial_offset": "48",
+				"segments": "8",
+				"samples": "40",
+				"seed": "1977"
+			},
+			"asset": null,
+			"x": 350,
+			"y": 310
+		},
+		"n4":
+		{
+			"verb": "mesh_pipe",
+			"params":
+			{
+				"radius_start": "14",
+				"radius_end": "1.5",
+				"sides": "6",
+				"samples": "10",
+				"capped": "true",
+				"profile_rotation": "0",
+				"miter_limit": "4"
+			},
+			"asset": null,
+			"x": 680,
+			"y": 310
+		},
+		"n5":
+		{
+			"verb": "mesh_leaf",
+			"params":
+			{
+				"asset": "",
+				"count": "20",
+				"start": "0.14",
+				"end": "0.98",
+				"radial_offset": "64",
+				"rotate_per_index": "137",
+				"angle_offset": "0",
+				"leaves_per_cluster": "3",
+				"length": "92",
+				"width": "48",
+				"asset_scale": "1.0",
+				"asset_pitch": "0.0",
+				"asset_yaw": "0.0",
+				"asset_roll": "0.0",
+				"size_start": "1.0",
+				"size_end": "0.62",
+				"splay": "100",
+				"lift": "22",
+				"rotation_jitter": "14",
+				"scale_jitter": "0.22",
+				"offset_jitter": "8",
+				"seed": "2001",
+				"inherit_scale": "false",
+				"double_sided": "true",
+				"samples": "40"
+			},
+			"asset": null,
+			"x": 894.58985902111795,
+			"y": 747.63817149933084
+		},
+		"n6":
+		{
+			"verb": "mesh_leaf",
+			"params":
+			{
+				"asset": "",
+				"count": "4",
+				"start": "0.11",
+				"end": "0.81",
+				"radial_offset": "14",
+				"rotate_per_index": "180",
+				"angle_offset": "0",
+				"leaves_per_cluster": "3",
+				"length": "78",
+				"width": "40",
+				"asset_scale": "1.0",
+				"asset_pitch": "0.0",
+				"asset_yaw": "0.0",
+				"asset_roll": "0.0",
+				"size_start": "1.0",
+				"size_end": "0.72",
+				"splay": "86",
+				"lift": "18",
+				"rotation_jitter": "16",
+				"scale_jitter": "0.20",
+				"offset_jitter": "6",
+				"seed": "2002",
+				"inherit_scale": "true",
+				"double_sided": "true",
+				"samples": "16"
+			},
+			"asset": null,
+			"x": 622.89466951440977,
+			"y": 591.64312236796241
+		},
+		"n7":
+		{
+			"verb": "mesh_merge",
+			"params":
+			{
+			},
+			"asset": null,
+			"x": 1010,
+			"y": 170
+		},
+		"n8":
+		{
+			"verb": "mesh_color",
+			"params":
+			{
+				"color": "#70452A"
+			},
+			"asset": null,
+			"x": 1260,
+			"y": 170
+		},
+		"n9":
+		{
+			"verb": "mesh_merge",
+			"params":
+			{
+			},
+			"asset": null,
+			"x": 1089.3903375043571,
+			"y": 697.49690570710527
+		},
+		"n10":
+		{
+			"verb": "mesh_color",
+			"params":
+			{
+				"color": "#3F7D3B"
+			},
+			"asset": null,
+			"x": 1260,
+			"y": 600
+		},
+		"n11":
+		{
+			"verb": "mesh_merge",
+			"params":
+			{
+			},
+			"asset": null,
+			"x": 1510,
+			"y": 380
+		},
+		"n12":
+		{
+			"verb": "mesh_normals",
+			"params":
+			{
+				"angle_weighted": "true",
+				"area_weighted": "true"
+			},
+			"asset": null,
+			"x": 1760,
+			"y": 380
+		},
+		"n13":
+		{
+			"verb": "mesh_to_static",
+			"params":
+			{
+				"name": "TreeGen_Branched_Test",
+				"folder": "/Game/Jam/Meshes",
+				"collision": "true",
+				"recompute_tangents": "true",
+				"show_vertex_colors": "true"
+			},
+			"asset": null,
+			"x": 2010,
+			"y": 380
+		},
+		"n14":
+		{
+			"verb": "place",
+			"params":
+			{
+				"asset": "",
+				"x": "0",
+				"y": "0",
+				"z": "0",
+				"view": "false",
+				"surface": "false",
+				"anchor": "base",
+				"sink": "0",
+				"align": "false",
+				"physics": "false",
+				"yaw": "0",
+				"scale": "1"
+			},
+			"asset": null,
+			"x": 2280,
+			"y": 380
+		},
+		"n16":
+		{
+			"verb": "asset",
+			"params":
+			{
+				"name": "PineFrond"
+			},
+			"asset": null,
+			"x": 290.21808727412758,
+			"y": 820.94426121883976
+		}
+	},
+	"edges": [
+		[
+			"n1",
+			"out",
+			"n2",
+			"in"
+		],
+		[
+			"n1",
+			"out",
+			"n3",
+			"in"
+		],
+		[
+			"n1",
+			"out",
+			"n5",
+			"in"
+		],
+		[
+			"n3",
+			"out",
+			"n4",
+			"in"
+		],
+		[
+			"n3",
+			"out",
+			"n6",
+			"in"
+		],
+		[
+			"n2",
+			"out",
+			"n7",
+			"in"
+		],
+		[
+			"n4",
+			"out",
+			"n7",
+			"in"
+		],
+		[
+			"n7",
+			"out",
+			"n8",
+			"in"
+		],
+		[
+			"n5",
+			"out",
+			"n9",
+			"in"
+		],
+		[
+			"n6",
+			"out",
+			"n9",
+			"in"
+		],
+		[
+			"n9",
+			"out",
+			"n10",
+			"in"
+		],
+		[
+			"n8",
+			"out",
+			"n11",
+			"in"
+		],
+		[
+			"n10",
+			"out",
+			"n11",
+			"in"
+		],
+		[
+			"n11",
+			"out",
+			"n12",
+			"in"
+		],
+		[
+			"n12",
+			"out",
+			"n13",
+			"in"
+		],
+		[
+			"n13",
+			"out",
+			"n14",
+			"in"
+		],
+		[
+			"n16",
+			"out",
+			"n6",
+			"asset"
+		],
+		[
+			"n16",
+			"out",
+			"n5",
+			"asset"
+		]
+	]
+}

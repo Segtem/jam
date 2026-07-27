@@ -1,0 +1,172 @@
+{
+  "schema_version": 1,
+  "nodes": {
+    "trunk": {
+      "verb": "mesh_cone",
+      "params": {
+        "base_radius": "42",
+        "top_radius": "24",
+        "height": "600",
+        "sides": "12",
+        "height_steps": "6",
+        "capped": "True"
+      },
+      "asset": null,
+      "x": 30,
+      "y": 40
+    },
+    "crown_low": {
+      "verb": "mesh_cone",
+      "params": {
+        "base_radius": "230",
+        "top_radius": "0",
+        "height": "340",
+        "sides": "12",
+        "height_steps": "5",
+        "capped": "True"
+      },
+      "asset": null,
+      "x": 30,
+      "y": 360
+    },
+    "move_crown_low": {
+      "verb": "mesh_transform",
+      "params": {
+        "x": "0",
+        "y": "0",
+        "z": "190",
+        "pitch": "0",
+        "yaw": "0",
+        "roll": "0",
+        "scale_x": "1",
+        "scale_y": "1",
+        "scale_z": "1"
+      },
+      "asset": null,
+      "x": 300,
+      "y": 360
+    },
+    "crown_mid": {
+      "verb": "mesh_cone",
+      "params": {
+        "base_radius": "175",
+        "top_radius": "0",
+        "height": "300",
+        "sides": "12",
+        "height_steps": "5",
+        "capped": "True"
+      },
+      "asset": null,
+      "x": 30,
+      "y": 770
+    },
+    "move_crown_mid": {
+      "verb": "mesh_transform",
+      "params": {
+        "x": "0",
+        "y": "0",
+        "z": "360",
+        "pitch": "0",
+        "yaw": "15",
+        "roll": "0",
+        "scale_x": "1",
+        "scale_y": "1",
+        "scale_z": "1"
+      },
+      "asset": null,
+      "x": 300,
+      "y": 770
+    },
+    "crown_top": {
+      "verb": "mesh_cone",
+      "params": {
+        "base_radius": "115",
+        "top_radius": "0",
+        "height": "240",
+        "sides": "12",
+        "height_steps": "5",
+        "capped": "True"
+      },
+      "asset": null,
+      "x": 30,
+      "y": 1180
+    },
+    "move_crown_top": {
+      "verb": "mesh_transform",
+      "params": {
+        "x": "0",
+        "y": "0",
+        "z": "510",
+        "pitch": "0",
+        "yaw": "30",
+        "roll": "0",
+        "scale_x": "1",
+        "scale_y": "1",
+        "scale_z": "1"
+      },
+      "asset": null,
+      "x": 300,
+      "y": 1180
+    },
+    "assemble_tree": {
+      "verb": "mesh_merge",
+      "params": {},
+      "asset": null,
+      "x": 610,
+      "y": 620
+    },
+    "tree_normals": {
+      "verb": "mesh_normals",
+      "params": {
+        "angle_weighted": "True",
+        "area_weighted": "True"
+      },
+      "asset": null,
+      "x": 840,
+      "y": 620
+    },
+    "tree_asset": {
+      "verb": "mesh_to_static",
+      "params": {
+        "name": "TreeGen_Pine_Test",
+        "folder": "/Game/Jam/Meshes",
+        "collision": "True",
+        "recompute_tangents": "True"
+      },
+      "asset": null,
+      "x": 1070,
+      "y": 620
+    },
+    "preview_tree": {
+      "verb": "place",
+      "params": {
+        "x": "0",
+        "y": "0",
+        "z": "0",
+        "view": "False",
+        "surface": "False",
+        "anchor": "base",
+        "sink": "0",
+        "align": "False",
+        "physics": "False",
+        "yaw": "0",
+        "scale": "1"
+      },
+      "asset": null,
+      "x": 1340,
+      "y": 620
+    }
+  },
+  "edges": [
+    ["crown_low", "out", "move_crown_low", "in"],
+    ["crown_mid", "out", "move_crown_mid", "in"],
+    ["crown_top", "out", "move_crown_top", "in"],
+    ["trunk", "out", "assemble_tree", "in"],
+    ["move_crown_low", "out", "assemble_tree", "in"],
+    ["move_crown_mid", "out", "assemble_tree", "in"],
+    ["move_crown_top", "out", "assemble_tree", "in"],
+    ["assemble_tree", "out", "tree_normals", "in"],
+    ["tree_normals", "out", "tree_asset", "in"],
+    ["tree_asset", "out", "preview_tree", "in"]
+  ]
+}

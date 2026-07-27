@@ -1,0 +1,461 @@
+{
+	"nodes":
+	{
+		"curve":
+		{
+			"verb": "curve_bezier",
+			"params":
+			{
+				"start_x": "0",
+				"start_y": "0",
+				"start_z": "0",
+				"end_x": "40",
+				"end_y": "0",
+				"end_z": "600",
+				"bend_x": "80",
+				"bend_y": "30",
+				"bend_z": "0",
+				"segments": "16"
+			},
+			"asset": null,
+			"x": 30,
+			"y": 40
+		},
+		"frames":
+		{
+			"verb": "curve_frames",
+			"params":
+			{
+				"count": "12",
+				"start": "0.10",
+				"end": "0.95",
+				"radial_offset": "18",
+				"turns": "2",
+				"angle_offset": "0",
+				"radius_start": "55",
+				"radius_end": "8",
+				"samples": "32",
+				"seed": "1977"
+			},
+			"asset": null,
+			"x": 350,
+			"y": 40
+		},
+		"distribute":
+		{
+			"verb": "distribute_frames",
+			"params":
+			{
+				"count": "18",
+				"start": "0.15",
+				"end": "0.92",
+				"rotate_per_index": "137.5",
+				"angle_offset": "0",
+				"angle_jitter": "6",
+				"parameter_jitter": "0.02",
+				"seed": "1977"
+			},
+			"asset": null,
+			"x": 680,
+			"y": 40
+		},
+		"transform":
+		{
+			"verb": "transform_frames",
+			"params":
+			{
+				"offset_x": "0",
+				"offset_y": "0",
+				"offset_z": "12",
+				"pitch": "8",
+				"yaw": "0",
+				"roll": "0",
+				"scale": "0.85",
+				"offset_jitter_x": "6",
+				"offset_jitter_y": "4",
+				"offset_jitter_z": "3",
+				"pitch_jitter": "5",
+				"yaw_jitter": "8",
+				"roll_jitter": "12",
+				"scale_jitter": "0.12",
+				"inherit_scale": "true",
+				"seed": "1977"
+			},
+			"asset": null,
+			"x": 1010,
+			"y": 40
+		},
+		"branches":
+		{
+			"verb": "branch_from_frames",
+			"params":
+			{
+				"length_min": "180",
+				"length_max": "300",
+				"angle": "62",
+				"angle_jitter": "8",
+				"curl": "28",
+				"curl_jitter": "12",
+				"segments": "10",
+				"inherit_scale": "true",
+				"seed": "1977"
+			},
+			"asset": null,
+			"x": 1340,
+			"y": 40
+		},
+		"trunk_profile":
+		{
+			"verb": "graph_curve",
+			"params":
+			{
+				"start_value": "1.0",
+				"end_value": "0.24",
+				"shape": "custom",
+				"power": "2.0",
+				"midpoint": "0.58",
+				"mid_value": "0.72",
+				"samples": "17"
+			},
+			"asset": null,
+			"x": 1010,
+			"y": 540
+		},
+		"trunk_pipe":
+		{
+			"verb": "mesh_pipe_profile",
+			"params":
+			{
+				"profile": "",
+				"radius": "52",
+				"sides": "12",
+				"samples": "24",
+				"capped": "true",
+				"profile_rotation": "0",
+				"miter_limit": "4"
+			},
+			"asset": null,
+			"x": 1340,
+			"y": 540
+		},
+		"branch_profile":
+		{
+			"verb": "graph_curve",
+			"params":
+			{
+				"start_value": "1.0",
+				"end_value": "0.10",
+				"shape": "ease_in",
+				"power": "1.8",
+				"midpoint": "0.5",
+				"mid_value": "0.65",
+				"samples": "13"
+			},
+			"asset": null,
+			"x": 1340,
+			"y": 300
+		},
+		"branch_pipe":
+		{
+			"verb": "mesh_pipe_profile",
+			"params":
+			{
+				"profile": "",
+				"radius": "12",
+				"sides": "7",
+				"samples": "12",
+				"capped": "true",
+				"profile_rotation": "0",
+				"miter_limit": "4"
+			},
+			"asset": null,
+			"x": 1670,
+			"y": 40
+		},
+		"merge":
+		{
+			"verb": "mesh_merge",
+			"params": {},
+			"asset": null,
+			"x": 2000,
+			"y": 280
+		},
+		"color":
+		{
+			"verb": "mesh_color",
+			"params":
+			{
+				"color": "#76502F"
+			},
+			"asset": null,
+			"x": 2250,
+			"y": 280
+		},
+		"wood_uv":
+		{
+			"verb": "mesh_uv_scale",
+			"params":
+			{
+				"u": "2.0",
+				"v": "6.0",
+				"channel": "0",
+				"origin_u": "0.0",
+				"origin_v": "0.0"
+			},
+			"asset": null,
+			"x": 2500,
+			"y": 280
+		},
+		"wood_material":
+		{
+			"verb": "mesh_material",
+			"params":
+			{
+				"material": "/Engine/EngineDebugMaterials/VertexColorMaterial.VertexColorMaterial"
+			},
+			"asset": null,
+			"x": 2750,
+			"y": 280
+		},
+		"normals":
+		{
+			"verb": "mesh_normals",
+			"params":
+			{
+				"angle_weighted": "true",
+				"area_weighted": "true"
+			},
+			"asset": null,
+			"x": 3000,
+			"y": 280
+		},
+		"tree_asset":
+		{
+			"verb": "mesh_to_static",
+			"params":
+			{
+				"name": "TreeGen_FrameFlow_Test",
+				"folder": "/Game/Jam/Meshes",
+				"collision": "true",
+				"recompute_tangents": "true",
+				"show_vertex_colors": "false"
+			},
+			"asset": null,
+			"x": 3250,
+			"y": 280
+		},
+		"preview":
+		{
+			"verb": "place",
+			"params":
+			{
+				"asset": "",
+				"x": "0",
+				"y": "0",
+				"z": "0",
+				"view": "false",
+				"surface": "false",
+				"anchor": "base",
+				"sink": "0",
+				"align": "false",
+				"physics": "false",
+				"yaw": "0",
+				"scale": "1"
+			},
+			"asset": null,
+			"x": 3520,
+			"y": 280
+		},
+		"frond_asset":
+		{
+			"verb": "asset",
+			"params":
+			{
+				"name": "PineFrond"
+			},
+			"asset": null,
+			"x": 1010,
+			"y": 760
+		},
+		"foliage":
+		{
+			"verb": "hism_output",
+			"params":
+			{
+				"name": "TreeGen_Foliage",
+				"asset_offset_x": "0",
+				"asset_offset_y": "0",
+				"asset_offset_z": "0",
+				"asset_pitch": "0",
+				"asset_yaw": "0",
+				"asset_roll": "0",
+				"asset_scale": "1.0",
+				"inherit_scale": "true"
+			},
+			"asset": null,
+			"x": 1670,
+			"y": 900
+		},
+		"leaf_card_asset":
+		{
+			"verb": "asset",
+			"params":
+			{
+				"name": "/Engine/BasicShapes/Plane.Plane"
+			},
+			"asset": null,
+			"x": 680,
+			"y": 960
+		},
+		"foliage_set":
+		{
+			"verb": "asset_set",
+			"params": {},
+			"asset": null,
+			"x": 1010,
+			"y": 900
+		},
+		"foliage_choose":
+		{
+			"verb": "choose_asset",
+			"params":
+			{
+				"assets": "",
+				"mode": "random",
+				"seed": "3107"
+			},
+			"asset": null,
+			"x": 1340,
+			"y": 900
+		}
+	},
+	"edges":
+	[
+		[
+			"curve",
+			"out",
+			"frames",
+			"in"
+		],
+		[
+			"frames",
+			"out",
+			"distribute",
+			"in"
+		],
+		[
+			"distribute",
+			"out",
+			"transform",
+			"in"
+		],
+		[
+			"transform",
+			"out",
+			"branches",
+			"in"
+		],
+		[
+			"curve",
+			"out",
+			"trunk_pipe",
+			"in"
+		],
+		[
+			"trunk_profile",
+			"out",
+			"trunk_pipe",
+			"profile"
+		],
+		[
+			"branches",
+			"out",
+			"branch_pipe",
+			"in"
+		],
+		[
+			"branch_profile",
+			"out",
+			"branch_pipe",
+			"profile"
+		],
+		[
+			"trunk_pipe",
+			"out",
+			"merge",
+			"in"
+		],
+		[
+			"branch_pipe",
+			"out",
+			"merge",
+			"in"
+		],
+		[
+			"merge",
+			"out",
+			"color",
+			"in"
+		],
+		[
+			"frond_asset",
+			"out",
+			"foliage_set",
+			"in"
+		],
+		[
+			"leaf_card_asset",
+			"out",
+			"foliage_set",
+			"in"
+		],
+		[
+			"transform",
+			"out",
+			"foliage_choose",
+			"in"
+		],
+		[
+			"foliage_set",
+			"out",
+			"foliage_choose",
+			"assets"
+		],
+		[
+			"foliage_choose",
+			"out",
+			"foliage",
+			"in"
+		],
+		[
+			"color",
+			"out",
+			"wood_uv",
+			"in"
+		],
+		[
+			"wood_uv",
+			"out",
+			"wood_material",
+			"in"
+		],
+		[
+			"wood_material",
+			"out",
+			"normals",
+			"in"
+		],
+		[
+			"normals",
+			"out",
+			"tree_asset",
+			"in"
+		],
+		[
+			"tree_asset",
+			"out",
+			"preview",
+			"in"
+		]
+	]
+}

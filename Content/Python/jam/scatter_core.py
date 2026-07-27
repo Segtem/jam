@@ -23,7 +23,9 @@ from .geometry import Vec3
 
 # pos: punto en la superficie · normal: normal de la superficie · slope: grados desde la horizontal
 # (0 = piso plano, 90 = pared) · seed: semilla estable de esta instancia · uv: coords 0..1 en la región
-Sample = namedtuple("Sample", "pos normal slope seed uv")
+# weight: máscara ESCALAR 0..1 del punto (el gris de una máscara de shader) — la escriben/combinan las
+# ops de Weight y un aplicador la vuelve decisión (cull) o escala. Default 1.0 = «pasa entero».
+Sample = namedtuple("Sample", "pos normal slope seed uv weight", defaults=(1.0,))
 
 
 # ---------- generadores de candidatos (x,y) en una región [centro ± semi] ----------
