@@ -547,13 +547,14 @@ def t_transform_frames(frame_input, *, offset_x=0.0, offset_y=0.0, offset_z=0.0,
 def t_branch_from_frames(frame_input, *, length_min=200.0, length_max=400.0,
                          angle=55.0, angle_jitter=0.0, curl=20.0,
                          curl_jitter=0.0, segments=8, inherit_scale=True,
-                         seed=7) -> str:
+                         relative_to_parent=False, profile=None, seed=7) -> str:
     from . import curve
     result = curve.branch_from_frames(
         frame_input, length_min=float(length_min), length_max=float(length_max),
         angle=float(angle), angle_jitter=float(angle_jitter), curl=float(curl),
         curl_jitter=float(curl_jitter), segments=int(segments),
-        inherit_scale=bool(inherit_scale), seed=int(seed),
+        inherit_scale=bool(inherit_scale),
+        relative_to_parent=bool(relative_to_parent), profile=profile, seed=int(seed),
     )
     if "error" in result:
         raise RuntimeError(result["error"])
@@ -985,8 +986,11 @@ REGISTRO = {
                                       "angle": 55.0, "angle_jitter": 0.0,
                                       "curl": 20.0, "curl_jitter": 0.0,
                                       "segments": 8, "inherit_scale": True,
+                                      "relative_to_parent": False, "profile": "",
                                       "seed": 7},
-                           "doc": "crea una curva hija S por cada frame F, con longitud, ángulo y curl deterministas"},
+                           "data_params": {"profile": "N[]"},
+                           "optional_data_params": ("profile",),
+                           "doc": "crea una curva hija S por cada frame F. «relative_to_parent» mide el largo como fracción del padre en vez de centímetros; el perfil N[] opcional lo modula según dónde nace sobre el padre (silueta cónica)"},
     "asset_set": {"fn": t_asset_set, "cat": "Mesh", "graph_only": True,
                   "params": {}, "require_main_inputs": True,
                   "doc": "combina dos o más assets A como una colección ordenada A[] de variantes"},

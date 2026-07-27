@@ -32,8 +32,8 @@
 				"radial_offset": "16",
 				"turns": "1.6",
 				"angle_offset": "0",
-				"radius_start": "95",
-				"radius_end": "20",
+				"radius_start": "62",
+				"radius_end": "16",
 				"samples": "32",
 				"seed": "1977"
 			},
@@ -90,14 +90,16 @@
 			"verb": "branch_from_frames",
 			"params":
 			{
-				"length_min": "380",
-				"length_max": "620",
-				"angle": "58",
+				"length_min": "0.21",
+				"length_max": "0.34",
+				"angle": "61",
 				"angle_jitter": "8",
 				"curl": "26",
 				"curl_jitter": "12",
 				"segments": "10",
 				"inherit_scale": "true",
+				"relative_to_parent": "true",
+				"profile": "",
 				"seed": "1977"
 			},
 			"asset": null,
@@ -173,14 +175,16 @@
 			"verb": "branch_from_frames",
 			"params":
 			{
-				"length_min": "130",
-				"length_max": "220",
+				"length_min": "0.28",
+				"length_max": "0.42",
 				"angle": "48",
 				"angle_jitter": "12",
 				"curl": "34",
 				"curl_jitter": "16",
 				"segments": "6",
 				"inherit_scale": "true",
+				"relative_to_parent": "true",
+				"profile": "",
 				"seed": "4021"
 			},
 			"asset": null,
@@ -293,6 +297,40 @@
 			"x": 4310,
 			"y": 1060
 		},
+		"l1_length_profile":
+		{
+			"verb": "graph_curve",
+			"params":
+			{
+				"start_value": "1.0",
+				"end_value": "0.22",
+				"shape": "ease_out",
+				"power": "1.4",
+				"midpoint": "0.5",
+				"mid_value": "0.6",
+				"samples": "13"
+			},
+			"asset": null,
+			"x": 1010,
+			"y": 300
+		},
+		"l2_length_profile":
+		{
+			"verb": "graph_curve",
+			"params":
+			{
+				"start_value": "1.0",
+				"end_value": "0.45",
+				"shape": "linear",
+				"power": "1.0",
+				"midpoint": "0.5",
+				"mid_value": "0.7",
+				"samples": "9"
+			},
+			"asset": null,
+			"x": 2000,
+			"y": 460
+		},
 		"trunk_profile":
 		{
 			"verb": "graph_curve",
@@ -316,7 +354,7 @@
 			"params":
 			{
 				"profile": "",
-				"radius": "95",
+				"radius": "62",
 				"sides": "12",
 				"samples": "44",
 				"capped": "true",
@@ -594,6 +632,18 @@
 			"trunk_profile",
 			"out",
 			"trunk_pipe",
+			"profile"
+		],
+		[
+			"l1_length_profile",
+			"out",
+			"l1_branches",
+			"profile"
+		],
+		[
+			"l2_length_profile",
+			"out",
+			"l2_branches",
 			"profile"
 		],
 		[

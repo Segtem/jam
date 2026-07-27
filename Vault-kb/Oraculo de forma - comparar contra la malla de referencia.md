@@ -175,7 +175,7 @@ Jam, y ahí se corre el grafo y la comparación. No se importó ni se modificó 
 
 ## Verificación
 
-- Suite Python headless: **122/122** (`test_compare.py` tiene 17).
+- Suite Python headless: **127/127** (`test_compare.py` tiene 17).
 - El núcleo puro se prueba solo: invariancia de escala del perfil, mallas planas y vacías, ancho por el
   eje más ancho, sección faltante sin tolerancia, orden por gravedad, perfil que detecta masa ausente
   abajo, tolerancias configurables y simetría de la distancia.
@@ -264,6 +264,47 @@ que tenés no vieron nada.
 
 El ciclo sano: el oráculo caza lo que ya sabemos mirar, el humano caza lo nuevo, y lo nuevo se
 convierte en oráculo. Desarrollado en `docs/Oraculo de Jam - guia completa.md` §9.9.
+
+## Cierre 2026-07-27 — largo relativo al padre y perfil de rama
+
+El arreglo que la corrección anterior dejaba pendiente. `branch_from_frames` gana dos controles:
+
+- **`relative_to_parent`**: interpreta `length_min/max` como FRACCIÓN del largo del padre en vez de
+  centímetros. Requiere `CurveFrame.parent_length`, que ahora se propaga por las cuatro etapas
+  (`curve_frames` lo siembra desde la curva, `distribute`, `transform` e interpolación lo conservan).
+- **`profile` (`N[]`, pin lateral OPCIONAL)**: modula el largo según `frame.parameter`, o sea dónde
+  nace el frame sobre el padre. Es el `BranchScaleCurve` de TreeGen y lo que produce la silueta
+  cónica.
+
+El Preflight ganó el concepto de **pin de datos opcional** (`optional_data_params`): hasta ahora todo
+`data_params` declarado era obligatorio, que es correcto para el perfil de `Pipe with Profile` pero no
+para éste, donde no conectar nada significa «sin modulación».
+
+### El resultado, medido
+
+| | antes (absoluto) | ahora (relativo + perfil) |
+|---|---|---|
+| esbeltez | 3.43 (1.28× ✗) | **2.65** (0.98× ✓) |
+| silueta | 0.246 ✗ | **0.098** ✓ |
+| ancho | 966 (0.71×) | 1250 (0.94×) |
+
+```text
+silueta: radio de cada franja, normalizado al mayor
+  generada      30%   90%  100%   78%   70%   46%   47%   34%
+  referencia    57%  100%   91%   70%   63%   56%   41%   32%
+```
+
+Las ocho métricas en verde.
+
+### La prueba de que el arreglo es estructural
+
+Que las métricas den verde no alcanza —esa fue justamente la lección anterior—, así que hay un test de
+**invariancia de proporción**: se construye el mismo árbol con el tronco a 1650 y a 3300 cm y se
+comprueba que cada rama se duplique con él, que la proporción media rama/tronco no cambie, y que el
+perfil siga afinando de la base a la punta en los dos tamaños.
+
+Con el largo absoluto ese test es imposible de pasar: duplicar el tronco dejaba las ramas donde
+estaban. Es la diferencia entre un arreglo y un ajuste de números.
 
 ## Relacionado
 

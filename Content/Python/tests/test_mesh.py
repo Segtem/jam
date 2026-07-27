@@ -301,6 +301,144 @@ class MeshTests(unittest.TestCase):
         self.assertEqual(branch.pivot_index, 11)
         self.assertEqual(branch.parent_radius, 7.0)
 
+    @staticmethod
+    def _frames_sobre(largo, *, n=6):
+        """Frames repartidos sobre una curva vertical de `largo` cm, con su parent_length."""
+        return curve.FrameSet(tuple(
+            curve.CurveFrame(
+                (0.0, 0.0, largo * i / (n - 1)), (0.0, 0.0, 1.0), (1.0, 0.0, 0.0),
+                i / (n - 1), local_index=i, scale=1.0, parent_length=largo,
+            )
+            for i in range(n)
+        ), parent_count=1)
+
+    def test_branch_length_relative_to_parent_scales_with_the_parent(self):
+        corto = curve.branch_from_frames(
+            self._frames_sobre(600.0), length_min=0.20, length_max=0.20,
+            relative_to_parent=True, angle=90, curl=0, segments=4, seed=1)
+        largo = curve.branch_from_frames(
+            self._frames_sobre(3000.0), length_min=0.20, length_max=0.20,
+            relative_to_parent=True, angle=90, curl=0, segments=4, seed=1)
+
+        self.assertNotIn("error", corto)
+        self.assertNotIn("error", largo)
+        # 20% del padre: el tronco de 600 da ramas de 120, el de 3000 da 600.
+        self.assertAlmostEqual(corto["curve"].paths[0].length, 120.0, delta=1.0)
+        self.assertAlmostEqual(largo["curve"].paths[0].length, 600.0, delta=1.0)
+        # Éste es el bug que motivó todo: en absoluto, el largo NO cambia al alargar el tronco.
+        absoluto_corto = curve.branch_from_frames(
+            self._frames_sobre(600.0), length_min=120, length_max=120,
+            angle=90, curl=0, segments=4, seed=1)["curve"].paths[0].length
+        absoluto_largo = curve.branch_from_frames(
+            self._frames_sobre(3000.0), length_min=120, length_max=120,
+            angle=90, curl=0, segments=4, seed=1)["curve"].paths[0].length
+        self.assertAlmostEqual(absoluto_corto, absoluto_largo, delta=1.0)
+        self.assertIn("% del padre", largo["info"])
+
+    def test_branch_profile_tapers_the_length_along_the_parent(self):
+        perfil = fields.graph_curve(start_value=1.0, end_value=0.2, shape="linear", samples=9)
+        result = curve.branch_from_frames(
+            self._frames_sobre(1000.0, n=5), length_min=0.30, length_max=0.30,
+            relative_to_parent=True, profile=perfil["series"],
+            angle=90, curl=0, segments=4, seed=1)
+
+        self.assertNotIn("error", result)
+        largos = [p.length for p in result["curve"].paths]
+        # La rama de la base mide 1.0× y la de la punta 0.2× ⇒ silueta cónica.
+        self.assertAlmostEqual(largos[0], 300.0, delta=2.0)
+        self.assertAlmostEqual(largos[-1], 60.0, delta=2.0)
+        self.assertEqual(largos, sorted(largos, reverse=True))
+        self.assertIn("perfil linear", result["info"])
+
+    def test_branch_relative_and_profile_validate_their_inputs(self):
+        frames = self._frames_sobre(1000.0)
+        # En modo relativo, length_max es una fracción: 200 sería 200 veces el padre.
+        self.assertIn("fracciones del padre", curve.branch_from_frames(
+            frames, length_min=100, length_max=200, relative_to_parent=True)["error"])
+        # Frames sin curva padre (armados a mano) no pueden usar el modo relativo.
+        sueltos = curve.FrameSet((curve.CurveFrame(
+            (0.0, 0.0, 0.0), (0.0, 0.0, 1.0), (1.0, 0.0, 0.0), 0.0),), parent_count=1)
+        self.assertIn("largo de padre", curve.branch_from_frames(
+            sueltos, length_min=0.2, length_max=0.2, relative_to_parent=True)["error"])
+        self.assertIn("serie N[] válida", curve.branch_from_frames(
+            frames, profile=object())["error"])
+        cero = fields.ScalarSeries((0.0, 0.0), "linear")
+        self.assertIn("completamente cero", curve.branch_from_frames(
+            frames, profile=cero)["error"])
+
+    def test_parent_length_survives_the_whole_frame_chain(self):
+        path = curve.bezier(start_z=0, end_z=1000, segments=8)["curve"]
+        f = curve.frame_stream(path, count=6, start=0.1, end=0.9)["frame_set"]
+        d = curve.distribute_frames(f, count=5)["frame_set"]
+        t = curve.transform_frames(d, scale=0.8)["frame_set"]
+
+        # Sin propagación por las cuatro etapas, el modo relativo no tendría contra qué medir.
+        for etapa, conjunto in (("frames", f), ("distribute", d), ("transform", t)):
+            with self.subTest(etapa=etapa):
+                self.assertTrue(all(fr.parent_length > 0 for fr in conjunto.frames))
+                self.assertAlmostEqual(conjunto.frames[0].parent_length, path.length, delta=1.0)
+
+    def test_the_bundled_tree_keeps_its_proportions_when_the_trunk_changes_size(self):
+        """La prueba de que el arreglo es estructural y no un ajuste de números.
+
+        Con el largo en centímetros absolutos, duplicar el tronco dejaba las ramas donde estaban y
+        el árbol se volvía un poste. Con el largo relativo al padre, todo escala junto.
+        """
+        documento = json.loads((
+            Path(__file__).resolve().parents[3]
+            / "Resources" / "Examples" / "TreeGen-Two-Level.jamgraph"
+        ).read_text(encoding="utf-8"))
+
+        def arbol(altura_tronco):
+            p = dict(documento["nodes"]["trunk"]["params"], end_z=str(altura_tronco))
+            tronco = curve.bezier(**{k: (int(v) if k == "segments" else float(v))
+                                     for k, v in p.items()})["curve"]
+            def n(nodo, ints, textos=()):
+                """Params del nodo tal como los guarda el .jamgraph (todo string) a tipos Python."""
+                salida = {}
+                for k, v in documento["nodes"][nodo]["params"].items():
+                    if k == "profile":
+                        continue          # llega por cable, no por campo
+                    if k in textos:
+                        salida[k] = v
+                    elif v.lower() in ("true", "false"):
+                        salida[k] = v.lower() == "true"
+                    else:
+                        salida[k] = int(v) if k in ints else float(v)
+                return salida
+            f = curve.frame_stream(tronco, **n("l1_frames", {"count", "samples", "seed"}))
+            d = curve.distribute_frames(f["frame_set"], **n("l1_distribute", {"count", "seed"}))
+            t = curve.transform_frames(d["frame_set"], **n("l1_transform", {"seed"}))
+            # El perfil llega por cable en el grafo, así que acá se arma desde su nodo.
+            serie = fields.graph_curve(**n("l1_length_profile", {"samples"}, {"shape"}))["series"]
+            b = curve.branch_from_frames(
+                t["frame_set"], profile=serie, **n("l1_branches", {"segments", "seed"}))
+            self.assertNotIn("error", b, b)
+            frames = t["frame_set"].frames
+            # Emparejado con el parámetro de cada frame: 0 en la base del tronco, 1 en la punta.
+            return tronco.length, [(fr.parameter, p.length)
+                                   for fr, p in zip(frames, b["curve"].paths)]
+
+        alto_a, ramas_a = arbol(1650)
+        alto_b, ramas_b = arbol(3300)
+
+        # El tronco se duplica…
+        self.assertAlmostEqual(alto_b / alto_a, 2.0, delta=0.05)
+        # …y las ramas también, rama por rama: la proporción se conserva.
+        for (_pa, corta), (_pb, larga) in zip(ramas_a, ramas_b):
+            self.assertAlmostEqual(larga / corta, 2.0, delta=0.05)
+        media = lambda rs, alto: sum(l for _p, l in rs) / len(rs) / alto  # noqa: E731
+        self.assertAlmostEqual(media(ramas_a, alto_a), media(ramas_b, alto_b), delta=0.01)
+
+        # Y el perfil sigue afinando de la base a la punta en los dos tamaños: las ramas del tercio
+        # bajo son bastante más largas que las del tercio alto.
+        for etiqueta, ramas in (("chico", ramas_a), ("grande", ramas_b)):
+            with self.subTest(arbol=etiqueta):
+                bajas = [l for p, l in ramas if p <= 0.35]
+                altas = [l for p, l in ramas if p >= 0.75]
+                self.assertTrue(bajas and altas, ramas)
+                self.assertGreater(sum(bajas) / len(bajas), 1.5 * sum(altas) / len(altas))
+
     def test_branch_from_frames_curl_and_jitter_are_deterministic(self):
         path = curve.CurvePath(((0.0, 0.0, 0.0), (0.0, 0.0, 100.0)))
         frames = curve.frame_stream(path, count=4)["frame_set"]
@@ -558,8 +696,8 @@ class MeshTests(unittest.TestCase):
 
         self.assertTrue(result["ok"], result)
         document = json.loads(source)
-        self.assertEqual(len(document["nodes"]), 31)
-        self.assertEqual(len(document["edges"]), 33)
+        self.assertEqual(len(document["nodes"]), 33)
+        self.assertEqual(len(document["edges"]), 35)
 
         # Los dos niveles son la MISMA cadena de cuatro verbos aplicada dos veces; que el segundo
         # arranque desde la salida S del primero es lo que hace la jerarquía real.
@@ -571,6 +709,15 @@ class MeshTests(unittest.TestCase):
             self.assertEqual(document["nodes"][f"{prefijo}_branches"]["verb"],
                              "branch_from_frames")
         self.assertIn(["l1_branches", "out", "l2_frames", "in"], document["edges"])
+        # El largo de las ramas es una FRACCIÓN del padre y lo modula un perfil N[]: eso es lo que
+        # hace que el árbol escale como una unidad y tenga silueta cónica en vez de cilíndrica.
+        for nivel in ("l1", "l2"):
+            self.assertEqual(document["nodes"][f"{nivel}_branches"]["params"]["relative_to_parent"],
+                             "true")
+            self.assertLessEqual(
+                float(document["nodes"][f"{nivel}_branches"]["params"]["length_max"]), 1.0)
+            self.assertIn([f"{nivel}_length_profile", "out", f"{nivel}_branches", "profile"],
+                          document["edges"])
         self.assertIn(["l2_branches", "out", "leaf_frames", "in"], document["edges"])
         # Un barrido con perfil propio por nivel, los tres al mismo Merge variádico.
         self.assertEqual(

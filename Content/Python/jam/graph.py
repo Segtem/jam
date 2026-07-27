@@ -401,10 +401,13 @@ def compilar(g: JamGraph, *, registro: dict | None = None, resolver_asset=None,
             error(nid, f"parámetro desconocido: «{desconocido}»")
         efectivos: dict = {}
         data_params = registro[verb].get("data_params", {})
+        # Un pin de datos puede ser OPCIONAL: sin cable, el verbo corre sin ese dato. Es el caso del
+        # perfil de `branch_from_frames`, donde no conectar nada significa «sin modulación».
+        opcionales = set(registro[verb].get("optional_data_params", ()))
         for pin, default in defaults.items():
             origen = param_sources.get((nid, pin))
             if pin in data_params:
-                if origen is None:
+                if origen is None and pin not in opcionales:
                     error(nid, f"requiere conexión {data_params[pin]} en «{pin}»")
                 # El objeto rico se inyecta durante Run; Compile sólo valida existencia y tipo.
                 continue

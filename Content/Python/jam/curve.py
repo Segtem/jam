@@ -63,6 +63,9 @@ class CurveFrame:
     radius: float = 0.0
     seed: int = 0
     pivot_index: int = -1
+    # Largo de la curva de la que nació el frame. Permite que un hijo mida una FRACCIÓN del padre en
+    # vez de centímetros absolutos: sin esto, alargar el tronco deja las ramas donde estaban.
+    parent_length: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -278,7 +281,7 @@ def frame_stream(value, *, count: int = 12, start: float = 0.0, end: float = 1.0
                 frame.position, frame.tangent, frame.outward, frame.parameter,
                 parent_index=parent_index, local_index=local_index,
                 scale=path.scale, radius=radius, seed=frame_seed,
-                pivot_index=len(stream),
+                pivot_index=len(stream), parent_length=path.length,
             ))
 
     frame_set = FrameSet(tuple(stream), len(paths))
@@ -317,6 +320,7 @@ def _interpolate_frame(items: tuple[CurveFrame, ...], fraction: float) -> CurveF
         parent_index=left.parent_index,
         scale=blend(left.scale, right.scale),
         radius=blend(left.radius, right.radius),
+        parent_length=left.parent_length,
     )
 
 
@@ -389,7 +393,7 @@ def distribute_frames(value, *, count: int = 12, start: float = 0.0, end: float 
                 sampled.position, sampled.tangent, outward, sampled.parameter,
                 parent_index=parent_index, local_index=local_index,
                 scale=sampled.scale, radius=sampled.radius, seed=rng_seed,
-                pivot_index=len(output),
+                pivot_index=len(output), parent_length=sampled.parent_length,
             ))
 
     result = FrameSet(tuple(output), value.parent_count)
@@ -512,6 +516,7 @@ def transform_frames(value, *, offset_x: float = 0.0, offset_y: float = 0.0,
             parent_index=frame.parent_index, local_index=frame.local_index,
             scale=parent_scale * local_scale, radius=frame.radius,
             seed=rng_seed, pivot_index=frame.pivot_index,
+            parent_length=frame.parent_length,
         ))
 
     result = FrameSet(tuple(output), value.parent_count)
@@ -526,13 +531,25 @@ def branch_from_frames(value, *, length_min: float = 200.0,
                        length_max: float = 400.0, angle: float = 55.0,
                        angle_jitter: float = 0.0, curl: float = 20.0,
                        curl_jitter: float = 0.0, segments: int = 8,
-                       inherit_scale: bool = True, seed: int = 7) -> dict:
+                       inherit_scale: bool = True, relative_to_parent: bool = False,
+                       profile=None, seed: int = 7) -> dict:
     """Crea una curva hija ``S`` por frame usando su base, jerarquía y escala.
 
     ``angle`` parte de la tangente hacia ``outward``. ``curl`` suma giro gradualmente a lo largo de
     la curva; integrar la dirección por segmentos produce un arco real en lugar de sólo mover el tip.
+
+    Dos controles gobiernan el LARGO, y son los que hacen que el árbol escale y se afine como una
+    unidad en vez de quedar como un poste con muñones:
+
+    - ``relative_to_parent``: interpreta ``length_min/max`` como FRACCIÓN del largo del padre en vez
+      de centímetros. Sin esto, alargar el tronco deja las ramas donde estaban.
+    - ``profile`` (``N[]``): modula el largo según dónde nace el frame sobre el padre (0=base,
+      1=punta). Es el equivalente del ``BranchScaleCurve`` de TreeGen y lo que produce la silueta
+      cónica: ramas largas abajo, cortas arriba.
     """
     import random
+
+    from . import fields
 
     try:
         length_min, length_max = float(length_min), float(length_max)
@@ -556,6 +573,21 @@ def branch_from_frames(value, *, length_min: float = 200.0,
         return {"error": "segments debe estar entre 2 y 128."}
     if len(value.frames) > 4096:
         return {"error": "branch_from_frames no puede producir más de 4096 curvas por nodo."}
+    if relative_to_parent:
+        if length_max > 4.0:
+            return {"error": "con relative_to_parent, length_min/max son fracciones del padre "
+                             "(0..4), no centímetros."}
+        if not any(frame.parent_length > 1e-6 for frame in value.frames):
+            return {"error": "relative_to_parent necesita frames con largo de padre; el stream F "
+                             "tiene que venir de curve_frames sobre una curva real."}
+    if profile is not None and (not isinstance(profile, fields.ScalarSeries)
+                                or len(profile.values) < 2):
+        return {"error": "el perfil de branch_from_frames debe ser una serie N[] válida."}
+    if profile is not None:
+        if any(not math.isfinite(v) or v < 0.0 for v in profile.values):
+            return {"error": "el perfil N[] sólo puede contener factores finitos no negativos."}
+        if not any(v > 0.0 for v in profile.values):
+            return {"error": "el perfil N[] no puede ser completamente cero."}
 
     paths = []
     for frame in value.frames:
@@ -565,7 +597,16 @@ def branch_from_frames(value, *, length_min: float = 200.0,
         ) & 0x7fffffff
         rng = random.Random(rng_seed)
         inherited_scale = frame.scale if inherit_scale else 1.0
-        length = rng.uniform(length_min, length_max) * inherited_scale
+        length = rng.uniform(length_min, length_max)
+        if relative_to_parent:
+            length *= frame.parent_length
+        if profile is not None:
+            # `parameter` es dónde nace el frame sobre su padre: 0 en la base, 1 en la punta.
+            length *= profile.at(frame.parameter)
+        length *= inherited_scale
+        if length <= 1e-6:
+            return {"error": "el largo de una rama quedó en cero; revisá el perfil N[] o "
+                             "length_min/max."}
         branch_angle = min(180.0, max(
             0.0, angle + rng.uniform(-angle_jitter, angle_jitter)
         ))
@@ -595,10 +636,16 @@ def branch_from_frames(value, *, length_min: float = 200.0,
 
     result = CurveSet(tuple(paths))
     inherited = "hereda escala" if inherit_scale else "escala independiente"
+    if relative_to_parent:
+        rango = (f"{length_min * 100:.0f}→{length_max * 100:.0f}% del padre "
+                 f"({min(p.length for p in paths):.0f}→{max(p.length for p in paths):.0f}cm)")
+    else:
+        rango = f"{length_min:.1f}→{length_max:.1f} cm"
+    perfil = f" · perfil {profile.shape}" if profile is not None else ""
     return {
         "curve": result,
         "info": (f"{len(result.paths)} ramas · {segments} segmentos · "
-                 f"{length_min:.1f}→{length_max:.1f} cm · {inherited}"),
+                 f"{rango} · {inherited}{perfil}"),
     }
 
 
