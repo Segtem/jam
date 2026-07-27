@@ -117,6 +117,31 @@ class SiluetaYEsbeltezTests(unittest.TestCase):
         self.assertFalse(esbeltez["ok"])
         self.assertAlmostEqual(esbeltez["razon"], 0.93 / 0.73, places=2)
 
+    def test_solo_forma_compares_shape_without_demanding_the_same_size(self):
+        """La referencia define la FORMA; el tamaño lo decide el juego, no el ejemplo original."""
+        grande = compare.medir(solido(lambda u: 1.0 - 0.9 * u), triangulos=1, secciones=1)
+        chico = compare.medir(
+            [(x * 0.36, y * 0.36, z * 0.36) for x, y, z in solido(lambda u: 1.0 - 0.9 * u)],
+            triangulos=1, secciones=1)
+
+        normal = compare.comparar(chico, grande)
+        self.assertFalse(normal["ok"])
+        self.assertIn(normal["peor"], ("alto", "ancho"))
+
+        forma = compare.comparar(chico, grande, solo_forma=True)
+        self.assertTrue(forma["ok"], forma["texto"])
+        # `alto` y `ancho` se siguen midiendo y mostrando: informan, no juzgan.
+        alto = next(f for f in forma["filas"] if f["metrica"] == "alto")
+        self.assertTrue(alto["ok"])
+        self.assertAlmostEqual(alto["razon"], 0.36, places=2)
+        # Y la proporción y la silueta se siguen exigiendo: no es un cheque en blanco.
+        self.assertAlmostEqual(
+            next(f for f in forma["filas"] if f["metrica"] == "esbeltez")["razon"], 1.0, places=2)
+        estirado = compare.medir(
+            [(x * 0.36, y * 0.36, z * 0.9) for x, y, z in solido(lambda u: 1.0 - 0.9 * u)],
+            triangulos=1, secciones=1)
+        self.assertFalse(compare.comparar(estirado, grande, solo_forma=True)["ok"])
+
     def test_silhouette_distance_is_bounded_and_symmetric(self):
         a, b = (1.0, 0.0), (0.0, 1.0)
         self.assertAlmostEqual(compare.distancia_silueta(a, b), 1.0)

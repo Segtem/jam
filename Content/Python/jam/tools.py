@@ -832,8 +832,9 @@ def t_mesh_normals(mesh_input, *, angle_weighted=True, area_weighted=True) -> st
     return _mesh_output("mesh_normals", result, "NORMALS M")
 
 
-def t_mesh_compare(mesh_input, *, asset=None, franjas=8, alto=0.30, ancho=0.35,
-                   vertices=0.50, triangulos=0.50, perfil=0.15) -> str:
+def t_mesh_compare(mesh_input, *, asset=None, franjas=8, solo_forma=False,
+                   alto=0.30, ancho=0.35, esbeltez=0.20, vertices=0.50,
+                   triangulos=0.50, perfil=0.15, silueta=0.18) -> str:
     """Oráculo de forma: compara `M` contra un StaticMesh de referencia y DEJA PASAR la malla.
 
     No modifica nada. Se intercala antes de `Mesh to Static` para que el mismo Run que construye el
@@ -842,7 +843,8 @@ def t_mesh_compare(mesh_input, *, asset=None, franjas=8, alto=0.30, ancho=0.35,
     from . import mesh
     resultado = mesh.comparar(
         mesh_input, asset, franjas=int(franjas), tolerancia_perfil=float(perfil),
-        alto=float(alto), ancho=float(ancho),
+        tolerancia_silueta=float(silueta), solo_forma=bool(solo_forma),
+        alto=float(alto), ancho=float(ancho), esbeltez=float(esbeltez),
         vertices=float(vertices), triangulos=float(triangulos))
     if "error" in resultado:
         raise RuntimeError(resultado["error"])
@@ -1121,9 +1123,11 @@ REGISTRO = {
                      "doc": "recalcula normales conservando los atributos de la malla M"},
     "mesh_compare": {"fn": t_mesh_compare, "cat": "Mesh", "graph_only": True,
                      "asset_argument": True,
-                     "params": {"franjas": 8, "alto": 0.30, "ancho": 0.35,
-                                "vertices": 0.50, "triangulos": 0.50, "perfil": 0.15},
-                     "doc": "ORÁCULO: compara la malla M contra un StaticMesh de referencia (alto, ancho, conteos, secciones y perfil de masa) y la deja pasar sin tocarla"},
+                     "params": {"franjas": 8, "solo_forma": False,
+                                "alto": 0.30, "ancho": 0.35, "esbeltez": 0.20,
+                                "vertices": 0.50, "triangulos": 0.50,
+                                "perfil": 0.15, "silueta": 0.18},
+                     "doc": "ORÁCULO: compara la malla M contra un StaticMesh de referencia (tamaño, proporción, conteos, secciones, perfil de masa y silueta) y la deja pasar sin tocarla. «solo_forma» compara la FORMA sin exigir el mismo tamaño"},
     "mesh_to_static": {"fn": t_mesh_to_static, "cat": "Mesh", "graph_only": True,
                        "params": {"name": "GeneratedMesh", "folder": "/Game/Jam/Meshes",
                                   "collision": True, "recompute_tangents": True,

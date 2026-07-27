@@ -909,8 +909,8 @@ def medir(source, *, franjas: int = 8) -> dict:
     return {"medida": medida}
 
 
-def comparar(source, referencia, *, franjas: int = 8,
-             tolerancia_perfil: float = 0.15, **tolerancias) -> dict:
+def comparar(source, referencia, *, franjas: int = 8, tolerancia_perfil: float = 0.15,
+             tolerancia_silueta: float = 0.18, solo_forma: bool = False, **tolerancias) -> dict:
     """Mide `source` y la referencia con la MISMA regla y devuelve el diff métrica a métrica."""
     from . import compare
 
@@ -923,8 +923,9 @@ def comparar(source, referencia, *, franjas: int = 8,
 
     limites = {k: float(v) for k, v in tolerancias.items() if v is not None}
     resultado = compare.comparar(
-        izquierda["medida"], derecha["medida"],
-        tolerancias=limites, tolerancia_perfil=float(tolerancia_perfil))
+        izquierda["medida"], derecha["medida"], tolerancias=limites,
+        tolerancia_perfil=float(tolerancia_perfil),
+        tolerancia_silueta=float(tolerancia_silueta), solo_forma=bool(solo_forma))
     resultado["generada"] = izquierda["medida"]
     resultado["referencia"] = derecha["medida"]
     return resultado

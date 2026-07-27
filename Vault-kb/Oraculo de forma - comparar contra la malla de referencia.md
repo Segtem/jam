@@ -175,7 +175,7 @@ Jam, y ahí se corre el grafo y la comparación. No se importó ni se modificó 
 
 ## Verificación
 
-- Suite Python headless: **127/127** (`test_compare.py` tiene 17).
+- Suite Python headless: **128/128** (`test_compare.py` tiene 17).
 - El núcleo puro se prueba solo: invariancia de escala del perfil, mallas planas y vacías, ancho por el
   eje más ancho, sección faltante sin tolerancia, orden por gravedad, perfil que detecta masa ausente
   abajo, tolerancias configurables y simetría de la distancia.
@@ -305,6 +305,41 @@ perfil siga afinando de la base a la punta en los dos tamaños.
 
 Con el largo absoluto ese test es imposible de pasar: duplicar el tronco dejaba las ramas donde
 estaban. Es la diferencia entre un arreglo y un ajuste de números.
+
+## Corrección 2026-07-27 — el tamaño lo decide el juego, no la referencia
+
+Brian, mirando el árbol en el editor: «sigue siendo enorme». Y tenía razón: 33 metros. El error de
+fondo fue **atar el tamaño a la referencia sin preguntar si esa referencia servía**. El Pine de
+TreeGen mide 3574cm de verdad (escala 1:1 en su mapa, verificado), y el ajuste se hizo para igualarlo.
+
+Pero las métricas de forma —`esbeltez`, `silueta`, `perfil`— son **invariantes a escala** a propósito.
+Sólo `alto` y `ancho` comparan tamaño absoluto. Así que bajar el árbol a ~12 m no cuesta nada de lo
+trabajado:
+
+```text
+                 33 m        12 m
+esbeltez     2.65 ✓      2.45 ✓
+silueta      0.098 ✓     0.129 ✓
+perfil       0.135 ✓     0.133 ✓
+alto/ancho   0.93/0.94   0.34/0.37   ← divergen a propósito
+```
+
+La forma sobrevivió intacta al cambio de tamaño. **Ese es el pago del `relative_to_parent`**: se
+cambió la altura del tronco y las ramas la siguieron solas.
+
+### `solo_forma`
+
+El oráculo no podía expresar «esta forma, a MI tamaño»: cualquier árbol que no midiera lo mismo que la
+referencia quedaba en ✗ para siempre. `mesh_compare` gana `solo_forma`: `alto` y `ancho` se siguen
+midiendo y mostrando, pero no juzgan. La proporción y la silueta se siguen exigiendo, así que no es
+un cheque en blanco — un árbol estirado sigue fallando aunque se lo mida en modo forma.
+
+### Lo que todavía NO escala solo
+
+El largo de las ramas es relativo al padre, pero **el radio de los pipes sigue en centímetros
+absolutos**. Bajar el árbol de 33 a 12 m requirió tocar seis números (altura del tronco, curvatura y
+cuatro radios) en vez de uno. El paso siguiente natural es un radio relativo al padre —`ParentRadius`
+en TreeGen— o una escala global del grafo.
 
 ## Relacionado
 

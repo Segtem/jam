@@ -11,9 +11,9 @@
 				"start_z": "0",
 				"end_x": "40",
 				"end_y": "0",
-				"end_z": "3300",
-				"bend_x": "180",
-				"bend_y": "60",
+				"end_z": "1200",
+				"bend_x": "65",
+				"bend_y": "22",
 				"bend_z": "0",
 				"segments": "28"
 			},
@@ -32,8 +32,8 @@
 				"radial_offset": "16",
 				"turns": "1.6",
 				"angle_offset": "0",
-				"radius_start": "62",
-				"radius_end": "16",
+				"radius_start": "23",
+				"radius_end": "6",
 				"samples": "32",
 				"seed": "1977"
 			},
@@ -66,7 +66,7 @@
 			{
 				"offset_x": "0.0",
 				"offset_y": "0.0",
-				"offset_z": "10",
+				"offset_z": "4",
 				"pitch": "6",
 				"yaw": "0.0",
 				"roll": "0.0",
@@ -117,8 +117,8 @@
 				"radial_offset": "6",
 				"turns": "1.0",
 				"angle_offset": "0",
-				"radius_start": "14",
-				"radius_end": "4",
+				"radius_start": "5",
+				"radius_end": "1.5",
 				"samples": "16",
 				"seed": "4021"
 			},
@@ -151,7 +151,7 @@
 			{
 				"offset_x": "0.0",
 				"offset_y": "0.0",
-				"offset_z": "3",
+				"offset_z": "1",
 				"pitch": "10",
 				"yaw": "0.0",
 				"roll": "0.0",
@@ -354,7 +354,7 @@
 			"params":
 			{
 				"profile": "",
-				"radius": "62",
+				"radius": "23",
 				"sides": "12",
 				"samples": "44",
 				"capped": "true",
@@ -388,7 +388,7 @@
 			"params":
 			{
 				"profile": "",
-				"radius": "22",
+				"radius": "8",
 				"sides": "8",
 				"samples": "18",
 				"capped": "true",
@@ -422,7 +422,7 @@
 			"params":
 			{
 				"profile": "",
-				"radius": "5",
+				"radius": "2",
 				"sides": "5",
 				"samples": "8",
 				"capped": "true",

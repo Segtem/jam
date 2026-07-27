@@ -930,6 +930,10 @@ class MeshTests(unittest.TestCase):
         compare_params = {item["nombre"]: item for item in graph_tools["mesh_compare"]["params"]}
         self.assertEqual(compare_params["franjas"]["tipo"], "int")
         self.assertEqual(compare_params["perfil"]["tipo"], "float")
+        self.assertEqual(compare_params["silueta"]["tipo"], "float")
+        self.assertEqual(compare_params["esbeltez"]["tipo"], "float")
+        # Comparar la forma sin exigir el mismo tamaño que el ejemplo de referencia.
+        self.assertEqual(compare_params["solo_forma"]["tipo"], "bool")
         hism_params = {item["nombre"]: item for item in graph_tools["hism_output"]["params"]}
         self.assertEqual(hism_params["name"]["tipo"], "str")
         self.assertEqual(hism_params["inherit_scale"]["tipo"], "bool")

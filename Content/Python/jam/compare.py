@@ -143,7 +143,8 @@ TOLERANCIA_SILUETA = 0.18
 
 def comparar(generada: Medida, referencia: Medida, *, tolerancias: dict | None = None,
              tolerancia_perfil: float = TOLERANCIA_PERFIL,
-             tolerancia_silueta: float = TOLERANCIA_SILUETA) -> dict:
+             tolerancia_silueta: float = TOLERANCIA_SILUETA,
+             solo_forma: bool = False) -> dict:
     """Diff métrica a métrica, ordenado por gravedad.
 
     Devuelve {ok, filas, peor, texto}. `filas` trae, por métrica, el valor de cada lado, la razón y
@@ -152,6 +153,12 @@ def comparar(generada: Medida, referencia: Medida, *, tolerancias: dict | None =
     """
     limites = dict(TOLERANCIAS)
     limites.update(tolerancias or {})
+    # `solo_forma`: la referencia define la FORMA, no el tamaño. Un pino de 12m puede ser idéntico en
+    # proporción y silueta a uno de 35m; querer las dos cosas a la vez es lo que ataba el asset al
+    # tamaño del ejemplo original. `alto` y `ancho` se siguen midiendo y mostrando, pero no juzgan.
+    if solo_forma:
+        limites["alto"] = float("inf")
+        limites["ancho"] = float("inf")
     filas = []
 
     for nombre in ("alto", "ancho", "esbeltez", "vertices", "triangulos"):
