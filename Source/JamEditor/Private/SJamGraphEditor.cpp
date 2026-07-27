@@ -8,6 +8,7 @@
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/Layout/SScrollBox.h"
+#include "Widgets/Images/SImage.h"
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Input/SEditableTextBox.h"
 #include "Widgets/Input/SMultiLineEditableTextBox.h"
@@ -16,6 +17,8 @@
 #include "Framework/MultiBox/MultiBoxBuilder.h"
 #include "Styling/AppStyle.h"
 #include "Styling/CoreStyle.h"
+#include "Brushes/SlateImageBrush.h"
+#include "Interfaces/IPluginManager.h"
 #include "DesktopPlatformModule.h"
 #include "IDesktopPlatform.h"
 #include "Misc/FileHelper.h"
@@ -30,6 +33,59 @@
 
 #define LOCTEXT_NAMESPACE "JamGraphEditor"
 
+// Tipo visual de un pin de parámetro. Es la misma clave que usa DataColor para cables y grips.
+static FString JamParamDataType(const FString& Name, const FString& Type)
+{
+	if (Name.Contains(TEXT("spline"), ESearchCase::IgnoreCase)) { return TEXT("S"); }
+	if (Type == TEXT("bool")) { return TEXT("B"); }
+	if (Type == TEXT("int") || Type == TEXT("float")) { return TEXT("N"); }
+	if (Type == TEXT("str")) { return TEXT("T"); }
+	return FString();
+}
+
+// El mapping vive junto a los SVG para que cambiar un pictograma no obligue a recompilar C++.
+// Se lee una vez al abrir la UI; si el JSON está roto o no existe, los badges/nodos usan su fallback.
+static const TMap<FString, FString>& JamIconMap()
+{
+	static const TMap<FString, FString> Map = []()
+	{
+		TMap<FString, FString> Loaded;
+		const TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(TEXT("Jam"));
+		if (!Plugin.IsValid())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[JamEditor] no encontré el plugin Jam para cargar iconos."));
+			return Loaded;
+		}
+
+		const FString MapPath = FPaths::Combine(
+			Plugin->GetBaseDir(), TEXT("Resources/Icons/Lucide/icon-map.json"));
+		FString Json;
+		TSharedPtr<FJsonObject> Root;
+		if (!FFileHelper::LoadFileToString(Json, *MapPath))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[JamEditor] icon-map.json no se pudo leer: %s"), *MapPath);
+			return Loaded;
+		}
+		const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Json);
+		if (!FJsonSerializer::Deserialize(Reader, Root) || !Root.IsValid())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[JamEditor] icon-map.json no es JSON válido: %s"), *MapPath);
+			return Loaded;
+		}
+
+		for (const TPair<FString, TSharedPtr<FJsonValue>>& Entry : Root->Values)
+		{
+			FString IconName;
+			if (Entry.Value.IsValid() && Entry.Value->TryGetString(IconName) && !IconName.IsEmpty())
+			{
+				Loaded.Add(Entry.Key, IconName);
+			}
+		}
+		return Loaded;
+	}();
+	return Map;
+}
+
 // Capa de fondo del canvas (como el de Grasshopper): pinta el color de fondo, una GRILLA fina
 // alineada al pan/zoom, y los WIRES (splines) — todo detrás de los nodos.
 class SJamWireLayer : public SLeafWidget
@@ -39,11 +95,13 @@ public:
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments&,
-		TFunction<TArray<TPair<FVector2D, FVector2D>>()> InGetter,
-		TFunction<void(FVector2D&, float&)> InXform)
+		TFunction<TArray<SJamGraphEditor::FJamWire>()> InGetter,
+		TFunction<void(FVector2D&, float&)> InXform,
+		TFunction<bool(FVector2D&, FVector2D&, FLinearColor&)> InPending)
 	{
 		Getter = MoveTemp(InGetter);
 		XformGetter = MoveTemp(InXform);
+		PendingGetter = MoveTemp(InPending);
 	}
 
 	virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
@@ -87,27 +145,57 @@ public:
 			}
 		}
 
-		// Wires (splines) entre nodos, sobre la grilla.
+		// Wires (splines) entre nodos, sobre la grilla. Cada uno con su COLOR por tipo de dato (como
+		// Blueprint/Substance): el color dice QUÉ fluye. Un halo claro debajo levanta el contraste sobre
+		// el lienzo gris y ayuda a seguir el cable donde se cruzan.
+		const FSlateBrush* Dot = FAppStyle::GetBrush("WhiteBrush");
 		if (Getter)
 		{
 			const FPaintGeometry PG = AllottedGeometry.ToPaintGeometry();
-			const FLinearColor Tint(0.20f, 0.22f, 0.25f, 0.95f);
-			for (const TPair<FVector2D, FVector2D>& W : Getter())
+			for (const SJamGraphEditor::FJamWire& W : Getter())
 			{
-				const float dx = FMath::Max(50.0f, FMath::Abs(W.Value.X - W.Key.X) * 0.6f);
+				const float dx = FMath::Max(50.0f, FMath::Abs(W.B.X - W.A.X) * 0.6f);
+				const FVector2D T1(dx, 0.0f), T2(dx, 0.0f);
+				// halo claro (más grueso, translúcido) + cable de color encima.
 				FSlateDrawElement::MakeSpline(OutDrawElements, LayerId + 2, PG,
-					W.Key, FVector2D(dx, 0.0f), W.Value, FVector2D(dx, 0.0f), 2.2f,
-					ESlateDrawEffect::None, Tint);
+					W.A, T1, W.B, T2, 5.0f, ESlateDrawEffect::None,
+					FLinearColor(1.0f, 1.0f, 1.0f, 0.55f));
+				FSlateDrawElement::MakeSpline(OutDrawElements, LayerId + 3, PG,
+					W.A, T1, W.B, T2, 2.6f, ESlateDrawEffect::None, W.Color);
+				// punto en cada punta: ancla la conexión visualmente (como los pines de Blueprint).
+				for (const FVector2D& P : {W.A, W.B})
+				{
+					FSlateDrawElement::MakeBox(OutDrawElements, LayerId + 4,
+						AllottedGeometry.ToPaintGeometry(FVector2D(6.0f, 6.0f),
+							FSlateLayoutTransform(P - FVector2D(3.0f, 3.0f))),
+						Dot, ESlateDrawEffect::None, W.Color);
+				}
 			}
 		}
-		return LayerId + 2;
+
+		// Cable-fantasma: del pin de salida armado al cursor, mientras se conecta (el rubber band de
+		// Houdini/GH/Blueprint). Punteado-suave (semitransparente) para distinguirlo de los fijos.
+		FVector2D PF, PT; FLinearColor PC;
+		if (PendingGetter && PendingGetter(PF, PT, PC))
+		{
+			const float dx = FMath::Max(50.0f, FMath::Abs(PT.X - PF.X) * 0.6f);
+			FSlateDrawElement::MakeSpline(OutDrawElements, LayerId + 5, AllottedGeometry.ToPaintGeometry(),
+				PF, FVector2D(dx, 0.0f), PT, FVector2D(dx, 0.0f), 2.4f, ESlateDrawEffect::None,
+				FLinearColor(PC.R, PC.G, PC.B, 0.7f));
+			FSlateDrawElement::MakeBox(OutDrawElements, LayerId + 6,
+				AllottedGeometry.ToPaintGeometry(FVector2D(7.0f, 7.0f),
+					FSlateLayoutTransform(PF - FVector2D(3.5f, 3.5f))),
+				Dot, ESlateDrawEffect::None, PC);
+		}
+		return LayerId + 6;
 	}
 
 	virtual FVector2D ComputeDesiredSize(float) const override { return FVector2D::ZeroVector; }
 
 private:
-	TFunction<TArray<TPair<FVector2D, FVector2D>>()> Getter;
+	TFunction<TArray<SJamGraphEditor::FJamWire>()> Getter;
 	TFunction<void(FVector2D&, float&)> XformGetter;
+	TFunction<bool(FVector2D&, FVector2D&, FLinearColor&)> PendingGetter;
 };
 
 
@@ -115,6 +203,9 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 {
 	Tools = InTools;
 	OnRunGraph = InArgs._OnRunGraph;
+	OnCompileGraph = InArgs._OnCompileGraph;
+	OnBakePreview = InArgs._OnBakePreview;
+	OnDiscardPreview = InArgs._OnDiscardPreview;
 	OnSaveGraph = InArgs._OnSaveGraph;
 	ActiveAsset = InArgs._ActiveAsset;
 	OnOpenContent = InArgs._OnOpenContent;
@@ -216,11 +307,13 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 				SNew(SOverlay)
 				+ SOverlay::Slot()
 				[
-					SNew(SJamWireLayer,
-						TFunction<TArray<TPair<FVector2D, FVector2D>>()>(
+					SAssignNew(WireLayer, SJamWireLayer,
+						TFunction<TArray<FJamWire>()>(
 							[this]() { return GetWireEndpoints(); }),
 						TFunction<void(FVector2D&, float&)>(
-							[this](FVector2D& P, float& Z) { P = PanOffset; Z = Zoom; }))
+							[this](FVector2D& P, float& Z) { P = PanOffset; Z = Zoom; }),
+						TFunction<bool(FVector2D&, FVector2D&, FLinearColor&)>(
+							[this](FVector2D& F, FVector2D& T, FLinearColor& C) { return GetPendingWire(F, T, C); }))
 				]
 				+ SOverlay::Slot()
 				[
@@ -261,14 +354,32 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 			]
 		]
 
-		// Run + salida.
+		// Compile/Run + salida.
 		+ SVerticalBox::Slot().AutoHeight().Padding(6.0f, 2.0f)
 		[
 			SNew(SHorizontalBox)
 			+ SHorizontalBox::Slot().AutoWidth()
 			[
+				SNew(SButton).Text(LOCTEXT("Compile", "✓ Compile"))
+				.ToolTipText(LOCTEXT("CompileTip", "Valida nodos, cables, parámetros y assets sin tocar la escena"))
+				.OnClicked_Lambda([this]() { ValidateGraph(); return FReply::Handled(); })
+			]
+			+ SHorizontalBox::Slot().AutoWidth().Padding(4.0f, 0.0f, 0.0f, 0.0f)
+			[
 				SNew(SButton).Text(LOCTEXT("Run", "▶ Run graph"))
 				.OnClicked_Lambda([this]() { RunGraph(); return FReply::Handled(); })
+			]
+			+ SHorizontalBox::Slot().AutoWidth().Padding(4.0f, 0.0f, 0.0f, 0.0f)
+			[
+				SNew(SButton).Text(LOCTEXT("BakePreview", "✓ Bake"))
+				.ToolTipText(LOCTEXT("BakePreviewTip", "Fija únicamente el Preview creado por este Graph"))
+				.OnClicked_Lambda([this]() { BakePreview(); return FReply::Handled(); })
+			]
+			+ SHorizontalBox::Slot().AutoWidth().Padding(4.0f, 0.0f, 0.0f, 0.0f)
+			[
+				SNew(SButton).Text(LOCTEXT("DiscardPreview", "✗ Discard"))
+				.ToolTipText(LOCTEXT("DiscardPreviewTip", "Elimina únicamente el Preview creado por este Graph"))
+				.OnClicked_Lambda([this]() { DiscardPreview(); return FReply::Handled(); })
 			]
 			+ SHorizontalBox::Slot().AutoWidth().Padding(4.0f, 0.0f, 0.0f, 0.0f)
 			[
@@ -308,12 +419,14 @@ FLinearColor SJamGraphEditor::CategoryColor(const FString& Cat)
 	if (Cat == TEXT("Place"))    { return FLinearColor(0.20f, 0.52f, 0.72f, 1.0f); }
 	if (Cat == TEXT("Scatter"))  { return FLinearColor(0.24f, 0.60f, 0.32f, 1.0f); }
 	if (Cat == TEXT("Create"))   { return FLinearColor(0.62f, 0.34f, 0.66f, 1.0f); }
+	if (Cat == TEXT("Mesh"))     { return FLinearColor(0.18f, 0.56f, 0.56f, 1.0f); }
 	if (Cat == TEXT("Edit"))     { return FLinearColor(0.72f, 0.50f, 0.16f, 1.0f); }
 	if (Cat == TEXT("Params"))   { return FLinearColor(0.44f, 0.44f, 0.48f, 1.0f); }
 	if (Cat == TEXT("Maths"))    { return FLinearColor(0.78f, 0.28f, 0.42f, 1.0f); }
 	if (Cat == TEXT("Source"))   { return FLinearColor(0.24f, 0.58f, 0.40f, 1.0f); }
 	if (Cat == TEXT("Vector"))   { return FLinearColor(0.36f, 0.44f, 0.62f, 1.0f); }
 	if (Cat == TEXT("Mask"))     { return FLinearColor(0.78f, 0.46f, 0.14f, 1.0f); }
+	if (Cat == TEXT("Weight"))   { return FLinearColor(0.46f, 0.52f, 0.58f, 1.0f); }   // gris frío = máscara gris
 	if (Cat == TEXT("Sets"))     { return FLinearColor(0.30f, 0.52f, 0.56f, 1.0f); }
 	if (Cat == TEXT("Transform")){ return FLinearColor(0.50f, 0.40f, 0.24f, 1.0f); }
 	if (Cat == TEXT("Combine"))  { return FLinearColor(0.26f, 0.46f, 0.70f, 1.0f); }
@@ -344,6 +457,11 @@ FString SJamGraphEditor::VerbCode(const FString& Verb)
 		{TEXT("pts_line"), TEXT("LN")}, {TEXT("pts_circle"), TEXT("CR")}, {TEXT("pts_rect"), TEXT("RC")},
 		{TEXT("pts_arc"), TEXT("AR")}, {TEXT("relax"), TEXT("RX")}, {TEXT("weave"), TEXT("WV")},
 		{TEXT("info"), TEXT("i")},
+		{TEXT("weight_slope"), TEXT("WS")}, {TEXT("weight_height"), TEXT("WH")},
+		{TEXT("weight_noise"), TEXT("WN")}, {TEXT("weight_radial"), TEXT("WR")},
+		{TEXT("weight_invert"), TEXT("1-")}, {TEXT("weight_power"), TEXT("W^")},
+		{TEXT("weight_curve"), TEXT("WC")}, {TEXT("weight_combine"), TEXT("WX")},
+		{TEXT("weight_cull"), TEXT("WK")},
 	};
 	if (const FString* Found = Codes.Find(Verb))
 	{
@@ -358,8 +476,36 @@ FString SJamGraphEditor::VerbCode(const FString& Verb)
 	return Verb.Left(2).ToUpper();
 }
 
-TSharedRef<SWidget> SJamGraphEditor::MakeBadge(const FLinearColor& Color, const FString& Code, float Size)
+FString SJamGraphEditor::IconPathForVerb(const FString& Verb)
 {
+	const FString* IconName = JamIconMap().Find(Verb);
+	const TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(TEXT("Jam"));
+	if (IconName == nullptr || !Plugin.IsValid())
+	{
+		return FString();
+	}
+
+	const FString Path = FPaths::Combine(
+		Plugin->GetBaseDir(), TEXT("Resources/Icons/Lucide"), *IconName + TEXT(".svg"));
+	return IFileManager::Get().FileExists(*Path) ? Path : FString();
+}
+
+TSharedRef<SWidget> SJamGraphEditor::MakeBadge(const FLinearColor& Color, const FString& Code,
+	float Size, const FString& IconPath)
+{
+	TSharedRef<SWidget> Glyph = SNew(STextBlock)
+		.Text(FText::FromString(Code))
+		.ColorAndOpacity(FLinearColor::White)
+		.Font(FCoreStyle::GetDefaultFontStyle("Bold", FMath::Max(6, FMath::RoundToInt(Size * 0.42f))));
+
+	if (!IconPath.IsEmpty())
+	{
+		const TSharedRef<FSlateVectorImageBrush> BadgeBrush = MakeShared<FSlateVectorImageBrush>(
+			IconPath, FVector2D(Size * 0.68f), FLinearColor(0.08f, 0.08f, 0.09f, 1.0f));
+		Glyph = SNew(SImage)
+			.Image_Lambda([BadgeBrush]() -> const FSlateBrush* { return &BadgeBrush.Get(); });
+	}
+
 	return SNew(SBox).WidthOverride(Size).HeightOverride(Size)
 	[
 		SNew(SBorder)
@@ -368,10 +514,7 @@ TSharedRef<SWidget> SJamGraphEditor::MakeBadge(const FLinearColor& Color, const 
 		.HAlign(HAlign_Center).VAlign(VAlign_Center)
 		.Padding(0.0f)
 		[
-			SNew(STextBlock)
-			.Text(FText::FromString(Code))
-			.ColorAndOpacity(FLinearColor::White)
-			.Font(FCoreStyle::GetDefaultFontStyle("Bold", FMath::Max(6, FMath::RoundToInt(Size * 0.42f))))
+			Glyph
 		]
 	];
 }
@@ -400,7 +543,7 @@ void SJamGraphEditor::RebuildTabContent()
 			[
 				SNew(SVerticalBox)
 				+ SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center)
-				[ MakeBadge(Color, VerbCode(Verb), 30.0f) ]
+				[ MakeBadge(Color, VerbCode(Verb), 30.0f, IconPathForVerb(Verb)) ]
 				+ SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center).Padding(0.0f, 2.0f, 0.0f, 0.0f)
 				[
 					SNew(STextBlock)
@@ -446,10 +589,12 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At)
 
 	TArray<FJamNodeParam> Params;
 	// Pin «asset» EXPLÍCITO primero (es la entrada principal): se puede cablear la salida de un nodo
-	// `asset` acá, o escribir el nombre. Sin cable ni texto, cae al asset activo/heredado como antes.
+	// `asset` acá, o escribir el nombre. Vacío es un error de Compile; el Graph nunca hereda en silencio
+	// el asset activo ni el primero de la biblioteca (esa comodidad queda limitada a la Dash Bar).
 	if (T->bAssetPin)
 	{
-		Params.Add(FJamNodeParam(TEXT("asset"), FString()));
+		Params.Add(FJamNodeParam(TEXT("asset"), FString(), TEXT("str"), TArray<FString>(),
+			TEXT("A"), DataColor(TEXT("A"))));
 		Node.PinNames.Add(TEXT("asset"));
 	}
 	for (const FJamParam& P : T->Params)
@@ -460,7 +605,14 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At)
 		{
 			Value = ActiveAsset.Get();
 		}
-		Params.Add(FJamNodeParam(P.Name, Value));
+		// Tipo + opciones del spec → el nodo pinta el widget correcto (toggle/dropdown/texto).
+		TArray<FString> Opts;
+		for (const TSharedPtr<FString>& O : P.Options)
+		{
+			if (O.IsValid()) { Opts.Add(*O); }
+		}
+		const FString DataType = P.DataType.IsEmpty() ? JamParamDataType(P.Name, P.Type) : P.DataType;
+		Params.Add(FJamNodeParam(P.Name, Value, P.Type, Opts, DataType, DataColor(DataType)));
 		Node.PinNames.Add(P.Name);
 	}
 
@@ -471,9 +623,11 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At)
 
 	TSharedRef<SJamGraphNode> Widget = SNew(SJamGraphNode)
 		.Verb(Verb)
-		.Icon(VerbCode(Verb))
+		.IconPath(IconPathForVerb(Verb))
 		.IconColor(CategoryColor(T->Cat))
 		.OutName(T->OutName)
+		.InputColor(DataColor(T->InName))
+		.OutputColor(DataColor(T->OutName))
 		.Params(Params)
 		.HasInput(bHasInput)
 		.OnDragDelta_Lambda([this, Id](const FVector2D& D)
@@ -518,6 +672,7 @@ void SJamGraphEditor::DeleteNode(const FString& Id)
 	Edges.RemoveAll([&Id](const FGEdge& E) { return E.From == Id || E.To == Id; });
 	if (PendingSource == Id) { PendingSource.Empty(); }
 	Nodes.RemoveAll([&Id](const FGNode& X) { return X.Id == Id; });
+	RefreshCabledPins();   // borrar un nodo pudo dejar pines de otros sin su cable
 }
 
 int32 SJamGraphEditor::PinIndex(const FString& Id, const FString& Pin) const
@@ -531,8 +686,101 @@ int32 SJamGraphEditor::PinIndex(const FString& Id, const FString& Pin) const
 	return N->PinNames.IndexOfByKey(Pin);
 }
 
+FString SJamGraphEditor::OutputDataTypeFor(const FString& NodeId, const FString& Pin) const
+{
+	if (Pin != TEXT("out"))
+	{
+		return FString();
+	}
+	const FGNode* N = Nodes.FindByPredicate([&NodeId](const FGNode& X) { return X.Id == NodeId; });
+	const FJamTool* T = N ? FindTool(N->Verb) : nullptr;
+	return T ? T->OutName : FString();
+}
+
+FString SJamGraphEditor::InputDataTypeFor(const FString& NodeId, const FString& Pin) const
+{
+	const FGNode* N = Nodes.FindByPredicate([&NodeId](const FGNode& X) { return X.Id == NodeId; });
+	const FJamTool* T = N ? FindTool(N->Verb) : nullptr;
+	if (N == nullptr || T == nullptr)
+	{
+		return FString();
+	}
+	if (Pin == TEXT("in"))
+	{
+		return (!T->bSource && T->Arity != 0) ? T->InName : FString();
+	}
+	if (!N->PinNames.Contains(Pin))
+	{
+		return FString();
+	}
+	if (Pin == TEXT("asset") && T->bAssetPin)
+	{
+		return TEXT("A");
+	}
+	const FJamParam* P = T->Params.FindByPredicate(
+		[&Pin](const FJamParam& Param) { return Param.Name == Pin; });
+	return P ? (P->DataType.IsEmpty() ? JamParamDataType(P->Name, P->Type) : P->DataType) : FString();
+}
+
+bool SJamGraphEditor::CanConnect(const FString& From, const FString& FromPin, const FString& To,
+	const FString& ToPin, FString& OutError) const
+{
+	if (From == To)
+	{
+		OutError = TEXT("un nodo no puede conectarse a sí mismo");
+		return false;
+	}
+	const FString OutType = OutputDataTypeFor(From, FromPin);
+	if (OutType.IsEmpty())
+	{
+		OutError = FString::Printf(TEXT("%s.%s no es una salida válida"), *From, *FromPin);
+		return false;
+	}
+	const FString InType = InputDataTypeFor(To, ToPin);
+	if (InType.IsEmpty())
+	{
+		OutError = FString::Printf(TEXT("%s.%s no es una entrada válida"), *To, *ToPin);
+		return false;
+	}
+	if (OutType != InType)
+	{
+		OutError = FString::Printf(TEXT("tipo incompatible: %s.%s entrega %s; %s.%s espera %s"),
+			*From, *FromPin, *OutType, *To, *ToPin, *InType);
+		return false;
+	}
+	return true;
+}
+
 void SJamGraphEditor::OnPinClicked(const FString& Id, const FString& Pin, bool bOutput)
 {
+	// Convención de editores nodales: Alt+clic rompe las conexiones del pin. Una entrada elimina los
+	// cables que llegan a ESE pin; una salida elimina todos los que parten de ella. También cancela el
+	// cable fantasma para que soltar Alt no deje una conexión pendiente accidentalmente.
+	if (FSlateApplication::Get().GetModifierKeys().IsAltDown())
+	{
+		const int32 Removed = Edges.RemoveAll([&](const FGEdge& E)
+		{
+			return bOutput
+				? (E.From == Id && E.FromPin == Pin)
+				: (E.To == Id && E.ToPin == Pin);
+		});
+		PendingSource.Empty();
+		PendingSourcePin.Empty();
+		RefreshCabledPins();
+		if (WireLayer.IsValid())
+		{
+			WireLayer->Invalidate(EInvalidateWidgetReason::Paint);
+		}
+		if (Output.IsValid())
+		{
+			Output->SetText(FText::FromString(Removed > 0
+				? FString::Printf(TEXT("desconectado: %s.%s (%d cable%s)"),
+					*Id, *Pin, Removed, Removed == 1 ? TEXT("") : TEXT("s"))
+				: FString::Printf(TEXT("%s.%s no tiene conexiones"), *Id, *Pin)));
+		}
+		return;
+	}
+
 	if (bOutput)
 	{
 		PendingSource = Id;       // armar la salida
@@ -545,34 +793,110 @@ void SJamGraphEditor::OnPinClicked(const FString& Id, const FString& Pin, bool b
 		return;
 	}
 	// clic en una entrada: cierra la conexión si hay una salida armada
-	if (!PendingSource.IsEmpty() && PendingSource != Id)
+	if (!PendingSource.IsEmpty())
 	{
+		const FString SourceId = PendingSource;
+		const FString SourcePin = PendingSourcePin;
+		FString Error;
+		if (!CanConnect(SourceId, SourcePin, Id, Pin, Error))
+		{
+			if (Output.IsValid())
+			{
+				Output->SetText(FText::FromString(FString::Printf(TEXT("conexión rechazada: %s"), *Error)));
+			}
+			PendingSource.Empty();
+			PendingSourcePin.Empty();
+			if (WireLayer.IsValid())
+			{
+				WireLayer->Invalidate(EInvalidateWidgetReason::Paint);
+			}
+			return;
+		}
 		const bool bDup = Edges.ContainsByPredicate([&](const FGEdge& E)
 		{
-			return E.From == PendingSource && E.FromPin == PendingSourcePin && E.To == Id && E.ToPin == Pin;
+			return E.From == SourceId && E.FromPin == SourcePin && E.To == Id && E.ToPin == Pin;
 		});
+		int32 Replaced = 0;
 		if (!bDup)
 		{
-			// un pin de entrada acepta UN cable (salvo «in», que junta varios): reemplazá el previo.
-			if (Pin != TEXT("in"))
+			const FGNode* DestNode = Nodes.FindByPredicate([&Id](const FGNode& X) { return X.Id == Id; });
+			const FJamTool* DestTool = DestNode ? FindTool(DestNode->Verb) : nullptr;
+			// Parámetros y nodos unarios reciben UN cable. Sólo aridad -1 conserva varias entradas `in`.
+			if (Pin != TEXT("in") || DestTool == nullptr || DestTool->Arity != -1)
 			{
-				Edges.RemoveAll([&](const FGEdge& E) { return E.To == Id && E.ToPin == Pin; });
+				Replaced = Edges.RemoveAll([&](const FGEdge& E) { return E.To == Id && E.ToPin == Pin; });
 			}
-			Edges.Add(FGEdge{PendingSource, PendingSourcePin, Id, Pin});
+			Edges.Add(FGEdge{SourceId, SourcePin, Id, Pin});
 		}
 		if (Output.IsValid())
 		{
-			Output->SetText(FText::FromString(FString::Printf(
-				TEXT("wire: %s.%s → %s.%s"), *PendingSource, *PendingSourcePin, *Id, *Pin)));
+			const FString Message = Replaced > 0
+				? FString::Printf(TEXT("wire reemplazado: %s.%s → %s.%s"),
+					*SourceId, *SourcePin, *Id, *Pin)
+				: FString::Printf(TEXT("wire: %s.%s → %s.%s"),
+					*SourceId, *SourcePin, *Id, *Pin);
+			Output->SetText(FText::FromString(Message));
 		}
 	}
 	PendingSource.Empty();
 	PendingSourcePin.Empty();
+	RefreshCabledPins();
+	if (WireLayer.IsValid())
+	{
+		WireLayer->Invalidate(EInvalidateWidgetReason::Paint);
+	}
 }
 
-TArray<TPair<FVector2D, FVector2D>> SJamGraphEditor::GetWireEndpoints() const
+void SJamGraphEditor::RefreshCabledPins()
 {
-	TArray<TPair<FVector2D, FVector2D>> Out;
+	// Por cada nodo, el conjunto de pines de parámetro que hoy reciben un cable. El pin «in» (stream) no
+	// cuenta: no es un campo editable. Cada widget griseará esos inputs.
+	for (FGNode& N : Nodes)
+	{
+		TSet<FString> Pins;
+		for (const FGEdge& E : Edges)
+		{
+			if (E.To == N.Id && E.ToPin != TEXT("in"))
+			{
+				Pins.Add(E.ToPin);
+			}
+		}
+		if (N.Widget.IsValid())
+		{
+			N.Widget->SetCabledPins(Pins);
+		}
+	}
+}
+
+FLinearColor SJamGraphEditor::DataColor(const FString& OutName)
+{
+	// Color por TIPO de dato (como los pines/cables tipados de Blueprint): P=stream de puntos · N=número
+	// · T=texto · B=booleano · A/A[]=asset/set · AF=asset por frame · N[]=serie · H=HISM · S=spline · F=frames · M=malla procedural.
+	if (OutName == TEXT("P")) { return FLinearColor(0.13f, 0.44f, 0.64f, 1.0f); }   // azul  (puntos)
+	if (OutName == TEXT("N")) { return FLinearColor(0.82f, 0.46f, 0.10f, 1.0f); }   // ámbar (número)
+	if (OutName == TEXT("N[]")) { return FLinearColor(0.92f, 0.58f, 0.16f, 1.0f); } // ámbar claro (serie)
+	if (OutName == TEXT("T")) { return FLinearColor(0.52f, 0.30f, 0.66f, 1.0f); }   // violeta (texto)
+	if (OutName == TEXT("B")) { return FLinearColor(0.72f, 0.16f, 0.22f, 1.0f); }   // rojo  (booleano)
+	if (OutName == TEXT("A")) { return FLinearColor(0.20f, 0.52f, 0.28f, 1.0f); }   // verde (actor)
+	if (OutName == TEXT("A[]")) { return FLinearColor(0.28f, 0.62f, 0.36f, 1.0f); } // verde (set assets)
+	if (OutName == TEXT("AF")) { return FLinearColor(0.38f, 0.66f, 0.28f, 1.0f); }  // lima (asset/frame)
+	if (OutName == TEXT("H")) { return FLinearColor(0.16f, 0.50f, 0.46f, 1.0f); }   // verde azulado (HISM)
+	if (OutName == TEXT("S")) { return FLinearColor(0.60f, 0.42f, 0.14f, 1.0f); }   // dorado (spline)
+	if (OutName == TEXT("F")) { return FLinearColor(0.70f, 0.28f, 0.48f, 1.0f); }   // rosa  (frames)
+	if (OutName == TEXT("M")) { return FLinearColor(0.08f, 0.58f, 0.62f, 1.0f); }   // cian (DynamicMesh)
+	return FLinearColor(0.28f, 0.30f, 0.34f, 1.0f);                                 // neutro
+}
+
+FLinearColor SJamGraphEditor::WireColorFor(const FString& NodeId) const
+{
+	const FGNode* N = Nodes.FindByPredicate([&NodeId](const FGNode& X) { return X.Id == NodeId; });
+	const FJamTool* T = N ? FindTool(N->Verb) : nullptr;
+	return DataColor(T ? T->OutName : FString());
+}
+
+TArray<SJamGraphEditor::FJamWire> SJamGraphEditor::GetWireEndpoints() const
+{
+	TArray<FJamWire> Out;
 	const float Half = SJamGraphNode::PinColW * 0.5f;
 	for (const FGEdge& E : Edges)
 	{
@@ -585,17 +909,39 @@ TArray<TPair<FVector2D, FVector2D>> SJamGraphEditor::GetWireEndpoints() const
 			// índice de parámetro), como los grips por parámetro de Grasshopper.
 			const float AY = SJamGraphNode::PinLocalY(-1);
 			const float BY = SJamGraphNode::PinLocalY(PinIndex(E.To, E.ToPin));
-			Out.Add(TPair<FVector2D, FVector2D>(
-				(FVector2D(A->Pos.X + NodeWidth - Half, A->Pos.Y + AY) + PanOffset) * Zoom,
-				(FVector2D(B->Pos.X + Half, B->Pos.Y + BY) + PanOffset) * Zoom));
+			FJamWire W;
+			W.A = (FVector2D(A->Pos.X + NodeWidth - Half, A->Pos.Y + AY) + PanOffset) * Zoom;
+			W.B = (FVector2D(B->Pos.X + Half, B->Pos.Y + BY) + PanOffset) * Zoom;
+			W.Color = WireColorFor(E.From);   // color = tipo del dato que SALE del origen
+			Out.Add(W);
 		}
 	}
 	return Out;
 }
 
+bool SJamGraphEditor::GetPendingWire(FVector2D& OutFrom, FVector2D& OutTo, FLinearColor& OutColor) const
+{
+	if (PendingSource.IsEmpty())
+	{
+		return false;
+	}
+	const FGNode* A = Nodes.FindByPredicate([this](const FGNode& N) { return N.Id == PendingSource; });
+	if (A == nullptr)
+	{
+		return false;
+	}
+	const float Half = SJamGraphNode::PinColW * 0.5f;
+	const float AY = SJamGraphNode::PinLocalY(-1);
+	OutFrom = (FVector2D(A->Pos.X + NodeWidth - Half, A->Pos.Y + AY) + PanOffset) * Zoom;
+	OutTo = LastMousePos;
+	OutColor = WireColorFor(PendingSource);
+	return true;
+}
+
 FString SJamGraphEditor::BuildJson() const
 {
 	TSharedRef<FJsonObject> Root = MakeShared<FJsonObject>();
+	Root->SetNumberField(TEXT("schema_version"), 1);
 	TSharedRef<FJsonObject> NodesObj = MakeShared<FJsonObject>();
 	for (const FGNode& N : Nodes)
 	{
@@ -636,6 +982,19 @@ FString SJamGraphEditor::BuildJson() const
 	return Json;
 }
 
+void SJamGraphEditor::ValidateGraph()
+{
+	if (Nodes.Num() == 0)
+	{
+		if (Output.IsValid()) { Output->SetText(LOCTEXT("Empty", "grafo vacío — agregá nodos.")); }
+		return;
+	}
+	const FString Json = BuildJson();
+	const FString Result = OnCompileGraph.IsBound()
+		? OnCompileGraph.Execute(Json) : FString(TEXT("(sin compilador)"));
+	ApplyGraphResult(Result);
+}
+
 void SJamGraphEditor::RunGraph()
 {
 	if (Nodes.Num() == 0)
@@ -645,6 +1004,31 @@ void SJamGraphEditor::RunGraph()
 	}
 	const FString Json = BuildJson();
 	const FString Result = OnRunGraph.IsBound() ? OnRunGraph.Execute(Json) : FString(TEXT("(sin runner)"));
+	ApplyGraphResult(Result);
+}
+
+void SJamGraphEditor::BakePreview()
+{
+	const FString Result = OnBakePreview.IsBound()
+		? OnBakePreview.Execute() : FString(TEXT("(sin acción Bake)"));
+	if (Output.IsValid())
+	{
+		Output->SetText(FText::FromString(Result));
+	}
+}
+
+void SJamGraphEditor::DiscardPreview()
+{
+	const FString Result = OnDiscardPreview.IsBound()
+		? OnDiscardPreview.Execute() : FString(TEXT("(sin acción Discard)"));
+	if (Output.IsValid())
+	{
+		Output->SetText(FText::FromString(Result));
+	}
+}
+
+void SJamGraphEditor::ApplyGraphResult(const FString& Result)
+{
 
 	// El runner devuelve {report, nodes:{nid:{estado,texto}}}: el reporte va al log y CADA NODO se
 	// pinta con su veredicto del oráculo (verde ✓ / naranja REVISAR / rojo error), como los estados
@@ -678,9 +1062,9 @@ void SJamGraphEditor::RunGraph()
 
 // ---- buscador de nodos (doble clic en el canvas) + pan, como el canvas de Grasshopper ----
 
-void SJamGraphEditor::OpenSearch(const FVector2D& AtLocal)
+void SJamGraphEditor::OpenSearch(const FVector2D& AtCanvas)
 {
-	SearchAt = AtLocal;
+	SearchAt = AtCanvas;
 	bSearchOpen = true;
 	if (SearchField.IsValid())
 	{
@@ -749,7 +1133,13 @@ FReply SJamGraphEditor::OnMouseButtonDoubleClick(const FGeometry& MyGeometry, co
 {
 	if (MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
 	{
-		OpenSearch(MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition()));
+		// El popup es hijo del overlay del CANVAS, no del editor completo. Usar MyGeometry sumaba al Y
+		// la altura de menú+ribbon (~50 px), igual que el antiguo bug del cable fantasma. WireLayer llena
+		// ese mismo overlay y por eso es la referencia correcta incluso con DPI o alturas distintas.
+		const FVector2D AtCanvas = WireLayer.IsValid()
+			? WireLayer->GetCachedGeometry().AbsoluteToLocal(MouseEvent.GetScreenSpacePosition())
+			: MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition());
+		OpenSearch(AtCanvas);
 		return FReply::Handled();
 	}
 	return FReply::Unhandled();
@@ -791,13 +1181,32 @@ FReply SJamGraphEditor::OnMouseButtonDown(const FGeometry& MyGeometry, const FPo
 	if (MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton && bSearchOpen)
 	{
 		CloseSearch();   // clic afuera cierra el buscador
-		return FReply::Handled();
+		return FReply::Handled().SetUserFocus(SharedThis(this), EFocusCause::Mouse);
+	}
+	if (MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
+	{
+		// El fondo recibe foco para deseleccionar el nodo anterior; Supr ya no puede borrar un nodo
+		// después de que el usuario hizo clic en un espacio vacío del canvas.
+		return FReply::Handled().SetUserFocus(SharedThis(this), EFocusCause::Mouse);
 	}
 	return FReply::Unhandled();
 }
 
 FReply SJamGraphEditor::OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
+	// La geometría recibida es la del editor completo (incluye menú + ribbon), pero el cable-fantasma
+	// se pinta en la capa del lienzo. Convertir desde pantalla contra ESA capa evita sumar al extremo
+	// del wire la altura de la cabecera y mantiene cursor/cable alineados con cualquier DPI.
+	if (WireLayer.IsValid())
+	{
+		LastMousePos = WireLayer->GetCachedGeometry().AbsoluteToLocal(
+			MouseEvent.GetScreenSpacePosition());
+	}
+	if (!PendingSource.IsEmpty() && WireLayer.IsValid())
+	{
+		// hay una conexión en curso: repintar la capa de wires para que el cable siga al mouse.
+		WireLayer->Invalidate(EInvalidateWidgetReason::Paint);
+	}
 	if (bPanning && HasMouseCapture())
 	{
 		const float S = MyGeometry.GetAccumulatedLayoutTransform().GetScale();
@@ -826,6 +1235,19 @@ void SJamGraphEditor::FillFileMenu(FMenuBuilder& MB)
 		FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::NewGraph)));
 	MB.AddMenuEntry(LOCTEXT("Open", "Abrir diagrama…"), LOCTEXT("OpenTip", "Cargar un .jamgraph"), FSlateIcon(),
 		FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::OpenDiagram)));
+	MB.AddMenuEntry(LOCTEXT("TreeExample", "Abrir ejemplo: pino procedural"),
+		LOCTEXT("TreeExampleTip", "Carga un árbol low-poly construido con los verbos del tab Mesh"),
+		FSlateIcon(), FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::LoadTreeExample)));
+	MB.AddMenuEntry(LOCTEXT("BranchedTreeExample", "Abrir ejemplo: árbol ramificado TreeGen"),
+		LOCTEXT("BranchedTreeExampleTip", "Carga un árbol construido con curvas Bézier y pipes con taper"),
+		FSlateIcon(), FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::LoadBranchedTreeExample)));
+	MB.AddMenuEntry(LOCTEXT("CurveFramesExample", "Abrir ejemplo: frames de TreeGen"),
+		LOCTEXT("CurveFramesExampleTip", "Carga el flow S → F → ramas → malla para generar un árbol de prueba visible"),
+		FSlateIcon(), FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::LoadCurveFramesExample)));
+	MB.AddMenuEntry(LOCTEXT("TwoLevelExample", "Abrir ejemplo: árbol de dos niveles"),
+		LOCTEXT("TwoLevelExampleTip", "Carga la réplica completa de TreeGen: tronco → ramas → ramitas → follaje HISM"),
+		FSlateIcon(), FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::LoadTwoLevelExample)));
+	MB.AddMenuSeparator();
 	MB.AddMenuEntry(LOCTEXT("Save", "Guardar"), LOCTEXT("SaveTip", "Guardar en el archivo actual"), FSlateIcon(),
 		FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::SaveDiagram, false)));
 	MB.AddMenuEntry(LOCTEXT("SaveAs", "Guardar como…"), LOCTEXT("SaveAsTip", "Elegir archivo"), FSlateIcon(),
@@ -853,8 +1275,18 @@ void SJamGraphEditor::FillDisplayMenu(FMenuBuilder& MB)
 
 void SJamGraphEditor::FillSolutionMenu(FMenuBuilder& MB)
 {
+	MB.AddMenuEntry(LOCTEXT("CompileGraph", "Compile / Validate"),
+		LOCTEXT("CompileGraphTip", "Valida todo el grafo sin ejecutar ni modificar la escena"), FSlateIcon(),
+		FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::ValidateGraph)));
 	MB.AddMenuEntry(LOCTEXT("Recompute", "Run graph (recompute)"), FText::GetEmpty(), FSlateIcon(),
 		FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::RunGraph)));
+	MB.AddMenuSeparator();
+	MB.AddMenuEntry(LOCTEXT("BakeGraphPreview", "Bake / Confirm Preview"),
+		LOCTEXT("BakeGraphPreviewTip", "Fija el Preview creado por este Graph"), FSlateIcon(),
+		FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::BakePreview)));
+	MB.AddMenuEntry(LOCTEXT("DiscardGraphPreview", "Discard Preview"),
+		LOCTEXT("DiscardGraphPreviewTip", "Elimina el Preview creado por este Graph"), FSlateIcon(),
+		FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::DiscardPreview)));
 }
 
 void SJamGraphEditor::NewGraph()
@@ -874,78 +1306,237 @@ void SJamGraphEditor::NewGraph()
 	PendingSource.Empty();
 	PendingSourcePin.Empty();
 	NextId = 1;
+	// `New` inicia un DOCUMENTO nuevo. Conservar esta ruta hacía que el Save siguiente sobrescribiera
+	// silenciosamente el .jamgraph anterior.
+	CurrentPath.Empty();
 	if (Output.IsValid())
 	{
 		Output->SetText(LOCTEXT("NewDone", "grafo vacío."));
 	}
 }
 
-void SJamGraphEditor::LoadGraphJson(const FString& Json)
+bool SJamGraphEditor::LoadGraphJson(const FString& Json)
 {
+	auto Fail = [this](const FString& Message)
+	{
+		if (Output.IsValid()) { Output->SetText(FText::FromString(Message)); }
+		return false;
+	};
+
 	TSharedPtr<FJsonObject> Root;
 	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Json);
 	if (!FJsonSerializer::Deserialize(Reader, Root) || !Root.IsValid())
 	{
-		if (Output.IsValid()) { Output->SetText(LOCTEXT("BadFile", "el archivo no es un diagrama válido.")); }
-		return;
+		return Fail(TEXT("el archivo no es JSON válido; el grafo actual no se modificó."));
 	}
-	NewGraph();
-
-	// nodos: crear por verbo, fijar posición y valores de params; mapear id-de-archivo → id-nuevo.
-	TMap<FString, FString> IdMap;
-	const TSharedPtr<FJsonObject>* NodesObj = nullptr;
-	if (Root->TryGetObjectField(TEXT("nodes"), NodesObj) && NodesObj)
+	double SchemaVersion = 1.0;
+	if (Root->HasField(TEXT("schema_version"))
+		&& !Root->TryGetNumberField(TEXT("schema_version"), SchemaVersion))
 	{
-		for (const TPair<FString, TSharedPtr<FJsonValue>>& KV : (*NodesObj)->Values)
+		return Fail(TEXT("schema_version debe ser numérico; el grafo actual no se modificó."));
+	}
+	if (SchemaVersion > 1.0)
+	{
+		return Fail(FString::Printf(
+			TEXT("schema_version %.0f no soportada (máxima: 1); el grafo actual no se modificó."),
+			SchemaVersion));
+	}
+
+	struct FLoadedNode
+	{
+		FString FileId;
+		FString Verb;
+		FVector2D Pos;
+		TMap<FString, FString> Params;
+	};
+	struct FLoadedEdge
+	{
+		FString From;
+		FString FromPin;
+		FString To;
+		FString ToPin;
+	};
+
+	// Fase 1: validar y convertir TODO a un modelo temporal. Hasta completar esta fase no se llama a
+	// NewGraph ni se toca CurrentPath, selección, zoom o widgets actuales.
+	TArray<FLoadedNode> LoadedNodes;
+	TMap<FString, int32> LoadedNodeIndex;
+	const TSharedPtr<FJsonObject>* NodesObj = nullptr;
+	if (!Root->TryGetObjectField(TEXT("nodes"), NodesObj) || NodesObj == nullptr)
+	{
+		return Fail(TEXT("el diagrama no contiene un objeto 'nodes'; el grafo actual no se modificó."));
+	}
+	for (const TPair<FString, TSharedPtr<FJsonValue>>& KV : (*NodesObj)->Values)
+	{
+		const TSharedPtr<FJsonObject> NO = KV.Value.IsValid() ? KV.Value->AsObject() : nullptr;
+		if (!NO.IsValid())
 		{
-			const TSharedPtr<FJsonObject> NO = KV.Value->AsObject();
-			if (!NO.IsValid()) { continue; }
-			const FString Verb = NO->GetStringField(TEXT("verb"));
-			const FString NewId = AddNode(Verb);
-			if (NewId.IsEmpty()) { continue; }
-			IdMap.Add(KV.Key, NewId);
-			if (FGNode* N = FindNode(NewId))
+			return Fail(FString::Printf(TEXT("el nodo '%s' no es un objeto JSON."), *KV.Key));
+		}
+		FString Verb;
+		double X = 0.0, Y = 0.0;
+		if (!NO->TryGetStringField(TEXT("verb"), Verb) || Verb.IsEmpty())
+		{
+			return Fail(FString::Printf(TEXT("el nodo '%s' no declara un verbo válido."), *KV.Key));
+		}
+		const FJamTool* Tool = FindTool(Verb);
+		if (Tool == nullptr)
+		{
+			return Fail(FString::Printf(TEXT("el nodo '%s' usa el verbo desconocido '%s'."),
+				*KV.Key, *Verb));
+		}
+		if (!NO->TryGetNumberField(TEXT("x"), X) || !NO->TryGetNumberField(TEXT("y"), Y))
+		{
+			return Fail(FString::Printf(TEXT("el nodo '%s' necesita posiciones x/y numéricas."), *KV.Key));
+		}
+
+		FLoadedNode Loaded{KV.Key, Verb, FVector2D(X, Y), {}};
+		const TSharedPtr<FJsonObject>* ParamsObj = nullptr;
+		if (NO->HasField(TEXT("params"))
+			&& (!NO->TryGetObjectField(TEXT("params"), ParamsObj) || ParamsObj == nullptr))
+		{
+			return Fail(FString::Printf(TEXT("params de '%s' debe ser un objeto."), *KV.Key));
+		}
+		if (ParamsObj != nullptr)
+		{
+			for (const TPair<FString, TSharedPtr<FJsonValue>>& PV : (*ParamsObj)->Values)
 			{
-				N->Pos = FVector2D(NO->GetNumberField(TEXT("x")), NO->GetNumberField(TEXT("y")));
-				const TSharedPtr<FJsonObject>* PO = nullptr;
-				if (NO->TryGetObjectField(TEXT("params"), PO) && PO && N->Widget.IsValid())
+				const bool bKnownParam = (PV.Key == TEXT("asset") && Tool->bAssetPin)
+					|| Tool->Params.ContainsByPredicate(
+						[&PV](const FJamParam& Param) { return Param.Name == PV.Key; });
+				if (!bKnownParam)
 				{
-					TMap<FString, FString> Vals;
-					for (const TPair<FString, TSharedPtr<FJsonValue>>& PV : (*PO)->Values)
-					{
-						FString S;
-						if (PV.Value->TryGetString(S)) { Vals.Add(PV.Key, S); }
-					}
-					N->Widget->SetParamValues(Vals);
+					return Fail(FString::Printf(TEXT("parámetro desconocido '%s' en nodo '%s'."),
+						*PV.Key, *KV.Key));
+				}
+				FString Value;
+				double Number = 0.0;
+				bool Boolean = false;
+				if (PV.Value.IsValid() && PV.Value->TryGetString(Value)) {}
+				else if (PV.Value.IsValid() && PV.Value->TryGetNumber(Number))
+				{
+					Value = FString::Printf(TEXT("%.17g"), Number);
+				}
+				else if (PV.Value.IsValid() && PV.Value->TryGetBool(Boolean))
+				{
+					Value = Boolean ? TEXT("True") : TEXT("False");
+				}
+				else
+				{
+					return Fail(FString::Printf(
+						TEXT("parámetro '%s' de '%s' debe ser string, número o booleano."),
+						*PV.Key, *KV.Key));
+				}
+				Loaded.Params.Add(PV.Key, Value);
+			}
+		}
+		LoadedNodeIndex.Add(KV.Key, LoadedNodes.Num());
+		LoadedNodes.Add(MoveTemp(Loaded));
+	}
+
+	TArray<FLoadedEdge> LoadedEdges;
+	const TArray<TSharedPtr<FJsonValue>>* EdgesArr = nullptr;
+	if (Root->HasField(TEXT("edges"))
+		&& (!Root->TryGetArrayField(TEXT("edges"), EdgesArr) || EdgesArr == nullptr))
+	{
+		return Fail(TEXT("'edges' debe ser un array; el grafo actual no se modificó."));
+	}
+	if (EdgesArr != nullptr)
+	{
+		TSet<FString> SeenEdges;
+		TSet<FString> OccupiedInputs;
+		for (int32 EdgeIndex = 0; EdgeIndex < EdgesArr->Num(); ++EdgeIndex)
+		{
+			const TSharedPtr<FJsonValue>& EV = (*EdgesArr)[EdgeIndex];
+			const TArray<TSharedPtr<FJsonValue>>* E = nullptr;
+			if (!EV.IsValid() || !EV->TryGetArray(E) || E == nullptr || (E->Num() != 2 && E->Num() != 4))
+			{
+				return Fail(FString::Printf(TEXT("edge %d debe tener 2 o 4 strings."), EdgeIndex));
+			}
+			FString From, FromPin = TEXT("out"), To, ToPin = TEXT("in");
+			const bool bStrings = E->Num() == 2
+				? (*E)[0]->TryGetString(From) && (*E)[1]->TryGetString(To)
+				: (*E)[0]->TryGetString(From) && (*E)[1]->TryGetString(FromPin)
+					&& (*E)[2]->TryGetString(To) && (*E)[3]->TryGetString(ToPin);
+			if (!bStrings)
+			{
+				return Fail(FString::Printf(TEXT("edge %d contiene un endpoint no textual."), EdgeIndex));
+			}
+			const int32* FromIdx = LoadedNodeIndex.Find(From);
+			const int32* ToIdx = LoadedNodeIndex.Find(To);
+			if (FromIdx == nullptr || ToIdx == nullptr)
+			{
+				return Fail(FString::Printf(TEXT("edge %d referencia un nodo inexistente."), EdgeIndex));
+			}
+			const FJamTool* FromTool = FindTool(LoadedNodes[*FromIdx].Verb);
+			const FJamTool* ToTool = FindTool(LoadedNodes[*ToIdx].Verb);
+			const FString OutType = (FromPin == TEXT("out") && FromTool) ? FromTool->OutName : FString();
+			FString InType;
+			if (ToPin == TEXT("in") && ToTool && !ToTool->bSource && ToTool->Arity != 0)
+			{
+				InType = ToTool->InName;
+			}
+			else if (ToPin == TEXT("asset") && ToTool && ToTool->bAssetPin)
+			{
+				InType = TEXT("A");
+			}
+			else if (ToTool)
+			{
+				if (const FJamParam* Param = ToTool->Params.FindByPredicate(
+					[&ToPin](const FJamParam& P) { return P.Name == ToPin; }))
+				{
+					InType = Param->DataType.IsEmpty()
+						? JamParamDataType(Param->Name, Param->Type) : Param->DataType;
 				}
 			}
-		}
-	}
-	// aristas: [from,to] o [from,from_pin,to,to_pin], con ids traducidos.
-	const TArray<TSharedPtr<FJsonValue>>* EdgesArr = nullptr;
-	if (Root->TryGetArrayField(TEXT("edges"), EdgesArr) && EdgesArr)
-	{
-		for (const TSharedPtr<FJsonValue>& EV : *EdgesArr)
-		{
-			const TArray<TSharedPtr<FJsonValue>>* E = nullptr;
-			if (!EV->TryGetArray(E) || !E) { continue; }
-			FString From, FromPin = TEXT("out"), To, ToPin = TEXT("in");
-			if (E->Num() == 2) { From = (*E)[0]->AsString(); To = (*E)[1]->AsString(); }
-			else if (E->Num() == 4)
+			if (OutType.IsEmpty() || InType.IsEmpty() || OutType != InType)
 			{
-				From = (*E)[0]->AsString(); FromPin = (*E)[1]->AsString();
-				To = (*E)[2]->AsString();   ToPin = (*E)[3]->AsString();
+				return Fail(FString::Printf(TEXT("edge %d tiene pines o tipos incompatibles."), EdgeIndex));
 			}
-			const FString* NF = IdMap.Find(From);
-			const FString* NT = IdMap.Find(To);
-			if (NF && NT) { Edges.Add(FGEdge{*NF, FromPin, *NT, ToPin}); }
+			const FString EdgeKey = From + TEXT("\x1f") + FromPin + TEXT("\x1f") + To + TEXT("\x1f") + ToPin;
+			if (SeenEdges.Contains(EdgeKey))
+			{
+				return Fail(FString::Printf(TEXT("edge %d está duplicado."), EdgeIndex));
+			}
+			SeenEdges.Add(EdgeKey);
+			const bool bSingle = ToPin != TEXT("in") || ToTool == nullptr || ToTool->Arity != -1;
+			const FString InputKey = To + TEXT("\x1f") + ToPin;
+			if (bSingle && OccupiedInputs.Contains(InputKey))
+			{
+				return Fail(FString::Printf(TEXT("el pin %s.%s recibe más de un cable."), *To, *ToPin));
+			}
+			if (bSingle) { OccupiedInputs.Add(InputKey); }
+			LoadedEdges.Add(FLoadedEdge{From, FromPin, To, ToPin});
 		}
 	}
+
+	// Fase 2: el modelo completo es válido; recién ahora reemplazar el documento visible.
+	NewGraph();
+	TMap<FString, FString> IdMap;
+	for (const FLoadedNode& Loaded : LoadedNodes)
+	{
+		const FString NewId = AddNode(Loaded.Verb, &Loaded.Pos);
+		if (NewId.IsEmpty())
+		{
+			return Fail(FString::Printf(TEXT("no pude crear el nodo validado '%s'."), *Loaded.FileId));
+		}
+		IdMap.Add(Loaded.FileId, NewId);
+		if (FGNode* Node = FindNode(NewId); Node && Node->Widget.IsValid())
+		{
+			Node->Widget->SetParamValues(Loaded.Params);
+		}
+	}
+	for (const FLoadedEdge& Loaded : LoadedEdges)
+	{
+		Edges.Add(FGEdge{IdMap[Loaded.From], Loaded.FromPin, IdMap[Loaded.To], Loaded.ToPin});
+	}
+	RefreshCabledPins();   // reflejar en los inputs los cables recién cargados
 	if (Output.IsValid())
 	{
-		Output->SetText(FText::FromString(FString::Printf(TEXT("cargado: %d nodos, %d wires."),
-			Nodes.Num(), Edges.Num())));
+		Output->SetText(FText::FromString(
+			FString::Printf(TEXT("cargado: %d nodos, %d wires."), Nodes.Num(), Edges.Num())));
 	}
+	return true;
 }
 
 void SJamGraphEditor::SaveDiagram(bool bForceDialog)
@@ -964,7 +1555,12 @@ void SJamGraphEditor::SaveDiagram(bool bForceDialog)
 		if (!bOk || Files.Num() == 0) { return; }
 		Path = Files[0];
 	}
-	if (FFileHelper::SaveStringToFile(BuildJson(), *Path))
+	const FString TempPath = Path + TEXT(".tmp");
+	IFileManager::Get().Delete(*TempPath, false, true, true);
+	const bool bWroteTemp = FFileHelper::SaveStringToFile(BuildJson(), *TempPath);
+	const bool bPromoted = bWroteTemp
+		&& IFileManager::Get().Move(*Path, *TempPath, true, true, false, true);
+	if (bPromoted)
 	{
 		CurrentPath = Path;
 		if (Output.IsValid())
@@ -972,6 +1568,12 @@ void SJamGraphEditor::SaveDiagram(bool bForceDialog)
 			Output->SetText(FText::FromString(FString::Printf(TEXT("guardado: %s"), *Path)));
 		}
 	}
+	else if (Output.IsValid())
+	{
+		Output->SetText(FText::FromString(FString::Printf(
+			TEXT("ERROR: no se pudo guardar %s; el archivo anterior no se modificó."), *Path)));
+	}
+	IFileManager::Get().Delete(*TempPath, false, true, true);
 }
 
 void SJamGraphEditor::OpenDiagram()
@@ -986,8 +1588,68 @@ void SJamGraphEditor::OpenDiagram()
 	FString Json;
 	if (FFileHelper::LoadFileToString(Json, *Files[0]))
 	{
-		LoadGraphJson(Json);
-		CurrentPath = Files[0];
+		if (LoadGraphJson(Json))
+		{
+			CurrentPath = Files[0];
+		}
+	}
+}
+
+void SJamGraphEditor::LoadTreeExample()
+{
+	LoadBundledExample(TEXT("TreeGen-Stylized-Pine.jamgraph"),
+		LOCTEXT("TreeExampleLoaded",
+			"ejemplo cargado: pino procedural · Compile y luego Run graph para previsualizarlo."));
+}
+
+void SJamGraphEditor::LoadBranchedTreeExample()
+{
+	LoadBundledExample(TEXT("TreeGen-Branched-Tree.jamgraph"),
+		LOCTEXT("BranchedTreeExampleLoaded",
+			"ejemplo cargado: árbol ramificado TreeGen · Compile y luego Run graph para previsualizarlo."));
+}
+
+void SJamGraphEditor::LoadCurveFramesExample()
+{
+	LoadBundledExample(TEXT("TreeGen-Curve-Frames.jamgraph"),
+		LOCTEXT("CurveFramesExampleLoaded",
+			"ejemplo cargado: flow modular de frames y ramas · Compile y luego Run graph para ver el preview."));
+}
+
+void SJamGraphEditor::LoadTwoLevelExample()
+{
+	LoadBundledExample(TEXT("TreeGen-Two-Level.jamgraph"),
+		LOCTEXT("TwoLevelExampleLoaded",
+			"ejemplo cargado: árbol de dos niveles · Compile y luego Run graph; el follaje sale como HISM aparte."));
+}
+
+void SJamGraphEditor::LoadBundledExample(const FString& Filename, const FText& LoadedMessage)
+{
+	const TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(TEXT("Jam"));
+	if (!Plugin.IsValid())
+	{
+		if (Output.IsValid()) { Output->SetText(LOCTEXT("TreeExampleNoPlugin", "ERROR: no encontré el plugin Jam.")); }
+		return;
+	}
+	const FString Path = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Resources/Examples"), Filename);
+	FString Json;
+	if (!FFileHelper::LoadFileToString(Json, *Path))
+	{
+		if (Output.IsValid())
+		{
+			Output->SetText(FText::FromString(FString::Printf(
+				TEXT("ERROR: no pude leer el ejemplo: %s"), *Path)));
+		}
+		return;
+	}
+	if (LoadGraphJson(Json))
+	{
+		// Es una plantilla: Guardar debe pedir una ruta y nunca escribir sobre el archivo distribuido.
+		CurrentPath.Empty();
+		if (Output.IsValid())
+		{
+			Output->SetText(LoadedMessage);
+		}
 	}
 }
 

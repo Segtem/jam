@@ -131,6 +131,9 @@ void FJamEditorModule::OpenGraph()
 	Win->SetContent(
 		SNew(SJamGraphEditor, Tools)
 		.OnRunGraph_Raw(this, &FJamEditorModule::RunGraphJson)
+		.OnCompileGraph_Raw(this, &FJamEditorModule::CompileGraphJson)
+		.OnBakePreview_Raw(this, &FJamEditorModule::BakeGraphPreview)
+		.OnDiscardPreview_Raw(this, &FJamEditorModule::DiscardGraphPreview)
 		.ActiveAsset_Lambda([this]() { return SelectedAssetName; })
 		.OnOpenContent_Raw(this, &FJamEditorModule::OpenContentWindow)
 		.OnSaveGraph_Raw(this, &FJamEditorModule::SaveGraphAsPreset));
@@ -159,6 +162,23 @@ FString FJamEditorModule::RunGraphJson(const FString& Json)
 	const FString Stmt = FString::Printf(
 		TEXT("import jam.api as _a; print(_a.run_graph_json(%s))"), *ToPyStr(Json));
 	return ExecPythonCapture(Stmt);
+}
+
+FString FJamEditorModule::CompileGraphJson(const FString& Json)
+{
+	const FString Stmt = FString::Printf(
+		TEXT("import jam.api as _a; print(_a.compile_graph_json(%s))"), *ToPyStr(Json));
+	return ExecPythonCapture(Stmt);
+}
+
+FString FJamEditorModule::BakeGraphPreview()
+{
+	return ExecPythonCapture(TEXT("import jam.api as _a; print(_a.confirm('graph'))"));
+}
+
+FString FJamEditorModule::DiscardGraphPreview()
+{
+	return ExecPythonCapture(TEXT("import jam.api as _a; print(_a.discard('graph'))"));
 }
 
 void FJamEditorModule::OpenDashBar()
@@ -288,6 +308,13 @@ void FJamEditorModule::LoadSpec(bool bIncludeFlow)
 		O->TryGetStringField(TEXT("doc"), T.Doc);
 		O->TryGetBoolField(TEXT("source"), T.bSource);
 		O->TryGetBoolField(TEXT("asset_pin"), T.bAssetPin);
+		T.Arity = T.bSource ? 0 : 1;
+		double ArityValue = static_cast<double>(T.Arity);
+		if (O->TryGetNumberField(TEXT("aridad"), ArityValue))
+		{
+			T.Arity = static_cast<int32>(ArityValue);
+		}
+		O->TryGetStringField(TEXT("in_name"), T.InName);
 		O->TryGetStringField(TEXT("out_name"), T.OutName);
 		const TArray<TSharedPtr<FJsonValue>>* Ps = nullptr;
 		if (O->TryGetArrayField(TEXT("params"), Ps) && Ps)
@@ -304,6 +331,7 @@ void FJamEditorModule::LoadSpec(bool bIncludeFlow)
 					{
 						P.Type = TEXT("str");
 					}
+					PO->TryGetStringField(TEXT("data_type"), P.DataType);
 					const TArray<TSharedPtr<FJsonValue>>* Opts = nullptr;
 					if (PO->TryGetArrayField(TEXT("opciones"), Opts) && Opts)
 					{
@@ -660,7 +688,8 @@ void FJamEditorModule::RebuildDashTabContent()
 			[
 				SNew(SVerticalBox)
 				+ SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center)
-				[ SJamGraphEditor::MakeBadge(Color, SJamGraphEditor::VerbCode(Verb), 30.0f) ]
+				[ SJamGraphEditor::MakeBadge(Color, SJamGraphEditor::VerbCode(Verb), 30.0f,
+					SJamGraphEditor::IconPathForVerb(Verb)) ]
 				+ SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center).Padding(0.0f, 2.0f, 0.0f, 0.0f)
 				[
 					SNew(STextBlock)

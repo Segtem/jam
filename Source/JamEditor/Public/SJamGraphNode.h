@@ -4,12 +4,29 @@
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/DeclarativeSyntaxSupport.h"
 #include "Brushes/SlateRoundedBoxBrush.h"
+#include "Brushes/SlateImageBrush.h"
 #include "Styling/SlateTypes.h"
 
 class SEditableTextBox;
 
-/** (nombre, default) de un param — typedef para no romper los macros SLATE_* con la coma del TPair. */
-using FJamNodeParam = TPair<FString, FString>;
+/** Un parámetro del nodo: valor, tipo de control, dominio opcional y tipo/color del cable esperado. */
+struct FJamNodeParam
+{
+	FString Name;
+	FString Value;
+	FString Type;             // "bool" | "int" | "float" | "str" (del spec)
+	TArray<FString> Options;  // dominio cerrado (enum) → dropdown en vez de texto libre
+	FString DataType;         // tipo del cable esperado: N/N[]/T/B/A/A[]/AF/H/S/F/P/M
+	FLinearColor PinColor = FLinearColor(0.28f, 0.30f, 0.34f, 1.0f);
+
+	FJamNodeParam() = default;
+	FJamNodeParam(const FString& InName, const FString& InValue,
+		const FString& InType = FString(), const TArray<FString>& InOptions = TArray<FString>(),
+		const FString& InDataType = FString(),
+		const FLinearColor& InPinColor = FLinearColor(0.28f, 0.30f, 0.34f, 1.0f))
+		: Name(InName), Value(InValue), Type(InType), Options(InOptions),
+		  DataType(InDataType), PinColor(InPinColor) {}
+};
 
 DECLARE_DELEGATE_OneParam(FOnNodeDragDelta, const FVector2D&);
 /** Clic en un pin de ENTRADA: pasa el nombre del pin — «in» = stream, o el nombre de un parámetro
@@ -17,20 +34,23 @@ DECLARE_DELEGATE_OneParam(FOnNodeDragDelta, const FVector2D&);
 DECLARE_DELEGATE_OneParam(FOnPinClicked, const FString& /*pin*/);
 
 /**
- * Un nodo del canvas «Grasshopper» de Jam: caja arrastrable con título (verbo), campos de params,
- * pin de entrada (izq) y salida (der), y botón borrar. Es sólo la VISTA; el grafo/ejecución viven
- * en `jam.graph`. El header (o cualquier zona no interactiva) arrastra el nodo.
+ * Un componente del canvas «Grasshopper» de Jam: título flotante, cuerpo biselado, controles de
+ * parámetros, grips de entrada/salida sobre los bordes y nombre central (futuro icono). Es sólo la VISTA; el
+ * grafo/ejecución viven en `jam.graph`. Cualquier zona no interactiva arrastra el componente.
  */
 class SJamGraphNode : public SCompoundWidget
 {
 public:
 	SLATE_BEGIN_ARGS(SJamGraphNode) {}
 		SLATE_ARGUMENT(FString, Verb)
-		/** Código corto del badge (icono) y su color de categoría — como el ribbon. */
-		SLATE_ARGUMENT(FString, Icon)
+		/** Ruta absoluta del SVG que ocupa el centro del componente. */
+		SLATE_ARGUMENT(FString, IconPath)
 		SLATE_ARGUMENT(FLinearColor, IconColor)
 		/** Nombre de la salida (la «variable» del pin de salida, estilo GH: P/N/T/A…). */
 		SLATE_ARGUMENT(FString, OutName)
+		/** Colores semánticos de los bordes de los grips de stream y salida. */
+		SLATE_ARGUMENT(FLinearColor, InputColor)
+		SLATE_ARGUMENT(FLinearColor, OutputColor)
 		/** (nombre, default) por cada param. */
 		SLATE_ARGUMENT(TArray<FJamNodeParam>, Params)
 		/** false en los nodos FUENTE (asset, create_spline): no reciben nada, van sin pin de entrada
@@ -49,13 +69,18 @@ public:
 	TMap<FString, FString> GetParamValues() const;
 	/** Fija los valores de los params (al cargar un diagrama desde archivo). */
 	void SetParamValues(const TMap<FString, FString>& Values);
+	/** Marca qué pines de parámetro tienen un CABLE entrando: su input se deshabilita (grisea), porque
+	 *  el valor lo manda el cable y no el campo — el look de Grasshopper cuando un input está wired. */
+	void SetCabledPins(const TSet<FString>& Pins) { CabledPins = Pins; }
 	const FString& GetVerb() const { return Verb; }
 
 	// Métrica FIJA del layout del nodo (filas de alto conocido) para que el editor calcule dónde cae
 	// cada pin y ancle los wires exactamente ahí — como los grips por parámetro de Grasshopper.
-	static constexpr float PadTop = 6.0f;
-	static constexpr float HeaderH = 24.0f;
-	static constexpr float RowH = 24.0f;
+	static constexpr float TitleH = 18.0f;   // cartela flotante con el nombre, estilo GH
+	static constexpr float PadTop = TitleH + 5.0f;
+	static constexpr float HeaderH = 26.0f;
+	static constexpr float RowH = 23.0f;
+	static constexpr float PadBottom = 6.0f;
 	static constexpr float PinColW = 14.0f;    // ancho de las columnas de pines (izq/der)
 	static constexpr float ParamColW = 104.0f; // ancho de la columna de params (nombre+valor)
 	/** Y local del pin: índice de parámetro (0..n-1) o -1 para el header (stream «in» / salida «out»). */
@@ -65,7 +90,7 @@ public:
 		                      : PadTop + HeaderH + ParamIndex * RowH + RowH * 0.5f;
 	}
 	/** Alto total del nodo con N parámetros (una fila fija por parámetro). */
-	static float NodeHeight(int32 NumParams) { return PadTop * 2.0f + HeaderH + NumParams * RowH; }
+	static float NodeHeight(int32 NumParams) { return PadTop + HeaderH + NumParams * RowH + PadBottom; }
 
 	/**
 	 * Pinta el nodo con el veredicto del ORÁCULO tras correr el grafo. Es la convención de estados de
@@ -75,37 +100,59 @@ public:
 	 */
 	void SetResult(const FString& State, const FString& Text);
 
-	// Arrastre: si el click no lo toma un hijo interactivo (param/pin), arrastra el nodo.
+	// Arrastre/selección: si el click no lo toma un hijo interactivo, enfoca y arrastra el nodo.
+	// El foco es también su selección persistente: Supr ejecuta el mismo borrado seguro que la ×.
+	virtual bool SupportsKeyboardFocus() const override { return true; }
+	virtual FReply OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent) override;
 	virtual FReply OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual FReply OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual FReply OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
-	// Dibuja el cuerpo CÁPSULA (redondeado, con borde = veredicto) detrás de los hijos, como GH.
+	// Dibuja cartela, selección, cuerpo biselado y nombre central detrás de los controles, como GH.
 	virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
 		const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId,
 		const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
 
 private:
-	/** Color del borde de la cápsula según el veredicto del oráculo (verde/naranja/rojo/neutro). */
+	/** Color del borde del componente según el veredicto del oráculo (verde/naranja/rojo/neutro). */
 	FLinearColor StateColor() const;
 	/** Rehace el pincel del cuerpo con el borde del estado actual. */
 	void RebuildBodyBrush();
 
 	FString Verb;
-	FString Icon;
+	FString IconPath;
 	FString OutName;
 	FLinearColor IconColor = FLinearColor(0.35f, 0.35f, 0.38f, 1.0f);
 	FString ResultState;
 	bool bDragging = false;
 	/** Estilo CLARO de los campos de valor (fondo claro, texto negro), como los inputs de GH. */
 	FEditableTextBoxStyle FieldStyle;
-	/** Cuerpo redondeado (cápsula GH): relleno gris claro + borde = veredicto. */
+	/** Spinboxes con el mismo acabado claro y compacto que los campos de texto. */
+	FSpinBoxStyle SpinStyle;
+	/** Booleanos claros: conserva la marca nativa, pero no hereda el fondo oscuro del editor. */
+	FCheckBoxStyle CheckStyle;
+	/** Cuerpo redondeado GH: gris normal, naranja/rojo para warning/error, borde = veredicto. */
 	FSlateRoundedBoxBrush BodyBrush = FSlateRoundedBoxBrush(
 		FLinearColor(0.80f, 0.80f, 0.78f, 1.0f), 6.0f, FLinearColor(0.10f, 0.10f, 0.10f, 1.0f), 1.0f);
-	/** Slot redondeado del icono de categoría (como el recuadro del pictograma en GH). */
-	FSlateRoundedBoxBrush IconBrush = FSlateRoundedBoxBrush(FLinearColor(0.35f, 0.35f, 0.38f, 1.0f), 3.0f);
+	/** Sombra, cartela y halo lavanda de hover/arrastre — equivalentes a relieve y selección de GH. */
+	FSlateRoundedBoxBrush ShadowBrush = FSlateRoundedBoxBrush(
+		FLinearColor(0.0f, 0.0f, 0.0f, 0.26f), 6.0f);
+	FSlateRoundedBoxBrush TitleBrush = FSlateRoundedBoxBrush(
+		FLinearColor(0.94f, 0.94f, 0.91f, 1.0f), 1.5f,
+		FLinearColor(0.12f, 0.12f, 0.12f, 1.0f), 1.0f);
+	FSlateRoundedBoxBrush SelectionBrush = FSlateRoundedBoxBrush(
+		FLinearColor(0.55f, 0.35f, 0.82f, 0.22f), 7.0f,
+		FLinearColor(0.43f, 0.24f, 0.70f, 0.90f), 2.0f);
+	/** Pictograma SVG central; es propiedad del nodo para que el puntero usado por Slate siga vivo. */
+	TSharedPtr<FSlateVectorImageBrush> IconBrush;
 	FOnNodeDragDelta OnDragDelta;
 	FOnPinClicked OnInputClickedDelegate;
 	FSimpleDelegate OnOutputClickedDelegate;
 	FSimpleDelegate OnDeleteClickedDelegate;
-	TMap<FString, TSharedPtr<SEditableTextBox>> Fields;
+	// Por cada param: cómo LEER su valor y cómo FIJARLO, sin que el resto del nodo sepa si el widget es
+	// un text box, un checkbox (bool) o un dropdown (enum). Reemplaza al viejo mapa de sólo text boxes.
+	TMap<FString, TFunction<FString()>> ParamGetters;
+	TMap<FString, TFunction<void(const FString&)>> ParamSetters;
+	/** Pines de parámetro que hoy tienen un cable entrando → su input se muestra deshabilitado. Lo
+	 *  actualiza el editor tras cada cambio de aristas; los inputs lo leen por atributo (IsEnabled). */
+	TSet<FString> CabledPins;
 };

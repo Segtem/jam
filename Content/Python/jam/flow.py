@@ -41,8 +41,10 @@ OPS_META: dict = {
     # Params/Maths: el «cerebro paramétrico» de Grasshopper. NO producen puntos: aportan un VALOR con
     # nombre a una tabla de variables. Cualquier param de cualquier nodo puede ser una EXPRESIÓN
     # (empieza con «=») que se evalúa contra esa tabla → un slider maneja `count`, `spacing`, etc.
-    "number": {"cat": "Params", "source": True, "params": {"name": "n", "value": 0.0},
-               "doc": "variable: un número con nombre (como un Number Slider de Grasshopper)"},
+    "number": {"cat": "Params", "source": True,
+               "params": {"name": "n", "value": 0.0, "min": 0.0, "max": 100.0},
+               "doc": "variable: un número con nombre y rango (el Number Slider de Grasshopper). "
+                      "`value` se arrastra entre `min` y `max`"},
     "math":   {"cat": "Maths", "source": True, "params": {"name": "m", "expr": "0"},
                "doc": "expresión sobre variables: sin/cos/sqrt/min/max/clamp/lerp/remap/rand (el Expression)"},
     "text":   {"cat": "Params", "source": True, "params": {"name": "t", "value": ""},
@@ -76,6 +78,28 @@ OPS_META: dict = {
                      "doc": "rompe la uniformidad → manchones (Noise Mask)"},
     "mask_density": {"cat": "Mask", "params": {"keep": 0.6, "seed": 7},
                      "doc": "conserva una fracción al azar (Add/Remove)"},
+    # Weight: máscaras ESCALARES 0..1 (el paradigma del shader de máscaras globales). Cada una MULTIPLICA
+    # su gris en el `weight` del punto (encadenar = AND suave); los conectores lo reforman; `weight_cull`
+    # lo vuelve decisión. Grafo Textura→Máscara→Conector→Aplicador, sobre puntos en vez de píxeles.
+    "weight_slope":  {"cat": "Weight", "params": {"min": 0.0, "max": 30.0, "soft": 5.0},
+                      "doc": "máscara suave por pendiente (0..1): 1 dentro de [min,max], borde de ancho `soft`"},
+    "weight_height": {"cat": "Weight", "params": {"min": 0.0, "max": 500.0, "soft": 50.0},
+                      "doc": "máscara suave por altura Z (como World Position Z → Smooth Step del shader)"},
+    "weight_noise":  {"cat": "Weight", "params": {"scale": 500.0, "seed": 7, "contrast": 1.0},
+                      "doc": "campo de ruido 0..1 (el Noise del shader); `contrast` = power sobre el gris"},
+    "weight_radial": {"cat": "Weight", "params": {"cx": 0.0, "cy": 0.0, "radius": 300.0, "soft": 0.5},
+                      "doc": "gradiente radial: 1 en el centro → 0 en `radius` (soft 0 = disco duro)"},
+    "weight_invert": {"cat": "Weight", "params": {},
+                      "doc": "invierte el gris (One Minus): weight → 1 − weight"},
+    "weight_power":  {"cat": "Weight", "params": {"k": 2.0},
+                      "doc": "contraste del gris (Power): weight → weight^k (k>1 endurece, <1 suaviza)"},
+    "weight_curve":  {"cat": "Weight", "params": {"min": 0.0, "max": 1.0},
+                      "doc": "remapea el gris con bordes suaves (Smooth Step sobre la máscara)"},
+    "weight_combine": {"cat": "Weight", "aridad": -1, "params": {"mode": "mul", "t": 0.5},
+                       "opciones": {"mode": ["mul", "add", "max", "min", "lerp"]},
+                       "doc": "junta el gris de varias ramas paralelas (multiplicar/sumar máscaras)"},
+    "weight_cull":   {"cat": "Weight", "params": {"threshold": 0.5, "seed": 7, "soft": 0.0},
+                      "doc": "APLICADOR: corta por el gris. soft 0 = duro (≥ threshold) · 1 = densidad (prob = gris)"},
     # Sets: operaciones de LISTA sobre el stream (el tab Sets de GH) — reordenan/recortan los puntos.
     "cull_nth":     {"cat": "Sets", "params": {"n": 2, "offset": 0},
                      "doc": "conserva 1 de cada N puntos (Cull Nth) — diezma de forma regular"},
@@ -126,7 +150,7 @@ def spec_json() -> str:
     # P = stream de puntos · N = número · T = texto · A = actores instanciados.
     out_names = {"number": "N", "math": "N", "text": "T", "instance": "A"}
 
-    cats = ["Params", "Maths", "Source", "Vector", "Mask", "Sets", "Transform", "Combine",
+    cats = ["Params", "Maths", "Source", "Vector", "Mask", "Weight", "Sets", "Transform", "Combine",
             "Output", "Display"]
     nodos = []
     for kind, m in OPS_META.items():
@@ -137,6 +161,8 @@ def spec_json() -> str:
             "doc": m["doc"],
             "source": bool(m.get("source", False)),
             "aridad": m.get("aridad", 0 if m.get("source") else 1),
+            # Todo el flow no-fuente recibe un stream de puntos por su pin gordo.
+            "in_name": "" if m.get("source", False) else "P",
             "out_name": out_names.get(kind, "P"),
             "params": [{"nombre": k, "default": str(v), "tipo": tipo(v),
                         "opciones": ops_val.get(k, [])} for k, v in m["params"].items()],
@@ -263,6 +289,102 @@ def _mk_circle(e, p):
     return v
 
 
+# ---------- Weight: máscaras ESCALARES 0..1 (el paradigma del shader de máscaras del arte técnico) ----------
+# En vez de cullear duro, cada op ESCRIBE un campo 0..1 y lo MULTIPLICA en el `weight` del punto — encadenar
+# máscaras = AND suave (como multiplicar máscaras de shader: «los ceros son anclas»). Los conectores
+# (invert/power/curve) reforman ese gris; `weight_combine` junta ramas paralelas; `weight_cull` lo vuelve
+# decisión (o densidad). Es el mismo grafo Textura→Máscara→Conector→Aplicador, pero sobre PUNTOS.
+
+def _band(x: float, lo: float, hi: float, soft: float) -> float:
+    """Banda 0..1: 1 dentro de [lo,hi], con bordes de ancho `soft` (0 = borde duro)."""
+    return _smoothstep(lo - soft, lo, x) * (1.0 - _smoothstep(hi, hi + soft, x))
+
+
+@op("weight_slope", 1)
+def _w_slope(e, p):
+    lo, hi, soft = p.get("min", 0.0), p.get("max", 90.0), p.get("soft", 5.0)
+    return [s._replace(weight=s.weight * _band(s.slope, lo, hi, soft)) for s in e[0]]
+
+
+@op("weight_height", 1)
+def _w_height(e, p):
+    lo, hi, soft = p.get("min", -1e12), p.get("max", 1e12), p.get("soft", 50.0)
+    return [s._replace(weight=s.weight * _band(s.pos.z, lo, hi, soft)) for s in e[0]]
+
+
+@op("weight_noise", 1)
+def _w_noise(e, p):
+    freq = 1.0 / max(1.0, p.get("scale", 500.0))
+    seed = int(p.get("seed", 0))
+    k = max(0.01, p.get("contrast", 1.0))
+    return [s._replace(weight=s.weight * (sc.value_noise(s.pos.x, s.pos.y, freq, seed) ** k))
+            for s in e[0]]
+
+
+@op("weight_radial", 1)
+def _w_radial(e, p):
+    cx, cy, r = p.get("cx", 0.0), p.get("cy", 0.0), max(1.0, p.get("radius", 300.0))
+    inner = r * (1.0 - _sat(p.get("soft", 0.5)))   # soft 0 = disco duro · 1 = gradiente desde el centro
+    out = []
+    for s in e[0]:
+        d = ((s.pos.x - cx) ** 2 + (s.pos.y - cy) ** 2) ** 0.5
+        out.append(s._replace(weight=s.weight * (1.0 - _smoothstep(inner, r, d))))
+    return out
+
+
+@op("weight_invert", 1)
+def _w_invert(e, _p):
+    return [s._replace(weight=1.0 - s.weight) for s in e[0]]
+
+
+@op("weight_power", 1)
+def _w_power(e, p):
+    k = max(0.01, p.get("k", 2.0))
+    return [s._replace(weight=_sat(s.weight) ** k) for s in e[0]]
+
+
+@op("weight_curve", 1)
+def _w_curve(e, p):
+    lo, hi = p.get("min", 0.0), p.get("max", 1.0)
+    return [s._replace(weight=_smoothstep(lo, hi, s.weight)) for s in e[0]]
+
+
+@op("weight_combine", -1)
+def _w_combine(e, p):
+    """Junta el `weight` de VARIAS ramas paralelas elementwise (mismos puntos, mismo orden), como
+    multiplicar/sumar máscaras de shader. mode: mul (AND) · add · max · min · lerp(t)."""
+    ramas = [r for r in e if r]
+    if not ramas:
+        return []
+    base = list(ramas[0])
+    mode = str(p.get("mode", "mul"))
+    t = p.get("t", 0.5)
+    for otra in ramas[1:]:
+        for i in range(min(len(base), len(otra))):
+            a, b = base[i].weight, otra[i].weight
+            w = (a * b if mode == "mul" else a + b if mode == "add"
+                 else max(a, b) if mode == "max" else min(a, b) if mode == "min"
+                 else a + (b - a) * t)   # lerp
+            base[i] = base[i]._replace(weight=w)
+    return base
+
+
+@op("weight_cull", 1)
+def _w_cull(e, p):
+    """APLICADOR: vuelve el gris una decisión. soft=0 → deja los puntos con weight ≥ threshold (corte
+    duro). soft=1 → los deja al azar DETERMINISTA con probabilidad = weight (densidad por máscara)."""
+    thr = p.get("threshold", 0.5)
+    soft = _sat(p.get("soft", 0.0))
+    seed = int(p.get("seed", 0))
+    out = []
+    for s in e[0]:
+        duro = s.weight >= thr
+        blando = _rand(sc.semilla_de(seed, s.pos.x, s.pos.y)) < s.weight
+        if (blando if soft >= 0.5 else duro):
+            out.append(s)
+    return out
+
+
 # ---------- Sets (listas): reordenan / recortan el stream, como el tab Sets de GH ----------
 
 @op("cull_nth", 1)
@@ -309,9 +431,10 @@ def _relax(e, p):
 # ---------- Transform: mueven / escalan / rotan / jitterean las POSICIONES del stream ----------
 
 def _con_pos(s, x, y, z):
-    """Un Sample nuevo con la misma info pero otra posición (los Sample son inmutables)."""
+    """Un Sample nuevo con la misma info pero otra posición (los Sample son inmutables). `_replace`
+    conserva el resto de atributos, incluido el `weight` (que si no se perdería en cada transform)."""
     from .geometry import Vec3
-    return sc.Sample(Vec3(x, y, z), s.normal, s.slope, s.seed, s.uv)
+    return s._replace(pos=Vec3(x, y, z))
 
 
 def _centro(xs, p):
@@ -418,6 +541,19 @@ def _rand(semilla) -> float:
     return (h & 0xFFFFFF) / float(0x1000000)
 
 
+def _sat(x: float) -> float:
+    return 0.0 if x < 0.0 else (1.0 if x > 1.0 else x)
+
+
+def _smoothstep(a: float, b: float, x: float) -> float:
+    """El Smooth Step del shader: 0 debajo de `a`, 1 arriba de `b`, y una rampa suave (hermite) en el
+    medio. Con a>b la rampa se invierte. Es el remap+clamp con bordes suaves."""
+    if a == b:
+        return 0.0 if x < a else 1.0
+    t = _sat((x - a) / (b - a))
+    return t * t * (3.0 - 2.0 * t)
+
+
 # funciones disponibles en las expresiones (sin builtins peligrosos: se evalúa con __builtins__ vacío).
 _FUNCS: dict = {
     "sin": _math.sin, "cos": _math.cos, "tan": _math.tan, "atan": _math.atan,
@@ -429,6 +565,11 @@ _FUNCS: dict = {
     "lerp": lambda a, b, t: a + (b - a) * t,
     "remap": lambda x, a, b, c, d: c + (d - c) * ((x - a) / (b - a)) if b != a else c,
     "rand": _rand,
+    # conectores del arte técnico (los del shader de máscaras): saturate/one_minus/step/smoothstep.
+    "saturate": lambda x: 0.0 if x < 0.0 else (1.0 if x > 1.0 else x),
+    "one_minus": lambda x: 1.0 - x,
+    "step": lambda edge, x: 0.0 if x < edge else 1.0,
+    "smoothstep": _smoothstep,
 }
 
 
@@ -452,16 +593,36 @@ def _num(v, defecto=0.0) -> float:
         return defecto
 
 
-def _resolver_params(params: dict, tabla: dict) -> dict:
-    """Reemplaza cada param que sea EXPRESIÓN (string que empieza con «=») por su valor evaluado contra
-    la tabla. Los demás pasan tal cual. Si la expresión no resuelve, cae a 0.0 (para no romper el nodo)."""
+def _es_numero(s: str) -> bool:
+    try:
+        float(s)
+        return True
+    except (TypeError, ValueError):
+        return False
+
+
+def _resolver_params(params: dict, tabla: dict, defaults: dict | None = None) -> dict:
+    """Reemplaza cada param que sea EXPRESIÓN por su valor evaluado contra la tabla de variables:
+    - «=expr»  → SIEMPRE se evalúa (explícito, sirve en cualquier campo).
+    - En un campo NUMÉRICO (según `defaults`, el default del spec), un texto que NO es un número literal
+      se trata como expresión también, SIN el «=» (`n*100` alcanza). Así una variable se usa igual que
+      en Grasshopper, sin sintaxis extra. Los campos de TEXTO (anclas, nombres) pasan tal cual.
+    Si la expresión no resuelve, el «=» cae a 0.0 y el implícito deja el literal (que coacciona al default)."""
+    defaults = defaults or {}
     out = {}
     for k, v in params.items():
-        if isinstance(v, str) and v.startswith("="):
-            r = _eval_expr(v[1:], tabla)
-            out[k] = r if r is not None else 0.0
-        else:
-            out[k] = v
+        if isinstance(v, str):
+            s = v.strip()
+            if s.startswith("="):
+                r = _eval_expr(s[1:], tabla)
+                out[k] = r if r is not None else 0.0
+                continue
+            d = defaults.get(k)
+            if isinstance(d, (int, float)) and not isinstance(d, bool) and s and not _es_numero(s):
+                r = _eval_expr(s, tabla)
+                out[k] = r if r is not None else v
+                continue
+        out[k] = v
     return out
 
 
@@ -496,6 +657,47 @@ PIN_OUT = "out"
 VALOR_KINDS = ("number", "math", "text")
 
 
+class FlowValidationError(ValueError):
+    """El grafo no cumple el contrato de nodos/pines/aridad y no debe producir efectos.
+
+    `diagnostics` conserva los errores por node id para que Slate pueda pintar exactamente el nodo
+    responsable. La clave `_graph` se reserva para errores que no pertenecen a un único nodo.
+    """
+
+    def __init__(self, diagnostics: dict[str, list[str]]):
+        self.diagnostics = diagnostics
+        detalle = "; ".join(
+            f"{nid}: {', '.join(mensajes)}" for nid, mensajes in diagnostics.items()
+        )
+        super().__init__(detalle or "flow inválido")
+
+
+def _tipo_salida(kind: str) -> str:
+    """Tipo público del pin `out`, compartido con el spec que consume Slate."""
+    if kind in ("number", "math"):
+        return "N"
+    if kind == "text":
+        return "T"
+    if kind == "instance":
+        return "A"
+    return "P"
+
+
+def _tipo_param(kind: str, pin: str) -> str | None:
+    """Tipo de un pin de parámetro de Flow; None significa que el pin no existe."""
+    defaults = OPS_META.get(kind, {}).get("params", {})
+    if pin not in defaults:
+        return None
+    default = defaults[pin]
+    if "spline" in pin.lower():
+        return "S"
+    if isinstance(default, bool):
+        return "B"
+    if isinstance(default, (int, float)):
+        return "N"
+    return "T"
+
+
 class Flow:
     """Grafo de operaciones de stream, con conexión POR PIN (como Grasshopper). `nodos`: id →
     {kind, params}. `enlaces`: [(origen, origen_pin, destino, destino_pin)] en orden.
@@ -503,11 +705,15 @@ class Flow:
     Cada nodo tiene: un pin de salida «out» (a la derecha), un pin de entrada de stream «in» (el cable
     de puntos), y UN PIN POR PARÁMETRO a la izquierda. Cablear la salida de un `number`/`math` a un pin
     de parámetro (p.ej. `count`) ATA ese parámetro al valor de la variable — el equivalente visual de la
-    expresión «=». El pin «in» acepta varios cables (se juntan, como el input de lista de GH)."""
+    expresión «=». Sólo los nodos con aridad `-1` aceptan varios cables en `in`; los demás reciben
+    exactamente el número de streams declarado por su operación."""
 
     def __init__(self):
         self.nodos: dict[str, dict] = {}
         self.enlaces: list[tuple[str, str, str, str]] = []
+        # Resultado efímero de la última evaluación. Mantiene metadata de UI fuera de `params`, para
+        # no contaminar el JSON persistente con `_stats`, `_out` u otros datos del runtime.
+        self.resultados: dict[str, dict] = {}
 
     def add(self, kind: str, params: dict | None = None, nid: str | None = None) -> str:
         nid = nid or f"f{len(self.nodos) + 1}"
@@ -554,6 +760,108 @@ class Flow:
             if b == nid and bp not in (PIN_STREAM_IN,):
                 out[bp] = a
         return out
+
+    def validar(self, ops: dict | None = None) -> dict[str, list[str]]:
+        """Preflight puro: valida operaciones, endpoints, pines, tipos y cardinalidad.
+
+        No llama ninguna operación ni toca Unreal. Devuelve `{node_id: [mensajes]}`; vacío significa
+        que el Flow puede evaluarse. `ops` declara las implementaciones del adaptador Unreal.
+        """
+        tabla_fn = {**OPS, **(ops or {})}
+        diagnosticos: dict[str, list[str]] = {}
+
+        def error(nid: str, mensaje: str) -> None:
+            mensajes = diagnosticos.setdefault(nid, [])
+            if mensaje not in mensajes:
+                mensajes.append(mensaje)
+
+        aridades: dict[str, int | None] = {}
+        for nid, nodo in self.nodos.items():
+            kind = nodo.get("kind", "")
+            meta = OPS_META.get(kind)
+            implementacion = tabla_fn.get(kind)
+            if kind in VALOR_KINDS:
+                aridades[nid] = 0
+            elif meta is not None:
+                aridades[nid] = int(meta.get("aridad", 0 if meta.get("source") else 1))
+                if implementacion is None:
+                    error(nid, f"operación «{kind}» sin implementación disponible")
+            elif implementacion is not None:  # compatibilidad con ops puras históricas
+                aridades[nid] = int(implementacion[1])
+            else:
+                aridades[nid] = None
+                error(nid, f"operación desconocida: «{kind}»")
+
+        # Dos variables con el mismo nombre hacían que el orden de inserción decidiera silenciosamente.
+        nombres: dict[str, str] = {}
+        for nid, nodo in self.nodos.items():
+            if nodo.get("kind") not in VALOR_KINDS:
+                continue
+            nombre = str(nodo.get("params", {}).get("name") or nid)
+            anterior = nombres.get(nombre)
+            if anterior is not None:
+                error(anterior, f"nombre de variable duplicado: «{nombre}»")
+                error(nid, f"nombre de variable duplicado: «{nombre}»")
+            else:
+                nombres[nombre] = nid
+
+        streams_por_nodo = {nid: 0 for nid in self.nodos}
+        params_por_pin: dict[tuple[str, str], int] = {}
+        enlaces_vistos: set[tuple[str, str, str, str]] = set()
+        for origen, origen_pin, destino, destino_pin in self.enlaces:
+            enlace = (origen, origen_pin, destino, destino_pin)
+            if enlace in enlaces_vistos:
+                error(destino if destino in self.nodos else "_graph", "conexión duplicada")
+                continue
+            enlaces_vistos.add(enlace)
+
+            if origen not in self.nodos:
+                error(destino if destino in self.nodos else "_graph", f"origen inexistente: «{origen}»")
+                continue
+            if destino not in self.nodos:
+                error(origen, f"destino inexistente: «{destino}»")
+                continue
+            if origen == destino:
+                error(origen, "un nodo no puede conectarse a sí mismo")
+            if origen_pin != PIN_OUT:
+                error(origen, f"pin de salida desconocido: «{origen_pin}»")
+
+            kind_origen = self.nodos[origen].get("kind", "")
+            kind_destino = self.nodos[destino].get("kind", "")
+            tipo_origen = _tipo_salida(kind_origen)
+            if destino_pin == PIN_STREAM_IN:
+                streams_por_nodo[destino] += 1
+                tipo_destino = "P"
+                if aridades.get(destino) == 0:
+                    error(destino, "el nodo es fuente y no tiene entrada «in»")
+            else:
+                params_por_pin[(destino, destino_pin)] = params_por_pin.get((destino, destino_pin), 0) + 1
+                tipo_destino = _tipo_param(kind_destino, destino_pin)
+                if tipo_destino is None:
+                    error(destino, f"pin de entrada desconocido: «{destino_pin}»")
+
+            if tipo_destino is not None and tipo_origen != tipo_destino:
+                error(origen, f"salida {tipo_origen} incompatible con {destino}.{destino_pin} ({tipo_destino})")
+                error(destino, f"{destino_pin} esperaba {tipo_destino}, recibió {tipo_origen}")
+
+        for nid, aridad in aridades.items():
+            if aridad is None or aridad == 0:
+                continue
+            recibidas = streams_por_nodo[nid]
+            if aridad == -1 and recibidas == 0:
+                error(nid, "requiere al menos una conexión en «in»")
+            elif aridad >= 0 and recibidas != aridad:
+                error(nid, f"requiere {aridad} entrada(s) en «in»; recibió {recibidas}")
+
+        for (nid, pin), cantidad in params_por_pin.items():
+            if cantidad > 1:
+                error(nid, f"el parámetro «{pin}» admite un solo cable; recibió {cantidad}")
+
+        try:
+            self.topo()
+        except ValueError as exc:
+            error("_graph", str(exc))
+        return diagnosticos
 
     def topo(self) -> list[str]:
         indeg = {n: 0 for n in self.nodos}
@@ -603,6 +911,10 @@ class Flow:
         ella resuelve las EXPRESIONES de los params (los que empiezan con «=»). `ops` suma operaciones
         del adaptador (p.ej. `source_surface` que raycastea, o `instance` que spawnea) sin tocar esto."""
         tabla_fn = {**OPS, **(ops or {})}
+        diagnosticos = self.validar(ops=ops)
+        if diagnosticos:
+            raise FlowValidationError(diagnosticos)
+        self.resultados = {}
         variables = self._valores()
         # escalar de cada nodo de valor (lo que un cable suyo lleva a un pin de parámetro).
         escalar_de = {nid: variables.get(str(n["params"].get("name") or nid))
@@ -614,20 +926,28 @@ class Flow:
             # nodos de valor: no producen puntos, aportan su número a la tabla (y lo dejan para la UI).
             if kind in VALOR_KINDS:
                 nombre = str(nodo["params"].get("name") or nid)
-                nodo["params"]["_val"] = variables.get(nombre)
+                self.resultados[nid] = {"value": variables.get(nombre)}
                 salida[nid] = []
                 continue
             fn_ent = tabla_fn.get(kind)
             if fn_ent is None:
-                salida[nid] = []
-                continue
+                # `validar()` lo detecta antes de ejecutar; esta guarda evita una omisión silenciosa si
+                # en el futuro cambia la tabla entre preflight y evaluación.
+                raise FlowValidationError({nid: [f"operación «{kind}» sin implementación disponible"]})
             fn, _n = fn_ent
             entradas = [salida.get(e, []) for e in self._entradas(nid)]
             # primero resolver expresiones «=», después pisar con lo que llegue por CABLE a cada pin de
             # parámetro (un cable manda sobre el texto del campo, como en Grasshopper).
-            params = _resolver_params(nodo["params"], variables)
+            params = _resolver_params(nodo["params"], variables,
+                                      OPS_META.get(kind, {}).get("params"))
             for pin, origen in self._param_wires(nid).items():
                 if escalar_de.get(origen) is not None:
                     params[pin] = escalar_de[origen]
             salida[nid] = fn(entradas, params)
+            resultado = {}
+            if "_stats" in params:
+                resultado["stats"] = params["_stats"]
+            if "_out" in params:
+                resultado["out"] = params["_out"]
+            self.resultados[nid] = resultado
         return salida

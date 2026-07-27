@@ -16,6 +16,8 @@ class SWidget;
 
 /** Devuelve el reporte de correr un grafo (JSON JamGraph) — la implementa el módulo (llama a Python). */
 DECLARE_DELEGATE_RetVal_OneParam(FString, FOnRunGraph, const FString& /*json*/);
+/** Acción del ciclo Preview propia del Graph (Bake/Discard), sin argumentos. */
+DECLARE_DELEGATE_RetVal(FString, FOnGraphPreviewAction);
 
 /**
  * Canvas «Grasshopper» propio (Slate): paleta de verbos que agregan nodos, nodos arrastrables con
@@ -27,6 +29,10 @@ class SJamGraphEditor : public SCompoundWidget
 public:
 	SLATE_BEGIN_ARGS(SJamGraphEditor) {}
 		SLATE_EVENT(FOnRunGraph, OnRunGraph)
+		/** Compile/Preflight puro: mismo JSON de entrada/salida, sin ejecutar ni abrir Preview. */
+		SLATE_EVENT(FOnRunGraph, OnCompileGraph)
+		SLATE_EVENT(FOnGraphPreviewAction, OnBakePreview)
+		SLATE_EVENT(FOnGraphPreviewAction, OnDiscardPreview)
 		/** Nombre del asset activo (lo elegido en Content): precarga el nodo «asset». */
 		SLATE_ATTRIBUTE(FString, ActiveAsset)
 		/** Abre la ventana de Content (para elegir el asset sin salir del grafo). */
@@ -37,16 +43,32 @@ public:
 
 	void Construct(const FArguments& InArgs, const TArray<FJamTool>& InTools);
 
-	/** Endpoints (inicio,fin) de cada wire, en coords locales del canvas — los usa la capa de wires. */
-	TArray<TPair<FVector2D, FVector2D>> GetWireEndpoints() const;
+	/** Un wire a dibujar: puntas (inicio,fin) en coords locales del canvas + COLOR por tipo de dato
+	 *  (como Blueprint/Substance: el color dice QUÉ fluye por el cable). */
+	struct FJamWire
+	{
+		FVector2D A = FVector2D::ZeroVector;
+		FVector2D B = FVector2D::ZeroVector;
+		FLinearColor Color = FLinearColor::White;
+	};
+	/** Wires a dibujar (con color por tipo) — los usa la capa de wires. */
+	TArray<FJamWire> GetWireEndpoints() const;
+	/** Cable-fantasma mientras se conecta: del pin de salida armado al cursor. Devuelve false si no hay
+	 *  conexión en curso. Es el «rubber band» de Houdini/GH/Blueprint que hace visible el gesto. */
+	bool GetPendingWire(FVector2D& OutFrom, FVector2D& OutTo, FLinearColor& OutColor) const;
 
 	// Iconografía del ribbon (pública para que la Dash Bar reuse el mismo look):
 	/** Color de la categoría (cada tab su tono, como los tabs de Grasshopper). */
 	static FLinearColor CategoryColor(const FString& Cat);
+	/** Color compartido por cable y grip según el tipo de dato (P/N/T/B/A/S/M), estilo Blueprint. */
+	static FLinearColor DataColor(const FString& OutName);
 	/** Código corto del verbo para el badge del icono (curado; si no, derivado del verbo). */
 	static FString VerbCode(const FString& Verb);
-	/** Ficha con ICONO (badge de color + código) — se usa en el ribbon y como header de nodo. */
-	static TSharedRef<SWidget> MakeBadge(const FLinearColor& Color, const FString& Code, float Size);
+	/** Ruta absoluta del SVG asignado al verbo por Resources/Icons/Lucide/icon-map.json. */
+	static FString IconPathForVerb(const FString& Verb);
+	/** Ficha con icono SVG; si falta, cae al código corto para no dejar un hueco vacío. */
+	static TSharedRef<SWidget> MakeBadge(const FLinearColor& Color, const FString& Code, float Size,
+		const FString& IconPath = FString());
 
 private:
 	struct FGNode
@@ -83,34 +105,60 @@ private:
 	void FillSolutionMenu(class FMenuBuilder& MB);
 	/** Vacía el grafo (nodos + wires). */
 	void NewGraph();
-	/** Reconstruye el grafo desde JSON (nodos con sus params/posición + aristas por pin). */
-	void LoadGraphJson(const FString& Json);
+	/** Valida y reconstruye el grafo desde JSON. Un fallo no modifica canvas, vista ni CurrentPath. */
+	bool LoadGraphJson(const FString& Json);
 	/** Diálogos de archivo (DesktopPlatform): guardar/abrir un diagrama .jamgraph (JSON). */
 	void SaveDiagram(bool bForceDialog);
 	void OpenDiagram();
+	/** Carga el pino procedural incluido con Jam como documento nuevo editable. */
+	void LoadTreeExample();
+	/** Carga el ejemplo ramificado basado en Curve Bezier + Mesh Pipe. */
+	void LoadBranchedTreeExample();
+	/** Carga el ejemplo mínimo que convierte una spline S en frames jerárquicos F. */
+	void LoadCurveFramesExample();
+	void LoadTwoLevelExample();
+	void LoadBundledExample(const FString& Filename, const FText& LoadedMessage);
 	/** Galería: reemplaza el grafo por UNO DE CADA nodo en grilla (para sacarle un screenshot). */
 	void InsertAllNodes();
 	/** Reencuadra: pan/zoom a un estado legible. */
 	void ResetView();
 	/** Índice del parámetro `Pin` en el verbo del nodo `Id`, o -1 si es «in»/«out» (header). */
 	int32 PinIndex(const FString& Id, const FString& Pin) const;
+	/** Tipos efectivos de los extremos y validación central de un cable. */
+	FString OutputDataTypeFor(const FString& NodeId, const FString& Pin) const;
+	FString InputDataTypeFor(const FString& NodeId, const FString& Pin) const;
+	bool CanConnect(const FString& From, const FString& FromPin, const FString& To,
+		const FString& ToPin, FString& OutError) const;
 
 	/** Ribbon estilo Grasshopper: al elegir un tab (categoría) se rellenan sus fichas con icono. */
 	void RebuildTabContent();
 	void OnPinClicked(const FString& Id, const FString& Pin, bool bOutput);
+	/** Recomputa, por cada nodo, qué pines de parámetro tienen cable entrando y se lo dice a su widget
+	 *  (para que grisee esos inputs). Se llama tras cualquier cambio de aristas. */
+	void RefreshCabledPins();
+	void ValidateGraph();
 	void RunGraph();
+	void BakePreview();
+	void DiscardPreview();
+	/** Aplica el envelope {report,nodes} de Compile o Run al output y a los estados de los nodos. */
+	void ApplyGraphResult(const FString& Result);
 	FString BuildJson() const;
 	const FJamTool* FindTool(const FString& Verb) const;
 	FGNode* FindNode(const FString& Id);
+	/** Color del cable que SALE de un nodo (según el tipo de su salida). */
+	FLinearColor WireColorFor(const FString& NodeId) const;
 
 	/** Buscador de nodos al doble clic en el canvas vacío (como el search box de Grasshopper). */
-	void OpenSearch(const FVector2D& AtLocal);
+	/** Abre el buscador en coordenadas locales al overlay del canvas (mismo espacio que WireLayer). */
+	void OpenSearch(const FVector2D& AtCanvas);
 	void CloseSearch();
 	void RebuildSearchResults(const FString& Query);
 	/** Crea el primer resultado del buscador (Enter). */
 	void CommitSearch();
 
 	// Canvas: doble clic → buscador · arrastre con botón derecho/medio → pan.
+	// Es focusable para que un clic en el fondo quite el foco/selección del nodo anterior.
+	virtual bool SupportsKeyboardFocus() const override { return true; }
 	virtual FReply OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual FReply OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual FReply OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
@@ -134,6 +182,9 @@ private:
 	int32 NextId = 1;
 
 	FOnRunGraph OnRunGraph;
+	FOnRunGraph OnCompileGraph;
+	FOnGraphPreviewAction OnBakePreview;
+	FOnGraphPreviewAction OnDiscardPreview;
 	FOnRunGraph OnSaveGraph;
 	FSimpleDelegate OnOpenContent;
 	TAttribute<FString> ActiveAsset;
@@ -145,6 +196,7 @@ private:
 	TSharedPtr<SEditableTextBox> SearchField;
 	TSharedPtr<SVerticalBox> SearchResults;
 	TArray<FString> SearchHits;
+	/** Punto del doble clic local al overlay del canvas; posiciona el popup y luego pasa por LocalToModel. */
 	FVector2D SearchAt = FVector2D::ZeroVector;
 	bool bSearchOpen = false;
 
@@ -152,6 +204,11 @@ private:
 	FVector2D PanOffset = FVector2D::ZeroVector;
 	bool bPanning = false;
 	float Zoom = 1.0f;
+
+	// Para el cable-fantasma: última posición del cursor (local a la capa de wires) + esa capa (para
+	// repintarla mientras se arrastra una conexión).
+	FVector2D LastMousePos = FVector2D::ZeroVector;
+	TSharedPtr<class SWidget> WireLayer;
 
 	static constexpr float NodeWidth = 184.0f;   // pines(14) + params(104) + centro(~52) + pines(14)
 };

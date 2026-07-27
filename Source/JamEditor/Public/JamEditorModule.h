@@ -26,6 +26,8 @@ struct FJamParam
 	FString Name;
 	FString Default;
 	FString Type;
+	/** Override del tipo de cable para parámetros que transportan datos ricos (ej. A[]). */
+	FString DataType;
 	/** Si viene con valores, el param se dibuja como LISTA (anclas, modos…) y no como texto libre. */
 	TArray<TSharedPtr<FString>> Options;
 };
@@ -38,6 +40,8 @@ struct FJamTool
 	FString Doc;
 	bool bSource = false;     // en el grafo, nodo FUENTE (sin pin de entrada)
 	bool bAssetPin = false;   // consume un asset → en el grafo lleva un pin «asset» explícito
+	int32 Arity = 1;          // 0=fuente · 1=unario · -1=variádico (varios cables en «in»)
+	FString InName;           // tipo que recibe el pin gordo: A=asset/actor · P=stream de puntos
 	FString OutName;          // nombre de la salida (la «variable» del pin de salida, estilo GH)
 	TArray<FJamParam> Params;
 };
@@ -72,6 +76,11 @@ private:
 	void OpenWebUI();
 	/** Corre un JamGraph (JSON) vía Python (jam.panel.ejecutar_grafo) y devuelve el reporte. */
 	FString RunGraphJson(const FString& Json);
+	/** Compile/Preflight puro del Graph: valida sin ejecutar tools ni crear Preview. */
+	FString CompileGraphJson(const FString& Json);
+	/** Fija o descarta únicamente el Preview propiedad de la ventana Graph. */
+	FString BakeGraphPreview();
+	FString DiscardGraphPreview();
 	/** Guarda el grafo del canvas como preset compound. */
 	FString SaveGraphAsPreset(const FString& Json);
 

@@ -14,6 +14,7 @@ Formato JSON (lo que intercambia con el editor en C++):
 from __future__ import annotations
 
 import json
+from dataclasses import dataclass
 
 
 #: pin de entrada «gordo» (orden de ejecución + el asset que viaja por el cable). Cualquier OTRO pin
@@ -110,7 +111,10 @@ class JamGraph:
     def from_json(cls, s: str) -> "JamGraph":
         d = json.loads(s) if s else {}
         g = cls()
-        g.nodes = {k: {"verb": v.get("verb", ""), "params": dict(v.get("params", {})),
+        # Un nodo de Flow nombra su operación en `kind`. Se lee como fallback SÓLO para que el
+        # diagnóstico diga cuál es la op intrusa en vez de «verbo desconocido: «»» en un grafo mixto.
+        g.nodes = {k: {"verb": v.get("verb") or v.get("kind", ""),
+                       "params": dict(v.get("params", {})),
                        "asset": v.get("asset"), "x": float(v.get("x", 0.0)), "y": float(v.get("y", 0.0))}
                    for k, v in d.get("nodes", {}).items()}
         # aristas: [from, from_pin, to, to_pin] (por pin) o [from, to] (compat: out→in)
@@ -122,34 +126,393 @@ class JamGraph:
         return g
 
 
-# ---- ejecución (reusa las tools y el oráculo; asset por nodo) ----
+# ---- Compile / Preflight puro ----
 
-def _resolver_asset(nombre: str | None) -> str | None:
-    from . import library, session
-    if nombre:
-        if "/" in nombre or "." in nombre:   # ya es un ObjectPath
-            return nombre
-        hits = library.buscar(nombre, limit=1)
-        return hits[0]["ruta"] if hits else None
-    if session.asset():                      # lo elegido en Content
-        return session.asset()
-    hits = library.buscar("", limit=1)       # default: 1º de la biblioteca
-    return hits[0]["ruta"] if hits else None
+_VALUE_DEFAULTS = {
+    "number": {"name": "n", "value": 0.0, "min": 0.0, "max": 100.0},
+    "math": {"name": "m", "expr": "0"},
+    "text": {"name": "t", "value": ""},
+}
 
 
-def _entradas(g: "JamGraph", nid: str) -> list[str]:
-    """Orígenes cableados al pin «gordo» (in): de ahí hereda el asset si no tiene uno propio."""
-    return [a for a, _ap, b, bp in g.edges if b == nid and bp == PIN_IN]
+class GraphValidationError(ValueError):
+    """El Graph no cumple su contrato y no debe entrar a Preview ni ejecutar tools."""
+
+    def __init__(self, diagnostics: dict[str, list[str]]):
+        self.diagnostics = diagnostics
+        detalle = "; ".join(
+            f"{nid}: {', '.join(mensajes)}" for nid, mensajes in diagnostics.items()
+        )
+        super().__init__(detalle or "grafo inválido")
 
 
-def _param_wires(g: "JamGraph", nid: str) -> dict:
-    """{ pin_de_parámetro: origen } de los cables que entran a un PARÁMETRO (o al pin `asset`).
-    Si un pin recibe varios cables, gana el último (como reconectar en Grasshopper)."""
-    out: dict = {}
-    for a, _ap, b, bp in g.edges:
-        if b == nid and bp != PIN_IN:
-            out[bp] = a
-    return out
+@dataclass
+class GraphPlan:
+    """Plan inmutable en intención: todo lo que el runner necesita ya fue validado y resuelto."""
+
+    order: list[str]
+    params: dict[str, dict]
+    input_assets: dict[str, str | None]
+    output_assets: dict[str, str | None]
+    values: dict[str, object]
+    values_by_node: dict[str, object]
+
+
+def _tipo_default(pin: str, default) -> str:
+    if "spline" in pin.lower():
+        return "S"
+    if isinstance(default, bool):
+        return "B"
+    if isinstance(default, (int, float)):
+        return "N"
+    return "T"
+
+
+def _tipo_salida(verb: str, registro: dict) -> str | None:
+    if verb in ("number", "math"):
+        return "N"
+    if verb == "text":
+        return "T"
+    info = registro.get(verb)
+    return info.get("out_name", "A") if info else None
+
+
+def _tipo_entrada(verb: str, pin: str, registro: dict) -> str | None:
+    if verb in VALOR_KINDS:
+        if pin == PIN_IN:
+            return None
+        defaults = _VALUE_DEFAULTS[verb]
+        return _tipo_default(pin, defaults[pin]) if pin in defaults else None
+    info = registro.get(verb)
+    if not info:
+        return None
+    if pin == PIN_IN:
+        return info.get("in_name") if not info.get("source") and info.get("aridad", 1) != 0 else None
+    if pin == PIN_ASSET:
+        return "A" if info.get("asset_pin") else None
+    data_type = info.get("data_params", {}).get(pin)
+    if data_type:
+        return data_type
+    defaults = info.get("params", {})
+    return _tipo_default(pin, defaults[pin]) if pin in defaults else None
+
+
+def _resolver_parametro(valor, default, tabla: dict):
+    """Resuelve expresión + tipo sin defaults silenciosos. Devuelve `(valor, error_o_None)`."""
+    from .flow import _es_numero, _eval_expr
+
+    resuelto = valor
+    if isinstance(valor, str):
+        texto = valor.strip()
+        if texto.startswith("="):
+            resuelto = _eval_expr(texto[1:], tabla)
+            if resuelto is None:
+                return None, f"expresión sin resolver: «{texto}»"
+        elif isinstance(default, (int, float)) and not isinstance(default, bool) \
+                and texto and not _es_numero(texto):
+            resuelto = _eval_expr(texto, tabla)
+            if resuelto is None:
+                return None, f"expresión sin resolver: «{texto}»"
+    try:
+        if isinstance(default, bool):
+            if isinstance(resuelto, bool):
+                return resuelto, None
+            normal = str(resuelto).strip().lower()
+            if normal in ("1", "true", "si", "sí", "yes", "on"):
+                return True, None
+            if normal in ("0", "false", "no", "off"):
+                return False, None
+            return None, f"booleano inválido: «{resuelto}»"
+        if isinstance(default, int):
+            return int(float(resuelto)), None
+        if isinstance(default, float):
+            return float(resuelto), None
+        return str(resuelto), None
+    except (TypeError, ValueError):
+        return None, f"valor inválido: «{resuelto}»"
+
+
+def _resolver_asset_runtime(nombre: str) -> str | None:
+    """Nombre/ObjectPath explícito → ruta canónica existente. Nunca consulta session ni el 1º asset."""
+    from . import library
+
+    pedido = str(nombre or "").strip()
+    if not pedido:
+        return None
+    if "/" in pedido or "." in pedido:
+        obj = library.cargar_placeable(pedido)
+        return obj.get_path_name() if obj is not None else None
+    hits = library.buscar(pedido, limit=0)
+    exactos = [hit for hit in hits if hit["nombre"].lower() == pedido.lower()]
+    return exactos[0]["ruta"] if len(exactos) == 1 else None
+
+
+def _resolver_pick_runtime() -> str | None:
+    from . import library
+
+    seleccion = library.seleccion_ue()
+    return seleccion[0]["ruta"] if seleccion else None
+
+
+def compilar(g: JamGraph, *, registro: dict | None = None, resolver_asset=None,
+             resolver_pick=None, transformar_asset=None) -> GraphPlan:
+    """Compila el DAG completo sin ejecutar tools ni modificar Unreal.
+
+    Valida nodos, endpoints, pines, tipos, cardinalidad, ciclos, variables, expresiones, params y la
+    presencia de assets explícitos. En runtime también comprueba que nombres/rutas y Pick resuelvan.
+    """
+    if registro is None:
+        from . import tools
+        registro = tools.REGISTRO
+        resolver_asset = resolver_asset or _resolver_asset_runtime
+        resolver_pick = resolver_pick or _resolver_pick_runtime
+        transformar_asset = transformar_asset or tools.asset_producido
+    else:
+        resolver_asset = resolver_asset or (lambda nombre: str(nombre).strip() or None)
+        resolver_pick = resolver_pick or (lambda: None)
+        transformar_asset = transformar_asset or (lambda _verbo, _asset, _params: None)
+
+    diagnosticos: dict[str, list[str]] = {}
+
+    def error(nid: str, mensaje: str) -> None:
+        mensajes = diagnosticos.setdefault(nid, [])
+        if mensaje not in mensajes:
+            mensajes.append(mensaje)
+
+    if not g.nodes:
+        error("_graph", "grafo vacío — agregá nodos")
+
+    for nid, nodo in g.nodes.items():
+        verb = nodo.get("verb", "")
+        if verb not in VALOR_KINDS and verb not in registro:
+            error(nid, f"verbo desconocido: «{verb}»")
+
+    valid_edges: list[tuple[str, str, str, str]] = []
+    vistos: set[tuple[str, str, str, str]] = set()
+    entradas: dict[tuple[str, str], int] = {}
+    for origen, origen_pin, destino, destino_pin in g.edges:
+        enlace = (origen, origen_pin, destino, destino_pin)
+        if enlace in vistos:
+            error(destino if destino in g.nodes else "_graph", "conexión duplicada")
+            continue
+        vistos.add(enlace)
+        if origen not in g.nodes:
+            error(destino if destino in g.nodes else "_graph", f"origen inexistente: «{origen}»")
+            continue
+        if destino not in g.nodes:
+            error(origen, f"destino inexistente: «{destino}»")
+            continue
+        if origen == destino:
+            error(origen, "un nodo no puede conectarse a sí mismo")
+        if origen_pin != PIN_OUT:
+            error(origen, f"pin de salida desconocido: «{origen_pin}»")
+            continue
+        tipo_out = _tipo_salida(g.nodes[origen].get("verb", ""), registro)
+        tipo_in = _tipo_entrada(g.nodes[destino].get("verb", ""), destino_pin, registro)
+        if tipo_out is None:
+            error(origen, "la salida no declara un tipo válido")
+            continue
+        if tipo_in is None:
+            error(destino, f"pin de entrada desconocido o no permitido: «{destino_pin}»")
+            continue
+        if tipo_out != tipo_in:
+            error(origen, f"salida {tipo_out} incompatible con {destino}.{destino_pin} ({tipo_in})")
+            error(destino, f"{destino_pin} esperaba {tipo_in}, recibió {tipo_out}")
+            continue
+        entradas[(destino, destino_pin)] = entradas.get((destino, destino_pin), 0) + 1
+        valid_edges.append(enlace)
+
+    for (nid, pin), cantidad in entradas.items():
+        info = registro.get(g.nodes[nid].get("verb", ""), {})
+        variadico = pin == PIN_IN and info.get("aridad") == -1
+        if not variadico and cantidad > 1:
+            error(nid, f"el pin «{pin}» admite un solo cable; recibió {cantidad}")
+
+    try:
+        orden = g.topo_order()
+    except ValueError as exc:
+        orden = []
+        error("_graph", str(exc))
+
+    # Variables: soportan cables hacia sus params y referencias por nombre en expresiones.
+    nombres: dict[str, str] = {}
+    for nid, nodo in g.nodes.items():
+        if nodo.get("verb") not in VALOR_KINDS:
+            continue
+        nombre = str(nodo.get("params", {}).get("name") or nid)
+        if nombre in nombres:
+            error(nombres[nombre], f"nombre de variable duplicado: «{nombre}»")
+            error(nid, f"nombre de variable duplicado: «{nombre}»")
+        else:
+            nombres[nombre] = nid
+
+    param_sources = {(b, bp): a for a, _ap, b, bp in valid_edges if bp != PIN_IN}
+    tabla: dict[str, object] = {}
+    valores_por_nodo: dict[str, object] = {}
+    for _ in range(len(nombres) + 1):
+        cambio = False
+        for nid, nodo in g.nodes.items():
+            verb = nodo.get("verb")
+            if verb not in VALOR_KINDS:
+                continue
+            defaults = _VALUE_DEFAULTS[verb]
+            crudos = nodo.get("params", {})
+            efectivos = dict(defaults)
+            efectivos.update({k: v for k, v in crudos.items() if k in defaults})
+            listo = True
+            for pin in defaults:
+                origen = param_sources.get((nid, pin))
+                if origen is not None:
+                    if origen not in valores_por_nodo:
+                        listo = False
+                        break
+                    efectivos[pin] = valores_por_nodo[origen]
+            if not listo:
+                continue
+            nombre = str(efectivos.get("name") or nid)
+            if verb == "number":
+                valor, fallo = _resolver_parametro(efectivos.get("value"), 0.0, tabla)
+            elif verb == "text":
+                valor, fallo = _resolver_parametro(efectivos.get("value"), "", tabla)
+            else:
+                from .flow import _eval_expr
+                valor = _eval_expr(efectivos.get("expr", "0"),
+                                   {k: v for k, v in tabla.items() if isinstance(v, (int, float))})
+                fallo = None if valor is not None else f"expresión sin resolver: «{efectivos.get('expr', '0')}»"
+            if fallo is None and (valores_por_nodo.get(nid) != valor or tabla.get(nombre) != valor):
+                valores_por_nodo[nid] = valor
+                tabla[nombre] = valor
+                cambio = True
+        if not cambio:
+            break
+
+    for nid, nodo in g.nodes.items():
+        if nodo.get("verb") in VALOR_KINDS and nid not in valores_por_nodo:
+            error(nid, "valor o expresión sin resolver")
+
+    params_plan: dict[str, dict] = {}
+    for nid, nodo in g.nodes.items():
+        verb = nodo.get("verb", "")
+        if verb in VALOR_KINDS or verb not in registro:
+            continue
+        defaults = registro[verb].get("params", {})
+        crudos = {k: v for k, v in nodo.get("params", {}).items() if k != PIN_ASSET}
+        for desconocido in sorted(set(crudos) - set(defaults)):
+            error(nid, f"parámetro desconocido: «{desconocido}»")
+        efectivos: dict = {}
+        data_params = registro[verb].get("data_params", {})
+        for pin, default in defaults.items():
+            origen = param_sources.get((nid, pin))
+            if pin in data_params:
+                if origen is None:
+                    error(nid, f"requiere conexión {data_params[pin]} en «{pin}»")
+                # El objeto rico se inyecta durante Run; Compile sólo valida existencia y tipo.
+                continue
+            if origen is not None:
+                if origen not in valores_por_nodo:
+                    error(nid, f"el cable de «{pin}» no produjo un valor")
+                    continue
+                valor = valores_por_nodo[origen]
+                fallo = None
+            else:
+                valor, fallo = _resolver_parametro(crudos.get(pin, default), default, tabla)
+            if fallo:
+                error(nid, f"{pin}: {fallo}")
+            else:
+                efectivos[pin] = valor
+        params_plan[nid] = efectivos
+
+    # Si la estructura ya impide un orden confiable, no se intenta propagar assets.
+    input_assets: dict[str, str | None] = {}
+    output_assets: dict[str, str | None] = {}
+    if orden:
+        main_sources: dict[str, list[str]] = {}
+        asset_sources: dict[str, str] = {}
+        for origen, _ap, destino, destino_pin in valid_edges:
+            if destino_pin == PIN_IN:
+                main_sources.setdefault(destino, []).append(origen)
+            elif destino_pin == PIN_ASSET:
+                asset_sources[destino] = origen
+
+        for nid in orden:
+            nodo = g.nodes[nid]
+            verb = nodo.get("verb", "")
+            if verb in VALOR_KINDS or verb not in registro:
+                input_assets[nid] = None
+                output_assets[nid] = None
+                continue
+            info = registro[verb]
+            entradas_principales = main_sources.get(nid, [])
+            if not info.get("source") and info.get("aridad", 1) != 0 \
+                    and (info.get("in_name") != "A" or info.get("require_main_inputs")):
+                minimo = int(info.get("min_inputs", 1))
+                if len(entradas_principales) < minimo:
+                    tipo_entrada = info.get("in_name") or "dato"
+                    error(nid, f"requiere al menos {minimo} conexión(es) {tipo_entrada} en «in»")
+            asset: str | None = None
+            necesita_resolver = False
+            if verb == "asset":
+                asset = params_plan.get(nid, {}).get("name")
+                necesita_resolver = True
+                if not str(asset or "").strip():
+                    error(nid, "Asset requiere un nombre/ObjectPath o un cable Text → name")
+            elif verb == "pick":
+                try:
+                    asset = resolver_pick()
+                except Exception as exc:  # noqa: BLE001
+                    asset = None
+                    error(nid, f"Pick no pudo leer la selección: {type(exc).__name__}: {exc}")
+                if not asset:
+                    error(nid, "Pick requiere una StaticMesh seleccionada en Content Browser")
+            elif info.get("asset_pin", False):
+                origen_asset = asset_sources.get(nid)
+                if origen_asset is not None:
+                    asset = output_assets.get(origen_asset)
+                if not asset:
+                    local = nodo.get("asset") or nodo.get("params", {}).get(PIN_ASSET)
+                    if str(local or "").strip():
+                        asset = str(local).strip()
+                        necesita_resolver = True
+                if not asset:
+                    for origen in main_sources.get(nid, []):
+                        if output_assets.get(origen):
+                            asset = output_assets[origen]
+                            break
+                if not asset and info.get("asset_required", False):
+                    error(nid, "requiere asset explícito: cable Asset/Pick, campo asset o entrada A")
+
+            if asset and necesita_resolver:
+                pedido = str(asset)
+                try:
+                    asset = resolver_asset(pedido)
+                except Exception as exc:  # noqa: BLE001
+                    asset = None
+                    error(nid, f"no pude resolver asset: {type(exc).__name__}: {exc}")
+                if not asset:
+                    error(nid, f"asset no encontrado o no colocable: «{pedido}»")
+
+            input_assets[nid] = asset
+            # Un productor A puede nacer desde otro tipo de dato (mesh_to_static: M → A), de modo que
+            # su ruta prevista depende de params aunque no tenga un asset A de entrada.
+            producido = transformar_asset(verb, asset, params_plan.get(nid, {})) \
+                if info.get("out_name") == "A" else None
+            output_assets[nid] = producido or asset
+
+    if diagnosticos:
+        raise GraphValidationError(diagnosticos)
+    return GraphPlan(orden, params_plan, input_assets, output_assets, tabla, valores_por_nodo)
+
+
+def validar(g: JamGraph, **kwargs) -> dict[str, list[str]]:
+    """Versión cómoda del Preflight que devuelve diagnósticos en vez de lanzar excepción."""
+    try:
+        compilar(g, **kwargs)
+    except GraphValidationError as exc:
+        return exc.diagnostics
+    return {}
+
+
+# ---- ejecución (reusa las tools y el oráculo; sólo acepta un GraphPlan válido) ----
 
 
 def _estado(texto: str) -> str:
@@ -162,92 +525,97 @@ def _estado(texto: str) -> str:
     return "ok" if "✓" in texto else "info"
 
 
-def ejecutar(g: JamGraph) -> str:
+def ejecutar(g: JamGraph, plan: GraphPlan | None = None) -> str:
     """Reporte de texto de correr el grafo (ver `ejecutar_detalle`)."""
-    return ejecutar_detalle(g)[0]
+    return ejecutar_detalle(g, plan)[0]
 
 
-def ejecutar_detalle(g: JamGraph) -> tuple[str, dict]:
+def ejecutar_detalle(g: JamGraph, plan: GraphPlan | None = None) -> tuple[str, dict]:
     """Corre el grafo en orden topológico: cada nodo dispara su tool y su oráculo. Devuelve
     (reporte, {nid: {'estado','texto'}}) — el estado es lo que pinta cada nodo en el canvas.
     Los actores quedan en el nivel (quien llama decide preview/confirm)."""
     from . import dsl, tools
-    por_nodo: dict[str, dict] = {}
     try:
-        orden = g.topo_order()
-    except ValueError as e:
-        return f"[grafo] {e}", por_nodo
-    if not orden:
-        return "[grafo] vacío — agregá nodos.", por_nodo
-    lineas = []
-    # asset que sale de cada nodo por su pin: el nodo «asset» lo produce, los demás lo dejan pasar.
-    # Como corremos en orden topológico, aguas abajo ya está resuelto cuando se lo pide.
-    porta: dict[str, str | None] = {}
-    # valor que sale de cada nodo de VALOR (number/math/text), para cablear a pines de parámetro.
-    tabla = g.valores()
-    valor_de = {nid: tabla.get(str(n.get("params", {}).get("name") or nid))
-                for nid, n in g.nodes.items() if n["verb"] in VALOR_KINDS}
+        plan = plan or compilar(g)
+    except GraphValidationError as exc:
+        por_nodo = {
+            nid: {"estado": "error", "texto": " · ".join(mensajes)}
+            for nid, mensajes in exc.diagnostics.items() if nid in g.nodes
+        }
+        reporte = "\n".join(
+            f"[{nid}] {' · '.join(mensajes)}" for nid, mensajes in exc.diagnostics.items()
+        )
+        return reporte, por_nodo
 
-    for nid in orden:
+    por_nodo: dict[str, dict] = {}
+    lineas = []
+    runtime_outputs: dict[str, object] = {}
+    main_sources: dict[str, list[str]] = {}
+    asset_sources: dict[str, str] = {}
+    data_sources: dict[tuple[str, str], str] = {}
+    for origen, _origen_pin, destino, destino_pin in g.edges:
+        if destino_pin == PIN_ASSET:
+            asset_sources[destino] = origen
+        elif destino_pin == PIN_IN:
+            main_sources.setdefault(destino, []).append(origen)
+        else:
+            data_sources[(destino, destino_pin)] = origen
+
+    for nid in plan.order:
         n = g.nodes[nid]
         verb = n["verb"]
 
         # nodos de VALOR: no ejecutan verbo; aportan su valor (y lo muestran en el nodo).
         if verb in VALOR_KINDS:
             nombre = str(n.get("params", {}).get("name") or nid)
-            v = valor_de.get(nid)
+            v = plan.values_by_node.get(nid)
             txt = f"{nombre} = {v}" if v is not None else f"{nombre} = (sin resolver)"
             lineas.append(f"[{nid}·{verb}] {txt}")
             por_nodo[nid] = {"estado": "ok" if v is not None else "warn", "texto": txt}
             continue
 
-        info = tools.REGISTRO.get(verb)
-        if not info:
-            lineas.append(f"[{nid}·{verb}] verbo desconocido")
-            por_nodo[nid] = {"estado": "error", "texto": "verbo desconocido"}
-            continue
-
-        # params del nodo + lo que llegue por CABLE a cada pin de parámetro (el cable MANDA).
-        params = {k: v for k, v in n.get("params", {}).items() if k != PIN_ASSET}
-        wires = _param_wires(g, nid)
-        for pin, origen in wires.items():
-            if pin == PIN_ASSET:
-                continue
-            if origen in valor_de and valor_de[origen] is not None:
-                params[pin] = valor_de[origen]
-            elif porta.get(origen):        # cablear un nodo de asset a un param: pasa su ruta
-                params[pin] = porta[origen]
-
-        # ASSET: pin cableado > el escrito en el pin/nodo > el del cable «gordo» > sesión/biblioteca.
-        pedido = None
-        if PIN_ASSET in wires:
-            o = wires[PIN_ASSET]
-            pedido = porta.get(o) or (valor_de.get(o) if isinstance(valor_de.get(o), str) else None)
-        if not pedido:
-            # ojo: `params` (ya pisado por los cables), no `n["params"]` — si un `text` maneja el
-            # `name` del nodo `asset`, el nombre pedido tiene que ser EL DEL CABLE.
-            pedido = (n.get("asset") or n.get("params", {}).get(PIN_ASSET)
-                      or (params.get("name") if verb == "asset" else None))
-        if not pedido:   # sin asset propio: hereda el del cable (nodo «asset» aguas arriba)
-            pedido = next((porta[e] for e in _entradas(g, nid) if porta.get(e)), None)
-        asset = _resolver_asset(pedido)
-        porta[nid] = asset
-        if not asset:
-            lineas.append(f"[{nid}·{verb}] biblioteca vacía")
-            por_nodo[nid] = {"estado": "error", "texto": "biblioteca vacía"}
-            continue
-
-        kw, _desc = dsl.coaccionar(verb, {k: str(v) for k, v in params.items()})
+        info = tools.REGISTRO[verb]  # el Compile ya garantizó que existe
+        asset = plan.input_assets.get(nid)
+        # Compile propaga la ruta FINAL prevista. Durante Run, transformadores como Fracture crean
+        # una variante temporal única; los consumidores deben recibir esa salida real, no la ruta
+        # determinista que podría pertenecer a un Bake anterior.
+        origen_asset = asset_sources.get(nid)
+        entrada = asset
+        asset_argument = None
+        if info.get("asset_argument"):
+            asset_argument = runtime_outputs.get(origen_asset) if origen_asset is not None else asset
+            valores_main = [runtime_outputs[origen] for origen in main_sources.get(nid, [])
+                            if runtime_outputs.get(origen) is not None]
+            if info.get("aridad") == -1:
+                entrada = valores_main
+            elif valores_main:
+                entrada = valores_main[0]
+        elif origen_asset is not None and runtime_outputs.get(origen_asset) is not None:
+            entrada = runtime_outputs[origen_asset]
+        elif origen_asset is None:
+            valores_main = [runtime_outputs[origen] for origen in main_sources.get(nid, [])
+                            if runtime_outputs.get(origen) is not None]
+            if info.get("aridad") == -1:
+                entrada = valores_main
+            elif valores_main:
+                entrada = valores_main[0]
+        # Los params ya están resueltos y tipados por Compile. `dsl.coaccionar` se conserva como última
+        # frontera de compatibilidad con la firma histórica de las tools.
+        kw, _desc = dsl.coaccionar(verb, {k: str(v) for k, v in plan.params.get(nid, {}).items()})
+        if info.get("asset_argument"):
+            kw["asset"] = asset_argument
+        for pin in info.get("data_params", {}):
+            origen_dato = data_sources.get((nid, pin))
+            kw[pin] = runtime_outputs.get(origen_dato) if origen_dato is not None else None
+        tools.limpiar_asset_producido_runtime(verb)
         try:
-            txt = info["fn"](asset, **kw)
+            txt = str(info["fn"](entrada, **kw))
         except Exception as e:  # noqa: BLE001
             txt = f"[error] {type(e).__name__}: {e}"
-        # Verbos que TRANSFORMAN el asset (fracture: mesh→GC): lo que sale por su pin es la GC, no el
-        # mesh de entrada — así `place` aguas abajo coloca el destructible y no el mesh original.
-        if not txt.startswith("[error]"):
-            producido = tools.asset_producido(verb, asset)
-            if producido:
-                porta[nid] = producido
         lineas.append(f"[{nid}·{verb}] {txt}")
-        por_nodo[nid] = {"estado": _estado(txt), "texto": txt}
+        estado = _estado(txt)
+        por_nodo[nid] = {"estado": estado, "texto": txt}
+        producido = tools.dato_producido_runtime(verb, entrada)
+        runtime_outputs[nid] = (producido if producido is not None else entrada) \
+            if estado != "error" else None
     return "\n".join(lineas), por_nodo

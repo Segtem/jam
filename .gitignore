@@ -27,3 +27,6 @@ Reference/*.gif
 
 # Material de ayudantes visuales: se fabrica solo la primera vez (jam.materials)
 Content/Materials/
+
+# Obsidian: estado local de la UI (cambia en cada sesión, no aporta al repo)
+Vault-kb/.obsidian/workspace.json

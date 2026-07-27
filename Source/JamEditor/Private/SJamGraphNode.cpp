@@ -2,13 +2,18 @@
 
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/SNullWidget.h"
+#include "Widgets/SOverlay.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Layout/SSpacer.h"
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Input/SButton.h"
+#include "Widgets/Input/SCheckBox.h"
+#include "Widgets/Input/SComboButton.h"
 #include "Widgets/Input/SEditableTextBox.h"
+#include "Widgets/Input/SSpinBox.h"
 #include "Widgets/Text/STextBlock.h"
+#include "Framework/MultiBox/MultiBoxBuilder.h"
 #include "Styling/AppStyle.h"
 #include "Styling/CoreStyle.h"
 #include "Rendering/DrawElements.h"
@@ -20,25 +25,43 @@
 
 namespace
 {
-	// Texto oscuro sobre el cuerpo gris claro de la cápsula (como GH).
+	// Texto oscuro sobre el cuerpo gris claro del componente (como GH).
 	const FLinearColor JamInk(0.10f, 0.10f, 0.11f, 1.0f);
 
-	// El GRIP (pin) al estilo Grasshopper: una pastilla oscura sobre el borde de la cápsula, en vez de
-	// un punto. Es estático (todos los grips son iguales; el color no cambia) → vive lo que el widget.
-	const FSlateRoundedBoxBrush GGripBrush(FLinearColor(0.16f, 0.16f, 0.17f, 1.0f), 4.0f);
+	// Grip en dos discos: el exterior recibe el color semántico del dato y el interior claro conserva
+	// contraste sobre cualquier cuerpo. Su centro cae justo sobre el borde, como en Grasshopper.
+	const FSlateRoundedBoxBrush GGripOuterBrush(FLinearColor::White, 5.0f);
+	const FSlateRoundedBoxBrush GGripInnerBrush(FLinearColor(0.90f, 0.90f, 0.87f, 1.0f), 4.0f);
 
-	// Nub = botón sin borde con la pastilla del grip (clicable para conectar), como el grip de GH.
-	TSharedRef<SWidget> MakeNub(const FString& Tip, TFunction<void()> OnClick)
+	FString FriendlyVerbName(const FString& Verb)
+	{
+		FString Name = Verb;
+		Name.ReplaceInline(TEXT("_"), TEXT(" "));
+		if (!Name.IsEmpty())
+		{
+			Name[0] = FChar::ToUpper(Name[0]);
+		}
+		return Name;
+	}
+
+	// Nub = botón sin borde con el grip circular clicable.
+	TSharedRef<SWidget> MakeNub(const FString& Tip, const FLinearColor& BorderColor, TFunction<void()> OnClick)
 	{
 		return SNew(SButton)
 			.ButtonStyle(&FAppStyle::Get(), "NoBorder")
-			.ToolTipText(FText::FromString(Tip))
+			.ToolTipText(FText::FromString(Tip + TEXT("\nAlt+clic: eliminar conexiones del pin")))
 			.ContentPadding(FMargin(0.0f))
 			.HAlign(HAlign_Center).VAlign(VAlign_Center)
 			.OnClicked_Lambda([OnClick]() { OnClick(); return FReply::Handled(); })
 			[
-				SNew(SBox).WidthOverride(8.0f).HeightOverride(11.0f)
-				[ SNew(SImage).Image(&GGripBrush) ]
+				SNew(SBox).WidthOverride(10.0f).HeightOverride(10.0f)
+				[
+					SNew(SOverlay)
+					+ SOverlay::Slot()
+					[ SNew(SImage).Image(&GGripOuterBrush).ColorAndOpacity(BorderColor) ]
+					+ SOverlay::Slot().Padding(2.0f)
+					[ SNew(SImage).Image(&GGripInnerBrush) ]
+				]
 			];
 	}
 }
@@ -46,7 +69,7 @@ namespace
 void SJamGraphNode::Construct(const FArguments& InArgs)
 {
 	Verb = InArgs._Verb;
-	Icon = InArgs._Icon;
+	IconPath = InArgs._IconPath;
 	OutName = InArgs._OutName;
 	IconColor = InArgs._IconColor;
 	OnDragDelta = InArgs._OnDragDelta;
@@ -54,27 +77,61 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 	OnOutputClickedDelegate = InArgs._OnOutputClicked;
 	OnDeleteClickedDelegate = InArgs._OnDeleteClicked;
 	RebuildBodyBrush();
-	IconBrush = FSlateRoundedBoxBrush(IconColor, 3.0f);   // slot del icono en el color de su categoría
+	if (!IconPath.IsEmpty())
+	{
+		IconBrush = MakeShared<FSlateVectorImageBrush>(IconPath, FVector2D(24.0f), JamInk);
+	}
 
-	// Campos de valor CLAROS con texto negro (como los inputs de GH), en vez del text-box oscuro del
-	// editor. Fondo claro redondeado + foreground negro en todos los estados.
+	// Controles CLAROS y compactos, como los parámetros auxiliares de GH, en vez de heredar los
+	// inputs oscuros del editor de Unreal.
 	FieldStyle = FAppStyle::Get().GetWidgetStyle<FEditableTextBoxStyle>("NormalEditableTextBox");
-	const FSlateRoundedBoxBrush FieldBg(FLinearColor(0.95f, 0.95f, 0.93f, 1.0f), 2.0f,
-		FLinearColor(0.45f, 0.45f, 0.43f, 1.0f), 1.0f);
+	const FSlateRoundedBoxBrush FieldBg(FLinearColor(0.96f, 0.96f, 0.93f, 1.0f), 2.0f,
+		FLinearColor(0.34f, 0.34f, 0.32f, 1.0f), 1.0f);
+	const FSlateRoundedBoxBrush FieldFocus(FLinearColor(1.0f, 1.0f, 0.98f, 1.0f), 2.0f,
+		IconColor, 1.4f);
 	FieldStyle.SetBackgroundImageNormal(FieldBg);
-	FieldStyle.SetBackgroundImageHovered(FieldBg);
-	FieldStyle.SetBackgroundImageFocused(FieldBg);
+	FieldStyle.SetBackgroundImageHovered(FieldFocus);
+	FieldStyle.SetBackgroundImageFocused(FieldFocus);
 	FieldStyle.SetBackgroundImageReadOnly(FieldBg);
 	FieldStyle.SetForegroundColor(FLinearColor::Black);
 	FieldStyle.SetFocusedForegroundColor(FLinearColor::Black);
 	FieldStyle.SetReadOnlyForegroundColor(FLinearColor(0.15f, 0.15f, 0.15f, 1.0f));
+	FieldStyle.SetPadding(FMargin(4.0f, 1.0f));
 	// SELECCIÓN de texto: el TextStyle heredado es del tema OSCURO (texto blanco + resalte claro) →
 	// al seleccionar quedaba blanco sobre blanco. Texto negro + resalte AZUL para que se lea.
 	FTextBlockStyle TextStyle = FieldStyle.TextStyle;
+	TextStyle.SetFont(FCoreStyle::GetDefaultFontStyle("Regular", 7));
 	TextStyle.SetColorAndOpacity(FLinearColor::Black);
 	TextStyle.SetSelectedBackgroundColor(FLinearColor(0.20f, 0.45f, 0.85f, 1.0f));
 	TextStyle.SetHighlightColor(FLinearColor::Black);
 	FieldStyle.SetTextStyle(TextStyle);
+
+	SpinStyle = FAppStyle::Get().GetWidgetStyle<FSpinBoxStyle>("SpinBox");
+	const FSlateRoundedBoxBrush SpinFill(IconColor.CopyWithNewOpacity(0.55f), 2.0f);
+	SpinStyle.SetBackgroundBrush(FieldBg)
+		.SetHoveredBackgroundBrush(FieldFocus)
+		.SetActiveBackgroundBrush(FieldFocus)
+		.SetActiveFillBrush(SpinFill)
+		.SetHoveredFillBrush(SpinFill)
+		.SetInactiveFillBrush(*FAppStyle::GetBrush("NoBrush"))
+		.SetArrowsImage(*FAppStyle::GetBrush("NoBrush"))
+		.SetForegroundColor(JamInk)
+		.SetTextPadding(FMargin(4.0f, 1.0f))
+		.SetInsetPadding(FMargin(1.0f));
+
+	// El Checkbox estándar toma FStyleColors::Input del tema del editor (negro en el tema oscuro).
+	// Conservamos su glyph nativo y reemplazamos sólo la caja por el mismo lenguaje claro de los
+	// campos numéricos/textuales. El tamaño explícito evita que el brush altere la altura de la fila.
+	CheckStyle = FAppStyle::Get().GetWidgetStyle<FCheckBoxStyle>("Checkbox");
+	const FVector2f CheckSize(18.0f, 18.0f);
+	const FSlateRoundedBoxBrush CheckBg(FLinearColor(0.96f, 0.96f, 0.93f, 1.0f), 3.0f,
+		FLinearColor(0.34f, 0.34f, 0.32f, 1.0f), 1.0f, CheckSize);
+	const FSlateRoundedBoxBrush CheckHover(FLinearColor(1.0f, 1.0f, 0.98f, 1.0f), 3.0f,
+		IconColor, 1.4f, CheckSize);
+	CheckStyle.SetBackgroundImage(CheckBg)
+		.SetBackgroundHoveredImage(CheckHover)
+		.SetBackgroundPressedImage(CheckHover)
+		.SetPadding(FMargin(0.0f));
 
 	// Celda de alto FIJO (los pines se alinean a las filas por construcción; la métrica la comparte el
 	// editor para anclar los wires exactamente en cada pin — como los grips por parámetro de GH).
@@ -84,10 +141,10 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 	};
 	auto Spacer = [](float H) { return SNew(SBox).HeightOverride(H); };
 
-	// Anatomía de componente de Grasshopper: NO hay barra de título arriba. El NOMBRE del verbo va
-	// VERTICAL en el centro (lo dibuja OnPaint); los PARÁMETROS son filas a la izquierda [nub][nombre]
-	// [valor]; el pin de SALIDA a la derecha. Sin Execution Pins (Jam es dataflow como GH).
-	//   col pines-in (izq) · col params (nombre+valor) · centro libre (nombre vertical) · col pin-out (der)
+	// Anatomía de componente de Grasshopper: cartela flotante arriba (la pinta OnPaint), parámetros en
+	// filas a la izquierda [grip][nombre][valor], nombre vertical en el centro (futuro icono) y salida a
+	// la derecha. Sin Execution Pins: Jam es dataflow como GH.
+	//   col pines-in (izq) · col params (nombre+valor) · centro libre · col pin-out (der)
 	TSharedRef<SVerticalBox> LeftCol  = SNew(SVerticalBox);
 	TSharedRef<SVerticalBox> ParamCol = SNew(SVerticalBox);
 	TSharedRef<SVerticalBox> RightCol = SNew(SVerticalBox);
@@ -96,44 +153,149 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 	ParamCol->AddSlot().AutoHeight()[ Spacer(PadTop) ];
 	RightCol->AddSlot().AutoHeight()[ Spacer(PadTop) ];
 
-	// fila header: nub de stream «in» (izq) · botón borrar (der de la col de params) · nub «out» (der)
+	// Fila header: nub de stream «in» (izq) · zona libre de arrastre · nub «out» (der). Cerrar vive en
+	// una capa independiente, arriba a la derecha del componente.
 	LeftCol->AddSlot().AutoHeight()
 	[
 		Cell(HeaderH, InArgs._HasInput
 			? MakeNub(TEXT("entrada de stream (clic para conectar)"),
+				InArgs._InputColor,
 				[this]() { OnInputClickedDelegate.ExecuteIfBound(TEXT("in")); })
 			: StaticCastSharedRef<SWidget>(SNullWidget::NullWidget))
 	];
 	ParamCol->AddSlot().AutoHeight()
 	[
-		Cell(HeaderH,
-			SNew(SHorizontalBox)
-			+ SHorizontalBox::Slot().FillWidth(1.0f)[ SNew(SSpacer) ]   // zona de arrastre
-			+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
-			[
-				SNew(SButton)
-				.ButtonStyle(&FAppStyle::Get(), "NoBorder")
-				.ToolTipText(LOCTEXT("Del", "borrar nodo"))
-				.ContentPadding(FMargin(2.0f, 0.0f))
-				.OnClicked_Lambda([this]() { OnDeleteClickedDelegate.ExecuteIfBound(); return FReply::Handled(); })
-				[ SNew(STextBlock).Text(FText::FromString(TEXT("×"))).ColorAndOpacity(JamInk) ]
-			])
+		Cell(HeaderH, SNew(SSpacer))
 	];
 	RightCol->AddSlot().AutoHeight()
 	[
-		Cell(HeaderH, MakeNub(TEXT("salida (clic para conectar)"),
+		Cell(HeaderH, MakeNub(TEXT("salida (clic para conectar)"), InArgs._OutputColor,
 			[this]() { OnOutputClickedDelegate.ExecuteIfBound(); }))
 	];
 
-	// una fila por parámetro: [nub] · [nombre][valor] · (sin salida)
+	// Slider del nodo `number`: el `value` se arrastra dentro de [min, max] (el Number Slider de GH). El
+	// rango vive en holders compartidos que los campos `min`/`max` actualizan en vivo → mover el rango
+	// re-clampa el slider al toque. Se leen de los defaults antes del loop (pueden llegar en cualquier orden).
+	TSharedRef<float> NumMin = MakeShared<float>(0.0f);
+	TSharedRef<float> NumMax = MakeShared<float>(100.0f);
+	if (Verb == TEXT("number"))
+	{
+		for (const FJamNodeParam& Q : InArgs._Params)
+		{
+			if (Q.Name == TEXT("min")) { *NumMin = FCString::Atof(*Q.Value); }
+			else if (Q.Name == TEXT("max")) { *NumMax = FCString::Atof(*Q.Value); }
+		}
+	}
+
+	// una fila por parámetro: [nub] · [nombre][input] · (sin salida). El INPUT depende del tipo del
+	// param (como los widgets de Grasshopper): bool → toggle · enum (`opciones`) → dropdown · resto →
+	// campo de texto. Los numéricos siguen siendo texto A PROPÓSITO: en el grafo un param puede ser una
+	// EXPRESIÓN «=count*2» (el cerebro paramétrico) que un spinbox no dejaría tipear — el slider de GH
+	// se logra cableando un nodo `number` al pin del param.
 	for (const FJamNodeParam& P : InArgs._Params)
 	{
-		const FString Key = P.Key;
-		TSharedPtr<SEditableTextBox> Field;
+		const FString Key = P.Name;
+
+		TSharedRef<SWidget> Input = SNullWidget::NullWidget;
+		if (Verb == TEXT("number") && Key == TEXT("value"))
+		{
+			// SLIDER VISUAL (el Number Slider de GH): el `value` del nodo `number` es SIEMPRE un literal
+			// (la fuente de la variable; el `math` es el que lleva la expresión) → se arrastra en vez de
+			// tipear, ACOTADO a [min, max] como GH.
+			TSharedRef<float> Val = MakeShared<float>(FCString::Atof(*P.Value));
+			Input = SNew(SSpinBox<float>)
+				.Style(&SpinStyle)
+				.Value_Lambda([Val]() { return *Val; })
+				.OnValueChanged_Lambda([Val](float V) { *Val = V; })
+				.MinValue_Lambda([NumMin]() { return *NumMin; })
+				.MaxValue_Lambda([NumMax]() { return *NumMax; })
+				.MinSliderValue_Lambda([NumMin]() { return *NumMin; })
+				.MaxSliderValue_Lambda([NumMax]() { return *NumMax; })
+				.Delta(0.0f)
+				.MinDesiredWidth(60.0f);
+			ParamGetters.Add(Key, [Val]() { return FString::SanitizeFloat(*Val); });
+			ParamSetters.Add(Key, [Val](const FString& V) { *Val = FCString::Atof(*V); });
+		}
+		else if (Verb == TEXT("number") && (Key == TEXT("min") || Key == TEXT("max")))
+		{
+			// Los EXTREMOS del rango del slider: spinbox libre (sin tope) que escribe el holder → el
+			// slider de arriba se re-acota al instante.
+			TSharedRef<float> H = (Key == TEXT("min")) ? NumMin : NumMax;
+			Input = SNew(SSpinBox<float>)
+				.Style(&SpinStyle)
+				.Value_Lambda([H]() { return *H; })
+				.OnValueChanged_Lambda([H](float V) { *H = V; })
+				.MinValue(TOptional<float>()).MaxValue(TOptional<float>())
+				.MinSliderValue(-1000.0f).MaxSliderValue(1000.0f)
+				.MinDesiredWidth(50.0f);
+			ParamGetters.Add(Key, [H]() { return FString::SanitizeFloat(*H); });
+			ParamSetters.Add(Key, [H](const FString& V) { *H = FCString::Atof(*V); });
+		}
+		else if (P.Type == TEXT("bool"))
+		{
+			// TOGGLE (como el Boolean Toggle de GH): no obliga a tipear «true».
+			const bool bOn = P.Value.Equals(TEXT("true"), ESearchCase::IgnoreCase);
+			TSharedRef<SCheckBox> Check = SNew(SCheckBox)
+				.Style(&CheckStyle)
+				.IsChecked(bOn ? ECheckBoxState::Checked : ECheckBoxState::Unchecked);
+			Input = Check;
+			ParamGetters.Add(Key, [Check]()
+			{
+				return Check->IsChecked() ? FString(TEXT("true")) : FString(TEXT("false"));
+			});
+			ParamSetters.Add(Key, [Check](const FString& V)
+			{
+				Check->SetIsChecked(V.Equals(TEXT("true"), ESearchCase::IgnoreCase)
+					? ECheckBoxState::Checked : ECheckBoxState::Unchecked);
+			});
+		}
+		else if (P.Options.Num() > 0)
+		{
+			// DROPDOWN (Value List de GH): dominio cerrado → se elige, no se escribe (ni se escribe mal).
+			TSharedRef<FString> Choice = MakeShared<FString>(P.Value);
+			const TArray<FString> Opts = P.Options;
+			Input = SNew(SComboButton)
+				.ComboButtonStyle(&FAppStyle::Get().GetWidgetStyle<FComboButtonStyle>("SimpleComboButton"))
+				.OnGetMenuContent_Lambda([Choice, Opts]()
+				{
+					FMenuBuilder MB(true, nullptr);
+					for (const FString& O : Opts)
+					{
+						MB.AddMenuEntry(FText::FromString(O.IsEmpty() ? TEXT("(—)") : O),
+							FText::GetEmpty(), FSlateIcon(),
+							FUIAction(FExecuteAction::CreateLambda([Choice, O]() { *Choice = O; })));
+					}
+					return MB.MakeWidget();
+				})
+				.ButtonContent()
+				[
+					SNew(STextBlock)
+					.ColorAndOpacity(JamInk)
+					.Font(FCoreStyle::GetDefaultFontStyle("Regular", 7))
+					.Text_Lambda([Choice]() { return FText::FromString(Choice->IsEmpty() ? TEXT("(—)") : *Choice); })
+				];
+			ParamGetters.Add(Key, [Choice]() { return *Choice; });
+			ParamSetters.Add(Key, [Choice](const FString& V) { *Choice = V; });
+		}
+		else
+		{
+			// TEXTO claro (número, semilla, expresión «=…», nombre de asset).
+			TSharedRef<SEditableTextBox> Field = SNew(SEditableTextBox)
+				.Style(&FieldStyle).Text(FText::FromString(P.Value));
+			Input = Field;
+			ParamGetters.Add(Key, [Field]() { return Field->GetText().ToString(); });
+			ParamSetters.Add(Key, [Field](const FString& V) { Field->SetText(FText::FromString(V)); });
+		}
+
+		// Si el pin de este parámetro tiene un CABLE, el input se deshabilita (grisea): el valor lo manda
+		// el cable, no el campo — como GH cuando un input está wired. IsEnabled se lee por atributo.
+		Input->SetEnabled(TAttribute<bool>::CreateLambda(
+			[this, Key]() { return !CabledPins.Contains(Key); }));
 
 		LeftCol->AddSlot().AutoHeight()
 		[
-			Cell(RowH, MakeNub(FString::Printf(TEXT("pin «%s» (cableá una variable para manejarlo)"), *Key),
+			Cell(RowH, MakeNub(FString::Printf(TEXT("pin «%s» · tipo %s"), *Key, *P.DataType),
+				P.PinColor,
 				[this, Key]() { OnInputClickedDelegate.ExecuteIfBound(Key); }))
 		];
 		ParamCol->AddSlot().AutoHeight()
@@ -148,28 +310,64 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 				]
 				+ SHorizontalBox::Slot().FillWidth(1.0f).VAlign(VAlign_Center)
 				[
-					SAssignNew(Field, SEditableTextBox).Style(&FieldStyle).Text(FText::FromString(P.Value))
+					Input
 				])
 		];
 		RightCol->AddSlot().AutoHeight()[ Cell(RowH, StaticCastSharedRef<SWidget>(SNullWidget::NullWidget)) ];
-		Fields.Add(Key, Field);
 	}
+
+	TSharedRef<SHorizontalBox> MainContent = SNew(SHorizontalBox)
+		+ SHorizontalBox::Slot().AutoWidth()[ SNew(SBox).WidthOverride(PinColW)[ LeftCol ] ]
+		+ SHorizontalBox::Slot().AutoWidth()[ SNew(SBox).WidthOverride(ParamColW)[ ParamCol ] ]
+		+ SHorizontalBox::Slot().FillWidth(1.0f)[ SNew(SSpacer) ]   // centro: nombre/icono (OnPaint)
+		+ SHorizontalBox::Slot().AutoWidth()[ SNew(SBox).WidthOverride(PinColW)[ RightCol ] ];
 
 	ChildSlot
 	[
-		SNew(SHorizontalBox)
-		+ SHorizontalBox::Slot().AutoWidth()[ SNew(SBox).WidthOverride(PinColW)[ LeftCol ] ]
-		+ SHorizontalBox::Slot().AutoWidth()[ SNew(SBox).WidthOverride(ParamColW)[ ParamCol ] ]
-		+ SHorizontalBox::Slot().FillWidth(1.0f)[ SNew(SSpacer) ]   // centro: nombre vertical (OnPaint)
-		+ SHorizontalBox::Slot().AutoWidth()[ SNew(SBox).WidthOverride(PinColW)[ RightCol ] ]
+		SNew(SOverlay)
+		+ SOverlay::Slot()[ MainContent ]
+		+ SOverlay::Slot()
+		.HAlign(HAlign_Right)
+		.VAlign(VAlign_Top)
+		.Padding(0.0f, 1.0f, 2.0f, 0.0f)
+		[
+			SNew(SBox).WidthOverride(18.0f).HeightOverride(16.0f)
+			[
+				SNew(SButton)
+				.ButtonStyle(&FAppStyle::Get(), "NoBorder")
+				.ToolTipText(LOCTEXT("Del", "borrar nodo"))
+				.ContentPadding(FMargin(0.0f))
+				.HAlign(HAlign_Center).VAlign(VAlign_Center)
+				.OnClicked_Lambda([this]()
+				{
+					OnDeleteClickedDelegate.ExecuteIfBound();
+					return FReply::Handled();
+				})
+				[
+					SNew(STextBlock)
+					.Text(FText::FromString(TEXT("×")))
+					.Font(FCoreStyle::GetDefaultFontStyle("Bold", 9))
+					.ColorAndOpacity(JamInk)
+				]
+			]
+		]
 	];
 }
 
 void SJamGraphNode::RebuildBodyBrush()
 {
-	// cápsula tintada por su CATEGORÍA (como los componentes lavanda/color de GH): un pastel claro del
-	// color de categoría; borde = veredicto del oráculo.
-	const FLinearColor Fill = FMath::Lerp(IconColor, FLinearColor(0.96f, 0.96f, 0.95f, 1.0f), 0.74f);
+	// En GH el cuerpo normal es gris; naranja y rojo comunican warning/error, no categorías. Jam mantiene
+	// una huella mínima de la categoría en el neutro y reserva los colores fuertes para el oráculo.
+	FLinearColor Fill = FMath::Lerp(
+		FLinearColor(0.76f, 0.77f, 0.78f, 1.0f), IconColor, 0.10f);
+	if (ResultState == TEXT("warn"))
+	{
+		Fill = FLinearColor(1.0f, 0.56f, 0.08f, 1.0f);   // naranja GH
+	}
+	else if (ResultState == TEXT("error"))
+	{
+		Fill = FLinearColor(0.90f, 0.20f, 0.14f, 1.0f);
+	}
 	BodyBrush = FSlateRoundedBoxBrush(Fill, 5.0f, StateColor(), 1.4f);
 }
 
@@ -177,49 +375,114 @@ int32 SJamGraphNode::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGe
 	const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId,
 	const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
-	// Cápsula redondeada detrás de los hijos, insetada para que los grips queden sobre el borde.
+	// Componente redondeado detrás de los hijos, insetado para que los grips queden sobre el borde. La
+	// franja superior queda libre para la cartela flotante con el nombre (como en las referencias GH).
 	const FVector2D Size = AllottedGeometry.GetLocalSize();
 	const float BodyW = FMath::Max(0.0f, (float)Size.X - 14.0f);
-	const float BodyH = FMath::Max(0.0f, (float)Size.Y - 2.0f);
-	const FPaintGeometry PG = AllottedGeometry.ToPaintGeometry(
-		FVector2D(BodyW, BodyH), FSlateLayoutTransform(FVector2D(7.0f, 1.0f)));
-	FSlateDrawElement::MakeBox(OutDrawElements, LayerId, PG, &BodyBrush);
+	const float BodyH = FMath::Max(0.0f, (float)Size.Y - TitleH - 1.0f);
+	const float BodyY = TitleH;
 
-	// Bevel suave estilo GH: un degradé vertical (transparente arriba → sombra abajo) inset por el
-	// radio para no asomar en las esquinas, + una línea de luz apenas bajo el borde superior.
+	// Selección/hover lavanda alrededor del componente, equivalente al rectángulo violeta de GH. El
+	// foco propio o de uno de sus controles mantiene visible qué nodo recibirá la tecla Supr.
+	if (IsHovered() || bDragging || HasKeyboardFocus() || HasFocusedDescendants())
+	{
+		FSlateDrawElement::MakeBox(OutDrawElements, LayerId,
+			AllottedGeometry.ToPaintGeometry(
+				FVector2D(Size.X - 6.0f, BodyH + 6.0f),
+				FSlateLayoutTransform(FVector2D(3.0f, BodyY - 3.0f))),
+			&SelectionBrush);
+	}
+
+	// Sombra corta inferior: el relieve discreto visible en los componentes clásicos.
+	FSlateDrawElement::MakeBox(OutDrawElements, LayerId + 1,
+		AllottedGeometry.ToPaintGeometry(
+			FVector2D(BodyW, BodyH), FSlateLayoutTransform(FVector2D(8.0f, BodyY + 2.0f))),
+		&ShadowBrush);
+
+	const FPaintGeometry PG = AllottedGeometry.ToPaintGeometry(
+		FVector2D(BodyW, BodyH), FSlateLayoutTransform(FVector2D(7.0f, BodyY)));
+	FSlateDrawElement::MakeBox(OutDrawElements, LayerId + 2, PG, &BodyBrush);
+
+	// Bevel suave estilo GH: luz arriba y una sombra corta abajo, insetadas para respetar las esquinas.
 	const float R = 5.0f;
 	if (BodyW > 2.0f * R && BodyH > 2.0f * R)
 	{
 		const FVector2D GSize(BodyW - 2.0f * R, BodyH - 2.0f * R);
 		const FPaintGeometry GPG = AllottedGeometry.ToPaintGeometry(
-			GSize, FSlateLayoutTransform(FVector2D(7.0f + R, 1.0f + R)));
+			GSize, FSlateLayoutTransform(FVector2D(7.0f + R, BodyY + R)));
 		TArray<FSlateGradientStop> Stops;
-		Stops.Add(FSlateGradientStop(FVector2D(0.0f, 0.0f), FLinearColor(0.0f, 0.0f, 0.0f, 0.0f)));
-		Stops.Add(FSlateGradientStop(FVector2D(0.0f, GSize.Y), FLinearColor(0.0f, 0.0f, 0.0f, 0.09f)));
-		FSlateDrawElement::MakeGradient(OutDrawElements, LayerId + 1, GPG, Stops, Orient_Vertical);
+		Stops.Add(FSlateGradientStop(FVector2D(0.0f, 0.0f), FLinearColor(1.0f, 1.0f, 1.0f, 0.18f)));
+		Stops.Add(FSlateGradientStop(FVector2D(0.0f, GSize.Y), FLinearColor(0.0f, 0.0f, 0.0f, 0.10f)));
+		FSlateDrawElement::MakeGradient(OutDrawElements, LayerId + 3, GPG, Stops, Orient_Vertical);
 
 		TArray<FVector2D> Hi;
-		Hi.Add(FVector2D(7.0f + R, 2.0f));
-		Hi.Add(FVector2D(7.0f + BodyW - R, 2.0f));
-		FSlateDrawElement::MakeLines(OutDrawElements, LayerId + 1, AllottedGeometry.ToPaintGeometry(),
+		Hi.Add(FVector2D(7.0f + R, BodyY + 1.5f));
+		Hi.Add(FVector2D(7.0f + BodyW - R, BodyY + 1.5f));
+		FSlateDrawElement::MakeLines(OutDrawElements, LayerId + 3, AllottedGeometry.ToPaintGeometry(),
 			Hi, ESlateDrawEffect::None, FLinearColor(1.0f, 1.0f, 1.0f, 0.35f), true, 1.0f);
 	}
 
-	// NOMBRE DEL VERBO en VERTICAL, centrado en la zona libre (como los componentes en modo texto de
-	// GH): rotado -90° alrededor de su centro. Se dibuja acá para no pelear con el layout de Slate.
+	// Cartela superior: nombre humano del verbo y pequeño pico hacia el cuerpo.
 	{
-		const FSlateFontInfo Font = FCoreStyle::GetDefaultFontStyle("Bold", 9);
+		const FString Title = FriendlyVerbName(Verb);
+		const FSlateFontInfo Font = FCoreStyle::GetDefaultFontStyle("Regular", 8);
 		const TSharedRef<FSlateFontMeasure> FM =
 			FSlateApplication::Get().GetRenderer()->GetFontMeasureService();
-		const FVector2D TS = FM->Measure(Verb, Font);
-		const float FreeLeft = PinColW + ParamColW;
-		const float Cx = FMath::Min((FreeLeft + (Size.X - PinColW)) * 0.5f, Size.X - PinColW - 4.0f);
-		const FVector2D TopLeft(Cx - TS.X * 0.5f, Size.Y * 0.5f - TS.Y * 0.5f);
-		const FPaintGeometry TPG = AllottedGeometry.ToPaintGeometry(
-			TS, FSlateLayoutTransform(TopLeft),
-			FSlateRenderTransform(FQuat2D(FMath::DegreesToRadians(-90.0f))), FVector2D(0.5f, 0.5f));
-		FSlateDrawElement::MakeText(OutDrawElements, LayerId + 1, TPG, Verb, Font,
+		const FVector2D TS = FM->Measure(Title, Font);
+		// Reservar la esquina superior derecha para la × independiente.
+		const float LabelW = FMath::Min(BodyW - 42.0f, TS.X + 14.0f);
+		const float LabelH = TitleH - 4.0f;
+		const float LabelX = (Size.X - LabelW) * 0.5f;
+		FSlateDrawElement::MakeBox(OutDrawElements, LayerId + 4,
+			AllottedGeometry.ToPaintGeometry(
+				FVector2D(LabelW, LabelH), FSlateLayoutTransform(FVector2D(LabelX, 1.0f))),
+			&TitleBrush);
+
+		const float Cx = Size.X * 0.5f;
+		TArray<FVector2D> Pointer;
+		Pointer.Add(FVector2D(Cx - 4.0f, LabelH));
+		Pointer.Add(FVector2D(Cx, LabelH + 4.0f));
+		Pointer.Add(FVector2D(Cx + 4.0f, LabelH));
+		FSlateDrawElement::MakeLines(OutDrawElements, LayerId + 4,
+			AllottedGeometry.ToPaintGeometry(), Pointer, ESlateDrawEffect::None,
+			FLinearColor(0.12f, 0.12f, 0.12f, 1.0f), false, 2.0f);
+
+		const FVector2D TopLeft(Cx - TS.X * 0.5f, 1.0f + (LabelH - TS.Y) * 0.5f);
+		FSlateDrawElement::MakeText(OutDrawElements, LayerId + 5,
+			AllottedGeometry.ToPaintGeometry(TS, FSlateLayoutTransform(TopLeft)), Title, Font,
 			ESlateDrawEffect::None, JamInk);
+	}
+
+	// Pictograma central del verbo. Si falta el asset o el mapping, conserva el nombre vertical como
+	// fallback legible: un error al editar icon-map.json nunca deja un nodo anónimo.
+	{
+		const float FreeLeft = PinColW + ParamColW;
+		const float FreeRight = Size.X - PinColW;
+		const float Cx = (FreeLeft + FreeRight) * 0.5f;
+		if (IconBrush.IsValid())
+		{
+			const FVector2D IconSize(24.0f, 24.0f);
+			const FVector2D IconAt(Cx - IconSize.X * 0.5f,
+				BodyY + BodyH * 0.5f - IconSize.Y * 0.5f);
+			FSlateDrawElement::MakeBox(OutDrawElements, LayerId + 5,
+				AllottedGeometry.ToPaintGeometry(IconSize, FSlateLayoutTransform(IconAt)),
+				IconBrush.Get(), ESlateDrawEffect::None,
+				IconBrush->GetTint(InWidgetStyle) * InWidgetStyle.GetColorAndOpacityTint());
+		}
+		else
+		{
+			const FString CenterName = FriendlyVerbName(Verb);
+			const FSlateFontInfo CenterFont = FCoreStyle::GetDefaultFontStyle("Bold", 8);
+			const TSharedRef<FSlateFontMeasure> FM =
+				FSlateApplication::Get().GetRenderer()->GetFontMeasureService();
+			const FVector2D NS = FM->Measure(CenterName, CenterFont);
+			const FVector2D NameAt(Cx - NS.X * 0.5f, BodyY + BodyH * 0.5f - NS.Y * 0.5f);
+			const FPaintGeometry NamePG = AllottedGeometry.ToPaintGeometry(
+				NS, FSlateLayoutTransform(NameAt),
+				FSlateRenderTransform(FQuat2D(FMath::DegreesToRadians(-90.0f))), FVector2D(0.5f, 0.5f));
+			FSlateDrawElement::MakeText(OutDrawElements, LayerId + 5,
+				NamePG, CenterName, CenterFont, ESlateDrawEffect::None, JamInk);
+		}
 	}
 
 	// NOMBRE DE LA SALIDA (la «variable» del pin de salida, estilo GH: S/E/P/T…), pegado a la
@@ -231,13 +494,13 @@ int32 SJamGraphNode::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGe
 			FSlateApplication::Get().GetRenderer()->GetFontMeasureService();
 		const FVector2D OS = FM2->Measure(OutName, OFont);
 		const FVector2D OTL(Size.X - PinColW - OS.X - 1.0f, PinLocalY(-1) - OS.Y * 0.5f);
-		FSlateDrawElement::MakeText(OutDrawElements, LayerId + 1,
+		FSlateDrawElement::MakeText(OutDrawElements, LayerId + 5,
 			AllottedGeometry.ToPaintGeometry(OS, FSlateLayoutTransform(OTL)), OutName, OFont,
 			ESlateDrawEffect::None, JamInk);
 	}
 
 	return SCompoundWidget::OnPaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements,
-		LayerId + 2, InWidgetStyle, bParentEnabled);
+		LayerId + 6, InWidgetStyle, bParentEnabled);
 }
 
 void SJamGraphNode::SetResult(const FString& State, const FString& Text)
@@ -254,18 +517,15 @@ FLinearColor SJamGraphNode::StateColor() const
 	if (ResultState == TEXT("ok"))    { return FLinearColor(0.13f, 0.55f, 0.22f, 1.0f); }
 	if (ResultState == TEXT("warn"))  { return FLinearColor(0.85f, 0.48f, 0.03f, 1.0f); }
 	if (ResultState == TEXT("error")) { return FLinearColor(0.80f, 0.12f, 0.12f, 1.0f); }
-	return FLinearColor(0.34f, 0.34f, 0.33f, 1.0f);   // neutro: borde gris medio (sobre cápsula clara)
+	return FLinearColor(0.24f, 0.24f, 0.23f, 1.0f);   // neutro: contorno oscuro del componente
 }
 
 TMap<FString, FString> SJamGraphNode::GetParamValues() const
 {
 	TMap<FString, FString> Out;
-	for (const TPair<FString, TSharedPtr<SEditableTextBox>>& F : Fields)
+	for (const TPair<FString, TFunction<FString()>>& G : ParamGetters)
 	{
-		if (F.Value.IsValid())
-		{
-			Out.Add(F.Key, F.Value->GetText().ToString());
-		}
+		Out.Add(G.Key, G.Value());
 	}
 	return Out;
 }
@@ -274,12 +534,9 @@ void SJamGraphNode::SetParamValues(const TMap<FString, FString>& Values)
 {
 	for (const TPair<FString, FString>& KV : Values)
 	{
-		if (const TSharedPtr<SEditableTextBox>* F = Fields.Find(KV.Key))
+		if (const TFunction<void(const FString&)>* S = ParamSetters.Find(KV.Key))
 		{
-			if (F->IsValid())
-			{
-				(*F)->SetText(FText::FromString(KV.Value));
-			}
+			(*S)(KV.Value);
 		}
 	}
 }
@@ -289,9 +546,23 @@ FReply SJamGraphNode::OnMouseButtonDown(const FGeometry& MyGeometry, const FPoin
 	if (MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
 	{
 		bDragging = true;
-		return FReply::Handled().CaptureMouse(SharedThis(this));
+		return FReply::Handled()
+			.CaptureMouse(SharedThis(this))
+			.SetUserFocus(SharedThis(this), EFocusCause::Mouse);
 	}
 	return FReply::Unhandled();
+}
+
+FReply SJamGraphNode::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent)
+{
+	if (InKeyEvent.GetKey() == EKeys::Delete)
+	{
+		// Reusar el callback de la × garantiza que también desaparezcan los cables y se refresquen los
+		// pines conectados. Un text box enfocado consume Supr antes de que el evento llegue al nodo.
+		OnDeleteClickedDelegate.ExecuteIfBound();
+		return FReply::Handled();
+	}
+	return SCompoundWidget::OnKeyDown(MyGeometry, InKeyEvent);
 }
 
 FReply SJamGraphNode::OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)

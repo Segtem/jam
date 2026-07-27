@@ -11,6 +11,7 @@ Contrato:
     assets(q, limit, dir) → JSON {total, shown, folders, assets} del proyecto (Content browser)
     select_asset(path)    → fija el asset activo de la sesión (lo heredan las herramientas)
     run(command)          → corre una línea de DSL, devuelve el veredicto (texto)
+    compile_graph(json)   → valida Graph/Flow sin ejecutar ni modificar la escena
     run_graph(json)       → corre un JamGraph (JSON), devuelve el reporte (texto)
     confirm() / discard() → fija o descarta el preview activo
 """
@@ -57,6 +58,46 @@ def run_graph_json(graph_json: str) -> str:
     return panel.ejecutar_grafo_json(graph_json, None)
 
 
+def compile_graph_json(graph_json: str) -> str:
+    """Compile/Preflight sin efectos para el canvas. Devuelve el mismo envelope por nodo que Run.
+
+    Resuelve tipos, aridad, ciclos, expresiones y assets, pero no abre Preview ni llama ninguna tool.
+    """
+    import json
+
+    from . import flow, graph
+
+    f = flow.Flow.from_json(graph_json)
+    if f.solo_flow():
+        from . import scatter
+        diagnosticos = f.validar(ops=scatter.ops_flow())
+        nodos = f.nodos
+    else:
+        g = graph.JamGraph.from_json(graph_json)
+        diagnosticos = graph.validar(g)
+        nodos = {nid: {"kind": nodo.get("verb", "")} for nid, nodo in g.nodes.items()}
+
+    estados = {}
+    lineas = []
+    errores_globales = diagnosticos.get("_graph", [])
+    for nid, nodo in nodos.items():
+        mensajes = diagnosticos.get(nid, []) or errores_globales
+        if mensajes:
+            texto = " · ".join(mensajes)
+            estados[nid] = {"estado": "error", "texto": texto}
+            lineas.append(f"[{nid}·{nodo.get('kind', '?')}] {texto}")
+        else:
+            estados[nid] = {"estado": "ok", "texto": "Compile ✓"}
+    for mensaje in diagnosticos.get("_graph", []):
+        lineas.append(f"[grafo] {mensaje}")
+
+    if diagnosticos:
+        reporte = "COMPILE ✗ — corregí los errores antes de Run\n" + "\n".join(lineas)
+    else:
+        reporte = f"COMPILE ✓ — {len(nodos)} nodo(s), sin efectos en la escena"
+    return json.dumps({"ok": not diagnosticos, "report": reporte, "nodes": estados}, ensure_ascii=True)
+
+
 def presets(kind: str = "", scope: str = "") -> str:
     """JSON de los presets disponibles (nombre/kind/categoria/descripcion/tags/scope) para la UI."""
     from . import preset
@@ -79,11 +120,12 @@ def preset_save_command(nombre: str, command: str, categoria: str = "", scope: s
 
 
 def preset_save_graph(nombre: str, graph_json: str, categoria: str = "", scope: str = "local") -> str:
-    """Guarda un grafo de flow como preset compound."""
+    """Guarda el canvas como preset compound. El `kind` sale del grafo: `flow` si son sólo ops de
+    flow, `graph` si contiene verbos (Place, Mesh, TreeGen…). Aplicarlo usa ese mismo runner."""
     from . import preset
     p = preset.desde_grafo(nombre, graph_json, categoria=categoria, scope=scope)
     ruta = preset.guardar(p)
-    return f"PRESET (compound) guardado ✓ — «{nombre}» ({scope})  {ruta}"
+    return f"PRESET ({p['kind']}) guardado ✓ — «{nombre}» ({scope})  {ruta}"
 
 
 def flow_spec() -> str:
@@ -98,16 +140,19 @@ def spec_all() -> str:
     import json
 
     from . import flow, tools
-    verbos = json.loads(tools.spec_json())
+    # El canvas incorpora también herramientas graph-only, como el tab Mesh cuyos cables transportan
+    # DynamicMesh `M`. La Dash Bar conserva sólo verbos útiles como acción aislada.
+    verbos = json.loads(tools.spec_json(include_graph_only=True))
     ops = json.loads(flow.spec_json())
     cats = verbos["categorias"] + [c for c in ops["categorias"] if c not in verbos["categorias"]]
     return json.dumps({"categorias": cats, "tools": verbos["tools"] + ops["tools"]},
                       ensure_ascii=True)
 
 
-def confirm() -> str:
+def confirm(owner: str = "") -> str:
+    """Fija un Preview. `owner='graph'/'dash'` aísla la interfaz; vacío confirma todos."""
     from . import panel
-    return panel.ejecutar_dsl("confirm", None)
+    return panel._h_confirmar(owner=owner or None)
 
 
 def commit(command: str = "") -> str:
@@ -115,12 +160,12 @@ def commit(command: str = "") -> str:
     en el acto. Así el botón Confirmar hace lo que uno espera cuando está apuntando con el gizmo —
     apretar y que el objeto aparezca ahí — sin dejar de servir para el flujo previsualizar→confirmar."""
     from . import panel
-    if panel.hay_preview():
+    if panel.hay_preview("dash"):
         return panel.ejecutar_dsl("confirm", None)
     if not command.strip():
         return "no hay preview activa ni comando para colocar."
     salida = panel.ejecutar_dsl(command, None)
-    if not panel.hay_preview():
+    if not panel.hay_preview("dash"):
         return salida          # el comando no creó nada (error o verbo de selección): no hay qué fijar
     return f"{salida}\n{panel.ejecutar_dsl('confirm', None)}"
 
@@ -144,6 +189,7 @@ def aim() -> str:
     return json.dumps({"hit": bool(m["hit"]), "x": p.x, "y": p.y, "z": p.z})
 
 
-def discard() -> str:
+def discard(owner: str = "") -> str:
+    """Descarta un Preview. `owner='graph'/'dash'` aísla la interfaz; vacío descarta todos."""
     from . import panel
-    return panel.ejecutar_dsl("discard", None)
+    return panel._h_descartar(owner=owner or None)
