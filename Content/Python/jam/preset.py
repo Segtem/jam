@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import json
 import re
+import unicodedata
 from pathlib import Path
 
 import unreal
@@ -37,7 +38,10 @@ def _dir_local() -> Path:
 
 
 def _slug(nombre: str) -> str:
-    return re.sub(r"[^a-z0-9]+", "-", nombre.lower()).strip("-")
+    """Nombre de archivo estable. Las tildes y la ñ se transliteran en vez de perderse: sin esto
+    «Árbol de dos niveles» quedaba como `rbol-de-dos-niveles.json`."""
+    plano = unicodedata.normalize("NFKD", str(nombre)).encode("ascii", "ignore").decode("ascii")
+    return re.sub(r"[^a-z0-9]+", "-", plano.lower()).strip("-")
 
 
 # ---- almacenamiento (JSON en global/local) ----
@@ -106,13 +110,27 @@ def desde_comando(nombre, comando, *, categoria="", descripcion="", tags=None, s
             "tags": tags or [], "scope": scope, "command": comando, "oraculo": {"debe_ok": debe_ok}}
 
 
+def kind_de_grafo(grafo) -> str:
+    """`flow` si TODOS los nodos son ops de flow; si no, `graph` (el grafo de verbos del canvas).
+
+    Es la MISMA detección que usa `api.run_graph_json()`, a propósito: un preset tiene que correr por
+    el runner que le corresponde. Marcarlo siempre como `flow` hacía que un canvas de verbos —Place,
+    Mesh, TreeGen— cayera en el evaluador de flow, donde cada verbo es una op desconocida.
+    """
+    from . import flow
+    if isinstance(grafo, (dict, list)):
+        grafo = json.dumps(grafo)
+    return "flow" if flow.Flow.from_json(grafo).solo_flow() else "graph"
+
+
 def desde_grafo(nombre, grafo, *, categoria="", descripcion="", tags=None, scope="local",
                 debe_ok=False) -> dict:
-    """Preset de flow (Compound) a partir de un grafo (dict o JSON string)."""
+    """Preset a partir de un grafo (dict o JSON string); el `kind` sale del contenido, no del botón."""
     if isinstance(grafo, str):
         grafo = json.loads(grafo)
-    return {"kind": "flow", "nombre": nombre, "categoria": categoria, "descripcion": descripcion,
-            "tags": tags or [], "scope": scope, "graph": grafo, "oraculo": {"debe_ok": debe_ok}}
+    return {"kind": kind_de_grafo(grafo), "nombre": nombre, "categoria": categoria,
+            "descripcion": descripcion, "tags": tags or [], "scope": scope, "graph": grafo,
+            "oraculo": {"debe_ok": debe_ok}}
 
 
 # ---- aplicar (recrear + verificar, por el camino maduro de la UI) ----
@@ -128,8 +146,18 @@ def aplicar(preset) -> dict:
     from . import panel
     nombre = preset.get("nombre", "?")
     kind = preset.get("kind", "tool")
-    if kind == "flow":
-        salida = panel.ejecutar_flow_json(json.dumps(preset["graph"]))
+    if kind in ("flow", "graph"):
+        grafo = preset.get("graph")
+        if not grafo:
+            return {"ok": False, "texto": f"[{nombre}] el preset {kind} no trae grafo", "nombre": nombre}
+        # Un preset viejo puede declarar `flow` y contener verbos: se corrige leyendo el grafo, que es
+        # la única fuente confiable del runner que hace falta.
+        real = kind_de_grafo(grafo)
+        grafo_json = json.dumps(grafo)
+        if real == "flow":
+            salida = panel.ejecutar_flow_json(grafo_json, owner="dash")
+        else:
+            salida = panel.ejecutar_grafo_json(grafo_json, owner="dash")
         try:
             texto = json.loads(salida).get("report", salida)
         except Exception:  # noqa: BLE001
