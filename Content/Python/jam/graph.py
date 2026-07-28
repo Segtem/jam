@@ -29,6 +29,16 @@ VALOR_KINDS = ("number", "math", "text")
 # Tipo de pin que acepta cualquier salida (el ayudante de Debug).
 COMODIN = "*"
 
+#: Salida de cada nodo del ÚLTIMO Run, para que el inspector pueda mirarla después sin recalcular.
+#: Es el equivalente del Geometry Spreadsheet de Houdini: se selecciona un nodo y se ven sus datos.
+#: Se vacía al empezar cada Run, así que nunca muestra algo de una corrida anterior.
+_ULTIMA_CORRIDA: dict[str, object] = {}
+
+
+def ultima_corrida() -> dict[str, object]:
+    """Salidas del último Run, por node id. Vacío si todavía no se corrió nada."""
+    return dict(_ULTIMA_CORRIDA)
+
 
 class JamGraph:
     def __init__(self):
@@ -561,6 +571,7 @@ def ejecutar_detalle(g: JamGraph, plan: GraphPlan | None = None) -> tuple[str, d
     lineas = []
     runtime_outputs: dict[str, object] = {}
     marcados: list[tuple[str, object]] = []
+    _ULTIMA_CORRIDA.clear()
     main_sources: dict[str, list[str]] = {}
     asset_sources: dict[str, str] = {}
     data_sources: dict[tuple[str, str], str] = {}
@@ -629,6 +640,8 @@ def ejecutar_detalle(g: JamGraph, plan: GraphPlan | None = None) -> tuple[str, d
         producido = tools.dato_producido_runtime(verb, entrada)
         salida = (producido if producido is not None else entrada) if estado != "error" else None
         runtime_outputs[nid] = salida
+        if salida is not None:
+            _ULTIMA_CORRIDA[nid] = salida
 
         # ---- flag de debug del nodo ----
         # El estado del arte no es un nodo de debug aparte: Houdini usa el display flag, PCG la

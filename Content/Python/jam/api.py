@@ -98,6 +98,66 @@ def compile_graph_json(graph_json: str) -> str:
     return json.dumps({"ok": not diagnosticos, "report": reporte, "nodes": estados}, ensure_ascii=True)
 
 
+def inspect_json(node_id: str = "", filtro: str = "", filas: int = 200) -> str:
+    """Inspector de datos del último Run — el Geometry Spreadsheet de Jam.
+
+    Sin `node_id` devuelve la LISTA de nodos inspeccionables (id + tipo + cantidad) para que el panel
+    arme su selector. Con `node_id` devuelve las filas de datos de ese nodo.
+
+    `filtro` es texto libre: se queda con las filas que lo contienen, como el filtro de atributos del
+    spreadsheet de Houdini. `filas` acota cuánto se manda a la UI.
+    """
+    import json
+
+    from . import debug, graph
+
+    corrida = graph.ultima_corrida()
+    if not corrida:
+        return json.dumps({"ok": False, "error": "todavía no corriste el grafo.",
+                           "nodos": [], "filas": []}, ensure_ascii=True)
+
+    def resumen(valor):
+        from . import mesh
+        tipo = mesh._describir(valor)
+        tabla = debug.tabla(valor, filas=1)
+        cantidad = _cantidad(valor)
+        return {"tipo": tipo, "cantidad": cantidad, "inspeccionable": bool(tabla)}
+
+    nodos = [{"id": nid, **resumen(valor)} for nid, valor in corrida.items()]
+    if not node_id:
+        return json.dumps({"ok": True, "nodos": nodos, "filas": []}, ensure_ascii=True)
+
+    if node_id not in corrida:
+        return json.dumps({"ok": False, "error": f"«{node_id}» no está en el último Run.",
+                           "nodos": nodos, "filas": []}, ensure_ascii=True)
+
+    todas = debug.tabla(corrida[node_id], filas=max(1, int(filas)))
+    texto = str(filtro or "").strip().lower()
+    if texto and todas:
+        # El encabezado se conserva siempre: sin él las columnas no se entienden.
+        todas = [todas[0]] + [f for f in todas[1:] if texto in f.lower()]
+    return json.dumps({"ok": True, "nodos": nodos, "node": node_id,
+                       "filas": todas}, ensure_ascii=True)
+
+
+def _cantidad(valor) -> int:
+    """Cuántos elementos tiene el dato — la columna que delata dónde el conteo cae a cero."""
+    from . import curve, fields, variants
+    if isinstance(valor, curve.FrameSet):
+        return len(valor.frames)
+    if isinstance(valor, variants.FrameAssetSelection):
+        return len(valor.frames.frames)
+    if isinstance(valor, fields.ScalarSeries):
+        return len(valor.values)
+    if isinstance(valor, curve.CurveSet):
+        return len(valor.paths)
+    if isinstance(valor, curve.CurvePath):
+        return 1
+    if isinstance(valor, (list, tuple)):
+        return len(valor)
+    return 0
+
+
 def presets(kind: str = "", scope: str = "") -> str:
     """JSON de los presets disponibles (nombre/kind/categoria/descripcion/tags/scope) para la UI."""
     from . import preset

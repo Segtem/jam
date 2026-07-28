@@ -306,5 +306,86 @@ class FlagPorNodoTests(unittest.TestCase):
         self.assertIn("DEBUG ✗", reporte)
 
 
+class InspectorTests(unittest.TestCase):
+    """El panel de inspección: los datos del último Run, por nodo — el spreadsheet de Jam."""
+
+    GRAFO = {
+        "nodes": {
+            "pts": {"verb": "pts_rect", "params": {"cols": "3", "rows": "3"}, "x": 0, "y": 0},
+            "peso": {"verb": "weight_noise", "params": {}, "x": 300, "y": 0},
+            "serie": {"verb": "graph_curve", "params": {"samples": "6"}, "x": 0, "y": 300},
+        },
+        "edges": [["pts", "out", "peso", "in"]],
+    }
+
+    def _correr(self):
+        import json
+        from jam import graph
+        graph.ejecutar_detalle(graph.JamGraph.from_json(json.dumps(self.GRAFO)))
+
+    def test_without_a_run_it_says_so_instead_of_showing_stale_data(self):
+        import json
+        from jam import api, graph
+        graph._ULTIMA_CORRIDA.clear()
+        r = json.loads(api.inspect_json())
+        self.assertFalse(r["ok"])
+        self.assertIn("todavía no corriste", r["error"])
+        self.assertEqual(r["nodos"], [])
+
+    def test_it_lists_every_node_with_its_type_and_count(self):
+        import json
+        from jam import api
+        self._correr()
+        r = json.loads(api.inspect_json())
+        self.assertTrue(r["ok"])
+        por_id = {n["id"]: n for n in r["nodos"]}
+        self.assertEqual(por_id["pts"]["tipo"], "P")
+        self.assertEqual(por_id["pts"]["cantidad"], 9)
+        self.assertEqual(por_id["serie"]["tipo"], "N[]")
+        self.assertEqual(por_id["serie"]["cantidad"], 6)
+        # La CANTIDAD por nodo es lo que delata dónde el conteo cae a cero.
+        self.assertTrue(all(n["inspeccionable"] for n in r["nodos"]))
+
+    def test_it_returns_the_rows_of_the_chosen_node(self):
+        import json
+        from jam import api
+        self._correr()
+        r = json.loads(api.inspect_json("peso"))
+        self.assertTrue(r["ok"])
+        self.assertEqual(r["node"], "peso")
+        self.assertIn("peso", r["filas"][0])        # encabezado de columnas
+        self.assertEqual(len(r["filas"]), 10)       # encabezado + 9
+
+    def test_the_filter_keeps_the_header_and_matching_rows(self):
+        import json
+        from jam import api
+        self._correr()
+        completo = json.loads(api.inspect_json("pts"))
+        filtrado = json.loads(api.inspect_json("pts", filtro="-300.0, -300.0"))
+        # Sin el encabezado las columnas no se entienden, así que nunca se filtra.
+        self.assertEqual(filtrado["filas"][0], completo["filas"][0])
+        self.assertLess(len(filtrado["filas"]), len(completo["filas"]))
+
+    def test_an_unknown_node_fails_but_still_lists_the_others(self):
+        import json
+        from jam import api
+        self._correr()
+        r = json.loads(api.inspect_json("noexiste"))
+        self.assertFalse(r["ok"])
+        self.assertIn("no está en el último Run", r["error"])
+        self.assertTrue(r["nodos"], "la lista sirve para elegir otro")
+
+    def test_a_new_run_replaces_the_cache_instead_of_accumulating(self):
+        import json
+        from jam import api, graph
+        self._correr()
+        primero = {n["id"] for n in json.loads(api.inspect_json())["nodos"]}
+        graph.ejecutar_detalle(graph.JamGraph.from_json(json.dumps(
+            {"nodes": {"solo": {"verb": "pts_line", "params": {}, "x": 0, "y": 0}}, "edges": []})))
+        segundo = {n["id"] for n in json.loads(api.inspect_json())["nodos"]}
+        self.assertEqual(segundo, {"solo"})
+        self.assertNotEqual(primero, segundo)
+
+
 if __name__ == "__main__":
     unittest.main()

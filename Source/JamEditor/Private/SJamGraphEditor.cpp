@@ -11,6 +11,10 @@
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Input/SEditableTextBox.h"
+#include "Widgets/Input/SComboBox.h"
+#include "Widgets/Views/SListView.h"
+#include "Widgets/Layout/SExpandableArea.h"
+#include "Serialization/JsonSerializer.h"
 #include "Widgets/Input/SMultiLineEditableTextBox.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Framework/Application/SlateApplication.h"
@@ -207,6 +211,7 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 	OnBakePreview = InArgs._OnBakePreview;
 	OnDiscardPreview = InArgs._OnDiscardPreview;
 	OnSaveGraph = InArgs._OnSaveGraph;
+	OnInspect = InArgs._OnInspect;
 	ActiveAsset = InArgs._ActiveAsset;
 	OnOpenContent = InArgs._OnOpenContent;
 
@@ -400,13 +405,186 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 					"doble clic = buscar nodo · botón derecho arrastra el lienzo · ○→○ conecta · Run pinta cada nodo con su veredicto"))
 			]
 		]
-		+ SVerticalBox::Slot().AutoHeight().Padding(6.0f, 2.0f, 6.0f, 6.0f).MaxHeight(140.0f)
+		+ SVerticalBox::Slot().AutoHeight().Padding(6.0f, 2.0f, 6.0f, 2.0f).MaxHeight(140.0f)
 		[
 			SAssignNew(Output, SMultiLineEditableTextBox).IsReadOnly(true).AllowMultiLine(true)
+		]
+		+ SVerticalBox::Slot().AutoHeight().Padding(6.0f, 0.0f, 6.0f, 6.0f)
+		[
+			BuildInspector()
 		]
 	];
 
 	RebuildTabContent();   // abre el primer tab con sus fichas
+}
+
+
+// ---- Inspector de datos: el Geometry Spreadsheet de Jam ----
+//
+// Houdini, Blender y PCG tienen todos un inspector NUMÉRICO separado de la visualización 3D, y es el
+// que más se usa: el flujo documentado de PCG es «recorrer hacia adelante y ver dónde el conteo cae a
+// cero». Ver geometría contesta «¿dónde está?»; esto contesta «¿qué valores tiene?».
+//
+// Los datos salen del último Run, que Python cachea por node id, así que abrir el panel no recalcula
+// nada. La tabla ya viene formateada y filtrada desde `jam.api.inspect_json`: la regla de filtrado
+// vive en UN solo lado.
+
+TSharedRef<SWidget> SJamGraphEditor::BuildInspector()
+{
+	return SNew(SExpandableArea)
+		.InitiallyCollapsed(true)
+		.AreaTitle(LOCTEXT("InspectorTitle", "Inspector de datos (último Run)"))
+		.Padding(FMargin(4.0f))
+		.BodyContent()
+		[
+			SNew(SVerticalBox)
+			+ SVerticalBox::Slot().AutoHeight().Padding(0.0f, 0.0f, 0.0f, 4.0f)
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+				[
+					SNew(SBox).WidthOverride(220.0f)
+					[
+						SAssignNew(InspectPicker, SComboBox<TSharedPtr<FString>>)
+						.OptionsSource(&InspectNodes)
+						.OnGenerateWidget_Lambda([](TSharedPtr<FString> Item)
+						{
+							return SNew(STextBlock).Text(FText::FromString(Item.IsValid() ? *Item : FString()));
+						})
+						.OnSelectionChanged_Lambda([this](TSharedPtr<FString> Item, ESelectInfo::Type)
+						{
+							if (!Item.IsValid()) { return; }
+							// La etiqueta es «id  ·  tipo  ·  N», así que el id es lo de antes del ·.
+							FString Id = *Item;
+							int32 Corte = INDEX_NONE;
+							if (Id.FindChar(TEXT('\u00b7'), Corte)) { Id = Id.Left(Corte); }
+							InspectNodeId = Id.TrimStartAndEnd();
+							RefreshInspector();
+						})
+						[
+							SNew(STextBlock)
+							.Text_Lambda([this]()
+							{
+								return InspectNodeId.IsEmpty()
+									? LOCTEXT("PickNode", "elegí un nodo…")
+									: FText::FromString(InspectNodeId);
+							})
+						]
+					]
+				]
+				+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(6.0f, 0.0f, 0.0f, 0.0f)
+				[
+					SNew(SBox).WidthOverride(180.0f)
+					[
+						SAssignNew(InspectFilter, SEditableTextBox)
+						.HintText(LOCTEXT("InspectFilterHint", "filtrar filas…"))
+						.OnTextCommitted_Lambda([this](const FText&, ETextCommit::Type)
+						{
+							RefreshInspector();
+						})
+					]
+				]
+				+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(6.0f, 0.0f, 0.0f, 0.0f)
+				[
+					SNew(SButton)
+					.Text(LOCTEXT("InspectRefresh", "actualizar"))
+					.ToolTipText(LOCTEXT("InspectRefreshTip", "releer los datos del último Run"))
+					.OnClicked_Lambda([this]() { RefreshInspector(); return FReply::Handled(); })
+				]
+				+ SHorizontalBox::Slot().FillWidth(1.0f).VAlign(VAlign_Center).Padding(8.0f, 0.0f, 0.0f, 0.0f)
+				[
+					SAssignNew(InspectStatus, STextBlock)
+					.Text(LOCTEXT("InspectIdle", "corré el grafo y elegí un nodo"))
+				]
+			]
+			+ SVerticalBox::Slot().AutoHeight()
+			[
+				SNew(SBox).HeightOverride(180.0f)
+				[
+					SAssignNew(InspectList, SListView<TSharedPtr<FString>>)
+					.ListItemsSource(&InspectRows)
+					.SelectionMode(ESelectionMode::Single)
+					.OnGenerateRow_Lambda([](TSharedPtr<FString> Item,
+						const TSharedRef<STableViewBase>& Owner)
+					{
+						return SNew(STableRow<TSharedPtr<FString>>, Owner)
+						[
+							SNew(STextBlock)
+							.Text(FText::FromString(Item.IsValid() ? *Item : FString()))
+							// Monoespaciada: la tabla viene con columnas alineadas por espacios.
+							.Font(FCoreStyle::GetDefaultFontStyle("Mono", 8))
+						];
+					})
+				]
+			]
+		];
+}
+
+void SJamGraphEditor::RefreshInspector()
+{
+	InspectNodes.Reset();
+	InspectRows.Reset();
+	if (!OnInspect.IsBound())
+	{
+		if (InspectStatus.IsValid()) { InspectStatus->SetText(LOCTEXT("InspectNoBridge", "sin puente a Python")); }
+		return;
+	}
+	const FString Filtro = InspectFilter.IsValid() ? InspectFilter->GetText().ToString() : FString();
+	const FString Raw = OnInspect.Execute(InspectNodeId, Filtro);
+
+	TSharedPtr<FJsonObject> Root;
+	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Raw);
+	if (!FJsonSerializer::Deserialize(Reader, Root) || !Root.IsValid())
+	{
+		if (InspectStatus.IsValid()) { InspectStatus->SetText(FText::FromString(Raw.Left(120))); }
+		return;
+	}
+
+	const TArray<TSharedPtr<FJsonValue>>* Nodos = nullptr;
+	if (Root->TryGetArrayField(TEXT("nodos"), Nodos) && Nodos != nullptr)
+	{
+		for (const TSharedPtr<FJsonValue>& V : *Nodos)
+		{
+			const TSharedPtr<FJsonObject> O = V.IsValid() ? V->AsObject() : nullptr;
+			if (!O.IsValid()) { continue; }
+			FString Id, Tipo;
+			double Cantidad = 0.0;
+			O->TryGetStringField(TEXT("id"), Id);
+			O->TryGetStringField(TEXT("tipo"), Tipo);
+			O->TryGetNumberField(TEXT("cantidad"), Cantidad);
+			InspectNodes.Add(MakeShared<FString>(FString::Printf(
+				TEXT("%s \u00b7 %s \u00b7 %d"), *Id, *Tipo, static_cast<int32>(Cantidad))));
+		}
+	}
+
+	const TArray<TSharedPtr<FJsonValue>>* Filas = nullptr;
+	if (Root->TryGetArrayField(TEXT("filas"), Filas) && Filas != nullptr)
+	{
+		for (const TSharedPtr<FJsonValue>& V : *Filas)
+		{
+			InspectRows.Add(MakeShared<FString>(V.IsValid() ? V->AsString() : FString()));
+		}
+	}
+
+	FString Estado;
+	bool bOk = false;
+	Root->TryGetBoolField(TEXT("ok"), bOk);
+	if (!bOk)
+	{
+		Root->TryGetStringField(TEXT("error"), Estado);
+	}
+	else if (InspectNodeId.IsEmpty())
+	{
+		Estado = FString::Printf(TEXT("%d nodo(s) en el último Run"), InspectNodes.Num());
+	}
+	else
+	{
+		// La primera fila es el encabezado de columnas, no un dato.
+		Estado = FString::Printf(TEXT("%d fila(s)"), FMath::Max(0, InspectRows.Num() - 1));
+	}
+	if (InspectStatus.IsValid()) { InspectStatus->SetText(FText::FromString(Estado)); }
+	if (InspectPicker.IsValid()) { InspectPicker->RefreshOptions(); }
+	if (InspectList.IsValid()) { InspectList->RequestListRefresh(); }
 }
 
 

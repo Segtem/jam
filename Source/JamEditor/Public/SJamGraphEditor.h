@@ -18,6 +18,8 @@ class SWidget;
 DECLARE_DELEGATE_RetVal_OneParam(FString, FOnRunGraph, const FString& /*json*/);
 /** Acción del ciclo Preview propia del Graph (Bake/Discard), sin argumentos. */
 DECLARE_DELEGATE_RetVal(FString, FOnGraphPreviewAction);
+/** Inspector de datos: (node_id, filtro) → JSON {nodos, filas}. Node vacío = sólo la lista. */
+DECLARE_DELEGATE_RetVal_TwoParams(FString, FOnInspect, const FString& /*node*/, const FString& /*filtro*/);
 
 /**
  * Canvas «Grasshopper» propio (Slate): paleta de verbos que agregan nodos, nodos arrastrables con
@@ -39,6 +41,8 @@ public:
 		SLATE_EVENT(FSimpleDelegate, OnOpenContent)
 		/** Guarda el grafo (JSON) como preset compound. */
 		SLATE_EVENT(FOnRunGraph, OnSaveGraph)
+		/** Datos del último Run para el inspector. */
+		SLATE_EVENT(FOnInspect, OnInspect)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs, const TArray<FJamTool>& InTools);
@@ -118,6 +122,11 @@ private:
 	void LoadCurveFramesExample();
 	void LoadTwoLevelExample();
 	void LoadDebugExample();
+
+	// ---- inspector de datos (el Geometry Spreadsheet de Jam) ----
+	/** Relee del último Run: repuebla el selector de nodos y la tabla del nodo elegido. */
+	void RefreshInspector();
+	TSharedRef<class SWidget> BuildInspector();
 	void LoadBundledExample(const FString& Filename, const FText& LoadedMessage);
 	/** Galería: reemplaza el grafo por UNO DE CADA nodo en grilla (para sacarle un screenshot). */
 	void InsertAllNodes();
@@ -187,6 +196,19 @@ private:
 	FOnGraphPreviewAction OnBakePreview;
 	FOnGraphPreviewAction OnDiscardPreview;
 	FOnRunGraph OnSaveGraph;
+	FOnInspect OnInspect;
+
+	/** Nodos del último Run (id + tipo + cantidad) que alimentan el selector del inspector. */
+	TArray<TSharedPtr<FString>> InspectNodes;
+	/** Filas de datos del nodo elegido, ya filtradas por Python. */
+	TArray<TSharedPtr<FString>> InspectRows;
+	TSharedPtr<class SComboBox<TSharedPtr<FString>>> InspectPicker;
+	TSharedPtr<class SListView<TSharedPtr<FString>>> InspectList;
+	TSharedPtr<class SEditableTextBox> InspectFilter;
+	TSharedPtr<class STextBlock> InspectStatus;
+	/** Id del nodo elegido; vacío = ninguno todavía. */
+	FString InspectNodeId;
+
 	FSimpleDelegate OnOpenContent;
 	TAttribute<FString> ActiveAsset;
 	TSharedPtr<SCanvas> Canvas;

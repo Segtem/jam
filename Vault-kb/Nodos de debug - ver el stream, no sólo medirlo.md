@@ -262,10 +262,54 @@ la transacción ya captura por diferencia todo actor nuevo.
 
 Suite headless: **174/174**.
 
+## El inspector como panel
+
+La pata que faltaba del estado del arte: todas las herramientas tienen un inspector **numérico**
+separado de la visualización 3D, y es el que más se usa.
+
+**Sección «Inspector de datos (último Run)»** en la ventana Graph, plegada por defecto:
+
+- **selector de nodo** — lista cada nodo del último Run como `id · tipo · cantidad`;
+- **filtro de texto** — se queda con las filas que lo contienen, como el filtro de atributos del
+  spreadsheet de Houdini;
+- **tabla desplazable** en fuente monoespaciada, hasta 200 filas.
+
+### La caché de la última corrida
+
+El problema previo: `runtime_outputs` vivía sólo durante `ejecutar_detalle` y se descartaba, así que
+un panel abierto después no tenía qué mostrar. Ahora `graph._ULTIMA_CORRIDA` guarda la salida de cada
+nodo, **se vacía al empezar cada Run** —nunca muestra datos de una corrida anterior, y hay un test
+que lo fija— y `api.inspect_json()` la lee.
+
+Abrir el panel **no recalcula nada**: mira lo que ya se produjo.
+
+### La regla de filtrado vive en un solo lado
+
+`inspect_json(node_id, filtro, filas)` devuelve las filas ya formateadas y filtradas. El panel de
+Slate no reimplementa nada: pide y muestra. Es deliberado — la lección de
+`JamTiposCompatibles` fue justamente que una regla escrita dos veces se desincroniza.
+
+El encabezado de columnas **nunca** se filtra: sin él la tabla no se entiende.
+
+### Contrato
+
+```text
+inspect_json()            → {ok, nodos:[{id, tipo, cantidad, inspeccionable}], filas:[]}
+inspect_json("frames")    → {ok, node, nodos, filas:[…]}
+inspect_json("x", "0.5")  → filas que contienen «0.5», con encabezado
+sin Run                   → {ok:false, error:"todavía no corriste el grafo."}
+nodo inexistente          → {ok:false, error:…, nodos:[…]}  ← la lista sirve para elegir otro
+```
+
+Verificado contra UE 5.7.4: 4 nodos listados con su tipo y cantidad, 9 filas de `frames`, el filtro
+recortando, y el nodo inexistente fallando sin perder la lista.
+
+Suite headless: **180/180** (6 tests del inspector).
+
 ## Lo que sigue faltando
 
-- **Inspector por elemento como panel**, con filtro y orden, tipo Geometry Spreadsheet. Hoy la tabla
-  vive en el reporte y se recorta a 8 filas.
+- **Ordenar por columna** en el inspector. Hoy filtra pero no ordena; la tabla llega como texto ya
+  alineado, así que ordenar exige columnas de verdad en vez de una lista de líneas.
 - **La sonda que se mueve** de Blender (`Shift-Ctrl-click` para reconectar el viewer activo).
 - **Selección bidireccional**: en Houdini, seleccionar en el viewport resalta la fila del spreadsheet.
 
