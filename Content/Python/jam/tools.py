@@ -905,13 +905,20 @@ def t_material_output(mat_input, *, node="", target="MP_BASE_COLOR", from_output
 
 
 def t_material_build(mat_input, *, name="M_JamMaterial", folder="/Game/Jam/Materials",
-                     blend_mode="", two_sided=False) -> str:
-    """Hornea el grafo como material de verdad. Acá SÍ se planta si el grafo no es válido."""
+                     blend_mode="", shading_model="", two_sided=False,
+                     max_instructions=0) -> str:
+    """Hornea el grafo como material de verdad. Acá SÍ se planta si el grafo no es válido.
+
+    `max_instructions` es el PRESUPUESTO: 0 = sin límite, y con un número el verbo mide el material
+    compilado y falla si se pasa. El costo no se puede saber antes de compilar, así que el asset
+    queda creado aunque se pase — a propósito, para poder abrirlo y ver qué lo encareció.
+    """
     from . import materials, shader
     grafo = _material_entrada(mat_input, str(name))
     grafo = shader.GrafoMaterial(nombre=str(name), nodos=grafo.nodos, aristas=grafo.aristas,
-                                 two_sided=bool(two_sided), shading_model=grafo.shading_model,
-                                 blend_mode=str(blend_mode))
+                                 two_sided=bool(two_sided),
+                                 shading_model=str(shading_model) or grafo.shading_model,
+                                 blend_mode=str(blend_mode) or grafo.blend_mode)
     problemas = shader.verificar(grafo)
     if problemas:
         raise RuntimeError("el grafo del material no es válido: " + " \u00b7 ".join(problemas))
@@ -919,6 +926,11 @@ def t_material_build(mat_input, *, name="M_JamMaterial", folder="/Game/Jam/Mater
     if "error" in resultado:
         raise RuntimeError(resultado["error"])
     _RUNTIME_DATA_OUTPUTS["material_build"] = f"{folder}/{name}"
+
+    problema = materials.veredicto_de_presupuesto(
+        resultado.get("costo", {}), int(max_instructions), f"{folder}/{name}")
+    if problema:
+        raise RuntimeError(problema)
     return f"MATERIAL BUILD \u2713 \u2014 {resultado['info']}"
 
 
@@ -1374,10 +1386,14 @@ REGISTRO = {
                         "doc": "enchufa un nodo a una salida del material (BaseColor, Roughness, WPO...); salida MT"},
     "material_build": {"fn": t_material_build, "cat": "Shader", "graph_only": True,
                        "params": {"name": "M_JamMaterial", "folder": "/Game/Jam/Materials",
-                                  "blend_mode": "", "two_sided": False},
+                                  "blend_mode": "", "shading_model": "", "two_sided": False,
+                                  "max_instructions": 0},
                        "opciones": {"blend_mode": ["", "BLEND_OPAQUE", "BLEND_MASKED",
-                                                   "BLEND_TRANSLUCENT", "BLEND_ADDITIVE"]},
-                       "doc": "hornea el grafo MT como material de verdad; verifica antes de crear nada; salida A"},
+                                                   "BLEND_TRANSLUCENT", "BLEND_ADDITIVE"],
+                                    "shading_model": ["", "MSM_DEFAULT_LIT", "MSM_UNLIT",
+                                                      "MSM_SUBSURFACE", "MSM_TWO_SIDED_FOLIAGE"]},
+                       "doc": "hornea el grafo MT como material de verdad; verifica antes de crear nada "
+                              "y MIDE el costo (max_instructions = presupuesto, 0 = sin límite); salida A"},
     "mesh_vertex_gradient": {"fn": t_mesh_vertex_gradient, "cat": "Mesh", "graph_only": True,
                              "params": {"eje": "z", "desde": 0.0, "hasta": 1.0,
                                         "power": 1.0, "canal": "todos"},

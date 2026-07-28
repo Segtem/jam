@@ -19,7 +19,41 @@ import unittest
 
 sys.modules.setdefault("unreal", types.ModuleType("unreal"))
 
-from jam import shader, shader_firmas, tools  # noqa: E402
+from jam import materials, shader, shader_firmas, tools  # noqa: E402
+
+
+class PresupuestoTests(unittest.TestCase):
+    """El oráculo de costo: medir de verdad, y no confundir «midió cero» con «no pudo medir»."""
+
+    BARATO = {"medido": True, "ps": 320, "vs": 196, "sobre_piso_ps": 33, "sobre_piso_vs": 0,
+              "samplers": 0, "texturas_ps": 3, "interpoladores": 0}
+    def test_a_material_within_budget_passes(self):
+        self.assertIsNone(materials.veredicto_de_presupuesto(self.BARATO, 500, "/Game/X"))
+
+    def test_no_budget_means_no_verdict(self):
+        """Sin presupuesto el número se informa igual, pero no reprueba a nadie."""
+        self.assertIsNone(materials.veredicto_de_presupuesto({"medido": False}, 0, "/Game/X"))
+
+    def test_going_over_budget_says_by_how_much_and_where_the_asset_is(self):
+        caro = dict(self.BARATO, ps=1638, sobre_piso_ps=1351)
+        mensaje = materials.veredicto_de_presupuesto(caro, 500, "/Game/Jam/M_Caro")
+        self.assertIn("1638", mensaje)
+        self.assertIn("500", mensaje)
+        self.assertIn("1351", mensaje, "hay que decir cuánto agrega el GRAFO, no sólo el total")
+        self.assertIn("/Game/Jam/M_Caro", mensaje,
+                      "el asset queda creado: sin la ruta no hay forma de ir a mirarlo")
+
+    def test_an_unmeasurable_cost_fails_the_budget_instead_of_passing_it(self):
+        """El error que importa: si no se pudo medir, un `0 <= tope` daría el presupuesto por
+        cumplido y el oráculo estaría diciendo que sí sin haber mirado nada."""
+        mensaje = materials.veredicto_de_presupuesto({"medido": False, "ps": 0}, 500, "/Game/X")
+        self.assertIsNotNone(mensaje)
+        self.assertIn("AllowCommandletRendering", mensaje)
+
+    def test_the_summary_never_reports_an_unmeasured_material_as_free(self):
+        texto = materials.resumen_de_costo({"medido": False})
+        self.assertIn("NO medido", texto)
+        self.assertNotIn("PS 0", texto)
 
 
 class FirmasDelMotorTests(unittest.TestCase):

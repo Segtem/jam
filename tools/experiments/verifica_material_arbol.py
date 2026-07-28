@@ -10,7 +10,10 @@ dejar registrado si eso cambia.
 
     UnrealEditor-Cmd <proyecto>.uproject -run=pythonscript \\
         -script=<plugin>/tools/experiments/verifica_material_arbol.py \\
-        -RenderOffScreen -unattended -nosplash -stdout
+        -RenderOffScreen -unattended -nosplash -stdout -AllowCommandletRendering
+
+El `-AllowCommandletRendering` es lo que hace que el costo se MIDA: sin él no hay RHI, `GetStatistics`
+devuelve todo en cero y el oráculo de costo informa «no medido» (que no es lo mismo que gratis).
 
 Salida en Saved/Logs/<proyecto>.log.
 """
@@ -117,14 +120,19 @@ def main() -> None:
            f"nodos alcanzables desde las salidas: {len(vistos)} de {firma['nodos']} "
            f"(uno inalcanzable es un nodo que no hace nada)")
 
-    # 4 — el oráculo de costo, que headless viene en cero. Se registra por si cambia.
-    L.recompile_material(material)
-    st = L.get_statistics(material)
-    log(f"MaterialStatistics: PS={st.num_pixel_shader_instructions} "
-        f"VS={st.num_vertex_shader_instructions} samplers={st.num_samplers} "
-        f"interpoladores={st.num_interpolator_scalars}"
-        + ("   (cero = los shaders no compilan en commandlet; hay que medirlo en el editor GUI)"
-           if st.num_pixel_shader_instructions == 0 else "   ¡AHORA SÍ MIDE!"))
+    # 4 — el costo. Con `-AllowCommandletRendering` se mide de verdad; sin el flag da cero y se
+    # informa como «no medido» en vez de como gratis.
+    costo = materials.medir(material)
+    log(f"costo: {materials.resumen_de_costo(costo)}")
+    if costo["medido"]:
+        # Presupuesto GENEROSO a propósito: esto caza una regresión de las gordas (que el viento se
+        # mude al pixel shader, por ejemplo), no una deriva del 5%. Lo que hace bueno a este
+        # material es justamente que casi todo su costo es de VÉRTICE: el WPO mueve la malla y el
+        # lado de píxel es un color y una rugosidad.
+        exigir(costo["sobre_piso_ps"] < 100,
+               f"el viento casi no cuesta en el pixel shader (+{costo['sobre_piso_ps']})")
+        exigir(costo["sobre_piso_vs"] > 0,
+               f"y sí cuesta en el de vértice, que es donde trabaja (+{costo['sobre_piso_vs']})")
 
     # 5 — el VERBO, por el camino que usa el ejecutor: `fn(entrada, **params)` con TODO lo que
     # declara el registro. Es donde se rompen los verbos nuevos, y ningún test de Python lo ve.

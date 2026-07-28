@@ -95,11 +95,89 @@ def instancia(color: unreal.LinearColor, opacidad: float = 0.35, dueno=None):
 
 
 # ---------------------------------------------------------------------------------------------
+# Oráculo de costo: cuánto sale de verdad el material que se acaba de crear
+# ---------------------------------------------------------------------------------------------
+#
+# El verificador estructural dice que el grafo está bien armado y `shader.profundidad` aproxima la
+# cadena de dependencias, pero ninguno de los dos sabe cuánto CUESTA. Eso sólo lo sabe el compilador
+# de shaders, y por eso el número se mide en vez de estimarse.
+#
+# **Headless funciona, pero hace falta `-AllowCommandletRendering`.** Sin ese flag,
+# `GetStatistics` devuelve todo en cero: `GMaxRHIShaderPlatform` no tiene un `FMaterialResource`
+# válido y la función sale por el default. Con el flag, las instrucciones se mueven con la
+# complejidad (medido: 406 → 742 → 1638 para 1, 4 y 12 capas de ruido encadenadas).
+
+# El costo FIJO de un material opaco que no hace nada, medido en UE 5.7.4 / Vulkan sobre un
+# `Constant3Vector` enchufado al BaseColor. Sirve para que el número signifique algo: lo que agrega
+# el grafo es la diferencia contra esto, no el total. `MP_WORLD_POSITION_OFFSET` mueve el de vértice
+# (medido: 196 → 250 con un WPO constante).
+PISO = {"ps": 287, "vs": 196}
+
+
+def medir(material) -> dict:
+    """Las estadísticas de shader del material. `medido=False` cuando no se pudieron obtener.
+
+    Distinguir «midió cero» de «no pudo medir» no es un detalle: un material siempre cuesta algo,
+    así que un cero informado como número haría creer que el shader es gratis. Cuando no hay
+    rendering disponible se dice, y quien llame decide si eso invalida su veredicto.
+    """
+    lib = unreal.MaterialEditingLibrary
+    lib.recompile_material(material)
+    st = lib.get_statistics(material)
+    ps = int(st.num_pixel_shader_instructions)
+    vs = int(st.num_vertex_shader_instructions)
+    return {
+        "ps": ps,
+        "vs": vs,
+        "sobre_piso_ps": ps - PISO["ps"],
+        "sobre_piso_vs": vs - PISO["vs"],
+        "samplers": int(st.num_samplers),
+        "texturas_ps": int(st.num_pixel_texture_samples),
+        "interpoladores": int(st.num_interpolator_scalars),
+        # Un material con algo enchufado nunca compila a cero instrucciones: si las dos vienen en
+        # cero, lo que falló fue la medición.
+        "medido": ps > 0 or vs > 0,
+    }
+
+
+def veredicto_de_presupuesto(costo: dict, tope: int, ruta: str) -> str | None:
+    """El mensaje de error si el material no entra en el presupuesto, o `None` si entra.
+
+    Es la decisión sola, sin tocar Unreal, para que se pueda probar sin un editor. Y contesta lo que
+    a alguien le va a importar cuando falle: cuánto se pasó, cuánto de eso es el piso inevitable y
+    dónde quedó el asset para poder abrirlo.
+    """
+    if tope <= 0:
+        return None
+    if not costo.get("medido"):
+        return (f"hay un presupuesto de {tope} instrucciones y el costo NO se pudo medir: "
+                f"headless hace falta -AllowCommandletRendering. El material quedó en {ruta}.")
+    if costo["ps"] <= tope:
+        return None
+    return (f"PRESUPUESTO ✗ — {costo['ps']} instrucciones de píxel > {tope}. El piso de un "
+            f"material opaco es {PISO['ps']}, o sea que el grafo agrega "
+            f"{costo['sobre_piso_ps']}. Quedó en {ruta} para poder mirarlo.")
+
+
+def resumen_de_costo(medida: dict) -> str:
+    if not medida.get("medido"):
+        return ("costo NO medido (falta -AllowCommandletRendering headless, "
+                "o no hay RHI disponible)")
+    extra_ps = medida["sobre_piso_ps"]
+    extra_vs = medida["sobre_piso_vs"]
+    return (f"PS {medida['ps']} ({extra_ps:+d} sobre el piso) · "
+            f"VS {medida['vs']} ({extra_vs:+d}) · "
+            f"{medida['samplers']} sampler(s) · {medida['interpoladores']} interp.")
+
+
+# ---------------------------------------------------------------------------------------------
 # Emisor: de un `shader.GrafoMaterial` puro a un material de verdad
 # ---------------------------------------------------------------------------------------------
 
-def emitir(grafo, carpeta: str = "/Game/Jam/Materials", *, sobrescribir: bool = True) -> dict:
-    """Crea el material que describe `grafo`. Devuelve `{"material":…, "info":…}` o `{"error":…}`.
+def emitir(grafo, carpeta: str = "/Game/Jam/Materials", *, sobrescribir: bool = True,
+           medir_costo: bool = True) -> dict:
+    """Crea el material que describe `grafo`. Devuelve `{"material":…, "costo":…, "info":…}`
+    o `{"error":…}`.
 
     El grafo se verifica ANTES de tocar Unreal: un grafo mal armado no llega a crear un asset roto,
     y los mensajes salen de Python en vez de un log de compilación de shaders.
@@ -143,14 +221,21 @@ def emitir(grafo, carpeta: str = "/Game/Jam/Materials", *, sobrescribir: bool = 
         return {"error": f"no se pudo crear el material en {ruta}"}
     if grafo.two_sided:
         material.set_editor_property("two_sided", True)
-    # El blend va ANTES que los nodos: sin `BLEND_MASKED` la salida de opacidad no se compila y el
+    # Estas van ANTES que los nodos: sin `BLEND_MASKED` la salida de opacidad no se compila y el
     # cable a MP_OPACITY_MASK se pierde sin que nadie proteste.
-    if grafo.blend_mode:
+    #
+    # `shading_model` estuvo declarado en el IR y sin aplicar: un `MSM_UNLIT` no cambiaba nada y
+    # sólo se notó midiendo el costo, porque un unlit tenía que salir MUCHO más barato y salía
+    # idéntico. Un campo que se puede escribir y no hace nada es peor que no tenerlo.
+    for propiedad, valor in (("blend_mode", grafo.blend_mode),
+                             ("shading_model", grafo.shading_model)):
+        if not valor:
+            continue
         try:
             material.set_editor_property(
-                "blend_mode", _valor_de_propiedad(material, "blend_mode", grafo.blend_mode))
+                propiedad, _valor_de_propiedad(material, propiedad, valor))
         except Exception:  # noqa: BLE001
-            return {"error": f"{ruta}: no se pudo poner blend_mode={grafo.blend_mode}"}
+            return {"error": f"{ruta}: no se pudo poner {propiedad}={valor}"}
 
     creados: dict[str, object] = {}
     props_fallidas: list[str] = []
@@ -195,10 +280,18 @@ def emitir(grafo, carpeta: str = "/Game/Jam/Materials", *, sobrescribir: bool = 
     # que dejarla en None haría fallar todos los caminos felices.
     if fallidos:
         return {"error": f"{ruta}: {len(fallidos)} conexiones no se pudieron hacer{detalle}"}
+
+    # El oráculo de costo va acá y no en cada verbo: así los tres caminos que emiten materiales
+    # (viento, máscara de Weight, y el armado a mano) reportan el mismo número sin repetirlo.
+    # `get_statistics` BLOQUEA hasta que los shaders compilen, que es justamente lo que lo vuelve
+    # una medición y no una estimación; `medir=False` lo saltea cuando eso no se puede pagar.
+    costo = medir(material) if medir_costo else {"medido": False}
     return {
         "material": material,
+        "costo": costo,
         "info": (f"{ruta} · {len(grafo.nodos)} nodos · {cables}/{len(grafo.aristas)} cables"
-                 f"{' · reusado' if reusado else ' · nuevo'}{detalle}"),
+                 f"{' · reusado' if reusado else ' · nuevo'}{detalle}"
+                 + (f" · {resumen_de_costo(costo)}" if medir_costo else "")),
     }
 
 

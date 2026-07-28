@@ -10,7 +10,10 @@ prueba que el nodo terminal recibe el contexto del grafo y que el registro está
 
     UnrealEditor-Cmd <proyecto>.uproject -run=pythonscript \\
         -script=<plugin>/tools/experiments/verifica_material_mascara.py \\
-        -RenderOffScreen -unattended -nosplash -stdout
+        -RenderOffScreen -unattended -nosplash -stdout -AllowCommandletRendering
+
+El `-AllowCommandletRendering` es lo que hace que el costo se MIDA: sin él no hay RHI, `GetStatistics`
+devuelve todo en cero y el oráculo de costo informa «no medido» (que no es lo mismo que gratis).
 
 Salida en Saved/Logs/<proyecto>.log.
 """
@@ -19,7 +22,7 @@ from __future__ import annotations
 
 import unreal
 
-from jam import flow, scatter, shader, weight_material
+from jam import flow, materials, scatter, shader, weight_material
 
 
 FALLAS = []
@@ -178,12 +181,18 @@ def main() -> None:
            f"tras reemitir sigue habiendo {L.get_num_material_expressions(material)} nodos "
            f"(sin basura acumulada)")
 
-    L.recompile_material(material)
-    st = L.get_statistics(material)
-    log(f"MaterialStatistics: PS={st.num_pixel_shader_instructions} "
-        f"VS={st.num_vertex_shader_instructions} samplers={st.num_samplers}"
-        + ("   (cero = los shaders no compilan en commandlet)"
-           if st.num_pixel_shader_instructions == 0 else "   ¡AHORA SÍ MIDE!"))
+    # El costo. Con `-AllowCommandletRendering` se mide; sin el flag se informa como «no medido».
+    costo = materials.medir(material)
+    log(f"costo: {materials.resumen_de_costo(costo)}")
+    if costo["medido"]:
+        # Cinco ops de Weight compiladas a 44 nodos. El presupuesto es generoso: caza que una op
+        # empiece a costar el triple, no una diferencia de unas pocas instrucciones.
+        exigir(costo["sobre_piso_ps"] < 500,
+               f"la máscara entra en presupuesto (+{costo['sobre_piso_ps']} sobre el piso, "
+               f"{len(compilado['ops'])} ops de Weight)")
+        exigir(costo["sobre_piso_vs"] == 0,
+               f"y no toca el vertex shader: una máscara se evalúa por PÍXEL "
+               f"(+{costo['sobre_piso_vs']})")
 
     log("=" * 70)
     log("VEREDICTO: " + ("TODO VERDE" if not FALLAS else f"{len(FALLAS)} FALLA(S): {FALLAS}"))
