@@ -451,10 +451,83 @@ def from_asset(source) -> dict:
     return {"mesh": result, "info": f"{_info(result)} · from {asset.get_name()}"}
 
 
+# ---- procedencia: qué rama produjo cada triángulo ----------------------------------------------
+# El cable `M` transporta un `UDynamicMesh` pelado, así que no hay dónde colgar metadata al lado de
+# la malla. La procedencia tiene que viajar ENCIMA, en un canal por vértice — que además es como la
+# transporta Pivot Painter de verdad.
+#
+# Medido en el editor (`tools/experiments/sonda_procedencia.py`), no supuesto:
+#   · cada `append_simple_swept_polygon` ocupa un rango CONTIGUO de vértices, exactamente
+#     `lados × puntos` (las tapas reutilizan los anillos, no agregan vértices);
+#   · escribir UVs triángulo por triángulo cuesta 1.6 µs — 32 ms para un árbol de 20k triángulos,
+#     o sea que la ruta UV es viable y no hace falta apretar todo en el color de vértice;
+#   · el canal sobrevive `transform`, `merge` contra una malla sin el canal, y el horneado a
+#     StaticMesh con los valores intactos;
+#   · `set_num_uv_sets` hay que llamarlo DESPUÉS de generar la geometría: cada `append_*` reinicia
+#     el juego de atributos y se lleva puestos los canales extra. Por eso los tramos se ANOTAN
+#     durante el barrido y se estampan todos juntos al final (medido: pedir los canales antes da
+#     0 escrituras válidas de 92; pedirlos después, 92 de 92).
+#
+# Reparto: UV1 = (pivote.x, pivote.y) · UV2 = (pivote.z, largo de la rama). Cuatro floats alcanzan
+# para el pivote COMPLETO sin necesidad de la textura que usa Pivot Painter 2, y dejan el color de
+# vértice libre para la máscara de viento de `mesh_vertex_gradient`.
+
+CANAL_PIVOTE_XY = 1
+CANAL_PIVOTE_ZL = 2
+CANALES_UV = 3
+
+
+def _triangulos(dynamic) -> int:
+    # `GetTriangleCount` está COMENTADO en el header de 5.7; el que existe es este.
+    return unreal.GeometryScript_MeshQueries.get_num_triangle_i_ds(dynamic)
+
+
+def _estampar_pivotes(dynamic, tramos) -> int:
+    """Escribe el pivote de cada rama en SUS triángulos. Devuelve cuántos estampó.
+
+    `tramos` es la lista de `(tri_desde, tri_hasta, pivote, largo)` anotada durante el barrido: una
+    vez que dos barridos comparten malla ya no hay forma de saber qué triángulo vino de cuál, así
+    que el rango hay que capturarlo en el momento.
+
+    Los tres vértices de cada triángulo llevan el MISMO valor. `SetMeshTriangleUVs` convierte cada
+    triángulo en una isla UV aislada —lo dice su header— y para un canal de datos eso viene bien:
+    la interpolación del shader entre tres esquinas iguales da una constante, que es exactamente el
+    pivote de la rama.
+    """
+    if not tramos:
+        return 0
+    unreal.GeometryScript_UVs.set_num_uv_sets(dynamic, CANALES_UV)
+    estampados = 0
+    for desde, hasta, pivote, largo in tramos:
+        xy = unreal.GeometryScriptUVTriangle()
+        zl = unreal.GeometryScriptUVTriangle()
+        punto_xy = unreal.Vector2D(float(pivote[0]), float(pivote[1]))
+        punto_zl = unreal.Vector2D(float(pivote[2]), float(largo))
+        for atributo in ("uv0", "uv1", "uv2"):
+            setattr(xy, atributo, punto_xy)
+            setattr(zl, atributo, punto_zl)
+        for tid in range(desde, hasta):
+            unreal.GeometryScript_UVs.set_mesh_triangle_u_vs(
+                dynamic, CANAL_PIVOTE_XY, tid, xy, defer_change_notifications=True)
+            unreal.GeometryScript_UVs.set_mesh_triangle_u_vs(
+                dynamic, CANAL_PIVOTE_ZL, tid, zl, defer_change_notifications=True)
+            estampados += 1
+    return estampados
+
+
+def _pivote_de(path) -> tuple[tuple[float, float, float], float]:
+    """El pivote de una rama es dónde NACE, y su largo es cuánto se aleja de ahí.
+
+    Son las dos cosas que necesita el shader de viento: alrededor de qué punto girar y cuánto
+    amplificar el giro hacia la punta.
+    """
+    return path.points[0], float(path.length)
+
+
 def pipe(source, *, radius_start: float = 30.0, radius_end: float = 5.0,
          sides: int = 10, samples: int = 16, capped: bool = True,
          profile_rotation: float = 0.0, miter_limit: float = 4.0,
-         radius_from_parent: float = 0.0) -> dict:
+         radius_from_parent: float = 0.0, pivot_uvs: bool = False) -> dict:
     """Barre un perfil circular a lo largo de una curva S con taper lineal.
 
     Con `radius_from_parent` mayor que cero el radio deja de ser un número fijo y pasa a ser una
@@ -486,6 +559,7 @@ def pipe(source, *, radius_start: float = 30.0, radius_end: float = 5.0,
         return {"error": "radius_from_parent no puede ser negativo."}
 
     result = _new_mesh()
+    tramos = []
     heredados = 0
     for path in paths:
         path_scale = float(getattr(path, "scale", 1.0))
@@ -506,12 +580,20 @@ def pipe(source, *, radius_start: float = 30.0, radius_end: float = 5.0,
             for index in range(sides)
         ]
         sweep_path = [unreal.Vector(*point) for point in path.points]
+        antes = _triangulos(result) if pivot_uvs else 0
         unreal.GeometryScript_Primitives.append_simple_swept_polygon(
             result, _primitive_options(), _identity(), profile, sweep_path,
             loop=False, capped=bool(capped), start_scale=1.0,
             end_scale=punta / base,
             rotation_angle_deg=profile_rotation, miter_limit=miter_limit)
+        if pivot_uvs:
+            pivote, largo = _pivote_de(path)
+            tramos.append((antes, _triangulos(result), pivote, largo))
     suffix = f" · {len(paths)} sweeps" if len(paths) > 1 else ""
+    if pivot_uvs:
+        estampados = _estampar_pivotes(result, tramos)
+        suffix += (f" · pivote en UV{CANAL_PIVOTE_XY}/UV{CANAL_PIVOTE_ZL} "
+                   f"({estampados} triángulos, {len(tramos)} ramas)")
     if heredados:
         suffix += f" · {heredados} con radio del padre ×{radius_from_parent:g}"
     return {"mesh": result, "info": _info(result) + suffix}
@@ -519,7 +601,8 @@ def pipe(source, *, radius_start: float = 30.0, radius_end: float = 5.0,
 
 def pipe_profile(source, profile, *, radius: float = 30.0, sides: int = 10,
                  samples: int = 16, capped: bool = True,
-                 profile_rotation: float = 0.0, miter_limit: float = 4.0) -> dict:
+                 profile_rotation: float = 0.0, miter_limit: float = 4.0,
+                 pivot_uvs: bool = False) -> dict:
     """Barre un círculo sobre S usando una serie ``N[]`` como multiplicador de radio por frame."""
     from . import curve, fields
 
@@ -557,8 +640,10 @@ def pipe_profile(source, profile, *, radius: float = 30.0, sides: int = 10,
         for index in range(sides)
     ]
     result = _new_mesh()
+    tramos = []
     for path in paths:
         points = path.points
+        antes = _triangulos(result) if pivot_uvs else 0
         lengths = [math.dist(a, b) for a, b in zip(points, points[1:])]
         total_length = sum(lengths)
         walked = 0.0
@@ -599,7 +684,14 @@ def pipe_profile(source, profile, *, radius: float = 30.0, sides: int = 10,
             result, _primitive_options(), _identity(), unit_profile, sweep_path,
             loop=False, capped=bool(capped), start_scale=1.0, end_scale=1.0,
             rotation_angle_deg=profile_rotation, miter_limit=miter_limit)
+        if pivot_uvs:
+            pivote, largo = _pivote_de(path)
+            tramos.append((antes, _triangulos(result), pivote, largo))
     suffix = f" · {len(paths)} sweeps" if len(paths) > 1 else ""
+    if pivot_uvs:
+        estampados = _estampar_pivotes(result, tramos)
+        suffix += (f" · pivote en UV{CANAL_PIVOTE_XY}/UV{CANAL_PIVOTE_ZL} "
+                   f"({estampados} triángulos, {len(tramos)} ramas)")
     return {
         "mesh": result,
         "info": (f"{_info(result)}{suffix} · perfil {profile.shape} "

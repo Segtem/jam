@@ -203,3 +203,49 @@ class CadenaMixtaTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class FirmaDeLosVerbosTests(unittest.TestCase):
+    """Cada parámetro REGISTRADO tiene que ser aceptado por la función del verbo.
+
+    El ejecutor llama `fn(entrada, **params)` con TODO lo que declara el registro. Un parámetro que
+    se agrega al registro y no a la firma pasa la suite entera —los tests llaman la función con los
+    argumentos que ellos eligen— y explota con `TypeError` en mitad de un Run. Pasó con
+    `mesh_pipe.radius_from_parent`.
+    """
+
+    def test_every_registered_param_is_accepted_by_its_verb(self):
+        import inspect
+
+        from jam import tools
+
+        rotos = []
+        for verbo, info in tools.REGISTRO.items():
+            fn = info.get("fn")
+            if fn is None:
+                continue
+            firma = inspect.signature(fn)
+            if any(p.kind is inspect.Parameter.VAR_KEYWORD for p in firma.parameters.values()):
+                continue   # **kwargs acepta cualquier cosa
+            for nombre in info.get("params", {}):
+                if nombre not in firma.parameters:
+                    rotos.append(f"{verbo}.{nombre}")
+        self.assertEqual(sorted(rotos), [], "el ejecutor los pasaría y saldría TypeError")
+
+    def test_every_verb_accepts_the_positional_the_executor_always_sends(self):
+        """También las FUENTES: el ejecutor manda una entrada posicional siempre, aunque sea None."""
+        import inspect
+
+        from jam import tools
+
+        rotos = []
+        for verbo, info in tools.REGISTRO.items():
+            fn = info.get("fn")
+            if fn is None:
+                continue
+            posicionales = [p for p in inspect.signature(fn).parameters.values()
+                            if p.kind in (inspect.Parameter.POSITIONAL_ONLY,
+                                          inspect.Parameter.POSITIONAL_OR_KEYWORD)]
+            if not posicionales:
+                rotos.append(verbo)
+        self.assertEqual(sorted(rotos), [], "sin parámetro posicional: TypeError en el Run")

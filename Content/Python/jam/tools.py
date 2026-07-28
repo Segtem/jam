@@ -687,23 +687,26 @@ def t_mesh_from_asset(asset_input) -> str:
 
 
 def t_mesh_pipe(curve_input, *, radius_start=30.0, radius_end=5.0, sides=10, samples=16,
-                capped=True, profile_rotation=0.0, miter_limit=4.0) -> str:
+                capped=True, profile_rotation=0.0, miter_limit=4.0,
+                radius_from_parent=0.0, pivot_uvs=False) -> str:
     from . import mesh
     result = mesh.pipe(
         curve_input, radius_start=float(radius_start), radius_end=float(radius_end),
         sides=int(sides), samples=int(samples), capped=bool(capped),
         profile_rotation=float(profile_rotation), miter_limit=float(miter_limit),
+        radius_from_parent=float(radius_from_parent), pivot_uvs=bool(pivot_uvs),
     )
     return _mesh_output("mesh_pipe", result, "PIPE M")
 
 
 def t_mesh_pipe_profile(curve_input, *, profile=None, radius=30.0, sides=10, samples=16,
-                        capped=True, profile_rotation=0.0, miter_limit=4.0) -> str:
+                        capped=True, profile_rotation=0.0, miter_limit=4.0,
+                        pivot_uvs=False) -> str:
     from . import mesh
     result = mesh.pipe_profile(
         curve_input, profile, radius=float(radius), sides=int(sides), samples=int(samples),
         capped=bool(capped), profile_rotation=float(profile_rotation),
-        miter_limit=float(miter_limit),
+        miter_limit=float(miter_limit), pivot_uvs=bool(pivot_uvs),
     )
     return _mesh_output("mesh_pipe_profile", result, "PIPE PROFILE M")
 
@@ -1180,12 +1183,13 @@ REGISTRO = {
                      "params": {"radius_start": 30.0, "radius_end": 5.0,
                                 "sides": 10, "samples": 16, "capped": True,
                                 "profile_rotation": 0.0, "miter_limit": 4.0,
-                                "radius_from_parent": 0.0},
+                                "radius_from_parent": 0.0, "pivot_uvs": False},
                      "doc": "barre un perfil circular sobre una curva S con taper lineal; salida M"},
     "mesh_pipe_profile": {"fn": t_mesh_pipe_profile, "cat": "Mesh", "graph_only": True,
                           "params": {"profile": "", "radius": 30.0,
                                      "sides": 10, "samples": 16, "capped": True,
-                                     "profile_rotation": 0.0, "miter_limit": 4.0},
+                                     "profile_rotation": 0.0, "miter_limit": 4.0,
+                                     "pivot_uvs": False},
                           "data_params": {"profile": "N[]"},
                           "doc": "barre S usando un perfil de radio N[] no lineal; salida M"},
     "mesh_along_curve": {"fn": t_mesh_along_curve, "cat": "Mesh", "graph_only": True,
