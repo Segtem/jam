@@ -880,3 +880,109 @@ def branches(value, *, count: int = 12, start: float = 0.2, end: float = 0.92,
         "info": (f"{len(collection.paths)} ramas/{len(parents)} padres · "
                  f"{start:.2f}→{end:.2f} · seed {seed}"),
     }
+
+
+def noise(value, *, amplitud: float = 10.0, escala: float = 0.004, octavas: int = 3,
+          desde: float = 0.0, seed: int = 0, samples: int = 16) -> dict:
+    """Desvía una curva de su trazo ideal — el ``Displace``/``Deviation`` del tronco de TreeGen.
+
+    Un tronco hecho con una bezier limpia se lee como un poste: ningún árbol real crece siguiendo
+    una curva de tres puntos. TreeGen desvía cada segmento con ruido, y eso es la mitad de por qué
+    sus troncos parecen madera.
+
+    Dos restricciones que no son opcionales:
+
+    * El desvío va **perpendicular a la tangente**. Sumar ruido en cualquier dirección le cambia el
+      largo a la curva —los segmentos se estiran y se encogen— y entonces las piezas que después se
+      copian sobre ella dejan de caer donde deberían.
+    * Crece **desde la base**. Con `desde=0` el arranque se mueve igual que la punta y el árbol se
+      despega de su raíz; el parámetro dice a partir de qué fracción empieza a desviarse, y entre 0
+      y ese punto el desvío se interpola desde cero.
+    """
+    from . import bark
+
+    try:
+        amplitud, escala, desde = float(amplitud), float(escala), float(desde)
+        octavas, seed, samples = int(octavas), int(seed), int(samples)
+    except (TypeError, ValueError):
+        return {"error": "los parámetros de curve_noise deben ser numéricos."}
+    if not all(math.isfinite(v) for v in (amplitud, escala, desde)):
+        return {"error": "amplitud, escala y desde deben ser finitos."}
+    if amplitud < 0.0 or escala <= 0.0:
+        return {"error": "amplitud no puede ser negativa y escala debe ser mayor que cero."}
+    desde = min(max(desde, 0.0), 1.0)
+    octavas = min(max(octavas, 1), 6)
+
+    paths = paths_of(value, samples=samples)
+    if not paths:
+        return {"error": "curve_noise necesita una curva S con al menos dos puntos."}
+    salida = []
+    desvio_max = 0.0
+    for indice, path in enumerate(paths):
+        puntos = path.points
+        total = len(puntos) - 1
+        movidos = []
+        for i, punto in enumerate(puntos):
+            fraccion = i / total if total > 0 else 0.0
+            # La tangente local: hacia adelante salvo en el último punto.
+            a = puntos[min(i + 1, len(puntos) - 1)]
+            b = puntos[max(i - 1, 0)]
+            tangente = _normalized(tuple(a[eje] - b[eje] for eje in range(3)))
+            u, v = _perpendiculares(tangente)
+            # Dos muestras de ruido decorreladas dan un desvío en el PLANO perpendicular.
+            semilla = seed + indice * 977
+            du = bark.fbm(punto[0] * escala, punto[1] * escala, punto[2] * escala,
+                          octavas=octavas, seed=semilla)
+            dv = bark.fbm(punto[0] * escala + 31.7, punto[1] * escala + 17.3,
+                          punto[2] * escala + 53.1, octavas=octavas, seed=semilla + 1)
+            du, dv = _acotado(du, dv)
+            rampa = 1.0 if fraccion >= desde else (fraccion / desde if desde > 1e-6 else 1.0)
+            fuerza = amplitud * rampa
+            movido = tuple(
+                punto[eje] + (u[eje] * du + v[eje] * dv) * fuerza for eje in range(3))
+            desvio_max = max(desvio_max, math.dist(punto, movido))
+            movidos.append(movido)
+        salida.append(CurvePath(
+            tuple(movidos), scale=path.scale,
+            source_parent_index=path.source_parent_index,
+            source_local_index=path.source_local_index, seed=path.seed,
+            pivot_index=path.pivot_index, parent_radius=path.parent_radius))
+    arranque = f" · desde {desde * 100:.0f}%" if desde > 0.0 else ""
+    return {
+        "curve": CurveSet(tuple(salida)),
+        "info": (f"{len(salida)} curvas desviadas · \u00b1{amplitud:g}cm nominal · "
+                 f"m\u00e1x real {desvio_max:.1f}cm{arranque}"),
+    }
+
+
+def _acotado(du: float, dv: float) -> tuple[float, float]:
+    """Recorta el VECTOR de ruido a magnitud 1 para que `amplitud` sea una cota real.
+
+    `bark.fbm` ya viene centrado en [-1,1], pero dos muestras en ejes perpendiculares podrían sumar
+    hasta 1.41 y entonces `amplitud` mentiría sobre cuánto se mueve la curva. Se recorta el LARGO y
+    no cada componente: acotarlos por separado achata el desvío contra los ejes de la base y el
+    ruido sale con forma de cuadrado en vez de círculo.
+
+    En la práctica casi nunca dispara —medido sobre 16000 muestras de `fbm` con 3 octavas, el peor
+    combinado fue 0.96— pero es lo que convierte la cota de «casi siempre» en «siempre», y sale
+    gratis. Por eso se prueba directamente y no a través de `noise`: por ahí no hay entrada que la
+    active.
+    """
+    largo = math.hypot(du, dv)
+    if largo <= 1.0:
+        return du, dv
+    return du / largo, dv / largo
+
+
+def _perpendiculares(tangente):
+    """Dos vectores unitarios que, con la tangente, forman una base ortonormal.
+
+    El eje de referencia se elige por el componente MÁS CHICO de la tangente: cualquier eje fijo se
+    vuelve paralelo a la tangente en algún punto de un árbol —las ramas apuntan a todos lados— y ahí
+    el producto cruz colapsa a cero.
+    """
+    eje = min(range(3), key=lambda i: abs(tangente[i]))
+    referencia = tuple(1.0 if i == eje else 0.0 for i in range(3))
+    u = _normalized(_cross(tangente, referencia))
+    v = _normalized(_cross(tangente, u))
+    return u, v

@@ -453,8 +453,16 @@ def from_asset(source) -> dict:
 
 def pipe(source, *, radius_start: float = 30.0, radius_end: float = 5.0,
          sides: int = 10, samples: int = 16, capped: bool = True,
-         profile_rotation: float = 0.0, miter_limit: float = 4.0) -> dict:
-    """Barre un perfil circular a lo largo de una curva S con taper lineal."""
+         profile_rotation: float = 0.0, miter_limit: float = 4.0,
+         radius_from_parent: float = 0.0) -> dict:
+    """Barre un perfil circular a lo largo de una curva S con taper lineal.
+
+    Con `radius_from_parent` mayor que cero el radio deja de ser un número fijo y pasa a ser una
+    FRACCIÓN del grosor que tenía el padre en el punto donde nació la rama (`CurvePath.parent_radius`,
+    que ya viajaba en los datos sin que nadie lo leyera). Es el ``ParentRadius`` de TreeGen y es la
+    diferencia entre un árbol y un montón de tubos: sin esto, una rama de tercer nivel sale igual de
+    gorda que el tronco, y el ojo lo nota antes que cualquier otra cosa.
+    """
     from . import curve
 
     radius_start, radius_end = float(radius_start), float(radius_end)
@@ -473,13 +481,27 @@ def pipe(source, *, radius_start: float = 30.0, radius_end: float = 5.0,
     if any(path.length < 1e-4 for path in paths):
         return {"error": "mesh_pipe recibió una curva de longitud cero."}
 
+    radius_from_parent = float(radius_from_parent)
+    if not math.isfinite(radius_from_parent) or radius_from_parent < 0.0:
+        return {"error": "radius_from_parent no puede ser negativo."}
+
     result = _new_mesh()
+    heredados = 0
     for path in paths:
         path_scale = float(getattr(path, "scale", 1.0))
+        # El taper es una RAZÓN, no dos números sueltos: heredar el grosor del padre tiene que
+        # conservar la forma de la rama, no sólo su arranque.
+        base, punta = radius_start, radius_end
+        parent = float(getattr(path, "parent_radius", 0.0))
+        if radius_from_parent > 0.0 and parent > 1e-6:
+            razon = radius_end / radius_start
+            base = parent * radius_from_parent
+            punta = base * razon
+            heredados += 1
         profile = [
             unreal.Vector2D(
-                math.cos(2.0 * math.pi * index / sides) * radius_start * path_scale,
-                math.sin(2.0 * math.pi * index / sides) * radius_start * path_scale,
+                math.cos(2.0 * math.pi * index / sides) * base * path_scale,
+                math.sin(2.0 * math.pi * index / sides) * base * path_scale,
             )
             for index in range(sides)
         ]
@@ -487,9 +509,11 @@ def pipe(source, *, radius_start: float = 30.0, radius_end: float = 5.0,
         unreal.GeometryScript_Primitives.append_simple_swept_polygon(
             result, _primitive_options(), _identity(), profile, sweep_path,
             loop=False, capped=bool(capped), start_scale=1.0,
-            end_scale=radius_end / radius_start,
+            end_scale=punta / base,
             rotation_angle_deg=profile_rotation, miter_limit=miter_limit)
     suffix = f" · {len(paths)} sweeps" if len(paths) > 1 else ""
+    if heredados:
+        suffix += f" · {heredados} con radio del padre ×{radius_from_parent:g}"
     return {"mesh": result, "info": _info(result) + suffix}
 
 
@@ -980,6 +1004,54 @@ def vertex_color(source, *, color: str = "#808080") -> dict:
         result, linear_color, unreal.GeometryScriptColorFlags(), clear_existing=True)
     normalized = "#" + str(color).strip().lstrip("#").upper()
     return {"mesh": result, "info": f"{_info(result)} · vertex color {normalized}"}
+
+
+def vertex_color_gradient(source, *, eje: str = "z", desde: float = 0.0, hasta: float = 1.0,
+                          power: float = 1.0, canal: str = "todos") -> dict:
+    """Pinta un gradiente 0..1 en el color de vértice — la máscara que el shader de viento necesita.
+
+    `mesh_color` pone un color plano, que sirve para teñir pero no dice NADA por vértice. El viento
+    necesita lo contrario: cuánto puede moverse cada punto. Ver `fields.gradiente`.
+
+    `canal` elige dónde escribirlo. Un árbol usa varios a la vez —rojo para el tronco, verde para la
+    rama, azul para la hoja— así que escribir en uno solo tiene que dejar los otros como estaban.
+    """
+    from . import fields
+
+    canal = str(canal).strip().lower()
+    if canal not in ("todos", "r", "g", "b", "a"):
+        return {"error": "canal debe ser 'todos', 'r', 'g', 'b' o 'a'."}
+    try:
+        result = _clone(source)
+        pesos = fields.gradiente(_posiciones(result), eje=eje, desde=desde, hasta=hasta,
+                                 power=power)
+    except (TypeError, ValueError) as exc:
+        return {"error": str(exc)}
+    if not pesos:
+        return {"error": "la malla no tiene vértices."}
+
+    # Hay que CREAR el overlay antes de poder leerlo: en una malla recién generada no existe, y
+    # `get_mesh_per_vertex_colors` devuelve una lista inválida en vez de fallar.
+    unreal.GeometryScript_VertexColors.set_mesh_constant_vertex_color(
+        result, unreal.LinearColor(0.0, 0.0, 0.0, 1.0),
+        unreal.GeometryScriptColorFlags(), clear_existing=True)
+    devuelto = unreal.GeometryScript_VertexColors.get_mesh_per_vertex_colors(result)
+    lista = devuelto[1] if isinstance(devuelto, tuple) and len(devuelto) > 1 else devuelto
+    if lista is None:
+        return {"error": "la malla no admite colores por vértice."}
+
+    for indice, peso in enumerate(pesos):
+        previo = lista.get_color_list_item(indice) if hasattr(lista, "get_color_list_item") else None
+        r = peso if canal in ("todos", "r") else (previo.r if previo else 0.0)
+        g = peso if canal in ("todos", "g") else (previo.g if previo else 0.0)
+        b = peso if canal in ("todos", "b") else (previo.b if previo else 0.0)
+        a = peso if canal == "a" else (previo.a if previo else 1.0)
+        lista.set_color_list_item(indice, unreal.LinearColor(r, g, b, a))
+    unreal.GeometryScript_VertexColors.set_mesh_per_vertex_colors(result, lista)
+
+    medio = sum(pesos) / len(pesos)
+    return {"mesh": result,
+            "info": f"{_info(result)} · gradiente {eje}\u2191 canal {canal} · medio {medio:.2f}"}
 
 
 def uv_scale(source, *, u: float = 1.0, v: float = 1.0, channel: int = 0,

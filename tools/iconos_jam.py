@@ -146,6 +146,9 @@ ICONOS = {
     "jam-curve": svg(curva(ARCO), punto(3, 17, S), punto(15, 6, S)),
     "jam-curve-child": svg(curva(ARCO), curva("M9 12c2 3 5 2 7 4", S, 1.4),
                            punto(16, 16, S, 1.4)),
+    # El desvío se lee CONTRA el trazo ideal: sin la recta gris, una curva ondulada es sólo otra curva.
+    "jam-curve-noise": svg(curva("M12 20V4", "#DDDDE2", 1.5),
+                           curva("M12 20c-4-3 4-5 1-8s3-4 0-8", S, 1.8)),
     "jam-curve-branches": svg(curva("M12 20V5", S),
                               curva("M12 15l5-3M12 11l-5-3M12 8l4-3", S, 1.3)),
     "jam-revolve": svg(curva("M14 5c-3 3-3 11 0 14", S, 1.6),
@@ -185,6 +188,13 @@ ICONOS = {
     # ── operadores sobre malla ───────────────────────────────────────────────────
     "jam-mesh-transform": svg(malla("M4 12h6v6H4z", M, False), malla("M12 6h8v8h-8z"),
                               flecha(10, 12, 13, 12)),
+    # El gradiente en bandas, no con <linearGradient>: nanosvg lo ignoraría o lo rendería distinto,
+    # y a 24 px cuatro bandas se leen igual de bien.
+    "jam-mesh-vertex-gradient": svg(
+        malla("M6 4h12v16H6z", M, False),
+        *[f'<rect x="6.8" y="{y}" width="10.4" height="3.6" fill="{M}" '
+          f'fill-opacity="{o}" stroke="none"/>'
+          for y, o in ((4.8, 0.95), (8.6, 0.65), (12.4, 0.35), (16.2, 0.12))]),
     "jam-mesh-color": svg(malla("M5 7h14v10H5z"),
                           f'<rect x="5" y="7" width="4.6" height="10" fill="{F}" stroke="none"/>'
                           f'<rect x="9.6" y="7" width="4.6" height="10" fill="{SERIE}" stroke="none"/>'),

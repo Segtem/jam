@@ -490,6 +490,18 @@ def t_curve_child(curve_input, *, at=0.5, length=300.0, angle=55.0, azimuth=0.0,
     return f"CHILD S ✓ — {result['info']}"
 
 
+def t_curve_noise(curve_input, *, amplitud=10.0, escala=0.004, octavas=3,
+                  desde=0.0, seed=0, samples=16) -> str:
+    from . import curve
+    result = curve.noise(
+        curve_input, amplitud=float(amplitud), escala=float(escala),
+        octavas=int(octavas), desde=float(desde), seed=int(seed), samples=int(samples))
+    if "error" in result:
+        raise RuntimeError(result["error"])
+    _RUNTIME_DATA_OUTPUTS["curve_noise"] = result["curve"]
+    return f"NOISE S \u2713 \u2014 {result['info']}"
+
+
 def t_curve_frames(curve_input, *, count=12, start=0.0, end=1.0,
                    radial_offset=0.0, turns=0.0, angle_offset=0.0,
                    radius_start=0.0, radius_end=0.0, samples=32, seed=7) -> str:
@@ -803,6 +815,16 @@ def t_mesh_color(mesh_input, *, color="#808080") -> str:
     return _mesh_output("mesh_color", mesh.vertex_color(mesh_input, color=str(color)), "COLOR M")
 
 
+def t_mesh_vertex_gradient(mesh_input, *, eje="z", desde=0.0, hasta=1.0,
+                           power=1.0, canal="todos") -> str:
+    from . import mesh
+    return _mesh_output(
+        "mesh_vertex_gradient",
+        mesh.vertex_color_gradient(mesh_input, eje=str(eje), desde=float(desde),
+                                   hasta=float(hasta), power=float(power), canal=str(canal)),
+        "GRADIENT M")
+
+
 def t_mesh_uv_scale(mesh_input, *, u=1.0, v=1.0, channel=0,
                     origin_u=0.0, origin_v=0.0) -> str:
     from . import mesh
@@ -1071,6 +1093,10 @@ REGISTRO = {
                                "azimuth": 0.0, "bend": 40.0, "radial_offset": 0.0,
                                "segments": 8, "samples": 32},
                     "doc": "crea una curva hija S anclada y orientada por el frame local de otra curva S"},
+    "curve_noise": {"fn": t_curve_noise, "cat": "Mesh", "graph_only": True,
+                    "params": {"amplitud": 10.0, "escala": 0.004, "octavas": 3,
+                               "desde": 0.0, "seed": 0, "samples": 16},
+                    "doc": "desvía una curva S perpendicular a su tangente con ruido; el tronco deja de ser un poste"},
     "curve_frames": {"fn": t_curve_frames, "cat": "Mesh", "graph_only": True,
                      "params": {"count": 12, "start": 0.0, "end": 1.0,
                                 "radial_offset": 0.0, "turns": 0.0,
@@ -1153,7 +1179,8 @@ REGISTRO = {
     "mesh_pipe":    {"fn": t_mesh_pipe, "cat": "Mesh", "graph_only": True,
                      "params": {"radius_start": 30.0, "radius_end": 5.0,
                                 "sides": 10, "samples": 16, "capped": True,
-                                "profile_rotation": 0.0, "miter_limit": 4.0},
+                                "profile_rotation": 0.0, "miter_limit": 4.0,
+                                "radius_from_parent": 0.0},
                      "doc": "barre un perfil circular sobre una curva S con taper lineal; salida M"},
     "mesh_pipe_profile": {"fn": t_mesh_pipe_profile, "cat": "Mesh", "graph_only": True,
                           "params": {"profile": "", "radius": 30.0,
@@ -1219,6 +1246,10 @@ REGISTRO = {
     "mesh_color": {"fn": t_mesh_color, "cat": "Mesh", "graph_only": True,
                    "params": {"color": "#808080"},
                    "doc": "asigna un Vertex Color #RRGGBB a una malla M sin modificar la entrada"},
+    "mesh_vertex_gradient": {"fn": t_mesh_vertex_gradient, "cat": "Mesh", "graph_only": True,
+                             "params": {"eje": "z", "desde": 0.0, "hasta": 1.0,
+                                        "power": 1.0, "canal": "todos"},
+                             "doc": "pinta un gradiente 0..1 en el color de vértice de M: la máscara que el shader de viento necesita"},
     "mesh_uv_scale": {"fn": t_mesh_uv_scale, "cat": "Mesh", "graph_only": True,
                       "params": {"u": 1.0, "v": 1.0, "channel": 0,
                                  "origin_u": 0.0, "origin_v": 0.0},
@@ -1336,7 +1367,7 @@ GRAPH_NO_ASSET = {"asset", "pick", "create_spline", "pivot_set",
                   "copy_asset_selection", "hism_output",
                   "mesh_color", "mesh_uv_scale", "mesh_material", "mesh_bark", "points_to_frames", "debug",
                   "mesh_normals", "mesh_to_static"}
-GRAPH_IN_NAMES = {"points_to_frames": "P", "debug": "*", "curve_child": "S", "curve_frames": "S", "distribute_frames": "F",
+GRAPH_IN_NAMES = {"points_to_frames": "P", "debug": "*", "curve_child": "S", "curve_noise": "S", "curve_frames": "S", "distribute_frames": "F",
                   "transform_frames": "F", "branch_from_frames": "F", "curve_branches": "S",
                   "asset_set": "A", "choose_asset": "F",
                   "mesh_from_asset": "A", "mesh_pipe": "S", "mesh_pipe_profile": "S",
@@ -1345,10 +1376,10 @@ GRAPH_IN_NAMES = {"points_to_frames": "P", "debug": "*", "curve_child": "S", "cu
                   "copy_asset_selection": "AF",
                   "hism_output": "AF", "mesh_transform": "M", "mesh_color": "M",
                   "mesh_uv_scale": "M", "mesh_material": "M", "mesh_bark": "M",
-                  "mesh_merge": "M", "mesh_normals": "M",
+                  "mesh_vertex_gradient": "M", "mesh_merge": "M", "mesh_normals": "M",
                   "mesh_compare": "M", "mesh_to_static": "M"}
 GRAPH_OUT_NAMES = {"points_to_frames": "F", "debug": "M", "asset": "A", "pick": "A", "create_spline": "S",
-                   "curve_bezier": "S", "curve_child": "S", "curve_frames": "F",
+                   "curve_bezier": "S", "curve_child": "S", "curve_noise": "S", "curve_frames": "F",
                    "distribute_frames": "F", "transform_frames": "F",
                    "branch_from_frames": "S", "curve_branches": "S",
                    "asset_set": "A[]", "choose_asset": "AF", "graph_curve": "N[]",
@@ -1363,7 +1394,7 @@ GRAPH_OUT_NAMES = {"points_to_frames": "F", "debug": "M", "asset": "A", "pick": 
                    "copy_asset_selection": "M",
                    "hism_output": "H", "mesh_transform": "M", "mesh_color": "M",
                    "mesh_uv_scale": "M", "mesh_material": "M", "mesh_bark": "M",
-                   "mesh_merge": "M", "mesh_normals": "M",
+                   "mesh_vertex_gradient": "M", "mesh_merge": "M", "mesh_normals": "M",
                    "mesh_compare": "M", "mesh_to_static": "A"}
 # ---- las ops de Flow como verbos del Graph ----
 # Hasta acá Jam tenía dos vocabularios que no se tocaban: 29 ops de Flow que producen un stream de
