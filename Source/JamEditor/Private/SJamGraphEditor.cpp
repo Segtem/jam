@@ -765,19 +765,27 @@ TSharedRef<SWidget> SJamGraphEditor::MakeBadge(const FLinearColor& Color, const 
 		.ColorAndOpacity(FLinearColor::White)
 		.Font(FCoreStyle::GetDefaultFontStyle("Bold", FMath::Max(6, FMath::RoundToInt(Size * 0.42f))));
 
+	// Los iconos PROPIOS de Jam (prefijo «jam-») traen su propio color: cada tipo de dato se dibuja
+	// con el color de su pin, así que el icono enseña la firma del verbo. Los de Lucide, en cambio,
+	// son máscaras blancas que hay que teñir. Se distinguen por el nombre del archivo.
+	const bool bIconoPropio = FPaths::GetBaseFilename(IconPath).StartsWith(TEXT("jam-"));
 	if (!IconPath.IsEmpty())
 	{
 		const TSharedRef<FSlateVectorImageBrush> BadgeBrush = MakeShared<FSlateVectorImageBrush>(
-			IconPath, FVector2D(Size * 0.68f), FLinearColor(0.08f, 0.08f, 0.09f, 1.0f));
+			IconPath, FVector2D(Size * (bIconoPropio ? 0.92f : 0.68f)),
+			bIconoPropio ? FLinearColor::White : FLinearColor(0.08f, 0.08f, 0.09f, 1.0f));
 		Glyph = SNew(SImage)
 			.Image_Lambda([BadgeBrush]() -> const FSlateBrush* { return &BadgeBrush.Get(); });
 	}
 
+	// Un icono a color necesita fondo neutro para que sus propios colores se lean; uno teñido de
+	// tinta necesita el color de categoría detrás.
+	const FLinearColor Fondo = bIconoPropio ? FLinearColor(0.94f, 0.94f, 0.95f, 1.0f) : Color;
 	return SNew(SBox).WidthOverride(Size).HeightOverride(Size)
 	[
 		SNew(SBorder)
 		.BorderImage(FAppStyle::GetBrush("WhiteBrush"))
-		.BorderBackgroundColor(Color)
+		.BorderBackgroundColor(Fondo)
 		.HAlign(HAlign_Center).VAlign(VAlign_Center)
 		.Padding(0.0f)
 		[

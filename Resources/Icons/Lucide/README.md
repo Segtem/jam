@@ -14,32 +14,54 @@ La geometría de los iconos no fue alterada. Se reemplazó `stroke="currentColor
 teñir el brush completo mediante `FSlateColor`. Jam aplica un gris casi negro para que el pictograma
 se lea como tinta sobre el cuerpo claro de los componentes y los badges de categoría.
 
-**Nueve iconos NO son de Lucide**: `stairs`, `stairs-curved`, `capsule`, `torus`, `normals`,
-`square`, `bake`, `frames` y `bark` están dibujados para Jam en el mismo estilo (24×24, trazo 2,
-extremos redondeados). Son obra propia y **no** están cubiertos por `LICENSE.txt`.
+## Dos familias de icono, con contratos opuestos
 
-## Deuda: iconos únicos
+`MakeBadge` las separa por el prefijo del archivo:
 
-El ribbon muestra **sólo el icono**, con el nombre en el tooltip (el modelo de Grasshopper). Eso
-vuelve crítico que cada verbo tenga pictograma propio: dos fichas con el mismo SVG son literalmente
-indistinguibles.
+| | Trazo | Fondo | Tamaño |
+|---|---|---|---|
+| **Lucide** (`box.svg`) | `#FFFFFF` — es una **máscara** que Slate tiñe de tinta | color de categoría | 68% |
+| **Jam** (`jam-box.svg`) | sus **propios colores** | gris casi blanco | 92% |
 
-Quedan **21 verbos de 95** compartiendo icono, todos en la pestaña Mesh, que es la más grande:
+Teñir un icono propio lo arruinaría, y dejar uno de Lucide sin teñir lo haría invisible. Hay tests
+que fijan las dos mitades.
 
-| Icono | Verbos que lo comparten |
-|---|---|
-| `copy` | copy_asset_selection · copy_mesh_to_frames · mesh_from_asset |
-| `boxes` | asset_set · hism_output |
-| `circle` | mesh_disc · mesh_sphere |
-| `circle-pile` | mesh_cylinder · mesh_sphere_box |
-| `git-merge` | curve_branches · curve_child |
-| `move-3d` | mesh_transform · transform_frames |
-| `palette` | mesh_color · mesh_material |
-| `route` | mesh_pipe · mesh_pipe_profile |
-| `scan` | mesh_round_rect · mesh_uv_scale |
-| `spline-pointer` | curve_bezier · mesh_along_curve |
+## Los iconos propios: el vocabulario
 
-Es la lista de trabajo para la tanda de iconos propios.
+La lección de la hoja de iconos de Grasshopper no son los dibujos sino cómo están hechos: **cada
+icono diagrama el dato**, no una metáfora. «Divide Curve» es literalmente una curva con puntos
+encima. Por eso quinientos iconos siguen siendo distinguibles — están compuestos de un vocabulario
+compartido.
+
+Acá ese vocabulario es el **sistema de tipos**, con los mismos colores que los pines y los cables:
+
+| Concepto | Se dibuja | Color |
+|---|---|---|
+| `P` punto | círculo relleno | `#65B1D1` azul |
+| `S` curva | línea fina | `#CBAD69` dorado |
+| `F` frame | ángulo de dos ejes | `#DA90B8` rosa |
+| `M` malla | facetas con relleno tenue | `#50C8CE` cian |
+| `N[]` serie | barritas de alturas | `#F6C86F` ámbar |
+| `A` asset | cajita | `#7CBF90` verde |
+| `AF` variante | cajita lima | `#A6D490` |
+| `H` instancias | cajitas verde azulado | `#6FBCB5` |
+
+Consecuencia doble: dos verbos con firma distinta tienen iconos distintos **por construcción**, y el
+icono **enseña el tipo** — se aprenden los colores una vez y todos se leen solos.
+
+Los 44 iconos propios se generan con `tools/iconos_jam.py`, donde el vocabulario está escrito como
+funciones (`punto()`, `curva()`, `frame()`, `malla()`, `barra()`, `caja()`). Agregar un icono nuevo es
+componer esas piezas, no dibujar desde cero:
+
+```bash
+python3 tools/iconos_jam.py     # reescribe los jam-*.svg
+```
+
+## Estado
+
+- **Tab Mesh: 0 colisiones.** Los 44 verbos tienen pictograma propio.
+- El resto de los tabs sigue con Lucide y **comparte** algunos pictogramas. Como el ribbon muestra
+  sólo el icono, ésa es la deuda pendiente: seguir el mismo método por tab.
 
 `icon-map.json` propone un icono para cada verbo existente en `jam.tools` y `jam.flow`. Varios verbos
 comparten pictograma deliberadamente; primero hay que probar la lectura real a 16–20 px antes de crear

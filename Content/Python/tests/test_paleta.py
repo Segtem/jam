@@ -39,13 +39,41 @@ class IconosTests(unittest.TestCase):
                        if not (ICONOS / f"{i}.svg").exists())
         self.assertEqual(rotos, [])
 
-    def test_every_svg_is_well_formed_and_slate_tintable(self):
+    def test_every_svg_is_well_formed(self):
         import xml.dom.minidom
         for svg in sorted(ICONOS.glob("*.svg")):
             with self.subTest(icono=svg.name):
                 xml.dom.minidom.parse(str(svg))
-                # Slate tiñe el brush entero: el trazo tiene que ser blanco, no `currentColor`.
-                self.assertIn('stroke="#FFFFFF"', svg.read_text(encoding="utf-8"))
+
+    def test_lucide_icons_are_white_masks_and_jam_icons_are_not(self):
+        """Las dos familias tienen contratos OPUESTOS, y `MakeBadge` las separa por el prefijo.
+
+        Un icono de Lucide es una máscara que Slate tiñe de tinta, así que su trazo tiene que ser
+        blanco. Uno propio de Jam trae los colores del sistema de tipos —el icono enseña la firma
+        del verbo— así que teñirlo lo arruinaría.
+        """
+        for svg in sorted(ICONOS.glob("*.svg")):
+            texto = svg.read_text(encoding="utf-8")
+            with self.subTest(icono=svg.name):
+                self.assertNotIn("currentColor", texto, "sin adaptar: Slate no lo tiñe bien")
+                if svg.name.startswith("jam-"):
+                    self.assertNotIn('stroke="#FFFFFF"', texto,
+                                     "un icono propio no puede ser una máscara blanca")
+                else:
+                    self.assertIn('stroke="#FFFFFF"', texto)
+
+    def test_jam_icons_use_the_type_palette(self):
+        """El vocabulario visual son los colores de los pines: si un icono inventa colores, deja
+        de enseñar el sistema de tipos y vuelve a ser una metáfora suelta."""
+        import re
+        paleta = {"#65B1D1", "#F6C86F", "#7CBF90", "#90CEA2", "#A6D490", "#6FBCB5",
+                  "#CBAD69", "#DA90B8", "#50C8CE", "#DDDDE2", "#2A2E33"}
+        for svg in sorted(ICONOS.glob("jam-*.svg")):
+            with self.subTest(icono=svg.name):
+                usados = set(re.findall(r"#[0-9A-Fa-f]{6}", svg.read_text(encoding="utf-8")))
+                self.assertTrue(usados, "un icono propio sin color no se distingue de una máscara")
+                self.assertEqual(usados - paleta, set(),
+                                 "colores fuera de la paleta de tipos")
 
     def test_the_icon_collisions_do_not_grow(self):
         """Sin texto en la ficha, dos verbos con el mismo icono se ven idénticos.
@@ -60,8 +88,9 @@ class IconosTests(unittest.TestCase):
                 herramienta["verbo"])
         afectados = sum(len(vs) for cat in por_cat.values()
                         for vs in cat.values() if len(vs) > 1)
-        self.assertLessEqual(afectados, 21,
-                             "creciste las colisiones de icono; asigná uno propio o actualizá el README")
+        # El tab Mesh pasó a iconos propios y quedó en CERO; el resto todavía usa Lucide.
+        self.assertLessEqual(afectados, 0,
+                             "creciste las colisiones de icono; asigná uno propio")
 
 
 class RibbonTests(unittest.TestCase):
