@@ -31,6 +31,7 @@ F = "#DA90B8"      # frames
 M = "#50C8CE"      # malla
 NUM = "#EAB559"    # N (número)
 TEXTO = "#BF95D4"  # T (texto)
+MATERIAL = "#C48659"  # MT (grafo de material, todavía sin hornear)
 TINTA = "#2A2E33"  # trazo neutro para lo estructural
 
 CABECERA = (
@@ -204,6 +205,30 @@ ICONOS = {
                              curva("M12 20c0-6 3-8 7-10", S, 1.9),
                              punto(12, 20, TINTA, 2.0),
                              curva("M3 9c2-1.5 4-1.5 6 0", TINTA, 1.2)),
+    # ── Shader: armar el grafo de material nodo por nodo ─────────────────────────
+    # El tipo MT (grafo de material) se dibuja como lo que es: cajitas cableadas. Cada verbo muestra
+    # QUÉ le hace al grafo — agrega una caja, agrega un cable, lo enchufa a la salida, lo hornea.
+    "jam-material-node": svg(caja(3, 5, 5, 4, MATERIAL), caja(3, 14, 5, 4, MATERIAL),
+                             curva("M8 7h4v5M8 16h4v-5", TINTA, 1.3),
+                             caja(15, 9.5, 6, 5, MATERIAL),
+                             punto(19.5, 5.5, ASSET, 2.4),
+                             curva("M18.2 5.5h2.6M19.5 4.2v2.6", "#DDDDE2", 1.3)),
+    "jam-material-connect": svg(caja(2.5, 5, 5, 4, MATERIAL), caja(16.5, 14, 5, 4, MATERIAL),
+                                curva("M7.5 7c7 0 4 9 9 9", ASSET, 1.9),
+                                punto(7.5, 7, ASSET, 1.5), punto(16.5, 16, ASSET, 1.5)),
+    # `output` es un ENCHUFE (el pin de la salida del material, hueco); `build` es la BOLA de
+    # material ya horneada, llena y con su brillo. Con los dos como anillo se veían iguales.
+    "jam-material-output": svg(caja(2.5, 9.5, 5, 5, MATERIAL),
+                               curva("M7.5 12h7", TINTA, 1.4),
+                               f'<circle cx="18.5" cy="12" r="4.2" stroke="{ASSET}" '
+                               f'stroke-width="1.7" fill="none"/>',
+                               punto(18.5, 12, ASSET, 1.3)),
+    "jam-material-build": svg(caja(2, 3.5, 4, 3.5, MATERIAL), caja(2, 10.5, 4, 3.5, MATERIAL),
+                              caja(2, 17, 4, 3.5, MATERIAL),
+                              curva("M6 5.5h2.5v13H6M6 12.5h2.5", TINTA, 1.1),
+                              f'<circle cx="16" cy="12" r="6" stroke="{ASSET}" '
+                              f'stroke-width="1.7" fill="{ASSET}" fill-opacity="0.75"/>',
+                              curva("M13.5 9.2a3.5 3.5 0 0 1 3-1.1", "#DDDDE2", 1.3)),
     "jam-mesh-material": svg(malla("M5 7h14v10H5z"),
                              f'<circle cx="12" cy="12" r="3.4" fill="{SERIE}" stroke="none"/>'),
     "jam-mesh-uv": svg(malla("M5 6h14v12H5z", M, False),

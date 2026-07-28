@@ -1218,7 +1218,8 @@ void SJamGraphEditor::RefreshCabledPins()
 FLinearColor SJamGraphEditor::DataColor(const FString& OutName)
 {
 	// Color por TIPO de dato (como los pines/cables tipados de Blueprint): P=stream de puntos · N=número
-	// · T=texto · B=booleano · A/A[]=asset/set · AF=asset por frame · N[]=serie · H=HISM · S=spline · F=frames · M=malla procedural.
+	// · T=texto · B=booleano · A/A[]=asset/set · AF=asset por frame · N[]=serie · H=HISM · S=spline · F=frames · M=malla procedural
+	// · MT=grafo de material (el shader que se está armando, todavía sin hornear).
 	if (OutName == TEXT("P")) { return FLinearColor(0.13f, 0.44f, 0.64f, 1.0f); }   // azul  (puntos)
 	if (OutName == TEXT("N")) { return FLinearColor(0.82f, 0.46f, 0.10f, 1.0f); }   // ámbar (número)
 	if (OutName == TEXT("N[]")) { return FLinearColor(0.92f, 0.58f, 0.16f, 1.0f); } // ámbar claro (serie)
@@ -1232,6 +1233,9 @@ FLinearColor SJamGraphEditor::DataColor(const FString& OutName)
 	if (OutName == TEXT("S")) { return FLinearColor(0.60f, 0.42f, 0.14f, 1.0f); }   // dorado (spline)
 	if (OutName == TEXT("F")) { return FLinearColor(0.70f, 0.28f, 0.48f, 1.0f); }   // rosa  (frames)
 	if (OutName == TEXT("M")) { return FLinearColor(0.08f, 0.58f, 0.62f, 1.0f); }   // cian (DynamicMesh)
+	// Cobre, no el dorado del tab Shader: ése cae a un pelo del dorado de `S` (spline) y dos cables
+	// distintos no se pueden distinguir por un pelo.
+	if (OutName == TEXT("MT")) { return FLinearColor(0.55f, 0.24f, 0.10f, 1.0f); }  // cobre (grafo de material)
 	return FLinearColor(0.28f, 0.30f, 0.34f, 1.0f);                                 // neutro
 }
 

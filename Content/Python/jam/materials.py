@@ -148,7 +148,7 @@ def emitir(grafo, carpeta: str = "/Game/Jam/Materials", *, sobrescribir: bool = 
     if grafo.blend_mode:
         try:
             material.set_editor_property(
-                "blend_mode", _valor_de_propiedad("blend_mode", grafo.blend_mode))
+                "blend_mode", _valor_de_propiedad(material, "blend_mode", grafo.blend_mode))
         except Exception:  # noqa: BLE001
             return {"error": f"{ruta}: no se pudo poner blend_mode={grafo.blend_mode}"}
 
@@ -163,9 +163,9 @@ def emitir(grafo, carpeta: str = "/Game/Jam/Materials", *, sobrescribir: bool = 
             return {"error": f"{nodo.id}: no se pudo crear el nodo {nodo.tipo}"}
         for nombre, valor in nodo.props.items():
             try:
-                expresion.set_editor_property(nombre, _valor_de_propiedad(nombre, valor))
-            except Exception:  # noqa: BLE001 — se reporta, no se decide acá
-                props_fallidas.append(f"{nodo.id}.{nombre}")
+                expresion.set_editor_property(nombre, _valor_de_propiedad(expresion, nombre, valor))
+            except Exception as exc:  # noqa: BLE001 — se reporta, no se decide acá
+                props_fallidas.append(f"{nodo.id}.{nombre} ({type(exc).__name__})")
         creados[nodo.id] = expresion
 
     cables, fallidos = 0, []
@@ -225,14 +225,18 @@ def _vaciar(material, pasadas: int = 8) -> bool:
     return previo == 0
 
 
-def _valor_de_propiedad(nombre: str, valor):
-    """Traduce el valor puro del IR al tipo que espera la propiedad de editor.
+def _valor_de_propiedad(dueno, nombre: str, valor):
+    """Traduce el valor puro del IR al tipo que espera esa propiedad de editor.
 
     El IR no puede nombrar tipos de Unreal sin importarlo, así que escribe enums como texto
-    (`"TRANSFORMSOURCE_LOCAL"`) y colores como tuplas; la traducción vive acá, que es el único lado
-    que conoce el motor. Los miembros de enum en Python van en MAYÚSCULA: `TRANSFORMPOSSOURCE_World`
-    no existe, `TRANSFORMPOSSOURCE_WORLD` sí, y equivocarse ahí no lanza — deja la propiedad en su
-    valor por defecto.
+    (`"TRANSFORMSOURCE_LOCAL"`) y colores como tuplas. La traducción vive acá, que es el único lado
+    que conoce el motor.
+
+    La conversión la decide **el valor que la propiedad ya tiene**, no una lista de enums conocidos.
+    Con una lista fija, cada tipo de nodo nuevo que usara un enum distinto fallaba —y `set` de un
+    texto donde va un enum lanza `TypeError`, o peor: en algunos casos lo acepta y deja el default—,
+    así que un verbo genérico que acepta cualquiera de los 409 tipos no podía funcionar. Preguntando
+    el tipo actual funciona para todos sin enumerar ninguno.
     """
     if isinstance(valor, (tuple, list)) and len(valor) in (3, 4):
         componentes = [float(c) for c in valor]
@@ -241,14 +245,33 @@ def _valor_de_propiedad(nombre: str, valor):
         return unreal.LinearColor(*componentes)
     if not isinstance(valor, str):
         return valor
-    for enum in (getattr(unreal, "MaterialPositionTransformSource", None),
-                 getattr(unreal, "MaterialVectorCoordTransformSource", None),
-                 getattr(unreal, "MaterialVectorCoordTransform", None),
-                 getattr(unreal, "NoiseFunction", None),
-                 getattr(unreal, "BlendMode", None)):
-        if enum is not None and hasattr(enum, valor):
-            return getattr(enum, valor)
+
+    actual = None
+    if dueno is not None:
+        try:
+            actual = dueno.get_editor_property(nombre)
+        except Exception:  # noqa: BLE001 — la propiedad no existe; el `set` de arriba lo reportará
+            return valor
+    if isinstance(actual, unreal.EnumBase):
+        # Por NOMBRE y con `getattr`: los enums de UE derivan de `EnumBase`, no de `enum.Enum`, y
+        # **no son subscriptables** — `NoiseFunction["NOISEFUNCTION_VALUE_ALU"]` lanza `TypeError`.
+        # El nombre va en MAYÚSCULA: `TRANSFORMPOSSOURCE_World` no existe, `..._WORLD` sí.
+        return getattr(type(actual), valor)
+    if isinstance(actual, unreal.LinearColor):
+        return unreal.LinearColor(*shader_color(valor))
+    if isinstance(actual, bool):
+        return valor.strip().lower() in ("1", "true", "sí", "si", "yes")
+    if isinstance(actual, int) and not isinstance(actual, bool):
+        return int(float(valor))
+    if isinstance(actual, float):
+        return float(valor)
     return valor
+
+
+def shader_color(texto: str):
+    from . import shader
+
+    return shader.color_de_hex(texto)
 
 
 def op_weight_material(entradas, p):

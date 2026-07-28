@@ -9,6 +9,10 @@ from __future__ import annotations
 
 import unreal
 
+# Las salidas del material salen del IR (puro) y no de una lista repetida acá: el desplegable del
+# nodo `material_output` y lo que el verificador acepta son la MISMA lista, por construcción.
+from .shader import SALIDAS as _SALIDAS_MATERIAL
+
 
 # Salidas de Content producidas durante la ejecución actual de un nodo transformador. Compile usa
 # rutas finales deterministas; Run necesita la ruta temporal REAL para alimentar al siguiente nodo.
@@ -837,6 +841,87 @@ def t_material_wind(_input=None, *, name="M_JamArbolViento", folder="/Game/Jam/M
     return f"WIND MATERIAL A \u2713 \u2014 {resultado['info']}"
 
 
+# ---- verbos genéricos de material: armar un shader nodo por nodo desde el canvas ----
+# El cable lleva el GRAFO (tipo `MT`), no el material: recién `material_build` toca Unreal. Así el
+# grafo se puede verificar, comparar y reusar sin crear assets, y un error de cableado sale en el
+# Compile del canvas en vez de un log de compilación de shaders.
+
+
+def _material_output(verbo: str, grafo, extra: str = "") -> str:
+    _RUNTIME_DATA_OUTPUTS[verbo] = grafo
+    from . import shader
+    problemas = shader.verificar(grafo)
+    # Un grafo a medio armar TIENE que poder existir: mientras se encadenan nodos no alimenta
+    # ninguna salida ni tiene todo conectado. Los problemas se reportan como aviso y `material_build`
+    # es el que se planta — si no, no se podría construir nada de a poco.
+    aviso = f" · pendiente: {problemas[0]}" if problemas else ""
+    return (f"{len(grafo.nodos)} nodo(s) · {len(grafo.aristas)} cable(s){extra}{aviso}")
+
+
+def _material_entrada(mat_input, nombre: str):
+    from . import shader
+    if mat_input is None:
+        return shader.vacio(nombre)
+    if not isinstance(mat_input, shader.GrafoMaterial):
+        raise RuntimeError(f"la entrada no es un grafo de material, es {type(mat_input).__name__}")
+    return mat_input
+
+
+def t_material_node(mat_input=None, *, type="Multiply", id="", inputs="", props="",
+                    x=0, y=0) -> str:
+    """Agrega UN nodo al grafo. `type` es cualquiera de los 409 `MaterialExpression` del motor.
+
+    `inputs` cablea de una vez lo que ya existe (`A=uv, B=escala`; con `nodo.R` se elige el canal de
+    salida) y `props` fija propiedades del nodo (`scale=2.5, parameter_name=Fuerza`). Los nombres de
+    entrada válidos los sabe el verificador para los 409 tipos, así que equivocarse dice cuáles son
+    en vez de crear un material roto.
+    """
+    from . import shader
+    grafo = _material_entrada(mat_input, "M_JamMaterial")
+    grafo, creado = shader.con_nodo(
+        grafo, str(type), id=str(id), props=shader.parsear_props(props),
+        entradas=shader.parsear_pares(inputs), x=int(x), y=int(y))
+    return "MATERIAL NODE \u2713 \u2014 " + _material_output(
+        "material_node", grafo, f" · «{creado}» ({type})")
+
+
+def t_material_connect(mat_input, *, from_node="", to_node="", to_input="",
+                       from_output="") -> str:
+    """Conecta dos nodos que ya están en el grafo. Sin `to_input`, usa la única entrada del destino."""
+    from . import shader
+    grafo = _material_entrada(mat_input, "M_JamMaterial")
+    grafo = shader.con_cable(grafo, str(from_node), str(to_node), str(to_input), str(from_output))
+    return "MATERIAL CONNECT \u2713 \u2014 " + _material_output(
+        "material_connect", grafo, f" · {from_node}\u2192{to_node}")
+
+
+def t_material_output(mat_input, *, node="", target="MP_BASE_COLOR", from_output="") -> str:
+    """Enchufa un nodo a una salida del material (BaseColor, Roughness, WPO…)."""
+    from . import shader
+    grafo = _material_entrada(mat_input, "M_JamMaterial")
+    grafo = shader.con_salida(grafo, str(node), str(target), str(from_output))
+    return "MATERIAL OUTPUT \u2713 \u2014 " + _material_output(
+        "material_output", grafo, f" · {node}\u2192{target}")
+
+
+def t_material_build(mat_input, *, name="M_JamMaterial", folder="/Game/Jam/Materials",
+                     blend_mode="", two_sided=False) -> str:
+    """Hornea el grafo como material de verdad. Acá SÍ se planta si el grafo no es válido."""
+    from . import materials, shader
+    grafo = _material_entrada(mat_input, str(name))
+    grafo = shader.GrafoMaterial(nombre=str(name), nodos=grafo.nodos, aristas=grafo.aristas,
+                                 two_sided=bool(two_sided), shading_model=grafo.shading_model,
+                                 blend_mode=str(blend_mode))
+    problemas = shader.verificar(grafo)
+    if problemas:
+        raise RuntimeError("el grafo del material no es válido: " + " \u00b7 ".join(problemas))
+    resultado = materials.emitir(grafo, str(folder))
+    if "error" in resultado:
+        raise RuntimeError(resultado["error"])
+    _RUNTIME_DATA_OUTPUTS["material_build"] = f"{folder}/{name}"
+    return f"MATERIAL BUILD \u2713 \u2014 {resultado['info']}"
+
+
 def t_mesh_vertex_gradient(mesh_input, *, eje="z", desde=0.0, hasta=1.0,
                            power=1.0, canal="todos") -> str:
     from . import mesh
@@ -1274,6 +1359,25 @@ REGISTRO = {
                                  "fuerza": 0.25, "velocidad": 1.2, "concentracion": 2.0,
                                  "eje_x": 1.0, "eje_y": 0.3, "eje_z": 0.0},
                       "doc": "material de viento que gira cada rama sobre el pivote estampado en UV1/UV2; salida A"},
+    "material_node": {"fn": t_material_node, "cat": "Shader", "graph_only": True,
+                      "params": {"type": "Multiply", "id": "", "inputs": "", "props": "",
+                                 "x": 0, "y": 0},
+                      "doc": "agrega un nodo al grafo de material (cualquiera de los 409 tipos); "
+                             "`inputs` cablea lo que ya existe (A=uv, B=escala); salida MT"},
+    "material_connect": {"fn": t_material_connect, "cat": "Shader", "graph_only": True,
+                         "params": {"from_node": "", "to_node": "", "to_input": "",
+                                    "from_output": ""},
+                         "doc": "conecta dos nodos del grafo de material por nombre de entrada; salida MT"},
+    "material_output": {"fn": t_material_output, "cat": "Shader", "graph_only": True,
+                        "params": {"node": "", "target": "MP_BASE_COLOR", "from_output": ""},
+                        "opciones": {"target": list(_SALIDAS_MATERIAL)},
+                        "doc": "enchufa un nodo a una salida del material (BaseColor, Roughness, WPO...); salida MT"},
+    "material_build": {"fn": t_material_build, "cat": "Shader", "graph_only": True,
+                       "params": {"name": "M_JamMaterial", "folder": "/Game/Jam/Materials",
+                                  "blend_mode": "", "two_sided": False},
+                       "opciones": {"blend_mode": ["", "BLEND_OPAQUE", "BLEND_MASKED",
+                                                   "BLEND_TRANSLUCENT", "BLEND_ADDITIVE"]},
+                       "doc": "hornea el grafo MT como material de verdad; verifica antes de crear nada; salida A"},
     "mesh_vertex_gradient": {"fn": t_mesh_vertex_gradient, "cat": "Mesh", "graph_only": True,
                              "params": {"eje": "z", "desde": 0.0, "hasta": 1.0,
                                         "power": 1.0, "canal": "todos"},
@@ -1405,9 +1509,12 @@ GRAPH_IN_NAMES = {"points_to_frames": "P", "debug": "*", "curve_child": "S", "cu
                   "hism_output": "AF", "mesh_transform": "M", "mesh_color": "M",
                   "mesh_uv_scale": "M", "mesh_material": "M", "mesh_bark": "M",
                   "mesh_vertex_gradient": "M", "mesh_merge": "M", "mesh_normals": "M",
-                  "mesh_compare": "M", "mesh_to_static": "M"}
+                  "mesh_compare": "M", "mesh_to_static": "M",
+                  "material_node": "MT", "material_connect": "MT", "material_output": "MT",
+                  "material_build": "MT"}
 GRAPH_OUT_NAMES = {"points_to_frames": "F", "debug": "M", "asset": "A", "pick": "A", "create_spline": "S",
-                   "material_wind": "A",
+                   "material_wind": "A", "material_build": "A",
+                   "material_node": "MT", "material_connect": "MT", "material_output": "MT",
                    "curve_bezier": "S", "curve_child": "S", "curve_noise": "S", "curve_frames": "F",
                    "distribute_frames": "F", "transform_frames": "F",
                    "branch_from_frames": "S", "curve_branches": "S",
@@ -1482,7 +1589,9 @@ def _registrar_ops_flow() -> list[str]:
 
 
 GRAPH_ARITY = {"mesh_merge": -1, "asset_set": -1}
-GRAPH_MIN_INPUTS = {"mesh_merge": 2, "asset_set": 2}
+# `material_node` tiene pin de entrada MT pero el PRIMER nodo de una cadena no tiene de dónde
+# venir: con el mínimo en 1 haría falta un verbo `material_new` de puro trámite en el canvas.
+GRAPH_MIN_INPUTS = {"mesh_merge": 2, "asset_set": 2, "material_node": 0}
 OPS_FLOW_EN_GRAPH = _registrar_ops_flow()
 
 for _nombre, _info in REGISTRO.items():

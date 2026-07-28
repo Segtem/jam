@@ -25,10 +25,11 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 
-# Los nombres de entrada de cada tipo, medidos contra UE 5.7.4. Sirven para dos cosas: verificar que
-# una arista apunte a una entrada que existe, y no tener que recordarlos al escribir un grafo.
-# No pretende ser exhaustivo (hay 417 tipos); es el subconjunto que Jam usa hoy.
-ENTRADAS: dict[str, tuple[str, ...]] = {
+# Los nombres de entrada de cada tipo. Los 409 los DERIVA el motor —`shader_firmas` está generado por
+# `tools/experiments/volcar_firmas.py`— y acá abajo quedan sólo los que Jam escribe a mano, como
+# documentación de lo que el código de este archivo usa. Si los dos difieren gana el generado, y un
+# test lo comprueba: la tabla escrita a mano existe para leerla, no para ser la verdad.
+_ESCRITAS_A_MANO: dict[str, tuple[str, ...]] = {
     "Abs": ("None",),
     "Add": ("A", "B"),
     "AppendVector": ("A", "B"),
@@ -76,6 +77,10 @@ ENTRADAS: dict[str, tuple[str, ...]] = {
     "VertexNormalWS": (),
     "WorldPosition": (),
 }
+
+from .shader_firmas import ENTRADAS as _DEL_MOTOR  # noqa: E402
+
+ENTRADAS: dict[str, tuple[str, ...]] = {**_ESCRITAS_A_MANO, **_DEL_MOTOR}
 
 # Las salidas del material a las que se puede enchufar algo. El nombre es el de `MaterialProperty`.
 SALIDAS = (
@@ -250,6 +255,173 @@ def profundidad(grafo: GrafoMaterial) -> int:
 
     finales = [a.desde for a in grafo.aristas if a.es_salida_del_material]
     return max((alto(f, frozenset()) for f in finales), default=0)
+
+
+# ---------------------------------------------------------------------------------------------
+# Armar un grafo a mano, nodo por nodo — lo que usan los verbos genéricos de material
+# ---------------------------------------------------------------------------------------------
+#
+# Todo devuelve un grafo NUEVO en vez de modificar el que recibe. Es lo que hace que un nodo del
+# canvas pueda alimentar a dos ramas distintas sin que una le pise el grafo a la otra: por el cable
+# viaja un valor, no una referencia a algo mutable.
+
+def vacio(nombre: str = "M_JamMaterial") -> GrafoMaterial:
+    return GrafoMaterial(nombre=nombre, nodos=(), aristas=())
+
+
+# El nombre con el que un nodo se conoce en el editor no siempre es el de su clase. Éstos no son
+# typos: son cómo se llama el nodo en la paleta de UE, y buscarlos por parecido no los encuentra
+# («Lerp» no es subcadena de «LinearInterpolate»).
+ALIAS = {
+    "Lerp": "LinearInterpolate",
+    "CustomExpression": "Custom",
+    "Dot": "DotProduct",
+    "Cross": "CrossProduct",
+    "Sqrt": "SquareRoot",
+    "TexCoord": "TextureCoordinate",
+}
+# Un alias NO puede llamarse como un tipo que existe: `Mask` parece el ComponentMask y no lo es
+# (el `Mask` de UE es un blend de MaterialX), así que aliasarlo daría en silencio otro nodo que el
+# que dice el campo. `test_material_verbos` lo fija para los que vengan.
+
+
+def normalizar_tipo(tipo: str) -> str:
+    """El nombre de clase real de un tipo escrito como se lo llama en el editor."""
+    return ALIAS.get(tipo.strip(), tipo.strip())
+
+
+def entradas_de(tipo: str) -> tuple[str, ...]:
+    """Los nombres de entrada de ese tipo de nodo, o `ValueError` si el tipo no existe.
+
+    Ojo con el caso que confunde: un nodo de UNA sola entrada la llama ``"None"``. No es que no
+    tenga entrada — es su nombre.
+    """
+    tipo = normalizar_tipo(tipo)
+    if tipo not in ENTRADAS:
+        agujas = tipo.lower()
+        parecidos = sorted(t for t in ENTRADAS
+                           if agujas in t.lower() or t.lower() in agujas)[:6]
+        raise ValueError(f"«{tipo}» no es un MaterialExpression"
+                         + (f" · ¿querías {parecidos}?" if parecidos else ""))
+    return ENTRADAS[tipo]
+
+
+def id_libre(grafo: GrafoMaterial, tipo: str) -> str:
+    """Un id predecible para un nodo nuevo: `multiply1`, `multiply2`…
+
+    Predecible importa: `material_connect` referencia los nodos POR ID, así que si el id lo eligiera
+    un contador global habría que mirar el log para saber cómo se llamó el nodo que uno acaba de
+    crear.
+    """
+    base = tipo[0].lower() + tipo[1:] if tipo else "nodo"
+    usados = {n.id for n in grafo.nodos}
+    i = 1
+    while f"{base}{i}" in usados:
+        i += 1
+    return f"{base}{i}"
+
+
+def con_nodo(grafo: GrafoMaterial, tipo: str, *, id: str = "", props: dict | None = None,
+             entradas: dict | None = None, x: int = 0, y: int = 0) -> tuple[GrafoMaterial, str]:
+    """Agrega un nodo (y de paso sus cables de entrada). Devuelve `(grafo_nuevo, id_del_nodo)`."""
+    validas = entradas_de(tipo)
+    tipo = normalizar_tipo(tipo)     # el IR guarda el nombre de CLASE: es lo que el emisor busca
+    nuevo_id = id.strip() or id_libre(grafo, tipo)
+    if grafo.nodo(nuevo_id) is not None:
+        raise ValueError(f"ya hay un nodo «{nuevo_id}» en el grafo")
+
+    cables = []
+    for pin, origen in (entradas or {}).items():
+        if pin not in validas:
+            raise ValueError(f"«{tipo}» no tiene la entrada «{pin}» (tiene {list(validas) or 'ninguna'})")
+        salida = ""
+        if "." in str(origen):
+            origen, salida = str(origen).split(".", 1)
+        if grafo.nodo(origen) is None:
+            raise ValueError(f"«{origen}» no es un nodo de este grafo "
+                             f"(hay {[n.id for n in grafo.nodos] or 'ninguno'})")
+        cables.append(Arista(desde=origen, hasta=nuevo_id, entrada=pin, salida=salida))
+
+    nodo = Nodo(id=nuevo_id, tipo=tipo, props=dict(props or {}), x=int(x), y=int(y))
+    return GrafoMaterial(nombre=grafo.nombre, nodos=grafo.nodos + (nodo,),
+                         aristas=grafo.aristas + tuple(cables), two_sided=grafo.two_sided,
+                         shading_model=grafo.shading_model, blend_mode=grafo.blend_mode), nuevo_id
+
+
+def con_cable(grafo: GrafoMaterial, desde: str, hasta: str, entrada: str = "",
+              salida: str = "") -> GrafoMaterial:
+    """Conecta `desde` → `hasta.entrada`. Sin `entrada`, usa la única que tenga el destino."""
+    if grafo.nodo(desde) is None:
+        raise ValueError(f"«{desde}» no es un nodo de este grafo")
+    destino = grafo.nodo(hasta)
+    if destino is None:
+        raise ValueError(f"«{hasta}» no es un nodo de este grafo")
+    validas = entradas_de(destino.tipo)
+    if not entrada:
+        if len(validas) != 1:
+            raise ValueError(f"«{hasta}» ({destino.tipo}) tiene {len(validas)} entradas "
+                             f"{list(validas)}: hay que decir cuál")
+        entrada = validas[0]
+    elif entrada not in validas:
+        raise ValueError(f"«{destino.tipo}» no tiene la entrada «{entrada}» (tiene {list(validas)})")
+    return GrafoMaterial(nombre=grafo.nombre, nodos=grafo.nodos,
+                         aristas=grafo.aristas + (Arista(desde, hasta, entrada, salida),),
+                         two_sided=grafo.two_sided, shading_model=grafo.shading_model,
+                         blend_mode=grafo.blend_mode)
+
+
+def con_salida(grafo: GrafoMaterial, desde: str, propiedad: str,
+               salida: str = "") -> GrafoMaterial:
+    """Enchufa un nodo a una salida del material (`MP_BASE_COLOR`, `MP_ROUGHNESS`…)."""
+    if grafo.nodo(desde) is None:
+        raise ValueError(f"«{desde}» no es un nodo de este grafo")
+    if propiedad not in SALIDAS:
+        raise ValueError(f"«{propiedad}» no es una salida de material (hay {list(SALIDAS)})")
+    return GrafoMaterial(nombre=grafo.nombre, nodos=grafo.nodos,
+                         aristas=grafo.aristas + (Arista(desde, propiedad, "", salida),),
+                         two_sided=grafo.two_sided, shading_model=grafo.shading_model,
+                         blend_mode=grafo.blend_mode)
+
+
+def parsear_pares(texto: str) -> dict[str, str]:
+    """``"A=uv, B=escala"`` → ``{"A": "uv", "B": "escala"}``.
+
+    Es el formato de los campos `inputs` y `props` de los verbos. Se corta por la PRIMERA `=` para
+    que un valor pueda tener signos igual, y se ignoran los pares vacíos: un campo que termina en
+    coma no es un error, es alguien escribiendo.
+    """
+    salida: dict[str, str] = {}
+    for parte in str(texto or "").split(","):
+        if not parte.strip():
+            continue
+        if "=" not in parte:
+            raise ValueError(f"«{parte.strip()}» no tiene forma `clave=valor`")
+        clave, valor = parte.split("=", 1)
+        if not clave.strip():
+            raise ValueError(f"«{parte.strip()}» no nombra ninguna clave")
+        salida[clave.strip()] = valor.strip()
+    return salida
+
+
+def parsear_props(texto: str) -> dict:
+    """Igual que `parsear_pares`, pero adivinando el tipo de los literales obvios.
+
+    Los números y los booleanos se convierten acá porque el IR es puro y tiene que poder evaluarse
+    sin Unreal. Lo demás queda en texto a propósito: el adaptador lo convierte preguntándole a la
+    propiedad qué tipo tiene, que es cómo un `noise_function` o un color en hex llegan bien sin que
+    este lado sepa nada de enums.
+    """
+    salida = {}
+    for clave, crudo in parsear_pares(texto).items():
+        bajo = crudo.lower()
+        if bajo in ("true", "false"):
+            salida[clave] = bajo == "true"
+            continue
+        try:
+            salida[clave] = int(crudo) if crudo.lstrip("+-").isdigit() else float(crudo)
+        except ValueError:
+            salida[clave] = crudo
+    return salida
 
 
 # ---------------------------------------------------------------------------------------------

@@ -25,8 +25,35 @@ RAIZ = Path(__file__).resolve().parents[3]
 ICONOS = RAIZ / "Resources" / "Icons" / "Lucide"
 
 
+DATA_COLOR = RAIZ / "Source" / "JamEditor" / "Private" / "SJamGraphEditor.cpp"
+TINTA = "#2A2E33"   # el trazo neutro de lo estructural; no es un tipo, no sale de DataColor
+
+
 def mapa() -> dict:
     return json.loads((ICONOS / "icon-map.json").read_text(encoding="utf-8"))
+
+
+def colores_de_los_pines() -> set:
+    """Los colores de tipo, leídos de `SJamGraphEditor::DataColor` y pasados a sRGB.
+
+    El C++ los escribe en LINEAL (que es como Slate los quiere) y los SVG en sRGB (que es como los
+    quiere un navegador). La conversión de acá reproduce exactamente los valores que estaban
+    escritos a mano, así que la tabla del C++ puede ser la única definición.
+    """
+    import re
+
+    texto = DATA_COLOR.read_text(encoding="utf-8")
+    cuerpo = texto.split("FLinearColor SJamGraphEditor::DataColor")[1].split("\n}")[0]
+
+    def a_srgb(c: float) -> int:
+        v = c / 12.92 if c <= 0.0031308 else 1.055 * (c ** (1 / 2.4)) - 0.055
+        return round(v * 255)
+
+    encontrados = set()
+    for m in re.finditer(r"FLinearColor\(([\d.]+)f, ([\d.]+)f, ([\d.]+)f", cuerpo):
+        r, g, b = (float(x) for x in m.groups())
+        encontrados.add(f"#{a_srgb(r):02X}{a_srgb(g):02X}{a_srgb(b):02X}")
+    return encontrados
 
 
 class IconosTests(unittest.TestCase):
@@ -74,11 +101,15 @@ class IconosTests(unittest.TestCase):
 
     def test_jam_icons_use_the_type_palette(self):
         """El vocabulario visual son los colores de los pines: si un icono inventa colores, deja
-        de enseñar el sistema de tipos y vuelve a ser una metáfora suelta."""
+        de enseñar el sistema de tipos y vuelve a ser una metáfora suelta.
+
+        La paleta se DERIVA de `SJamGraphEditor::DataColor`, que es donde se decide de qué color
+        sale un cable. Copiada a mano se desincronizaba callada: un tipo nuevo entraba con un color
+        que el icono usaba y el pin no, o al revés.
+        """
         import re
-        paleta = {"#65B1D1", "#F6C86F", "#7CBF90", "#90CEA2", "#A6D490", "#6FBCB5",
-                  "#CBAD69", "#DA90B8", "#50C8CE", "#EAB559", "#BF95D4", "#DD6F81",
-                  "#DDDDE2", "#2A2E33"}
+        paleta = colores_de_los_pines() | {TINTA}
+        self.assertGreaterEqual(len(paleta), 12, "no se pudo leer la tabla de colores del C++")
         for svg in sorted(ICONOS.glob("jam-*.svg")):
             with self.subTest(icono=svg.name):
                 usados = set(re.findall(r"#[0-9A-Fa-f]{6}", svg.read_text(encoding="utf-8")))
