@@ -138,21 +138,14 @@ def _copy_static_mesh(source):
 
 
 def _linear_color_from_hex(value: str):
-    """Convierte ``#RRGGBB``/``#RRGGBBAA`` sRGB al espacio lineal de Geometry Script."""
-    text = str(value or "").strip().lstrip("#")
-    if not re.fullmatch(r"[0-9A-Fa-f]{6}(?:[0-9A-Fa-f]{2})?", text):
-        raise ValueError("color debe usar formato #RRGGBB o #RRGGBBAA.")
+    """Convierte ``#RRGGBB``/``#RRGGBBAA`` sRGB al espacio lineal de Geometry Script.
 
-    channels = [int(text[index:index + 2], 16) / 255.0 for index in range(0, len(text), 2)]
-    if len(channels) == 3:
-        channels.append(1.0)
+    La cuenta vive en `jam.shader` (pura) para que el color de un material y el de un vértice no
+    puedan divergir: son el mismo hex y tienen que dar el mismo lineal.
+    """
+    from . import shader
 
-    def srgb_to_linear(channel: float) -> float:
-        return channel / 12.92 if channel <= 0.04045 else ((channel + 0.055) / 1.055) ** 2.4
-
-    red, green, blue, alpha = channels
-    return unreal.LinearColor(
-        srgb_to_linear(red), srgb_to_linear(green), srgb_to_linear(blue), alpha)
+    return unreal.LinearColor(*shader.color_de_hex(value))
 
 
 def _has_vertex_colors(source) -> bool:

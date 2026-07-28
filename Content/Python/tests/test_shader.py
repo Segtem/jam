@@ -20,7 +20,7 @@ from jam import shader  # noqa: E402
 def grafo_minimo(**cambios):
     base = {
         "nombre": "M_Test",
-        "nodos": (shader.Nodo("c", "Constant3Vector", {"r": 1.0}),),
+        "nodos": (shader.Nodo("c", "Constant3Vector", {"constant": (1.0, 1.0, 1.0)}),),
         "aristas": (shader.Arista("c", "MP_BASE_COLOR"),),
     }
     base.update(cambios)

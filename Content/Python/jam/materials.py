@@ -143,6 +143,14 @@ def emitir(grafo, carpeta: str = "/Game/Jam/Materials", *, sobrescribir: bool = 
         return {"error": f"no se pudo crear el material en {ruta}"}
     if grafo.two_sided:
         material.set_editor_property("two_sided", True)
+    # El blend va ANTES que los nodos: sin `BLEND_MASKED` la salida de opacidad no se compila y el
+    # cable a MP_OPACITY_MASK se pierde sin que nadie proteste.
+    if grafo.blend_mode:
+        try:
+            material.set_editor_property(
+                "blend_mode", _valor_de_propiedad("blend_mode", grafo.blend_mode))
+        except Exception:  # noqa: BLE001
+            return {"error": f"{ruta}: no se pudo poner blend_mode={grafo.blend_mode}"}
 
     creados: dict[str, object] = {}
     props_fallidas: list[str] = []
@@ -235,7 +243,55 @@ def _valor_de_propiedad(nombre: str, valor):
         return valor
     for enum in (getattr(unreal, "MaterialPositionTransformSource", None),
                  getattr(unreal, "MaterialVectorCoordTransformSource", None),
-                 getattr(unreal, "MaterialVectorCoordTransform", None)):
+                 getattr(unreal, "MaterialVectorCoordTransform", None),
+                 getattr(unreal, "NoiseFunction", None),
+                 getattr(unreal, "BlendMode", None)):
         if enum is not None and hasattr(enum, valor):
             return getattr(enum, valor)
     return valor
+
+
+def op_weight_material(entradas, p):
+    """Terminal del flow: compila la cadena de Weight que llega hasta acá y la hornea como material.
+
+    Es el gemelo de `instance`. Donde `instance` pone una malla en cada punto que sobrevivió, esto
+    toma la MISMA cadena de máscaras y la deja como shader: lo que decidía dónde caen las rocas ahora
+    decide dónde se pinta la roca. El stream pasa de largo sin tocarse, así que el nodo se puede
+    colgar en el medio de un grafo que además instancia.
+
+    Necesita ver el GRAFO, no el stream — lo lee de `_flow`/`_nid`, que `Flow.evaluar` deja en los
+    params justamente para esto.
+    """
+    from . import shader, weight_material
+
+    flujo, nid = p.get("_flow"), p.get("_nid")
+    stream = entradas[0] if entradas else []
+    if flujo is None or nid is None:
+        p["_out"] = {"error": "este nodo necesita el contexto del grafo y no lo recibió"}
+        return stream
+
+    try:
+        colores = {clave: shader.color_de_hex(p.get(clave, defecto))
+                   for clave, defecto in (("color_a", "#4D4A45"), ("color_b", "#AE9466"))}
+    except ValueError as exc:
+        p["_out"] = {"error": str(exc)}
+        return stream
+
+    compilado = weight_material.desde_flow(
+        flujo, nid, nombre=str(p.get("name", "M_JamMascara")),
+        color_a=colores["color_a"], color_b=colores["color_b"],
+        rugosidad=float(p.get("rugosidad", 0.9)))
+    if "error" in compilado:
+        p["_out"] = {"error": compilado["error"]}
+        return stream
+
+    resultado = emitir(compilado["grafo"], str(p.get("folder", "/Game/Jam/Materials")))
+    if "error" in resultado:
+        p["_out"] = {"error": resultado["error"]}
+        return stream
+
+    p["_out"] = {"material": resultado["info"], "ops": compilado["ops"],
+                 "notas": compilado["notas"],
+                 "resumen": f"{len(compilado['ops'])} op(s) de Weight → "
+                            f"{len(compilado['grafo'].nodos)} nodos de material"}
+    return stream

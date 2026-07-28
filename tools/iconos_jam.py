@@ -365,6 +365,12 @@ ICONOS = {
                               punto(5, 14), punto(10, 14.5), punto(15, 11), punto(20, 8)),
     "jam-instance": svg(punto(4, 17, P, 1.4), punto(11, 17, P, 1.4), punto(18, 17, P, 1.4),
                         caja(2.5, 10, 4, 4), caja(9.5, 10, 4, 4), caja(16.5, 10, 4, 4)),
+    # El gemelo de `instance`: los mismos pesos, pero abajo no CAEN objetos — se PINTA el suelo, y
+    # la pintura mengua con el peso. Por eso es una banda continua pegada al suelo y no tres cajas:
+    # con cajas se leía igual que `instance`, que es justo lo que este verbo no hace.
+    "jam-weight-material": svg(pesado(5, 6, 1.0), pesado(12, 6, 0.55), pesado(19, 6, 0.15),
+                               malla("M3 19V11.5h6V14.5h5V17h6V19z", ASSET),
+                               suelo("M2 19h20")),
 
     # ── debug ───────────────────────────────────────────────────────────────────
     "jam-debug": svg(f'<circle cx="12" cy="12" r="7" stroke="{TINTA}" stroke-width="1.4"/>',

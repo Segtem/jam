@@ -32,13 +32,20 @@ ENTRADAS: dict[str, tuple[str, ...]] = {
     "Abs": ("None",),
     "Add": ("A", "B"),
     "AppendVector": ("A", "B"),
+    "Arccosine": ("None",),
+    "Ceil": ("None",),
     "Clamp": ("None", "Min", "Max"),
     "ComponentMask": ("None",),
     "Constant": (),
+    "Constant2Vector": (),
     "Constant3Vector": (),
+    "Constant4Vector": (),
     "Distance": ("A", "B"),
     "Divide": ("A", "B"),
+    "DotProduct": ("A", "B"),
+    "Floor": ("None",),
     "Fresnel": ("ExponentIn", "BaseReflectFractionIn", "Normal"),
+    "If": ("A", "B", "A > B", "A == B", "A < B"),
     "Length": ("None",),
     "LinearInterpolate": ("A", "B", "Alpha"),
     "Max": ("A", "B"),
@@ -49,12 +56,15 @@ ENTRADAS: dict[str, tuple[str, ...]] = {
     "ObjectPositionWS": (),
     "OneMinus": ("None",),
     "Panner": ("Coordinate", "Time", "Speed"),
+    "PixelNormalWS": (),
     "Power": ("Base", "Exp"),
     "RotateAboutAxis": ("NormalizedRotationAxis", "RotationAngle", "PivotPoint", "Position"),
     "Saturate": ("None",),
     "ScalarParameter": (),
     "Sine": ("None",),
+    "SmoothStep": ("Min", "Max", "Value"),
     "StaticSwitchParameter": ("True", "False"),
+    "Step": ("Y", "X"),
     "Subtract": ("A", "B"),
     "TextureCoordinate": (),
     "TextureSample": ("UVs", "Tex", "Apply View MipBias"),
@@ -63,6 +73,7 @@ ENTRADAS: dict[str, tuple[str, ...]] = {
     "TransformPosition": ("None",),
     "VectorParameter": (),
     "VertexColor": (),
+    "VertexNormalWS": (),
     "WorldPosition": (),
 }
 
@@ -106,6 +117,7 @@ class GrafoMaterial:
     aristas: tuple[Arista, ...]
     two_sided: bool = False
     shading_model: str = ""     # vacío = el default (DefaultLit)
+    blend_mode: str = ""        # vacío = el default (Opaque); "BLEND_MASKED" para recortar
 
     def nodo(self, id_: str) -> Nodo | None:
         for n in self.nodos:
@@ -238,6 +250,213 @@ def profundidad(grafo: GrafoMaterial) -> int:
 
     finales = [a.desde for a in grafo.aristas if a.es_salida_del_material]
     return max((alto(f, frozenset()) for f in finales), default=0)
+
+
+# ---------------------------------------------------------------------------------------------
+# Evaluar el IR en CPU — el oráculo que compara el shader con lo que quería decir
+# ---------------------------------------------------------------------------------------------
+#
+# `verificar` mira la FORMA del grafo; esto mira lo que CALCULA. Sirve para lo que un test de
+# topología no puede: comprobar que el material compilado desde el tab Weight da el mismo número que
+# la máscara de CPU en el mismo punto. Una entrada cruzada (Min por Max), grados donde iban radianes
+# o un `1 - x` de más pasan cualquier verificación estructural y los caza esto en un renglón.
+#
+# No pretende ser un compilador de HLSL: cubre los tipos que Jam emite. Un tipo que no conoce levanta
+# `ValueError` en vez de devolver un número inventado, que es lo que haría inútil al oráculo.
+
+_CANALES = {"R": 0, "G": 1, "B": 2, "A": 3}
+
+
+def color_de_hex(texto: str) -> tuple[float, float, float, float]:
+    """``#RRGGBB``/``#RRGGBBAA`` sRGB → RGBA lineal, que es en lo que piensan los materiales.
+
+    La UI escribe colores en hex porque es lo que un artista sabe leer; el IR los guarda en lineal
+    porque es lo que UE guarda. Saltear la conversión da un material notoriamente más claro que el
+    color elegido, y como «se ve parecido» el error sobrevive.
+    """
+    import re
+
+    limpio = str(texto or "").strip().lstrip("#")
+    if not re.fullmatch(r"[0-9A-Fa-f]{6}(?:[0-9A-Fa-f]{2})?", limpio):
+        raise ValueError("color debe usar formato #RRGGBB o #RRGGBBAA.")
+    canales = [int(limpio[i:i + 2], 16) / 255.0 for i in range(0, len(limpio), 2)]
+    if len(canales) == 3:
+        canales.append(1.0)
+    r, g, b, a = canales
+    lineal = [c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4 for c in (r, g, b)]
+    return (lineal[0], lineal[1], lineal[2], a)
+
+
+def _vec(x) -> list[float]:
+    if isinstance(x, (list, tuple)):
+        return [float(v) for v in x]
+    return [float(x)]
+
+
+def _porcomponente(fn, a: list[float], b: list[float]) -> list[float]:
+    """Aplica `fn` componente a componente, difundiendo el escalar como hace HLSL."""
+    n = max(len(a), len(b))
+    ancho_a = a if len(a) > 1 else a * n
+    ancho_b = b if len(b) > 1 else b * n
+    return [fn(ancho_a[i], ancho_b[i]) for i in range(n)]
+
+
+def _sat1(x: float) -> float:
+    return 0.0 if x < 0.0 else (1.0 if x > 1.0 else x)
+
+
+def _smoothstep1(lo: float, hi: float, x: float) -> float:
+    if lo == hi:
+        return 0.0 if x < lo else 1.0
+    t = _sat1((x - lo) / (hi - lo))
+    return t * t * (3.0 - 2.0 * t)
+
+
+def evaluar(grafo: GrafoMaterial, entorno: dict, *, ruido=None) -> dict[str, list[float]]:
+    """Evalúa el grafo en UN punto y devuelve el valor de cada nodo.
+
+    `entorno` da lo que en el shader viene del vértice o del mundo: ``posicion``, ``normal``,
+    ``color``, ``tiempo``. `ruido` es la función que reemplaza al nodo `Noise` —se pasa aparte porque
+    el ruido de la GPU y el de Jam **no son la misma función**: UE hashea distinto, así que el patrón
+    difiere aunque la escala, el rango y el contraste coincidan. Pasando el ruido de Jam se verifica
+    todo lo demás; el ruido en sí se compara por estadística, no punto a punto.
+    """
+    entorno = dict(entorno or {})
+    valores: dict[str, list[float]] = {}
+
+    entrantes: dict[str, dict[str, tuple[str, str]]] = {n.id: {} for n in grafo.nodos}
+    for arista in grafo.aristas:
+        if not arista.es_salida_del_material and arista.hasta in entrantes:
+            entrantes[arista.hasta][arista.entrada] = (arista.desde, arista.salida)
+
+    def leer(id_: str, entrada: str, defecto=None) -> list[float]:
+        cable = entrantes[id_].get(entrada)
+        if cable is None:
+            if defecto is None:
+                raise ValueError(f"«{id_}» no tiene nada conectado en «{entrada}»")
+            return _vec(defecto)
+        valor = calcular(cable[0])
+        canal = _CANALES.get(cable[1])
+        return [valor[canal]] if canal is not None and canal < len(valor) else valor
+
+    def calcular(id_: str) -> list[float]:
+        if id_ in valores:
+            return valores[id_]
+        nodo = grafo.nodo(id_)
+        if nodo is None:
+            raise ValueError(f"no existe el nodo «{id_}»")
+        valores[id_] = _calcular_nodo(nodo, leer, entorno, ruido)
+        return valores[id_]
+
+    for nodo in grafo.nodos:
+        calcular(nodo.id)
+    return valores
+
+
+def _calcular_nodo(nodo: Nodo, leer, entorno: dict, ruido) -> list[float]:
+    import math
+
+    t, p, id_ = nodo.tipo, nodo.props, nodo.id
+
+    if t == "Constant":
+        return [float(p.get("r", 0.0))]
+    if t == "Constant2Vector":
+        return [float(p.get("r", 0.0)), float(p.get("g", 0.0))]
+    if t in ("Constant3Vector", "Constant4Vector"):
+        # Medido: el valor NO va en r/g/b sueltas como en `Constant2Vector`, va entero en `constant`.
+        # Escribirlo en `r` lanza, y el nodo se queda en negro con el grafo entero bien cableado.
+        return _vec(p.get("constant", (0.0, 0.0, 0.0, 1.0)))[:3 if t == "Constant3Vector" else 4]
+    if t == "ScalarParameter":
+        return [float(p.get("default_value", 0.0))]
+    if t == "VectorParameter":
+        return _vec(p.get("default_value", (0.0, 0.0, 0.0, 1.0)))
+    if t == "WorldPosition":
+        return _vec(entorno.get("posicion", (0.0, 0.0, 0.0)))
+    if t in ("VertexNormalWS", "PixelNormalWS"):
+        return _vec(entorno.get("normal", (0.0, 0.0, 1.0)))
+    if t == "VertexColor":
+        return _vec(entorno.get("color", (1.0, 1.0, 1.0, 1.0)))
+    if t == "Time":
+        return [float(entorno.get("tiempo", 0.0))]
+
+    if t == "ComponentMask":
+        origen = leer(id_, "None")
+        return [origen[i] for i, canal in enumerate("rgba")
+                if p.get(canal, False) and i < len(origen)]
+
+    if t == "AppendVector":
+        return leer(id_, "A") + leer(id_, "B")
+
+    unarias = {
+        "Abs": abs,
+        "Arccosine": lambda v: math.acos(max(-1.0, min(1.0, v))),
+        "Ceil": math.ceil,
+        "Floor": math.floor,
+        "OneMinus": lambda v: 1.0 - v,
+        "Saturate": _sat1,
+        "Sine": math.sin,
+    }
+    if t in unarias:
+        return [float(unarias[t](v)) for v in leer(id_, "None")]
+
+    binarias = {
+        "Add": lambda a, b: a + b,
+        "Subtract": lambda a, b: a - b,
+        "Multiply": lambda a, b: a * b,
+        "Divide": lambda a, b: a / b if b else 0.0,
+        "Min": min,
+        "Max": max,
+        # `step(Y, X)` de HLSL: 1 cuando X ≥ Y. El orden de las entradas es al revés de lo que
+        # sugiere el nombre, y es exactamente el tipo de error que este evaluador existe para cazar.
+        "Step": lambda y, x: 1.0 if x >= y else 0.0,
+    }
+    if t in binarias:
+        if t == "Step":
+            return _porcomponente(binarias[t], leer(id_, "Y"), leer(id_, "X"))
+        return _porcomponente(binarias[t], leer(id_, "A"), leer(id_, "B"))
+
+    if t == "Power":
+        base, exponente = leer(id_, "Base"), leer(id_, "Exp")
+        return _porcomponente(lambda b, e: max(0.0, b) ** e, base, exponente)
+    if t == "Clamp":
+        valor, lo, hi = leer(id_, "None"), leer(id_, "Min", 0.0), leer(id_, "Max", 1.0)
+        return [max(lo[0], min(hi[0], v)) for v in valor]
+    if t == "SmoothStep":
+        lo, hi, valor = leer(id_, "Min", 0.0), leer(id_, "Max", 1.0), leer(id_, "Value")
+        return [_smoothstep1(lo[0], hi[0], v) for v in valor]
+    if t == "LinearInterpolate":
+        a, b, alfa = leer(id_, "A"), leer(id_, "B"), leer(id_, "Alpha")
+        diferencia = _porcomponente(lambda x, y: y - x, a, b)
+        base = a if len(a) > 1 else a * len(diferencia)
+        peso = alfa if len(alfa) > 1 else alfa * len(diferencia)
+        return [base[i] + diferencia[i] * peso[i] for i in range(len(diferencia))]
+    if t == "Length":
+        v = leer(id_, "None")
+        return [math.sqrt(sum(c * c for c in v))]
+    if t == "Distance":
+        a, b = leer(id_, "A"), leer(id_, "B")
+        d = _porcomponente(lambda x, y: x - y, a, b)
+        return [math.sqrt(sum(c * c for c in d))]
+    if t == "DotProduct":
+        a, b = leer(id_, "A"), leer(id_, "B")
+        return [sum(x * y for x, y in zip(a, b))]
+    if t == "Normalize":
+        v = leer(id_, "VectorInput")
+        largo = math.sqrt(sum(c * c for c in v)) or 1.0
+        return [c / largo for c in v]
+
+    if t == "Noise":
+        if ruido is None:
+            raise ValueError("hay un nodo Noise y no se pasó `ruido=`: el resultado sería inventado")
+        posicion = leer(id_, "World Position")
+        while len(posicion) < 3:
+            posicion.append(0.0)
+        lo = float(p.get("output_min", -1.0))
+        hi = float(p.get("output_max", 1.0))
+        crudo = float(ruido(posicion[0], posicion[1], posicion[2]))   # se espera en 0..1
+        return [lo + (hi - lo) * crudo]
+
+    raise ValueError(f"«{id_}»: el evaluador no sabe calcular un «{t}»")
 
 
 # ---------------------------------------------------------------------------------------------

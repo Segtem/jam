@@ -162,6 +162,19 @@ def radial(centro, radio, cantidad, anillos, seed, jitter=0.0):
 
 # ---------- ruido de valor 2D (para máscara de ruido y variación) ----------
 
+def grados_pendiente(normal) -> float:
+    """Grados desde la horizontal: 0 = piso plano (normal vertical), 90 = pared.
+
+    El valor absoluto no es cosmético: un techo tiene la normal apuntando para abajo y es tan
+    «plano» como el piso. Sin él, un alero mediría 180° y ninguna máscara de ángulo lo tomaría.
+
+    Vive acá y no en el adaptador porque la usan dos: el raycast que arma los `Sample`, y el
+    compilador a material, que tiene que sacar el MISMO número de la normal del vértice.
+    """
+    nz = max(-1.0, min(1.0, float(normal.z if hasattr(normal, "z") else normal[2])))
+    return 90.0 - math.degrees(math.asin(abs(nz)))
+
+
 def _hash2(ix, iy, seed):
     h = (ix * 374761393 + iy * 668265263 + seed * 2246822519) & 0xFFFFFFFF
     h = (h ^ (h >> 13)) * 1274126177 & 0xFFFFFFFF

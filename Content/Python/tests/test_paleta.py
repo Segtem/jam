@@ -18,7 +18,7 @@ _unreal_fake = sys.modules.setdefault("unreal", types.ModuleType("unreal"))
 if not hasattr(_unreal_fake, "TopLevelAssetPath"):
     _unreal_fake.TopLevelAssetPath = lambda package, name: (package, name)
 
-from jam import api, tools  # noqa: E402
+from jam import api, flow, tools  # noqa: E402
 
 
 RAIZ = Path(__file__).resolve().parents[3]
@@ -33,6 +33,16 @@ class IconosTests(unittest.TestCase):
     def test_every_verb_has_an_icon(self):
         faltan = sorted(v for v in tools.REGISTRO if v not in mapa())
         self.assertEqual(faltan, [], f"sin icono caen al código corto: {faltan}")
+
+    def test_every_flow_op_has_an_icon_too(self):
+        """El canvas dibuja las ops de flow con el mismo ribbon que los verbos.
+
+        Estaba cubierto sólo `tools.REGISTRO`, así que una op nueva del flow entraba sin icono y sin
+        que nada se quejara — pasó con `weight_material`. Son dos registros distintos y hacen falta
+        las dos comprobaciones.
+        """
+        faltan = sorted(k for k in flow.OPS_META if k not in mapa())
+        self.assertEqual(faltan, [], f"ops de flow sin icono: {faltan}")
 
     def test_every_mapping_points_at_a_file_that_exists(self):
         rotos = sorted(f"{v} → {i}.svg" for v, i in mapa().items()

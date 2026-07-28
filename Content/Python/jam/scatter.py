@@ -10,7 +10,6 @@ Es el «Surface Scatter» de Dash, con las máscaras componibles como diferencia
 
 from __future__ import annotations
 
-import math
 import random
 
 import unreal
@@ -20,9 +19,13 @@ from .geometry import Vec3
 
 
 def _grados_pendiente(normal: Vec3) -> float:
-    """Grados desde la horizontal: 0 = piso plano (normal vertical), 90 = pared."""
-    nz = max(-1.0, min(1.0, normal.z))
-    return 90.0 - math.degrees(math.asin(abs(nz)))
+    """Grados desde la horizontal: 0 = piso plano (normal vertical), 90 = pared.
+
+    La cuenta está en `scatter_core` (pura) porque el compilador a material tiene que sacar el mismo
+    número de la normal del vértice: si las dos definiciones se separan, la máscara del scatter y la
+    del shader dejan de coincidir sin que nada falle.
+    """
+    return sc.grados_pendiente(normal)
 
 
 def _muestrear(centro, semi, puntos, *, suelo_z, seed_base, ignorar):
@@ -255,4 +258,7 @@ def _op_instance(entradas, p):
 
 def ops_flow() -> dict:
     """Las operaciones del flow que necesitan el motor, para pasarle a `flow.Flow.evaluar(ops=…)`."""
-    return {"source_surface": (_op_source_surface, 0), "instance": (_op_instance, 1)}
+    from . import materials
+
+    return {"source_surface": (_op_source_surface, 0), "instance": (_op_instance, 1),
+            "weight_material": (materials.op_weight_material, 1)}

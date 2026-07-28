@@ -129,6 +129,13 @@ OPS_META: dict = {
     "instance":     {"cat": "Output", "params": {"scale_min": 1.0, "scale_max": 1.0, "anchor": "base",
                                                  "align": False, "sink": 0.0},
                      "doc": "instancia el asset activo en cada punto (Copy to Points)"},
+    # El otro terminal: en vez de instanciar geometría en los puntos que sobrevivieron, HORNEA la
+    # cadena de Weight que llega hasta acá como un material. La misma máscara que dispersa, pinta.
+    "weight_material": {"cat": "Output",
+                        "params": {"name": "M_JamMascara", "folder": "/Game/Jam/Materials",
+                                   "color_a": "#4D4A45", "color_b": "#AE9466", "rugosidad": 0.9},
+                        "doc": "compila la cadena de Weight que entra acá a un MATERIAL "
+                               "(la máscara que dispersa, pintada); salida A"},
 }
 
 
@@ -148,7 +155,8 @@ def spec_json() -> str:
 
     # nombre de la SALIDA de cada op (la «variable» que sale por el pin de salida, estilo GH):
     # P = stream de puntos · N = número · T = texto · A = actores instanciados.
-    out_names = {"number": "N", "math": "N", "text": "T", "instance": "A"}
+    out_names = {"number": "N", "math": "N", "text": "T", "instance": "A",
+                 "weight_material": "A"}
 
     cats = ["Params", "Maths", "Source", "Vector", "Mask", "Weight", "Sets", "Transform", "Combine",
             "Output", "Display"]
@@ -906,6 +914,27 @@ class Flow:
                 break
         return tabla
 
+    def params_efectivos(self, nid: str, variables: dict, escalar_de: dict) -> dict:
+        """Los params de `nid` como los ve la operación: primero se resuelven las EXPRESIONES «=»
+        contra la tabla de variables, después pisa lo que llegue por CABLE a un pin de parámetro (un
+        cable manda sobre el texto del campo, como en Grasshopper).
+
+        Lo usan tanto `evaluar` como el compilador a material: si la regla viviera en dos lados, el
+        material podría salir con otros números que la evaluación del mismo grafo.
+        """
+        nodo = self.nodos[nid]
+        params = _resolver_params(nodo["params"], variables,
+                                  OPS_META.get(nodo["kind"], {}).get("params"))
+        for pin, origen in self._param_wires(nid).items():
+            if escalar_de.get(origen) is not None:
+                params[pin] = escalar_de[origen]
+        return params
+
+    def escalares_de_valor(self, variables: dict) -> dict:
+        """El número que cada nodo `number`/`math` lleva por su cable a un pin de parámetro."""
+        return {nid: variables.get(str(n["params"].get("name") or nid))
+                for nid, n in self.nodos.items() if n["kind"] in VALOR_KINDS}
+
     def evaluar(self, ops: dict | None = None) -> dict[str, list]:
         """Corre el grafo; devuelve {id: stream}. Primero arma la tabla de variables (number/math) y con
         ella resuelve las EXPRESIONES de los params (los que empiezan con «=»). `ops` suma operaciones
@@ -917,8 +946,7 @@ class Flow:
         self.resultados = {}
         variables = self._valores()
         # escalar de cada nodo de valor (lo que un cable suyo lleva a un pin de parámetro).
-        escalar_de = {nid: variables.get(str(n["params"].get("name") or nid))
-                      for nid, n in self.nodos.items() if n["kind"] in VALOR_KINDS}
+        escalar_de = self.escalares_de_valor(variables)
         salida: dict[str, list] = {}
         for nid in self.topo():
             nodo = self.nodos[nid]
@@ -936,13 +964,11 @@ class Flow:
                 raise FlowValidationError({nid: [f"operación «{kind}» sin implementación disponible"]})
             fn, _n = fn_ent
             entradas = [salida.get(e, []) for e in self._entradas(nid)]
-            # primero resolver expresiones «=», después pisar con lo que llegue por CABLE a cada pin de
-            # parámetro (un cable manda sobre el texto del campo, como en Grasshopper).
-            params = _resolver_params(nodo["params"], variables,
-                                      OPS_META.get(kind, {}).get("params"))
-            for pin, origen in self._param_wires(nid).items():
-                if escalar_de.get(origen) is not None:
-                    params[pin] = escalar_de[origen]
+            params = self.params_efectivos(nid, variables, escalar_de)
+            # El contexto del grafo, para las ops que COMPILAN la cadena en vez de consumir el stream
+            # (el material de máscara lee la cadena de Weight que llega a su entrada). Las demás lo
+            # ignoran, como ignoran cualquier clave que no sea suya.
+            params["_flow"], params["_nid"] = self, nid
             salida[nid] = fn(entradas, params)
             resultado = {}
             if "_stats" in params:
