@@ -699,6 +699,7 @@ FLinearColor SJamGraphEditor::CategoryColor(const FString& Cat)
 	if (Cat == TEXT("Transform")){ return FLinearColor(0.50f, 0.40f, 0.24f, 1.0f); }
 	if (Cat == TEXT("Combine"))  { return FLinearColor(0.26f, 0.46f, 0.70f, 1.0f); }
 	if (Cat == TEXT("Output"))   { return FLinearColor(0.58f, 0.30f, 0.62f, 1.0f); }
+	if (Cat == TEXT("Shader"))   { return FLinearColor(0.66f, 0.42f, 0.20f, 1.0f); }
 	if (Cat == TEXT("Display"))  { return FLinearColor(0.62f, 0.60f, 0.24f, 1.0f); }
 	return FLinearColor(0.35f, 0.35f, 0.38f, 1.0f);
 }

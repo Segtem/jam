@@ -198,6 +198,12 @@ ICONOS = {
     "jam-mesh-color": svg(malla("M5 7h14v10H5z"),
                           f'<rect x="5" y="7" width="4.6" height="10" fill="{F}" stroke="none"/>'
                           f'<rect x="9.6" y="7" width="4.6" height="10" fill="{SERIE}" stroke="none"/>'),
+    # Viento sobre un pivote: la rama doblada, la recta gris de dónde estaba, y el punto fijo
+    # abajo. Es exactamente lo que hace el material — girar SOBRE ese punto, no trasladar.
+    "jam-material-wind": svg(curva("M12 20V6", "#DDDDE2", 1.4),
+                             curva("M12 20c0-6 3-8 7-10", S, 1.9),
+                             punto(12, 20, TINTA, 2.0),
+                             curva("M3 9c2-1.5 4-1.5 6 0", TINTA, 1.2)),
     "jam-mesh-material": svg(malla("M5 7h14v10H5z"),
                              f'<circle cx="12" cy="12" r="3.4" fill="{SERIE}" stroke="none"/>'),
     "jam-mesh-uv": svg(malla("M5 6h14v12H5z", M, False),

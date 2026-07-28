@@ -59,6 +59,7 @@ GRUPOS: dict[str, list[tuple[str, list[str]]]] = {
     "Maths": [("Operar", ["math"])],
     "Source": [("Fuente", ["source_surface"])],
     "Output": [("Salida", ["instance"])],
+    "Shader": [("Materiales", ["material_wind"])],
     "Debug": [("Ver", ["debug"])],
 }
 

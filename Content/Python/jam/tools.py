@@ -818,6 +818,25 @@ def t_mesh_color(mesh_input, *, color="#808080") -> str:
     return _mesh_output("mesh_color", mesh.vertex_color(mesh_input, color=str(color)), "COLOR M")
 
 
+def t_material_wind(_input=None, *, name="M_JamArbolViento", folder="/Game/Jam/Materials",
+                    fuerza=0.25, velocidad=1.2, concentracion=2.0,
+                    eje_x=1.0, eje_y=0.3, eje_z=0.0) -> str:
+    """Fabrica el material de viento que consume el pivote estampado por `mesh_pipe(pivot_uvs=True)`."""
+    from . import materials, shader
+    grafo = shader.viento_de_arbol(
+        nombre=str(name), fuerza=float(fuerza), velocidad=float(velocidad),
+        concentracion=float(concentracion),
+        eje=(float(eje_x), float(eje_y), float(eje_z)))
+    problemas = shader.verificar(grafo)
+    if problemas:
+        raise RuntimeError("el grafo del material no es válido: " + " · ".join(problemas))
+    resultado = materials.emitir(grafo, str(folder))
+    if "error" in resultado:
+        raise RuntimeError(resultado["error"])
+    _RUNTIME_DATA_OUTPUTS["material_wind"] = f"{folder}/{name}"
+    return f"WIND MATERIAL A \u2713 \u2014 {resultado['info']}"
+
+
 def t_mesh_vertex_gradient(mesh_input, *, eje="z", desde=0.0, hasta=1.0,
                            power=1.0, canal="todos") -> str:
     from . import mesh
@@ -1250,6 +1269,11 @@ REGISTRO = {
     "mesh_color": {"fn": t_mesh_color, "cat": "Mesh", "graph_only": True,
                    "params": {"color": "#808080"},
                    "doc": "asigna un Vertex Color #RRGGBB a una malla M sin modificar la entrada"},
+    "material_wind": {"fn": t_material_wind, "cat": "Shader", "graph_only": True,
+                      "params": {"name": "M_JamArbolViento", "folder": "/Game/Jam/Materials",
+                                 "fuerza": 0.25, "velocidad": 1.2, "concentracion": 2.0,
+                                 "eje_x": 1.0, "eje_y": 0.3, "eje_z": 0.0},
+                      "doc": "material de viento que gira cada rama sobre el pivote estampado en UV1/UV2; salida A"},
     "mesh_vertex_gradient": {"fn": t_mesh_vertex_gradient, "cat": "Mesh", "graph_only": True,
                              "params": {"eje": "z", "desde": 0.0, "hasta": 1.0,
                                         "power": 1.0, "canal": "todos"},
@@ -1383,6 +1407,7 @@ GRAPH_IN_NAMES = {"points_to_frames": "P", "debug": "*", "curve_child": "S", "cu
                   "mesh_vertex_gradient": "M", "mesh_merge": "M", "mesh_normals": "M",
                   "mesh_compare": "M", "mesh_to_static": "M"}
 GRAPH_OUT_NAMES = {"points_to_frames": "F", "debug": "M", "asset": "A", "pick": "A", "create_spline": "S",
+                   "material_wind": "A",
                    "curve_bezier": "S", "curve_child": "S", "curve_noise": "S", "curve_frames": "F",
                    "distribute_frames": "F", "transform_frames": "F",
                    "branch_from_frames": "S", "curve_branches": "S",

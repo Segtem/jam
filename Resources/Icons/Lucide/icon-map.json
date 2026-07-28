@@ -27,6 +27,7 @@
   "mask_height": "jam-mask-height",
   "mask_noise": "jam-mask-noise",
   "mask_slope": "jam-mask-slope",
+  "material_wind": "jam-material-wind",
   "math": "jam-math",
   "merge": "jam-merge-pts",
   "mesh_along_curve": "jam-along-curve",
