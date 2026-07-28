@@ -215,6 +215,200 @@ def cylinder(*, radius: float = 50.0, height: float = 200.0,
     return {"mesh": result, "info": _info(result)}
 
 
+def _pasos(*valores, minimo: int = 0) -> bool:
+    return all(isinstance(v, int) and v >= minimo for v in valores)
+
+
+def box(*, size_x: float = 100.0, size_y: float = 100.0, size_z: float = 100.0,
+        steps_x: int = 0, steps_y: int = 0, steps_z: int = 0) -> dict:
+    """Caja con el pivote en la BASE: apoya sola, que es lo que un kit necesita."""
+    size_x, size_y, size_z = float(size_x), float(size_y), float(size_z)
+    steps_x, steps_y, steps_z = int(steps_x), int(steps_y), int(steps_z)
+    if not all(math.isfinite(v) and v > 0.0 for v in (size_x, size_y, size_z)):
+        return {"error": "size_x/y/z deben ser mayores que cero."}
+    if not _pasos(steps_x, steps_y, steps_z):
+        return {"error": "steps_x/y/z no pueden ser negativos."}
+    result = _new_mesh()
+    unreal.GeometryScript_Primitives.append_box(
+        result, _primitive_options(), _identity(),
+        dimension_x=size_x, dimension_y=size_y, dimension_z=size_z,
+        steps_x=steps_x, steps_y=steps_y, steps_z=steps_z,
+        origin=unreal.GeometryScriptPrimitiveOriginMode.BASE)
+    return {"mesh": result, "info": f"{_info(result)} · {size_x:g}×{size_y:g}×{size_z:g}cm"}
+
+
+def capsule(*, radius: float = 30.0, length: float = 150.0,
+            hemisphere_steps: int = 5, sides: int = 12) -> dict:
+    """Cápsula (cilindro con casquetes). La forma de colisión y blockout por excelencia."""
+    radius, length = float(radius), float(length)
+    hemisphere_steps, sides = int(hemisphere_steps), int(sides)
+    if not all(math.isfinite(v) for v in (radius, length)) or radius <= 0.0 or length < 0.0:
+        return {"error": "radius debe ser mayor que cero y length no puede ser negativo."}
+    if hemisphere_steps < 1 or sides < 3:
+        return {"error": "hemisphere_steps al menos 1 y sides al menos 3."}
+    result = _new_mesh()
+    unreal.GeometryScript_Primitives.append_capsule(
+        result, _primitive_options(), _identity(), radius=radius, line_length=length,
+        hemisphere_steps=hemisphere_steps, circle_steps=sides,
+        origin=unreal.GeometryScriptPrimitiveOriginMode.BASE)
+    return {"mesh": result, "info": f"{_info(result)} · r{radius:g} + {length:g}cm"}
+
+
+def torus(*, major_radius: float = 100.0, minor_radius: float = 25.0,
+          major_steps: int = 24, minor_steps: int = 12) -> dict:
+    major_radius, minor_radius = float(major_radius), float(minor_radius)
+    major_steps, minor_steps = int(major_steps), int(minor_steps)
+    if not all(math.isfinite(v) and v > 0.0 for v in (major_radius, minor_radius)):
+        return {"error": "major_radius y minor_radius deben ser mayores que cero."}
+    if minor_radius >= major_radius:
+        return {"error": "minor_radius tiene que ser menor que major_radius o el toro se cierra."}
+    if major_steps < 3 or minor_steps < 3:
+        return {"error": "major_steps y minor_steps deben ser al menos 3."}
+    result = _new_mesh()
+    unreal.GeometryScript_Primitives.append_torus(
+        result, _primitive_options(), _identity(), unreal.GeometryScriptRevolveOptions(),
+        major_radius=major_radius, minor_radius=minor_radius,
+        major_steps=major_steps, minor_steps=minor_steps,
+        origin=unreal.GeometryScriptPrimitiveOriginMode.CENTER)
+    return {"mesh": result, "info": f"{_info(result)} · R{major_radius:g}/r{minor_radius:g}"}
+
+
+def disc(*, radius: float = 100.0, sides: int = 24, start_angle: float = 0.0,
+         end_angle: float = 360.0, hole_radius: float = 0.0) -> dict:
+    """Disco plano. Con `hole_radius` es un anillo y con los ángulos, una porción."""
+    radius, hole_radius = float(radius), float(hole_radius)
+    start_angle, end_angle = float(start_angle), float(end_angle)
+    sides = int(sides)
+    if not math.isfinite(radius) or radius <= 0.0:
+        return {"error": "radius debe ser mayor que cero."}
+    if not math.isfinite(hole_radius) or hole_radius < 0.0 or hole_radius >= radius:
+        return {"error": "hole_radius debe estar entre 0 y radius."}
+    if not all(math.isfinite(v) for v in (start_angle, end_angle)) or end_angle <= start_angle:
+        return {"error": "end_angle tiene que ser mayor que start_angle."}
+    if sides < 3:
+        return {"error": "sides debe ser al menos 3."}
+    result = _new_mesh()
+    unreal.GeometryScript_Primitives.append_disc(
+        result, _primitive_options(), _identity(), radius=radius, angle_steps=sides,
+        start_angle=start_angle, end_angle=end_angle, hole_radius=hole_radius)
+    forma = "anillo" if hole_radius > 0.0 else "disco"
+    return {"mesh": result, "info": f"{_info(result)} · {forma} r{radius:g}"}
+
+
+def round_rect(*, size_x: float = 200.0, size_y: float = 200.0, corner_radius: float = 20.0,
+               steps_round: int = 6) -> dict:
+    size_x, size_y, corner_radius = float(size_x), float(size_y), float(corner_radius)
+    steps_round = int(steps_round)
+    if not all(math.isfinite(v) and v > 0.0 for v in (size_x, size_y)):
+        return {"error": "size_x y size_y deben ser mayores que cero."}
+    if not math.isfinite(corner_radius) or corner_radius <= 0.0 \
+            or corner_radius > min(size_x, size_y) / 2.0:
+        return {"error": "corner_radius debe caber en la mitad del lado más corto."}
+    if steps_round < 1:
+        return {"error": "steps_round debe ser al menos 1."}
+    result = _new_mesh()
+    unreal.GeometryScript_Primitives.append_round_rectangle_xy(
+        result, _primitive_options(), _identity(),
+        dimension_x=size_x, dimension_y=size_y, corner_radius=corner_radius,
+        steps_round=steps_round)
+    return {"mesh": result, "info": f"{_info(result)} · {size_x:g}×{size_y:g} r{corner_radius:g}"}
+
+
+def stairs(*, step_width: float = 150.0, step_height: float = 18.0, step_depth: float = 28.0,
+           steps: int = 10, floating: bool = False) -> dict:
+    """Escalera recta. Geometry Script la regala y es de lo que más se usa en un blockout."""
+    step_width, step_height, step_depth = float(step_width), float(step_height), float(step_depth)
+    steps = int(steps)
+    if not all(math.isfinite(v) and v > 0.0 for v in (step_width, step_height, step_depth)):
+        return {"error": "step_width/height/depth deben ser mayores que cero."}
+    if steps < 1 or steps > 256:
+        return {"error": "steps debe estar entre 1 y 256."}
+    result = _new_mesh()
+    unreal.GeometryScript_Primitives.append_linear_stairs(
+        result, _primitive_options(), _identity(), step_width=step_width,
+        step_height=step_height, step_depth=step_depth, num_steps=steps,
+        floating=bool(floating))
+    return {"mesh": result,
+            "info": (f"{_info(result)} · {steps} escalones · sube {steps * step_height:g}cm "
+                     f"en {steps * step_depth:g}cm")}
+
+
+def stairs_curved(*, step_width: float = 150.0, step_height: float = 18.0,
+                  inner_radius: float = 200.0, curve_angle: float = 90.0,
+                  steps: int = 12, floating: bool = False) -> dict:
+    step_width, step_height = float(step_width), float(step_height)
+    inner_radius, curve_angle = float(inner_radius), float(curve_angle)
+    steps = int(steps)
+    if not all(math.isfinite(v) and v > 0.0 for v in (step_width, step_height, inner_radius)):
+        return {"error": "step_width/height e inner_radius deben ser mayores que cero."}
+    if not math.isfinite(curve_angle) or abs(curve_angle) < 1.0 or abs(curve_angle) > 360.0:
+        return {"error": "curve_angle debe estar entre 1 y 360 grados (con signo para el sentido)."}
+    if steps < 1 or steps > 256:
+        return {"error": "steps debe estar entre 1 y 256."}
+    result = _new_mesh()
+    unreal.GeometryScript_Primitives.append_curved_stairs(
+        result, _primitive_options(), _identity(), step_width=step_width,
+        step_height=step_height, inner_radius=inner_radius, curve_angle=curve_angle,
+        num_steps=steps, floating=bool(floating))
+    return {"mesh": result,
+            "info": (f"{_info(result)} · {steps} escalones · {curve_angle:g}° · "
+                     f"sube {steps * step_height:g}cm")}
+
+
+def sphere_box(*, radius: float = 80.0, steps: int = 6) -> dict:
+    """Esfera de topología cúbica: cuadrángulos parejos en vez de los polos de la lat/long."""
+    radius = float(radius)
+    steps = int(steps)
+    if not math.isfinite(radius) or radius <= 0.0:
+        return {"error": "radius debe ser mayor que cero."}
+    if steps < 1 or steps > 64:
+        return {"error": "steps debe estar entre 1 y 64."}
+    result = _new_mesh()
+    unreal.GeometryScript_Primitives.append_sphere_box(
+        result, _primitive_options(), _identity(), radius=radius,
+        steps_x=steps, steps_y=steps, steps_z=steps,
+        origin=unreal.GeometryScriptPrimitiveOriginMode.CENTER)
+    return {"mesh": result, "info": f"{_info(result)} · r{radius:g} · topología de caja"}
+
+
+def revolve(source, *, steps: int = 24, capped: bool = True, degrees: float = 360.0,
+            samples: int = 32) -> dict:
+    """Torno: revoluciona el perfil de una curva ``S`` alrededor del eje Z.
+
+    El perfil se lee en el plano XZ —x = distancia al eje, z = altura—, que es como se dibuja un
+    perfil de torno de toda la vida. Sirve para columnas, balaustres, vasijas y molduras: la pieza
+    arquitectónica que hoy había que aproximar con un pipe.
+    """
+    from . import curve as curva_mod
+
+    steps, samples = int(steps), int(samples)
+    degrees = float(degrees)
+    if steps < 3:
+        return {"error": "steps debe ser al menos 3."}
+    if not math.isfinite(degrees) or abs(degrees) < 1.0 or abs(degrees) > 360.0:
+        return {"error": "degrees debe estar entre 1 y 360."}
+
+    paths = curva_mod.paths_of(source, samples=samples)
+    if not paths:
+        return {"error": "mesh_revolve necesita una curva S válida."}
+    if len(paths) > 1:
+        return {"error": "mesh_revolve toma UNA curva; usá un solo perfil."}
+
+    perfil = [(abs(float(p[0])), float(p[2])) for p in paths[0].points]
+    if all(x <= 1e-6 for x, _z in perfil):
+        return {"error": "el perfil está sobre el eje: separalo en X para que haya algo que girar."}
+
+    opciones = unreal.GeometryScriptRevolveOptions()
+    opciones.set_editor_property("revolve_degrees", degrees)
+    result = _new_mesh()
+    unreal.GeometryScript_Primitives.append_revolve_path(
+        result, _primitive_options(), _identity(),
+        [unreal.Vector2D(x, z) for x, z in perfil], opciones,
+        steps=steps, capped=bool(capped))
+    return {"mesh": result,
+            "info": f"{_info(result)} · perfil de {len(perfil)} puntos · {degrees:g}°"}
+
+
 def cone(*, base_radius: float = 60.0, top_radius: float = 0.0, height: float = 200.0,
          sides: int = 16, height_steps: int = 4, capped: bool = True) -> dict:
     base_radius, top_radius, height = float(base_radius), float(top_radius), float(height)

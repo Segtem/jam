@@ -860,6 +860,75 @@ def t_points_to_frames(stream_input, *, orientacion="normal", escala=1.0,
     return f"POINTS TO F ✓ — {result['info']}"
 
 
+def t_mesh_box(_input=None, *, size_x=100.0, size_y=100.0, size_z=100.0,
+               steps_x=0, steps_y=0, steps_z=0) -> str:
+    from . import mesh
+    return _mesh_output("mesh_box", mesh.box(
+        size_x=float(size_x), size_y=float(size_y), size_z=float(size_z),
+        steps_x=int(steps_x), steps_y=int(steps_y), steps_z=int(steps_z)), "BOX M")
+
+
+def t_mesh_capsule(_input=None, *, radius=30.0, length=150.0, hemisphere_steps=5, sides=12) -> str:
+    from . import mesh
+    return _mesh_output("mesh_capsule", mesh.capsule(
+        radius=float(radius), length=float(length),
+        hemisphere_steps=int(hemisphere_steps), sides=int(sides)), "CAPSULE M")
+
+
+def t_mesh_torus(_input=None, *, major_radius=100.0, minor_radius=25.0,
+                 major_steps=24, minor_steps=12) -> str:
+    from . import mesh
+    return _mesh_output("mesh_torus", mesh.torus(
+        major_radius=float(major_radius), minor_radius=float(minor_radius),
+        major_steps=int(major_steps), minor_steps=int(minor_steps)), "TORUS M")
+
+
+def t_mesh_disc(_input=None, *, radius=100.0, sides=24, start_angle=0.0, end_angle=360.0,
+                hole_radius=0.0) -> str:
+    from . import mesh
+    return _mesh_output("mesh_disc", mesh.disc(
+        radius=float(radius), sides=int(sides), start_angle=float(start_angle),
+        end_angle=float(end_angle), hole_radius=float(hole_radius)), "DISC M")
+
+
+def t_mesh_round_rect(_input=None, *, size_x=200.0, size_y=200.0, corner_radius=20.0, steps_round=6) -> str:
+    from . import mesh
+    return _mesh_output("mesh_round_rect", mesh.round_rect(
+        size_x=float(size_x), size_y=float(size_y),
+        corner_radius=float(corner_radius), steps_round=int(steps_round)), "ROUND RECT M")
+
+
+def t_mesh_stairs(_input=None, *, step_width=150.0, step_height=18.0, step_depth=28.0,
+                  steps=10, floating=False) -> str:
+    from . import mesh
+    return _mesh_output("mesh_stairs", mesh.stairs(
+        step_width=float(step_width), step_height=float(step_height),
+        step_depth=float(step_depth), steps=int(steps),
+        floating=bool(floating)), "STAIRS M")
+
+
+def t_mesh_stairs_curved(_input=None, *, step_width=150.0, step_height=18.0, inner_radius=200.0,
+                         curve_angle=90.0, steps=12, floating=False) -> str:
+    from . import mesh
+    return _mesh_output("mesh_stairs_curved", mesh.stairs_curved(
+        step_width=float(step_width), step_height=float(step_height),
+        inner_radius=float(inner_radius), curve_angle=float(curve_angle),
+        steps=int(steps), floating=bool(floating)), "CURVED STAIRS M")
+
+
+def t_mesh_sphere_box(_input=None, *, radius=80.0, steps=6) -> str:
+    from . import mesh
+    return _mesh_output("mesh_sphere_box", mesh.sphere_box(
+        radius=float(radius), steps=int(steps)), "SPHERE BOX M")
+
+
+def t_mesh_revolve(curve_input, *, steps=24, capped=True, degrees=360.0, samples=32) -> str:
+    from . import mesh
+    return _mesh_output("mesh_revolve", mesh.revolve(
+        curve_input, steps=int(steps), capped=bool(capped),
+        degrees=float(degrees), samples=int(samples)), "REVOLVE M")
+
+
 def t_mesh_bark(mesh_input, *, amplitud=2.0, escala=0.06, alargue=0.25,
                 octavas=3, surcos=0.6, seed=7) -> str:
     """Relieve de corteza sobre M: desplaza cada vértice por su normal con ruido estirado."""
@@ -1172,6 +1241,41 @@ REGISTRO = {
                                     "escala_desde_peso": True, "giro_al_azar": True, "seed": 7},
                          "opciones": {"orientacion": ["normal", "vertical"]},
                          "doc": "PUENTE P → F: convierte el stream de puntos de Flow en frames. El peso de la máscara pasa a ser la escala de cada pieza"},
+    "mesh_box": {"fn": t_mesh_box, "cat": "Mesh", "graph_only": True,
+                 "params": {"size_x": 100.0, "size_y": 100.0, "size_z": 100.0,
+                            "steps_x": 0, "steps_y": 0, "steps_z": 0},
+                 "doc": "caja con el pivote en la BASE (apoya sola, como pide un kit)"},
+    "mesh_capsule": {"fn": t_mesh_capsule, "cat": "Mesh", "graph_only": True,
+                     "params": {"radius": 30.0, "length": 150.0,
+                                "hemisphere_steps": 5, "sides": 12},
+                     "doc": "cápsula: la forma de blockout y colisión por excelencia"},
+    "mesh_torus": {"fn": t_mesh_torus, "cat": "Mesh", "graph_only": True,
+                   "params": {"major_radius": 100.0, "minor_radius": 25.0,
+                              "major_steps": 24, "minor_steps": 12},
+                   "doc": "toro (dona); minor_radius tiene que ser menor que major_radius"},
+    "mesh_disc": {"fn": t_mesh_disc, "cat": "Mesh", "graph_only": True,
+                  "params": {"radius": 100.0, "sides": 24, "start_angle": 0.0,
+                             "end_angle": 360.0, "hole_radius": 0.0},
+                  "doc": "disco plano; con hole_radius es un anillo y con los ángulos, una porción"},
+    "mesh_round_rect": {"fn": t_mesh_round_rect, "cat": "Mesh", "graph_only": True,
+                        "params": {"size_x": 200.0, "size_y": 200.0,
+                                   "corner_radius": 20.0, "steps_round": 6},
+                        "doc": "rectángulo de esquinas redondeadas en el plano XY"},
+    "mesh_stairs": {"fn": t_mesh_stairs, "cat": "Mesh", "graph_only": True,
+                    "params": {"step_width": 150.0, "step_height": 18.0, "step_depth": 28.0,
+                               "steps": 10, "floating": False},
+                    "doc": "escalera recta; «floating» deja los escalones sueltos, sin faldón"},
+    "mesh_stairs_curved": {"fn": t_mesh_stairs_curved, "cat": "Mesh", "graph_only": True,
+                           "params": {"step_width": 150.0, "step_height": 18.0,
+                                      "inner_radius": 200.0, "curve_angle": 90.0,
+                                      "steps": 12, "floating": False},
+                           "doc": "escalera curva; curve_angle con signo elige el sentido del giro"},
+    "mesh_sphere_box": {"fn": t_mesh_sphere_box, "cat": "Mesh", "graph_only": True,
+                        "params": {"radius": 80.0, "steps": 6},
+                        "doc": "esfera de topología cúbica: cuadrángulos parejos, sin los polos apretados de la lat/long"},
+    "mesh_revolve": {"fn": t_mesh_revolve, "cat": "Mesh", "graph_only": True,
+                     "params": {"steps": 24, "capped": True, "degrees": 360.0, "samples": 32},
+                     "doc": "TORNO: revoluciona el perfil de una curva S alrededor del eje Z (x = distancia al eje, z = altura). Columnas, balaustres, vasijas"},
     "mesh_bark": {"fn": t_mesh_bark, "cat": "Mesh", "graph_only": True,
                   "params": {"amplitud": 2.0, "escala": 0.06, "alargue": 0.25,
                              "octavas": 3, "surcos": 0.6, "seed": 7},
@@ -1214,12 +1318,17 @@ CATEGORIAS = ["Content", "Place", "Scatter", "Create", "Mesh", "Edit",
 # `source` significa sin pin gordo `in`; una fuente todavía puede tener un pin de parámetro `asset`.
 GRAPH_SOURCES = {"asset", "pick", "create_spline", "gizmo", "ghost", "pivot", "pivot_set",
                  "curve_bezier", "mesh_triangle", "mesh_quad", "mesh_grid", "mesh_cylinder",
-                 "mesh_cone", "mesh_sphere", "graph_curve"}
+                 "mesh_cone", "mesh_sphere", "graph_curve",
+                 "mesh_box", "mesh_capsule", "mesh_torus", "mesh_disc",
+                 "mesh_round_rect", "mesh_stairs", "mesh_stairs_curved", "mesh_sphere_box"}
 # Tools que realmente pueden ejecutarse sin un asset. `asset` y `pick` lo PRODUCEN; `create_spline` y
 # `pivot_set` trabajan sobre la escena/selección. Gizmo y Ghost sí necesitan uno para mostrar huella.
 GRAPH_NO_ASSET = {"asset", "pick", "create_spline", "pivot_set",
                   "curve_bezier", "mesh_triangle", "mesh_quad", "mesh_grid", "mesh_cylinder",
                   "mesh_cone", "mesh_sphere", "mesh_pipe", "mesh_pipe_profile",
+                  "mesh_box", "mesh_capsule", "mesh_torus", "mesh_disc",
+                  "mesh_round_rect", "mesh_stairs", "mesh_stairs_curved",
+                  "mesh_sphere_box", "mesh_revolve",
                   "mesh_transform", "mesh_merge", "graph_curve",
                   "curve_child", "curve_frames", "distribute_frames", "transform_frames",
                   "branch_from_frames",
@@ -1231,6 +1340,7 @@ GRAPH_IN_NAMES = {"points_to_frames": "P", "debug": "*", "curve_child": "S", "cu
                   "transform_frames": "F", "branch_from_frames": "F", "curve_branches": "S",
                   "asset_set": "A", "choose_asset": "F",
                   "mesh_from_asset": "A", "mesh_pipe": "S", "mesh_pipe_profile": "S",
+                  "mesh_revolve": "S",
                   "mesh_along_curve": "S", "copy_mesh_to_frames": "F", "mesh_leaf": "S",
                   "copy_asset_selection": "AF",
                   "hism_output": "AF", "mesh_transform": "M", "mesh_color": "M",
@@ -1244,6 +1354,9 @@ GRAPH_OUT_NAMES = {"points_to_frames": "F", "debug": "M", "asset": "A", "pick": 
                    "asset_set": "A[]", "choose_asset": "AF", "graph_curve": "N[]",
                    "mesh_triangle": "M", "mesh_quad": "M", "mesh_grid": "M",
                    "mesh_cylinder": "M", "mesh_cone": "M", "mesh_sphere": "M",
+                   "mesh_box": "M", "mesh_capsule": "M", "mesh_torus": "M",
+                   "mesh_disc": "M", "mesh_round_rect": "M", "mesh_stairs": "M",
+                   "mesh_stairs_curved": "M", "mesh_sphere_box": "M", "mesh_revolve": "M",
                    "mesh_from_asset": "M", "mesh_pipe": "M", "mesh_pipe_profile": "M",
                    "mesh_along_curve": "M",
                    "copy_mesh_to_frames": "M", "mesh_leaf": "M",
