@@ -801,22 +801,22 @@ void SJamGraphEditor::RebuildTabContent()
 		}
 		const FString Verb = T.Verb;
 		const FLinearColor Color = CategoryColor(T.Cat);
-		TabContentBox->AddSlot().AutoWidth().Padding(3.0f, 2.0f)
+		// Ribbon estilo Grasshopper: SÓLO el icono, y el nombre en el tooltip. Con 85 verbos en 17
+		// categorías, el texto bajo cada ficha gastaba el doble de ancho por nodo.
+		// El tooltip lleva además la FIRMA DE TIPOS, que es lo que decide si un verbo sirve donde
+		// estás parado: «S → M» dice más que cualquier nombre.
+		const FString Firma = T.bSource
+			? FString::Printf(TEXT("→ %s"), *T.OutName)
+			: FString::Printf(TEXT("%s → %s"), *T.InName, *T.OutName);
+		TabContentBox->AddSlot().AutoWidth().Padding(2.0f, 2.0f)
 		[
 			SNew(SButton)
-			.ToolTipText(FText::FromString(FString::Printf(TEXT("%s — %s"), *T.Verb, *T.Doc)))
-			.ContentPadding(FMargin(3.0f, 3.0f))
+			.ToolTipText(FText::FromString(FString::Printf(
+				TEXT("%s   [%s]\n%s"), *T.Verb, *Firma, *T.Doc)))
+			.ContentPadding(FMargin(2.0f, 2.0f))
 			.OnClicked_Lambda([this, Verb]() { AddNode(Verb); return FReply::Handled(); })
 			[
-				SNew(SVerticalBox)
-				+ SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center)
-				[ MakeBadge(Color, VerbCode(Verb), 30.0f, IconPathForVerb(Verb)) ]
-				+ SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center).Padding(0.0f, 2.0f, 0.0f, 0.0f)
-				[
-					SNew(STextBlock)
-					.Text(FText::FromString(Verb))
-					.Font(FCoreStyle::GetDefaultFontStyle("Regular", 7))
-				]
+				MakeBadge(Color, VerbCode(Verb), 34.0f, IconPathForVerb(Verb))
 			]
 		];
 	}
