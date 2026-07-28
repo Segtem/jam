@@ -316,6 +316,7 @@ void FJamEditorModule::LoadSpec(bool bIncludeFlow)
 		FJamTool T;
 		T.Verb = O->GetStringField(TEXT("verbo"));
 		O->TryGetStringField(TEXT("cat"), T.Cat);
+		O->TryGetStringField(TEXT("grupo"), T.Group);
 		O->TryGetStringField(TEXT("doc"), T.Doc);
 		O->TryGetBoolField(TEXT("source"), T.bSource);
 		O->TryGetBoolField(TEXT("asset_pin"), T.bAssetPin);

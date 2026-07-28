@@ -198,8 +198,9 @@ def spec_all() -> str:
     cats_flow = [item["cat"] for item in solo_flow]
     cats = verbos["categorias"] + [c for c in ops["categorias"]
                                    if c not in verbos["categorias"] and c in cats_flow]
-    return json.dumps({"categorias": cats, "tools": verbos["tools"] + solo_flow},
-                      ensure_ascii=True)
+    from . import ribbon
+    todas = ribbon.anotar(verbos["tools"] + solo_flow)
+    return json.dumps({"categorias": cats, "tools": todas}, ensure_ascii=True)
 
 
 def confirm(owner: str = "") -> str:

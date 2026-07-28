@@ -37,6 +37,7 @@ struct FJamTool
 {
 	FString Verb;
 	FString Cat;
+	FString Group;            // subgrupo dentro del tab (el «panel» de Grasshopper); puede ir vacío
 	FString Doc;
 	bool bSource = false;     // en el grafo, nodo FUENTE (sin pin de entrada)
 	bool bAssetPin = false;   // consume un asset → en el grafo lleva un pin «asset» explícito

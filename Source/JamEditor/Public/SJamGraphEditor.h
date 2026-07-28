@@ -188,6 +188,11 @@ private:
 	void ApplyZoom();
 
 	TArray<FJamTool> Tools;
+
+	/** Filas de fichas que apila cada subgrupo del ribbon. Grasshopper usa dos; el tab Mesh tiene 43
+	    verbos y con dos seguía siendo una tira que obligaba a scrollear. Tres entra en la altura de
+	    un nodo del canvas. El reparto por subgrupo lo decide `jam/ribbon.py`. */
+	static constexpr int32 RibbonRows = 3;
 	TArray<FString> Categories;        // tabs del ribbon, en orden de aparición
 	FString ActiveTab;                 // categoría abierta ahora
 	TSharedPtr<SHorizontalBox> TabContentBox;   // fichas de la categoría activa

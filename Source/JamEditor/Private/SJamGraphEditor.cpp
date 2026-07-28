@@ -15,6 +15,7 @@
 #include "Widgets/Views/SListView.h"
 #include "Widgets/Views/SHeaderRow.h"
 #include "Widgets/Layout/SExpandableArea.h"
+#include "Widgets/Layout/SSeparator.h"
 #include "Serialization/JsonSerializer.h"
 #include "Widgets/Input/SMultiLineEditableTextBox.h"
 #include "Widgets/Text/STextBlock.h"
@@ -801,32 +802,85 @@ void SJamGraphEditor::RebuildTabContent()
 		return;
 	}
 	TabContentBox->ClearChildren();
+
+	// El tab se parte en SUBGRUPOS (los «paneles» de Grasshopper) y cada uno apila `RibbonRows`
+	// filas. El spec ya llega ordenado por la tabla de layout de `jam/ribbon.py`, así que basta con
+	// respetar el orden de aparición: agrupar sin reordenar.
+	TArray<FString> GroupOrder;
+	TMap<FString, TArray<const FJamTool*>> ByGroup;
 	for (const FJamTool& T : Tools)
 	{
 		if (T.Cat != ActiveTab)
 		{
 			continue;
 		}
-		const FString Verb = T.Verb;
-		const FLinearColor Color = CategoryColor(T.Cat);
-		// Ribbon estilo Grasshopper: SÓLO el icono, y el nombre en el tooltip. Con 85 verbos en 17
-		// categorías, el texto bajo cada ficha gastaba el doble de ancho por nodo.
-		// El tooltip lleva además la FIRMA DE TIPOS, que es lo que decide si un verbo sirve donde
-		// estás parado: «S → M» dice más que cualquier nombre.
-		const FString Firma = T.bSource
-			? FString::Printf(TEXT("→ %s"), *T.OutName)
-			: FString::Printf(TEXT("%s → %s"), *T.InName, *T.OutName);
-		TabContentBox->AddSlot().AutoWidth().Padding(2.0f, 2.0f)
+		if (!ByGroup.Contains(T.Group))
+		{
+			GroupOrder.Add(T.Group);
+		}
+		ByGroup.FindOrAdd(T.Group).Add(&T);
+	}
+
+	for (int32 GroupIndex = 0; GroupIndex < GroupOrder.Num(); ++GroupIndex)
+	{
+		const TArray<const FJamTool*>& Verbs = ByGroup[GroupOrder[GroupIndex]];
+		// Relleno por COLUMNAS: se lee de arriba abajo y se salta a la derecha. Es lo que hace
+		// Grasshopper, y mantiene juntos los verbos vecinos de la tabla aunque cambie el alto.
+		const int32 Columns = FMath::DivideAndRoundUp(Verbs.Num(), RibbonRows);
+		TSharedRef<SHorizontalBox> Grid = SNew(SHorizontalBox);
+		for (int32 Column = 0; Column < Columns; ++Column)
+		{
+			TSharedRef<SVerticalBox> ColumnBox = SNew(SVerticalBox);
+			for (int32 Row = 0; Row < RibbonRows; ++Row)
+			{
+				const int32 Index = Column * RibbonRows + Row;
+				if (!Verbs.IsValidIndex(Index))
+				{
+					break;   // la última columna queda corta, no se rellena con huecos
+				}
+				const FJamTool& T = *Verbs[Index];
+				const FString Verb = T.Verb;
+				// Sólo el icono; el nombre y la FIRMA DE TIPOS van en el tooltip. «S → M» dice más
+				// que cualquier nombre a la hora de decidir si un verbo sirve donde estás parado.
+				const FString Firma = T.bSource
+					? FString::Printf(TEXT("\u2192 %s"), *T.OutName)
+					: FString::Printf(TEXT("%s \u2192 %s"), *T.InName, *T.OutName);
+				ColumnBox->AddSlot().AutoHeight().Padding(1.0f)
+				[
+					SNew(SButton)
+					.ToolTipText(FText::FromString(FString::Printf(
+						TEXT("%s   [%s]\n%s"), *T.Verb, *Firma, *T.Doc)))
+					.ContentPadding(FMargin(1.0f))
+					.OnClicked_Lambda([this, Verb]() { AddNode(Verb); return FReply::Handled(); })
+					[
+						MakeBadge(CategoryColor(T.Cat), VerbCode(Verb), 30.0f, IconPathForVerb(Verb))
+					]
+				];
+			}
+			Grid->AddSlot().AutoWidth()[ ColumnBox ];
+		}
+
+		// El bloque: la grilla arriba y la etiqueta del grupo abajo, como el pie de panel de GH.
+		TabContentBox->AddSlot().AutoWidth().Padding(3.0f, 0.0f)
 		[
-			SNew(SButton)
-			.ToolTipText(FText::FromString(FString::Printf(
-				TEXT("%s   [%s]\n%s"), *T.Verb, *Firma, *T.Doc)))
-			.ContentPadding(FMargin(2.0f, 2.0f))
-			.OnClicked_Lambda([this, Verb]() { AddNode(Verb); return FReply::Handled(); })
+			SNew(SVerticalBox)
+			+ SVerticalBox::Slot().AutoHeight()[ Grid ]
+			+ SVerticalBox::Slot().AutoHeight().Padding(0.0f, 2.0f, 0.0f, 0.0f).HAlign(HAlign_Center)
 			[
-				MakeBadge(Color, VerbCode(Verb), 34.0f, IconPathForVerb(Verb))
+				SNew(STextBlock)
+				.Text(FText::FromString(GroupOrder[GroupIndex]))
+				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 7))
+				.ColorAndOpacity(FSlateColor(FLinearColor(0.62f, 0.62f, 0.66f, 1.0f)))
 			]
 		];
+
+		if (GroupIndex + 1 < GroupOrder.Num())
+		{
+			TabContentBox->AddSlot().AutoWidth().Padding(2.0f, 2.0f)
+			[
+				SNew(SSeparator).Orientation(Orient_Vertical).Thickness(1.0f)
+			];
+		}
 	}
 }
 
