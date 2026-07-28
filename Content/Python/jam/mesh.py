@@ -1227,6 +1227,64 @@ def _dibujar_ejes(ejes, grosor: float):
     return resultado
 
 
+def _colores_por_vertice(dynamic):
+    """Color por vértice si la malla lo tiene; lista vacía si no. Falla cerrado."""
+    try:
+        devuelto = unreal.GeometryScript_VertexColors.get_mesh_per_vertex_colors(dynamic)
+    except Exception:  # noqa: BLE001
+        return []
+    if not (isinstance(devuelto, tuple) and len(devuelto) >= 3 and bool(devuelto[2])):
+        return []
+    crudo = devuelto[1]
+    convertir = getattr(crudo, "convert_color_list_to_array", None)
+    if convertir is not None:
+        crudo = convertir()
+        if isinstance(crudo, tuple):
+            crudo = crudo[-1]
+    try:
+        return [(float(c.r), float(c.g), float(c.b)) for c in crudo]
+    except Exception:  # noqa: BLE001
+        return []
+
+
+def inspeccionar(valor, *, filas: int = 8, filtro: str = "", orden: str = "",
+                 descendente: bool = False) -> dict:
+    """Tabla de datos de CUALQUIER cosa que viaje por un cable, malla incluida.
+
+    Router entre el núcleo puro —que sabe de frames, puntos, curvas y series— y la extracción de
+    vértices de una `DynamicMesh`, que necesita el motor. Una malla es el único tipo cuyos datos no
+    se pueden leer sin Unreal, y era justamente el que quedaba en blanco en el inspector.
+    """
+    from . import debug
+
+    dynamic = _dynamic_mesh(valor)
+    if dynamic is None:
+        return debug.tabla_datos(valor, filas=filas, filtro=filtro,
+                                 orden=orden, descendente=descendente)
+    try:
+        posiciones = _posiciones(dynamic)
+        normales = _normales(dynamic)
+        colores = _colores_por_vertice(dynamic)
+    except Exception:  # noqa: BLE001
+        return {"columnas": [], "filas": [], "total": 0, "orden": "", "descendente": False}
+    columnas, todas = debug.columnas_de_vertices(posiciones, normales, colores)
+    return debug.armar(columnas, todas, filas=filas, filtro=filtro,
+                       orden=orden, descendente=descendente)
+
+
+def contar(valor) -> int:
+    """Cuántos elementos tiene el dato; para una malla, sus vértices."""
+    from . import debug
+
+    dynamic = _dynamic_mesh(valor)
+    if dynamic is not None:
+        try:
+            return len(_posiciones(dynamic))
+        except Exception:  # noqa: BLE001
+            return 0
+    return debug.tabla_datos(valor, filas=1)["total"]
+
+
 def colocar_visualizacion(dynamic, *, nombre: str = "JamDebug") -> dict:
     """Deja una malla de debug en la escena como actor, dentro de la transacción de Preview.
 

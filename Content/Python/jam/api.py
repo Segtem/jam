@@ -118,10 +118,11 @@ def inspect_json(node_id: str = "", filtro: str = "", filas: int = 200,
         return json.dumps({"ok": False, "error": "todavía no corriste el grafo.",
                            "nodos": [], "columnas": [], "filas": []}, ensure_ascii=True)
 
+    from . import mesh
+
     def resumen(valor):
-        from . import mesh
-        datos = debug.tabla_datos(valor, filas=1)
-        return {"tipo": mesh._describir(valor), "cantidad": _cantidad(valor),
+        datos = mesh.inspeccionar(valor, filas=1)
+        return {"tipo": mesh._describir(valor), "cantidad": mesh.contar(valor),
                 "inspeccionable": bool(datos["columnas"])}
 
     nodos = [{"id": nid, **resumen(valor)} for nid, valor in corrida.items()]
@@ -133,7 +134,7 @@ def inspect_json(node_id: str = "", filtro: str = "", filas: int = 200,
         return json.dumps({"ok": False, "error": f"«{node_id}» no está en el último Run.",
                            "nodos": nodos, "columnas": [], "filas": []}, ensure_ascii=True)
 
-    datos = debug.tabla_datos(corrida[node_id], filas=max(1, int(filas)), filtro=filtro,
+    datos = mesh.inspeccionar(corrida[node_id], filas=max(1, int(filas)), filtro=filtro,
                               orden=orden, descendente=bool(descendente))
     # Las celdas viajan ya FORMATEADAS: el formato depende del tipo de columna, que sólo se conoce
     # acá. La UI muestra lo que recibe en vez de reimplementar el redondeo.
@@ -141,24 +142,6 @@ def inspect_json(node_id: str = "", filtro: str = "", filas: int = 200,
     datos["filas"] = [[debug._texto_celda(v, tipo) for v, tipo in zip(fila, tipos)]
                       for fila in datos["filas"]]
     return json.dumps({"ok": True, "nodos": nodos, "node": node_id, **datos}, ensure_ascii=True)
-
-
-def _cantidad(valor) -> int:
-    """Cuántos elementos tiene el dato — la columna que delata dónde el conteo cae a cero."""
-    from . import curve, fields, variants
-    if isinstance(valor, curve.FrameSet):
-        return len(valor.frames)
-    if isinstance(valor, variants.FrameAssetSelection):
-        return len(valor.frames.frames)
-    if isinstance(valor, fields.ScalarSeries):
-        return len(valor.values)
-    if isinstance(valor, curve.CurveSet):
-        return len(valor.paths)
-    if isinstance(valor, curve.CurvePath):
-        return 1
-    if isinstance(valor, (list, tuple)):
-        return len(valor)
-    return 0
 
 
 def presets(kind: str = "", scope: str = "") -> str:

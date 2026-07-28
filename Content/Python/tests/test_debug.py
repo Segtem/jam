@@ -451,5 +451,38 @@ class OrdenTests(unittest.TestCase):
         self.assertEqual(len(texto), 1 + len(datos["filas"]))
 
 
+class VerticesTests(unittest.TestCase):
+    """La pestaña Points del spreadsheet: una malla es el único tipo que necesita el motor."""
+
+    def test_positions_alone_give_the_basic_columns(self):
+        cols, filas = debug.columnas_de_vertices([(1.0, 2.0, 3.0), (4.0, 5.0, 6.0)])
+        self.assertEqual([c[0] for c in cols], ["idx", "x", "y", "z"])
+        self.assertEqual(filas, [[0, 1.0, 2.0, 3.0], [1, 4.0, 5.0, 6.0]])
+
+    def test_normals_and_colors_add_their_own_columns(self):
+        cols, filas = debug.columnas_de_vertices(
+            [(0.0, 0.0, 0.0)], [(0.0, 0.0, 1.0)], [(0.2, 0.4, 0.6)])
+        self.assertEqual([c[0] for c in cols],
+                         ["idx", "x", "y", "z", "nx", "ny", "nz", "r", "g", "b"])
+        self.assertEqual(filas[0], [0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.2, 0.4, 0.6])
+
+    def test_a_mismatched_count_is_ignored_instead_of_corrupting_rows(self):
+        # Una malla recién generada puede no tener normales todavía; no se inventan columnas.
+        cols, _filas = debug.columnas_de_vertices(
+            [(0.0, 0.0, 0.0), (1.0, 1.0, 1.0)], [(0.0, 0.0, 1.0)])
+        self.assertEqual([c[0] for c in cols], ["idx", "x", "y", "z"])
+
+    def test_an_empty_mesh_yields_no_table(self):
+        self.assertEqual(debug.columnas_de_vertices([]), ([], []))
+
+    def test_the_vertex_table_reuses_the_shared_filter_and_sort(self):
+        cols, filas = debug.columnas_de_vertices(
+            [(0.0, 0.0, 30.0), (0.0, 0.0, 10.0), (0.0, 0.0, 20.0)])
+        datos = debug.armar(cols, filas, filas=2, orden="z", descendente=True)
+        self.assertEqual(datos["total"], 3)
+        # Ordena sobre las TRES y recién después recorta a dos.
+        self.assertEqual([f[3] for f in datos["filas"]], [30.0, 20.0])
+
+
 if __name__ == "__main__":
     unittest.main()

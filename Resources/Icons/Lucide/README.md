@@ -14,6 +14,10 @@ La geometría de los iconos no fue alterada. Se reemplazó `stroke="currentColor
 teñir el brush completo mediante `FSlateColor`. Jam aplica un gris casi negro para que el pictograma
 se lea como tinta sobre el cuerpo claro de los componentes y los badges de categoría.
 
+**Cuatro iconos NO son de Lucide**: `stairs`, `stairs-curved`, `capsule` y `torus` están dibujados
+para Jam en el mismo estilo (24×24, trazo 2, extremos redondeados) porque Lucide no tiene esas
+formas. Son obra propia y no están cubiertos por `LICENSE.txt`.
+
 `icon-map.json` propone un icono para cada verbo existente en `jam.tools` y `jam.flow`. Varios verbos
 comparten pictograma deliberadamente; primero hay que probar la lectura real a 16–20 px antes de crear
 variantes más específicas.

@@ -648,14 +648,24 @@ def ejecutar_detalle(g: JamGraph, plan: GraphPlan | None = None) -> tuple[str, d
         # tecla D, Grasshopper el preview toggle. Se marca el nodo que YA está y se ve su salida.
         # Acá se hace lo mismo: la tabla va al reporte y la geometría se junta para dibujarla.
         if n.get("debug") and salida is not None:
-            from . import debug as viz
-            for fila in viz.tabla(salida):
-                lineas.append(fila)
+            lineas.extend(_tabla_de(salida))
             marcados.append((nid, salida))
 
     if marcados:
         lineas.append(_dibujar_marcados(marcados))
     return "\n".join(lineas), por_nodo
+
+
+def _tabla_de(salida) -> list[str]:
+    """Tabla de texto del dato para el reporte. Una malla necesita el motor para leerse, así que se
+    intenta por el adaptador y se cae al núcleo puro si no hay Unreal (suite headless)."""
+    from . import debug as viz
+    try:
+        from . import mesh
+        datos = mesh.inspeccionar(salida, filas=viz.FILAS_TABLA)
+    except Exception:  # noqa: BLE001
+        return viz.tabla(salida)
+    return viz.texto_de_tabla(datos)
 
 
 def _dibujar_marcados(marcados) -> str:

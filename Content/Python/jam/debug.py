@@ -148,7 +148,17 @@ def tabla_datos(valor, *, filas: int = FILAS_TABLA, filtro: str = "",
 
     PURO: recibe el dato ya producido y devuelve datos. No sabe qué es un actor.
     """
-    columnas, todas = _columnas_y_filas(valor)
+    return armar(*_columnas_y_filas(valor), filas=filas, filtro=filtro,
+                 orden=orden, descendente=descendente)
+
+
+def armar(columnas, todas, *, filas: int = FILAS_TABLA, filtro: str = "",
+          orden: str = "", descendente: bool = False) -> dict:
+    """Filtra, ordena y recorta — en ESE orden — un juego de columnas y filas ya extraído.
+
+    Vive aparte para que la tabla de vértices de una malla, que necesita el motor para extraerse,
+    reuse exactamente las mismas reglas en vez de reimplementarlas.
+    """
     if not columnas:
         return {"columnas": [], "filas": [], "total": 0, "orden": "", "descendente": False}
 
@@ -175,6 +185,37 @@ def tabla_datos(valor, *, filas: int = FILAS_TABLA, filtro: str = "",
             "total": len(todas), "orden": orden, "descendente": bool(descendente)}
 
 
+def columnas_de_vertices(posiciones, normales=None, colores=None):
+    """(columnas, filas) de los VÉRTICES de una malla — la pestaña Points del spreadsheet.
+
+    El adaptador extrae del motor; acá sólo se arma la tabla. Normales y colores son opcionales:
+    una malla recién generada puede no tenerlos todavía.
+    """
+    posiciones = list(posiciones or [])
+    if not posiciones:
+        return [], []
+    normales = list(normales or [])
+    colores = list(colores or [])
+    hay_normales = len(normales) == len(posiciones)
+    hay_colores = len(colores) == len(posiciones)
+
+    columnas = [("idx", "num"), ("x", "num"), ("y", "num"), ("z", "num")]
+    if hay_normales:
+        columnas += [("nx", "num"), ("ny", "num"), ("nz", "num")]
+    if hay_colores:
+        columnas += [("r", "num"), ("g", "num"), ("b", "num")]
+
+    filas = []
+    for indice, (x, y, z) in enumerate(posiciones):
+        fila = [indice, float(x), float(y), float(z)]
+        if hay_normales:
+            fila += [float(c) for c in normales[indice][:3]]
+        if hay_colores:
+            fila += [float(c) for c in colores[indice][:3]]
+        filas.append(fila)
+    return columnas, filas
+
+
 def _celda(valor):
     if isinstance(valor, float):
         return round(valor, 4)
@@ -187,7 +228,12 @@ def tabla(valor, *, filas: int = FILAS_TABLA, filtro: str = "",
 
     Se arma SOBRE `tabla_datos` a propósito: las columnas de cada tipo se declaran en un solo lugar.
     """
-    datos = tabla_datos(valor, filas=filas, filtro=filtro, orden=orden, descendente=descendente)
+    return texto_de_tabla(
+        tabla_datos(valor, filas=filas, filtro=filtro, orden=orden, descendente=descendente))
+
+
+def texto_de_tabla(datos: dict) -> list[str]:
+    """Formatea en columnas alineadas una tabla ya armada. Lo usa el reporte del Run."""
     if not datos["columnas"]:
         return []
 
