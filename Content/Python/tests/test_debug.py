@@ -224,5 +224,87 @@ class EjemplosCargablesTests(unittest.TestCase):
                         f"{ruta.name}: edge {indice} {origen}.{pin_origen}({salida}) → "
                         f"{destino}.{pin_destino}({entrada}) sería rechazado al abrir")
 
+class TablaTests(unittest.TestCase):
+    """El «geometry spreadsheet» de Jam: los datos como números, no como dibujo."""
+
+    def test_each_stream_type_renders_its_own_columns(self):
+        from jam import fields
+        esperado = {
+            "F": (frames(3), "escala"),
+            "P": (puntos([1.0, 0.5]), "peso"),
+            "N[]": (fields.graph_curve(samples=6)["series"], "valor"),
+            "S": (curve.bezier(end_z=300)["curve"], "largo"),
+        }
+        for tipo, (valor, columna) in esperado.items():
+            with self.subTest(tipo=tipo):
+                filas = debug.tabla(valor)
+                self.assertTrue(filas, f"{tipo} no produjo tabla")
+                self.assertIn(columna, filas[0])
+                self.assertIn("idx", filas[0])
+
+    def test_long_streams_are_truncated_with_a_count(self):
+        filas = debug.tabla(frames(50), filas=4)
+        self.assertEqual(len(filas), 6)          # encabezado + 4 + el resumen
+        self.assertIn("y 46 más", filas[-1])
+
+    def test_an_unknown_value_yields_no_table_instead_of_failing(self):
+        self.assertEqual(debug.tabla(object()), [])
+        self.assertEqual(debug.tabla([]), [])
+
+    def test_the_values_shown_are_the_real_ones(self):
+        filas = debug.tabla(frames(3, escalas=[0.25, 0.5, 0.75]))
+        self.assertIn("0.250", filas[1])
+        self.assertIn("0.750", filas[3])
+
+
+class FlagPorNodoTests(unittest.TestCase):
+    """El display flag de Houdini / la tecla D de PCG: se prende el nodo que YA está."""
+
+    @staticmethod
+    def _correr(marcados):
+        import json
+        from jam import graph
+        doc = {"nodes": {
+            "pts": {"verb": "pts_line", "params": {"count": "4"}, "x": 0, "y": 0,
+                    "debug": "pts" in marcados},
+            "mv": {"verb": "move", "params": {"dx": "50"}, "x": 300, "y": 0,
+                   "debug": "mv" in marcados}},
+            "edges": [["pts", "out", "mv", "in"]]}
+        reporte, _ = graph.ejecutar_detalle(graph.JamGraph.from_json(json.dumps(doc)))
+        return reporte
+
+    def test_the_flag_travels_in_the_graph_json(self):
+        import json
+        from jam import graph
+        g = graph.JamGraph.from_json(json.dumps(
+            {"nodes": {"a": {"verb": "pts_line", "params": {}, "x": 0, "y": 0, "debug": True},
+                       "b": {"verb": "pts_line", "params": {}, "x": 0, "y": 0}}, "edges": []}))
+        self.assertTrue(g.nodes["a"]["debug"])
+        # Un .jamgraph viejo sin el campo carga con el flag apagado, no rompe.
+        self.assertFalse(g.nodes["b"]["debug"])
+
+    def test_a_flagged_node_dumps_its_data_into_the_report(self):
+        reporte = self._correr({"pts"})
+        self.assertIn("PTS LINE P ✓", reporte)
+        self.assertIn("idx", reporte)
+        self.assertIn("peso", reporte)
+
+    def test_an_unflagged_graph_reports_exactly_as_before(self):
+        limpio = self._correr(set())
+        self.assertNotIn("idx", limpio)
+        self.assertNotIn("DEBUG", limpio)
+        # El conteo por nodo sigue estando SIEMPRE: es el «recorrer y ver dónde cae a cero» de PCG.
+        self.assertIn("PTS LINE P ✓ — 4 puntos", limpio)
+        self.assertIn("MOVE P ✓ — 4 puntos", limpio)
+
+    def test_the_debug_flag_never_breaks_the_run(self):
+        """Sin motor no se puede dibujar; el grafo tiene que seguir corriendo igual."""
+        reporte = self._correr({"pts", "mv"})
+        self.assertIn("PTS LINE P ✓", reporte)
+        self.assertIn("MOVE P ✓", reporte)
+        # Informa el fallo del dibujo en vez de tirar la excepción hacia arriba.
+        self.assertIn("DEBUG ✗", reporte)
+
+
 if __name__ == "__main__":
     unittest.main()

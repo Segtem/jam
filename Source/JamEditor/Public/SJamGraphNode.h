@@ -148,6 +148,15 @@ private:
 	FOnPinClicked OnInputClickedDelegate;
 	FSimpleDelegate OnOutputClickedDelegate;
 	FSimpleDelegate OnDeleteClickedDelegate;
+
+public:
+	/** Flag de debug del nodo: el display flag de Houdini / la tecla D de PCG. Cuando está
+	 *  prendido, el Run dibuja la salida de ESTE nodo y vuelca sus datos al reporte. */
+	bool IsDebugEnabled() const { return bDebugEnabled; }
+	void SetDebugEnabled(bool bEnabled) { bDebugEnabled = bEnabled; }
+
+private:
+	bool bDebugEnabled = false;
 	// Por cada param: cómo LEER su valor y cómo FIJARLO, sin que el resto del nodo sepa si el widget es
 	// un text box, un checkbox (bool) o un dropdown (enum). Reemplaza al viejo mapa de sólo text boxes.
 	TMap<FString, TFunction<FString()>> ParamGetters;

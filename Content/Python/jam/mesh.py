@@ -1033,6 +1033,35 @@ def _dibujar_ejes(ejes, grosor: float):
     return resultado
 
 
+def colocar_visualizacion(dynamic, *, nombre: str = "JamDebug") -> dict:
+    """Deja una malla de debug en la escena como actor, dentro de la transacción de Preview.
+
+    Usa un ``DynamicMeshActor``: la visualización es transitoria por definición y no tiene por qué
+    ensuciar Content con un StaticMesh. Cae dentro del `_preview` que envuelve al Run, así que
+    Discard se la lleva con el resto.
+    """
+    malla = _dynamic_mesh(dynamic)
+    if malla is None:
+        return {"error": "la visualización no es una malla procedural M."}
+    try:
+        actor = unreal.get_editor_subsystem(unreal.EditorActorSubsystem).spawn_actor_from_class(
+            unreal.DynamicMeshActor, unreal.Vector(0.0, 0.0, 0.0), unreal.Rotator())
+        if actor is None:
+            return {"error": "Unreal no pudo crear el actor de visualización."}
+        actor.set_actor_label(f"{nombre}_viz")
+        componente = actor.get_editor_property("dynamic_mesh_component")
+        destino = componente.get_dynamic_mesh()
+        unreal.GeometryScript_MeshEdits.append_mesh(destino, malla, _identity())
+        material = unreal.load_asset(VERTEX_COLOR_MATERIAL)
+        if material is not None:
+            componente.set_material(0, material)
+        # No hace falta marcarlo: `panel._preview` captura por diferencia TODO actor nuevo del
+        # Run, así que Discard ya se lo lleva.
+        return {"actor": actor}
+    except Exception as exc:  # noqa: BLE001
+        return {"error": f"falló la visualización: {type(exc).__name__}: {exc}"}
+
+
 def _normales(dynamic) -> list[tuple[float, float, float]]:
     """Normal por vértice, promediando los splits para que el desplazamiento no abra costuras."""
     devuelto = unreal.GeometryScript_Normals.get_mesh_per_vertex_normals(dynamic, True)

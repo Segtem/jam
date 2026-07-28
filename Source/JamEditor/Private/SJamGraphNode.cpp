@@ -326,6 +326,38 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 	[
 		SNew(SOverlay)
 		+ SOverlay::Slot()[ MainContent ]
+		// Flag de debug: se prende el nodo que YA está, sin agregar ni cablear nada. Es el display
+		// flag de Houdini / la tecla D de PCG, y no el nodo de debug aparte que había antes.
+		+ SOverlay::Slot()
+		.HAlign(HAlign_Right)
+		.VAlign(VAlign_Top)
+		.Padding(0.0f, 1.0f, 22.0f, 0.0f)
+		[
+			SNew(SBox).WidthOverride(18.0f).HeightOverride(16.0f)
+			[
+				SNew(SButton)
+				.ButtonStyle(&FAppStyle::Get(), "NoBorder")
+				.ToolTipText(LOCTEXT("DebugFlag", "ver este nodo: dibuja su salida y vuelca sus datos al reporte"))
+				.ContentPadding(FMargin(0.0f))
+				.HAlign(HAlign_Center).VAlign(VAlign_Center)
+				.OnClicked_Lambda([this]()
+				{
+					// El flag lo lee `BuildJson` al serializar, así que alcanza con guardarlo acá.
+					bDebugEnabled = !bDebugEnabled;
+					return FReply::Handled();
+				})
+				[
+					SNew(STextBlock)
+					.Text_Lambda([this]() { return FText::FromString(bDebugEnabled ? TEXT("◉") : TEXT("○")); })
+					.Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
+					.ColorAndOpacity_Lambda([this]()
+					{
+						return bDebugEnabled ? FSlateColor(FLinearColor(1.0f, 0.62f, 0.11f))
+						                     : FSlateColor(JamInk.CopyWithNewOpacity(0.45f));
+					})
+				]
+			]
+		]
 		+ SOverlay::Slot()
 		.HAlign(HAlign_Right)
 		.VAlign(VAlign_Top)

@@ -977,6 +977,11 @@ FString SJamGraphEditor::BuildJson() const
 		J->SetField(TEXT("asset"), MakeShared<FJsonValueNull>());
 		J->SetNumberField(TEXT("x"), N.Pos.X);
 		J->SetNumberField(TEXT("y"), N.Pos.Y);
+		// El flag de debug viaja con el grafo: se guarda en el .jamgraph y lo lee el runner.
+		if (N.Widget.IsValid() && N.Widget->IsDebugEnabled())
+		{
+			J->SetBoolField(TEXT("debug"), true);
+		}
 		NodesObj->SetObjectField(N.Id, J);
 	}
 	Root->SetObjectField(TEXT("nodes"), NodesObj);
@@ -1369,6 +1374,7 @@ bool SJamGraphEditor::LoadGraphJson(const FString& Json)
 		FString Verb;
 		FVector2D Pos;
 		TMap<FString, FString> Params;
+		bool bDebug = false;
 	};
 	struct FLoadedEdge
 	{
@@ -1412,6 +1418,8 @@ bool SJamGraphEditor::LoadGraphJson(const FString& Json)
 		}
 
 		FLoadedNode Loaded{KV.Key, Verb, FVector2D(X, Y), {}};
+		// El flag de debug es OPCIONAL: un .jamgraph viejo sin el campo carga con el flag apagado.
+		NO->TryGetBoolField(TEXT("debug"), Loaded.bDebug);
 		const TSharedPtr<FJsonObject>* ParamsObj = nullptr;
 		if (NO->HasField(TEXT("params"))
 			&& (!NO->TryGetObjectField(TEXT("params"), ParamsObj) || ParamsObj == nullptr))
@@ -1545,6 +1553,7 @@ bool SJamGraphEditor::LoadGraphJson(const FString& Json)
 		if (FGNode* Node = FindNode(NewId); Node && Node->Widget.IsValid())
 		{
 			Node->Widget->SetParamValues(Loaded.Params);
+			Node->Widget->SetDebugEnabled(Loaded.bDebug);
 		}
 	}
 	for (const FLoadedEdge& Loaded : LoadedEdges)

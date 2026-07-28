@@ -83,6 +83,64 @@ def ejes_de_frames(frames, *, largo: float = 30.0, escalar_con_frame: bool = Tru
     return salida
 
 
+FILAS_TABLA = 8
+
+
+def tabla(valor, *, filas: int = FILAS_TABLA) -> list[str]:
+    """Los DATOS de un stream como tabla de texto — el «geometry spreadsheet» de Jam.
+
+    Ver geometría contesta «¿dónde está?»; ver números contesta «¿qué valores tiene?». Houdini,
+    Blender y PCG tienen las dos cosas por separado, y la segunda es la que más se usa: el flujo de
+    depuración documentado de PCG es *recorrer hacia adelante y encontrar dónde el conteo cae a cero*.
+
+    PURO: recibe el dato ya producido y devuelve líneas. No sabe qué es un actor.
+    """
+    from . import curve, fields, scatter_core, variants
+
+    filas = max(1, int(filas))
+
+    def recortar(items, encabezado, formato):
+        lineas = [encabezado]
+        for indice, item in enumerate(items[:filas]):
+            lineas.append(f"    {indice:>3}  {formato(item)}")
+        if len(items) > filas:
+            lineas.append(f"    …  y {len(items) - filas} más")
+        return lineas
+
+    if isinstance(valor, curve.FrameSet):
+        return recortar(
+            list(valor.frames),
+            f"    idx  {'posición':>26}  {'escala':>7}  tangente",
+            lambda f: (f"({f.position[0]:7.1f},{f.position[1]:7.1f},{f.position[2]:7.1f})"
+                       f"  {f.scale:7.3f}  "
+                       f"({f.tangent[0]:5.2f},{f.tangent[1]:5.2f},{f.tangent[2]:5.2f})"))
+
+    if isinstance(valor, variants.FrameAssetSelection):
+        pares = list(zip(valor.frames.frames, valor.assets))
+        return recortar(
+            pares, f"    idx  {'posición':>26}  variante",
+            lambda par: (f"({par[0].position[0]:7.1f},{par[0].position[1]:7.1f},"
+                         f"{par[0].position[2]:7.1f})  {str(par[1]).rsplit('/', 1)[-1]}"))
+
+    if isinstance(valor, fields.ScalarSeries):
+        return recortar(list(valor.values), f"    idx  valor   ({valor.shape})",
+                        lambda v: f"{v:7.4f}")
+
+    if isinstance(valor, (curve.CurvePath, curve.CurveSet)):
+        paths = valor.paths if isinstance(valor, curve.CurveSet) else (valor,)
+        return recortar(
+            list(paths), f"    idx  {'puntos':>7}  {'largo':>9}  {'escala':>7}",
+            lambda p: f"{len(p.points):7}  {p.length:9.1f}  {p.scale:7.3f}")
+
+    if isinstance(valor, (list, tuple)) and valor and isinstance(valor[0], scatter_core.Sample):
+        return recortar(
+            list(valor), f"    idx  {'posición':>26}  {'peso':>6}  {'pendiente':>9}",
+            lambda s: (f"({s.pos.x:7.1f},{s.pos.y:7.1f},{s.pos.z:7.1f})"
+                       f"  {s.weight:6.3f}  {s.slope:9.1f}°"))
+
+    return []
+
+
 def tramos_de_curvas(paths, *, marcar_extremos: bool = True) -> list[Eje]:
     """Segmentos que dibujan cada polilínea ``S``, más la dirección en la que corre.
 

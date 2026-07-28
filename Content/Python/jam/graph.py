@@ -117,7 +117,10 @@ class JamGraph:
         # diagnóstico diga cuál es la op intrusa en vez de «verbo desconocido: «»» en un grafo mixto.
         g.nodes = {k: {"verb": v.get("verb") or v.get("kind", ""),
                        "params": dict(v.get("params", {})),
-                       "asset": v.get("asset"), "x": float(v.get("x", 0.0)), "y": float(v.get("y", 0.0))}
+                       "asset": v.get("asset"), "x": float(v.get("x", 0.0)), "y": float(v.get("y", 0.0)),
+                       # Flag de debug POR NODO, como el display flag de Houdini o la tecla D de
+                       # PCG: se prende el nodo que ya está, sin agregar ni cablear nada.
+                       "debug": bool(v.get("debug", False))}
                    for k, v in d.get("nodes", {}).items()}
         # aristas: [from, from_pin, to, to_pin] (por pin) o [from, to] (compat: out→in)
         for e in d.get("edges", []):
@@ -557,6 +560,7 @@ def ejecutar_detalle(g: JamGraph, plan: GraphPlan | None = None) -> tuple[str, d
     por_nodo: dict[str, dict] = {}
     lineas = []
     runtime_outputs: dict[str, object] = {}
+    marcados: list[tuple[str, object]] = []
     main_sources: dict[str, list[str]] = {}
     asset_sources: dict[str, str] = {}
     data_sources: dict[tuple[str, str], str] = {}
@@ -623,6 +627,52 @@ def ejecutar_detalle(g: JamGraph, plan: GraphPlan | None = None) -> tuple[str, d
         estado = _estado(txt)
         por_nodo[nid] = {"estado": estado, "texto": txt}
         producido = tools.dato_producido_runtime(verb, entrada)
-        runtime_outputs[nid] = (producido if producido is not None else entrada) \
-            if estado != "error" else None
+        salida = (producido if producido is not None else entrada) if estado != "error" else None
+        runtime_outputs[nid] = salida
+
+        # ---- flag de debug del nodo ----
+        # El estado del arte no es un nodo de debug aparte: Houdini usa el display flag, PCG la
+        # tecla D, Grasshopper el preview toggle. Se marca el nodo que YA está y se ve su salida.
+        # Acá se hace lo mismo: la tabla va al reporte y la geometría se junta para dibujarla.
+        if n.get("debug") and salida is not None:
+            from . import debug as viz
+            for fila in viz.tabla(salida):
+                lineas.append(fila)
+            marcados.append((nid, salida))
+
+    if marcados:
+        lineas.append(_dibujar_marcados(marcados))
     return "\n".join(lineas), por_nodo
+
+
+def _dibujar_marcados(marcados) -> str:
+    """Junta la salida de los nodos marcados en UNA malla y la deja en la escena.
+
+    Cae dentro del `_preview` que envuelve al Run, así que Discard se la lleva junto con el resto:
+    el debug no ensucia el nivel ni obliga a limpiar a mano.
+    """
+    # Un flag de debug NUNCA debe tumbar el Run: si el dibujo falla —o si no hay motor, como en la
+    # suite headless— se informa y el grafo sigue. La tabla del reporte no depende de esto.
+    try:
+        from . import mesh
+        partes, fallos = [], []
+        for nid, salida in marcados:
+            dibujo = mesh.debug_de_cualquier_cosa(salida)
+            if "error" in dibujo:
+                fallos.append(f"{nid}: {dibujo['error']}")
+            else:
+                partes.append(dibujo["mesh"])
+    except Exception as exc:  # noqa: BLE001
+        return f"DEBUG ✗ — no se pudo dibujar: {type(exc).__name__}: {exc}"
+    try:
+        if not partes:
+            return "DEBUG ✗ — nada dibujable" + (f" ({'; '.join(fallos)})" if fallos else "")
+        combinada = partes[0] if len(partes) == 1 else mesh.merge(partes).get("mesh")
+        if combinada is None:
+            return "DEBUG ✗ — no pude combinar los dibujos"
+        puesto = mesh.colocar_visualizacion(combinada)
+    except Exception as exc:  # noqa: BLE001
+        return f"DEBUG ✗ — no se pudo dibujar: {type(exc).__name__}: {exc}"
+    extra = f" · {len(fallos)} sin dibujo" if fallos else ""
+    return (f"DEBUG ✓ — {len(partes)} nodo(s) marcado(s) en escena{extra} "
+            f"— «Descartar» lo borra{'' if 'error' not in puesto else ': ' + puesto['error']}")

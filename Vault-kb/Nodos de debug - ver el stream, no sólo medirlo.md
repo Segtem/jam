@@ -165,6 +165,110 @@ pudieran **cargar** (validación de Slate). Son dos contratos distintos y sólo 
 cargador. Verificado por mutación: sacándole el comodín reproduce el error exacto —
 `edge 1 peso.out(P) → ver_P.in(*) sería rechazado al abrir`.
 
+## Revisión 2026-07-27 — cómo lo hacen las herramientas de verdad
+
+Brian, sobre el nodo comodín: *«me parece raro un solo nodo y que pueda mostrar para todas»*. Tenía
+razón, y la investigación lo confirmó.
+
+### El paradigma dominante: flag por nodo
+
+| Herramienta | Cómo se depura |
+|---|---|
+| **Houdini** | **display flag** y **template flag** en cada nodo; el que tiene el display flag es el que se ve |
+| **Grasshopper** | *preview toggle* por componente, encendido por defecto |
+| **Unreal PCG** | flag de debug por nodo, e **Inspect** con la tecla `A` |
+| **Substance Designer** | cada nodo muestra su propia salida |
+
+La propiedad que comparten: **no se agrega un nodo para depurar, se prende el nodo que ya está**.
+Cero contaminación del grafo, cero recableo.
+
+### La otra mitad: el inspector numérico
+
+Todas tienen un inspector de datos **separado** de la visualización 3D — el *Geometry Spreadsheet* de
+Houdini (que sirve, textualmente, para «inspeccionar datos que no tienen visualización»), el
+*Spreadsheet Editor* de Blender, el panel de Inspect de PCG.
+
+Y el dato decisivo: el flujo documentado de PCG es **«recorrer desde la entrada hacia adelante y ver
+dónde el conteo cae a cero»**. El acto de depurar más común no es mirar geometría, es mirar números.
+
+### Dónde quedaba el nodo comodín
+
+Blender **sí** tiene un Viewer node comodín, así que la idea no era inventada. Pero con dos
+diferencias que la salvan: `Shift-Ctrl-click` sobre cualquier nodo lo reconecta al viewer activo —o
+sea funciona como **sonda que se mueve**, no como nodo que se coloca y cablea— y viene con el
+Spreadsheet al lado. Blender además agregó *Quick Inspection*, que muestra el valor evaluado junto al
+socket sin viewer: están convergiendo hacia el flag.
+
+La versión de Jam era la de Blender **sin** el atajo y **sin** el inspector: la peor combinación.
+
+## Lo implementado
+
+### 1. Flag de debug por nodo
+
+Un toggle `○ / ◉` en la esquina de cada nodo, al lado de la ✕. Cuando está prendido, el Run:
+
+- **vuelca los datos de ese nodo al reporte** (la tabla, abajo);
+- **dibuja su salida** en la escena.
+
+El flag viaja en el `.jamgraph` (`"debug": true`) y es **opcional**: un archivo viejo sin el campo
+carga con el flag apagado.
+
+Nada de esto necesita cables ni nodos extra. Es el display flag de Houdini.
+
+### 2. Tabla de datos en el reporte
+
+`debug.tabla()` —**pura**— vuelca el stream como columnas según su tipo:
+
+```text
+[peso·weight_noise] WEIGHT NOISE P ✓ — 9 puntos
+    idx                    posición    peso  pendiente
+      0  ( -250.0, -250.0,    0.0)   0.597        0.0°
+      1  (    0.0, -250.0,    0.0)   0.349        0.0°
+    …  y 1 más
+```
+
+`F` muestra posición, escala y tangente; `P` posición, peso y pendiente; `N[]` los valores; `S`
+puntos, largo y escala; `AF` la variante que le tocó a cada frame. Recorta a 8 filas y dice cuántas
+quedaron.
+
+El conteo por nodo —el «dónde cae a cero» de PCG— **ya estaba** en el reporte de todo Run, marcado o
+no. Eso no cambió.
+
+### 3. El nodo `debug` se queda, con otro rol
+
+Ya no es *la* forma de depurar, pero sirve para lo que el flag no puede: **componer** la
+visualización dentro de una malla que se hornea, coloca o comparte. Un asset de referencia es un caso
+real; simplemente no es el gesto de cada día.
+
+## Una regla que salió de esto
+
+**Un flag de debug nunca debe tumbar el Run.** Si el dibujo falla —o si no hay motor, como en la
+suite headless— se informa y el grafo sigue:
+
+```text
+DEBUG ✗ — no se pudo dibujar: AttributeError: module 'unreal' has no attribute 'DynamicMesh'
+```
+
+Hay un test que lo fija. La tabla del reporte no depende del dibujo, así que sigue saliendo igual.
+
+## Verificación
+
+Corrido en UE 5.7.4 con cuatro nodos marcados y **ningún nodo de debug en el grafo**: las cuatro
+tablas en el reporte, un solo actor de visualización en escena, 0 errores, y `Discard` se lo llevó.
+
+El actor es un `DynamicMeshActor` —la visualización es transitoria por definición y no tiene por qué
+ensuciar Content— y cae dentro del `_preview` que envuelve al Run, así que no hizo falta marcarlo:
+la transacción ya captura por diferencia todo actor nuevo.
+
+Suite headless: **174/174**.
+
+## Lo que sigue faltando
+
+- **Inspector por elemento como panel**, con filtro y orden, tipo Geometry Spreadsheet. Hoy la tabla
+  vive en el reporte y se recorta a 8 filas.
+- **La sonda que se mueve** de Blender (`Shift-Ctrl-click` para reconectar el viewer activo).
+- **Selección bidireccional**: en Houdini, seleccionar en el viewport resalta la fila del spreadsheet.
+
 ## Relacionado
 
 - [[Puente P a F - las ops de Flow como verbos del Graph]]
