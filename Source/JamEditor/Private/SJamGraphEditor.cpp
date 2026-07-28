@@ -1295,6 +1295,9 @@ void SJamGraphEditor::RunGraph()
 	const FString Json = BuildJson();
 	const FString Result = OnRunGraph.IsBound() ? OnRunGraph.Execute(Json) : FString(TEXT("(sin runner)"));
 	ApplyGraphResult(Result);
+	// El inspector mira la última corrida: sin esto habría que apretar «actualizar» a mano después
+	// de cada Run, y lo que muestra sería del Run ANTERIOR — el peor error posible en un inspector.
+	RefreshInspector();
 }
 
 void SJamGraphEditor::BakePreview()
