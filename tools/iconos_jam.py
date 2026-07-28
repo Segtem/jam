@@ -29,6 +29,8 @@ H = "#6FBCB5"      # HISM
 S = "#CBAD69"      # spline
 F = "#DA90B8"      # frames
 M = "#50C8CE"      # malla
+NUM = "#EAB559"    # N (número)
+TEXTO = "#BF95D4"  # T (texto)
 TINTA = "#2A2E33"  # trazo neutro para lo estructural
 
 CABECERA = (
@@ -70,6 +72,34 @@ def caja(x, y, w, h, color=ASSET):
 def flecha(x0, y0, x1, y1, color=TINTA):
     return (f'<path d="M{x0} {y0}H{x1}" stroke="{color}" stroke-width="1.4"/>'
             f'<path d="m{x1 - 2} {y1 - 2} 2 2-2 2" stroke="{color}" stroke-width="1.4"/>')
+
+
+def suelo(d="M2 18h20", color=TINTA, ancho=1.5):
+    """La superficie sobre la que pasa todo: el suelo del scatter, la pendiente de una máscara."""
+    return f'<path d="{d}" stroke="{color}" stroke-width="{ancho}"/>'
+
+
+def apagado(x, y, color=P, r=1.7):
+    """Un punto que la máscara descartó: se dibuja hueco, no se borra.
+
+    Distinguir «lo filtró» de «nunca estuvo» es la misma idea que el `minimo` del debug de puntos.
+    """
+    return (f'<circle cx="{x}" cy="{y}" r="{r}" fill="none" stroke="{color}" '
+            f'stroke-width="1.2" stroke-opacity="0.55"/>')
+
+
+def pesado(x, y, peso, color=P):
+    """Un punto cuyo TAMAÑO es su peso — el mismo mapeo que usa el ayudante de debug."""
+    return punto(x, y, color, r=max(0.7, 0.7 + 2.0 * peso))
+
+
+# Nada de <text>: el rasterizador de SVG de Unreal es nanosvg, que entiende path/rect/circle/
+# ellipse/line/polygon/polyline/g y NADA más. Un <text> se parsea sin error y sale en blanco.
+# `test_paleta.ElementosSoportadosTests` lo fija.
+
+
+def fila(xs, y, color=P, r=1.7):
+    return "".join(punto(x, y, color, r) for x in xs)
 
 
 def svg(*piezas) -> str:
@@ -183,6 +213,142 @@ ICONOS = {
     # ── serie escalar ────────────────────────────────────────────────────────────
     "jam-graph-curve": svg(curva("M4 18c5 0 6-10 16-12", SERIE, 1.8),
                            barra(7, 18, 4), barra(11, 18, 7), barra(15, 18, 9)),
+
+    # ── Content: el asset ────────────────────────────────────────────────────────
+    "jam-asset": svg(caja(6, 6, 12, 12)),
+    "jam-pick": svg(caja(4, 5, 11, 11),
+                    curva("M14 13l6 6M14 13v5M14 13h5", TINTA, 1.5)),
+
+    # ── Place: una pieza y la superficie donde va ────────────────────────────────
+    "jam-place": svg(suelo(), caja(8, 10, 8, 8)),
+    "jam-drop": svg(suelo(), caja(8, 4, 8, 6),
+                    curva("M12 11v4M9.5 13.5 12 16l2.5-2.5", TINTA, 1.5)),
+    "jam-snap": svg(suelo(), caja(3, 11, 7, 7), caja(10, 11, 7, 7),
+                    curva("M10 8v12", TINTA, 1.2)),
+
+    # ── Scatter: muchas piezas repartidas ────────────────────────────────────────
+    "jam-scatter": svg(suelo(), caja(3, 13, 4, 5), caja(9, 12, 4, 6), caja(16, 14, 4, 4)),
+    "jam-spline-tool": svg(curva("M3 17c5-1 7-8 18-10", S, 1.6),
+                           caja(3, 14, 4, 4), caja(10, 10, 4, 4), caja(17, 5, 4, 4)),
+    "jam-pcg": svg(suelo(),
+                   *[caja(x, y, 3, 3) for x in (4, 9, 14) for y in (7, 12)]),
+
+    # ── Create ───────────────────────────────────────────────────────────────────
+    "jam-create-spline": svg(curva("M3 18c5 0 6-11 18-13"),
+                             punto(3, 18, S), punto(11, 11, S, 1.4), punto(21, 5, S)),
+    "jam-fracture": svg(malla("M11 3l-8 5.5 3 4 5-3z"),
+                        malla("M13.5 3.5l7.5 5.5-2 4.5-5.5-3.5z"),
+                        malla("M6.5 14.5l4.5-2.5 1 8-4-2.5z"),
+                        malla("M13.5 12.5l5 1.5-1.5 4-3.5 3z")),
+    "jam-nanite": svg(malla("M12 4l8 5v6l-8 5-8-5V9z", M, False),
+                      curva("M4 9l8 5 8-5M12 4v16M4 15l8-6 8 6M8 6.5v11M16 6.5v11", M, 0.9)),
+    "jam-replace": svg(caja(2, 8, 7, 8, "#DDDDE2"), flecha(10, 12, 14, 12), caja(15, 8, 7, 8)),
+
+    # ── Edit ─────────────────────────────────────────────────────────────────────
+    "jam-ghost": svg(f'<rect x="6" y="6" width="12" height="12" rx="1" stroke="{ASSET}" '
+                     f'stroke-width="1.6" stroke-dasharray="3 2" fill="none"/>'),
+    "jam-gizmo": svg(curva("M12 20V8", "#DD6F81", 1.8), curva("M12 20h9", TINTA, 1.8),
+                     curva("M12 20 5 23", P, 1.8), punto(12, 20, TINTA, 1.6)),
+    "jam-pivot": svg(caja(6, 6, 12, 12), punto(12, 12, TINTA, 2.2)),
+    "jam-pivot-set": svg(caja(6, 5, 12, 12), punto(12, 11, "#DDDDE2", 2.0),
+                         punto(12, 20, TINTA, 2.2), curva("M12 14v4", TINTA, 1.3)),
+    "jam-normalize": svg(caja(6, 4, 12, 12), punto(12, 10, "#DDDDE2", 1.8),
+                         curva("M12 12v6M9.5 16 12 18.5 14.5 16", TINTA, 1.4),
+                         suelo("M4 20h16")),
+
+    # ── Vector: el generador dibuja su propia disposición ────────────────────────
+    "jam-pts-line": svg(fila((4, 8, 12, 16, 20), 12)),
+    "jam-pts-circle": svg(*[punto(12 + 7.5 * __import__("math").cos(a * 3.14159 / 4),
+                                  12 + 7.5 * __import__("math").sin(a * 3.14159 / 4))
+                            for a in range(8)]),
+    "jam-pts-rect": svg(*[punto(x, y) for x in (5, 12, 19) for y in (5, 12, 19)]),
+    "jam-pts-arc": svg(curva("M4 19a11 11 0 0 1 16-10", TINTA, 1.0),
+                       punto(4, 19), punto(7, 12.5), punto(13, 8.5), punto(20, 9)),
+
+    # ── Mask: filtran; el descartado queda HUECO ─────────────────────────────────
+    "jam-mask-slope": svg(suelo("M2 19 22 7"), punto(6, 16), punto(11, 13),
+                          apagado(16, 10), apagado(20, 8)),
+    "jam-mask-height": svg(curva("M2 12h20", TINTA, 1.2),
+                           punto(6, 7), punto(12, 6), punto(18, 8),
+                           apagado(7, 17), apagado(14, 18)),
+    "jam-mask-noise": svg(punto(5, 8), apagado(11, 6), punto(17, 9),
+                          apagado(6, 15), punto(13, 17), apagado(19, 15)),
+    "jam-mask-density": svg(punto(5, 8), punto(9, 7), punto(6, 13),
+                            apagado(7, 10), apagado(8, 11),
+                            punto(16, 9), punto(19, 15), punto(15, 17)),
+
+    # ── Weight: el peso se dibuja como TAMAÑO, igual que en el debug ─────────────
+    "jam-weight-slope": svg(suelo("M2 19 22 7"), pesado(6, 16, 1.0), pesado(11, 13, 0.6),
+                            pesado(16, 10, 0.3), pesado(20, 8, 0.1)),
+    "jam-weight-height": svg(pesado(6, 18, 0.1), pesado(11, 14, 0.4),
+                             pesado(16, 10, 0.7), pesado(20, 6, 1.0)),
+    "jam-weight-noise": svg(pesado(5, 9, 0.8), pesado(11, 7, 0.2), pesado(17, 10, 0.9),
+                            pesado(7, 16, 0.3), pesado(14, 18, 0.7)),
+    "jam-weight-radial": svg(f'<circle cx="12" cy="12" r="8.5" stroke="{TINTA}" '
+                             f'stroke-width="1.0" fill="none"/>',
+                             pesado(12, 12, 1.0), pesado(6, 12, 0.5), pesado(18, 12, 0.5),
+                             pesado(12, 5, 0.2), pesado(12, 19, 0.2)),
+    "jam-weight-curve": svg(curva("M3 19c6 0 8-12 18-14", SERIE, 1.6),
+                            pesado(5, 17, 0.2), pesado(11, 12, 0.6), pesado(18, 7, 1.0)),
+    "jam-weight-invert": svg(pesado(6, 8, 1.0), pesado(6, 17, 0.2),
+                             flecha(10, 12, 14, 12),
+                             pesado(19, 8, 0.2), pesado(19, 17, 1.0)),
+    "jam-weight-power": svg(curva("M4 19 20 5", "#DDDDE2", 1.5),
+                            curva("M4 19c10 0 12-3 16-14", SERIE, 1.8),
+                            pesado(4, 19, 0.1), pesado(20, 5, 1.0)),
+    "jam-weight-combine": svg(pesado(4, 7, 0.7), pesado(4, 17, 0.4),
+                              curva("M7 7c4 0 4 5 7 5M7 17c4 0 4-5 7-5", TINTA, 1.2),
+                              pesado(17, 12, 1.0)),
+    "jam-weight-cull": svg(pesado(5, 12, 1.0), pesado(10, 12, 0.7),
+                           apagado(15, 12, P, 1.2), apagado(20, 12, P, 1.0),
+                           curva("M13 6v12", TINTA, 1.2)),
+
+    # ── Sets: operaciones sobre la LISTA ─────────────────────────────────────────
+    "jam-cull-nth": svg(punto(4, 12), apagado(9, 12), punto(14, 12), apagado(19, 12)),
+    "jam-relax": svg(punto(9, 12), punto(15, 12),
+                     curva("M7 12H3M17 12h4", TINTA, 1.3),
+                     curva("M4 10l-1 2 1 2M20 10l1 2-1 2", TINTA, 1.3)),
+    "jam-reverse": svg(fila((4, 9, 14, 19), 8),
+                       curva("M20 15H5M8 12l-3 3 3 3", TINTA, 1.4)),
+    "jam-shift": svg(fila((5, 10, 15, 20), 10),
+                     curva("M20 14c0 4-15 4-15 0M5 14v-1", TINTA, 1.3),
+                     curva("M2.5 12.5 5 10l2.5 2.5", TINTA, 1.3)),
+    "jam-sub-list": svg(apagado(4, 12), punto(9, 12), punto(14, 12), apagado(19, 12),
+                        curva("M7 6v12M16 6v12", TINTA, 1.2)),
+
+    # ── Transform ────────────────────────────────────────────────────────────────
+    "jam-move": svg(fila((4, 8), 15, "#DDDDE2"), fila((14, 18), 9),
+                    flecha(9, 12, 13, 12)),
+    "jam-jitter": svg(punto(5, 11), punto(11, 14), punto(17, 10),
+                      curva("M5 11l1.5-2M11 14l-2-1.5M17 10l1.5 2", TINTA, 1.2)),
+    "jam-rotate-pts": svg(curva("M12 4a8 8 0 1 1-7 4", TINTA, 1.3),
+                          curva("M4 5v4h4", TINTA, 1.3),
+                          punto(12, 4), punto(19, 12), punto(12, 20)),
+    "jam-scale-pts": svg(punto(12, 12, P, 1.4),
+                         punto(5, 5), punto(19, 5), punto(5, 19), punto(19, 19),
+                         curva("M9 9 6 6M15 9l3-3M9 15l-3 3M15 15l3 3", TINTA, 1.1)),
+
+    # ── Combine ──────────────────────────────────────────────────────────────────
+    "jam-merge-pts": svg(fila((4, 8), 6), fila((4, 8), 18),
+                         curva("M11 6c4 0 4 6 7 6M11 18c4 0 4-6 7-6", TINTA, 1.3),
+                         punto(20, 12)),
+    "jam-weave": svg(punto(4, 7), punto(4, 17),
+                     curva("M7 7c5 0 5 10 10 10M7 17c5 0 5-10 10-10", TINTA, 1.3),
+                     punto(19, 17), punto(19, 7)),
+
+    # ── Display / Params / Maths ─────────────────────────────────────────────────
+    "jam-info": svg(fila((4, 8, 12), 17), barra(17, 19, 5), barra(20, 19, 9)),
+    "jam-number": svg(curva("M3 12h18", TINTA, 1.4),
+                      f'<rect x="12" y="8" width="4" height="8" rx="1" fill="{NUM}" stroke="none"/>'),
+    "jam-text": svg(curva("M5 7h14M12 7v11", TEXTO, 2.0)),
+    "jam-math": svg(curva("M4 8h7M7.5 4.5v7", NUM, 2.0),
+                    curva("M14 14l6 6M20 14l-6 6", NUM, 2.0)),
+
+    # ── Source / Output ──────────────────────────────────────────────────────────
+    "jam-source-surface": svg(suelo("M2 17c5-6 9 2 20-5", TINTA, 1.6),
+                              punto(5, 14), punto(10, 14.5), punto(15, 11), punto(20, 8)),
+    "jam-instance": svg(punto(4, 17, P, 1.4), punto(11, 17, P, 1.4), punto(18, 17, P, 1.4),
+                        caja(2.5, 10, 4, 4), caja(9.5, 10, 4, 4), caja(16.5, 10, 4, 4)),
 
     # ── debug ───────────────────────────────────────────────────────────────────
     "jam-debug": svg(f'<circle cx="12" cy="12" r="7" stroke="{TINTA}" stroke-width="1.4"/>',

@@ -45,27 +45,46 @@ Acá ese vocabulario es el **sistema de tipos**, con los mismos colores que los 
 | `A` asset | cajita | `#7CBF90` verde |
 | `AF` variante | cajita lima | `#A6D490` |
 | `H` instancias | cajitas verde azulado | `#6FBCB5` |
+| `N` número | control de slider | `#EAB559` ámbar |
+| `T` texto | trazo violeta | `#BF95D4` |
+
+Sobre esa base hay tres modificadores que valen en todos los tabs:
+
+| Modificador | Significa |
+|---|---|
+| punto **hueco** | lo descartó un filtro — se dibuja, no se borra |
+| **tamaño** del punto | su peso (el mismo mapeo que el ayudante de debug) |
+| gris `#DDDDE2` | el estado **anterior**, para leer el antes/después |
 
 Consecuencia doble: dos verbos con firma distinta tienen iconos distintos **por construcción**, y el
 icono **enseña el tipo** — se aprenden los colores una vez y todos se leen solos.
 
-Los 44 iconos propios se generan con `tools/iconos_jam.py`, donde el vocabulario está escrito como
-funciones (`punto()`, `curva()`, `frame()`, `malla()`, `barra()`, `caja()`). Agregar un icono nuevo es
+Los 95 iconos propios se generan con `tools/iconos_jam.py`, donde el vocabulario está escrito como
+funciones (`punto()`, `curva()`, `frame()`, `malla()`, `barra()`, `caja()`, `suelo()`, `apagado()`,
+`pesado()`). Agregar un icono nuevo es
 componer esas piezas, no dibujar desde cero:
 
 ```bash
 python3 tools/iconos_jam.py     # reescribe los jam-*.svg
 ```
 
+## Un límite del motor: nanosvg
+
+Unreal rasteriza SVG con **nanosvg**, que entiende `path`, `rect`, `circle`, `ellipse`, `line`,
+`polygon`, `polyline` y `g` — **y nada más**. Un `<text>` se parsea sin error y el icono sale **en
+blanco**, sin ninguna señal desde Python. Por eso las letras de `jam-text` y `jam-math` están
+dibujadas con trazos, y `test_paleta.test_no_icon_uses_an_element_unreal_cannot_rasterize` fija la
+lista. Sí funcionan `stroke-opacity`, `fill-opacity` y `stroke-dasharray`.
+
 ## Estado
 
-- **Tab Mesh: 0 colisiones.** Los 44 verbos tienen pictograma propio.
-- El resto de los tabs sigue con Lucide y **comparte** algunos pictogramas. Como el ribbon muestra
-  sólo el icono, ésa es la deuda pendiente: seguir el mismo método por tab.
+**95 de 95 verbos con icono propio, 0 colisiones.** Ya no queda ninguno con pictograma de Lucide
+(los SVG de Lucide siguen en la carpeta como respaldo del mapping y por su licencia).
 
-`icon-map.json` propone un icono para cada verbo existente en `jam.tools` y `jam.flow`. Varios verbos
-comparten pictograma deliberadamente; primero hay que probar la lectura real a 16–20 px antes de crear
-variantes más específicas.
+Los archivos se validan a 24 px reales antes de darlos por buenos: `rsvg-convert` + `montage` arman
+una hoja de contactos etiquetada. Ese paso encontró tres iconos ilegibles que en el código parecían
+razonables (`shift` no leía la rotación, `fracture` y `nanite` eran el mismo hexágono, `weight-power`
+era otra curva ámbar más).
 
 `JamEditor` lee el mapping una vez al abrir la interfaz. Los SVG aparecen en el centro de los nodos y
 en las fichas de herramientas; si falta una entrada o un archivo, vuelve automáticamente al nombre
