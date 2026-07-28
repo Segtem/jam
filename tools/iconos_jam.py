@@ -400,6 +400,29 @@ ICONOS = {
     # ── debug ───────────────────────────────────────────────────────────────────
     "jam-debug": svg(f'<circle cx="12" cy="12" r="7" stroke="{TINTA}" stroke-width="1.4"/>',
                      frame(12, 14, F, 4), punto(12, 12, P, 1.4)),
+
+    # ── tab Aprender: los ejemplos ──────────────────────────────────────────────
+    # Un ejemplo no es un verbo, así que su icono no puede diagramar una firma. Lo que dibuja es el
+    # RESULTADO — lo que vas a ver en pantalla al correrlo —, que es lo que hace elegir cuál abrir.
+    "jam-ej-primeros-pasos": svg(malla("M7 10l5-3 5 3v6l-5 3-5-3z"),
+                                 curva("M7 10l5 3 5-3M12 13v6", M, 1.1),
+                                 flecha(2, 12, 5.5, 12),
+                                 punto(20.5, 12, ASSET, 1.6)),
+    "jam-ej-pino": svg(malla("M12 3l4 6h-8zM12 8l5 7H7zM12 13l6 7H6z"),
+                       curva("M12 20v2", TINTA, 1.4)),
+    "jam-ej-ramificado": svg(curva("M12 21V7", S, 1.9),
+                             curva("M12 14l5-4M12 11l-4-3M12 17l-5-2", S, 1.4),
+                             punto(17, 10, S, 1.3), punto(8, 8, S, 1.3), punto(7, 15, S, 1.3)),
+    "jam-ej-frames": svg(curva("M4 20c3-8 9-12 16-14", S, 1.5),
+                         frame(6, 17, F, 3.6), frame(11, 12, F, 3.6), frame(17, 8, F, 3.6)),
+    "jam-ej-dos-niveles": svg(curva("M12 21V9", S, 1.9),
+                              curva("M12 15l4-3M12 12l-4-2", S, 1.4),
+                              fila((16, 8, 12), 6, H, 1.9),
+                              punto(14, 3.5, H, 1.9), punto(10, 3.5, H, 1.9)),
+    "jam-ej-debug": svg(punto(5, 6, P, 1.5), frame(5, 13, F, 3.2), curva("M4 20h5", S, 1.5),
+                        curva("M13 4v16", TINTA, 1.0),
+                        f'<circle cx="18" cy="12" r="4.5" stroke="{TINTA}" stroke-width="1.4"/>',
+                        punto(18, 12, P, 1.5)),
 }
 
 

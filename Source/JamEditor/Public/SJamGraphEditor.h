@@ -121,14 +121,8 @@ private:
 	/** Diálogos de archivo (DesktopPlatform): guardar/abrir un diagrama .jamgraph (JSON). */
 	void SaveDiagram(bool bForceDialog);
 	void OpenDiagram();
-	/** Carga el pino procedural incluido con Jam como documento nuevo editable. */
-	void LoadTreeExample();
-	/** Carga el ejemplo ramificado basado en Curve Bezier + Mesh Pipe. */
-	void LoadBranchedTreeExample();
-	/** Carga el ejemplo mínimo que convierte una spline S en frames jerárquicos F. */
-	void LoadCurveFramesExample();
-	void LoadTwoLevelExample();
-	void LoadDebugExample();
+	/** Carga uno de los tutoriales del tab «Aprender». El catálogo es `Resources/Examples/examples.json`:
+	    cada ficha de ese tab llama acá con su archivo, así que sumar un tutorial no toca C++. */
 
 	// ---- inspector de datos (el Geometry Spreadsheet de Jam) ----
 	/** Relee del último Run: repuebla el selector de nodos y la tabla del nodo elegido. */
@@ -149,6 +143,8 @@ private:
 
 	/** Ribbon estilo Grasshopper: al elegir un tab (categoría) se rellenan sus fichas con icono. */
 	void RebuildTabContent();
+	/** El tab «Aprender»: fichas que CARGAN un tutorial en vez de crear un nodo. */
+	void RebuildLearnTab();
 	void OnPinClicked(const FString& Id, const FString& Pin, bool bOutput);
 	/** Recomputa, por cada nodo, qué pines de parámetro tienen cable entrando y se lo dice a su widget
 	 *  (para que grisee esos inputs). Se llama tras cualquier cambio de aristas. */

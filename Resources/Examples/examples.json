@@ -1,0 +1,62 @@
+{
+	"_comentario": [
+		"El catálogo del tab Aprender. Vive al lado de los .jamgraph y NO en el C++: agregar un",
+		"tutorial es soltar un archivo acá y sumarle una línea, sin recompilar el plugin — el mismo",
+		"trato que icon-map.json.",
+		"",
+		"`grupo` es el panel del ribbon (se dibujan en el orden en que aparecen acá).",
+		"`icono` es el nombre del SVG en Resources/Icons/Lucide, sin extensión.",
+		"`mensaje` es lo que dice el Output al cargarlo: tiene que decir QUÉ HACER después, porque",
+		"un grafo cargado que nadie corre parece que no hizo nada."
+	],
+	"ejemplos": [
+		{
+			"archivo": "Primeros-pasos.jamgraph",
+			"titulo": "Primeros pasos",
+			"grupo": "Empezar",
+			"icono": "jam-ej-primeros-pasos",
+			"doc": "La cadena mínima de Jam, en cuatro nodos: una caja (M) se suaviza, se hornea como StaticMesh (A) y se coloca en el nivel.\nMirá los colores de los cables: cian es malla procedural, verde es asset. Un verbo sólo se enchufa donde el tipo coincide.",
+			"mensaje": "Primeros pasos cargado. Ahora: Compile (verifica sin tocar la escena) y después Run graph — la caja aparece en el nivel."
+		},
+		{
+			"archivo": "TreeGen-Stylized-Pine.jamgraph",
+			"titulo": "Pino procedural",
+			"grupo": "Árboles",
+			"icono": "jam-ej-pino",
+			"doc": "Un pino low-poly hecho con primitivas: cuatro conos movidos y unidos en una sola malla.\nEs el ejemplo para ver cómo `mesh_merge` junta partes y cómo `mesh_transform` las ubica sin tocar el original.",
+			"mensaje": "Ejemplo cargado: pino procedural. Compile y después Run graph para previsualizarlo."
+		},
+		{
+			"archivo": "TreeGen-Branched-Tree.jamgraph",
+			"titulo": "Árbol ramificado",
+			"grupo": "Árboles",
+			"icono": "jam-ej-ramificado",
+			"doc": "Curvas Bézier barridas con `mesh_pipe`, con radio decreciente hacia la punta.\nAcá aparece el tipo S (spline): por el cable ya no viaja geometría sino la línea que la genera.",
+			"mensaje": "Ejemplo cargado: árbol ramificado TreeGen. Compile y después Run graph para previsualizarlo."
+		},
+		{
+			"archivo": "TreeGen-Curve-Frames.jamgraph",
+			"titulo": "Frames sobre la curva",
+			"grupo": "Árboles",
+			"icono": "jam-ej-frames",
+			"doc": "El flow S → F → ramas → malla. Un frame es una posición CON orientación, y es lo que decide hacia dónde sale cada rama.\nSi te interesa cómo Jam reparte cosas a lo largo de algo, este es el ejemplo.",
+			"mensaje": "Ejemplo cargado: flow modular de frames y ramas. Compile y después Run graph para ver el preview."
+		},
+		{
+			"archivo": "TreeGen-Two-Level.jamgraph",
+			"titulo": "Árbol de dos niveles",
+			"grupo": "Árboles",
+			"icono": "jam-ej-dos-niveles",
+			"doc": "La réplica completa de TreeGen: tronco → ramas → ramitas → follaje.\nEl follaje sale como HISM aparte (tipo H), que es lo que permite miles de hojas sin miles de actores.",
+			"mensaje": "Ejemplo cargado: árbol de dos niveles. Compile y después Run graph; el follaje sale como HISM aparte."
+		},
+		{
+			"archivo": "Debug-Playground.jamgraph",
+			"titulo": "Banco de pruebas de Debug",
+			"grupo": "Ver el dato",
+			"icono": "jam-ej-debug",
+			"doc": "El mismo nodo Debug conectado a cinco tipos distintos: puntos, frames, curva, serie y malla.\nEs el ejemplo para aprender a MIRAR lo que viaja por un cable en vez de adivinarlo.",
+			"mensaje": "Ejemplo cargado: banco de pruebas de Debug. Compile y después Run graph — cada carril dibuja un tipo distinto."
+		}
+	]
+}

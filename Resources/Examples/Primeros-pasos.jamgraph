@@ -1,0 +1,81 @@
+{
+	"schema_version": 1,
+	"nodes": {
+		"caja": {
+			"verb": "mesh_box",
+			"params": {
+				"size_x": "200.0",
+				"size_y": "200.0",
+				"size_z": "320.0",
+				"steps_x": "0",
+				"steps_y": "0",
+				"steps_z": "0"
+			},
+			"asset": null,
+			"x": 40,
+			"y": 60
+		},
+		"suavizar": {
+			"verb": "mesh_normals",
+			"params": {
+				"angle_weighted": "True",
+				"area_weighted": "True"
+			},
+			"asset": null,
+			"x": 340,
+			"y": 60
+		},
+		"hornear": {
+			"verb": "mesh_to_static",
+			"params": {
+				"name": "SM_JamPrimerosPasos",
+				"folder": "/Game/Jam/Meshes",
+				"collision": "True",
+				"recompute_tangents": "True",
+				"show_vertex_colors": "True"
+			},
+			"asset": null,
+			"x": 640,
+			"y": 60
+		},
+		"colocar": {
+			"verb": "place",
+			"params": {
+				"x": "0.0",
+				"y": "0.0",
+				"z": "0.0",
+				"view": "True",
+				"surface": "True",
+				"anchor": "base",
+				"sink": "0.0",
+				"align": "False",
+				"physics": "False",
+				"yaw": "0.0",
+				"scale": "1.0"
+			},
+			"asset": null,
+			"x": 940,
+			"y": 60
+		}
+	},
+	"edges": [
+		[
+			"caja",
+			"out",
+			"suavizar",
+			"in"
+		],
+		[
+			"suavizar",
+			"out",
+			"hornear",
+			"in"
+		],
+		[
+			"hornear",
+			"out",
+			"colocar",
+			"in"
+		]
+	]
+}

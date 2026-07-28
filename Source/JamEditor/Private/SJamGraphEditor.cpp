@@ -92,6 +92,92 @@ static const TMap<FString, FString>& JamIconMap()
 	return Map;
 }
 
+// ---- el tab Aprender: los tutoriales, leídos de un manifiesto ----
+// Estaban como cinco entradas «Abrir ejemplo: …» dentro del menú File, que es donde nadie mira
+// cuando está empezando, y como cinco funciones C++ que sólo se diferenciaban en un nombre de
+// archivo. Ahora son DATO: `Resources/Examples/examples.json` los lista, y agregar un tutorial es
+// soltar el .jamgraph y sumarle una línea — sin recompilar el plugin, igual que los iconos.
+
+struct FJamExample
+{
+	FString File;
+	FString Title;
+	FString Doc;
+	FString Group;
+	FString Icon;
+	FString Message;
+};
+
+// El nombre del tab. No sale del spec de verbos porque no es una categoría de verbos: no hay
+// ningún `FJamTool` con esta categoría, y sus fichas CARGAN un grafo en vez de crear un nodo.
+static const TCHAR* JamLearnTab = TEXT("Aprender");
+
+static const TArray<FJamExample>& JamExamples()
+{
+	static const TArray<FJamExample> Cargados = []()
+	{
+		TArray<FJamExample> Salida;
+		const TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(TEXT("Jam"));
+		if (!Plugin.IsValid())
+		{
+			return Salida;
+		}
+		const FString Path = FPaths::Combine(
+			Plugin->GetBaseDir(), TEXT("Resources/Examples/examples.json"));
+		FString Json;
+		TSharedPtr<FJsonObject> Root;
+		if (!FFileHelper::LoadFileToString(Json, *Path))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[JamEditor] examples.json no se pudo leer: %s"), *Path);
+			return Salida;
+		}
+		const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Json);
+		if (!FJsonSerializer::Deserialize(Reader, Root) || !Root.IsValid())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[JamEditor] examples.json no es JSON válido: %s"), *Path);
+			return Salida;
+		}
+		const TArray<TSharedPtr<FJsonValue>>* Lista = nullptr;
+		if (!Root->TryGetArrayField(TEXT("ejemplos"), Lista) || Lista == nullptr)
+		{
+			return Salida;
+		}
+		for (const TSharedPtr<FJsonValue>& Valor : *Lista)
+		{
+			const TSharedPtr<FJsonObject>* Objeto = nullptr;
+			if (!Valor.IsValid() || !Valor->TryGetObject(Objeto) || Objeto == nullptr)
+			{
+				continue;
+			}
+			FJamExample E;
+			(*Objeto)->TryGetStringField(TEXT("archivo"), E.File);
+			(*Objeto)->TryGetStringField(TEXT("titulo"), E.Title);
+			(*Objeto)->TryGetStringField(TEXT("doc"), E.Doc);
+			(*Objeto)->TryGetStringField(TEXT("grupo"), E.Group);
+			(*Objeto)->TryGetStringField(TEXT("icono"), E.Icon);
+			(*Objeto)->TryGetStringField(TEXT("mensaje"), E.Message);
+			if (!E.File.IsEmpty())
+			{
+				Salida.Add(MoveTemp(E));
+			}
+		}
+		return Salida;
+	}();
+	return Cargados;
+}
+
+static FString JamIconPath(const FString& IconName)
+{
+	const TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(TEXT("Jam"));
+	if (IconName.IsEmpty() || !Plugin.IsValid())
+	{
+		return FString();
+	}
+	const FString Path = FPaths::Combine(
+		Plugin->GetBaseDir(), TEXT("Resources/Icons/Lucide"), IconName + TEXT(".svg"));
+	return IFileManager::Get().FileExists(*Path) ? Path : FString();
+}
+
 // Capa de fondo del canvas (como el de Grasshopper): pinta el color de fondo, una GRILLA fina
 // alineada al pan/zoom, y los WIRES (splines) — todo detrás de los nodos.
 class SJamWireLayer : public SLeafWidget
@@ -238,12 +324,18 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 		.ToolTipText(LOCTEXT("PaletteContentTip", "Elegir el asset activo (abre la ventana de Content)"))
 		.OnClicked_Lambda([this]() { OnOpenContent.ExecuteIfBound(); return FReply::Handled(); })
 	];
+	// «Aprender» va PRIMERO —es lo que busca alguien que recién llega— pero NO es el tab por
+	// defecto: quien usa Jam todos los días no quiere una pantalla de bienvenida entre él y sus
+	// verbos. Se abre en el primer tab de trabajo y este queda a un clic, a la vista.
+	Categories.Insert(JamLearnTab, 0);
 	for (const FString& Cat : Categories)
 	{
 		TabStrip->AddSlot().AutoWidth().Padding(1.0f, 0.0f)
 		[
 			SNew(SButton)
-			.ToolTipText(FText::FromString(FString::Printf(TEXT("Tab «%s»"), *Cat)))
+			.ToolTipText(Cat == JamLearnTab
+				? LOCTEXT("LearnTabTip", "Tutoriales y ejemplos: grafos armados para abrir, correr y desarmar")
+				: FText::FromString(FString::Printf(TEXT("Tab «%s»"), *Cat)))
 			// activo = tono de la categoría; inactivo = gris apagado (así se lee cuál está abierto)
 			.ButtonColorAndOpacity_Lambda([this, Cat]()
 			{
@@ -701,6 +793,9 @@ FLinearColor SJamGraphEditor::CategoryColor(const FString& Cat)
 	if (Cat == TEXT("Output"))   { return FLinearColor(0.58f, 0.30f, 0.62f, 1.0f); }
 	if (Cat == TEXT("Shader"))   { return FLinearColor(0.66f, 0.42f, 0.20f, 1.0f); }
 	if (Cat == TEXT("Display"))  { return FLinearColor(0.62f, 0.60f, 0.24f, 1.0f); }
+	// «Aprender» no es una categoría de verbos: es el tab de tutoriales. Azul frío, que no se
+	// confunde con ninguno de los tabs de trabajo.
+	if (Cat == TEXT("Aprender")) { return FLinearColor(0.22f, 0.40f, 0.62f, 1.0f); }
 	return FLinearColor(0.35f, 0.35f, 0.38f, 1.0f);
 }
 
@@ -804,6 +899,12 @@ void SJamGraphEditor::RebuildTabContent()
 	}
 	TabContentBox->ClearChildren();
 
+	if (ActiveTab == JamLearnTab)
+	{
+		RebuildLearnTab();
+		return;
+	}
+
 	// El tab se parte en SUBGRUPOS (los «paneles» de Grasshopper) y cada uno apila `RibbonRows`
 	// filas. El spec ya llega ordenado por la tabla de layout de `jam/ribbon.py`, así que basta con
 	// respetar el orden de aparición: agrupar sin reordenar.
@@ -876,6 +977,89 @@ void SJamGraphEditor::RebuildTabContent()
 		];
 
 		if (GroupIndex + 1 < GroupOrder.Num())
+		{
+			TabContentBox->AddSlot().AutoWidth().Padding(2.0f, 2.0f)
+			[
+				SNew(SSeparator).Orientation(Orient_Vertical).Thickness(1.0f)
+			];
+		}
+	}
+}
+
+void SJamGraphEditor::RebuildLearnTab()
+{
+	// Mismo dibujo que un tab de verbos —fichas con icono, agrupadas, con el nombre del panel
+	// abajo— para que se sienta parte del mismo ribbon y no una pantalla aparte. Las diferencias
+	// son dos: la ficha CARGA un grafo en vez de crear un nodo, y el título va debajo del icono,
+	// porque acá el nombre sí importa (un tutorial se elige por su nombre, un verbo por su firma).
+	const TArray<FJamExample>& Ejemplos = JamExamples();
+	if (Ejemplos.Num() == 0)
+	{
+		TabContentBox->AddSlot().AutoWidth().Padding(6.0f)
+		[
+			SNew(STextBlock).Text(LOCTEXT("NoExamples",
+				"No encontré Resources/Examples/examples.json — el catálogo de tutoriales."))
+		];
+		return;
+	}
+
+	TArray<FString> Orden;
+	TMap<FString, TArray<const FJamExample*>> PorGrupo;
+	for (const FJamExample& E : Ejemplos)
+	{
+		if (!PorGrupo.Contains(E.Group))
+		{
+			Orden.Add(E.Group);
+		}
+		PorGrupo.FindOrAdd(E.Group).Add(&E);
+	}
+
+	for (int32 Indice = 0; Indice < Orden.Num(); ++Indice)
+	{
+		TSharedRef<SHorizontalBox> Fila = SNew(SHorizontalBox);
+		for (const FJamExample* E : PorGrupo[Orden[Indice]])
+		{
+			const FString Archivo = E->File;
+			const FString Mensaje = E->Message;
+			Fila->AddSlot().AutoWidth().Padding(2.0f, 0.0f)
+			[
+				SNew(SButton)
+				.ToolTipText(FText::FromString(FString::Printf(
+					TEXT("%s\n\n%s"), *E->Title, *E->Doc)))
+				.ContentPadding(FMargin(3.0f))
+				.OnClicked_Lambda([this, Archivo, Mensaje]()
+				{
+					LoadBundledExample(Archivo, FText::FromString(Mensaje));
+					return FReply::Handled();
+				})
+				[
+					SNew(SVerticalBox)
+					+ SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center)
+					[ MakeBadge(CategoryColor(JamLearnTab), TEXT("EJ"), 42.0f, JamIconPath(E->Icon)) ]
+					+ SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center).Padding(0.0f, 2.0f, 0.0f, 0.0f)
+					[
+						SNew(STextBlock)
+						.Text(FText::FromString(E->Title))
+						.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
+					]
+				]
+			];
+		}
+
+		TabContentBox->AddSlot().AutoWidth().Padding(3.0f, 0.0f)
+		[
+			SNew(SVerticalBox)
+			+ SVerticalBox::Slot().AutoHeight()[ Fila ]
+			+ SVerticalBox::Slot().AutoHeight().Padding(0.0f, 2.0f, 0.0f, 0.0f).HAlign(HAlign_Center)
+			[
+				SNew(STextBlock)
+				.Text(FText::FromString(Orden[Indice]))
+				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 7))
+				.ColorAndOpacity(FSlateColor(FLinearColor(0.62f, 0.62f, 0.66f, 1.0f)))
+			]
+		];
+
+		if (Indice + 1 < Orden.Num())
 		{
 			TabContentBox->AddSlot().AutoWidth().Padding(2.0f, 2.0f)
 			[
@@ -1595,21 +1779,8 @@ void SJamGraphEditor::FillFileMenu(FMenuBuilder& MB)
 		FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::NewGraph)));
 	MB.AddMenuEntry(LOCTEXT("Open", "Abrir diagrama…"), LOCTEXT("OpenTip", "Cargar un .jamgraph"), FSlateIcon(),
 		FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::OpenDiagram)));
-	MB.AddMenuEntry(LOCTEXT("TreeExample", "Abrir ejemplo: pino procedural"),
-		LOCTEXT("TreeExampleTip", "Carga un árbol low-poly construido con los verbos del tab Mesh"),
-		FSlateIcon(), FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::LoadTreeExample)));
-	MB.AddMenuEntry(LOCTEXT("BranchedTreeExample", "Abrir ejemplo: árbol ramificado TreeGen"),
-		LOCTEXT("BranchedTreeExampleTip", "Carga un árbol construido con curvas Bézier y pipes con taper"),
-		FSlateIcon(), FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::LoadBranchedTreeExample)));
-	MB.AddMenuEntry(LOCTEXT("CurveFramesExample", "Abrir ejemplo: frames de TreeGen"),
-		LOCTEXT("CurveFramesExampleTip", "Carga el flow S → F → ramas → malla para generar un árbol de prueba visible"),
-		FSlateIcon(), FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::LoadCurveFramesExample)));
-	MB.AddMenuEntry(LOCTEXT("DebugExample", "Abrir ejemplo: banco de pruebas de Debug"),
-		LOCTEXT("DebugExampleTip", "El mismo nodo Debug conectado a cinco tipos distintos: puntos, frames, curva, serie y malla"),
-		FSlateIcon(), FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::LoadDebugExample)));
-	MB.AddMenuEntry(LOCTEXT("TwoLevelExample", "Abrir ejemplo: árbol de dos niveles"),
-		LOCTEXT("TwoLevelExampleTip", "Carga la réplica completa de TreeGen: tronco → ramas → ramitas → follaje HISM"),
-		FSlateIcon(), FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::LoadTwoLevelExample)));
+	// Los ejemplos vivían acá, como cinco «Abrir ejemplo: …». Están en el tab «Aprender», que es un
+	// lugar donde alguien que recién empieza los va a encontrar sin abrir un menú.
 	MB.AddMenuSeparator();
 	MB.AddMenuEntry(LOCTEXT("Save", "Guardar"), LOCTEXT("SaveTip", "Guardar en el archivo actual"), FSlateIcon(),
 		FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::SaveDiagram, false)));
@@ -1960,41 +2131,6 @@ void SJamGraphEditor::OpenDiagram()
 			CurrentPath = Files[0];
 		}
 	}
-}
-
-void SJamGraphEditor::LoadTreeExample()
-{
-	LoadBundledExample(TEXT("TreeGen-Stylized-Pine.jamgraph"),
-		LOCTEXT("TreeExampleLoaded",
-			"ejemplo cargado: pino procedural · Compile y luego Run graph para previsualizarlo."));
-}
-
-void SJamGraphEditor::LoadBranchedTreeExample()
-{
-	LoadBundledExample(TEXT("TreeGen-Branched-Tree.jamgraph"),
-		LOCTEXT("BranchedTreeExampleLoaded",
-			"ejemplo cargado: árbol ramificado TreeGen · Compile y luego Run graph para previsualizarlo."));
-}
-
-void SJamGraphEditor::LoadCurveFramesExample()
-{
-	LoadBundledExample(TEXT("TreeGen-Curve-Frames.jamgraph"),
-		LOCTEXT("CurveFramesExampleLoaded",
-			"ejemplo cargado: flow modular de frames y ramas · Compile y luego Run graph para ver el preview."));
-}
-
-void SJamGraphEditor::LoadTwoLevelExample()
-{
-	LoadBundledExample(TEXT("TreeGen-Two-Level.jamgraph"),
-		LOCTEXT("TwoLevelExampleLoaded",
-			"ejemplo cargado: árbol de dos niveles · Compile y luego Run graph; el follaje sale como HISM aparte."));
-}
-
-void SJamGraphEditor::LoadDebugExample()
-{
-	LoadBundledExample(TEXT("Debug-Playground.jamgraph"),
-		LOCTEXT("DebugExampleLoaded",
-			"banco de pruebas cargado: un solo nodo Debug sirve para los cinco tipos · Run graph y mirá el resultado en el viewport."));
 }
 
 void SJamGraphEditor::LoadBundledExample(const FString& Filename, const FText& LoadedMessage)
