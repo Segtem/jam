@@ -19,7 +19,14 @@ DECLARE_DELEGATE_RetVal_OneParam(FString, FOnRunGraph, const FString& /*json*/);
 /** Acción del ciclo Preview propia del Graph (Bake/Discard), sin argumentos. */
 DECLARE_DELEGATE_RetVal(FString, FOnGraphPreviewAction);
 /** Inspector de datos: (node_id, filtro) → JSON {nodos, filas}. Node vacío = sólo la lista. */
-DECLARE_DELEGATE_RetVal_TwoParams(FString, FOnInspect, const FString& /*node*/, const FString& /*filtro*/);
+DECLARE_DELEGATE_RetVal_FourParams(FString, FOnInspect, const FString& /*node*/,
+	const FString& /*filtro*/, const FString& /*orden*/, bool /*descendente*/);
+
+/** Una fila del inspector: sus celdas ya formateadas por Python, una por columna. */
+struct FJamInspectRow
+{
+	TArray<FString> Cells;
+};
 
 /**
  * Canvas «Grasshopper» propio (Slate): paleta de verbos que agregan nodos, nodos arrastrables con
@@ -200,10 +207,16 @@ private:
 
 	/** Nodos del último Run (id + tipo + cantidad) que alimentan el selector del inspector. */
 	TArray<TSharedPtr<FString>> InspectNodes;
-	/** Filas de datos del nodo elegido, ya filtradas por Python. */
-	TArray<TSharedPtr<FString>> InspectRows;
+	/** Filas del nodo elegido, ya filtradas y ordenadas por Python. */
+	TArray<TSharedPtr<FJamInspectRow>> InspectRows;
+	/** Nombres de columna del tipo que se inspecciona (cambian según el nodo). */
+	TArray<FString> InspectColumns;
+	/** Columna por la que se ordena y sentido; vacío = orden natural del stream. */
+	FString InspectSort;
+	bool bInspectDescending = false;
 	TSharedPtr<class SComboBox<TSharedPtr<FString>>> InspectPicker;
-	TSharedPtr<class SListView<TSharedPtr<FString>>> InspectList;
+	TSharedPtr<class SListView<TSharedPtr<FJamInspectRow>>> InspectList;
+	TSharedPtr<class SHeaderRow> InspectHeader;
 	TSharedPtr<class SEditableTextBox> InspectFilter;
 	TSharedPtr<class STextBlock> InspectStatus;
 	/** Id del nodo elegido; vacío = ninguno todavía. */

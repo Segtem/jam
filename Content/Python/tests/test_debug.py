@@ -230,17 +230,17 @@ class TablaTests(unittest.TestCase):
     def test_each_stream_type_renders_its_own_columns(self):
         from jam import fields
         esperado = {
-            "F": (frames(3), "escala"),
-            "P": (puntos([1.0, 0.5]), "peso"),
-            "N[]": (fields.graph_curve(samples=6)["series"], "valor"),
-            "S": (curve.bezier(end_z=300)["curve"], "largo"),
+            "F": (frames(3), ["idx", "x", "y", "z", "escala", "tx", "ty", "tz"]),
+            "P": (puntos([1.0, 0.5]), ["idx", "x", "y", "z", "peso", "pendiente"]),
+            "N[]": (fields.graph_curve(samples=6)["series"], ["idx", "valor"]),
+            "S": (curve.bezier(end_z=300)["curve"], ["idx", "puntos", "largo", "escala"]),
         }
-        for tipo, (valor, columna) in esperado.items():
+        for tipo, (valor, columnas) in esperado.items():
             with self.subTest(tipo=tipo):
-                filas = debug.tabla(valor)
-                self.assertTrue(filas, f"{tipo} no produjo tabla")
-                self.assertIn(columna, filas[0])
-                self.assertIn("idx", filas[0])
+                datos = debug.tabla_datos(valor)
+                self.assertEqual([c["nombre"] for c in datos["columnas"]], columnas)
+                # La posición se abre en x/y/z: una tupla no se puede ordenar de forma útil.
+                self.assertTrue(all(c["tipo"] in ("num", "txt") for c in datos["columnas"]))
 
     def test_long_streams_are_truncated_with_a_count(self):
         filas = debug.tabla(frames(50), filas=4)
@@ -353,18 +353,34 @@ class InspectorTests(unittest.TestCase):
         r = json.loads(api.inspect_json("peso"))
         self.assertTrue(r["ok"])
         self.assertEqual(r["node"], "peso")
-        self.assertIn("peso", r["filas"][0])        # encabezado de columnas
-        self.assertEqual(len(r["filas"]), 10)       # encabezado + 9
+        # El encabezado vive en `columnas`, no como primera fila: así el panel puede armar
+        # encabezados de verdad —clicables para ordenar— en vez de texto alineado.
+        self.assertIn("peso", [c["nombre"] for c in r["columnas"]])
+        self.assertEqual(len(r["filas"]), 9)
+        self.assertEqual(r["total"], 9)
+        # Las celdas llegan ya formateadas: la UI no reimplementa el redondeo.
+        self.assertTrue(all(isinstance(c, str) for c in r["filas"][0]))
 
-    def test_the_filter_keeps_the_header_and_matching_rows(self):
+    def test_the_filter_narrows_the_rows_and_reports_the_new_total(self):
         import json
         from jam import api
         self._correr()
         completo = json.loads(api.inspect_json("pts"))
-        filtrado = json.loads(api.inspect_json("pts", filtro="-300.0, -300.0"))
-        # Sin el encabezado las columnas no se entienden, así que nunca se filtra.
-        self.assertEqual(filtrado["filas"][0], completo["filas"][0])
+        filtrado = json.loads(api.inspect_json("pts", filtro="-300.000"))
         self.assertLess(len(filtrado["filas"]), len(completo["filas"]))
+        self.assertLess(filtrado["total"], completo["total"])
+        # Las columnas no cambian al filtrar: sigue siendo el mismo tipo de dato.
+        self.assertEqual(filtrado["columnas"], completo["columnas"])
+
+    def test_sorting_travels_through_the_api(self):
+        import json
+        from jam import api
+        self._correr()
+        r = json.loads(api.inspect_json("peso", orden="peso", descendente=True))
+        self.assertEqual(r["orden"], "peso")
+        self.assertTrue(r["descendente"])
+        pesos = [float(f[4]) for f in r["filas"]]
+        self.assertEqual(pesos, sorted(pesos, reverse=True))
 
     def test_an_unknown_node_fails_but_still_lists_the_others(self):
         import json
@@ -385,6 +401,54 @@ class InspectorTests(unittest.TestCase):
         segundo = {n["id"] for n in json.loads(api.inspect_json())["nodos"]}
         self.assertEqual(segundo, {"solo"})
         self.assertNotEqual(primero, segundo)
+
+
+class OrdenTests(unittest.TestCase):
+    """Ordenar por columna, como los encabezados del Geometry Spreadsheet."""
+
+    def test_sorting_is_type_aware(self):
+        datos = debug.tabla_datos(frames(4, escalas=[0.9, 0.2, 0.7, 0.4]),
+                                  filas=10, orden="escala")
+        self.assertEqual([f[4] for f in datos["filas"]], [0.2, 0.4, 0.7, 0.9])
+        self.assertEqual(datos["orden"], "escala")
+
+        desc = debug.tabla_datos(frames(4, escalas=[0.9, 0.2, 0.7, 0.4]),
+                                 filas=10, orden="escala", descendente=True)
+        self.assertEqual([f[4] for f in desc["filas"]], [0.9, 0.7, 0.4, 0.2])
+
+    def test_sorting_happens_before_truncating(self):
+        """El bug clásico: recortar primero y ordenar después sólo ordena lo que ya quedó."""
+        muchos = frames(20, escalas=[1.0 - i * 0.05 for i in range(20)])
+        datos = debug.tabla_datos(muchos, filas=3, orden="escala")
+        self.assertEqual(datos["total"], 20)
+        self.assertEqual(len(datos["filas"]), 3)
+        # La más chica de las VEINTE, no la más chica de las tres primeras.
+        self.assertAlmostEqual(datos["filas"][0][4], 0.05, places=4)
+
+    def test_filtering_also_happens_before_truncating(self):
+        datos = debug.tabla_datos(puntos([0.1] * 5 + [0.9] * 5), filas=3, filtro="0.9")
+        self.assertEqual(datos["total"], 5)
+        self.assertEqual(len(datos["filas"]), 3)
+
+    def test_an_unknown_column_falls_back_to_natural_order(self):
+        datos = debug.tabla_datos(frames(3), filas=10, orden="noexiste")
+        self.assertEqual(datos["orden"], "")
+        self.assertEqual([f[0] for f in datos["filas"]], [0, 1, 2])
+
+    def test_text_columns_sort_lexicographically(self):
+        from jam import variants
+        seleccion = variants.FrameAssetSelection(
+            frames(3), ("/Game/Zeta", "/Game/Alfa", "/Game/Mu"))
+        datos = debug.tabla_datos(seleccion, filas=10, orden="variante")
+        self.assertEqual([f[4] for f in datos["filas"]], ["Alfa", "Mu", "Zeta"])
+
+    def test_the_text_table_is_built_on_the_structured_one(self):
+        # Las columnas de cada tipo se declaran en UN solo lugar; el texto se deriva.
+        datos = debug.tabla_datos(frames(3), filas=10)
+        texto = debug.tabla(frames(3), filas=10)
+        for columna in (c["nombre"] for c in datos["columnas"]):
+            self.assertIn(columna, texto[0])
+        self.assertEqual(len(texto), 1 + len(datos["filas"]))
 
 
 if __name__ == "__main__":

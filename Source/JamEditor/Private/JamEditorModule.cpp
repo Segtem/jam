@@ -172,11 +172,13 @@ FString FJamEditorModule::CompileGraphJson(const FString& Json)
 	return ExecPythonCapture(Stmt);
 }
 
-FString FJamEditorModule::InspectGraphNode(const FString& NodeId, const FString& Filter)
+FString FJamEditorModule::InspectGraphNode(const FString& NodeId, const FString& Filter,
+	const FString& Sort, bool bDescending)
 {
 	const FString Stmt = FString::Printf(
-		TEXT("import jam.api as _a; print(_a.inspect_json(%s, %s))"),
-		*ToPyStr(NodeId), *ToPyStr(Filter));
+		TEXT("import jam.api as _a; print(_a.inspect_json(%s, %s, 200, %s, %s))"),
+		*ToPyStr(NodeId), *ToPyStr(Filter), *ToPyStr(Sort),
+		bDescending ? TEXT("True") : TEXT("False"));
 	return ExecPythonCapture(Stmt);
 }
 

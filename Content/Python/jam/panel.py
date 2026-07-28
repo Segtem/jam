@@ -730,7 +730,7 @@ def ejecutar_flow_json(g_json: str, widget=None, *, owner: str = "graph") -> str
     stream que produjo: verde = pasó puntos, naranja = quedó vacío (el filtro comió todo)."""
     import json
 
-    from . import flow, scatter
+    from . import flow, graph, scatter
 
     f = flow.Flow.from_json(g_json)
     caja: dict = {}
@@ -760,6 +760,11 @@ def ejecutar_flow_json(g_json: str, widget=None, *, owner: str = "graph") -> str
         except flow.FlowValidationError as e:
             caja["_err"] = str(e)
             raise RuntimeError(f"[flow] {e}") from e
+        # El inspector mira la caché del último Run. Un grafo de puras ops corre por ACÁ y no por
+        # `graph.ejecutar_detalle`, así que sin esto quedaba sin datos que mostrar — y el síntoma
+        # era mudo: el panel decía «todavía no corriste el grafo» después de correrlo.
+        graph._ULTIMA_CORRIDA.clear()
+        graph._ULTIMA_CORRIDA.update({nid: s for nid, s in salida.items() if s is not None})
         lineas = []
         for nid, nodo in f.nodos.items():
             stream = salida.get(nid, [])

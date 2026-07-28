@@ -13,6 +13,7 @@
 #include "Widgets/Input/SEditableTextBox.h"
 #include "Widgets/Input/SComboBox.h"
 #include "Widgets/Views/SListView.h"
+#include "Widgets/Views/SHeaderRow.h"
 #include "Widgets/Layout/SExpandableArea.h"
 #include "Serialization/JsonSerializer.h"
 #include "Widgets/Input/SMultiLineEditableTextBox.h"
@@ -429,6 +430,41 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 // nada. La tabla ya viene formateada y filtrada desde `jam.api.inspect_json`: la regla de filtrado
 // vive en UN solo lado.
 
+/** Fila del inspector: una celda por columna, monoespaciada y alineada a la derecha como una
+ *  planilla. Los textos ya vienen formateados de Python, así que acá sólo se ubican. */
+class SJamInspectRowWidget : public SMultiColumnTableRow<TSharedPtr<FJamInspectRow>>
+{
+public:
+	SLATE_BEGIN_ARGS(SJamInspectRowWidget) {}
+		SLATE_ARGUMENT(TSharedPtr<FJamInspectRow>, Item)
+		SLATE_ARGUMENT(const TArray<FString>*, Columns)
+	SLATE_END_ARGS()
+
+	void Construct(const FArguments& InArgs, const TSharedRef<STableViewBase>& Owner)
+	{
+		Item = InArgs._Item;
+		Columns = InArgs._Columns;
+		SMultiColumnTableRow<TSharedPtr<FJamInspectRow>>::Construct(FSuperRowType::FArguments(), Owner);
+	}
+
+	virtual TSharedRef<SWidget> GenerateWidgetForColumn(const FName& ColumnName) override
+	{
+		const int32 Index = (Columns != nullptr)
+			? Columns->IndexOfByKey(ColumnName.ToString()) : INDEX_NONE;
+		const FString Texto = (Item.IsValid() && Item->Cells.IsValidIndex(Index))
+			? Item->Cells[Index] : FString();
+		return SNew(STextBlock)
+			.Text(FText::FromString(Texto))
+			.Font(FCoreStyle::GetDefaultFontStyle("Mono", 8))
+			.Justification(ETextJustify::Right)
+			.Margin(FMargin(4.0f, 1.0f));
+	}
+
+private:
+	TSharedPtr<FJamInspectRow> Item;
+	const TArray<FString>* Columns = nullptr;
+};
+
 TSharedRef<SWidget> SJamGraphEditor::BuildInspector()
 {
 	return SNew(SExpandableArea)
@@ -459,6 +495,9 @@ TSharedRef<SWidget> SJamGraphEditor::BuildInspector()
 							int32 Corte = INDEX_NONE;
 							if (Id.FindChar(TEXT('\u00b7'), Corte)) { Id = Id.Left(Corte); }
 							InspectNodeId = Id.TrimStartAndEnd();
+							// Otro nodo puede tener otras columnas: el orden anterior ya no aplica.
+							InspectSort.Empty();
+							bInspectDescending = false;
 							RefreshInspector();
 						})
 						[
@@ -501,19 +540,16 @@ TSharedRef<SWidget> SJamGraphEditor::BuildInspector()
 			[
 				SNew(SBox).HeightOverride(180.0f)
 				[
-					SAssignNew(InspectList, SListView<TSharedPtr<FString>>)
+					SAssignNew(InspectList, SListView<TSharedPtr<FJamInspectRow>>)
 					.ListItemsSource(&InspectRows)
 					.SelectionMode(ESelectionMode::Single)
-					.OnGenerateRow_Lambda([](TSharedPtr<FString> Item,
+					.HeaderRow(SAssignNew(InspectHeader, SHeaderRow))
+					.OnGenerateRow_Lambda([this](TSharedPtr<FJamInspectRow> Item,
 						const TSharedRef<STableViewBase>& Owner)
 					{
-						return SNew(STableRow<TSharedPtr<FString>>, Owner)
-						[
-							SNew(STextBlock)
-							.Text(FText::FromString(Item.IsValid() ? *Item : FString()))
-							// Monoespaciada: la tabla viene con columnas alineadas por espacios.
-							.Font(FCoreStyle::GetDefaultFontStyle("Mono", 8))
-						];
+						return SNew(SJamInspectRowWidget, Owner)
+							.Item(Item)
+							.Columns(&InspectColumns);
 					})
 				]
 			]
@@ -530,7 +566,7 @@ void SJamGraphEditor::RefreshInspector()
 		return;
 	}
 	const FString Filtro = InspectFilter.IsValid() ? InspectFilter->GetText().ToString() : FString();
-	const FString Raw = OnInspect.Execute(InspectNodeId, Filtro);
+	const FString Raw = OnInspect.Execute(InspectNodeId, Filtro, InspectSort, bInspectDescending);
 
 	TSharedPtr<FJsonObject> Root;
 	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Raw);
@@ -557,12 +593,62 @@ void SJamGraphEditor::RefreshInspector()
 		}
 	}
 
+	// Las columnas cambian con el TIPO del nodo (P tiene peso, F tiene escala y tangente…), así que
+	// el encabezado se reconstruye en cada refresco en vez de ser fijo.
+	InspectColumns.Reset();
+	const TArray<TSharedPtr<FJsonValue>>* Columnas = nullptr;
+	if (Root->TryGetArrayField(TEXT("columnas"), Columnas) && Columnas != nullptr)
+	{
+		for (const TSharedPtr<FJsonValue>& V : *Columnas)
+		{
+			const TSharedPtr<FJsonObject> O = V.IsValid() ? V->AsObject() : nullptr;
+			FString Nombre;
+			if (O.IsValid() && O->TryGetStringField(TEXT("nombre"), Nombre))
+			{
+				InspectColumns.Add(Nombre);
+			}
+		}
+	}
+	if (InspectHeader.IsValid())
+	{
+		InspectHeader->ClearColumns();
+		for (const FString& Nombre : InspectColumns)
+		{
+			const FName Id(*Nombre);
+			InspectHeader->AddColumn(
+				SHeaderRow::Column(Id)
+				.DefaultLabel(FText::FromString(Nombre))
+				.FillWidth(1.0f)
+				.SortMode_Lambda([this, Nombre]()
+				{
+					if (InspectSort != Nombre) { return EColumnSortMode::None; }
+					return bInspectDescending ? EColumnSortMode::Descending : EColumnSortMode::Ascending;
+				})
+				// Ordenar lo resuelve Python sobre TODAS las filas y recorta después; si ordenara
+				// la UI, sólo ordenaría las 200 que ya recibió.
+				.OnSort_Lambda([this](EColumnSortPriority::Type, const FName& ColumnId,
+					EColumnSortMode::Type NuevoModo)
+				{
+					InspectSort = ColumnId.ToString();
+					bInspectDescending = (NuevoModo == EColumnSortMode::Descending);
+					RefreshInspector();
+				}));
+		}
+	}
+
 	const TArray<TSharedPtr<FJsonValue>>* Filas = nullptr;
 	if (Root->TryGetArrayField(TEXT("filas"), Filas) && Filas != nullptr)
 	{
 		for (const TSharedPtr<FJsonValue>& V : *Filas)
 		{
-			InspectRows.Add(MakeShared<FString>(V.IsValid() ? V->AsString() : FString()));
+			const TArray<TSharedPtr<FJsonValue>>* Celdas = nullptr;
+			if (!V.IsValid() || !V->TryGetArray(Celdas) || Celdas == nullptr) { continue; }
+			TSharedRef<FJamInspectRow> Fila = MakeShared<FJamInspectRow>();
+			for (const TSharedPtr<FJsonValue>& C : *Celdas)
+			{
+				Fila->Cells.Add(C.IsValid() ? C->AsString() : FString());
+			}
+			InspectRows.Add(Fila);
 		}
 	}
 
@@ -579,8 +665,11 @@ void SJamGraphEditor::RefreshInspector()
 	}
 	else
 	{
-		// La primera fila es el encabezado de columnas, no un dato.
-		Estado = FString::Printf(TEXT("%d fila(s)"), FMath::Max(0, InspectRows.Num() - 1));
+		double Total = 0.0;
+		Root->TryGetNumberField(TEXT("total"), Total);
+		Estado = (static_cast<int32>(Total) > InspectRows.Num())
+			? FString::Printf(TEXT("%d de %d fila(s)"), InspectRows.Num(), static_cast<int32>(Total))
+			: FString::Printf(TEXT("%d fila(s)"), InspectRows.Num());
 	}
 	if (InspectStatus.IsValid()) { InspectStatus->SetText(FText::FromString(Estado)); }
 	if (InspectPicker.IsValid()) { InspectPicker->RefreshOptions(); }

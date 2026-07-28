@@ -283,28 +283,68 @@ que lo fija— y `api.inspect_json()` la lee.
 
 Abrir el panel **no recalcula nada**: mira lo que ya se produjo.
 
+### Columnas de verdad, ordenables
+
+La primera versión mandaba texto ya alineado. Para poder **ordenar por columna** hizo falta datos
+estructurados: `debug.tabla_datos()` devuelve `{columnas, filas, total, orden, descendente}` y
+`debug.tabla()` —la del reporte— se construye **sobre** ella, así que las columnas de cada tipo se
+declaran en un solo lugar.
+
+Las posiciones se abren en **x / y / z**, como hace Houdini con `P`: una tupla no se puede ordenar de
+forma útil, tres números sí.
+
+| Tipo | Columnas |
+|---|---|
+| `P` | idx · x · y · z · peso · pendiente |
+| `F` | idx · x · y · z · escala · tx · ty · tz |
+| `N[]` | idx · valor |
+| `S` | idx · puntos · largo · escala |
+| `AF` | idx · x · y · z · variante |
+
+El encabezado de Slate se **reconstruye en cada refresco**, porque las columnas cambian con el tipo
+del nodo. Clic en una columna reordena; cambiar de nodo resetea el orden, porque el anterior puede
+no existir en el tipo nuevo.
+
+El orden es **consciente del tipo**: numérico en las columnas `num`, lexicográfico en las `txt`. Una
+columna inexistente cae a orden natural en vez de fallar.
+
+### Filtrar y ordenar van ANTES de recortar
+
+El orden importa y es un error clásico: recortar a 200 filas y después ordenar sólo ordena esas 200.
+`tabla_datos` filtra, ordena y **recién ahí** recorta, y devuelve el `total` real para que el panel
+pueda decir «3 de 20 filas». Hay dos tests que lo fijan.
+
 ### La regla de filtrado vive en un solo lado
 
-`inspect_json(node_id, filtro, filas)` devuelve las filas ya formateadas y filtradas. El panel de
-Slate no reimplementa nada: pide y muestra. Es deliberado — la lección de
+`inspect_json(node_id, filtro, filas, orden, descendente)` devuelve las filas ya filtradas,
+ordenadas **y formateadas** — el formato depende del tipo de columna, que sólo Python conoce. El
+panel de Slate no reimplementa nada: pide y muestra. Es deliberado; la lección de
 `JamTiposCompatibles` fue justamente que una regla escrita dos veces se desincroniza.
-
-El encabezado de columnas **nunca** se filtra: sin él la tabla no se entiende.
 
 ### Contrato
 
 ```text
-inspect_json()            → {ok, nodos:[{id, tipo, cantidad, inspeccionable}], filas:[]}
-inspect_json("frames")    → {ok, node, nodos, filas:[…]}
-inspect_json("x", "0.5")  → filas que contienen «0.5», con encabezado
-sin Run                   → {ok:false, error:"todavía no corriste el grafo."}
-nodo inexistente          → {ok:false, error:…, nodos:[…]}  ← la lista sirve para elegir otro
+inspect_json()                        → {ok, nodos:[{id, tipo, cantidad, inspeccionable}]}
+inspect_json("frames")                → {ok, node, columnas, filas, total, orden, descendente}
+inspect_json("x", "0.5")              → sólo las filas que contienen «0.5», con su total
+inspect_json("x", "", 200, "peso", 1) → ordenadas por peso, descendente
+sin Run                               → {ok:false, error:"todavía no corriste el grafo."}
+nodo inexistente                      → {ok:false, error, nodos}  ← la lista deja elegir otro
 ```
 
-Verificado contra UE 5.7.4: 4 nodos listados con su tipo y cantidad, 9 filas de `frames`, el filtro
-recortando, y el nodo inexistente fallando sin perder la lista.
+### Un hueco que sólo apareció corriéndolo en el editor
 
-Suite headless: **180/180** (6 tests del inspector).
+El inspector leía la caché que llena `graph.ejecutar_detalle`. Pero un grafo de **puras ops de flow**
+va al evaluador de Flow por `solo_flow()`, no al del Graph — así que después de correrlo el panel
+decía «todavía no corriste el grafo». Las pruebas headless lo tapaban porque llamaban a
+`ejecutar_detalle` directo.
+
+`panel.ejecutar_flow_json` ahora llena la misma caché. El inspector sirve para los dos runners.
+
+Verificado contra UE 5.7.4: columnas por tipo, orden ascendente y descendente, filtro y orden
+combinados (total 9 → 8), y una columna inexistente cayendo a orden natural sin fallar.
+
+Suite headless: **187/187**.
 
 ## Lo que sigue faltando
 

@@ -79,7 +79,8 @@ private:
 	/** Compile/Preflight puro del Graph: valida sin ejecutar tools ni crear Preview. */
 	FString CompileGraphJson(const FString& Json);
 	/** Inspector: datos del último Run de un nodo, filtrados. Sin nodo devuelve la lista. */
-	FString InspectGraphNode(const FString& NodeId, const FString& Filter);
+	FString InspectGraphNode(const FString& NodeId, const FString& Filter,
+		const FString& Sort, bool bDescending);
 	/** Fija o descarta únicamente el Preview propiedad de la ventana Graph. */
 	FString BakeGraphPreview();
 	FString DiscardGraphPreview();

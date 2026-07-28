@@ -86,59 +86,136 @@ def ejes_de_frames(frames, *, largo: float = 30.0, escalar_con_frame: bool = Tru
 FILAS_TABLA = 8
 
 
-def tabla(valor, *, filas: int = FILAS_TABLA) -> list[str]:
-    """Los DATOS de un stream como tabla de texto — el «geometry spreadsheet» de Jam.
+def _columnas_y_filas(valor):
+    """(columnas, filas) del dato, sin recortar. Las columnas traen nombre y tipo.
+
+    Las posiciones se abren en x/y/z como hace el Geometry Spreadsheet de Houdini con `P`: una
+    tupla no se puede ordenar de forma útil, tres números sí.
+    """
+    from . import curve, fields, scatter_core, variants
+
+    num, txt = "num", "txt"
+
+    if isinstance(valor, curve.FrameSet):
+        cols = [("idx", num), ("x", num), ("y", num), ("z", num), ("escala", num),
+                ("tx", num), ("ty", num), ("tz", num)]
+        filas = [[i, f.position[0], f.position[1], f.position[2], f.scale,
+                  f.tangent[0], f.tangent[1], f.tangent[2]]
+                 for i, f in enumerate(valor.frames)]
+        return cols, filas
+
+    if isinstance(valor, variants.FrameAssetSelection):
+        cols = [("idx", num), ("x", num), ("y", num), ("z", num), ("variante", txt)]
+        filas = [[i, f.position[0], f.position[1], f.position[2],
+                  str(a).rsplit("/", 1)[-1]]
+                 for i, (f, a) in enumerate(zip(valor.frames.frames, valor.assets))]
+        return cols, filas
+
+    if isinstance(valor, fields.ScalarSeries):
+        return [("idx", num), ("valor", num)], [[i, v] for i, v in enumerate(valor.values)]
+
+    if isinstance(valor, (curve.CurvePath, curve.CurveSet)):
+        paths = valor.paths if isinstance(valor, curve.CurveSet) else (valor,)
+        cols = [("idx", num), ("puntos", num), ("largo", num), ("escala", num)]
+        return cols, [[i, len(p.points), p.length, p.scale] for i, p in enumerate(paths)]
+
+    if isinstance(valor, (list, tuple)) and valor and isinstance(valor[0], scatter_core.Sample):
+        cols = [("idx", num), ("x", num), ("y", num), ("z", num),
+                ("peso", num), ("pendiente", num)]
+        filas = [[i, s.pos.x, s.pos.y, s.pos.z, s.weight, s.slope]
+                 for i, s in enumerate(valor)]
+        return cols, filas
+
+    return [], []
+
+
+def _clave_orden(fila, indice, tipo):
+    valor = fila[indice]
+    return (str(valor).lower() if tipo == "txt" else float(valor))
+
+
+def tabla_datos(valor, *, filas: int = FILAS_TABLA, filtro: str = "",
+                orden: str = "", descendente: bool = False) -> dict:
+    """Los DATOS de un stream como tabla estructurada — el «geometry spreadsheet» de Jam.
 
     Ver geometría contesta «¿dónde está?»; ver números contesta «¿qué valores tiene?». Houdini,
     Blender y PCG tienen las dos cosas por separado, y la segunda es la que más se usa: el flujo de
     depuración documentado de PCG es *recorrer hacia adelante y encontrar dónde el conteo cae a cero*.
 
-    PURO: recibe el dato ya producido y devuelve líneas. No sabe qué es un actor.
+    Filtrar y ordenar ocurren sobre TODAS las filas y el recorte va último. Al revés —recortar y
+    después filtrar— sólo se buscaría dentro de las primeras `filas`, que es una respuesta
+    silenciosamente equivocada.
+
+    PURO: recibe el dato ya producido y devuelve datos. No sabe qué es un actor.
     """
-    from . import curve, fields, scatter_core, variants
+    columnas, todas = _columnas_y_filas(valor)
+    if not columnas:
+        return {"columnas": [], "filas": [], "total": 0, "orden": "", "descendente": False}
 
-    filas = max(1, int(filas))
+    texto = str(filtro or "").strip().lower()
+    if texto:
+        todas = [f for f in todas if texto in " ".join(str(c) for c in f).lower()]
 
-    def recortar(items, encabezado, formato):
-        lineas = [encabezado]
-        for indice, item in enumerate(items[:filas]):
-            lineas.append(f"    {indice:>3}  {formato(item)}")
-        if len(items) > filas:
-            lineas.append(f"    …  y {len(items) - filas} más")
-        return lineas
+    nombres = [c[0] for c in columnas]
+    orden = str(orden or "").strip()
+    if orden in nombres:
+        indice = nombres.index(orden)
+        tipo = columnas[indice][1]
+        try:
+            todas = sorted(todas, key=lambda f: _clave_orden(f, indice, tipo),
+                           reverse=bool(descendente))
+        except (TypeError, ValueError):
+            orden = ""          # una columna con datos mezclados no se ordena: se deja como estaba
+    else:
+        orden = ""
 
-    if isinstance(valor, curve.FrameSet):
-        return recortar(
-            list(valor.frames),
-            f"    idx  {'posición':>26}  {'escala':>7}  tangente",
-            lambda f: (f"({f.position[0]:7.1f},{f.position[1]:7.1f},{f.position[2]:7.1f})"
-                       f"  {f.scale:7.3f}  "
-                       f"({f.tangent[0]:5.2f},{f.tangent[1]:5.2f},{f.tangent[2]:5.2f})"))
+    tope = max(1, int(filas))
+    return {"columnas": [{"nombre": n, "tipo": t} for n, t in columnas],
+            "filas": [[_celda(c) for c in f] for f in todas[:tope]],
+            "total": len(todas), "orden": orden, "descendente": bool(descendente)}
 
-    if isinstance(valor, variants.FrameAssetSelection):
-        pares = list(zip(valor.frames.frames, valor.assets))
-        return recortar(
-            pares, f"    idx  {'posición':>26}  variante",
-            lambda par: (f"({par[0].position[0]:7.1f},{par[0].position[1]:7.1f},"
-                         f"{par[0].position[2]:7.1f})  {str(par[1]).rsplit('/', 1)[-1]}"))
 
-    if isinstance(valor, fields.ScalarSeries):
-        return recortar(list(valor.values), f"    idx  valor   ({valor.shape})",
-                        lambda v: f"{v:7.4f}")
+def _celda(valor):
+    if isinstance(valor, float):
+        return round(valor, 4)
+    return valor
 
-    if isinstance(valor, (curve.CurvePath, curve.CurveSet)):
-        paths = valor.paths if isinstance(valor, curve.CurveSet) else (valor,)
-        return recortar(
-            list(paths), f"    idx  {'puntos':>7}  {'largo':>9}  {'escala':>7}",
-            lambda p: f"{len(p.points):7}  {p.length:9.1f}  {p.scale:7.3f}")
 
-    if isinstance(valor, (list, tuple)) and valor and isinstance(valor[0], scatter_core.Sample):
-        return recortar(
-            list(valor), f"    idx  {'posición':>26}  {'peso':>6}  {'pendiente':>9}",
-            lambda s: (f"({s.pos.x:7.1f},{s.pos.y:7.1f},{s.pos.z:7.1f})"
-                       f"  {s.weight:6.3f}  {s.slope:9.1f}°"))
+def tabla(valor, *, filas: int = FILAS_TABLA, filtro: str = "",
+          orden: str = "", descendente: bool = False) -> list[str]:
+    """La misma tabla como texto alineado, para el reporte del Run.
 
-    return []
+    Se arma SOBRE `tabla_datos` a propósito: las columnas de cada tipo se declaran en un solo lugar.
+    """
+    datos = tabla_datos(valor, filas=filas, filtro=filtro, orden=orden, descendente=descendente)
+    if not datos["columnas"]:
+        return []
+
+    anchos = []
+    for indice, columna in enumerate(datos["columnas"]):
+        ancho = len(columna["nombre"])
+        for fila in datos["filas"]:
+            ancho = max(ancho, len(_texto_celda(fila[indice], columna["tipo"])))
+        anchos.append(max(4, ancho))
+
+    lineas = ["    " + "  ".join(c["nombre"].rjust(a)
+                                 for c, a in zip(datos["columnas"], anchos))]
+    for fila in datos["filas"]:
+        lineas.append("    " + "  ".join(
+            _texto_celda(v, c["tipo"]).rjust(a)
+            for v, c, a in zip(fila, datos["columnas"], anchos)))
+    resto = datos["total"] - len(datos["filas"])
+    if resto > 0:
+        lineas.append(f"    …  y {resto} más")
+    return lineas
+
+
+def _texto_celda(valor, tipo: str) -> str:
+    if tipo == "txt":
+        return str(valor)
+    if isinstance(valor, int):
+        return str(valor)
+    return f"{float(valor):.3f}"
 
 
 def tramos_de_curvas(paths, *, marcar_extremos: bool = True) -> list[Eje]:

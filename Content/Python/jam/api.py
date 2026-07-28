@@ -98,14 +98,16 @@ def compile_graph_json(graph_json: str) -> str:
     return json.dumps({"ok": not diagnosticos, "report": reporte, "nodes": estados}, ensure_ascii=True)
 
 
-def inspect_json(node_id: str = "", filtro: str = "", filas: int = 200) -> str:
+def inspect_json(node_id: str = "", filtro: str = "", filas: int = 200,
+                 orden: str = "", descendente: bool = False) -> str:
     """Inspector de datos del último Run — el Geometry Spreadsheet de Jam.
 
     Sin `node_id` devuelve la LISTA de nodos inspeccionables (id + tipo + cantidad) para que el panel
-    arme su selector. Con `node_id` devuelve las filas de datos de ese nodo.
+    arme su selector. Con `node_id` devuelve las columnas y las filas de ese nodo.
 
-    `filtro` es texto libre: se queda con las filas que lo contienen, como el filtro de atributos del
-    spreadsheet de Houdini. `filas` acota cuánto se manda a la UI.
+    `filtro` es texto libre; `orden` es el NOMBRE de una columna y `descendente` invierte. Los tres
+    los resuelve `debug.tabla_datos` sobre TODAS las filas antes de recortar, así que la UI no
+    reimplementa ninguna regla: pide y muestra.
     """
     import json
 
@@ -114,30 +116,31 @@ def inspect_json(node_id: str = "", filtro: str = "", filas: int = 200) -> str:
     corrida = graph.ultima_corrida()
     if not corrida:
         return json.dumps({"ok": False, "error": "todavía no corriste el grafo.",
-                           "nodos": [], "filas": []}, ensure_ascii=True)
+                           "nodos": [], "columnas": [], "filas": []}, ensure_ascii=True)
 
     def resumen(valor):
         from . import mesh
-        tipo = mesh._describir(valor)
-        tabla = debug.tabla(valor, filas=1)
-        cantidad = _cantidad(valor)
-        return {"tipo": tipo, "cantidad": cantidad, "inspeccionable": bool(tabla)}
+        datos = debug.tabla_datos(valor, filas=1)
+        return {"tipo": mesh._describir(valor), "cantidad": _cantidad(valor),
+                "inspeccionable": bool(datos["columnas"])}
 
     nodos = [{"id": nid, **resumen(valor)} for nid, valor in corrida.items()]
     if not node_id:
-        return json.dumps({"ok": True, "nodos": nodos, "filas": []}, ensure_ascii=True)
+        return json.dumps({"ok": True, "nodos": nodos, "columnas": [], "filas": []},
+                          ensure_ascii=True)
 
     if node_id not in corrida:
         return json.dumps({"ok": False, "error": f"«{node_id}» no está en el último Run.",
-                           "nodos": nodos, "filas": []}, ensure_ascii=True)
+                           "nodos": nodos, "columnas": [], "filas": []}, ensure_ascii=True)
 
-    todas = debug.tabla(corrida[node_id], filas=max(1, int(filas)))
-    texto = str(filtro or "").strip().lower()
-    if texto and todas:
-        # El encabezado se conserva siempre: sin él las columnas no se entienden.
-        todas = [todas[0]] + [f for f in todas[1:] if texto in f.lower()]
-    return json.dumps({"ok": True, "nodos": nodos, "node": node_id,
-                       "filas": todas}, ensure_ascii=True)
+    datos = debug.tabla_datos(corrida[node_id], filas=max(1, int(filas)), filtro=filtro,
+                              orden=orden, descendente=bool(descendente))
+    # Las celdas viajan ya FORMATEADAS: el formato depende del tipo de columna, que sólo se conoce
+    # acá. La UI muestra lo que recibe en vez de reimplementar el redondeo.
+    tipos = [c["tipo"] for c in datos["columnas"]]
+    datos["filas"] = [[debug._texto_celda(v, tipo) for v, tipo in zip(fila, tipos)]
+                      for fila in datos["filas"]]
+    return json.dumps({"ok": True, "nodos": nodos, "node": node_id, **datos}, ensure_ascii=True)
 
 
 def _cantidad(valor) -> int:
