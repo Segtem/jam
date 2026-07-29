@@ -239,6 +239,19 @@ ICONOS = {
                               f'<circle cx="16" cy="12" r="6" stroke="{ASSET}" '
                               f'stroke-width="1.7" fill="{ASSET}" fill-opacity="0.75"/>',
                               curva("M13.5 9.2a3.5 3.5 0 0 1 3-1.1", "#DDDDE2", 1.3)),
+    # ── UVs procedurales: proyectar, desplegar, empaquetar ──────────────────────
+    # Los tres dibujan el MISMO cuadrado 0..1 en distinto estado, que es lo que los diferencia:
+    # proyectado desde una caja, desplegado en islas sueltas, y empaquetado sin desperdicio.
+    "jam-mesh-uv-box": svg(malla("M8 8h10v10H8z", M, False),
+                           malla("M4 5h10v10H4z", M),
+                           curva("M4 5l4-3h10l-4 3M18 15l-4 3M14 15v3", TINTA, 1.1)),
+    "jam-mesh-uv-unwrap": svg(malla("M4 4h16v16H4z", M, False),
+                              malla("M6 6h5v6H6z", M), malla("M13 7h5v4h-5z", M),
+                              malla("M7 14h9v4H7z", M)),
+    "jam-mesh-uv-pack": svg(malla("M4 4h16v16H4z", M, False),
+                            malla("M5 5h8v7H5z", M), malla("M14 5h5v7h-5z", M),
+                            malla("M5 13h6v6H5z", M), malla("M12 13h7v6h-7z", M)),
+
     # ── la PALETA de nodos de material: un icono por nodo ───────────────────────
     # Los operadores se dibujan con su SÍMBOLO, que es lo que un artista ya sabe leer. Nada de
     # <text>: nanosvg no lo rasteriza, así que el «×» son dos trazos cruzados y el «÷» una línea

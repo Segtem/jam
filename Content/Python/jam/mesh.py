@@ -1161,6 +1161,192 @@ def uv_scale(source, *, u: float = 1.0, v: float = 1.0, channel: int = 0,
     return {"mesh": result, "info": f"{_info(result)} · UV{channel} × ({u:g}, {v:g})"}
 
 
+# ---------------------------------------------------------------------------------------------
+# UVs procedurales: proyectar, desplegar, empaquetar — y MEDIR el resultado
+# ---------------------------------------------------------------------------------------------
+#
+# Es la cadena de Houdini (proyección → uvlayout) con lo que Jam le agrega: un veredicto. Unas UVs
+# no se juzgan mirando el checker, se juzgan por dos números que `GetMeshUVSizeInfo` sabe dar:
+#
+#   · la DENSIDAD DE TEXEL — cuánta área UV le toca a cada centímetro de superficie. Si varía entre
+#     partes, el checker sale de distinto tamaño y la textura se ve estirada en unas y apretada en
+#     otras;
+#   · el APROVECHAMIENTO del atlas — cuánto del cuadrado 0..1 ocupan las islas. Lo que sobra es
+#     memoria de textura pagada y no usada.
+#
+# Y una tercera cosa que no es una opinión sino un error: triángulos SIN UVs asignadas.
+
+def _metrica_uv(area_malla: float, area_uv: float, caja_min, caja_max,
+                valido: bool, sin_uv: bool) -> dict:
+    """La CUENTA, separada de Unreal para poder probarla.
+
+    Es donde vivía el bug que hacía que el oráculo mintiera, así que tiene que ser verificable sin
+    un editor: recibe los seis números que devuelve el motor y devuelve el veredicto en crudo.
+    """
+    ancho = max(0.0, float(caja_max[0]) - float(caja_min[0]))
+    alto = max(0.0, float(caja_max[1]) - float(caja_min[1]))
+    area_caja = ancho * alto
+    return {
+        "valido": bool(valido),
+        "sin_uv": bool(sin_uv),
+        "area_malla": float(area_malla),
+        "area_uv": float(area_uv),
+        # Densidad LINEAL: cuánto UV le toca a cada metro de superficie. Es la raíz del cociente de
+        # áreas porque lo que se compara al mirar un checker son lados, no áreas — dos partes con la
+        # mitad de densidad lineal muestran cuadros del doble de tamaño.
+        "densidad": (math.sqrt(float(area_uv) / float(area_malla)) * 100.0
+                     if area_malla > 1e-9 and area_uv > 0.0 else 0.0),
+        # Cuánto de la región que ocupan las islas está REALMENTE cubierto por triángulos.
+        #
+        # La primera versión medía el área de la caja de las islas y la llamaba «atlas usado». Eso
+        # miente justo donde importa: una proyección cúbica apila las seis caras en el mismo
+        # cuadrado, así que la caja da 1×1 y parecía «100% aprovechado» cuando en realidad está todo
+        # ENCIMADO. Midiendo área de triángulos contra área de la caja, ese caso da >1 —que es la
+        # señal de encimado, un defecto real: rompe lightmaps y horneados— y un empaquetado bueno se
+        # acerca a 1 por abajo.
+        "cobertura": (float(area_uv) / area_caja) if area_caja > 1e-9 else 0.0,
+        "caja": (ancho, alto),
+        # Las islas tienen que vivir dentro del cuadrado 0..1; afuera, la textura se repite y el
+        # desplegado no sirve para atlas ni para hornear.
+        "dentro_01": (float(caja_min[0]) >= -1e-4 and float(caja_min[1]) >= -1e-4
+                      and float(caja_max[0]) <= 1.0 + 1e-4 and float(caja_max[1]) <= 1.0 + 1e-4),
+    }
+
+
+def _medir_uv(malla, canal: int) -> dict:
+    """Los números que hacen juzgable un desplegado. `valido=False` si el canal no existe."""
+    # Devuelve la MALLA primero (`UPARAM(DisplayName = "Copy From Mesh")`) y después los seis
+    # out-params. Leer la tupla desde el índice 0 da un `DynamicMesh` donde va el área.
+    devuelto = unreal.GeometryScript_UVs.get_mesh_uv_size_info(
+        malla, canal, unreal.GeometryScriptMeshSelection(), True)
+    area_malla, area_uv, _caja3d, caja_uv, valido, sin_uv = devuelto[1:7]
+    if caja_uv is None:
+        return _metrica_uv(area_malla, area_uv, (0.0, 0.0), (0.0, 0.0), valido, sin_uv)
+    return _metrica_uv(area_malla, area_uv,
+                       (caja_uv.min.x, caja_uv.min.y), (caja_uv.max.x, caja_uv.max.y),
+                       valido, sin_uv)
+
+
+def _veredicto_uv(medida: dict, canal: int) -> str:
+    if not medida["valido"]:
+        return f"UV{canal} NO existe en la malla"
+    if medida["area_uv"] <= 0.0:
+        return f"UV{canal} existe pero está VACÍO (ningún triángulo tiene UVs)"
+    partes = [f"densidad {medida['densidad']:.2f} UV/m"]
+    if medida["cobertura"] > 1.02:
+        partes.append(f"⚠ islas ENCIMADAS ({medida['cobertura']:.1f}× la caja que ocupan)")
+    else:
+        partes.append(f"{medida['cobertura'] * 100:.0f}% de su caja aprovechado")
+    if not medida["dentro_01"]:
+        partes.append("⚠ se sale del 0..1")
+    if medida["sin_uv"]:
+        partes.append("⚠ hay triángulos SIN UV")
+    return " · ".join(partes)
+
+
+def uv_box(source, *, size_x: float = 0.0, size_y: float = 0.0, size_z: float = 0.0,
+           yaw: float = 0.0, pitch: float = 0.0, roll: float = 0.0,
+           channel: int = 0, min_island_tris: int = 2) -> dict:
+    """Proyección CÚBICA: seis planos, y cada triángulo cae en el que mejor mira.
+
+    Es el «UV cubic map» de la caja de herramientas de Houdini y el desplegado por defecto de
+    cualquier cosa dura y facetada —una chapa, un contenedor, un casco—, porque no necesita costuras
+    dibujadas a mano y no estira.
+
+    Con `size_*` en 0 la caja se ajusta sola a la malla, que es lo que se quiere casi siempre: así la
+    proyección no depende de dónde esté el objeto ni de cuánto mida.
+    """
+    try:
+        result = _clone(source)
+        canal = int(channel)
+        tam = [float(size_x), float(size_y), float(size_z)]
+        rot = [float(pitch), float(yaw), float(roll)]
+        minimo = max(1, int(min_island_tris))
+    except (TypeError, ValueError) as exc:
+        return {"error": str(exc)}
+    if canal < 0 or canal > 7:
+        return {"error": "channel de mesh_uv_box debe estar entre 0 y 7."}
+
+    caja = unreal.GeometryScript_MeshQueries.get_mesh_bounding_box(result)
+    # `unreal.Box` no expone `get_center()`/`get_size()`: sólo `min` y `max`.
+    centro = unreal.Vector((caja.min.x + caja.max.x) * 0.5,
+                           (caja.min.y + caja.max.y) * 0.5,
+                           (caja.min.z + caja.max.z) * 0.5)
+    extension = (caja.max.x - caja.min.x, caja.max.y - caja.min.y, caja.max.z - caja.min.z)
+    for i, valor in enumerate(tam):
+        if valor <= 0.0:
+            # Ajustarse a la malla es el default porque una caja fija hace que la MISMA malla
+            # movida dé otras UVs; el desplegado dejaría de ser una propiedad de la forma.
+            tam[i] = max(1.0, extension[i])
+    transformada = unreal.Transform(
+        location=centro, rotation=unreal.Rotator(rot[0], rot[1], rot[2]),
+        scale=unreal.Vector(tam[0], tam[1], tam[2]))
+    unreal.GeometryScript_UVs.set_mesh_u_vs_from_box_projection(
+        result, canal, transformada, unreal.GeometryScriptMeshSelection(), minimo)
+    medida = _medir_uv(result, canal)
+    return {"mesh": result, "uv": medida,
+            "info": f"caja {tam[0]:.0f}×{tam[1]:.0f}×{tam[2]:.0f} → {_veredicto_uv(medida, canal)}"}
+
+
+def uv_unwrap(source, *, method: str = "conformal", channel: int = 0,
+              align_to_axes: bool = True) -> dict:
+    """Despliega la malla resolviendo el aplanado, no proyectando: menos estiramiento, más costuras.
+
+    `conformal` conserva los ángulos (lo que se ve como «no deforma»); `spectral_conformal` hace lo
+    mismo con menos islas y más cálculo; `exp_map` es el más rápido y el que peor se porta en formas
+    con mucha curvatura. La diferencia entre los tres se MIDE con la densidad que devuelve el verbo.
+    """
+    metodos = {"conformal": "CONFORMAL", "exp_map": "EXP_MAP",
+               "spectral_conformal": "SPECTRAL_CONFORMAL"}
+    if str(method) not in metodos:
+        return {"error": f"method de mesh_uv_unwrap: «{method}» (hay {sorted(metodos)})"}
+    try:
+        result = _clone(source)
+        canal = int(channel)
+    except (TypeError, ValueError) as exc:
+        return {"error": str(exc)}
+    if canal < 0 or canal > 7:
+        return {"error": "channel de mesh_uv_unwrap debe estar entre 0 y 7."}
+
+    opciones = unreal.GeometryScriptRecomputeUVsOptions()
+    opciones.set_editor_property(
+        "method", getattr(unreal.GeometryScriptUVFlattenMethod, metodos[str(method)]))
+    opciones.set_editor_property("auto_align_islands_with_axes", bool(align_to_axes))
+    unreal.GeometryScript_UVs.recompute_mesh_u_vs(
+        result, canal, opciones, unreal.GeometryScriptMeshSelection())
+    medida = _medir_uv(result, canal)
+    return {"mesh": result, "uv": medida,
+            "info": f"{method} → {_veredicto_uv(medida, canal)}"}
+
+
+def uv_pack(source, *, resolution: int = 1024, channel: int = 0,
+            optimize_rotation: bool = True) -> dict:
+    """Empaqueta las islas en el cuadrado 0..1 — el `uvlayout` de Houdini.
+
+    Proyectar o desplegar deja las islas donde caigan, encimadas y desaprovechando el atlas. Esto es
+    el paso que las acomoda, y el número que devuelve dice cuánto del atlas quedó usado: es la única
+    forma de saber si conviene subir la resolución de la textura o simplemente empaquetar mejor.
+    """
+    try:
+        result = _clone(source)
+        canal = int(channel)
+        res = int(resolution)
+    except (TypeError, ValueError) as exc:
+        return {"error": str(exc)}
+    if canal < 0 or canal > 7:
+        return {"error": "channel de mesh_uv_pack debe estar entre 0 y 7."}
+    if res < 16 or res > 8192:
+        return {"error": "resolution de mesh_uv_pack debe estar entre 16 y 8192."}
+
+    opciones = unreal.GeometryScriptRepackUVsOptions()
+    opciones.set_editor_property("target_image_width", res)
+    opciones.set_editor_property("optimize_island_rotation", bool(optimize_rotation))
+    unreal.GeometryScript_UVs.repack_mesh_u_vs(result, canal, opciones)
+    medida = _medir_uv(result, canal)
+    return {"mesh": result, "uv": medida,
+            "info": f"atlas {res}px → {_veredicto_uv(medida, canal)}"}
+
+
 def assign_material(source, *, material: str) -> dict:
     """Asigna un único material/section a todos los triángulos de M y conserva el slot hasta A."""
     try:

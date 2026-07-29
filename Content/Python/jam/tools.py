@@ -938,6 +938,29 @@ def t_material_build(mat_input, *, name="M_JamMaterial", folder="/Game/Jam/Mater
     return f"MATERIAL BUILD \u2713 \u2014 {resultado['info']}"
 
 
+def t_mesh_uv_box(mesh_input, *, size_x=0.0, size_y=0.0, size_z=0.0,
+                  yaw=0.0, pitch=0.0, roll=0.0, channel=0, min_island_tris=2) -> str:
+    from . import mesh
+    return _mesh_output("mesh_uv_box", mesh.uv_box(
+        mesh_input, size_x=float(size_x), size_y=float(size_y), size_z=float(size_z),
+        yaw=float(yaw), pitch=float(pitch), roll=float(roll),
+        channel=int(channel), min_island_tris=int(min_island_tris)), "UV BOX M")
+
+
+def t_mesh_uv_unwrap(mesh_input, *, method="conformal", channel=0, align_to_axes=True) -> str:
+    from . import mesh
+    return _mesh_output("mesh_uv_unwrap", mesh.uv_unwrap(
+        mesh_input, method=str(method), channel=int(channel),
+        align_to_axes=bool(align_to_axes)), "UV UNWRAP M")
+
+
+def t_mesh_uv_pack(mesh_input, *, resolution=1024, channel=0, optimize_rotation=True) -> str:
+    from . import mesh
+    return _mesh_output("mesh_uv_pack", mesh.uv_pack(
+        mesh_input, resolution=int(resolution), channel=int(channel),
+        optimize_rotation=bool(optimize_rotation)), "UV PACK M")
+
+
 def t_material_function(mat_input, *, name="MF_JamFuncion", folder="/Game/Jam/Functions",
                         kind="funcion", description="") -> str:
     """Hornea el grafo MT como FUNCIÓN de material reusable, no como material.
@@ -1471,6 +1494,18 @@ REGISTRO = {
                                                       "MSM_SUBSURFACE", "MSM_TWO_SIDED_FOLIAGE"]},
                        "doc": "hornea el grafo MT como material de verdad; verifica antes de crear nada "
                               "y MIDE el costo (max_instructions = presupuesto, 0 = sin límite); salida A"},
+    "mesh_uv_box": {"fn": t_mesh_uv_box, "cat": "Mesh", "graph_only": True,
+                    "params": {"size_x": 0.0, "size_y": 0.0, "size_z": 0.0,
+                               "yaw": 0.0, "pitch": 0.0, "roll": 0.0,
+                               "channel": 0, "min_island_tris": 2},
+                    "doc": "proyección CÚBICA de UVs (el UV cubic map): seis planos, cada triángulo al que mejor mira. size 0 = la caja se ajusta a la malla"},
+    "mesh_uv_unwrap": {"fn": t_mesh_uv_unwrap, "cat": "Mesh", "graph_only": True,
+                       "params": {"method": "conformal", "channel": 0, "align_to_axes": True},
+                       "opciones": {"method": ["conformal", "spectral_conformal", "exp_map"]},
+                       "doc": "despliega resolviendo el aplanado en vez de proyectar: menos estiramiento, más costuras"},
+    "mesh_uv_pack": {"fn": t_mesh_uv_pack, "cat": "Mesh", "graph_only": True,
+                     "params": {"resolution": 1024, "channel": 0, "optimize_rotation": True},
+                     "doc": "empaqueta las islas en el atlas 0..1 (el uvlayout de Houdini) y dice cuánto quedó usado"},
     "material_function": {"fn": t_material_function, "cat": "Shader", "graph_only": True,
                           "params": {"name": "MF_JamFuncion", "folder": "/Game/Jam/Functions",
                                      "kind": "funcion", "description": ""},
@@ -1614,6 +1649,7 @@ GRAPH_IN_NAMES = {"points_to_frames": "P", "debug": "*", "curve_child": "S", "cu
                   "hism_output": "AF", "mesh_transform": "M", "mesh_color": "M",
                   "mesh_uv_scale": "M", "mesh_material": "M", "mesh_bark": "M",
                   "mesh_vertex_gradient": "M", "mesh_merge": "M", "mesh_normals": "M",
+                  "mesh_uv_box": "M", "mesh_uv_unwrap": "M", "mesh_uv_pack": "M",
                   "mesh_compare": "M", "mesh_to_static": "M",
                   "material_node": "MT", "material_connect": "MT", "material_output": "MT",
                   "material_build": "MT", "material_function": "MT", "material_call": "MT",
@@ -1638,6 +1674,7 @@ GRAPH_OUT_NAMES = {"points_to_frames": "F", "debug": "M", "asset": "A", "pick": 
                    "hism_output": "H", "mesh_transform": "M", "mesh_color": "M",
                    "mesh_uv_scale": "M", "mesh_material": "M", "mesh_bark": "M",
                    "mesh_vertex_gradient": "M", "mesh_merge": "M", "mesh_normals": "M",
+                  "mesh_uv_box": "M", "mesh_uv_unwrap": "M", "mesh_uv_pack": "M",
                    "mesh_compare": "M", "mesh_to_static": "A"}
 # ---- las ops de Flow como verbos del Graph ----
 # Hasta acá Jam tenía dos vocabularios que no se tocaban: 29 ops de Flow que producen un stream de
