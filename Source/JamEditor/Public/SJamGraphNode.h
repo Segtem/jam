@@ -51,6 +51,12 @@ public:
 		/** Colores semánticos de los bordes de los grips de stream y salida. */
 		SLATE_ARGUMENT(FLinearColor, InputColor)
 		SLATE_ARGUMENT(FLinearColor, OutputColor)
+		/** Nombre legible del tipo que entra/sale. Un pin no puede identificarse sólo por su color:
+		    eso obliga a memorizar la paleta y no sirve con daltonismo ni con un monitor malo. */
+		SLATE_ARGUMENT(FString, InputLabel)
+		SLATE_ARGUMENT(FString, OutputLabel)
+		/** Valor tipeado de la entrada, cuando es un asset: se puede cablear O escribir. */
+		SLATE_ARGUMENT(FString, InputValue)
 		/** (nombre, default) por cada param. */
 		SLATE_ARGUMENT(TArray<FJamNodeParam>, Params)
 		/** false en los nodos FUENTE (asset, create_spline): no reciben nada, van sin pin de entrada
@@ -159,6 +165,9 @@ private:
 	bool bDebugEnabled = false;
 	// Por cada param: cómo LEER su valor y cómo FIJARLO, sin que el resto del nodo sepa si el widget es
 	// un text box, un checkbox (bool) o un dropdown (enum). Reemplaza al viejo mapa de sólo text boxes.
+	/** Lo tipeado en el campo de la entrada principal (asset). Se sirve como el param `asset`, que
+	    es como el grafo ya lo serializa: para el resto del sistema no cambió nada. */
+	FString ValorDeEntrada;
 	TMap<FString, TFunction<FString()>> ParamGetters;
 	TMap<FString, TFunction<void(const FString&)>> ParamSetters;
 	/** Pines de parámetro que hoy tienen un cable entrando → su input se muestra deshabilitado. Lo

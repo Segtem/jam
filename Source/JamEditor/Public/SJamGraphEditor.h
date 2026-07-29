@@ -73,6 +73,8 @@ public:
 	static FLinearColor CategoryColor(const FString& Cat);
 	/** Color compartido por cable y grip según el tipo de dato (P/N/T/B/A/S/M), estilo Blueprint. */
 	static FLinearColor DataColor(const FString& OutName);
+	/** NOMBRE legible del tipo, para etiquetar el pin. El color acompaña; el que identifica es esto. */
+	static FString DataName(const FString& Type);
 	/** Código corto del verbo para el badge del icono (curado; si no, derivado del verbo). */
 	static FString VerbCode(const FString& Verb);
 	/** Ruta absoluta del SVG asignado al verbo por Resources/Icons/Lucide/icon-map.json. */

@@ -1249,6 +1249,12 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At)
 	// no hizo nada— pero rompe que dos Run del mismo grafo den lo mismo. Capturar al crear da las
 	// dos cosas, y deja las coordenadas a la vista para editarlas. Es lo que hace Houdini cuando
 	// soltás un nodo.
+	// El asset con el que nace el nodo (lo elegido en Content), para el campo de su entrada.
+	FString ValorAssetInicial;
+	if (T->InName == TEXT("A") && ActiveAsset.IsSet())
+	{
+		ValorAssetInicial = ActiveAsset.Get();
+	}
 	const TMap<FString, FString> Iniciales =
 		FModuleManager::LoadModuleChecked<FJamEditorModule>("JamEditor").ParamsDeNodoNuevo(Verb);
 
@@ -1287,6 +1293,9 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At)
 		.OutName(T->OutName)
 		.InputColor(DataColor(T->InName))
 		.OutputColor(DataColor(T->OutName))
+		.InputLabel(DataName(T->InName))
+		.OutputLabel(DataName(T->OutName))
+		.InputValue(ValorAssetInicial)
 		.Params(Params)
 		.HasInput(bHasInput)
 		.OnDragDelta_Lambda([this, Id](const FVector2D& D)
@@ -1566,6 +1575,30 @@ FLinearColor SJamGraphEditor::DataColor(const FString& OutName)
 	// distintos no se pueden distinguir por un pelo.
 	if (OutName == TEXT("MT")) { return FLinearColor(0.55f, 0.24f, 0.10f, 1.0f); }  // cobre (grafo de material)
 	return FLinearColor(0.28f, 0.30f, 0.34f, 1.0f);                                 // neutro
+}
+
+FString SJamGraphEditor::DataName(const FString& Type)
+{
+	// El NOMBRE del tipo, para que un pin no dependa de distinguir un color.
+	//
+	// Un punto verde y un punto celeste no son una etiqueta: hay que haber memorizado la paleta, y
+	// con daltonismo o un monitor malo directamente no se puede. Los colores siguen —ayudan a
+	// seguir un cable de un vistazo— pero la que dice qué entra es la palabra.
+	if (Type == TEXT("A"))   { return TEXT("asset"); }
+	if (Type == TEXT("A[]")) { return TEXT("assets"); }
+	if (Type == TEXT("AF"))  { return TEXT("asset/frame"); }
+	if (Type == TEXT("M"))   { return TEXT("malla"); }
+	if (Type == TEXT("S"))   { return TEXT("curva"); }
+	if (Type == TEXT("F"))   { return TEXT("frames"); }
+	if (Type == TEXT("P"))   { return TEXT("puntos"); }
+	if (Type == TEXT("N"))   { return TEXT("número"); }
+	if (Type == TEXT("N[]")) { return TEXT("serie"); }
+	if (Type == TEXT("T"))   { return TEXT("texto"); }
+	if (Type == TEXT("B"))   { return TEXT("bool"); }
+	if (Type == TEXT("MT"))  { return TEXT("material"); }
+	if (Type == TEXT("H"))   { return TEXT("HISM"); }
+	if (Type == TEXT("*"))   { return TEXT("dato"); }
+	return Type;
 }
 
 FLinearColor SJamGraphEditor::WireColorFor(const FString& NodeId) const

@@ -176,3 +176,40 @@ class RibbonTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class NombresDePinTests(unittest.TestCase):
+    """Un pin no puede identificarse sólo por su color.
+
+    Un punto verde y uno celeste no son una etiqueta: hay que haber memorizado la paleta, y con
+    daltonismo o un monitor malo directamente no se puede. El color acompaña —ayuda a seguir un
+    cable de un vistazo— pero el que identifica es el NOMBRE.
+    """
+
+    def nombres_del_cpp(self) -> set:
+        import re
+
+        cpp = (RAIZ / "Source" / "JamEditor" / "Private" / "SJamGraphEditor.cpp").read_text(
+            encoding="utf-8")
+        cuerpo = cpp.split("FString SJamGraphEditor::DataName")[1].split("\n}")[0]
+        return set(re.findall(r'Type == TEXT\("([^"]+)"\)', cuerpo))
+
+    def test_every_type_in_use_has_a_readable_name(self):
+        """Si un tipo no está en la tabla, su pin se dibuja con el código crudo («N[]») o vacío, y
+        vuelve a hacer falta adivinar."""
+        usados = {t for i in tools.REGISTRO.values()
+                  for t in (i.get("in_name"), i.get("out_name")) if t}
+        sin_nombre = sorted(usados - self.nombres_del_cpp())
+        self.assertEqual(sin_nombre, [], "tipos sin nombre legible en DataName")
+
+    def test_the_names_are_words_and_not_codes(self):
+        """«A» no es un nombre: es el mismo código que ya estaba y no agrega nada."""
+        import re
+
+        cpp = (RAIZ / "Source" / "JamEditor" / "Private" / "SJamGraphEditor.cpp").read_text(
+            encoding="utf-8")
+        cuerpo = cpp.split("FString SJamGraphEditor::DataName")[1].split("\n}")[0]
+        pares = re.findall(r'Type == TEXT\("([^"]+)"\)\s*\)?\s*\{ return TEXT\("([^"]+)"\)', cuerpo)
+        self.assertTrue(pares, "no se pudo leer la tabla de nombres")
+        iguales = [t for t, n in pares if t == n]
+        self.assertEqual(iguales, [], "estos «nombres» son el código de tipo otra vez")
