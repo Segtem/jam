@@ -713,8 +713,8 @@ def ejecutar_dsl(linea: str, widget=None) -> str:
             puntos = tools.dato_producido_runtime(_verbo)
             if not puntos:
                 return texto
-            return texto + "\n" + tools.t_instance(
-                puntos, assets=_asset if isinstance(_asset, str) else "",
+            return texto + "\n" + tools.t_place(
+                _asset, points=puntos,
                 scale_min=_kw.get("scale_min", 1.0), scale_max=_kw.get("scale_max", 1.0),
                 anchor=_kw.get("anchor", "") or "base", align=_kw.get("align", False),
                 sink=_kw.get("sink", 0.0))

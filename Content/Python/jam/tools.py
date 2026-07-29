@@ -236,8 +236,9 @@ def t_pivot_set(asset, *, to="base") -> str:
             f"disco no se toca).")
 
 
-def t_place(asset, *, x=0.0, y=0.0, z=0.0, view=True, surface=True, anchor="base", sink=0.0,
-            align=False, physics=False, yaw=0.0, scale=1.0) -> str:
+def t_place(asset, *, points=None, x=0.0, y=0.0, z=0.0, view=True, surface=True,
+            anchor="base", sink=0.0, align=False, physics=False, yaw=0.0, scale=1.0,
+            scale_min=1.0, scale_max=1.0) -> str:
     """Coloca un ladrillo en relación a su entorno: `view`=en el punto de mira del viewport (x/y/z
     son offset), `surface`=raycast al piso, `anchor`=por qué punto de la pieza se coloca (base,
     center, corner, xmin…), `sink`=cuántos cm hundirla en la superficie (para que una roca no se vea
@@ -245,11 +246,56 @@ def t_place(asset, *, x=0.0, y=0.0, z=0.0, view=True, surface=True, anchor="base
     El oráculo del entorno verifica APOYADO sobre una superficie (gap≈0) + SIN CLAVARSE con los
     vecinos (geometría, no el soporte ni el landscape)."""
     from . import place
+
+    # UN nodo pone cosas en el mundo, y es éste. Con puntos coloca uno por punto; sin puntos, uno
+    # en sus coordenadas. Es el mismo verbo porque es la misma pregunta —«poné ESTO acá»— y la
+    # única diferencia es cuántos «acá» hay.
+    if points:
+        return _place_en_puntos(asset, points, anchor=anchor, sink=sink, align=align,
+                                scale_min=float(scale_min), scale_max=float(scale_max))
+
     actor = place.colocar(asset, (x, y, z - sink), (0.0, 0.0, yaw), (scale, scale, scale),
                           view=view, surface=surface, anchor=anchor, align=align, physics=physics)
     if actor is None:
         return f"no se pudo colocar {_corto(asset)}"
     return _veredicto_entorno(actor)
+
+
+def _place_en_puntos(asset, puntos, *, anchor, sink, align, scale_min, scale_max) -> str:
+    """Coloca el asset en cada punto, con el dedup por HUELLA REAL y el oráculo doble.
+
+    El dedup vive acá y no en `scatter` a propósito: para saber si dos piezas se pisan hay que
+    conocer su tamaño, y el tamaño lo trae el ASSET. Ponerlo en el scatter obligaba a cablearle un
+    asset que no usa para nada más — el asset entraba, salía convertido en punto, y había que
+    volver a traerlo. Un nodo que pide algo que no necesita ensucia el diagrama y confunde sobre
+    qué hace.
+    """
+    from . import scatter, ue
+
+    mallas = scatter._mallas_de([asset] if isinstance(asset, str) else asset)
+    if not mallas:
+        mallas = [asset] if asset is not None else []
+    if not mallas:
+        return "PLACE — no sé QUÉ colocar: cableá un asset."
+
+    radios = [ue.radio_de_malla(m) * max(scale_min, scale_max) for m in mallas]
+    radio_por = [radios[p.seed % len(mallas)] for p in puntos]
+    from . import scatter_core as sc
+    vivos, pisados = sc.dedup_por_radio(list(puntos), radio_por, 1.0)
+
+    actores = scatter.instanciar_puntos(
+        vivos, mallas, scale_min=scale_min, scale_max=scale_max, sink=sink,
+        anchor=anchor, align=align, etiqueta="Jam_place")
+    ue.seleccionar(actores)
+
+    xs = [p.pos.x for p in vivos] or [0.0]
+    ys = [p.pos.y for p in vivos] or [0.0]
+    centro = ((min(xs) + max(xs)) / 2.0, (min(ys) + max(ys)) / 2.0)
+    semi = (max(1.0, (max(xs) - min(xs)) / 2.0), max(1.0, (max(ys) - min(ys)) / 2.0))
+    existentes = ue.vecinos_en_zona(centro, semi, ignorar=actores)
+    oraculo = ue.scatter_texto(actores, centro, semi, len(actores), existentes=existentes)
+    extra = f" · {len(pisados)} evitados por huella" if pisados else ""
+    return (f"PLACE \u2713 \u2014 {len(actores)} en {len(puntos)} punto(s){extra}\n{oraculo}")
 
 
 def _veredicto_entorno(actor) -> str:
@@ -345,7 +391,7 @@ CAPTURA_LA_MIRA = {
 # nacen en el origen — está anotado como pendiente, no disimulado con una captura que no existe.
 
 
-PISTA_INSTANCE = "  \u2192 encha\u00falo a `instance` para colocarlos"
+PISTA_INSTANCE = "  \u2192 encha\u00falo al pin `points` de un `place` para colocarlos"
 
 
 def necesita_instanciar(verbo: str) -> bool:
@@ -357,7 +403,7 @@ def necesita_instanciar(verbo: str) -> bool:
     return REGISTRO.get(verbo, {}).get("out_name") == "P"
 
 
-def t_scatter(asset, *, count=24, area=800.0, x=0.0, y=0.0, pattern="poisson", spacing=0.0, rings=3,
+def t_scatter(_input=None, *, count=24, area=800.0, x=0.0, y=0.0, pattern="poisson", spacing=0.0, rings=3,
               surface=True, align=False, slope_max=90.0, height_min=0.0, height_max=0.0,
               noise=0.0, density=1.0, scale_min=1.0, scale_max=1.0, spread=1.0,
               sink=0.0, anchor="", view=True, seed=7) -> str:
@@ -381,7 +427,7 @@ def t_scatter(asset, *, count=24, area=800.0, x=0.0, y=0.0, pattern="poisson", s
     centro, semi = (cx, cy), (area, area)
 
     puntos, v = scatter.puntos_rico(
-        asset, centro, semi, cantidad=count, patron=pattern, spacing=spacing, anillos=int(rings),
+        None, centro, semi, cantidad=count, patron=pattern, spacing=spacing, anillos=int(rings),
         seed=seed, surface=surface, align=align, slope_max=slope_max,
         height_min=(height_min if height_min else None),
         height_max=(height_max if height_max else None),
@@ -399,7 +445,7 @@ def t_scatter(asset, *, count=24, area=800.0, x=0.0, y=0.0, pattern="poisson", s
     return (f"SCATTER \u2713 \u2014 {len(puntos)} punto(s) de {v['candidatos']} candidatos "
             f"({v['patron']}, sep {v['spacing']}cm, {v['assets']} asset(s), "
             f"{v['mascaras']} m\u00e1scara(s), {v['filtrados']} filtrados, "
-            f"{v['pisados']} evitados por huella)\n" + PISTA_INSTANCE)
+            f"{v['filtrados']} filtrados)\n" + PISTA_INSTANCE)
 
 
 def t_instance(points_input, *, assets="", asset_source=None, scale_min=1.0, scale_max=1.0,
@@ -1381,9 +1427,13 @@ REGISTRO = {
     "place":        {"fn": t_place,   "cat": "Place",
                      "params": {"x": 0.0, "y": 0.0, "z": 0.0, "view": False, "surface": True,
                                 "anchor": "base", "sink": 0.0, "align": False, "physics": False,
-                                "yaw": 0.0, "scale": 1.0},
+                                "yaw": 0.0, "scale": 1.0, "scale_min": 1.0, "scale_max": 1.0,
+                                "points": ""},
+                     "data_params": {"points": "P"},
+                     "optional_data_params": ("points",),
                      "opciones": {"anchor": list(_ANCLAS)},
-                     "doc": "coloca un ladrillo donde mirás: raycast a superficie, align a la normal, física, rot/escala; verifica entorno"},
+                     "doc": "pone el asset en el mundo: en sus coordenadas, o UNO POR PUNTO si le cableás "
+                            "un scatter al pin `points`. Es el único nodo que coloca. Verifica el entorno"},
     "scatter":      {"fn": t_scatter, "cat": "Scatter",
                      "params": {"count": 24, "area": 800.0, "x": 0.0, "y": 0.0,
                                 "pattern": "poisson", "spacing": 0.0,
@@ -1395,14 +1445,6 @@ REGISTRO = {
                                   "anchor": [""] + list(_ANCLAS)},
                      "doc": "calcula PUNTOS sobre la superficie real con máscaras (pendiente/altura/ruido/densidad); "
                             "no coloca nada — enchufalo a `instance`. Salida P"},
-    "instance":     {"fn": t_instance, "cat": "Scatter", "graph_only": True,
-                     "params": {"assets": "", "asset_source": "", "scale_min": 1.0,
-                                "scale_max": 1.0, "anchor": "base", "align": False, "sink": 0.0},
-                     "data_params": {"asset_source": "A"},
-                     "optional_data_params": ("asset_source",),
-                     "opciones": {"anchor": [""] + list(_ANCLAS)},
-                     "doc": "EL ÚNICO nodo que pone geometría nueva en el mundo: coloca en cada punto P "
-                            "y corre el oráculo (la tanda y contra la escena). Salida A"},
     "drop":         {"fn": t_drop,    "cat": "Place",   "params": {"height": 800.0},
                      "doc": "deja caer el asset sobre el piso real y verifica apoyo"},
     "snap":         {"fn": t_snap,    "cat": "Place",   "params": {"grid": 100.0},
@@ -1749,7 +1791,7 @@ CATEGORIAS = ["Content", "Place", "Scatter", "Create", "Mesh", "Edit",
 
 # Contrato del Graph. Vive junto al REGISTRO para que Slate y el Preflight lean la misma verdad.
 # `source` significa sin pin gordo `in`; una fuente todavía puede tener un pin de parámetro `asset`.
-GRAPH_SOURCES = {"asset", "pick", "create_spline", "gizmo", "ghost", "pivot", "pivot_set",
+GRAPH_SOURCES = {"scatter", "asset", "pick", "create_spline", "gizmo", "ghost", "pivot", "pivot_set",
                  "curve_bezier", "mesh_triangle", "mesh_quad", "mesh_grid", "mesh_cylinder",
                  "mesh_cone", "mesh_sphere", "graph_curve",
                  "mesh_box", "mesh_capsule", "mesh_torus", "mesh_disc",
@@ -1757,6 +1799,9 @@ GRAPH_SOURCES = {"asset", "pick", "create_spline", "gizmo", "ghost", "pivot", "p
 # Tools que realmente pueden ejecutarse sin un asset. `asset` y `pick` lo PRODUCEN; `create_spline` y
 # `pivot_set` trabajan sobre la escena/selección. Gizmo y Ghost sí necesitan uno para mostrar huella.
 GRAPH_NO_ASSET = {"asset", "pick", "create_spline", "pivot_set", "instance",
+                  # `scatter` genera PUNTOS: no toca ningún asset. Lo usaba sólo para
+                  # medir huellas, y eso ahora pasa al colocar.
+                  "scatter",
                   "curve_bezier", "mesh_triangle", "mesh_quad", "mesh_grid", "mesh_cylinder",
                   "mesh_cone", "mesh_sphere", "mesh_pipe", "mesh_pipe_profile",
                   "mesh_box", "mesh_capsule", "mesh_torus", "mesh_disc",

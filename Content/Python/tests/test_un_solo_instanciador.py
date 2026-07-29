@@ -47,31 +47,37 @@ class UnSoloInstanciadorTests(unittest.TestCase):
         """El cambio de contrato: `scatter` describe dónde, no coloca."""
         self.assertEqual(tools.REGISTRO["scatter"]["out_name"], "P")
 
-    def test_instance_takes_points_and_produces_an_asset(self):
-        self.assertEqual(tools.REGISTRO["instance"]["in_name"], "P")
-        self.assertEqual(tools.REGISTRO["instance"]["out_name"], "A")
+    def test_scatter_does_not_ask_for_an_asset_it_does_not_use(self):
+        """Lo único que `scatter` hacía con el asset era medir su huella para separar. Eso ahora se
+        hace al COLOCAR, que es donde el tamaño importa y donde el asset ya está.
 
-    def test_instance_needs_no_asset_input_of_its_own(self):
-        """Su asset va por parámetro o sale del activo de la sesión: pedirlo por cable además
-        obligaría a un nodo `asset` colgando de cada `instance`."""
-        self.assertFalse(tools.REGISTRO["instance"]["asset_required"])
+        Pedirlo igual dejaba un diagrama absurdo: el asset entraba, salía convertido en punto, y
+        había que volver a traerlo al nodo siguiente. Un nodo que pide algo que no necesita confunde
+        sobre qué hace.
+        """
+        self.assertTrue(tools.REGISTRO["scatter"].get("source"),
+                        "scatter no debería tener entrada: genera puntos")
+        self.assertEqual(tools.REGISTRO["scatter"]["in_name"], "")
+        self.assertFalse(tools.REGISTRO["scatter"]["asset_required"],
+                         "y tampoco puede EXIGIRLO por otro lado: sin esto el nodo no compila")
 
-    def test_the_two_live_next_to_each_other_in_the_ribbon(self):
-        """Se usan siempre juntos: separarlos en dos tabs obliga a saber de antemano que hacen falta
-        los dos, que es justo lo que alguien nuevo no sabe."""
-        grupo_scatter = ribbon.grupo_de("Scatter", "scatter")
-        grupo_instance = ribbon.grupo_de("Scatter", "instance")
-        self.assertEqual(grupo_scatter, grupo_instance)
-        self.assertTrue(grupo_instance, "instance quedó sin subgrupo en el tab Scatter")
+    def test_place_is_the_one_that_puts_things_in_the_world(self):
+        """No hace falta un verbo nuevo: `place` YA es «poné esto acá». Con puntos, los «acá» son
+        muchos. Un `instance` aparte era el mismo verbo con otro nombre."""
+        self.assertNotIn("instance", tools.REGISTRO,
+                         "`instance` es `place` con varios puntos: no son dos verbos")
+        self.assertEqual(tools.REGISTRO["place"]["data_params"], {"points": "P"})
+        self.assertIn("points", tools.REGISTRO["place"]["optional_data_params"])
 
-    def test_instance_comes_right_after_scatter(self):
-        self.assertLess(ribbon.orden_de("Scatter", "scatter"),
-                        ribbon.orden_de("Scatter", "instance"))
+    def test_place_still_works_without_points(self):
+        """Su contrato viejo no cambia: A → A. Los grafos que ya existían siguen andando."""
+        self.assertEqual(tools.REGISTRO["place"]["in_name"], "A")
+        self.assertEqual(tools.REGISTRO["place"]["out_name"], "A")
 
     def test_a_verb_that_only_computes_says_what_is_missing(self):
         """Un verbo que ya no coloca tiene que decir qué falta, o se siente como un botón roto —
         que es exactamente la queja que en su momento originó `place` centrado en el punto de mira."""
-        self.assertIn("instance", tools.PISTA_INSTANCE)
+        self.assertIn("place", tools.PISTA_INSTANCE)
         self.assertTrue(tools.PISTA_INSTANCE.strip(), "la pista no puede quedar vacía")
 
 
@@ -96,7 +102,8 @@ class ComandoTests(unittest.TestCase):
 
         fuente = inspect.getsource(panel.ejecutar_dsl)
         self.assertIn("necesita_instanciar", fuente)
-        self.assertIn("t_instance", fuente)
+        self.assertIn("t_place", fuente,
+                      "el comando compone con `place`, que es el que coloca")
 
 
 if __name__ == "__main__":

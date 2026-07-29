@@ -178,6 +178,14 @@ def placement_texto(actor, otros) -> str:
     return oracle_placement.verificar_texto(pieza(actor), otras)
 
 
+def radio_de_malla(malla) -> float:
+    """El radio de la HUELLA de una malla, en cm. Lo que hace falta para saber si dos piezas se
+    pisan — y por eso vive donde se conoce el asset, que es al colocar y no al calcular puntos."""
+    from . import scatter_core as sc
+
+    return sc.radio_footprint(aabb_malla(malla))
+
+
 def vecinos_en_zona(centro, semi, ignorar=(), margen: float = 300.0) -> list:
     """Los actores que YA están en la zona del reparto, sin contar los de esta tanda.
 
