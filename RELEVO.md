@@ -49,6 +49,18 @@ confianza; si algo aparece más adelante, no queda contradiciendo a este documen
 Lo que sigue valiendo: **lo que se escriba de Slate a partir de acá vuelve a nacer sin verificar** y
 hay que volver a listarlo abajo. La frontera no se cierra de una vez, se cierra por turno.
 
+## Para las manos de Brian
+
+**Nada pendiente.** La lista de este turno eran seis gestos —acoplar el Graph y reabrir el editor,
+marquee + arrastre en grupo + `Ctrl+Z`, `Ctrl+C`/`V`, alinear, `F`/`Inicio`, y cerrar/reabrir el tab
+con un diagrama puesto— y Brian los probó el 2026-07-29 sin encontrar nada.
+
+*(Esta sección es obligatoria y no se borra cuando está vacía: si se pudiera omitir, un turno dejaría
+de pedir manos sin que nadie lo note. Vacía dice «no hace falta»; ausente no dice nada.)*
+
+Al cerrar el próximo turno va acá lo nuevo de Slate: **máximo seis gestos, quince minutos**. Es el
+mecanismo que funcionó — cuatro tandas pidiendo «probá cuando puedas» no habían movido nada.
+
 ## Lo próximo
 
 **0. Nada bloqueante.** Brian ya probó el editor y no encontró nada. Se puede construir encima de las
