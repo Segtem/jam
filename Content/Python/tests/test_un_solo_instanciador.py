@@ -11,6 +11,7 @@ cuenta, este archivo lo dice.
 from __future__ import annotations
 
 import inspect
+import pathlib
 import sys
 import types
 import unittest
@@ -22,6 +23,8 @@ if not hasattr(_unreal, "TopLevelAssetPath"):
     _unreal.TopLevelAssetPath = lambda package, name: (package, name)
 
 from jam import ribbon, scatter, tools  # noqa: E402
+
+RAIZ_CPP = pathlib.Path(__file__).resolve().parents[3] / "Source" / "JamEditor" / "Private"
 
 
 class UnSoloInstanciadorTests(unittest.TestCase):
@@ -113,10 +116,6 @@ class ComandoTests(unittest.TestCase):
                       "el comando compone con `place`, que es el que coloca")
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class ScatterMultiplicadorTests(unittest.TestCase):
     """El scatter que toma puntos y reparte alrededor de cada uno."""
 
@@ -181,32 +180,40 @@ class ScatterMultiplicadorTests(unittest.TestCase):
 
 
 class UnaEntradaPorCosaTests(unittest.TestCase):
-    """Ningún nodo puede ofrecer DOS pines para lo mismo."""
+    """Una entrada, un pin, y ese pin dice su nombre.
 
-    def test_no_verb_offers_the_asset_twice(self):
-        """`place` tenía el pin del header (A) y además una fila `asset`: dos lugares donde enchufar
-        lo mismo, y ninguna pista de cuál. El del header queda, porque es donde está la entrada
-        principal de TODOS los nodos y hace que el grafo se lea igual en todos lados."""
-        dobles = sorted(v for v, i in tools.REGISTRO.items()
-                        if i.get("asset_row") and i.get("in_name") == "A")
-        self.assertEqual(dobles, [], "estos verbos ofrecen el asset por dos pines distintos")
+    El nodo `place` llegó a tener DOS entradas para el asset: un nub anónimo en el header y una
+    fila `asset`. El duplicado no era la fila —que es la buena: tiene nombre, tiene campo para
+    escribir, y se grisea sola cuando le entra un cable— sino tener las dos. Se queda la que dice
+    qué es; el punto de color se oculta.
+    """
 
-    def test_a_verb_whose_header_takes_something_else_keeps_its_asset_row(self):
-        """No es «sacar todas las filas asset»: `mesh_leaf` toma una CURVA arriba y un asset en la
-        fila, y ahí son dos entradas distintas de verdad."""
-        self.assertTrue(tools.REGISTRO["mesh_leaf"]["asset_row"])
+    def test_everything_that_consumes_an_asset_shows_a_row_for_it(self):
+        """La fila es la que se puede leer y la que se puede tipear. Sin ella, la entrada vuelve a
+        ser un punto de color, que no se puede identificar sin memorizar la paleta."""
+        sin_fila = sorted(v for v, i in tools.REGISTRO.items()
+                          if i.get("asset_pin") and not i.get("asset_row"))
+        self.assertEqual(sin_fila, [], "consumen un asset y no muestran dónde ponerlo")
+
+    def test_the_header_nub_is_hidden_when_the_row_IS_the_main_input(self):
+        """La regla vive en el C++ porque es de dibujo. Se comprueba leyéndola: sin esto vuelven los
+        dos pines, que es exactamente el bug que se estuvo arreglando."""
+        cpp = (RAIZ_CPP / "SJamGraphEditor.cpp").read_text(encoding="utf-8")
+        self.assertIn('bFilaEsLaEntrada = (T->InName == TEXT("A") && T->bAssetRow)', cpp)
+        self.assertIn("bHasInput = !T->bSource && !bFilaEsLaEntrada", cpp)
+
+    def test_a_verb_that_takes_something_else_keeps_its_header_nub(self):
+        """No es «sacar el nub»: `mesh_leaf` recibe una CURVA por el header y un asset en la fila.
+        Ahí son dos entradas distintas de verdad y las dos tienen que estar."""
         self.assertEqual(tools.REGISTRO["mesh_leaf"]["in_name"], "S")
+        self.assertTrue(tools.REGISTRO["mesh_leaf"]["asset_row"])
 
-    def test_consuming_an_asset_and_drawing_a_pin_for_it_are_different_questions(self):
-        """`place` CONSUME un asset —hay que resolvérselo— pero lo recibe por su entrada principal.
-        Mezclar las dos cosas en un solo flag rompió la resolución de assets cuando lo intenté."""
-        self.assertTrue(tools.REGISTRO["place"]["asset_pin"], "sí consume un asset")
-        self.assertFalse(tools.REGISTRO["place"]["asset_row"], "pero no dibuja un pin propio")
+    def test_a_cabled_asset_row_greys_out_like_any_other_param(self):
+        """Que el campo se deshabilite al cablearlo no es cosmética: es lo que dice de dónde está
+        saliendo el valor. Ya existía para todo param cableado, y la fila `asset` es uno más."""
+        cpp = (RAIZ_CPP / "SJamGraphNode.cpp").read_text(encoding="utf-8")
+        self.assertIn("!CabledPins.Contains(Key)", cpp)
 
-    def test_the_asset_pin_is_only_typed_where_it_exists(self):
-        """El tipado tiene que coincidir con lo que se dibuja, o un grafo viejo queda con una arista
-        válida para Python e invisible en el canvas."""
-        from jam import graph
 
-        self.assertIsNone(graph._tipo_entrada("place", "asset", tools.REGISTRO))
-        self.assertEqual(graph._tipo_entrada("mesh_leaf", "asset", tools.REGISTRO), "A")
+if __name__ == "__main__":
+    unittest.main()

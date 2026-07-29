@@ -2047,14 +2047,13 @@ for _nombre, _info in REGISTRO.items():
     # una fila: son dos preguntas distintas y mezclarlas rompe la resolución.
     _info["asset_pin"] = bool(
         _info["asset_required"] or _info.get("optional_asset_argument", False))
-    # `asset_row` = además tiene su PROPIO pin `asset` en el canvas. Sólo cuando la entrada
-    # principal no es ya un asset: en `place` o `drop`, el pin del header y una fila `asset` serían
-    # la misma cosa dos veces —dos lugares donde enchufar lo mismo y ninguna pista de cuál—. Los que
-    # sí la tienen reciben OTRA cosa por el header: `mesh_leaf` toma una curva arriba y un asset acá.
+    # `asset_row` = tiene una fila `asset` en el canvas: pin con NOMBRE y campo de texto, que se
+    # grisea solo cuando le entra un cable (como cualquier otro param cableado).
     #
-    # Se deriva acá y no en la UI para que el canvas, el tipado de los cables y el ejecutor no
-    # puedan tener tres opiniones sobre qué pines existen.
-    _info["asset_row"] = bool(_info["asset_pin"] and _info["in_name"] != "A")
+    # La tiene todo el que consume un asset. Cuando además su entrada principal es de tipo A, esa
+    # fila ES la entrada principal y el nub anónimo del header se oculta — el duplicado no eran la
+    # fila y el nub, era tener los DOS. Se queda el que dice qué es.
+    _info["asset_row"] = bool(_info["asset_pin"])
     _info["out_name"] = GRAPH_OUT_NAMES.get(_nombre, "A")
 
 

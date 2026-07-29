@@ -178,23 +178,7 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 7))
 				.ColorAndOpacity(FSlateColor(FLinearColor(0.30f, 0.31f, 0.33f, 1.0f)))
 			]
-			// Campo para ESCRIBIR el asset cuando la entrada principal es uno. Va en la misma fila
-			// que su pin —no en una fila aparte— porque es el MISMO dato: o lo cableás o lo tipeás.
-			// Tenerlo en dos filas era ofrecer dos entradas para una sola cosa.
-			+ SHorizontalBox::Slot().FillWidth(1.0f).VAlign(VAlign_Center).Padding(4.0f, 0.0f)
-			[
-				InArgs._HasInput && InArgs._InputLabel == TEXT("asset")
-					? StaticCastSharedRef<SWidget>(
-						SNew(SEditableTextBox)
-						.Text(FText::FromString(InArgs._InputValue))
-						.HintText(FText::FromString(TEXT("cableá un asset o escribí su nombre")))
-						.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
-						.OnTextChanged_Lambda([this](const FText& T)
-						{
-							ValorDeEntrada = T.ToString();
-						}))
-					: StaticCastSharedRef<SWidget>(SNew(SSpacer))
-			]
+			+ SHorizontalBox::Slot().FillWidth(1.0f)[ SNew(SSpacer) ]
 			+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
 			[
 				SNew(STextBlock)
@@ -602,12 +586,6 @@ TMap<FString, FString> SJamGraphNode::GetParamValues() const
 	for (const TPair<FString, TFunction<FString()>>& G : ParamGetters)
 	{
 		Out.Add(G.Key, G.Value());
-	}
-	// Lo tipeado en el campo de la entrada principal viaja como el param `asset`: para el
-	// serializador, el compilador y el ejecutor no cambió nada — sólo dónde se escribe en pantalla.
-	if (!ValorDeEntrada.IsEmpty())
-	{
-		Out.Add(TEXT("asset"), ValorDeEntrada);
 	}
 	return Out;
 }

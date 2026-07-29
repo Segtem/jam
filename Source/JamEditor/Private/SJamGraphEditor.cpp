@@ -1249,12 +1249,6 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At)
 	// no hizo nada— pero rompe que dos Run del mismo grafo den lo mismo. Capturar al crear da las
 	// dos cosas, y deja las coordenadas a la vista para editarlas. Es lo que hace Houdini cuando
 	// soltás un nodo.
-	// El asset con el que nace el nodo (lo elegido en Content), para el campo de su entrada.
-	FString ValorAssetInicial;
-	if (T->InName == TEXT("A") && ActiveAsset.IsSet())
-	{
-		ValorAssetInicial = ActiveAsset.Get();
-	}
 	const TMap<FString, FString> Iniciales =
 		FModuleManager::LoadModuleChecked<FJamEditorModule>("JamEditor").ParamsDeNodoNuevo(Verb);
 
@@ -1284,7 +1278,11 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At)
 	const FString Id = Node.Id;
 	// Nodos FUENTE (producen el dato, no lo reciben): sin pin de entrada, convención de Grasshopper.
 	// El flag viene del spec (data-driven): asset/pick/create_spline y las fuentes de flow.
-	const bool bHasInput = !T->bSource;
+	// Sin nub anónimo en el header cuando la entrada principal es un asset: para esos verbos la fila
+	// `asset` —con su nombre y su campo— es la entrada, y un punto de color arriba sería la misma
+	// cosa dos veces. Los demás sí lo llevan: es por donde entra su malla, su curva o sus puntos.
+	const bool bFilaEsLaEntrada = (T->InName == TEXT("A") && T->bAssetRow);
+	const bool bHasInput = !T->bSource && !bFilaEsLaEntrada;
 
 	TSharedRef<SJamGraphNode> Widget = SNew(SJamGraphNode)
 		.Verb(Verb)
@@ -1295,7 +1293,6 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At)
 		.OutputColor(DataColor(T->OutName))
 		.InputLabel(DataName(T->InName))
 		.OutputLabel(DataName(T->OutName))
-		.InputValue(ValorAssetInicial)
 		.Params(Params)
 		.HasInput(bHasInput)
 		.OnDragDelta_Lambda([this, Id](const FVector2D& D)
