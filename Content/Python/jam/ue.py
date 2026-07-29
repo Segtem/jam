@@ -23,15 +23,36 @@ def _mundo():
 _SIN_HIT = {"hit": False, "punto": None, "normal": None, "actor": None}
 
 
-def raycast_entre(a: Vec3, b: Vec3, *, ignorar=None) -> dict:
+# El prefijo con el que Jam marca lo suyo: previews sin confirmar, fantasmas, gizmos.
+_PREFIJO_JAM = "jam:"
+
+
+def actores_de_jam() -> list:
+    """Lo que Jam puso y todavía NO es parte de la escena: previews sin confirmar, fantasmas, gizmos.
+
+    Un rayo que busca EL SUELO no puede apoyarse en ellos. El Preview es transaccional a propósito
+    —el anterior sigue vivo hasta que el nuevo termina bien, para poder revertir—, así que en el
+    momento del raycast la copia anterior está ahí, y colocar «sobre la superficie» la encontraba a
+    ella: cada Run apoyaba el modelo encima del Run anterior y el modelo SUBÍA.
+
+    Al confirmar, los tags se sacan y el actor pasa a ser escena normal: desde ahí sí es suelo
+    válido, que es lo correcto — apoyarse sobre algo que uno ya fijó es lo que uno quiere.
+    """
+    return [a for a in actores_nivel() if any(str(t).startswith(_PREFIJO_JAM) for t in tags(a))]
+
+
+def raycast_entre(a: Vec3, b: Vec3, *, ignorar=None, ignorar_jam: bool = True) -> dict:
     """Traza un rayo de `a` a `b` contra la geometría real del nivel (trace complejo). Devuelve
     {hit, punto: Vec3, normal: Vec3, actor: str|None}. Es la primitiva: el rayo vertical (piso) y el
     de la cámara (dónde estoy mirando) son casos de esto, y sirve igual para pegar contra una pared.
     El HitResult se lee por `to_tuple()` (5.7 no expone sus campos como atributos):
     [0]=blocking_hit, [5]=impact_point, [7]=impact_normal, [9]=actor."""
+    saltear = list(ignorar or [])
+    if ignorar_jam:
+        saltear += actores_de_jam()
     r = unreal.SystemLibrary.line_trace_single(
         _mundo(), unreal.Vector(a.x, a.y, a.z), unreal.Vector(b.x, b.y, b.z),
-        unreal.TraceTypeQuery.TRACE_TYPE_QUERY1, True, ignorar or [],
+        unreal.TraceTypeQuery.TRACE_TYPE_QUERY1, True, saltear,
         unreal.DrawDebugTrace.NONE, True)
     # Sin impacto, la función devuelve None (no un HitResult vacío): sin esta guarda, trazar al aire
     # tiraba AttributeError en vez de decir "no hay superficie".
@@ -47,9 +68,11 @@ def raycast_entre(a: Vec3, b: Vec3, *, ignorar=None) -> dict:
             "actor": act.get_actor_label() if act else None}
 
 
-def raycast(x: float, y: float, *, desde: float = 1.0e6, hasta: float = -1.0e6, ignorar=None) -> dict:
+def raycast(x: float, y: float, *, desde: float = 1.0e6, hasta: float = -1.0e6,
+            ignorar=None, ignorar_jam: bool = True) -> dict:
     """Rayo VERTICAL hacia abajo en (x,y): la superficie bajo ese punto."""
-    return raycast_entre(Vec3(x, y, desde), Vec3(x, y, hasta), ignorar=ignorar)
+    return raycast_entre(Vec3(x, y, desde), Vec3(x, y, hasta),
+                         ignorar=ignorar, ignorar_jam=ignorar_jam)
 
 
 def camara() -> dict | None:
