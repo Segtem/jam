@@ -329,6 +329,21 @@ def _grados_normal(normal) -> float:
     return math.degrees(math.asin(z))   # 90° = normal vertical (piso plano)
 
 
+# El renglón que le dice a alguien qué falta cuando un verbo calcula pero no coloca. Es una
+# constante y no un literal suelto para que se pueda EXIGIR desde un test: un verbo que dejó de
+# hacer lo que hacía y no lo dice se siente exactamente como un botón roto.
+PISTA_INSTANCE = "  \u2192 encha\u00falo a `instance` para colocarlos"
+
+
+def necesita_instanciar(verbo: str) -> bool:
+    """¿Este verbo describe DÓNDE y necesita que otro lo vuelva escena?
+
+    Se decide por el TIPO de salida y no por una lista de nombres: el día que otro verbo pase a
+    producir puntos, la Dash Bar lo compone sola en vez de dejar de colocar en silencio.
+    """
+    return REGISTRO.get(verbo, {}).get("out_name") == "P"
+
+
 def t_scatter(asset, *, count=24, area=800.0, pattern="poisson", spacing=0.0, rings=3,
               surface=True, align=False, slope_max=90.0, height_min=0.0, height_max=0.0,
               noise=0.0, density=1.0, scale_min=1.0, scale_max=1.0, spread=1.0,
@@ -349,7 +364,7 @@ def t_scatter(asset, *, count=24, area=800.0, pattern="poisson", spacing=0.0, ri
             cx, cy = mira["punto"].x, mira["punto"].y
     centro, semi = (cx, cy), (area, area)
 
-    actores, v = scatter.esparcir_rico(
+    puntos, v = scatter.puntos_rico(
         asset, centro, semi, cantidad=count, patron=pattern, spacing=spacing, anillos=int(rings),
         seed=seed, surface=surface, align=align, slope_max=slope_max,
         height_min=(height_min if height_min else None),
@@ -358,8 +373,62 @@ def t_scatter(asset, *, count=24, area=800.0, pattern="poisson", spacing=0.0, ri
         sink=sink, anchor=anchor)
     if "error" in v:
         return v["error"]
+
+    # El scatter NO coloca: deja PUNTOS. Quien pone geometría en el mundo es `instance`, y es el
+    # único. Mientras cada verbo colocaba por su cuenta, encadenar dos era encadenar dos efectos y
+    # el resultado dependía del orden — que es exactamente cómo un segundo scatter terminaba encima
+    # del primero sin que nada lo dijera.
+    _RUNTIME_DATA_OUTPUTS["scatter"] = puntos
+    _RUNTIME_DATA_OUTPUTS["_scatter_zona"] = (centro, semi)
+    return (f"SCATTER \u2713 \u2014 {len(puntos)} punto(s) de {v['candidatos']} candidatos "
+            f"({v['patron']}, sep {v['spacing']}cm, {v['assets']} asset(s), "
+            f"{v['mascaras']} m\u00e1scara(s), {v['filtrados']} filtrados, "
+            f"{v['pisados']} evitados por huella)\n" + PISTA_INSTANCE)
+
+
+def t_instance(points_input, *, assets="", scale_min=1.0, scale_max=1.0,
+               anchor="base", align=False, sink=0.0) -> str:
+    """EL ÚNICO nodo que pone geometría nueva en el mundo. Toma puntos (P) y coloca en cada uno.
+
+    Que haya uno solo no es prolijidad: es lo que le da un significado obvio a encadenar nodos. Con
+    cada verbo colocando por su cuenta, «scatter y después scatter» eran dos efectos superpuestos y
+    el resultado dependía del orden. Ahora la cadena describe DÓNDE, y un solo nodo decide CUÁNDO
+    eso se vuelve escena.
+
+    El oráculo corre acá, que es donde hay actores: primero la tanda contra sí misma y después
+    contra lo que ya estaba.
+    """
+    from . import scatter, session, ue
+
+    puntos = list(points_input or [])
+    if not puntos:
+        return "INSTANCE \u2014 no llegó ningún punto (¿corriste el scatter aguas arriba?)"
+
+    rutas = [r.strip() for r in str(assets).split(",") if r.strip()]
+    if not rutas and session.asset():
+        rutas = [session.asset()]
+    mallas = scatter._mallas_de(rutas)
+    if not mallas:
+        return f"INSTANCE \u2014 ningún asset cargable en {rutas or '(vacío)'}"
+
+    actores = scatter.instanciar_puntos(
+        puntos, mallas, scale_min=float(scale_min), scale_max=float(scale_max),
+        sink=float(sink), anchor=str(anchor), align=bool(align))
     ue.seleccionar(actores)
-    return _veredicto_scatter(actores, centro, semi, v)
+
+    zona = _RUNTIME_DATA_OUTPUTS.get("_scatter_zona")
+    if zona is None:
+        xs = [p.pos.x for p in puntos]
+        ys = [p.pos.y for p in puntos]
+        centro = ((min(xs) + max(xs)) / 2.0, (min(ys) + max(ys)) / 2.0)
+        semi = (max(1.0, (max(xs) - min(xs)) / 2.0), max(1.0, (max(ys) - min(ys)) / 2.0))
+    else:
+        centro, semi = zona
+    existentes = ue.vecinos_en_zona(centro, semi, ignorar=actores)
+    oraculo = ue.scatter_texto(actores, centro, semi, len(actores), existentes=existentes)
+    _RUNTIME_ASSET_OUTPUTS["instance"] = rutas[0] if rutas else ""
+    return (f"INSTANCE \u2713 \u2014 {len(actores)} colocado(s) en {len(puntos)} punto(s) "
+            f"\u00b7 {len(mallas)} asset(s)\n{oraculo}")
 
 
 def _veredicto_scatter(actores, centro, semi, v) -> str:
@@ -1294,7 +1363,14 @@ REGISTRO = {
                                 "anchor": "", "view": True, "seed": 7},
                      "opciones": {"pattern": ["poisson", "grid", "radial", "hexagonal", "triangular"],
                                   "anchor": [""] + list(_ANCLAS)},
-                     "doc": "esparce sobre la superficie real con máscaras (pendiente/altura/ruido/densidad) y variación"},
+                     "doc": "calcula PUNTOS sobre la superficie real con máscaras (pendiente/altura/ruido/densidad); "
+                            "no coloca nada — enchufalo a `instance`. Salida P"},
+    "instance":     {"fn": t_instance, "cat": "Scatter", "graph_only": True,
+                     "params": {"assets": "", "scale_min": 1.0, "scale_max": 1.0,
+                                "anchor": "base", "align": False, "sink": 0.0},
+                     "opciones": {"anchor": [""] + list(_ANCLAS)},
+                     "doc": "EL ÚNICO nodo que pone geometría nueva en el mundo: coloca en cada punto P "
+                            "y corre el oráculo (la tanda y contra la escena). Salida A"},
     "drop":         {"fn": t_drop,    "cat": "Place",   "params": {"height": 800.0},
                      "doc": "deja caer el asset sobre el piso real y verifica apoyo"},
     "snap":         {"fn": t_snap,    "cat": "Place",   "params": {"grid": 100.0},
@@ -1648,7 +1724,7 @@ GRAPH_SOURCES = {"asset", "pick", "create_spline", "gizmo", "ghost", "pivot", "p
                  "mesh_round_rect", "mesh_stairs", "mesh_stairs_curved", "mesh_sphere_box"}
 # Tools que realmente pueden ejecutarse sin un asset. `asset` y `pick` lo PRODUCEN; `create_spline` y
 # `pivot_set` trabajan sobre la escena/selección. Gizmo y Ghost sí necesitan uno para mostrar huella.
-GRAPH_NO_ASSET = {"asset", "pick", "create_spline", "pivot_set",
+GRAPH_NO_ASSET = {"asset", "pick", "create_spline", "pivot_set", "instance",
                   "curve_bezier", "mesh_triangle", "mesh_quad", "mesh_grid", "mesh_cylinder",
                   "mesh_cone", "mesh_sphere", "mesh_pipe", "mesh_pipe_profile",
                   "mesh_box", "mesh_capsule", "mesh_torus", "mesh_disc",
@@ -1685,8 +1761,11 @@ GRAPH_IN_NAMES = {"points_to_frames": "P", "debug": "*", "curve_child": "S", "cu
                   "mesh_compare": "M", "mesh_to_static": "M",
                   "material_node": "MT", "material_connect": "MT", "material_output": "MT",
                   "material_build": "MT", "material_function": "MT", "material_call": "MT",
-                  "material_instance": "A"}
+                  "material_instance": "A", "instance": "P"}
 GRAPH_OUT_NAMES = {"points_to_frames": "F", "debug": "M", "asset": "A", "pick": "A", "create_spline": "S",
+                   # `scatter` describe DÓNDE (puntos) y `instance` decide cuándo eso se vuelve
+                   # escena. Es lo que le da un significado obvio a encadenar nodos de colocación.
+                   "scatter": "P", "instance": "A",
                    "material_wind": "A", "material_build": "A",
                    "material_node": "MT", "material_connect": "MT", "material_output": "MT",
                    "material_call": "MT", "material_function": "A", "material_instance": "A",

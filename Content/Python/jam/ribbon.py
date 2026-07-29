@@ -39,7 +39,9 @@ GRUPOS: dict[str, list[tuple[str, list[str]]]] = {
     ],
     "Content": [("Assets", ["asset", "pick"])],
     "Place": [("Colocar", ["place", "drop", "snap"])],
-    "Scatter": [("Repartir", ["scatter", "spline", "pcg"])],
+    # `instance` va acá, al lado del scatter que le da los puntos, y no en «Output»: es EL nodo
+    # que pone geometría en el mundo, y la cadena se lee de corrido — calculo dónde, coloco.
+    "Scatter": [("Repartir", ["scatter", "instance", "spline", "pcg"])],
     "Create": [("Crear", ["create_spline", "replace", "fracture", "nanite"])],
     "Edit": [
         ("Pivote", ["pivot", "pivot_set", "normalize"]),
@@ -59,7 +61,7 @@ GRUPOS: dict[str, list[tuple[str, list[str]]]] = {
     "Params": [("Valores", ["number", "text"])],
     "Maths": [("Operar", ["math"])],
     "Source": [("Fuente", ["source_surface"])],
-    "Output": [("Salida", ["instance", "weight_material"])],
+    "Output": [("Salida", ["weight_material"])],
     "Shader": [
         # La paleta: un nodo por ficha, agrupados como los agrupa UE. `material_node` queda al final
         # del grupo «Armar» como la puerta a los otros ~380 tipos que no están acá.

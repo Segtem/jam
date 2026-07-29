@@ -698,7 +698,28 @@ def ejecutar_dsl(linea: str, widget=None) -> str:
             return "biblioteca vacía (no hay assets que colocar)."
         kw, desconocidos = dsl.coaccionar(verbo, r["params"])
         fn = tools.REGISTRO[verbo]["fn"]
-        cuerpo = _preview(lambda _w: fn(asset, **kw), owner="dash")
+
+        def _correr(_w, _verbo=verbo, _fn=fn, _kw=kw, _asset=asset):
+            """Un COMANDO es «hacelo ahora»; un grafo es una descripción.
+
+            Los verbos que ahora producen PUNTOS (P) describen dónde iría algo y no colocan nada —
+            en el grafo eso es correcto, porque el que coloca es `instance` y es uno solo—. Pero
+            desde la Dash Bar escribir «scatter SM_Rock» tiene que poner piedras. Acá, en el único
+            lugar por donde pasan todos los comandos, se compone lo que en el grafo son dos nodos.
+            """
+            texto = _fn(_asset, **_kw)
+            if not tools.necesita_instanciar(_verbo):
+                return texto
+            puntos = tools.dato_producido_runtime(_verbo)
+            if not puntos:
+                return texto
+            return texto + "\n" + tools.t_instance(
+                puntos, assets=_asset if isinstance(_asset, str) else "",
+                scale_min=_kw.get("scale_min", 1.0), scale_max=_kw.get("scale_max", 1.0),
+                anchor=_kw.get("anchor", "") or "base", align=_kw.get("align", False),
+                sink=_kw.get("sink", 0.0))
+
+        cuerpo = _preview(_correr, owner="dash")
         if desconocidos:
             cuerpo += f"\n(ignoré params desconocidos: {', '.join(desconocidos)})"
         return cuerpo

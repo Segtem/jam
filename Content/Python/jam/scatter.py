@@ -81,7 +81,7 @@ def esparcir(
     return actores
 
 
-def esparcir_rico(
+def puntos_rico(
     assets,
     centro=(0.0, 0.0),
     semi=(500.0, 500.0),
@@ -160,29 +160,66 @@ def esparcir_rico(
     radio_por_sample = [radios[s.seed % len(mallas)] * max(scale_min, scale_max) for s in vivos]
     vivos, pisados = sc.dedup_por_radio(vivos, radio_por_sample, espaciado)
 
-    # 4) colocar con variación (asset, escala, yaw por semilla estable)
-    actores = []
-    for i, s in enumerate(vivos):
-        malla = mallas[s.seed % len(mallas)]
-        esc, yaw = sc.variacion(s, (scale_min, scale_max))
-        a = place.colocar(
-            malla, (s.pos.x, s.pos.y, s.pos.z - sink), (0.0, 0.0, yaw), esc,
-            surface=False, anchor=anchor, align=align, view=False)
-        if a is not None:
-            a.set_actor_label(f"Jam_scatter_{i}")
-            actores.append(a)
-
     veredicto = {
         "candidatos": len(pts),
-        "colocados": len(actores),
+        "colocados": len(vivos),
         "filtrados": len(descartes),
         "pisados": len(pisados),
         "spacing": round(spacing, 1),
         "mascaras": len(mascaras),
         "assets": len(mallas),
         "patron": patron,
+        "centro": centro,
+        "semi": semi,
     }
+    return vivos, veredicto
+
+
+def esparcir_rico(*args, **kw):
+    """Compat: calcula los puntos Y los coloca, para el camino de COMANDO (Dash Bar / DSL).
+
+    En el GRAFO no se usa: ahí `scatter` produce puntos y el único que toca el mundo es `instance`.
+    Acá se compone lo mismo en un paso, porque un comando es «hacelo ahora» y no una descripción.
+    """
+    vivos, veredicto = puntos_rico(*args, **kw)
+    if "error" in veredicto:
+        return [], veredicto
+    mallas = _mallas_de(kw.get("assets") if "assets" in kw else (args[0] if args else []))
+    actores = instanciar_puntos(vivos, mallas,
+                                scale_min=kw.get("scale_min", 1.0),
+                                scale_max=kw.get("scale_max", 1.0),
+                                sink=kw.get("sink", 0.0), anchor=kw.get("anchor", ""),
+                                align=kw.get("align", False), etiqueta="Jam_scatter")
+    veredicto["colocados"] = len(actores)
     return actores, veredicto
+
+
+def _mallas_de(assets) -> list:
+    rutas = [assets] if isinstance(assets, str) else list(assets or [])
+    return [m for m in (library.cargar_malla(r) for r in rutas) if m is not None]
+
+
+def instanciar_puntos(puntos, mallas, *, scale_min=1.0, scale_max=1.0, sink=0.0,
+                      anchor="", align=False, etiqueta="Jam_instance") -> list:
+    """Coloca una malla en cada punto. Es LO ÚNICO que pone geometría nueva en el mundo.
+
+    Que haya una sola función que spawnea no es prolijidad: es lo que hace que «scatter y después
+    scatter» tenga un significado obvio. Mientras cada verbo colocaba por su cuenta, encadenar dos
+    era encadenar dos efectos, y el resultado dependía de en qué orden corrieran.
+    """
+    if not mallas:
+        return []
+    actores = []
+    for i, s in enumerate(puntos):
+        malla = mallas[s.seed % len(mallas)]
+        esc, yaw = sc.variacion(s, (scale_min, scale_max))
+        a = place.colocar(
+            malla, (s.pos.x, s.pos.y, s.pos.z - sink), (0.0, 0.0, yaw), esc,
+            surface=False, anchor=anchor, align=align, view=False)
+        if a is not None:
+            a.set_actor_label(f"{etiqueta}_{i}")
+            actores.append(a)
+    return actores
 
 
 # ---------- nodos del FLOW que SÍ tocan el motor (el resto vive puro en `jam.flow`) ----------
@@ -242,15 +279,14 @@ def _op_instance(entradas, p):
         rad_por = [radios[s.seed % len(mallas)] for s in stream]
         stream_ok, rechazados = sc.dedup_por_radio(stream, rad_por, 1.0)
         pisados = len(rechazados)
-        for i, s in enumerate(stream_ok):
-            malla = mallas[s.seed % len(mallas)]
-            esc, yaw = sc.variacion(s, (p.get("scale_min", 1.0), p.get("scale_max", 1.0)))
-            a = place.colocar(malla, (s.pos.x, s.pos.y, s.pos.z - p.get("sink", 0.0)),
-                              (0.0, 0.0, yaw), esc, surface=False,
-                              anchor=p.get("anchor", "base"), align=p.get("align", False), view=False)
-            if a is not None:
-                a.set_actor_label(f"Jam_scatter_{i}")
-                actores.append(a)
+        # Delega en el ÚNICO que spawnea. Antes tenía su propia copia del bucle de colocación: dos
+        # lugares poniendo geometría, que podían divergir. Es la regla que fija
+        # `test_un_solo_instanciador`, y este duplicado fue el primero que encontró.
+        actores = instanciar_puntos(
+            stream_ok, mallas,
+            scale_min=p.get("scale_min", 1.0), scale_max=p.get("scale_max", 1.0),
+            sink=p.get("sink", 0.0), anchor=p.get("anchor", "base"),
+            align=p.get("align", False), etiqueta="Jam_scatter")
     p["_out"] = {"actores": actores, "colocados": len(actores), "pisados": pisados,
                  "assets": len(mallas)}
     return stream
