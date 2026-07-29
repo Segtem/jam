@@ -45,8 +45,10 @@ SECCIONES = (
     "## No toques esto",
     "## Lo que aprendí este turno",
 )
-# lo que cambia el comportamiento del editor; tocarlo invalida la verificación con motor
-VIVO = ("Source", "Content/Python")
+# Lo que cambia el comportamiento del editor; tocarlo invalida la verificación con motor.
+# `oraculo/` entra porque el plugin lo IMPORTA (`jam.nivel`, `jam.oracle_espacio` cuelgan de
+# `oraculo.mazes.spacegraph`): quedaba afuera y una edición ahí pasaba como si no fuera código vivo.
+VIVO = ("Source", "Content/Python", "oraculo")
 
 
 def git(*args: str) -> str:
