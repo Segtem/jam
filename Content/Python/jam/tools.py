@@ -905,7 +905,7 @@ def t_material_output(mat_input, *, node="", target="MP_BASE_COLOR", from_output
 
 
 def t_material_build(mat_input, *, name="M_JamMaterial", folder="/Game/Jam/Materials",
-                     blend_mode="", shading_model="", two_sided=False,
+                     blend_mode="", shading_model="", two_sided=False, use_attributes=False,
                      max_instructions=0) -> str:
     """Hornea el grafo como material de verdad. Acá SÍ se planta si el grafo no es válido.
 
@@ -922,7 +922,7 @@ def t_material_build(mat_input, *, name="M_JamMaterial", folder="/Game/Jam/Mater
     problemas = shader.verificar(grafo)
     if problemas:
         raise RuntimeError("el grafo del material no es válido: " + " \u00b7 ".join(problemas))
-    resultado = materials.emitir(grafo, str(folder))
+    resultado = materials.emitir(grafo, str(folder), usar_atributos=bool(use_attributes))
     if "error" in resultado:
         raise RuntimeError(resultado["error"])
     _RUNTIME_DATA_OUTPUTS["material_build"] = f"{folder}/{name}"
@@ -932,6 +932,79 @@ def t_material_build(mat_input, *, name="M_JamMaterial", folder="/Game/Jam/Mater
     if problema:
         raise RuntimeError(problema)
     return f"MATERIAL BUILD \u2713 \u2014 {resultado['info']}"
+
+
+def t_material_function(mat_input, *, name="MF_JamFuncion", folder="/Game/Jam/Functions",
+                        kind="funcion", description="") -> str:
+    """Hornea el grafo MT como FUNCIÓN de material reusable, no como material.
+
+    Es el mismo IR y los mismos verbos; lo único que cambia es que el grafo termina en un
+    `FunctionOutput` (o `MaterialLayerOutput` si `kind` es capa/mezcla) y el asset es una función.
+    Sirve para que Jam acumule vocabulario PROPIO: lo que hoy es un subgrafo que se copia y pega,
+    después es un nodo con nombre que se llama desde cualquier material con `material_call`.
+    """
+    from . import materials, shader
+    grafo = _material_entrada(mat_input, str(name))
+    grafo = shader.GrafoMaterial(nombre=str(name), nodos=grafo.nodos, aristas=grafo.aristas)
+    problemas = shader.verificar(grafo)
+    if problemas:
+        raise RuntimeError("el grafo de la función no es válido: " + " \u00b7 ".join(problemas))
+    resultado = materials.emitir_funcion(grafo, str(folder), clase=str(kind),
+                                         descripcion=str(description))
+    if "error" in resultado:
+        raise RuntimeError(resultado["error"])
+    _RUNTIME_DATA_OUTPUTS["material_function"] = f"{folder}/{name}"
+    return f"MATERIAL FUNCTION \u2713 \u2014 {resultado['info']}"
+
+
+def t_material_call(mat_input=None, *, function="", id="", inputs="", x=0, y=0) -> str:
+    """Llama a una función de material dentro del grafo. Sus entradas se DESCUBREN del asset.
+
+    Es el mismo trato que las 408 expresiones del motor: la firma no se declara, se pregunta. Por
+    eso una función propia se usa igual que un nodo nativo, y equivocarse de nombre de entrada dice
+    cuáles tiene.
+    """
+    from . import materials, shader
+    grafo = _material_entrada(mat_input, "M_JamMaterial")
+    ruta = str(function).strip()
+    if not ruta:
+        raise RuntimeError("hay que decir qué función llamar (ruta del asset)")
+    entradas = materials.entradas_de_funcion(ruta)
+    if entradas is None:
+        raise RuntimeError(f"no pude cargar la función «{ruta}»")
+    pedidas = shader.parsear_pares(inputs)
+    invalidas = [p for p in pedidas if p not in entradas]
+    if invalidas:
+        raise RuntimeError(f"«{ruta}» no tiene la(s) entrada(s) {invalidas} "
+                           f"(tiene {entradas or 'ninguna'})")
+    grafo, creado = shader.con_nodo(
+        grafo, "MaterialFunctionCall", id=str(id), props={"material_function": ruta},
+        entradas=pedidas, x=int(x), y=int(y), firma=tuple(entradas))
+    return "MATERIAL CALL \u2713 \u2014 " + _material_output(
+        "material_call", grafo, f" \u00b7 \u00ab{creado}\u00bb \u2192 {ruta} {entradas}")
+
+
+def t_material_instance(asset_input=None, *, name="MI_JamInstancia",
+                        folder="/Game/Jam/Materials", parent="", scalars="", vectors="") -> str:
+    """Crea una INSTANCIA del material y le fija parámetros. Retocar sin recompilar nada.
+
+    Es el otro lado del trabajo de shader: el material define QUÉ se puede tocar (los parámetros con
+    nombre) y la instancia decide CUÁNTO. Diez variantes de una pared son diez instancias, no diez
+    materiales — y ninguna paga compilación.
+    """
+    from . import materials, shader
+    ruta_padre = str(parent).strip() or str(asset_input or "").strip()
+    if not ruta_padre:
+        raise RuntimeError("hay que decir de qué material sale la instancia "
+                           "(cable A desde material_build, o el campo `parent`)")
+    resultado = materials.instanciar(
+        ruta_padre, str(name), str(folder),
+        escalares={k: float(v) for k, v in shader.parsear_pares(scalars).items()},
+        vectores={k: shader.color_de_hex(v) for k, v in shader.parsear_pares(vectors).items()})
+    if "error" in resultado:
+        raise RuntimeError(resultado["error"])
+    _RUNTIME_DATA_OUTPUTS["material_instance"] = f"{folder}/{name}"
+    return f"MATERIAL INSTANCE \u2713 \u2014 {resultado['info']}"
 
 
 def t_mesh_vertex_gradient(mesh_input, *, eje="z", desde=0.0, hasta=1.0,
@@ -1387,13 +1460,25 @@ REGISTRO = {
     "material_build": {"fn": t_material_build, "cat": "Shader", "graph_only": True,
                        "params": {"name": "M_JamMaterial", "folder": "/Game/Jam/Materials",
                                   "blend_mode": "", "shading_model": "", "two_sided": False,
-                                  "max_instructions": 0},
+                                  "use_attributes": False, "max_instructions": 0},
                        "opciones": {"blend_mode": ["", "BLEND_OPAQUE", "BLEND_MASKED",
                                                    "BLEND_TRANSLUCENT", "BLEND_ADDITIVE"],
                                     "shading_model": ["", "MSM_DEFAULT_LIT", "MSM_UNLIT",
                                                       "MSM_SUBSURFACE", "MSM_TWO_SIDED_FOLIAGE"]},
                        "doc": "hornea el grafo MT como material de verdad; verifica antes de crear nada "
                               "y MIDE el costo (max_instructions = presupuesto, 0 = sin límite); salida A"},
+    "material_function": {"fn": t_material_function, "cat": "Shader", "graph_only": True,
+                          "params": {"name": "MF_JamFuncion", "folder": "/Game/Jam/Functions",
+                                     "kind": "funcion", "description": ""},
+                          "opciones": {"kind": ["funcion", "capa", "mezcla"]},
+                          "doc": "hornea el grafo MT como FUNCIÓN reusable (o capa/mezcla de Material Layers); salida A"},
+    "material_call": {"fn": t_material_call, "cat": "Shader", "graph_only": True,
+                      "params": {"function": "", "id": "", "inputs": "", "x": 0, "y": 0},
+                      "doc": "llama a una función de material dentro del grafo; sus entradas se DESCUBREN del asset; salida MT"},
+    "material_instance": {"fn": t_material_instance, "cat": "Shader", "graph_only": True,
+                          "params": {"name": "MI_JamInstancia", "folder": "/Game/Jam/Materials",
+                                     "parent": "", "scalars": "", "vectors": ""},
+                          "doc": "instancia del material con parámetros fijados: variantes sin recompilar; salida A"},
     "mesh_vertex_gradient": {"fn": t_mesh_vertex_gradient, "cat": "Mesh", "graph_only": True,
                              "params": {"eje": "z", "desde": 0.0, "hasta": 1.0,
                                         "power": 1.0, "canal": "todos"},
@@ -1527,10 +1612,12 @@ GRAPH_IN_NAMES = {"points_to_frames": "P", "debug": "*", "curve_child": "S", "cu
                   "mesh_vertex_gradient": "M", "mesh_merge": "M", "mesh_normals": "M",
                   "mesh_compare": "M", "mesh_to_static": "M",
                   "material_node": "MT", "material_connect": "MT", "material_output": "MT",
-                  "material_build": "MT"}
+                  "material_build": "MT", "material_function": "MT", "material_call": "MT",
+                  "material_instance": "A"}
 GRAPH_OUT_NAMES = {"points_to_frames": "F", "debug": "M", "asset": "A", "pick": "A", "create_spline": "S",
                    "material_wind": "A", "material_build": "A",
                    "material_node": "MT", "material_connect": "MT", "material_output": "MT",
+                   "material_call": "MT", "material_function": "A", "material_instance": "A",
                    "curve_bezier": "S", "curve_child": "S", "curve_noise": "S", "curve_frames": "F",
                    "distribute_frames": "F", "transform_frames": "F",
                    "branch_from_frames": "S", "curve_branches": "S",
@@ -1607,7 +1694,8 @@ def _registrar_ops_flow() -> list[str]:
 GRAPH_ARITY = {"mesh_merge": -1, "asset_set": -1}
 # `material_node` tiene pin de entrada MT pero el PRIMER nodo de una cadena no tiene de dónde
 # venir: con el mínimo en 1 haría falta un verbo `material_new` de puro trámite en el canvas.
-GRAPH_MIN_INPUTS = {"mesh_merge": 2, "asset_set": 2, "material_node": 0}
+GRAPH_MIN_INPUTS = {"mesh_merge": 2, "asset_set": 2, "material_node": 0,
+                    "material_call": 0, "material_instance": 0}
 OPS_FLOW_EN_GRAPH = _registrar_ops_flow()
 
 for _nombre, _info in REGISTRO.items():

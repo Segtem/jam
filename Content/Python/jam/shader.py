@@ -87,7 +87,15 @@ SALIDAS = (
     "MP_BASE_COLOR", "MP_METALLIC", "MP_SPECULAR", "MP_ROUGHNESS", "MP_EMISSIVE_COLOR",
     "MP_OPACITY", "MP_OPACITY_MASK", "MP_NORMAL", "MP_WORLD_POSITION_OFFSET",
     "MP_AMBIENT_OCCLUSION", "MP_SUBSURFACE_COLOR",
+    # La salida ÚNICA que reemplaza a todas las de arriba cuando el material trabaja por atributos.
+    # Es la puerta al apilado de capas: un `BlendMaterialAttributes` mezcla dos materiales enteros
+    # —color, rugosidad, normal, todo de una— en vez de mezclar canal por canal a mano.
+    "MP_MATERIAL_ATTRIBUTES",
 )
+
+# Nodos que TERMINAN un grafo sin ser una salida de material, porque el grafo no es un material sino
+# una FUNCIÓN. Es la única diferencia entre los dos: el mismo IR, otro nodo final y otro contenedor.
+TERMINALES_DE_FUNCION = ("FunctionOutput", "MaterialLayerOutput")
 
 
 @dataclass(frozen=True)
@@ -99,6 +107,10 @@ class Nodo:
     props: dict = field(default_factory=dict)
     x: int = 0
     y: int = 0
+    # Las entradas de este nodo, cuando NO se pueden saber por su tipo. Es el caso de
+    # `MaterialFunctionCall`: sus entradas son las de la función a la que apunta, así que se
+    # descubren del asset y viajan con el nodo. Vacío = manda la tabla `ENTRADAS`.
+    firma: tuple = ()
 
 
 @dataclass(frozen=True)
@@ -129,6 +141,16 @@ class GrafoMaterial:
             if n.id == id_:
                 return n
         return None
+
+
+def es_funcion(grafo: GrafoMaterial) -> bool:
+    """¿Este grafo describe una FUNCIÓN de material en vez de un material?
+
+    La diferencia es un nodo: una función termina en `FunctionOutput` (o `MaterialLayerOutput` si es
+    una capa) y no enchufa nada a `MP_*`. Todo lo demás —el IR, el verificador, el evaluador, los
+    verbos— es idéntico, y por eso una función se arma con los mismos nodos que un material.
+    """
+    return any(n.tipo in TERMINALES_DE_FUNCION for n in grafo.nodos)
 
 
 def verificar(grafo: GrafoMaterial) -> list[str]:
@@ -162,7 +184,7 @@ def verificar(grafo: GrafoMaterial) -> list[str]:
             problemas.append(f"arista {i}: entra a «{arista.hasta}», que no existe")
             continue
         destino = grafo.nodo(arista.hasta)
-        validas = ENTRADAS.get(destino.tipo, ())
+        validas = destino.firma or ENTRADAS.get(destino.tipo, ())
         if validas and arista.entrada not in validas:
             problemas.append(
                 f"arista {i}: «{destino.tipo}» no tiene la entrada «{arista.entrada}» "
@@ -171,7 +193,7 @@ def verificar(grafo: GrafoMaterial) -> list[str]:
             problemas.append(f"arista {i}: «{arista.hasta}.{arista.entrada}» ya estaba conectada")
         alimentadas.add((arista.hasta, arista.entrada))
 
-    if not any(a.es_salida_del_material for a in grafo.aristas):
+    if not any(a.es_salida_del_material for a in grafo.aristas) and not es_funcion(grafo):
         problemas.append("el grafo no alimenta ninguna salida del material: no haría nada")
 
     ciclo = _buscar_ciclo(grafo)
@@ -322,9 +344,14 @@ def id_libre(grafo: GrafoMaterial, tipo: str) -> str:
 
 
 def con_nodo(grafo: GrafoMaterial, tipo: str, *, id: str = "", props: dict | None = None,
-             entradas: dict | None = None, x: int = 0, y: int = 0) -> tuple[GrafoMaterial, str]:
-    """Agrega un nodo (y de paso sus cables de entrada). Devuelve `(grafo_nuevo, id_del_nodo)`."""
-    validas = entradas_de(tipo)
+             entradas: dict | None = None, x: int = 0, y: int = 0,
+             firma: tuple = ()) -> tuple[GrafoMaterial, str]:
+    """Agrega un nodo (y de paso sus cables de entrada). Devuelve `(grafo_nuevo, id_del_nodo)`.
+
+    `firma` pisa la tabla de tipos para los nodos cuyas entradas dependen de a qué apunten —hoy
+    `MaterialFunctionCall`—, y viaja con el nodo para que el verificador puro las siga conociendo.
+    """
+    validas = firma or entradas_de(tipo)
     tipo = normalizar_tipo(tipo)     # el IR guarda el nombre de CLASE: es lo que el emisor busca
     nuevo_id = id.strip() or id_libre(grafo, tipo)
     if grafo.nodo(nuevo_id) is not None:
@@ -342,7 +369,8 @@ def con_nodo(grafo: GrafoMaterial, tipo: str, *, id: str = "", props: dict | Non
                              f"(hay {[n.id for n in grafo.nodos] or 'ninguno'})")
         cables.append(Arista(desde=origen, hasta=nuevo_id, entrada=pin, salida=salida))
 
-    nodo = Nodo(id=nuevo_id, tipo=tipo, props=dict(props or {}), x=int(x), y=int(y))
+    nodo = Nodo(id=nuevo_id, tipo=tipo, props=dict(props or {}), x=int(x), y=int(y),
+                firma=tuple(firma))
     return GrafoMaterial(nombre=grafo.nombre, nodos=grafo.nodos + (nodo,),
                          aristas=grafo.aristas + tuple(cables), two_sided=grafo.two_sided,
                          shading_model=grafo.shading_model, blend_mode=grafo.blend_mode), nuevo_id
@@ -356,7 +384,7 @@ def con_cable(grafo: GrafoMaterial, desde: str, hasta: str, entrada: str = "",
     destino = grafo.nodo(hasta)
     if destino is None:
         raise ValueError(f"«{hasta}» no es un nodo de este grafo")
-    validas = entradas_de(destino.tipo)
+    validas = destino.firma or entradas_de(destino.tipo)
     if not entrada:
         if len(validas) != 1:
             raise ValueError(f"«{hasta}» ({destino.tipo}) tiene {len(validas)} entradas "

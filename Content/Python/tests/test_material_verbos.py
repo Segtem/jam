@@ -287,6 +287,98 @@ class VerbosTests(unittest.TestCase):
                          shader.SALIDAS)
 
 
+class FuncionesTests(unittest.TestCase):
+    """El mismo IR describe un material o una FUNCIÓN reusable: la diferencia es el nodo final."""
+
+    def test_a_graph_that_ends_in_a_function_output_is_a_function(self):
+        g, c = shader.con_nodo(shader.vacio("MF"), "Constant", props={"r": 1.0})
+        self.assertFalse(shader.es_funcion(g))
+        g, _ = shader.con_nodo(g, "FunctionOutput", id="out", entradas={"None": c})
+        self.assertTrue(shader.es_funcion(g))
+
+    def test_a_function_graph_verifies_without_feeding_a_material_output(self):
+        """Un material sin salida «no haría nada», pero una función NO tiene salidas MP_*: su
+        salida es un nodo suyo. Sin esta distinción, toda función se reportaría como rota."""
+        g, c = shader.con_nodo(shader.vacio("MF"), "Constant", props={"r": 1.0})
+        g, _ = shader.con_nodo(g, "FunctionOutput", id="out", entradas={"None": c})
+        self.assertEqual(shader.verificar(g), [])
+
+    def test_a_layer_ends_in_a_material_layer_output(self):
+        g, c = shader.con_nodo(shader.vacio("MFL"), "Constant3Vector",
+                               props={"constant": (0.5, 0.5, 0.5)})
+        g, _ = shader.con_nodo(g, "MaterialLayerOutput", id="out", entradas={"None": c})
+        self.assertTrue(shader.es_funcion(g))
+        self.assertEqual(shader.verificar(g), [])
+
+    def test_a_material_with_no_output_is_still_an_error(self):
+        """La excepción es SÓLO para funciones: aflojar esto de más taparía el error más común."""
+        g, _ = shader.con_nodo(shader.vacio("M"), "Constant", props={"r": 1.0})
+        self.assertTrue(any("no alimenta" in p for p in shader.verificar(g)))
+
+
+class FirmaPorNodoTests(unittest.TestCase):
+    """`MaterialFunctionCall` no puede tener firma en la tabla: depende de a qué apunte."""
+
+    def grafo_con_llamada(self, firma):
+        g, c = shader.con_nodo(shader.vacio("M"), "Constant", props={"r": 1.0}, id="c")
+        return shader.con_nodo(g, "MaterialFunctionCall", id="call", firma=firma,
+                               entradas={firma[0]: "c"} if firma else None)
+
+    def test_the_node_carries_its_discovered_signature(self):
+        g, _ = self.grafo_con_llamada(("Rugosidad", "Escala"))
+        self.assertEqual(g.nodo("call").firma, ("Rugosidad", "Escala"))
+
+    def test_an_input_outside_the_discovered_signature_is_refused(self):
+        g, c = shader.con_nodo(shader.vacio("M"), "Constant", props={"r": 1.0}, id="c")
+        with self.assertRaises(ValueError) as caso:
+            shader.con_nodo(g, "MaterialFunctionCall", firma=("Rugosidad",),
+                            entradas={"Escala": "c"})
+        self.assertIn("Rugosidad", str(caso.exception))
+
+    def test_the_verifier_honours_the_node_signature_over_the_table(self):
+        """La tabla dice que `MaterialFunctionCall` no tiene entradas. Si el verificador le hiciera
+        caso, toda llamada a una función quedaría reportada como mal cableada."""
+        g, _ = self.grafo_con_llamada(("Rugosidad",))
+        g = shader.con_salida(g, "call", "MP_BASE_COLOR")
+        self.assertEqual(shader.ENTRADAS["MaterialFunctionCall"], ())
+        self.assertEqual(shader.verificar(g), [])
+
+    def test_the_node_signature_WINS_over_a_table_entry_that_disagrees(self):
+        """El caso anterior no alcanza: con la tabla en `()`, el verificador saltea el chequeo y
+        pasaría igual aunque ignorara la firma. Acá la tabla dice algo DISTINTO —un `Add` tiene
+        A y B— y la firma del nodo tiene que ganar, que es la regla que se está fijando.
+        """
+        g, _ = shader.con_nodo(shader.vacio("M"), "Constant", props={"r": 1.0}, id="c")
+        g, _ = shader.con_nodo(g, "Add", id="raro", firma=("Alpha",), entradas={"Alpha": "c"})
+        g = shader.con_salida(g, "raro", "MP_BASE_COLOR")
+        self.assertEqual(shader.ENTRADAS["Add"], ("A", "B"))
+        self.assertEqual(shader.verificar(g), [],
+                         "la firma que trae el nodo tiene que mandar sobre la tabla de tipos")
+
+    def test_connect_also_honours_it(self):
+        g, _ = self.grafo_con_llamada(("Rugosidad",))
+        g, otro = shader.con_nodo(g, "Constant", props={"r": 2.0}, id="c2")
+        g = shader.con_cable(g, "c2", "call", "Rugosidad")   # existe en la firma descubierta
+        self.assertEqual(len([a for a in g.aristas if a.hasta == "call"]), 2)
+
+
+class AtributosTests(unittest.TestCase):
+    def test_the_attributes_output_is_a_valid_material_output(self):
+        """Es la puerta al apilado: un material por atributos tiene UNA entrada en vez de una por
+        canal, y es lo que deja que un `BlendMaterialAttributes` mezcle dos materiales enteros."""
+        self.assertIn("MP_MATERIAL_ATTRIBUTES", shader.SALIDAS)
+        g, a = shader.con_nodo(shader.vacio("M"), "MakeMaterialAttributes")
+        g, b = shader.con_nodo(g, "MakeMaterialAttributes")
+        g, mezcla = shader.con_nodo(g, "BlendMaterialAttributes",
+                                    entradas={"A": a, "B": b})
+        g = shader.con_salida(g, mezcla, "MP_MATERIAL_ATTRIBUTES")
+        self.assertEqual(shader.verificar(g), [])
+
+    def test_build_can_flip_the_material_to_attributes(self):
+        """Sin `use_material_attributes` el cable a esa salida se conecta igual y NO hace nada."""
+        self.assertIn("use_attributes", tools.REGISTRO["material_build"]["params"])
+
+
 class RegistroTests(unittest.TestCase):
     def test_the_material_graph_travels_on_its_own_pin_type(self):
         """`MT` no es `M`: una malla y un grafo de material no se pueden enchufar entre sí."""

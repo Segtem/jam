@@ -229,6 +229,23 @@ ICONOS = {
                               f'<circle cx="16" cy="12" r="6" stroke="{ASSET}" '
                               f'stroke-width="1.7" fill="{ASSET}" fill-opacity="0.75"/>',
                               curva("M13.5 9.2a3.5 3.5 0 0 1 3-1.1", "#DDDDE2", 1.3)),
+    # Reusar: una FUNCIÓN es un grafo que se empaqueta y se vuelve un nodo con nombre; la LLAMADA
+    # es esa caja usada desde otro grafo, con sus pines descubiertos.
+    "jam-material-function": svg(caja(2.5, 4, 4, 3.5, MATERIAL), caja(2.5, 10.5, 4, 3.5, MATERIAL),
+                                 caja(2.5, 17, 4, 3.5, MATERIAL),
+                                 curva("M6.5 5.75h2v13h-2M6.5 12.25h2", TINTA, 1.1),
+                                 flecha(11, 12, 14, 12),
+                                 caja(15, 7.5, 6.5, 9, ASSET)),
+    "jam-material-call": svg(caja(7.5, 6.5, 9, 11, ASSET),
+                             punto(7.5, 9.5, MATERIAL, 1.5), punto(7.5, 14, MATERIAL, 1.5),
+                             curva("M3 9.5h4M3 14h4", TINTA, 1.2),
+                             punto(16.5, 12, MATERIAL, 1.5), curva("M17 12h4", TINTA, 1.2)),
+    # La instancia: el mismo material, con las perillas movidas.
+    "jam-material-instance": svg(f'<circle cx="8" cy="12" r="5" stroke="{ASSET}" '
+                                 f'stroke-width="1.6" fill="{ASSET}" fill-opacity="0.7"/>',
+                                 flecha(14, 12, 16.5, 12),
+                                 curva("M19 5v14", TINTA, 1.2),
+                                 punto(19, 8, NUM, 1.9), punto(19, 15.5, NUM, 1.9)),
     "jam-mesh-material": svg(malla("M5 7h14v10H5z"),
                              f'<circle cx="12" cy="12" r="3.4" fill="{SERIE}" stroke="none"/>'),
     "jam-mesh-uv": svg(malla("M5 6h14v12H5z", M, False),

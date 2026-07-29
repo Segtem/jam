@@ -175,7 +175,7 @@ def resumen_de_costo(medida: dict) -> str:
 # ---------------------------------------------------------------------------------------------
 
 def emitir(grafo, carpeta: str = "/Game/Jam/Materials", *, sobrescribir: bool = True,
-           medir_costo: bool = True) -> dict:
+           medir_costo: bool = True, usar_atributos: bool = False) -> dict:
     """Crea el material que describe `grafo`. Devuelve `{"material":…, "costo":…, "info":…}`
     o `{"error":…}`.
 
@@ -227,6 +227,11 @@ def emitir(grafo, carpeta: str = "/Game/Jam/Materials", *, sobrescribir: bool = 
     # `shading_model` estuvo declarado en el IR y sin aplicar: un `MSM_UNLIT` no cambiaba nada y
     # sólo se notó midiendo el costo, porque un unlit tenía que salir MUCHO más barato y salía
     # idéntico. Un campo que se puede escribir y no hace nada es peor que no tenerlo.
+    # Con atributos, el material tiene UNA sola entrada (`MP_MATERIAL_ATTRIBUTES`) en vez de una por
+    # canal. Es lo que habilita apilar: un `BlendMaterialAttributes` mezcla dos materiales enteros de
+    # una. Sin este flag el cable a esa salida se conecta igual y NO hace nada.
+    if usar_atributos:
+        material.set_editor_property("use_material_attributes", True)
     for propiedad, valor in (("blend_mode", grafo.blend_mode),
                              ("shading_model", grafo.shading_model)):
         if not valor:
@@ -339,6 +344,16 @@ def _valor_de_propiedad(dueno, nombre: str, valor):
     if not isinstance(valor, str):
         return valor
 
+    # Una RUTA de asset se carga. El IR es puro y no puede guardar un `UObject`, así que una
+    # referencia a otro asset —la función de `MaterialFunctionCall`, una textura— viaja como texto.
+    # Sin esto, `set_editor_property` recibe un str donde espera el objeto y lanza `TypeError`: la
+    # propiedad queda sin aplicar, el nodo sin firma, y los cables que dependían de ella tampoco se
+    # conectan. Ni los enums ni los colores en hex empiezan con «/», así que no hay ambigüedad.
+    if valor.startswith("/"):
+        cargado = unreal.EditorAssetLibrary.load_asset(valor)
+        if cargado is not None:
+            return cargado
+
     actual = None
     if dueno is not None:
         try:
@@ -411,3 +426,216 @@ def op_weight_material(entradas, p):
                  "resumen": f"{len(compilado['ops'])} op(s) de Weight → "
                             f"{len(compilado['grafo'].nodos)} nodos de material"}
     return stream
+
+
+# ---------------------------------------------------------------------------------------------
+# Funciones de material: el mismo IR, otro contenedor
+# ---------------------------------------------------------------------------------------------
+#
+# Una función de material es un grafo reusable con entradas y salidas con nombre. Para Jam es la
+# pieza que lo deja ACUMULAR vocabulario propio en vez de sólo usar el del motor: lo que hoy es un
+# grafo que se copia y pega, mañana es un nodo con nombre que se llama desde cualquier material.
+#
+# Y encaja sin fricción porque `MaterialFunctionCall` **descubre sus entradas por nombre** —medido—,
+# que es el mismo patrón con el que Jam deriva las 408 firmas de las expresiones del motor.
+
+# Qué clase de función emitir. Las tres se editan igual; cambian el contenedor y el nodo terminal.
+CONTENEDORES = {
+    "funcion": ("MaterialFunction", "MaterialFunctionFactoryNew", "FunctionOutput"),
+    "capa": ("MaterialFunctionMaterialLayer", "MaterialFunctionMaterialLayerFactory",
+             "MaterialLayerOutput"),
+    "mezcla": ("MaterialFunctionMaterialLayerBlend",
+               "MaterialFunctionMaterialLayerBlendFactory", "MaterialLayerOutput"),
+}
+
+
+def emitir_funcion(grafo, carpeta: str = "/Game/Jam/Functions", *, clase: str = "funcion",
+                   descripcion: str = "", sobrescribir: bool = True) -> dict:
+    """Crea la función de material que describe `grafo`. Mismo contrato que `emitir`.
+
+    El grafo tiene que terminar en el nodo terminal que corresponda (`FunctionOutput` para una
+    función común, `MaterialLayerOutput` para una capa o una mezcla) — `shader.verificar` lo acepta
+    como final válido, y sin él la función no expone nada y no sirve para nada.
+    """
+    from . import shader
+
+    if clase not in CONTENEDORES:
+        return {"error": f"clase «{clase}» desconocida (hay {list(CONTENEDORES)})"}
+    nombre_clase, nombre_factory, terminal = CONTENEDORES[clase]
+
+    problemas = shader.verificar(grafo)
+    if problemas:
+        return {"error": "el grafo no es válido: " + " · ".join(problemas)}
+    if not any(n.tipo == terminal for n in grafo.nodos):
+        return {"error": f"una «{clase}» tiene que terminar en un nodo {terminal} "
+                         f"(hay {sorted({n.tipo for n in grafo.nodos})})"}
+
+    lib = unreal.MaterialEditingLibrary
+    ruta = f"{carpeta}/{grafo.nombre}"
+    reusada = False
+    if unreal.EditorAssetLibrary.does_asset_exist(ruta):
+        if not sobrescribir:
+            return {"error": f"{ruta} ya existe (pasá sobrescribir=True para reemplazarla)"}
+        funcion = unreal.EditorAssetLibrary.load_asset(ruta)
+        if funcion is None:
+            return {"error": f"{ruta} existe pero no se pudo cargar"}
+        # Igual que en los materiales: reusar en vez de borrar y recrear. `delete_asset` no lo saca
+        # de memoria y el `create_asset` siguiente chocaría con el nombre.
+        for _ in range(8):
+            if lib.get_num_material_expressions_in_function(funcion) == 0:
+                break
+            lib.delete_all_material_expressions_in_function(funcion)
+        reusada = True
+    else:
+        fabrica = getattr(unreal, nombre_factory, None)
+        contenedor = getattr(unreal, nombre_clase, None)
+        if fabrica is None or contenedor is None:
+            return {"error": f"unreal no expone {nombre_clase}/{nombre_factory}"}
+        funcion = unreal.AssetToolsHelpers.get_asset_tools().create_asset(
+            grafo.nombre, carpeta, contenedor, fabrica())
+    if funcion is None:
+        return {"error": f"no se pudo crear la función en {ruta}"}
+    if descripcion:
+        try:
+            funcion.set_editor_property("description", str(descripcion))
+        except Exception:  # noqa: BLE001 — la descripción es cosmética, no aborta
+            pass
+
+    creados: dict[str, object] = {}
+    props_fallidas: list[str] = []
+    for nodo in grafo.nodos:
+        tipo = getattr(unreal, f"MaterialExpression{nodo.tipo}", None)
+        if tipo is None:
+            return {"error": f"{nodo.id}: unreal no expone MaterialExpression{nodo.tipo}"}
+        expresion = lib.create_material_expression_in_function(funcion, tipo, nodo.x, nodo.y)
+        if expresion is None:
+            return {"error": f"{nodo.id}: no se pudo crear el nodo {nodo.tipo} en la función"}
+        for clave, valor in nodo.props.items():
+            try:
+                expresion.set_editor_property(clave, _valor_de_propiedad(expresion, clave, valor))
+            except Exception as exc:  # noqa: BLE001
+                props_fallidas.append(f"{nodo.id}.{clave} ({type(exc).__name__})")
+        creados[nodo.id] = expresion
+
+    cables, fallidos = 0, []
+    for arista in grafo.aristas:
+        if arista.es_salida_del_material:
+            # Una función no tiene salidas de material: su salida es un nodo del propio grafo.
+            fallidos.append(f"{arista.desde}→{arista.hasta} (una función no tiene salidas MP_*)")
+            continue
+        if lib.connect_material_expressions(creados[arista.desde], arista.salida,
+                                            creados[arista.hasta], arista.entrada):
+            cables += 1
+        else:
+            fallidos.append(f"{arista.desde}→{arista.hasta}.{arista.entrada}")
+
+    lib.update_material_function(funcion)
+    if not unreal.EditorAssetLibrary.save_loaded_asset(funcion):
+        return {"error": f"{ruta} se creó pero no se pudo guardar"}
+
+    detalle = ""
+    if props_fallidas:
+        detalle += f" · {len(props_fallidas)} propiedades ignoradas: {props_fallidas[:4]}"
+    if fallidos:
+        return {"error": f"{ruta}: {len(fallidos)} conexiones no se pudieron hacer "
+                         f"{fallidos[:4]}{detalle}"}
+    entradas = sorted(n.props.get("input_name", "") for n in grafo.nodos
+                      if n.tipo == "FunctionInput")
+    return {
+        "funcion": funcion,
+        "entradas": [e for e in entradas if e],
+        "info": (f"{ruta} · {clase} · {len(grafo.nodos)} nodos · {cables} cables"
+                 f"{' · reusada' if reusada else ' · nueva'}"
+                 + (f" · entradas {[e for e in entradas if e]}" if any(entradas) else "")
+                 + detalle),
+    }
+
+
+def entradas_de_funcion(ruta: str) -> list[str] | None:
+    """Los nombres de entrada de una función de material, PREGUNTÁNDOLE al asset.
+
+    Es el mismo trato que Jam le da a las 408 expresiones del motor: la firma no se declara, se
+    descubre. Por eso una función escrita por Jam se usa igual que un nodo nativo. Devuelve `None`
+    si el asset no se pudo cargar (que es distinto de una función sin entradas, que da `[]`).
+    """
+    funcion = unreal.EditorAssetLibrary.load_asset(str(ruta))
+    if funcion is None:
+        return None
+    # La firma se lee de un `MaterialFunctionCall` apuntado a ella, y no de los nodos de la función:
+    # es exactamente lo que va a ver el material que la llame, incluido el ORDEN de los pines. (Los
+    # nodos de una función tampoco se pueden enumerar desde Python: hay `get_num_..._in_function`,
+    # que devuelve una cuenta, y nada para listarlos.)
+    #
+    # El material de sonda es TRANSITORIO a propósito. La primera versión creaba un asset y lo
+    # borraba en un `finally`, y a la segunda llamada explotaba con «the asset already exists»:
+    # `delete_asset` no lo saca de memoria —el mismo gotcha que obligó a reusar en `emitir`—, así
+    # que borrar y recrear es justamente el patrón que no funciona. Sin asset no hay problema.
+    sonda = unreal.Material()
+    if sonda is None:
+        return None
+    try:
+        llamada = unreal.MaterialEditingLibrary.create_material_expression(
+            sonda, unreal.MaterialExpressionMaterialFunctionCall, 0, 0)
+        llamada.set_editor_property("material_function", funcion)
+        return [str(x) for x in
+                unreal.MaterialEditingLibrary.get_material_expression_input_names(llamada)]
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def instanciar(padre: str, nombre: str, carpeta: str = "/Game/Jam/Materials", *,
+               escalares: dict | None = None, vectores: dict | None = None) -> dict:
+    """Crea (o reusa) una `MaterialInstanceConstant` del material `padre` y le fija parámetros.
+
+    Los parámetros que NO existen en el padre se reportan en vez de aplicarse en silencio: el
+    `set_material_instance_*` de UE no protesta por un nombre inventado, así que sin esta
+    comprobación una instancia queda idéntica al padre y nadie sabe por qué.
+    """
+    material = unreal.EditorAssetLibrary.load_asset(str(padre))
+    if material is None:
+        return {"error": f"no pude cargar el material padre «{padre}»"}
+
+    ruta = f"{carpeta}/{nombre}"
+    reusada = unreal.EditorAssetLibrary.does_asset_exist(ruta)
+    if reusada:
+        instancia_ = unreal.EditorAssetLibrary.load_asset(ruta)
+    else:
+        instancia_ = unreal.AssetToolsHelpers.get_asset_tools().create_asset(
+            str(nombre), str(carpeta), unreal.MaterialInstanceConstant,
+            unreal.MaterialInstanceConstantFactoryNew())
+    if instancia_ is None:
+        return {"error": f"no se pudo crear la instancia en {ruta}"}
+
+    lib = unreal.MaterialEditingLibrary
+    lib.set_material_instance_parent(instancia_, material)
+    disponibles = {"escalar": {str(n) for n in lib.get_scalar_parameter_names(material)},
+                   "vector": {str(n) for n in lib.get_vector_parameter_names(material)}}
+
+    aplicados, inexistentes = [], []
+    for nombre_param, valor in (escalares or {}).items():
+        if nombre_param not in disponibles["escalar"]:
+            inexistentes.append(nombre_param)
+            continue
+        lib.set_material_instance_scalar_parameter_value(instancia_, nombre_param, float(valor))
+        aplicados.append(nombre_param)
+    for nombre_param, valor in (vectores or {}).items():
+        if nombre_param not in disponibles["vector"]:
+            inexistentes.append(nombre_param)
+            continue
+        lib.set_material_instance_vector_parameter_value(
+            instancia_, nombre_param, unreal.LinearColor(*valor))
+        aplicados.append(nombre_param)
+
+    lib.update_material_instance(instancia_)
+    if not unreal.EditorAssetLibrary.save_loaded_asset(instancia_):
+        return {"error": f"{ruta} se creó pero no se pudo guardar"}
+    if inexistentes:
+        return {"error": f"{ruta}: el padre no tiene el/los parámetro(s) {sorted(inexistentes)} "
+                         f"(tiene escalares {sorted(disponibles['escalar'])} y "
+                         f"vectores {sorted(disponibles['vector'])})"}
+    return {
+        "instancia": instancia_,
+        "info": (f"{ruta} ← {padre}{' · reusada' if reusada else ' · nueva'}"
+                 + (f" · {len(aplicados)} parámetro(s): {aplicados}" if aplicados
+                    else " · sin parámetros fijados (queda igual al padre)")),
+    }
