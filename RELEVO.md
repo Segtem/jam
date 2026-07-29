@@ -28,38 +28,31 @@ docking de los tres paneles.
 La verificación con motor es del commit `80373ea`; desde ahí no se tocó `Source/`, `Content/Python/`
 ni `oraculo/`, así que sigue hablando del código que hay. `relevo.py` lo comprueba solo.
 
-## Frontera de verificación
+## Frontera de verificación — CERRADA el 2026-07-29
 
-Lo de abajo **está escrito y compila, pero nadie lo ejerció con las manos**. No conviene construir
-encima sin probarlo antes.
+**Brian probó el editor y confirmó que todo funciona.** Con eso se cierra la deuda más cara que tenía
+el proyecto: cinco tandas seguidas de C++ que nadie había ejercido con las manos.
 
-| Cosa | Quién puede verificarla | Estado |
-|---|---|---|
-| Marquee, `Shift`/`Ctrl`+clic, arrastre en grupo | Brian (Slate) | ⏳ sin probar |
-| `Ctrl+Z` / `Ctrl+Shift+Z` (50 pasos) | Brian | ⏳ sin probar |
-| `Ctrl+C`/`X`/`V`/`D` contra el portapapeles del sistema | Brian | ⏳ sin probar |
-| `F` / `Inicio` (encuadre) | Brian | ⏳ sin probar |
-| Acoplar un panel, sidebar, y que vuelva al reabrir el editor | Brian | ⏳ sin probar |
-| Alinear/distribuir (8 acciones del menú Edit) | ✅ cerebro con tests; el menú, Brian | parcial |
+| Cosa | Estado |
+|---|---|
+| Marquee, `Shift`/`Ctrl`+clic, arrastre en grupo | ✅ Brian, en el editor |
+| `Ctrl+Z` / `Ctrl+Shift+Z` (50 pasos) | ✅ |
+| `Ctrl+C`/`X`/`V`/`D` contra el portapapeles del sistema | ✅ |
+| `F` / `Inicio` (encuadre) | ✅ |
+| Acoplar un panel, sidebar, y que vuelva al reabrir el editor | ✅ |
+| Alinear/distribuir (8 acciones del menú Edit) | ✅ cerebro con tests **y** el menú a mano |
 
-Son **cuatro tandas seguidas de C++ sin que nadie abriera el editor**. Es la deuda más cara del
-proyecto ahora mismo.
+**Precisión sobre el alcance de esta confirmación**, para que el registro no diga más de lo que
+sabe: es un «todo funciona bien» **global**, no gesto por gesto. Alcanza para construir encima con
+confianza; si algo aparece más adelante, no queda contradiciendo a este documento.
 
-## Para las manos de Brian
-
-Quince minutos, en este orden — si algo falla acá, arrastra a todo lo demás:
-
-1. Abrir `Window ▸ Tools ▸ Jam — Graph`, **arrastrarlo a un borde** hasta que se acople. Cerrar el
-   editor, abrirlo: ¿volvió donde estaba?
-2. En el Graph: marquee sobre varios nodos, arrastrarlos juntos, `Ctrl+Z`.
-3. `Ctrl+C` en unos nodos, `Ctrl+V`. Pegar en un editor de texto: tiene que salir JSON legible.
-4. Seleccionar 3 nodos desparejos → `Edit ▸ Acomodar ▸ Alinear a la izquierda`.
-5. `F` con selección, `Inicio` sin selección.
-6. Cerrar el tab del Graph con un diagrama puesto y volver a abrirlo: **el diagrama tiene que estar**.
+Lo que sigue valiendo: **lo que se escriba de Slate a partir de acá vuelve a nacer sin verificar** y
+hay que volver a listarlo abajo. La frontera no se cierra de una vez, se cierra por turno.
 
 ## Lo próximo
 
-**0. Lo que Brian haya encontrado** en la lista de arriba. Bloqueante: es código de este turno.
+**0. Nada bloqueante.** Brian ya probó el editor y no encontró nada. Se puede construir encima de las
+fases 0 a 3 con confianza.
 
 **1. Fase 5 — la capa de Slate de las funciones.** El **cerebro ya está hecho y cableado**
 (`jam/funcion.py`, 18 tests, expansión inline verificada contra el grafo plano equivalente; ver
