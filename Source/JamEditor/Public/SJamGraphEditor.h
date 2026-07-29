@@ -111,8 +111,12 @@ private:
 		FString ToPin;     // «in» (stream) o el nombre de un parámetro
 	};
 
-	/** Agrega un nodo; devuelve su Id (para reconstruir grafos al cargar un diagrama). */
-	FString AddNode(const FString& Verb, const FVector2D* At = nullptr);
+	/** Agrega un nodo; devuelve su Id (para reconstruir grafos al cargar un diagrama).
+	 *  `PreferredId` conserva el id que traía el archivo en vez de renumerar: sin eso, cada Deshacer
+	 *  reescribiría los ids del grafo (y el orden de un TMap de JSON ni siquiera es estable), así que
+	 *  el veredicto del oráculo y el inspector quedarían apuntando a nodos que cambiaron de nombre. */
+	FString AddNode(const FString& Verb, const FVector2D* At = nullptr,
+		const FString& PreferredId = FString());
 
 	// ---- el gesto de la paleta: clic = al centro de la vista · arrastre = donde soltás ----
 	/** Crea el nodo en el centro de lo que se está VIENDO. Con el canvas paneado, ese punto y el
@@ -138,6 +142,19 @@ private:
 	void AcomodarSeleccion(const FString& Accion);
 	/** Rectángulo del marquee en coordenadas de MODELO; false si no hay uno en curso. */
 	bool GetMarquee(FVector2D& OutA, FVector2D& OutB) const;
+
+	// ---- historial (Ctrl+Z / Ctrl+Shift+Z): el grafo YA sabe serializarse ----
+	// No hace falta un motor de comandos: un paso deshacible es el JSON del grafo entero. Un diagrama
+	// pesa kilobytes, y así el historial no puede desincronizarse del modelo, porque ES el modelo.
+	/** Registra un paso deshacible. Se llama DESPUÉS de la mutación: apila el estado ANTERIOR (que
+	 *  `Anterior` viene guardando) y vuelve a fotografiar el actual. */
+	void Marcar();
+	void Deshacer();
+	void Rehacer();
+	bool PuedeDeshacer() const { return Deshechos.Num() > 0; }
+	bool PuedeRehacer() const { return Rehechos.Num() > 0; }
+	/** Carga un snapshot sin que la carga misma cuente como un paso nuevo. */
+	void RestaurarSnapshot(const FString& Json);
 
 	// ---- menú principal estilo Grasshopper (File / Edit / View / Display / Solution) ----
 	void FillFileMenu(class FMenuBuilder& MB);
@@ -290,6 +307,18 @@ private:
 	bool bMarqueeAgrega = false;
 	/** Capa que pinta el cuadro por encima de los nodos (sin recibir clics). */
 	TSharedPtr<class SWidget> MarqueeLayer;
+
+	// Historial: dos pilas de snapshots JSON + la foto del estado actual.
+	TArray<FString> Deshechos;   // estados anteriores, el último es el que devuelve Ctrl+Z
+	TArray<FString> Rehechos;    // estados que Ctrl+Z dejó atrás
+	/** Foto del estado tal como quedó después del último paso registrado.
+	 *  Es lo que hace que editar un parámetro y DESPUÉS borrar un nodo sean dos pasos y no uno:
+	 *  `BuildJson` lee los valores VIVOS de los widgets, así que la foto siempre refleja lo tipeado. */
+	FString Anterior;
+	/** Mientras está prendido no se registra nada: cargar un diagrama o restaurar un snapshot crea
+	 *  muchas mutaciones internas que son UN solo paso para el usuario. */
+	bool bSinHistorial = false;
+	static constexpr int32 MaxHistorial = 50;
 
 	// Para el cable-fantasma: última posición del cursor (local a la capa de wires) + esa capa (para
 	// repintarla mientras se arrastra una conexión).

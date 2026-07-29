@@ -82,6 +82,13 @@ public:
 		SLATE_EVENT(FOnNodeClicked, OnClicked)
 		/** `Supr` sobre el nodo. Lo resuelve el editor, que es el que sabe si hay varios elegidos. */
 		SLATE_EVENT(FSimpleDelegate, OnDeleteSelection)
+		/** Se soltó el nodo DESPUÉS de haberlo movido. Un paso del historial es el arrastre entero,
+		    no cada frame; y un clic que no movió nada no es un paso. */
+		SLATE_EVENT(FSimpleDelegate, OnDragEnd)
+		/** Se confirmó el valor de un parámetro (Enter, perder el foco, soltar el slider, elegir del
+		    dropdown). Sin este aviso el editor no se entera de lo que tipeás: los valores viven en
+		    los widgets y `BuildJson` los lee recién cuando alguien los pide. */
+		SLATE_EVENT(FSimpleDelegate, OnParamChanged)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);
@@ -171,6 +178,10 @@ private:
 	FSimpleDelegate OnDeleteClickedDelegate;
 	FOnNodeClicked OnClickedDelegate;
 	FSimpleDelegate OnDeleteSelectionDelegate;
+	FSimpleDelegate OnDragEndDelegate;
+	FSimpleDelegate OnParamChangedDelegate;
+	/** El arrastre movió el nodo de verdad (y no fue un clic con el pulso). */
+	bool bMovioAlgo = false;
 	/** Lo lee `OnPaint` para pintar el halo; la fuente es el `TSet` del editor. */
 	TAttribute<bool> IsSelectedAttr;
 

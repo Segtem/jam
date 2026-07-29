@@ -78,6 +78,8 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 	OnDeleteClickedDelegate = InArgs._OnDeleteClicked;
 	OnClickedDelegate = InArgs._OnClicked;
 	OnDeleteSelectionDelegate = InArgs._OnDeleteSelection;
+	OnDragEndDelegate = InArgs._OnDragEnd;
+	OnParamChangedDelegate = InArgs._OnParamChanged;
 	IsSelectedAttr = InArgs._IsSelected;
 	RebuildBodyBrush();
 	if (!IconPath.IsEmpty())
@@ -230,6 +232,9 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 				.Style(&SpinStyle)
 				.Value_Lambda([Val]() { return *Val; })
 				.OnValueChanged_Lambda([Val](float V) { *Val = V; })
+				// Commit y no Changed: UN paso del historial por arrastre del slider, no por frame.
+				.OnValueCommitted_Lambda([this](float, ETextCommit::Type)
+					{ OnParamChangedDelegate.ExecuteIfBound(); })
 				.MinValue_Lambda([NumMin]() { return *NumMin; })
 				.MaxValue_Lambda([NumMax]() { return *NumMax; })
 				.MinSliderValue_Lambda([NumMin]() { return *NumMin; })
@@ -248,6 +253,8 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 				.Style(&SpinStyle)
 				.Value_Lambda([H]() { return *H; })
 				.OnValueChanged_Lambda([H](float V) { *H = V; })
+				.OnValueCommitted_Lambda([this](float, ETextCommit::Type)
+					{ OnParamChangedDelegate.ExecuteIfBound(); })
 				.MinValue(TOptional<float>()).MaxValue(TOptional<float>())
 				.MinSliderValue(-1000.0f).MaxSliderValue(1000.0f)
 				.MinDesiredWidth(50.0f);
@@ -260,7 +267,9 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 			const bool bOn = P.Value.Equals(TEXT("true"), ESearchCase::IgnoreCase);
 			TSharedRef<SCheckBox> Check = SNew(SCheckBox)
 				.Style(&CheckStyle)
-				.IsChecked(bOn ? ECheckBoxState::Checked : ECheckBoxState::Unchecked);
+				.IsChecked(bOn ? ECheckBoxState::Checked : ECheckBoxState::Unchecked)
+				.OnCheckStateChanged_Lambda([this](ECheckBoxState)
+					{ OnParamChangedDelegate.ExecuteIfBound(); });
 			Input = Check;
 			ParamGetters.Add(Key, [Check]()
 			{
@@ -279,14 +288,20 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 			const TArray<FString> Opts = P.Options;
 			Input = SNew(SComboButton)
 				.ComboButtonStyle(&FAppStyle::Get().GetWidgetStyle<FComboButtonStyle>("SimpleComboButton"))
-				.OnGetMenuContent_Lambda([Choice, Opts]()
+				// `this` también en la lambda de AFUERA: la de adentro avisa del cambio, y una lambda
+				// anidada no puede capturar lo que la que la contiene no capturó.
+				.OnGetMenuContent_Lambda([this, Choice, Opts]()
 				{
 					FMenuBuilder MB(true, nullptr);
 					for (const FString& O : Opts)
 					{
 						MB.AddMenuEntry(FText::FromString(O.IsEmpty() ? TEXT("(—)") : O),
 							FText::GetEmpty(), FSlateIcon(),
-							FUIAction(FExecuteAction::CreateLambda([Choice, O]() { *Choice = O; })));
+							FUIAction(FExecuteAction::CreateLambda([this, Choice, O]()
+							{
+								*Choice = O;
+								OnParamChangedDelegate.ExecuteIfBound();
+							})));
 					}
 					return MB.MakeWidget();
 				})
@@ -304,7 +319,11 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 		{
 			// TEXTO claro (número, semilla, expresión «=…», nombre de asset).
 			TSharedRef<SEditableTextBox> Field = SNew(SEditableTextBox)
-				.Style(&FieldStyle).Text(FText::FromString(P.Value));
+				.Style(&FieldStyle).Text(FText::FromString(P.Value))
+				// Al confirmar (Enter o perder el foco), no en cada tecla: si no, tipear «24» serían
+				// dos pasos del historial y Ctrl+Z devolvería «2».
+				.OnTextCommitted_Lambda([this](const FText&, ETextCommit::Type)
+					{ OnParamChangedDelegate.ExecuteIfBound(); });
 			Input = Field;
 			ParamGetters.Add(Key, [Field]() { return Field->GetText().ToString(); });
 			ParamSetters.Add(Key, [Field](const FString& V) { Field->SetText(FText::FromString(V)); });
@@ -615,6 +634,7 @@ FReply SJamGraphNode::OnMouseButtonDown(const FGeometry& MyGeometry, const FPoin
 		// mueve todo el grupo, y arrastrar uno suelto lo convierte antes en la selección.
 		OnClickedDelegate.ExecuteIfBound(MouseEvent.IsShiftDown(), MouseEvent.IsControlDown());
 		bDragging = true;
+		bMovioAlgo = false;
 		return FReply::Handled()
 			.CaptureMouse(SharedThis(this))
 			.SetUserFocus(SharedThis(this), EFocusCause::Mouse);
@@ -650,6 +670,10 @@ FReply SJamGraphNode::OnMouseMove(const FGeometry& MyGeometry, const FPointerEve
 		// canvas → dividir por la escala de layout (DPI) para que el nodo siga al mouse 1:1.
 		const float S = MyGeometry.GetAccumulatedLayoutTransform().GetScale();
 		const FVector2D Delta = MouseEvent.GetCursorDelta() / (S > 0.0f ? S : 1.0f);
+		if (!Delta.IsNearlyZero())
+		{
+			bMovioAlgo = true;
+		}
 		OnDragDelta.ExecuteIfBound(Delta);
 		return FReply::Handled();
 	}
@@ -661,6 +685,13 @@ FReply SJamGraphNode::OnMouseButtonUp(const FGeometry& MyGeometry, const FPointe
 	if (bDragging && MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
 	{
 		bDragging = false;
+		if (bMovioAlgo)
+		{
+			// UN paso por arrastre, al soltar. Marcarlo por frame llenaría el historial con los
+			// cientos de posiciones intermedias de un solo gesto.
+			bMovioAlgo = false;
+			OnDragEndDelegate.ExecuteIfBound();
+		}
 		return FReply::Handled().ReleaseMouseCapture();
 	}
 	return FReply::Unhandled();

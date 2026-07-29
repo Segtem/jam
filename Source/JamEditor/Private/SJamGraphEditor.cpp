@@ -675,6 +675,7 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 	];
 
 	RebuildTabContent();   // abre el primer tab con sus fichas
+	Anterior = BuildJson();   // la foto de arranque: el grafo vacío del que parte el historial
 }
 
 
@@ -1280,7 +1281,8 @@ FReply SJamGraphEditor::OnDrop(const FGeometry& MyGeometry, const FDragDropEvent
 	return FReply::Handled();
 }
 
-FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At)
+FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At,
+	const FString& PreferredId)
 {
 	const FJamTool* T = FindTool(Verb);
 	if (T == nullptr || !Canvas.IsValid())
@@ -1289,7 +1291,23 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At)
 	}
 
 	FGNode Node;
-	Node.Id = FString::Printf(TEXT("n%d"), NextId++);
+	const bool bIdLibre = !PreferredId.IsEmpty()
+		&& !Nodes.ContainsByPredicate([&PreferredId](const FGNode& X) { return X.Id == PreferredId; });
+	if (bIdLibre)
+	{
+		Node.Id = PreferredId;
+		// El contador no puede volver a emitir un número que ya está en uso: si el archivo trae
+		// «n7», el próximo nodo nuevo tiene que ser «n8» y no «n2».
+		if (PreferredId.StartsWith(TEXT("n")))
+		{
+			const int32 K = FCString::Atoi(*PreferredId.Mid(1));
+			if (K >= NextId) { NextId = K + 1; }
+		}
+	}
+	else
+	{
+		Node.Id = FString::Printf(TEXT("n%d"), NextId++);
+	}
 	Node.Verb = Verb;
 	if (At != nullptr)
 	{
@@ -1391,6 +1409,8 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At)
 		.OnOutputClicked_Lambda([this, Id]() { OnPinClicked(Id, TEXT("out"), true); })
 		.OnInputClicked_Lambda([this, Id](const FString& Pin) { OnPinClicked(Id, Pin, false); })
 		.OnClicked_Lambda([this, Id](bool bShift, bool bCtrl) { ClickNode(Id, bShift, bCtrl); })
+		.OnDragEnd_Lambda([this]() { Marcar(); })
+		.OnParamChanged_Lambda([this]() { Marcar(); })
 		.OnDeleteSelection_Lambda([this, Id]()
 		{
 			// `Supr` sobre un nodo de un grupo borra el grupo; sobre uno suelto, ese nodo.
@@ -1414,6 +1434,7 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At)
 		];
 
 	Nodes.Add(Node);
+	Marcar();
 	return Id;
 }
 
@@ -1433,6 +1454,72 @@ void SJamGraphEditor::DeleteNode(const FString& Id)
 	Nodes.RemoveAll([&Id](const FGNode& X) { return X.Id == Id; });
 	SelectedNodeIds.Remove(Id);   // un id borrado que queda elegido reaparece al reusarse el número
 	RefreshCabledPins();   // borrar un nodo pudo dejar pines de otros sin su cable
+	Marcar();
+}
+
+// ---- historial ----
+
+void SJamGraphEditor::Marcar()
+{
+	if (bSinHistorial)
+	{
+		return;
+	}
+	Deshechos.Add(Anterior);
+	if (Deshechos.Num() > MaxHistorial)
+	{
+		Deshechos.RemoveAt(0);   // el tope corre la ventana; se pierde lo más viejo, no lo reciente
+	}
+	// Un paso nuevo corta la rama de Rehacer: es la convención de todo editor, y sin esto Ctrl+Y
+	// después de editar traería de vuelta un estado que ya no encaja con lo que hay en pantalla.
+	Rehechos.Reset();
+	Anterior = BuildJson();
+}
+
+void SJamGraphEditor::RestaurarSnapshot(const FString& Json)
+{
+	// Deshacer NO cambia de documento: `LoadGraphJson` pasa por `NewGraph`, que borra `CurrentPath`
+	// porque abrir uno vacío sí empieza un archivo nuevo. Sin esto, un Ctrl+Z hacía que el próximo
+	// «Guardar» pidiera nombre en vez de sobrescribir el .jamgraph en el que venías trabajando.
+	const FString Documento = CurrentPath;
+	TGuardValue<bool> Callado(bSinHistorial, true);
+	if (LoadGraphJson(Json))
+	{
+		Anterior = BuildJson();
+	}
+	CurrentPath = Documento;
+}
+
+void SJamGraphEditor::Deshacer()
+{
+	if (Deshechos.Num() == 0)
+	{
+		return;
+	}
+	Rehechos.Add(Anterior);
+	const FString Destino = Deshechos.Pop();
+	RestaurarSnapshot(Destino);
+	if (Output.IsValid())
+	{
+		Output->SetText(FText::FromString(FString::Printf(
+			TEXT("deshecho (quedan %d)"), Deshechos.Num())));
+	}
+}
+
+void SJamGraphEditor::Rehacer()
+{
+	if (Rehechos.Num() == 0)
+	{
+		return;
+	}
+	Deshechos.Add(Anterior);
+	const FString Destino = Rehechos.Pop();
+	RestaurarSnapshot(Destino);
+	if (Output.IsValid())
+	{
+		Output->SetText(FText::FromString(FString::Printf(
+			TEXT("rehecho (quedan %d)"), Rehechos.Num())));
+	}
 }
 
 // ---- selección ----
@@ -1478,11 +1565,20 @@ void SJamGraphEditor::DeleteSelection()
 {
 	// Copia: `DeleteNode` toca `SelectedNodeIds`, y recorrer un TSet mientras se modifica es UB.
 	TArray<FString> Ids = SelectedNodeIds.Array();
-	for (const FString& Id : Ids)
+	if (Ids.Num() == 0)
 	{
-		DeleteNode(Id);
+		return;
+	}
+	{
+		// Borrar 12 nodos es UN paso para el usuario: sin esto, deshacerlo pediría 12 Ctrl+Z.
+		TGuardValue<bool> Callado(bSinHistorial, true);
+		for (const FString& Id : Ids)
+		{
+			DeleteNode(Id);
+		}
 	}
 	SelectedNodeIds.Reset();
+	Marcar();
 }
 
 void SJamGraphEditor::MoveSelection(const FVector2D& DeltaModelo)
@@ -1550,6 +1646,7 @@ void SJamGraphEditor::AcomodarSeleccion(const FString& Accion)
 			N->Pos = FVector2D((*XY)[0]->AsNumber(), (*XY)[1]->AsNumber());
 		}
 	}
+	Marcar();
 }
 
 int32 SJamGraphEditor::PinIndex(const FString& Id, const FString& Pin) const
@@ -1674,6 +1771,7 @@ void SJamGraphEditor::OnPinClicked(const FString& Id, const FString& Pin, bool b
 					*Id, *Pin, Removed, Removed == 1 ? TEXT("") : TEXT("s"))
 				: FString::Printf(TEXT("%s.%s no tiene conexiones"), *Id, *Pin)));
 		}
+		if (Removed > 0) { Marcar(); }   // Alt+clic sin cables no cambió nada: no es un paso
 		return;
 	}
 
@@ -1723,6 +1821,7 @@ void SJamGraphEditor::OnPinClicked(const FString& Id, const FString& Pin, bool b
 				Replaced = Edges.RemoveAll([&](const FGEdge& E) { return E.To == Id && E.ToPin == Pin; });
 			}
 			Edges.Add(FGEdge{SourceId, SourcePin, Id, Pin});
+			Marcar();   // conectar es un paso; volver a hacer el mismo cable (bDup) no cambió nada
 		}
 		if (Output.IsValid())
 		{
@@ -2151,6 +2250,18 @@ FReply SJamGraphEditor::OnMouseButtonDown(const FGeometry& MyGeometry, const FPo
 FReply SJamGraphEditor::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent)
 {
 	const FKey Tecla = InKeyEvent.GetKey();
+	// Ctrl+Z / Ctrl+Shift+Z. Si el foco está en un campo de texto, el campo se los queda primero
+	// (tiene su propio deshacer) y el evento nunca llega acá — que es lo correcto.
+	if (Tecla == EKeys::Z && InKeyEvent.IsControlDown())
+	{
+		if (InKeyEvent.IsShiftDown()) { Rehacer(); } else { Deshacer(); }
+		return FReply::Handled();
+	}
+	if (Tecla == EKeys::Y && InKeyEvent.IsControlDown())
+	{
+		Rehacer();   // el otro Rehacer que tiene todo el mundo en el dedo
+		return FReply::Handled();
+	}
 	if (Tecla == EKeys::A && InKeyEvent.IsControlDown())
 	{
 		SelectAll();
@@ -2258,6 +2369,17 @@ void SJamGraphEditor::FillFileMenu(FMenuBuilder& MB)
 
 void SJamGraphEditor::FillEditMenu(FMenuBuilder& MB)
 {
+	MB.BeginSection(TEXT("Historial"), LOCTEXT("SectionHistory", "Historial"));
+	MB.AddMenuEntry(LOCTEXT("Undo", "Deshacer\tCtrl+Z"),
+		LOCTEXT("UndoTip", "Vuelve al estado anterior del grafo"), FSlateIcon(),
+		FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::Deshacer),
+			FCanExecuteAction::CreateSP(this, &SJamGraphEditor::PuedeDeshacer)));
+	MB.AddMenuEntry(LOCTEXT("Redo", "Rehacer\tCtrl+Shift+Z"),
+		LOCTEXT("RedoTip", "Vuelve a aplicar lo último que deshiciste"), FSlateIcon(),
+		FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::Rehacer),
+			FCanExecuteAction::CreateSP(this, &SJamGraphEditor::PuedeRehacer)));
+	MB.EndSection();
+
 	MB.AddMenuEntry(LOCTEXT("ClearAll", "Vaciar el grafo"), FText::GetEmpty(), FSlateIcon(),
 		FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::NewGraph)));
 
@@ -2353,10 +2475,14 @@ void SJamGraphEditor::NewGraph()
 	{
 		Output->SetText(LOCTEXT("NewDone", "grafo vacío."));
 	}
+	Marcar();   // vaciar el grafo también se deshace (queda callado cuando lo llama LoadGraphJson)
 }
 
 bool SJamGraphEditor::LoadGraphJson(const FString& Json)
 {
+	// Si ya venimos callados es porque nos llamó Deshacer/Rehacer: ese viaje NO es un paso nuevo.
+	// Abrir un diagrama o cargar un tutorial sí lo es, y se registra como UNO solo.
+	const bool bRestaurando = bSinHistorial;
 	auto Fail = [this](const FString& Message)
 	{
 		if (Output.IsValid()) { Output->SetText(FText::FromString(Message)); }
@@ -2554,31 +2680,43 @@ bool SJamGraphEditor::LoadGraphJson(const FString& Json)
 	}
 
 	// Fase 2: el modelo completo es válido; recién ahora reemplazar el documento visible.
-	NewGraph();
-	TMap<FString, FString> IdMap;
-	for (const FLoadedNode& Loaded : LoadedNodes)
+	// El silencio va en un BLOQUE propio: vaciar + crear N nodos + N wires es UN paso deshacible y no
+	// 2N+1, pero el `Marcar()` tiene que quedar afuera. Con `TGuardValue` y no con un bool a mano,
+	// porque acá adentro hay `return Fail(...)`: dejar la bandera prendida mataría el historial en
+	// silencio para el resto de la sesión.
 	{
-		const FString NewId = AddNode(Loaded.Verb, &Loaded.Pos);
-		if (NewId.IsEmpty())
+		TGuardValue<bool> Callado(bSinHistorial, true);
+		NewGraph();
+		TMap<FString, FString> IdMap;
+		for (const FLoadedNode& Loaded : LoadedNodes)
 		{
-			return Fail(FString::Printf(TEXT("no pude crear el nodo validado '%s'."), *Loaded.FileId));
+			const FString NewId = AddNode(Loaded.Verb, &Loaded.Pos, Loaded.FileId);
+			if (NewId.IsEmpty())
+			{
+				return Fail(FString::Printf(TEXT("no pude crear el nodo validado '%s'."), *Loaded.FileId));
+			}
+			IdMap.Add(Loaded.FileId, NewId);
+			if (FGNode* Node = FindNode(NewId); Node && Node->Widget.IsValid())
+			{
+				Node->Widget->SetParamValues(Loaded.Params);
+				Node->Widget->SetDebugEnabled(Loaded.bDebug);
+			}
 		}
-		IdMap.Add(Loaded.FileId, NewId);
-		if (FGNode* Node = FindNode(NewId); Node && Node->Widget.IsValid())
+		for (const FLoadedEdge& Loaded : LoadedEdges)
 		{
-			Node->Widget->SetParamValues(Loaded.Params);
-			Node->Widget->SetDebugEnabled(Loaded.bDebug);
+			Edges.Add(FGEdge{IdMap[Loaded.From], Loaded.FromPin, IdMap[Loaded.To], Loaded.ToPin});
 		}
+		RefreshCabledPins();   // reflejar en los inputs los cables recién cargados
 	}
-	for (const FLoadedEdge& Loaded : LoadedEdges)
-	{
-		Edges.Add(FGEdge{IdMap[Loaded.From], Loaded.FromPin, IdMap[Loaded.To], Loaded.ToPin});
-	}
-	RefreshCabledPins();   // reflejar en los inputs los cables recién cargados
 	if (Output.IsValid())
 	{
 		Output->SetText(FText::FromString(
 			FString::Printf(TEXT("cargado: %d nodos, %d wires."), Nodes.Num(), Edges.Num())));
+	}
+	// `Anterior` todavía tiene el grafo de antes de abrir: es a donde vuelve Ctrl+Z.
+	if (!bRestaurando)
+	{
+		Marcar();
 	}
 	return true;
 }
@@ -2671,19 +2809,25 @@ void SJamGraphEditor::LoadBundledExample(const FString& Filename, const FText& L
 
 void SJamGraphEditor::InsertAllNodes()
 {
-	NewGraph();
-	// una ficha de CADA verbo/op, en grilla, agrupadas por su orden en el spec. Alto generoso para que
-	// los nodos altos (place tiene muchos params) no pisen la fila de abajo.
-	const int32 Cols = 6;
-	const float StepX = 210.0f;
-	const float StepY = 340.0f;
-	int32 K = 0;
-	for (const FJamTool& T : Tools)
 	{
-		const FVector2D At(30.0f + (K % Cols) * StepX, 30.0f + (K / Cols) * StepY);
-		AddNode(T.Verb, &At);
-		++K;
+		// La galería son ~200 nodos: sin el silencio serían 200 pasos de historial para deshacer
+		// una sola acción del menú.
+		TGuardValue<bool> Callado(bSinHistorial, true);
+		NewGraph();
+		// una ficha de CADA verbo/op, en grilla, agrupadas por su orden en el spec. Alto generoso para
+		// que los nodos altos (place tiene muchos params) no pisen la fila de abajo.
+		const int32 Cols = 6;
+		const float StepX = 210.0f;
+		const float StepY = 340.0f;
+		int32 K = 0;
+		for (const FJamTool& T : Tools)
+		{
+			const FVector2D At(30.0f + (K % Cols) * StepX, 30.0f + (K / Cols) * StepY);
+			AddNode(T.Verb, &At);
+			++K;
+		}
 	}
+	Marcar();
 	ResetView();
 	if (Output.IsValid())
 	{

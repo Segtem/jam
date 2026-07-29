@@ -67,9 +67,9 @@ no se puede escribir el test, el ítem está mal planteado, no incompleto.
 | Borrar cable | ✅ `Alt` + clic | ver [[2026-07-25-INFORME-Graph-Eliminar-Conexiones-Alt-Click-v1.0\|Eliminar conexiones con Alt+click]] |
 | Guardar / abrir | ✅ JSON en disco, ida y vuelta | `BuildJson()` / `SaveDiagram` / `OpenDiagram` |
 | Flag de debug por nodo | ✅ el Display de Houdini | `SJamGraphNode::bDebugEnabled` |
+| Deshacer / rehacer | ✅ **Fase 1** — `Ctrl+Z` / `Ctrl+Shift+Z`, 50 pasos | `Marcar` / `Deshacer` |
 | **Copiar / cortar / pegar** | ❌ | — |
 | **Duplicar** | ❌ | — |
-| **Deshacer / rehacer** | ❌ | — |
 | **Foco (`F`) / encuadre** | ❌ | — |
 | **Captura del grafo entero** | ❌ | — |
 | **Comentarios / grupos** | ❌ | — |
@@ -191,19 +191,19 @@ Lo caro ya está hecho: el grafo serializa.
 
 **Duplicar** (`Ctrl+D`, y `Alt`+arrastre como en Houdini) = copiar + pegar sin tocar el portapapeles.
 
-**Deshacer / rehacer** (`Ctrl+Z` / `Ctrl+Shift+Z`)
+**Deshacer / rehacer** (`Ctrl+Z` / `Ctrl+Shift+Z`) — ✅ HECHO 2026-07-29
 
-Anillo de snapshots de `BuildJson()`, ~50 pasos. Un grafo típico es de kilobytes: el costo es
-irrelevante y la implementación no puede desincronizarse del modelo, porque *es* el modelo.
+Dos pilas de snapshots de `BuildJson()`, tope 50. Detalle y las decisiones en
+[[2026-07-29-INFORME-Historial-Deshacer-Rehacer-v1.0\|Historial: deshacer y rehacer]].
 
-Se toma snapshot **antes** de cada operación que muta: crear, borrar, mover (al soltar, no por
-frame), conectar, desconectar, pegar, alinear, cambiar un parámetro (con *coalescing* mientras se
-tipea en el mismo campo).
+Dos correcciones al plan original:
 
-> **Verificable, y esta es la parte linda:** el JSON es la unidad. `estado → operación → deshacer`
-> tiene que devolver **exactamente el mismo JSON**. Un test recorre todas las operaciones y compara
-> strings. Y para pegar: el JSON pegado tiene que compilar con `graph.validar` — si copiar rompe un
-> grafo válido, el oráculo lo dice antes que el usuario.
+- **No se fotografía «antes» de la mutación, sino después, apilando la foto anterior.** Sale igual
+  para lo estructural y arregla lo otro: `BuildJson` lee los valores VIVOS de los widgets, así que
+  una foto tomada «antes» de borrar un nodo ya se llevaba puesto lo que acababas de tipear.
+- **Faltaban dos avisos que el editor no recibía.** Los valores de los params viven en los widgets y
+  nadie notificaba al editor cuando cambiaban; el arrastre tampoco avisaba cuándo terminaba. Sin
+  esos dos, editar un parámetro no era un paso y mover un nodo eran cientos.
 
 ### Fase 2 — Navegación
 
