@@ -232,6 +232,30 @@ class FirmaDeLosVerbosTests(unittest.TestCase):
                     rotos.append(f"{verbo}.{nombre}")
         self.assertEqual(sorted(rotos), [], "el ejecutor los pasaría y saldría TypeError")
 
+    def test_a_verb_that_transforms_data_never_demands_an_asset(self):
+        """Un verbo que recibe un DATO por el cable —una malla, una curva, un grafo de material— y
+        que no recibe ningún asset no puede exigir uno.
+
+        Si lo exige, `graph.validar` lo rechaza con «requiere asset explícito» y el verbo **no se
+        puede correr desde el canvas**, aunque llamar a su función directamente ande perfecto. Pasó
+        con los once verbos de shader y de UV, y con `curve_noise` y `mesh_vertex_gradient`, que
+        estuvieron rotos desde el día que se agregaron: las verificaciones los llamaban por su
+        función y saltaban esa puerta.
+
+        Los verbos cuya entrada es un ASSET (`A`) o vacía quedan afuera de la regla a propósito:
+        ahí «necesita un asset» es una decisión de diseño de cada verbo, no algo deducible.
+        """
+        from jam import tools
+
+        tipos_de_dato = {"M", "S", "F", "P", "N[]", "N", "T", "MT", "AF", "H", "A[]", "*"}
+        rotos = sorted(
+            verbo for verbo, info in tools.REGISTRO.items()
+            if info.get("in_name") in tipos_de_dato
+            and not info.get("asset_argument")
+            and info.get("asset_required"))
+        self.assertEqual(rotos, [],
+                         "les falta entrar en GRAPH_NO_ASSET: no se pueden correr desde el canvas")
+
     def test_every_verb_accepts_the_positional_the_executor_always_sends(self):
         """También las FUENTES: el ejecutor manda una entrada posicional siempre, aunque sea None."""
         import inspect

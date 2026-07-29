@@ -1659,7 +1659,10 @@ GRAPH_NO_ASSET = {"asset", "pick", "create_spline", "pivot_set",
                   # pueden correr desde el canvas, aunque llamar a su función directamente funcione.
                   "mesh_uv_box", "mesh_uv_unwrap", "mesh_uv_pack",
                   "material_node", "material_connect", "material_output", "material_build",
-                  "material_function", "material_call", "material_instance", "material_wind"}
+                  "material_function", "material_call", "material_instance", "material_wind",
+                  # Dos que estaban rotos desde que se agregaron y nadie podía correr en el canvas:
+                  # transforman el dato que les llega y no tocan ningún asset.
+                  "curve_noise", "mesh_vertex_gradient"}
 GRAPH_IN_NAMES = {"points_to_frames": "P", "debug": "*", "curve_child": "S", "curve_noise": "S", "curve_frames": "S", "distribute_frames": "F",
                   "transform_frames": "F", "branch_from_frames": "F", "curve_branches": "S",
                   "asset_set": "A", "choose_asset": "F",
