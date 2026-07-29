@@ -247,3 +247,73 @@ def discard(owner: str = "") -> str:
     """Descarta un Preview. `owner='graph'/'dash'` aísla la interfaz; vacío descarta todos."""
     from . import panel
     return panel._h_descartar(owner=owner or None)
+
+
+def preview_2d(node_id: str = "", ancho: int = 320, alto: int = 320, canal: int = 0) -> str:
+    """Dibuja el dato del nodo como PNG y devuelve `{ok, ruta, tipo, ayuda}`.
+
+    Es el visor 2D del panel. Sólo dibuja lo que NO se puede ver en el viewport —el desplegado de
+    UVs de una malla y la máscara que calcula un grafo de material—; para todo lo demás contesta por
+    qué no hay nada que dibujar, que es información y no un panel en blanco.
+
+    El PNG se escribe en `Saved/JamPreview2D/` con el id del nodo en el nombre. Va a disco en vez de
+    a una textura transitoria porque así lo abre cualquier cosa: el panel, el explorador de archivos
+    o Brian arrastrándolo a otro lado.
+    """
+    import json
+    import os
+
+    import unreal
+
+    from . import graph, mesh, preview2d, shader
+
+    corrida = graph.ultima_corrida()
+    if not corrida:
+        return json.dumps({"ok": False, "error": "todavía no corriste el grafo."},
+                          ensure_ascii=True)
+    if node_id not in corrida:
+        return json.dumps({"ok": False,
+                           "error": f"«{node_id}» no dejó datos en la última corrida.",
+                           "nodos": sorted(corrida)}, ensure_ascii=True)
+
+    dato = corrida[node_id]
+    carpeta = os.path.join(unreal.Paths.project_saved_dir(), "JamPreview2D")
+    os.makedirs(carpeta, exist_ok=True)
+    ruta = os.path.join(carpeta, f"{node_id}.png")
+
+    if isinstance(dato, shader.GrafoMaterial):
+        salidas = [a.desde for a in dato.aristas if a.es_salida_del_material]
+        nodo = salidas[-1] if salidas else (dato.nodos[-1].id if dato.nodos else "")
+        if not nodo:
+            return json.dumps({"ok": False, "error": "el grafo de material está vacío."},
+                              ensure_ascii=True)
+        from . import scatter_core as sc
+
+        def evaluar(g, entorno):
+            # El ruido de UE tiene otro dibujo que el de Jam; para PREVISUALIZAR se usa el de Jam,
+            # que es el que además comparte el scatter. La diferencia está anotada en
+            # `weight_material`: misma escala y misma estadística, otras manchas.
+            return shader.evaluar(g, entorno, ruido=lambda x, y, _z: sc.value_noise(x, y, 1.0, 0))
+
+        pixeles = preview2d.mascara_de_grafo(dato, nodo, evaluar, ancho=int(ancho), alto=int(alto))
+        tipo, detalle = "MT", f"máscara del nodo «{nodo}» · {len(dato.nodos)} nodos de material"
+    elif isinstance(dato, unreal.DynamicMesh):
+        triangulos = mesh.uv_triangulos(dato, int(canal))
+        if not triangulos:
+            return json.dumps(
+                {"ok": False,
+                 "error": f"la malla no tiene UVs en el canal {canal}: proyectá o desplegá primero "
+                          "(mesh_uv_box / mesh_uv_unwrap)."}, ensure_ascii=True)
+        pixeles = preview2d.islas_uv(triangulos, int(ancho), int(alto))
+        medida = mesh._medir_uv(dato, int(canal))
+        tipo = "M"
+        detalle = f"UV{canal} · {len(triangulos)} triángulos · {mesh._veredicto_uv(medida, canal)}"
+    else:
+        nombre = type(dato).__name__
+        return json.dumps({"ok": False, "tipo": nombre,
+                           "error": preview2d.texto_de_ayuda(nombre)}, ensure_ascii=True)
+
+    with open(ruta, "wb") as f:
+        f.write(preview2d.png(int(ancho), int(alto), pixeles))
+    return json.dumps({"ok": True, "ruta": ruta, "tipo": tipo, "detalle": detalle},
+                      ensure_ascii=True)

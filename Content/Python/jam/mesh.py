@@ -1809,3 +1809,29 @@ def to_static(source, *, name: str = "GeneratedMesh", folder: str = CARPETA,
         return {"error": f"falló la creación del StaticMesh: {type(exc).__name__}: {exc}"}
 
     return {"mesh": created, "ruta": output_path, "final": final_path, "info": _info(mesh)}
+
+
+def uv_triangulos(malla, canal: int = 0) -> list:
+    """Los triángulos de un canal UV, para dibujarlos. Lista de tres pares `(u, v)`.
+
+    Se lee POR TRIÁNGULO y no por vértice: `get_mesh_per_vertex_u_vs` devuelve vacío en cuanto hay
+    islas —que es siempre, en un desplegado real—, porque un vértice compartido entre dos islas
+    tiene más de un UV y no hay «uno por vértice» que devolver.
+    """
+    salida = []
+    total = unreal.GeometryScript_MeshQueries.get_num_triangle_i_ds(malla)
+    for tid in range(total):
+        devuelto = unreal.GeometryScript_UVs.get_mesh_triangle_uv_element_i_ds(malla, canal, tid)
+        elementos, validos = devuelto[1], devuelto[2]
+        if not validos:
+            continue
+        tri = []
+        for eid in (elementos.x, elementos.y, elementos.z):
+            posicion = unreal.GeometryScript_UVs.get_mesh_uv_element_position(malla, canal, int(eid))
+            uv, ok = posicion[1], posicion[2]
+            if not ok:
+                break
+            tri.append((float(uv.x), float(uv.y)))
+        if len(tri) == 3:
+            salida.append(tri)
+    return salida

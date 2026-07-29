@@ -439,11 +439,20 @@ def parsear_props(texto: str) -> dict:
     propiedad qué tipo tiene, que es cómo un `noise_function` o un color en hex llegan bien sin que
     este lado sepa nada de enums.
     """
+    import re
+
     salida = {}
     for clave, crudo in parsear_pares(texto).items():
         bajo = crudo.lower()
         if bajo in ("true", "false"):
             salida[clave] = bajo == "true"
+            continue
+        # Un color en hex es un VALOR, no un nombre: se convierte acá para que el IR guarde números.
+        # Dejándolo como texto, el adaptador igual lo resolvía —conoce el tipo de la propiedad— pero
+        # `evaluar` no, y previsualizar un material con un color explotaba con
+        # «could not convert string to float: '#B0764A'». El IR tiene que poder leerse sin Unreal.
+        if re.fullmatch(r"#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?", crudo):
+            salida[clave] = color_de_hex(crudo)
             continue
         try:
             salida[clave] = int(crudo) if crudo.lstrip("+-").isdigit() else float(crudo)
@@ -490,6 +499,11 @@ def color_de_hex(texto: str) -> tuple[float, float, float, float]:
 def _vec(x) -> list[float]:
     if isinstance(x, (list, tuple)):
         return [float(v) for v in x]
+    if isinstance(x, str):
+        # Que el mensaje diga QUÉ pasó: un `float('#B0764A')` a secas manda a leer un stack de
+        # cuatro niveles para descubrir que una propiedad quedó guardada como texto.
+        raise ValueError(f"el IR guarda «{x}» como texto donde va un número: "
+                         "los colores se parsean con `parsear_props`, que los convierte")
     return [float(x)]
 
 
