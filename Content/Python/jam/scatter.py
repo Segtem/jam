@@ -108,17 +108,23 @@ def puntos_rico(
     como el mesh selector de PCG). La separación por defecto sale de la HUELLA REAL de la malla, y un
     dedup final por footprint garantiza que nada quede clavado (lo que el oráculo verifica).
     Devuelve (actores, veredicto_dict)."""
-    rutas = [assets] if isinstance(assets, str) else list(assets)
+    # `assets` es OPCIONAL y normalmente viene vacío: calcular puntos no necesita saber qué se va a
+    # poner en ellos. Cuando hay assets se usa su HUELLA REAL para la separación automática, que es
+    # mejor que cualquier número; cuando no, el `spacing` que se pida (o un default razonable), y el
+    # dedup fino queda para el nodo que coloca, que sí conoce el tamaño.
+    rutas = [assets] if isinstance(assets, str) else list(assets or [])
     mallas = [m for m in (library.cargar_malla(r) for r in rutas) if m is not None]
-    if not mallas:
-        return [], {"error": f"ningún asset cargable en {rutas!r}"}
 
-    # footprint real de la malla más grande × la escala máxima: la separación mínima honesta
-    from . import ue
-    radios = [sc.radio_footprint(ue.aabb_malla(m)) for m in mallas]
-    radio_max = max(radios) * max(scale_min, scale_max)
-    if spacing <= 0.0:
-        spacing = radio_max * 2.0 * espaciado   # diámetro: dos huellas juntas sin pisarse
+    if mallas:
+        from . import ue
+        radios = [sc.radio_footprint(ue.aabb_malla(m)) for m in mallas]
+        if spacing <= 0.0:
+            # diámetro: dos huellas juntas sin pisarse
+            spacing = max(radios) * max(scale_min, scale_max) * 2.0 * espaciado
+    else:
+        radios = []
+        if spacing <= 0.0:
+            spacing = 200.0 * espaciado
 
     # 1) candidatos
     if patron == "poisson":
@@ -157,8 +163,11 @@ def puntos_rico(
 
     # 3b) dedup por FOOTPRINT real: aunque poisson dé separación 2D, con multi-asset o escala variada
     # dos huellas pueden pisarse. Acá se garantiza que ninguna quede clavada (lo que el oráculo mide).
-    radio_por_sample = [radios[s.seed % len(mallas)] * max(scale_min, scale_max) for s in vivos]
-    vivos, pisados = sc.dedup_por_radio(vivos, radio_por_sample, espaciado)
+    if radios:
+        radio_por_sample = [radios[s.seed % len(radios)] * max(scale_min, scale_max) for s in vivos]
+        vivos, pisados = sc.dedup_por_radio(vivos, radio_por_sample, espaciado)
+    else:
+        pisados = []      # sin asset no hay huella que medir: el dedup lo hace `place`
 
     veredicto = {
         "candidatos": len(pts),

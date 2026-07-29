@@ -426,6 +426,31 @@ def t_scatter(_input=None, *, count=24, area=800.0, x=0.0, y=0.0, pattern="poiss
             cx, cy = mira["punto"].x, mira["punto"].y
     centro, semi = (cx, cy), (area, area)
 
+    # Con PUNTOS de entrada, cada uno se vuelve el centro de su propio reparto: el scatter deja de
+    # ser «llenar un área» y pasa a ser un MULTIPLICADOR — matas de pasto alrededor de cada árbol,
+    # escombros alrededor de cada escombro. Es lo que hace que encadenar dos scatter signifique algo
+    # obvio, en vez de dos repartos superpuestos.
+    #
+    # La semilla de cada racimo sale del punto que lo origina (`Sample.seed` es posicional y
+    # determinista), así que dos racimos salen distintos y el grafo sigue dando lo mismo cada vez.
+    entrada = list(_input or [])
+    if entrada:
+        todos = []
+        for origen in entrada:
+            locales, v = scatter.puntos_rico(
+                None, (origen.pos.x, origen.pos.y), semi, cantidad=count, patron=pattern,
+                spacing=spacing, anillos=int(rings), seed=int(origen.seed), surface=surface,
+                align=align, slope_max=slope_max,
+                height_min=(height_min if height_min else None),
+                height_max=(height_max if height_max else None),
+                noise=noise, density=density, scale_min=scale_min, scale_max=scale_max,
+                espaciado=spread, sink=sink, anchor=anchor)
+            if "error" not in v:
+                todos.extend(locales)
+        _RUNTIME_DATA_OUTPUTS["scatter"] = todos
+        return (f"SCATTER \u2713 \u2014 {len(todos)} punto(s) en {len(entrada)} racimo(s) "
+                f"de {count} ({pattern}, radio {area:g}cm)\n" + PISTA_INSTANCE)
+
     puntos, v = scatter.puntos_rico(
         None, centro, semi, cantidad=count, patron=pattern, spacing=spacing, anillos=int(rings),
         seed=seed, surface=surface, align=align, slope_max=slope_max,
@@ -1443,8 +1468,9 @@ REGISTRO = {
                                 "anchor": "", "view": False, "seed": 7},
                      "opciones": {"pattern": ["poisson", "grid", "radial", "hexagonal", "triangular"],
                                   "anchor": [""] + list(_ANCLAS)},
-                     "doc": "calcula PUNTOS sobre la superficie real con máscaras (pendiente/altura/ruido/densidad); "
-                            "no coloca nada — enchufalo a `instance`. Salida P"},
+                     "doc": "calcula PUNTOS sobre la superficie real con máscaras (pendiente/altura/ruido/densidad). "
+                            "Sin entrada reparte en un área; con PUNTOS reparte alrededor de cada uno "
+                            "(multiplicador). No coloca: enchufalo al pin `points` de un `place`. Salida P"},
     "drop":         {"fn": t_drop,    "cat": "Place",   "params": {"height": 800.0},
                      "doc": "deja caer el asset sobre el piso real y verifica apoyo"},
     "snap":         {"fn": t_snap,    "cat": "Place",   "params": {"grid": 100.0},
@@ -1791,7 +1817,7 @@ CATEGORIAS = ["Content", "Place", "Scatter", "Create", "Mesh", "Edit",
 
 # Contrato del Graph. Vive junto al REGISTRO para que Slate y el Preflight lean la misma verdad.
 # `source` significa sin pin gordo `in`; una fuente todavía puede tener un pin de parámetro `asset`.
-GRAPH_SOURCES = {"scatter", "asset", "pick", "create_spline", "gizmo", "ghost", "pivot", "pivot_set",
+GRAPH_SOURCES = {"asset", "pick", "create_spline", "gizmo", "ghost", "pivot", "pivot_set",
                  "curve_bezier", "mesh_triangle", "mesh_quad", "mesh_grid", "mesh_cylinder",
                  "mesh_cone", "mesh_sphere", "graph_curve",
                  "mesh_box", "mesh_capsule", "mesh_torus", "mesh_disc",
@@ -1835,6 +1861,8 @@ GRAPH_IN_NAMES = {"points_to_frames": "P", "debug": "*", "curve_child": "S", "cu
                   "mesh_uv_scale": "M", "mesh_material": "M", "mesh_bark": "M",
                   "mesh_vertex_gradient": "M", "mesh_merge": "M", "mesh_normals": "M",
                   "mesh_uv_box": "M", "mesh_uv_unwrap": "M", "mesh_uv_pack": "M",
+                  # Entrada OPCIONAL: sin cable reparte en un área; con puntos, alrededor de cada uno.
+                  "scatter": "P",
                   "mesh_compare": "M", "mesh_to_static": "M",
                   "material_node": "MT", "material_connect": "MT", "material_output": "MT",
                   "material_build": "MT", "material_function": "MT", "material_call": "MT",
@@ -1863,6 +1891,8 @@ GRAPH_OUT_NAMES = {"points_to_frames": "F", "debug": "M", "asset": "A", "pick": 
                    "mesh_uv_scale": "M", "mesh_material": "M", "mesh_bark": "M",
                    "mesh_vertex_gradient": "M", "mesh_merge": "M", "mesh_normals": "M",
                   "mesh_uv_box": "M", "mesh_uv_unwrap": "M", "mesh_uv_pack": "M",
+                  # Entrada OPCIONAL: sin cable reparte en un área; con puntos, alrededor de cada uno.
+                  "scatter": "P",
                    "mesh_compare": "M", "mesh_to_static": "A"}
 # ---- las ops de Flow como verbos del Graph ----
 # Hasta acá Jam tenía dos vocabularios que no se tocaban: 29 ops de Flow que producen un stream de
@@ -2001,7 +2031,7 @@ def _registrar_ops_flow() -> list[str]:
 GRAPH_ARITY = {"mesh_merge": -1, "asset_set": -1}
 # `material_node` tiene pin de entrada MT pero el PRIMER nodo de una cadena no tiene de dónde
 # venir: con el mínimo en 1 haría falta un verbo `material_new` de puro trámite en el canvas.
-GRAPH_MIN_INPUTS = {"mesh_merge": 2, "asset_set": 2, "material_node": 0,
+GRAPH_MIN_INPUTS = {"mesh_merge": 2, "asset_set": 2, "material_node": 0, "scatter": 0,
                     "material_call": 0, "material_instance": 0}
 OPS_FLOW_EN_GRAPH = _registrar_ops_flow()
 NODOS_MATERIAL_EN_GRAPH = _registrar_nodos_material()

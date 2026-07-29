@@ -55,11 +55,18 @@ class UnSoloInstanciadorTests(unittest.TestCase):
         había que volver a traerlo al nodo siguiente. Un nodo que pide algo que no necesita confunde
         sobre qué hace.
         """
-        self.assertTrue(tools.REGISTRO["scatter"].get("source"),
-                        "scatter no debería tener entrada: genera puntos")
-        self.assertEqual(tools.REGISTRO["scatter"]["in_name"], "")
+        self.assertNotEqual(tools.REGISTRO["scatter"]["in_name"], "A",
+                            "su entrada es de PUNTOS, no un asset")
         self.assertFalse(tools.REGISTRO["scatter"]["asset_required"],
                          "y tampoco puede EXIGIRLO por otro lado: sin esto el nodo no compila")
+
+    def test_scatter_can_multiply_points_or_fill_an_area(self):
+        """Las dos cosas con el mismo nodo: sin cable reparte en un área; con puntos, alrededor de
+        cada uno. Por eso su entrada es OPCIONAL — exigirla obligaría a un nodo de relleno para el
+        caso más común."""
+        self.assertEqual(tools.REGISTRO["scatter"]["in_name"], "P")
+        self.assertEqual(tools.REGISTRO["scatter"]["out_name"], "P")
+        self.assertEqual(tools.REGISTRO["scatter"]["min_inputs"], 0)
 
     def test_place_is_the_one_that_puts_things_in_the_world(self):
         """No hace falta un verbo nuevo: `place` YA es «poné esto acá». Con puntos, los «acá» son
@@ -108,3 +115,66 @@ class ComandoTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ScatterMultiplicadorTests(unittest.TestCase):
+    """El scatter que toma puntos y reparte alrededor de cada uno."""
+
+    def setUp(self):
+        tools.limpiar_asset_producido_runtime("scatter")
+
+    def puntos(self, n, separacion=1000.0):
+        from jam.geometry import Vec3
+        from jam import scatter_core as sc
+        return [sc.Sample(Vec3(i * separacion, 0.0, 0.0), Vec3(0.0, 0.0, 1.0), 0.0,
+                          sc.semilla_de(0, i * separacion, 0.0), (0.5, 0.5))
+                for i in range(n)]
+
+    def test_each_incoming_point_becomes_its_own_cluster(self):
+        """«Scatter de scatter» con un significado obvio: matas alrededor de cada árbol. Antes eran
+        dos repartos superpuestos y el resultado dependía del orden."""
+        params = dict(tools.REGISTRO["scatter"]["params"])
+        params.update({"count": 5, "area": 200.0, "surface": False})
+        tools.REGISTRO["scatter"]["fn"](self.puntos(3), **params)
+        salida = tools.dato_producido_runtime("scatter")
+        self.assertGreater(len(salida), 3, "cada punto tiene que multiplicarse")
+
+    def test_the_clusters_are_centred_on_the_points_that_made_them(self):
+        params = dict(tools.REGISTRO["scatter"]["params"])
+        params.update({"count": 4, "area": 150.0, "surface": False})
+        tools.REGISTRO["scatter"]["fn"](self.puntos(2, separacion=5000.0), **params)
+        xs = [p.pos.x for p in tools.dato_producido_runtime("scatter")]
+        cerca_del_primero = [x for x in xs if abs(x - 0.0) < 400.0]
+        cerca_del_segundo = [x for x in xs if abs(x - 5000.0) < 400.0]
+        self.assertTrue(cerca_del_primero and cerca_del_segundo,
+                        f"los racimos no siguieron a sus puntos: {sorted(xs)[:6]}")
+
+    def test_two_clusters_are_not_identical(self):
+        """La semilla de cada racimo sale del punto que lo origina. Con una sola semilla, todos los
+        racimos salían calcados y el reparto se veía artificial."""
+        params = dict(tools.REGISTRO["scatter"]["params"])
+        params.update({"count": 6, "area": 300.0, "surface": False})
+        tools.REGISTRO["scatter"]["fn"](self.puntos(2, separacion=5000.0), **params)
+        puntos = tools.dato_producido_runtime("scatter")
+        a = sorted(round(p.pos.x, 2) for p in puntos if p.pos.x < 2500.0)
+        b = sorted(round(p.pos.x - 5000.0, 2) for p in puntos if p.pos.x >= 2500.0)
+        self.assertNotEqual(a, b, "los dos racimos son idénticos")
+
+    def test_it_is_deterministic(self):
+        """Dos corridas del mismo grafo, el mismo resultado — la regla que costó tres bugs."""
+        params = dict(tools.REGISTRO["scatter"]["params"])
+        params.update({"count": 5, "area": 200.0, "surface": False})
+        entrada = self.puntos(3)
+        tools.REGISTRO["scatter"]["fn"](entrada, **params)
+        una = [(round(p.pos.x, 3), round(p.pos.y, 3)) for p in tools.dato_producido_runtime("scatter")]
+        tools.limpiar_asset_producido_runtime("scatter")
+        tools.REGISTRO["scatter"]["fn"](entrada, **params)
+        otra = [(round(p.pos.x, 3), round(p.pos.y, 3)) for p in tools.dato_producido_runtime("scatter")]
+        self.assertEqual(una, otra)
+
+    def test_without_points_it_still_fills_an_area(self):
+        """El caso común no se rompe: sin cable, reparte en su área."""
+        params = dict(tools.REGISTRO["scatter"]["params"])
+        params.update({"count": 6, "area": 400.0, "surface": False})
+        tools.REGISTRO["scatter"]["fn"](None, **params)
+        self.assertTrue(tools.dato_producido_runtime("scatter"))

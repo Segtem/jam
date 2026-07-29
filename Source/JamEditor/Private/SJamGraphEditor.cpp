@@ -178,6 +178,95 @@ static FString JamIconPath(const FString& IconName)
 	return IFileManager::Get().FileExists(*Path) ? Path : FString();
 }
 
+// ---- el gesto de la paleta: clic = al medio, arrastre = donde soltás ----
+//
+// Son los dos gestos que uno ya tiene en los dedos, y cada uno resuelve un caso distinto:
+//
+//  · CLIC suelto — «quiero este nodo, no me importa dónde». Cae en el centro de lo que estás
+//    mirando, que es donde lo vas a buscar. Antes caía en una cascada desde la esquina, así que
+//    con el canvas paneado el nodo aparecía fuera de cuadro y parecía que el botón no hacía nada.
+//  · ARRASTRAR — «quiero este nodo ACÁ». Es lo que hace cualquiera que ya usó Grasshopper o un
+//    editor de nodos, y no requiere aprender nada.
+
+class FJamVerbDrag : public FDragDropOperation
+{
+public:
+	DRAG_DROP_OPERATOR_TYPE(FJamVerbDrag, FDragDropOperation)
+
+	static TSharedRef<FJamVerbDrag> New(const FString& InVerb, const FSlateBrush* InIcon)
+	{
+		TSharedRef<FJamVerbDrag> Op = MakeShared<FJamVerbDrag>();
+		Op->Verb = InVerb;
+		Op->Icon = InIcon;
+		Op->Construct();
+		return Op;
+	}
+
+	/** El cursor lleva el ICONO del verbo mientras arrastrás: sin eso no se ve qué estás soltando. */
+	virtual TSharedPtr<SWidget> GetDefaultDecorator() const override
+	{
+		return SNew(SBorder)
+			.BorderImage(FAppStyle::GetBrush("Menu.Background"))
+			.Padding(4.0f)
+			[
+				SNew(STextBlock).Text(FText::FromString(Verb))
+			];
+	}
+
+	FString Verb;
+	const FSlateBrush* Icon = nullptr;
+};
+
+/** Ficha del ribbon. Distingue el clic del arrastre sin que el usuario tenga que saberlo. */
+class SJamVerbTile : public SCompoundWidget
+{
+public:
+	DECLARE_DELEGATE_OneParam(FOnVerbClicked, FString);
+
+	SLATE_BEGIN_ARGS(SJamVerbTile) {}
+		SLATE_ARGUMENT(FString, Verb)
+		SLATE_EVENT(FOnVerbClicked, OnClicked)
+		SLATE_DEFAULT_SLOT(FArguments, Content)
+	SLATE_END_ARGS()
+
+	void Construct(const FArguments& InArgs)
+	{
+		Verb = InArgs._Verb;
+		OnClicked = InArgs._OnClicked;
+		ChildSlot[ InArgs._Content.Widget ];
+	}
+
+	virtual FReply OnMouseButtonDown(const FGeometry&, const FPointerEvent& E) override
+	{
+		if (E.GetEffectingButton() == EKeys::LeftMouseButton)
+		{
+			// `DetectDrag` es lo que deja que el MISMO botón sirva para las dos cosas: si el mouse
+			// se mueve, Slate llama a OnDragDetected; si se suelta sin moverse, llega OnMouseButtonUp.
+			return FReply::Handled().DetectDrag(SharedThis(this), EKeys::LeftMouseButton);
+		}
+		return FReply::Unhandled();
+	}
+
+	virtual FReply OnDragDetected(const FGeometry&, const FPointerEvent&) override
+	{
+		return FReply::Handled().BeginDragDrop(FJamVerbDrag::New(Verb, nullptr));
+	}
+
+	virtual FReply OnMouseButtonUp(const FGeometry&, const FPointerEvent& E) override
+	{
+		if (E.GetEffectingButton() == EKeys::LeftMouseButton)
+		{
+			OnClicked.ExecuteIfBound(Verb);
+			return FReply::Handled();
+		}
+		return FReply::Unhandled();
+	}
+
+private:
+	FString Verb;
+	FOnVerbClicked OnClicked;
+};
+
 // Capa de fondo del canvas (como el de Grasshopper): pinta el color de fondo, una GRILLA fina
 // alineada al pan/zoom, y los WIRES (splines) — todo detrás de los nodos.
 class SJamWireLayer : public SLeafWidget
@@ -949,11 +1038,12 @@ void SJamGraphEditor::RebuildTabContent()
 					: FString::Printf(TEXT("%s \u2192 %s"), *T.InName, *T.OutName);
 				ColumnBox->AddSlot().AutoHeight().Padding(1.0f)
 				[
-					SNew(SButton)
+					SNew(SJamVerbTile)
+					.Verb(Verb)
+					.OnClicked_Lambda([this](FString V) { AddNodeAlCentro(V); })
 					.ToolTipText(FText::FromString(FString::Printf(
-						TEXT("%s   [%s]\n%s"), *T.Verb, *Firma, *T.Doc)))
-					.ContentPadding(FMargin(1.0f))
-					.OnClicked_Lambda([this, Verb]() { AddNode(Verb); return FReply::Handled(); })
+						TEXT("%s   [%s]\n%s\n\nclic = al centro de la vista · arrastrá = donde sueltes"),
+						*T.Verb, *Firma, *T.Doc)))
 					[
 						MakeBadge(CategoryColor(T.Cat), VerbCode(Verb), 30.0f, IconPathForVerb(Verb))
 					]
@@ -1077,6 +1167,41 @@ const FJamTool* SJamGraphEditor::FindTool(const FString& Verb) const
 SJamGraphEditor::FGNode* SJamGraphEditor::FindNode(const FString& Id)
 {
 	return Nodes.FindByPredicate([&Id](const FGNode& N) { return N.Id == Id; });
+}
+
+FString SJamGraphEditor::AddNodeAlCentro(const FString& Verb)
+{
+	// El centro de lo que estás MIRANDO, no el de la escena ni el origen del grafo. Con el canvas
+	// paneado las tres cosas están en lugares distintos, y sólo una es donde vas a buscar el nodo.
+	if (WireLayer.IsValid())
+	{
+		const FVector2D Centro = WireLayer->GetCachedGeometry().GetLocalSize() * 0.5f;
+		const FVector2D Modelo = LocalToModel(Centro) - FVector2D(NodeWidth * 0.5f, 20.0f);
+		return AddNode(Verb, &Modelo);
+	}
+	return AddNode(Verb);
+}
+
+FReply SJamGraphEditor::OnDragOver(const FGeometry&, const FDragDropEvent& E)
+{
+	return E.GetOperationAs<FJamVerbDrag>().IsValid() ? FReply::Handled() : FReply::Unhandled();
+}
+
+FReply SJamGraphEditor::OnDrop(const FGeometry& MyGeometry, const FDragDropEvent& E)
+{
+	const TSharedPtr<FJamVerbDrag> Op = E.GetOperationAs<FJamVerbDrag>();
+	if (!Op.IsValid())
+	{
+		return FReply::Unhandled();
+	}
+	// Misma referencia que el doble clic: el overlay del CANVAS y no el editor completo, o el nodo
+	// cae desplazado hacia abajo la altura del menú y del ribbon.
+	const FVector2D Local = WireLayer.IsValid()
+		? WireLayer->GetCachedGeometry().AbsoluteToLocal(E.GetScreenSpacePosition())
+		: MyGeometry.AbsoluteToLocal(E.GetScreenSpacePosition());
+	const FVector2D Modelo = LocalToModel(Local) - FVector2D(NodeWidth * 0.5f, 20.0f);
+	AddNode(Op->Verb, &Modelo);
+	return FReply::Handled();
 }
 
 FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At)

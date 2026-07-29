@@ -106,6 +106,13 @@ private:
 
 	/** Agrega un nodo; devuelve su Id (para reconstruir grafos al cargar un diagrama). */
 	FString AddNode(const FString& Verb, const FVector2D* At = nullptr);
+
+	// ---- el gesto de la paleta: clic = al centro de la vista · arrastre = donde soltás ----
+	/** Crea el nodo en el centro de lo que se está VIENDO. Con el canvas paneado, ese punto y el
+	    origen del grafo están en lugares distintos, y sólo uno es donde vas a buscar el nodo. */
+	FString AddNodeAlCentro(const FString& Verb);
+	virtual FReply OnDragOver(const FGeometry& MyGeometry, const FDragDropEvent& DragDropEvent) override;
+	virtual FReply OnDrop(const FGeometry& MyGeometry, const FDragDropEvent& DragDropEvent) override;
 	void DeleteNode(const FString& Id);
 
 	// ---- menú principal estilo Grasshopper (File / Edit / View / Display / Solution) ----
