@@ -75,7 +75,7 @@ def _build_wfc_project(tmp_path: Path, seed: int, n_sections: int) -> Path:
 @pytest.mark.skipif(not _HAS_GODOT, reason="godot no instalado")
 def test_wfc_level_with_floating_platforms_is_winnable(tmp_path):
     """Nivel WFC con PLAT (sin GAP): el probe camina bajo las plataformas y gana."""
-    from src.qa.winnability import check_winnability
+    from oraculo.qa.winnability import check_winnability
     proj = _build_wfc_project(tmp_path, seed=0, n_sections=10)
     res = check_winnability(proj, timeout=60, max_frames=1200)
     assert res.won, f"esperaba won=True (PLAT no debe bloquear), telemetry={res.telemetry}"

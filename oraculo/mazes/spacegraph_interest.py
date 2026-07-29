@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 
-from src.mazes.spacegraph import GraphEdge, SpaceGraph, solve_graph
+from oraculo.mazes.spacegraph import GraphEdge, SpaceGraph, solve_graph
 
 MIN_STEPS = 6      # piso de largo: por debajo es un paseo, no un reto (análogo al de Capa 0)
 

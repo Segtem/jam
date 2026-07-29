@@ -289,7 +289,7 @@ def prop_blocks_default(tag: str) -> bool | None:
 def space_program_for(space: str) -> "Any":
     """Deriva el `SpaceProgram` (gate de `program_satisfied`) desde el vocabulario canónico: 'qué DEBE tener un
     hospital válido' vive acá, no disperso en cada test. `KeyError` si el espacio no está en el vocabulario."""
-    from src.mazes.pcg import SpaceProgram
+    from oraculo.mazes.pcg import SpaceProgram
     st = SPACES[space]
     return SpaceProgram(space=st.name, required=dict(st.required), adjacent=tuple(st.adjacencies),
                         circulation=tuple(st.circulation), forbidden=tuple(st.forbidden),

@@ -24,8 +24,8 @@ import re
 from collections import deque
 from typing import Any
 
-from src.mazes.electric import ElectricChannel, parse_electric_channel, powered_loads
-from src.mazes.maze3d import GOAL, PLAYER, Maze3D, _deadly, _reconstruct, solve_3d
+from oraculo.mazes.electric import ElectricChannel, parse_electric_channel, powered_loads
+from oraculo.mazes.maze3d import GOAL, PLAYER, Maze3D, _deadly, _reconstruct, solve_3d
 
 Cell = tuple[int, int, int]
 
@@ -418,7 +418,7 @@ def powered_survival_necessity(maze: Maze3D, resource_channel, electric: Electri
 def evaluate_powered(text: str, maze: Maze3D, max_states: int = 200_000) -> dict[str, Any] | None:
     """Conveniencia para GATEAR un elite con acople recurso↔eléctrico desde el DSL. None si el DSL no tiene
     los tres ingredientes (canal recurso + canal eléctrico + al menos un `@consume`)."""
-    from src.mazes.resource import parse_resource_channel
+    from oraculo.mazes.resource import parse_resource_channel
     rc = parse_resource_channel(text)
     electric = parse_electric_channel(text)
     consumes = parse_consumes(text)

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 
-from src.mazes.spacegraph import GraphEdge, SpaceGraph, Subgraph
+from oraculo.mazes.spacegraph import GraphEdge, SpaceGraph, Subgraph
 
 
 def flatten_hierarchy(graph: SpaceGraph) -> SpaceGraph:

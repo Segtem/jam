@@ -21,8 +21,8 @@ from collections import deque
 from dataclasses import dataclass, field
 from math import ceil
 
-from src.mazes.building import _contracted_graph, _mechanical_cells, _merge_map
-from src.mazes.maze3d import GOAL, PLAYER, Maze3D
+from oraculo.mazes.building import _contracted_graph, _mechanical_cells, _merge_map
+from oraculo.mazes.maze3d import GOAL, PLAYER, Maze3D
 
 Cell = tuple[int, int, int]
 Rect = tuple[float, float, float, float]      # (x0, y0, x1, y1) en METROS, y crece hacia el sur

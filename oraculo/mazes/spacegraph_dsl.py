@@ -42,7 +42,7 @@ from __future__ import annotations
 
 import re
 
-from src.mazes.spacegraph import GraphEdge, GraphNode, SpaceGraph, Subgraph
+from oraculo.mazes.spacegraph import GraphEdge, GraphNode, SpaceGraph, Subgraph
 
 _ID_START_CHARS = "a-z_"
 _ID_CONT_CHARS = "a-z0-9_"

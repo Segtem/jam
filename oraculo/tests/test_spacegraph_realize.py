@@ -1,10 +1,10 @@
 """El puente grafo→Maze3D sintético (escala ×2): equivalencia de winnability y cero
 adyacencias espurias por construcción."""
 
-from src.mazes.embedder import Embedding
-from src.mazes.maze3d import solve_3d
-from src.mazes.spacegraph import GraphEdge, GraphNode, SpaceGraph, from_maze, solve_graph
-from src.mazes.spacegraph_realize import graph_to_maze
+from oraculo.mazes.embedder import Embedding
+from oraculo.mazes.maze3d import solve_3d
+from oraculo.mazes.spacegraph import GraphEdge, GraphNode, SpaceGraph, from_maze, solve_graph
+from oraculo.mazes.spacegraph_realize import graph_to_maze
 
 
 def _graph(with_key: bool = True) -> SpaceGraph:

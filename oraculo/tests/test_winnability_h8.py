@@ -76,7 +76,7 @@ def _build(tmp_path: Path, gap_left: float, gap_right: float, exit_x: float) -> 
 @pytest.mark.skipif(not _HAS_GODOT, reason="godot no instalado")
 def test_probe_crosses_jumpable_gap_and_wins(tmp_path):
     """Gap de 100px (saltable) → el probe salta en el borde, cruza y gana."""
-    from src.qa.winnability import check_winnability
+    from oraculo.qa.winnability import check_winnability
     proj = _build(tmp_path, gap_left=200, gap_right=300, exit_x=480)
     res = check_winnability(proj, timeout=40, max_frames=600)
     assert res.won, f"esperaba won=True, telemetry={res.telemetry}"
@@ -86,7 +86,7 @@ def test_probe_crosses_jumpable_gap_and_wins(tmp_path):
 @pytest.mark.skipif(not _HAS_GODOT, reason="godot no instalado")
 def test_probe_does_not_win_impossible_gap(tmp_path):
     """Gap de 360px (más ancho que el salto) → no se puede cruzar, won=False."""
-    from src.qa.winnability import check_winnability
+    from oraculo.qa.winnability import check_winnability
     proj = _build(tmp_path, gap_left=200, gap_right=560, exit_x=740)
     res = check_winnability(proj, timeout=40, max_frames=600)
     assert not res.won, f"un gap incruzable no debería ganarse: {res.telemetry}"

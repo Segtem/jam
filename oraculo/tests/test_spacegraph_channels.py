@@ -5,8 +5,8 @@ en el `GraphOracle` de la fachada. Retro-compatibilidad DURA: un grafo sin canal
 
 from dataclasses import replace
 
-from src.mazes.spacegraph import GraphEdge, GraphNode, SpaceGraph, solve_graph
-from src.mazes.spacegraph_channels import (all_powered_graph,
+from oraculo.mazes.spacegraph import GraphEdge, GraphNode, SpaceGraph, solve_graph
+from oraculo.mazes.spacegraph_channels import (all_powered_graph,
                                            solve_survival_graph)
 
 

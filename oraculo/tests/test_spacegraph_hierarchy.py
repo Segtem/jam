@@ -4,9 +4,9 @@ Un nodo se EXPANDE a un sub-grafo; el sub-grafo declara `port` que ligan a las a
 El oráculo APLANA (sustitución en los puertos) y corre solve_graph sobre el grafo plano —
 jerárquico ≡ plano. La realización embebe el grafo aplanado con el embedder existente (V1)."""
 
-from src.mazes.spacegraph import solve_graph
-from src.mazes.spacegraph_dsl import parse_space_graph
-from src.mazes.spacegraph_hierarchy import flatten_hierarchy
+from oraculo.mazes.spacegraph import solve_graph
+from oraculo.mazes.spacegraph_dsl import parse_space_graph
+from oraculo.mazes.spacegraph_hierarchy import flatten_hierarchy
 
 SITIO = """@space hospital
 subgraph ala {

@@ -30,7 +30,7 @@ from __future__ import annotations
 import re
 import string
 
-from src.mazes.maze3d import _STAIR_DELTA, GOAL, OPEN, PLAYER, WALL, Maze3D
+from oraculo.mazes.maze3d import _STAIR_DELTA, GOAL, OPEN, PLAYER, WALL, Maze3D
 
 # Un glifo por elemento celda-local. Escaleras DIRECCIONALES (^ sube, v baja); < > reservados para
 # conectores horizontales/one-way en el plano (cuando el modelo los tenga).

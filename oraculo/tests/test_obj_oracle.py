@@ -9,7 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parents[1]))
 
-from src.foundry.obj_oracle import (check_bbox, check_door_openings, check_geometry,
+from oraculo.foundry.obj_oracle import (check_bbox, check_door_openings, check_geometry,
                                     check_uvs, contar_choques, parse_obj)
 
 # IR con una puerta en el centro de un muro que corre a lo largo de X, en (2, 0).

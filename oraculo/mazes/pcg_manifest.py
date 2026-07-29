@@ -19,7 +19,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from src.mazes.pcg_vocab import SPACES, known_prop_tags, known_room_types
+from oraculo.mazes.pcg_vocab import SPACES, known_prop_tags, known_room_types
 
 # Licencias que un build SHIPPABLE puede usar (el resto = placeholder / copyright / desconocida → no shippable).
 SHIPPABLE_LICENSES = {"CC0", "CC-BY", "CC-BY-SA", "public-domain"}
@@ -107,7 +107,7 @@ def binding_for(manifest: Manifest, engine: str, *, shippable_only: bool = False
     """Baja el manifest a un `AssetBinding` de un motor: {tag→asset} para props, {tipo→asset} para materiales.
     `shippable_only`=True descarta los placeholders (build de RELEASE = sólo CC0/libre). Los tags sin ref para ese
     motor simplemente no entran (los caza `fabricate` como `missing_*`, no rompe)."""
-    from src.mazes.pcg import AssetBinding
+    from oraculo.mazes.pcg import AssetBinding
 
     def pick(entries: dict[str, AssetEntry]) -> dict[str, str]:
         out: dict[str, str] = {}
@@ -182,7 +182,7 @@ def gap_report(manifest: Manifest, *, engines: tuple[str, ...] = ENGINES,
         prop_demand, room_demand = known_prop_tags(), known_room_types()
     # los tags PROCEDURALES (el receptor fabrica su visual: pipe_vertical, como los cables) no son gap de
     # curaduría → fuera de la demanda (si algún día se les bindea un mesh, el binding gana igual)
-    from src.mazes.pcg_vocab import PROP_TAGS
+    from oraculo.mazes.pcg_vocab import PROP_TAGS
     prop_demand = {t for t in prop_demand if not (t in PROP_TAGS and PROP_TAGS[t].procedural)}
     return {
         "engines": list(engines),

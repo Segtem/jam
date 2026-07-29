@@ -24,9 +24,9 @@ from __future__ import annotations
 
 from dataclasses import replace
 
-from src.mazes.embedder import Embedding
-from src.mazes.maze3d import Maze3D
-from src.mazes.spacegraph import SpaceGraph
+from oraculo.mazes.embedder import Embedding
+from oraculo.mazes.maze3d import Maze3D
+from oraculo.mazes.spacegraph import SpaceGraph
 
 Cell = tuple[int, int, int]
 

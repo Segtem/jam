@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from src.mazes.spacegraph import realizable_static, solve_graph
-from src.mazes.spacegraph_dsl import SPACEGRAPH_GBNF, build_gbnf, conforms, parse_space_graph
+from oraculo.mazes.spacegraph import realizable_static, solve_graph
+from oraculo.mazes.spacegraph_dsl import SPACEGRAPH_GBNF, build_gbnf, conforms, parse_space_graph
 
 
 SPEC_EXAMPLE = """

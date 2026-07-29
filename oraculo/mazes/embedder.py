@@ -28,7 +28,7 @@ from dataclasses import dataclass, field
 import math
 import random
 
-from src.mazes.spacegraph import SpaceGraph
+from oraculo.mazes.spacegraph import SpaceGraph
 
 Cell = tuple[int, int, int]
 Coord = tuple[int, int]

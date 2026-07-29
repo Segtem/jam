@@ -33,7 +33,7 @@ import re
 from collections import deque
 from dataclasses import dataclass, field
 
-from src.mazes.maze3d import GOAL, PLAYER, Maze3D
+from oraculo.mazes.maze3d import GOAL, PLAYER, Maze3D
 
 Cell = tuple[int, int, int]
 Node = tuple[str, Cell]   # nodo del grafo COMPUESTO: (tag-de-ruta, celda). "@" = padre raíz; "r0", "r0/s0"… = instancias anidadas
@@ -319,7 +319,7 @@ def parse_nested(text: str) -> "HierMaze | None":
     """DSL JamMap ANIDADO → `HierMaze` (o None si no trae `[Region]`/`@region`). Cada `[Region <tipo>]`
     define un sub-mapa; el padre lo INSTANCIA con `@region` y lo pega por `@port`/`@link`. Las regiones se
     SELLAN (contrato) → el `HierMaze` se verifica jerárquico (barato) ≡ plano. v1: regiones de un piso."""
-    from src.mazes.ascii_map import parse as parse_nav
+    from oraculo.mazes.ascii_map import parse as parse_nav
     region_rows: dict[str, list[str]] = {}
     parent_lines: list[str] = []
     cur: str | None = None
@@ -361,7 +361,7 @@ def parse_nested(text: str) -> "HierMaze | None":
 
 def render_nested(hier: "HierMaze") -> list[str]:
     """`HierMaze` → líneas del DSL anidado (inversa de `parse_nested`; round-trip estable). v1: un piso por región."""
-    from src.mazes.ascii_map import render as render_nav
+    from oraculo.mazes.ascii_map import render as render_nav
     out: list[str] = []
     for name, body in {pl.region.name: pl.region.body for pl in hier.placements}.items():
         out.append(f"[Region {name}]")

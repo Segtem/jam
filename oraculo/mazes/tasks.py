@@ -17,7 +17,7 @@ from collections import deque
 from dataclasses import dataclass, field
 from typing import Any
 
-from src.mazes.maze3d import GOAL, PLAYER, Maze3D, _deadly, _reconstruct
+from oraculo.mazes.maze3d import GOAL, PLAYER, Maze3D, _deadly, _reconstruct
 
 Cell = tuple[int, int, int]
 
@@ -174,7 +174,7 @@ def solve_tasks_coupled(maze: Maze3D, channel: TaskChannel, electric, couplings:
     sólo abre con el generador prendido EXIGE ir a cerrar el breaker primero — el "sistema VotV" (server
     apagado → prenderlo → hacer la tarea → volver) verificado en UN oráculo. Los power-flags se derivan y se
     cachean por subconjunto de flags (mismo truco que `solve_two_way`) → el espacio de estados no crece."""
-    from src.mazes.electric import powered_loads
+    from oraculo.mazes.electric import powered_loads
     cache: dict[frozenset, frozenset] = {}
 
     def effective(flags: frozenset) -> frozenset:
@@ -192,7 +192,7 @@ def tasks_necessity(maze: Maze3D, channel: TaskChannel, max_states: int = 200_00
     """¿El DAG IMPORTA? (necesidad contrafáctica, [[entretenido-necesidad-contrafactual]]): compara el óptimo
     CON tareas contra el reach-G pelado. `detour`>0 = las tareas fuerzan un desvío real (gameplay); 0 = las
     tareas están regaladas sobre el camino (decorativas → señal de curaduría, no error)."""
-    from src.mazes.maze3d import solve_3d
+    from oraculo.mazes.maze3d import solve_3d
     with_tasks = solve_tasks(maze, channel, max_states)
     plain = solve_3d(maze, max_states)
     if not with_tasks["solvable"] or not plain["solvable"]:

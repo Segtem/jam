@@ -34,7 +34,7 @@ from collections import deque
 from dataclasses import dataclass, field
 from typing import Any
 
-from src.mazes.maze3d import GOAL, PLAYER, Maze3D, _deadly
+from oraculo.mazes.maze3d import GOAL, PLAYER, Maze3D, _deadly
 
 Cell = tuple[int, int, int]
 
@@ -310,7 +310,7 @@ def resource_necessity(maze: Maze3D, spec: ResourceSpec, max_states: int = 200_0
       - `binding`     = el nivel es ganable SIN recursos pero NO sobrevivible CON ellos (la cota muerde).
       - `detour`      = sobrevivible, pero el óptimo se alarga (obliga un rodeo por una fuente).
     Si `binding` y `detour` son ambos False, el canal recurso es decorativo en este mapa (no cuenta)."""
-    from src.mazes.maze3d import solve_3d
+    from oraculo.mazes.maze3d import solve_3d
     nav = solve_3d(maze, max_states)
     sur = solve_survival(maze, spec, max_states)
     nav_ok = bool(nav["solvable"])

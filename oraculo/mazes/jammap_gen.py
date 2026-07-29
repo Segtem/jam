@@ -15,8 +15,8 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
-from src.mazes.ascii_map import parse, parse_space, render
-from src.mazes.couple import (
+from oraculo.mazes.ascii_map import parse, parse_space, render
+from oraculo.mazes.couple import (
     coupling_necessity,
     parse_consumes,
     parse_power_couplings,
@@ -26,10 +26,10 @@ from src.mazes.couple import (
     solve_coupled,
     solve_powered_survival,
 )
-from src.mazes.electric import parse_electric_channel, render_electric_channel
-from src.mazes.jammap_grammar import conforms
-from src.mazes.maze3d import GOAL, PLAYER, maze3d_descriptors, solve_3d
-from src.mazes.resource import (
+from oraculo.mazes.electric import parse_electric_channel, render_electric_channel
+from oraculo.mazes.jammap_grammar import conforms
+from oraculo.mazes.maze3d import GOAL, PLAYER, maze3d_descriptors, solve_3d
+from oraculo.mazes.resource import (
     ResourceChannel,
     ResourceSpec,
     evaluate_channel,
@@ -193,7 +193,7 @@ def build_jammap_prompt(*, elements: tuple[str, ...] = (), n_floors: int = 1,
                      "recorrido para que el presupuesto alcance. Lo verifica el oráculo de recurso: si no se "
                      "sobrevive, lo rechazo.")
     if space:
-        from src.mazes.pcg_vocab import SPACES as _SPACES
+        from oraculo.mazes.pcg_vocab import SPACES as _SPACES
         st = _SPACES.get(space)
         if st is not None:
             req = ", ".join(f"{k}>={v}" for k, v in st.required.items())
@@ -278,7 +278,7 @@ def eval_jammap(dsl: str) -> dict[str, Any]:
     # alcancen para el programa mínimo; el tipado/props/program_satisfied van en la materialización).
     space = parse_space(dsl)
     if space is not None:
-        from src.mazes.pcg_vocab import SPACES as _SPACES
+        from oraculo.mazes.pcg_vocab import SPACES as _SPACES
         if space not in _SPACES:
             return {"stage": "semantic", "winnable": False, "interesting": False,
                     "reason": f"@space '{space}' fuera del vocabulario ({', '.join(sorted(_SPACES))})"}

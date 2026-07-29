@@ -11,10 +11,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from src.mazes.maze3d import Maze3D
-from src.mazes.pcg import SpaceProgram, expand, parse_pcg, program_satisfied
-from src.mazes.pcg_vocab import space_program_for
-from src.mazes.space_placer import _depths, _stair_cells, _to_pcg_text, place
+from oraculo.mazes.maze3d import Maze3D
+from oraculo.mazes.pcg import SpaceProgram, expand, parse_pcg, program_satisfied
+from oraculo.mazes.pcg_vocab import space_program_for
+from oraculo.mazes.space_placer import _depths, _stair_cells, _to_pcg_text, place
 
 # Cada abstracción: (campo en SpaceProgram, clave de violación en el reporte, etiqueta, glosa).
 # El orden es el del panel VEREDICTO.

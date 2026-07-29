@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from src.qa.winnability import (
+from oraculo.qa.winnability import (
     WinnabilityResult,
     check_winnability,
     _inject_probe,
@@ -143,14 +143,14 @@ def test_to_dict_shape():
 
 def test_check_winnability_no_project(tmp_path, monkeypatch):
     # Forzar godot "presente" para llegar al chequeo de project.godot
-    monkeypatch.setattr("src.qa.winnability._godot_bin", lambda: "/usr/bin/godot")
+    monkeypatch.setattr("oraculo.qa.winnability._godot_bin", lambda: "/usr/bin/godot")
     res = check_winnability(tmp_path)
     assert res.ran is False
     assert "project.godot" in res.error
 
 
 def test_check_winnability_no_godot(tmp_path, monkeypatch):
-    monkeypatch.setattr("src.qa.winnability._godot_bin", lambda: None)
+    monkeypatch.setattr("oraculo.qa.winnability._godot_bin", lambda: None)
     res = check_winnability(_mk_project(tmp_path, _PG_MINIMAL))
     assert res.ran is False
     assert "godot" in res.error
@@ -167,7 +167,7 @@ def test_winnability_cache_hit_skips_godot(tmp_path, monkeypatch):
 
     # Si llamara a check_winnability fallaría el test (no debe llamarlo en cache-hit)
     monkeypatch.setattr(
-        "src.qa.winnability.check_winnability",
+        "oraculo.qa.winnability.check_winnability",
         lambda *a, **k: pytest.fail("no debería correr godot en cache-hit"),
     )
     out = _winnability_cached(tmp_path)
@@ -178,7 +178,7 @@ def test_winnability_cache_miss_computes_and_writes(tmp_path, monkeypatch):
     from src.api import server
     fake = WinnabilityResult(ran=True, won=False, frames=2400)
     monkeypatch.setattr(
-        "src.qa.winnability.check_winnability", lambda *a, **k: fake
+        "oraculo.qa.winnability.check_winnability", lambda *a, **k: fake
     )
     out = server._winnability_cached(tmp_path)
     assert out["ran"] is True and out["won"] is False

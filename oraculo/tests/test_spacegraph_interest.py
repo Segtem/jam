@@ -1,8 +1,8 @@
 """Necesidad contrafáctica sobre grafos: cada tipo de item con su caso necesario y su caso
 decorativo — la MISMA semántica que item_necessity de maze3d."""
 
-from src.mazes.spacegraph import GraphEdge, GraphNode, SpaceGraph
-from src.mazes.spacegraph_interest import interest_report, item_necessity_graph
+from oraculo.mazes.spacegraph import GraphEdge, GraphNode, SpaceGraph
+from oraculo.mazes.spacegraph_interest import interest_report, item_necessity_graph
 
 
 def _chain(n: int) -> SpaceGraph:
@@ -99,7 +99,7 @@ def test_interest_report_gatea():
 
 def test_el_hospital_de_la_spec_que_dice_el_gate():
     """Medición honesta sobre nuestro propio ejemplo: el gate reporta QUÉ items importan."""
-    from src.mazes.spacegraph_dsl import parse_space_graph
+    from oraculo.mazes.spacegraph_dsl import parse_space_graph
     r = interest_report(parse_space_graph(SPEC_HOSPITAL))
     assert r["solvable"] and r["n_items"] >= 5
     # el reporte es accionable: si algo es decorativo, lo nombra

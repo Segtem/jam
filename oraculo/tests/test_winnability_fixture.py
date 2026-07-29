@@ -19,7 +19,7 @@ from pathlib import Path
 
 import pytest
 
-from src.qa.winnability import check_winnability
+from oraculo.qa.winnability import check_winnability
 
 _GODOT = shutil.which("godot4") or shutil.which("godot")
 _HAS_GODOT = _GODOT

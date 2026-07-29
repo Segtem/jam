@@ -13,7 +13,7 @@ from __future__ import annotations
 from collections import deque
 from typing import Any, Iterable
 
-from src.mazes.spacegraph import GraphNode, SpaceGraph, solve_graph
+from oraculo.mazes.spacegraph import GraphNode, SpaceGraph, solve_graph
 
 
 POWER_FLAG_PREFIX = "powered:"

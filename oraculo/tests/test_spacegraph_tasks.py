@@ -4,8 +4,8 @@ Porta `mazes/tasks.py` (grilla) al grafo: cada nodo puede hospedar una tarea con
 exige completar TODAS las tareas EN ORDEN válido (deps HECHAS antes) y llegar al goal. Mismo patrón
 multi-aspecto que electric/resource (Corte 2). El DAG se sanea (deps existen, sin ciclos)."""
 
-from src.mazes.spacegraph import GraphEdge, GraphNode, SpaceGraph
-from src.mazes.spacegraph_channels import dag_check_graph, solve_tasks_graph
+from oraculo.mazes.spacegraph import GraphEdge, GraphNode, SpaceGraph
+from oraculo.mazes.spacegraph_channels import dag_check_graph, solve_tasks_graph
 
 
 def _g(nodes, edges):

@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import replace
 from itertools import combinations
 
-from src.mazes.maze3d import (
+from oraculo.mazes.maze3d import (
     Maze3D,
     add_door,
     add_gate,
@@ -13,7 +13,7 @@ from src.mazes.maze3d import (
     add_switch,
     solve_3d,
 )
-from src.mazes.spacegraph import GraphEdge, GraphNode, SpaceGraph, from_maze, realizable_static, solve_graph
+from oraculo.mazes.spacegraph import GraphEdge, GraphNode, SpaceGraph, from_maze, realizable_static, solve_graph
 
 
 def _graph(nodes: list[GraphNode], edges: list[GraphEdge]) -> SpaceGraph:
@@ -244,7 +244,7 @@ def test_from_maze_equivale_a_solve_3d_en_bateria_legacy() -> None:
 def test_normalize_hubs_parte_el_distribuidor_y_preserva_la_mision():
     """Un pasillo de grado 8 (sin mecánica) se parte en cadena de segmentos grado ≤4; la
     winnability y el veredicto estático quedan bien, y los hubs CON mecánica no se tocan."""
-    from src.mazes.spacegraph import (GraphEdge, GraphNode, SpaceGraph, normalize_hubs,
+    from oraculo.mazes.spacegraph import (GraphEdge, GraphNode, SpaceGraph, normalize_hubs,
                                       realizable_static, solve_graph)
     g = SpaceGraph(space="house")
     g.nodes["pasillo"] = GraphNode("pasillo", type="hallway")

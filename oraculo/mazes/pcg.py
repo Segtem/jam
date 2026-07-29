@@ -31,10 +31,10 @@ from collections import Counter, deque
 from dataclasses import dataclass, field, replace
 from typing import Any
 
-from src.mazes.couple import powered_survival_horizon, solve_coupled, solve_powered_survival
-from src.mazes.electric import ElectricChannel
-from src.mazes.maze3d import GOAL, PLAYER, WALL, Maze3D, solve_3d
-from src.mazes.resource import ResourceChannel, ResourceSpec, solve_survival, survival_horizon
+from oraculo.mazes.couple import powered_survival_horizon, solve_coupled, solve_powered_survival
+from oraculo.mazes.electric import ElectricChannel
+from oraculo.mazes.maze3d import GOAL, PLAYER, WALL, Maze3D, solve_3d
+from oraculo.mazes.resource import ResourceChannel, ResourceSpec, solve_survival, survival_horizon
 
 Cell = tuple[int, int, int]
 _DIR_DELTA = {"N": (0, -1), "S": (0, 1), "E": (1, 0), "W": (-1, 0)}
@@ -183,7 +183,7 @@ def _place_props(base: Maze3D, program: PcgProgram) -> list[Prop]:
     """Puebla `base` con los props del programa (RNG seedeado, orden CANÓNICO → reproducible). Elegibles =
     celdas transitables que no son el player ni la meta. Compartido por el modo 1:1 y el inflado. Cada prop
     recibe su TRANSFORMA de colocación (rot/offset) según el contexto de muros y el `placement` de su tag."""
-    from src.mazes.pcg_vocab import PROP_TAGS
+    from oraculo.mazes.pcg_vocab import PROP_TAGS
     start, goal = base.find(PLAYER), base.find(GOAL)
     eligible = sorted(c for c in base.open_cells() if c != start and c != goal)
     rng = random.Random(program.seed)
@@ -221,7 +221,7 @@ def _place_props(base: Maze3D, program: PcgProgram) -> list[Prop]:
 def _mk_prop(base: Maze3D, tag: str, cell: Cell, blocks: bool) -> Prop:
     """Un `Prop` con su TRANSFORMA de colocación (rot/offset) derivada del contexto de muros + el `placement` de
     su tag (corte V1). Compartido por `_place_props` (densidad/explícitos) y `_furnish_rooms` (recetas V3)."""
-    from src.mazes.pcg_vocab import PROP_TAGS
+    from oraculo.mazes.pcg_vocab import PROP_TAGS
     placement = PROP_TAGS[tag].placement if tag in PROP_TAGS else "center"
     rot, off = _placement_transform(base, cell, placement)
     return Prop(tag=tag, cell=cell, blocks=blocks, rot=rot, offset=off)
@@ -238,7 +238,7 @@ def _furnish_rooms(base: Maze3D, size: dict[Cell, tuple[int, int]], room_types: 
     → camas en fila norte vs este), jitterea la cantidad y el lado del par → dos cuartos del mismo tipo/tamaño
     (en el mismo mapa o a distinto seed) se amueblan DISTINTO pero ambos válidos (anti-monocultura; cada seed de
     `materialize` es una instancia diversa)."""
-    from src.mazes.pcg_vocab import PROP_TAGS, recipe_for
+    from oraculo.mazes.pcg_vocab import PROP_TAGS, recipe_for
     start, goal = base.find(PLAYER), base.find(GOAL)
     occupied = set(taken)
     props: list[Prop] = []
@@ -798,7 +798,7 @@ def fabricate(content: ContentSpec, binding: AssetBinding, *, strict: bool = Tru
     receptor). Cada prop/tipo se resuelve a su asset; los que no tienen binding se reportan en `missing_*` (y,
     si `strict`, no se fabrican — nunca se inventa geometría que rompa el footprint verificado). Paridad: mismo
     `content`, distinto `binding` → distinto build, misma estructura garantizada."""
-    from src.mazes.pcg_vocab import PROP_TAGS
+    from oraculo.mazes.pcg_vocab import PROP_TAGS
     props_out: list[dict] = []
     missing_p: set[str] = set()
     for p in content.props:

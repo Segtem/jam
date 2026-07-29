@@ -181,7 +181,7 @@ class MapElitesArchive:
         LLM como la VARIEDAD ya cubierta para que diverja. Greedy farthest-point sobre `behavior_vector`
         (distancia euclidiana) — más fino que el niche-key (captura cómo se JUEGA, no sólo la celda del grid).
         SOTA: 'LLMs as in-context QD generators' + novelty search por distancia de comportamiento."""
-        from src.mazes.novelty import behavior_vector
+        from oraculo.mazes.novelty import behavior_vector
         pool = [e for e in self.cells.values() if e.dsl and e is not exclude]
         if not pool:
             return []

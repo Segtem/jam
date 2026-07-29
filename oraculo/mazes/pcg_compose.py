@@ -21,8 +21,8 @@ from __future__ import annotations
 import random
 from collections import Counter
 
-from src.mazes.maze3d import GOAL, PLAYER, Maze3D, solve_3d
-from src.mazes.pcg_vocab import SPACES
+from oraculo.mazes.maze3d import GOAL, PLAYER, Maze3D, solve_3d
+from oraculo.mazes.pcg_vocab import SPACES
 
 NBRS = [(1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0)]
 

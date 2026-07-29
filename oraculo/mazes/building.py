@@ -12,7 +12,7 @@ from collections import deque
 from dataclasses import dataclass, replace
 from itertools import combinations
 
-from src.mazes.maze3d import GOAL, OPEN, PLAYER, WALL, Maze3D, solve_3d
+from oraculo.mazes.maze3d import GOAL, OPEN, PLAYER, WALL, Maze3D, solve_3d
 
 Cell = tuple[int, int, int]
 

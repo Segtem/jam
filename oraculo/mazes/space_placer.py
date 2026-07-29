@@ -18,7 +18,7 @@ import random
 from collections import Counter, deque
 from typing import Any
 
-from src.mazes.maze3d import PLAYER, Maze3D
+from oraculo.mazes.maze3d import PLAYER, Maze3D
 
 Cell = tuple[int, int, int]
 _DIRS = ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0))
@@ -172,7 +172,7 @@ def _repair(maze: Maze3D, program: Any, types: dict[Cell, str], rng: random.Rand
     quedan intactos) para bajar las violaciones que reporta el oráculo. El greedy acierta los conteos; esto
     reacomoda el DÓNDE (pega los pares de adyacencia, separa las zonas). Hill-climb con mesetas planas.
     El presupuesto ESCALA con el problema (más celdas / más pares = espacio de búsqueda mayor)."""
-    from src.mazes.pcg import expand, parse_pcg, program_satisfied
+    from oraculo.mazes.pcg import expand, parse_pcg, program_satisfied
 
     entrance = maze.find(PLAYER)
     locked = _stair_cells(maze) | {entrance}             # escaleras y entrada no se intercambian
@@ -216,7 +216,7 @@ def _to_pcg_text(types: dict[Cell, str], space: str) -> str:
 
 def generate(maze: Maze3D, program: Any, seeds, *, space: str | None = None) -> dict[str, Any]:
     """Placer + oráculo: prueba N seeds, se queda con los tipados que `program_satisfied` VALIDA."""
-    from src.mazes.pcg import expand, parse_pcg, program_satisfied
+    from oraculo.mazes.pcg import expand, parse_pcg, program_satisfied
     kept: list[dict[Cell, str]] = []
     tried = 0
     sp = space or program.space

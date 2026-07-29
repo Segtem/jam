@@ -17,8 +17,8 @@ from __future__ import annotations
 import re
 from typing import Any, Callable
 
-from src.mazes.maze3d import PLAYER, Maze3D
-from src.mazes.pcg import SpaceProgram, expand, parse_pcg, program_satisfied
+from oraculo.mazes.maze3d import PLAYER, Maze3D
+from oraculo.mazes.pcg import SpaceProgram, expand, parse_pcg, program_satisfied
 
 Propose = Callable[[str], str]
 
@@ -104,7 +104,7 @@ def judge(maze: Maze3D, program: SpaceProgram, dsl_text: str) -> dict[str, Any]:
     La entrada (celda del PLAYER) se FUERZA a "entrance" — el prompt le pide al LLM que no la tipe, así que
     el harness la re-inyecta (y si el LLM igual la tipó de otra cosa, mandan las reglas: la entrada es la
     entrada)."""
-    from src.mazes.space_placer import _stair_cells
+    from oraculo.mazes.space_placer import _stair_cells
 
     dsl = extract_dsl(dsl_text, program.space)
     # invariantes que el harness FUERZA (no se los deja al generador): la entrada es la entrada, y la
