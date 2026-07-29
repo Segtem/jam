@@ -1349,8 +1349,15 @@ REGISTRO = {
     "pivot_set":    {"fn": t_pivot_set, "cat": "Edit",  "params": {"to": "base"},
                      "opciones": {"to": list(_ANCLAS)},
                      "doc": "mueve el pivote de los actores seleccionados al ancla elegida"},
+    # `view` arranca en FALSE en el grafo y en TRUE como comando, y no es una inconsistencia: son
+    # dos cosas distintas. Un COMANDO es «ponelo donde estoy mirando» —por eso `view` existe—; un
+    # GRAFO es una descripción que tiene que dar el mismo resultado cada vez que corre. Con `view`
+    # prendido, cada Run re-apuntaba a la cámara viva y el modelo aparecía en otro lado.
+    #
+    # Sale gratis: el grafo pasa TODOS los params (de acá), y el comando sólo los que se tipean, así
+    # que el default de la FUNCIÓN (`view=True`) es el que manda desde la Dash Bar.
     "place":        {"fn": t_place,   "cat": "Place",
-                     "params": {"x": 0.0, "y": 0.0, "z": 0.0, "view": True, "surface": True,
+                     "params": {"x": 0.0, "y": 0.0, "z": 0.0, "view": False, "surface": True,
                                 "anchor": "base", "sink": 0.0, "align": False, "physics": False,
                                 "yaw": 0.0, "scale": 1.0},
                      "opciones": {"anchor": list(_ANCLAS)},
@@ -1360,7 +1367,7 @@ REGISTRO = {
                                 "rings": 3, "surface": True, "align": False, "slope_max": 90.0,
                                 "height_min": 0.0, "height_max": 0.0, "noise": 0.0, "density": 1.0,
                                 "scale_min": 1.0, "scale_max": 1.0, "spread": 1.0, "sink": 0.0,
-                                "anchor": "", "view": True, "seed": 7},
+                                "anchor": "", "view": False, "seed": 7},
                      "opciones": {"pattern": ["poisson", "grid", "radial", "hexagonal", "triangular"],
                                   "anchor": [""] + list(_ANCLAS)},
                      "doc": "calcula PUNTOS sobre la superficie real con máscaras (pendiente/altura/ruido/densidad); "
@@ -1386,7 +1393,7 @@ REGISTRO = {
                       "doc": "agrega un spline editable a la escena (primitiva de curva)"},
     "fracture":     {"fn": t_fracture, "cat": "Create",
                      "params": {"sites": 20, "seed": 123, "hollow": False, "thickness": 4.0,
-                                "view": True},
+                                "view": False},
                      "doc": "convierte un StaticMesh en destructible (Geometry Collection de Chaos). "
                             "hollow=vacía el volumen (barril/piñata). Conversor: place lo coloca "
                             "(editor-only, Dataflow)"},
@@ -1694,7 +1701,7 @@ REGISTRO = {
                                   "show_vertex_colors": True},
                        "doc": "convierte M a StaticMesh A y muestra sus Vertex Colors; Preview/Bake/Discard"},
     "pcg":          {"fn": t_pcg,     "cat": "Scatter",
-                     "params": {"area": 1600.0, "count": 200, "density": 0.0, "view": True,
+                     "params": {"area": 1600.0, "count": 200, "density": 0.0, "view": False,
                                 "name": "JamPCG", "preset": ""},
                      "doc": "realiza el scatter (o un preset) con el PCG nativo (HISM, regenerable)"},
     "gizmo":        {"fn": t_gizmo,   "cat": "Edit",    "params": {"on": True},
