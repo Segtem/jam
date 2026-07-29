@@ -1111,9 +1111,24 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At)
 			TEXT("A"), DataColor(TEXT("A"))));
 		Node.PinNames.Add(TEXT("asset"));
 	}
+	// Params con los que NACE el nodo. Para los que colocan algo, Python devuelve el punto de mira
+	// ya escrito en x/y/z: capturado UNA vez, acá, y no leído en cada Run.
+	//
+	// Es la salida de una tensión real. Leer la cámara al correr hace que lo que colocás aparezca
+	// donde estás mirando —sin eso todo aterriza en el origen del mundo y parece que la herramienta
+	// no hizo nada— pero rompe que dos Run del mismo grafo den lo mismo. Capturar al crear da las
+	// dos cosas, y deja las coordenadas a la vista para editarlas. Es lo que hace Houdini cuando
+	// soltás un nodo.
+	const TMap<FString, FString> Iniciales =
+		FModuleManager::LoadModuleChecked<FJamEditorModule>("JamEditor").ParamsDeNodoNuevo(Verb);
+
 	for (const FJamParam& P : T->Params)
 	{
 		FString Value = P.Default;
+		if (const FString* Capturado = Iniciales.Find(P.Name))
+		{
+			Value = *Capturado;
+		}
 		// El nodo «asset» nace apuntando a lo elegido en Content (Content → nodo, sin tipear).
 		if (Verb == TEXT("asset") && P.Name == TEXT("name") && Value.IsEmpty() && ActiveAsset.IsSet())
 		{

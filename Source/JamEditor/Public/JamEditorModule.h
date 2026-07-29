@@ -119,6 +119,14 @@ private:
 
 	/** Corre un statement de Python y devuelve lo capturado por LogOutput (stdout/log). */
 	FString ExecPythonCapture(const FString& Statement);
+
+public:
+	/** Params con los que nace un nodo del canvas: los defaults del registro, y para los verbos que
+	    colocan, el punto de mira ya capturado. Vacío si Python no contesta (el nodo usa sus
+	    defaults, que es el comportamiento de antes). Público porque lo llama el editor de grafo. */
+	TMap<FString, FString> ParamsDeNodoNuevo(const FString& Verb);
+
+private:
 	/** Manda una línea de DSL a `jam.panel.ejecutar_dsl` y agrega comando + veredicto al log. */
 	void RunCommand(const FString& Command);
 	/** Agrega «> comando» + resultado al log acumulativo (estilo Rhino) y hace autoscroll. */

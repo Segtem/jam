@@ -73,3 +73,37 @@ class ReproducibleTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class CapturaDeLaMiraTests(unittest.TestCase):
+    """La salida de la tensión: capturar el punto de mira UNA vez, al crear el nodo.
+
+    Leer la cámara en cada Run da «aparece donde miro» y rompe «dos Run, el mismo resultado».
+    Capturarla al crear el nodo da las dos, y deja las coordenadas a la vista para editarlas — que
+    es lo que hace Houdini cuando soltás un nodo.
+    """
+
+    def test_every_captured_field_exists_in_the_verb(self):
+        """Una captura que escribe en un param inexistente no falla: no hace nada, y el nodo sigue
+        naciendo en el origen del mundo sin que nadie se entere."""
+        rotos = {verbo: [c for c in campos if c not in tools.REGISTRO[verbo]["params"]]
+                 for verbo, campos in tools.CAPTURA_LA_MIRA.items()}
+        self.assertEqual({v: c for v, c in rotos.items() if c}, {})
+
+    def test_every_captured_verb_exists(self):
+        faltan = [v for v in tools.CAPTURA_LA_MIRA if v not in tools.REGISTRO]
+        self.assertEqual(faltan, [])
+
+    def test_the_captured_verbs_are_the_ones_that_place_things(self):
+        """Capturar la mira sólo tiene sentido donde la posición importa. En un nodo que no coloca,
+        escribirle coordenadas sería ruido."""
+        for verbo in tools.CAPTURA_LA_MIRA:
+            with self.subTest(verbo=verbo):
+                self.assertIn(tools.REGISTRO[verbo]["cat"], ("Place", "Scatter"))
+
+    def test_a_verb_that_captures_does_not_also_read_the_camera_at_run_time(self):
+        """Las dos cosas juntas serían lo peor de ambas: se captura al crear Y se pisa en cada Run,
+        o sea que la captura no sirve para nada y el grafo sigue sin ser reproducible."""
+        for verbo in tools.CAPTURA_LA_MIRA:
+            with self.subTest(verbo=verbo):
+                self.assertIs(tools.REGISTRO[verbo]["params"].get("view"), False)

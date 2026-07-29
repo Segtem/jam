@@ -332,6 +332,19 @@ def _grados_normal(normal) -> float:
 # El renglón que le dice a alguien qué falta cuando un verbo calcula pero no coloca. Es una
 # constante y no un literal suelto para que se pueda EXIGIR desde un test: un verbo que dejó de
 # hacer lo que hacía y no lo dice se siente exactamente como un botón roto.
+# Verbos cuyo nodo nace CON el punto de mira ya escrito en estos params, en orden (x, y, z).
+#
+# Es la respuesta a que un grafo tiene que ser reproducible Y lo que uno coloca tiene que aparecer
+# donde está mirando. Leer la cámara en cada Run da lo segundo y rompe lo primero; capturarla al
+# crear el nodo da las dos, y deja las coordenadas a la vista para editarlas.
+CAPTURA_LA_MIRA = {
+    "place": ("x", "y", "z"),
+    "scatter": ("x", "y"),
+}
+# `pcg` y `fracture` no entran: no tienen params de posición donde escribirla. Con `view` apagado
+# nacen en el origen — está anotado como pendiente, no disimulado con una captura que no existe.
+
+
 PISTA_INSTANCE = "  \u2192 encha\u00falo a `instance` para colocarlos"
 
 
@@ -344,7 +357,7 @@ def necesita_instanciar(verbo: str) -> bool:
     return REGISTRO.get(verbo, {}).get("out_name") == "P"
 
 
-def t_scatter(asset, *, count=24, area=800.0, pattern="poisson", spacing=0.0, rings=3,
+def t_scatter(asset, *, count=24, area=800.0, x=0.0, y=0.0, pattern="poisson", spacing=0.0, rings=3,
               surface=True, align=False, slope_max=90.0, height_min=0.0, height_max=0.0,
               noise=0.0, density=1.0, scale_min=1.0, scale_max=1.0, spread=1.0,
               sink=0.0, anchor="", view=True, seed=7) -> str:
@@ -357,7 +370,10 @@ def t_scatter(asset, *, count=24, area=800.0, pattern="poisson", spacing=0.0, ri
     count, seed = int(count), int(seed)
 
     # centrar el área donde mirás (como place view), para no scatterear en el origen del mundo
-    cx, cy = 0.0, 0.0
+    # Sin `view` (que es el default EN EL GRAFO, para que dos Run den lo mismo), el área se centra
+    # donde diga x/y. Sin estos params el scatter caía siempre en el origen del mundo — invisible,
+    # que es exactamente la queja que `view` vino a resolver en su momento.
+    cx, cy = float(x), float(y)
     if view:
         mira = ue.punto_de_mira()
         if mira is not None and mira["punto"] is not None:
@@ -386,7 +402,7 @@ def t_scatter(asset, *, count=24, area=800.0, pattern="poisson", spacing=0.0, ri
             f"{v['pisados']} evitados por huella)\n" + PISTA_INSTANCE)
 
 
-def t_instance(points_input, *, assets="", scale_min=1.0, scale_max=1.0,
+def t_instance(points_input, *, assets="", asset_source=None, scale_min=1.0, scale_max=1.0,
                anchor="base", align=False, sink=0.0) -> str:
     """EL ÚNICO nodo que pone geometría nueva en el mundo. Toma puntos (P) y coloca en cada uno.
 
@@ -404,12 +420,18 @@ def t_instance(points_input, *, assets="", scale_min=1.0, scale_max=1.0,
     if not puntos:
         return "INSTANCE \u2014 no llegó ningún punto (¿corriste el scatter aguas arriba?)"
 
-    rutas = [r.strip() for r in str(assets).split(",") if r.strip()]
+    # De dónde sale QUÉ colocar, en orden: el cable A, el campo, y el asset activo de la sesión.
+    # El cable existe porque sin él la cadena `asset → scatter → instance` compilaba en VERDE y no
+    # colocaba nada: el cable de puntos no lleva el asset, y `instance` se quedaba sin qué poner.
+    rutas = [str(asset_source)] if asset_source else []
+    rutas += [r.strip() for r in str(assets).split(",") if r.strip()]
     if not rutas and session.asset():
         rutas = [session.asset()]
     mallas = scatter._mallas_de(rutas)
     if not mallas:
-        return f"INSTANCE \u2014 ningún asset cargable en {rutas or '(vacío)'}"
+        return ("INSTANCE \u2014 no s\u00e9 QU\u00c9 colocar: cablea un `asset` al pin "
+                "`asset_source`, escrib\u00ed la ruta en `assets`, o eleg\u00ed uno en Content"
+                + (f" (prob\u00e9 con {rutas})" if rutas else ""))
 
     actores = scatter.instanciar_puntos(
         puntos, mallas, scale_min=float(scale_min), scale_max=float(scale_max),
@@ -1363,7 +1385,8 @@ REGISTRO = {
                      "opciones": {"anchor": list(_ANCLAS)},
                      "doc": "coloca un ladrillo donde mirás: raycast a superficie, align a la normal, física, rot/escala; verifica entorno"},
     "scatter":      {"fn": t_scatter, "cat": "Scatter",
-                     "params": {"count": 24, "area": 800.0, "pattern": "poisson", "spacing": 0.0,
+                     "params": {"count": 24, "area": 800.0, "x": 0.0, "y": 0.0,
+                                "pattern": "poisson", "spacing": 0.0,
                                 "rings": 3, "surface": True, "align": False, "slope_max": 90.0,
                                 "height_min": 0.0, "height_max": 0.0, "noise": 0.0, "density": 1.0,
                                 "scale_min": 1.0, "scale_max": 1.0, "spread": 1.0, "sink": 0.0,
@@ -1373,8 +1396,10 @@ REGISTRO = {
                      "doc": "calcula PUNTOS sobre la superficie real con máscaras (pendiente/altura/ruido/densidad); "
                             "no coloca nada — enchufalo a `instance`. Salida P"},
     "instance":     {"fn": t_instance, "cat": "Scatter", "graph_only": True,
-                     "params": {"assets": "", "scale_min": 1.0, "scale_max": 1.0,
-                                "anchor": "base", "align": False, "sink": 0.0},
+                     "params": {"assets": "", "asset_source": "", "scale_min": 1.0,
+                                "scale_max": 1.0, "anchor": "base", "align": False, "sink": 0.0},
+                     "data_params": {"asset_source": "A"},
+                     "optional_data_params": ("asset_source",),
                      "opciones": {"anchor": [""] + list(_ANCLAS)},
                      "doc": "EL ÚNICO nodo que pone geometría nueva en el mundo: coloca en cada punto P "
                             "y corre el oráculo (la tanda y contra la escena). Salida A"},

@@ -1557,6 +1557,37 @@ FString FJamEditorModule::ExecPythonCapture(const FString& Statement)
 	return Out;
 }
 
+TMap<FString, FString> FJamEditorModule::ParamsDeNodoNuevo(const FString& Verb)
+{
+	TMap<FString, FString> Salida;
+	const FString Json = ExecPythonCapture(FString::Printf(
+		TEXT("import jam.api as a; print(a.params_de_nodo_nuevo('%s'))"), *Verb));
+
+	TSharedPtr<FJsonObject> Root;
+	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Json);
+	if (!FJsonSerializer::Deserialize(Reader, Root) || !Root.IsValid())
+	{
+		// Sin respuesta el nodo usa sus defaults: exactamente lo de antes. Capturar la mira es una
+		// comodidad, no un requisito, y no puede impedir crear un nodo.
+		return Salida;
+	}
+	for (const TPair<FString, TSharedPtr<FJsonValue>>& Par : Root->Values)
+	{
+		FString Texto;
+		if (Par.Value.IsValid() && Par.Value->TryGetString(Texto))
+		{
+			Salida.Add(Par.Key, Texto);
+			continue;
+		}
+		double Numero = 0.0;
+		if (Par.Value.IsValid() && Par.Value->TryGetNumber(Numero))
+		{
+			Salida.Add(Par.Key, FString::SanitizeFloat(Numero));
+		}
+	}
+	return Salida;
+}
+
 void FJamEditorModule::RecallHistory(int32 Step)
 {
 	if (History.Num() == 0 || !CmdBox.IsValid())

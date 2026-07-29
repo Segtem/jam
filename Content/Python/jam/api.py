@@ -317,3 +317,37 @@ def preview_2d(node_id: str = "", ancho: int = 320, alto: int = 320, canal: int 
         f.write(preview2d.png(int(ancho), int(alto), pixeles))
     return json.dumps({"ok": True, "ruta": ruta, "tipo": tipo, "detalle": detalle},
                       ensure_ascii=True)
+
+
+def params_de_nodo_nuevo(verbo: str) -> str:
+    """Los params con los que nace un nodo en el canvas. JSON `{param: valor}`.
+
+    Existe por una tensión real entre dos cosas que las dos hacen falta:
+
+    * un grafo tiene que ser REPRODUCIBLE — dos Run del mismo grafo, el mismo resultado. Eso
+      prohíbe leer la cámara viva en cada corrida;
+    * lo que uno coloca tiene que aparecer DONDE ESTÁ MIRANDO, no en el origen del mundo a
+      kilómetros de la cámara, o se siente como que la herramienta no hizo nada.
+
+    Se resuelven capturando el punto de mira UNA VEZ, cuando el nodo se crea, y escribiéndolo en sus
+    params. Desde ahí el nodo tiene coordenadas propias, editables, y corre igual mil veces — que es
+    exactamente lo que hace Houdini cuando soltás un nodo.
+    """
+    import json
+
+    from . import tools, ue
+
+    info = tools.REGISTRO.get(str(verbo))
+    if info is None:
+        return json.dumps({}, ensure_ascii=True)
+    params = dict(info.get("params", {}))
+
+    campos = tools.CAPTURA_LA_MIRA.get(str(verbo))
+    if campos:
+        mira = ue.punto_de_mira()
+        if mira is not None and mira["punto"] is not None:
+            punto = mira["punto"]
+            for campo, valor in zip(campos, (punto.x, punto.y, punto.z)):
+                if campo in params:
+                    params[campo] = round(float(valor), 1)
+    return json.dumps(params, ensure_ascii=True)
