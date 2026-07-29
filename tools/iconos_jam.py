@@ -39,6 +39,16 @@ CABECERA = (
     '     fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">'
 )
 
+# El fondo REAL sobre el que se dibujan estos iconos, para revisarlos como se van a ver:
+#
+#     rsvg-convert -w 96 -h 96 -b "#F0F0F2" Resources/Icons/Lucide/jam-algo.svg -o /tmp/x.png
+#
+# `SJamGraphEditor::MakeBadge` le pone fondo casi BLANCO (0.94,0.94,0.95) a los iconos propios —los
+# de Lucide, que son máscaras teñidas, van sobre el color de la categoría—. Revisarlos sobre el gris
+# oscuro del canvas engaña en las dos direcciones: TINTA parece invisible cuando en realidad es lo
+# que mejor se lee, y un color claro parece brillante cuando se va a lavar.
+FONDO_DE_REVISION = "#F0F0F2"
+
 
 # ---- vocabulario: cada función dibuja UN concepto, siempre igual ----
 
@@ -229,6 +239,74 @@ ICONOS = {
                               f'<circle cx="16" cy="12" r="6" stroke="{ASSET}" '
                               f'stroke-width="1.7" fill="{ASSET}" fill-opacity="0.75"/>',
                               curva("M13.5 9.2a3.5 3.5 0 0 1 3-1.1", "#DDDDE2", 1.3)),
+    # ── la PALETA de nodos de material: un icono por nodo ───────────────────────
+    # Los operadores se dibujan con su SÍMBOLO, que es lo que un artista ya sabe leer. Nada de
+    # <text>: nanosvg no lo rasteriza, así que el «×» son dos trazos cruzados y el «÷» una línea
+    # con dos puntos. Los demás diagraman su dato, como el resto del vocabulario.
+    "jam-mat-const": svg(punto(12, 12, NUM, 4.2)),
+    "jam-mat-color": svg(caja(6, 6, 12, 12, MATERIAL)),
+    "jam-mat-scalar": svg(punto(12, 12, NUM, 4.2),
+                          f'<circle cx="12" cy="12" r="7.5" stroke="{TINTA}" '
+                          f'stroke-width="1.3" stroke-dasharray="2.5 2.5" fill="none"/>'),
+    "jam-mat-vector": svg(caja(6, 6, 12, 12, MATERIAL),
+                          f'<circle cx="12" cy="12" r="9.5" stroke="{TINTA}" '
+                          f'stroke-width="1.3" stroke-dasharray="2.5 2.5" fill="none"/>'),
+
+    "jam-mat-add": svg(curva("M12 5v14M5 12h14", TINTA, 2.0)),
+    "jam-mat-sub": svg(curva("M5 12h14", TINTA, 2.0)),
+    "jam-mat-mul": svg(curva("M7 7l10 10M17 7L7 17", TINTA, 2.0)),
+    "jam-mat-div": svg(curva("M5 12h14", TINTA, 2.0), punto(12, 7, TINTA, 1.7),
+                       punto(12, 17, TINTA, 1.7)),
+    # El lerp es lo único que no es un símbolo: es la BARRA que va de un color al otro.
+    "jam-mat-lerp": svg(caja(3, 9, 7, 6, MATERIAL), caja(14, 9, 7, 6, ASSET),
+                        curva("M10 12h4", TINTA, 1.4)),
+    "jam-mat-power": svg(curva("M4 20c8 0 12-4 12-16", NUM, 2.0),
+                         curva("M4 20h16", TINTA, 1.2)),
+    "jam-mat-clamp": svg(curva("M4 17h5l6-10h5", NUM, 1.9),
+                         curva("M4 20V4M20 20V4", TINTA, 1.2)),
+    "jam-mat-oneminus": svg(caja(3, 8, 8, 8, TINTA), caja(13, 8, 8, 8, NUM)),
+    "jam-mat-saturate": svg(curva("M3 18h5l8-12h5", NUM, 1.9),
+                            curva("M3 18h18M3 6h18", TINTA, 1.0)),
+
+    "jam-mat-texture": svg(malla("M4 6h16v12H4z", M, False),
+                           f'<rect x="4" y="6" width="8" height="6" fill="{M}" '
+                           f'fill-opacity="0.45" stroke="none"/>',
+                           f'<rect x="12" y="12" width="8" height="6" fill="{M}" '
+                           f'fill-opacity="0.45" stroke="none"/>'),
+    "jam-mat-uv": svg(malla("M5 5h14v14H5z", M, False),
+                      curva("M5 19L19 5", M, 1.2), punto(5, 19, P, 1.6), punto(19, 5, P, 1.6)),
+    "jam-mat-panner": svg(malla("M4 7h12v10H4z", M, False),
+                          curva("M8 12h8", TINTA, 1.3), flecha(12, 12, 20, 12)),
+    "jam-mat-noise": svg(curva("M3 15c2-6 4 4 6-2s3 5 5-1 3 4 7-1", TINTA, 1.5),
+                         curva("M3 20c2-4 4 2 6-1s3 3 5-1 3 2 7-1", TINTA, 1.1)),
+
+    "jam-mat-append": svg(punto(5, 8, NUM, 2.0), punto(5, 16, NUM, 2.0),
+                          curva("M8 8h4v8h-4", TINTA, 1.3),
+                          caja(14, 8, 6, 8, MATERIAL)),
+    "jam-mat-mask": svg(caja(3, 8, 4, 8, MATERIAL), caja(9, 8, 4, 8, TINTA),
+                        caja(15, 8, 4, 8, TINTA)),
+    "jam-mat-normalize": svg(flecha(4, 18, 18, 18, S),
+                             curva("M4 18L14 8", S, 1.9), punto(14, 8, S, 1.7),
+                             f'<circle cx="4" cy="18" r="11" stroke="{TINTA}" '
+                             f'stroke-width="1.0" fill="none"/>'),
+    "jam-mat-dot": svg(curva("M4 18L16 8", S, 1.7), curva("M4 18L18 15", S, 1.7),
+                       punto(4, 18, TINTA, 1.6)),
+
+    "jam-mat-worldpos": svg(f'<circle cx="12" cy="12" r="8" stroke="{TINTA}" stroke-width="1.3"/>',
+                            curva("M4 12h16M12 4c3 4 3 12 0 16", TINTA, 1.0),
+                            punto(15, 8, P, 2.0)),
+    "jam-mat-vnormal": svg(suelo("M3 18h18"), curva("M12 18V6", F, 1.9),
+                           curva("M9 9l3-3 3 3", F, 1.6)),
+    "jam-mat-vcolor": svg(malla("M5 7h14v10H5z", M, False),
+                          punto(9, 11, P, 2.2), punto(15, 11, ASSET, 2.2),
+                          punto(12, 15, NUM, 2.2)),
+    "jam-mat-time": svg(f'<circle cx="12" cy="12" r="8" stroke="{TINTA}" stroke-width="1.5"/>',
+                        curva("M12 7v5l4 2", NUM, 1.7)),
+    "jam-mat-fresnel": svg(f'<circle cx="12" cy="12" r="8" stroke="{TINTA}" stroke-width="1.2"/>',
+                           f'<circle cx="12" cy="12" r="8" stroke="{NUM}" stroke-width="2.6" '
+                           f'fill="none" stroke-dasharray="4 6.3"/>',
+                           punto(12, 12, TINTA, 3.0)),
+
     # Reusar: una FUNCIÓN es un grafo que se empaqueta y se vuelve un nodo con nombre; la LLAMADA
     # es esa caja usada desde otro grafo, con sus pines descubiertos.
     "jam-material-function": svg(caja(2.5, 4, 4, 3.5, MATERIAL), caja(2.5, 10.5, 4, 3.5, MATERIAL),

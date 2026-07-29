@@ -868,7 +868,7 @@ def _material_entrada(mat_input, nombre: str):
 
 
 def t_material_node(mat_input=None, *, type="Multiply", id="", inputs="", props="",
-                    x=0, y=0) -> str:
+                    x=0, y=0, _verbo="material_node") -> str:
     """Agrega UN nodo al grafo. `type` es cualquiera de los 409 `MaterialExpression` del motor.
 
     `inputs` cablea de una vez lo que ya existe (`A=uv, B=escala`; con `nodo.R` se elige el canal de
@@ -881,8 +881,12 @@ def t_material_node(mat_input=None, *, type="Multiply", id="", inputs="", props=
     grafo, creado = shader.con_nodo(
         grafo, str(type), id=str(id), props=shader.parsear_props(props),
         entradas=shader.parsear_pares(inputs), x=int(x), y=int(y))
+    # La salida se registra bajo el verbo QUE LA PRODUJO, no bajo un nombre fijo: el ejecutor le
+    # pregunta a cada nodo del canvas por su propia clave para alimentar al siguiente. Con la clave
+    # clavada en «material_node», los verbos de la paleta escribían todos en el mismo lugar y el
+    # grafo no llegaba aguas abajo — el segundo nodo veía un grafo vacío.
     return "MATERIAL NODE \u2713 \u2014 " + _material_output(
-        "material_node", grafo, f" · «{creado}» ({type})")
+        _verbo, grafo, f" · «{creado}» ({type})")
 
 
 def t_material_connect(mat_input, *, from_node="", to_node="", to_input="",
@@ -1665,6 +1669,84 @@ def _envolver_op_flow(kind: str, aridad: int):
     return fn
 
 
+# ---- los nodos de material, uno por ficha ----
+# `material_node` puede crear cualquiera de los 408 tipos escribiendo su nombre, pero eso es una
+# línea de comando disfrazada de nodo: para usarlo hay que SABER que `Lerp` se llama
+# `LinearInterpolate`. El resto de Jam funciona al revés —una ficha por verbo, con su icono y su
+# firma en el tooltip— y no hay razón para que el tab de shader sea la excepción.
+#
+# Éstos son los que se usan todo el tiempo. Los otros 390 siguen a un `material_node` de distancia,
+# que queda como la puerta a lo que no está en la paleta.
+NODOS_MATERIAL: dict[str, tuple[str, str]] = {
+    # Constantes y parámetros: de dónde salen los números
+    "mat_const":     ("Constant", "un número fijo"),
+    "mat_color":     ("Constant3Vector", "un color/vector fijo (prop `constant=#RRGGBB`)"),
+    "mat_scalar":    ("ScalarParameter", "número con NOMBRE: se retoca en una instancia sin recompilar"),
+    "mat_vector":    ("VectorParameter", "color con NOMBRE: se retoca en una instancia"),
+    # Matemática
+    "mat_add":       ("Add", "A + B"),
+    "mat_sub":       ("Subtract", "A − B"),
+    "mat_mul":       ("Multiply", "A × B"),
+    "mat_div":       ("Divide", "A ÷ B"),
+    "mat_lerp":      ("LinearInterpolate", "mezcla A y B según Alpha (el Lerp de UE)"),
+    "mat_power":     ("Power", "Base elevado a Exp: endurece o suaviza un gradiente"),
+    "mat_clamp":     ("Clamp", "recorta entre Min y Max"),
+    "mat_oneminus":  ("OneMinus", "1 − x: invierte una máscara"),
+    "mat_saturate":  ("Saturate", "recorta a 0..1"),
+    # Texturas y coordenadas
+    "mat_texture":   ("TextureSample", "muestrea una textura (prop `texture=/Game/...`)"),
+    "mat_uv":        ("TextureCoordinate", "las UVs de la malla (prop `coordinate_index`)"),
+    "mat_panner":    ("Panner", "desplaza unas UVs con el tiempo: texturas que se mueven"),
+    "mat_noise":     ("Noise", "ruido procedural, sin textura"),
+    # Vectores
+    "mat_append":    ("AppendVector", "junta A y B en un vector más ancho"),
+    "mat_mask":      ("ComponentMask", "toma canales sueltos (props r/g/b/a)"),
+    "mat_normalize": ("Normalize", "vector a largo 1"),
+    "mat_dot":       ("DotProduct", "producto punto: cuánto se parecen dos direcciones"),
+    # Lo que aporta la geometría y la escena
+    "mat_worldpos":  ("WorldPosition", "la posición del píxel en el mundo"),
+    "mat_vnormal":   ("VertexNormalWS", "la normal del vértice"),
+    "mat_vcolor":    ("VertexColor", "el color de vértice pintado en la malla"),
+    "mat_time":      ("Time", "el reloj: lo que hace que algo se mueva"),
+    "mat_fresnel":   ("Fresnel", "más fuerte en los bordes vistos de canto"),
+}
+
+
+def _envolver_nodo_material(verbo: str, tipo: str):
+    """Un verbo por tipo de nodo, todos sobre la misma implementación.
+
+    No es una copia de `t_material_node` por nodo: es el mismo, con el tipo ya elegido. Así una
+    corrección al armado vale para los veintipico de una vez.
+    """
+    def fn(mat_input=None, *, id="", inputs="", props="", x=0, y=0) -> str:
+        return t_material_node(mat_input, type=tipo, id=id, inputs=inputs, props=props,
+                               x=x, y=y, _verbo=verbo)
+    fn.__name__ = f"t_mat_{tipo.lower()}"
+    return fn
+
+
+def _registrar_nodos_material() -> list[str]:
+    from . import shader
+
+    registrados = []
+    for verbo, (tipo, doc) in NODOS_MATERIAL.items():
+        entradas = shader.ENTRADAS.get(tipo, ())
+        # La firma va en el DOC porque es lo que se necesita para cablearlo, y va derivada del motor
+        # para que no pueda mentir: si UE renombra un pin, el tooltip cambia solo.
+        firma = f" · entradas: {', '.join(entradas)}" if entradas else " · sin entradas"
+        REGISTRO[verbo] = {
+            "fn": _envolver_nodo_material(verbo, tipo), "cat": "Shader", "graph_only": True,
+            "params": {"id": "", "inputs": "", "props": "", "x": 0, "y": 0},
+            "doc": f"{tipo}: {doc}{firma}", "_nodo_material": tipo,
+        }
+        GRAPH_IN_NAMES[verbo] = "MT"
+        GRAPH_OUT_NAMES[verbo] = "MT"
+        GRAPH_MIN_INPUTS[verbo] = 0      # cualquiera puede arrancar un grafo de material
+        GRAPH_NO_ASSET.add(verbo)
+        registrados.append(verbo)
+    return registrados
+
+
 def _registrar_ops_flow() -> list[str]:
     from . import flow
     registradas = []
@@ -1697,6 +1779,7 @@ GRAPH_ARITY = {"mesh_merge": -1, "asset_set": -1}
 GRAPH_MIN_INPUTS = {"mesh_merge": 2, "asset_set": 2, "material_node": 0,
                     "material_call": 0, "material_instance": 0}
 OPS_FLOW_EN_GRAPH = _registrar_ops_flow()
+NODOS_MATERIAL_EN_GRAPH = _registrar_nodos_material()
 
 for _nombre, _info in REGISTRO.items():
     _source = _nombre in GRAPH_SOURCES

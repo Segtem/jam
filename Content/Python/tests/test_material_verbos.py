@@ -379,6 +379,63 @@ class AtributosTests(unittest.TestCase):
         self.assertIn("use_attributes", tools.REGISTRO["material_build"]["params"])
 
 
+class PaletaTests(unittest.TestCase):
+    """Un verbo por nodo: la paleta del tab Shader, generada de una tabla."""
+
+    def setUp(self):
+        for verbo in tools.NODOS_MATERIAL:
+            tools.limpiar_asset_producido_runtime(verbo)
+
+    def correr(self, verbo, entrada=None, **params):
+        info = tools.REGISTRO[verbo]
+        completos = dict(info["params"])
+        completos.update(params)
+        info["fn"](entrada, **completos)
+        return tools.dato_producido_runtime(verbo)
+
+    def test_every_palette_verb_records_its_output_under_its_OWN_name(self):
+        """El bug que rompía la paleta entera: todos los verbos escribían su salida bajo la clave
+        «material_node», así que el ejecutor —que le pregunta a cada nodo del canvas por SU clave—
+        recibía None y el grafo no llegaba aguas abajo. El segundo nodo veía un grafo vacío.
+        """
+        for verbo in tools.NODOS_MATERIAL:
+            with self.subTest(verbo=verbo):
+                tools.limpiar_asset_producido_runtime(verbo)
+                grafo = self.correr(verbo, None, id="n")
+                self.assertIsNotNone(grafo, "no registró su salida: el cable no lleva nada")
+                self.assertEqual([n.id for n in grafo.nodos], ["n"])
+
+    def test_chaining_two_palette_verbs_keeps_both_nodes(self):
+        g = self.correr("mat_color", None, id="a", props="constant=#FF0000")
+        g = self.correr("mat_color", g, id="b", props="constant=#00FF00")
+        g = self.correr("mat_lerp", g, id="mezcla", inputs="A=a, B=b")
+        self.assertEqual([n.id for n in g.nodos], ["a", "b", "mezcla"])
+
+    def test_every_palette_verb_names_a_type_the_engine_has(self):
+        faltan = sorted(t for _, (t, _d) in tools.NODOS_MATERIAL.items()
+                        if t not in shader_firmas.ENTRADAS)
+        self.assertEqual(faltan, [])
+
+    def test_the_doc_carries_the_real_pin_names(self):
+        """El nombre de un verbo no dice cómo cablearlo; la firma sí. Y va DERIVADA del motor, así
+        que si UE renombra un pin el tooltip cambia solo en vez de mentir."""
+        self.assertIn("A, B, Alpha", tools.REGISTRO["mat_lerp"]["doc"])
+        self.assertIn("sin entradas", tools.REGISTRO["mat_worldpos"]["doc"])
+
+    def test_any_palette_verb_can_start_a_graph(self):
+        """Todos tienen pin MT de entrada pero ninguno lo exige: el primer nodo de un material no
+        tiene de dónde venir."""
+        for verbo in tools.NODOS_MATERIAL:
+            self.assertEqual(tools.REGISTRO[verbo]["min_inputs"], 0, verbo)
+            self.assertEqual(tools.REGISTRO[verbo]["out_name"], "MT", verbo)
+
+    def test_the_palette_does_not_replace_the_generic_verb(self):
+        """La paleta cubre lo que se usa siempre; `material_node` queda como la puerta a los otros
+        ~380 tipos. Si desapareciera, el 93% del motor quedaría fuera de alcance."""
+        self.assertIn("material_node", tools.REGISTRO)
+        self.assertLess(len(tools.NODOS_MATERIAL), len(shader_firmas.ENTRADAS) / 4)
+
+
 class RegistroTests(unittest.TestCase):
     def test_the_material_graph_travels_on_its_own_pin_type(self):
         """`MT` no es `M`: una malla y un grafo de material no se pueden enchufar entre sí."""

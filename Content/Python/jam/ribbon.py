@@ -60,6 +60,14 @@ GRUPOS: dict[str, list[tuple[str, list[str]]]] = {
     "Source": [("Fuente", ["source_surface"])],
     "Output": [("Salida", ["instance", "weight_material"])],
     "Shader": [
+        # La paleta: un nodo por ficha, agrupados como los agrupa UE. `material_node` queda al final
+        # del grupo «Armar» como la puerta a los otros ~380 tipos que no están acá.
+        ("Constantes", ["mat_const", "mat_color", "mat_scalar", "mat_vector"]),
+        ("Matemática", ["mat_add", "mat_sub", "mat_mul", "mat_div", "mat_lerp", "mat_power",
+                        "mat_clamp", "mat_oneminus", "mat_saturate"]),
+        ("Textura", ["mat_texture", "mat_uv", "mat_panner", "mat_noise"]),
+        ("Vectores", ["mat_append", "mat_mask", "mat_normalize", "mat_dot"]),
+        ("Escena", ["mat_worldpos", "mat_vnormal", "mat_vcolor", "mat_time", "mat_fresnel"]),
         ("Armar", ["material_node", "material_connect", "material_output"]),
         ("Reusar", ["material_function", "material_call"]),
         ("Hornear", ["material_build", "material_instance"]),
