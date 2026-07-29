@@ -23,7 +23,7 @@ docking de los tres paneles.
 | Vault | `python tools/vault.py` | **47 docs** en 5 carpetas, en regla |
 | Motor | `tools/experiments/verifica_ejemplos.py` headless | **8/8 tutoriales · TODO VERDE** |
 | Editor | arranque + carga del módulo | los 3 spawners registran, **sin warnings de tab** |
-| Oráculo (repo aparte) | `python tools/corpus.py --resumen` en `~/Dev/oracle` | **11 casos**, en regla |
+| Oráculo (repo aparte, `~/Dev/oracle`) | `tools/corpus.py` · `tools/aceptacion.py` · `unittest discover -s tests -t .` | **11 casos · aceptación ✓ · 32 tests** |
 
 La verificación con motor es del commit `80373ea`; desde ahí no se tocó `Source/`, `Content/Python/`
 ni `oraculo/`, así que sigue hablando del código que hay. `relevo.py` lo comprueba solo.
@@ -89,10 +89,23 @@ donde la medición dijo bien y no estaba bien) y `ESPECIFICACION.md` (el álgebr
 seis operadores, clausura). **Todavía no hay evaluador, a propósito** — el corpus es el criterio de
 aceptación de lo que venga.
 
-Siguiente paso ahí: la primera medida, `proceso.test_con_mutante_que_lo_mata`, que tres casos
-reclaman. *Terminado* = los 11 casos del corpus se ponen en ROJO; el que quede verde señala lenguaje
-o medida faltante, y hay que decir cuál. **Condición de parada escrita en la especificación**: si no
-entran con los seis operadores, se rediseña en vez de agregar operadores.
+**Pasos 1 y 2 también están hechos** (`988bcfe`): el evaluador (`nucleo/`), 8 medidas como archivos
+de datos en `catalogos/`, y `tools/aceptacion.py` — donde **el corpus juzga al oráculo**: los 9 casos
+con medida se ponen en rojo, los 2 con hueco declarado quedan verdes a propósito. Corre también el
+nivel L2 (el catálogo servido como relación y medido por una medida, sin mecanismo nuevo).
+
+**Siguiente paso ahí — paso 3, el sensor de mutación**: producir hechos
+`mutante(id, apunta_a, murio)` del repo vivo, **con caché frío** (`max` y `min` ocupan lo mismo y
+CPython invalida el `.pyc` por mtime+tamaño; sin limpiar `__pycache__` el arnés reporta al azar).
+*Terminado* = `proceso.test_con_mutante_que_lo_mata` corre sobre código real y no sobre evidencia
+guardada. Después viene el paso 4, el catálogo de geometría, que es el que dispara `unir`.
+
+Dos reglas del repo que hay que respetar y son fáciles de romper sin querer:
+
+- **sólo 3 de los 6 operadores están implementados** (`de`, `donde`, `resumen`), a propósito: son los
+  únicos con usuario. Los otros levantan un error con su disparador. No implementarlos «de paso».
+- **el repo no tiene dependencias, ni de desarrollo.** Tests en `unittest` puro. El oráculo viejo de
+  Jam tenía 13 archivos escritos para pytest sin pytest instalado: 0 tests corriendo por 8 días.
 
 Lo que NO hay que hacer ahí: migrar `oraculo/` viejo (queda en Jam), transporte por red, parser de
 sintaxis propia, y macros.
