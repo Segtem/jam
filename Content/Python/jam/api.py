@@ -48,11 +48,27 @@ def run_graph(graph_json: str) -> str:
     return panel.ejecutar_grafo(graph_json, None)
 
 
+def _expandir_funciones(graph_json: str) -> tuple[str, str]:
+    """(json ya sin funciones, error). Expandir es lo PRIMERO que pasa en el borde: de ahí para
+    adentro nadie sabe que existen las funciones, y el oráculo sigue midiendo el grafo entero."""
+    from . import funcion
+    try:
+        return funcion.expandir_json(graph_json), ""
+    except funcion.FuncionError as e:
+        return graph_json, str(e)
+
+
 def run_graph_json(graph_json: str) -> str:
     """JSON {report, nodes:{nid:{estado,texto}}} para pintar el canvas. Detecta SOLO: si el grafo son
     ops de flow (source/mask/instance) lo corre como cadena Houdini; si son verbos, como grafo de
     verbos. Así el mismo botón Run del canvas hace lo correcto sin que la UI sepa la diferencia."""
+    import json
+
     from . import flow, panel
+    graph_json, error = _expandir_funciones(graph_json)
+    if error:
+        return json.dumps({"ok": False, "report": f"RUN ✗ — {error}", "nodes": {}},
+                          ensure_ascii=True)
     if flow.Flow.from_json(graph_json).solo_flow():
         return panel.ejecutar_flow_json(graph_json, None)
     return panel.ejecutar_grafo_json(graph_json, None)
@@ -66,6 +82,11 @@ def compile_graph_json(graph_json: str) -> str:
     import json
 
     from . import flow, graph
+
+    graph_json, error = _expandir_funciones(graph_json)
+    if error:
+        return json.dumps({"ok": False, "report": f"COMPILE ✗ — {error}", "nodes": {}},
+                          ensure_ascii=True)
 
     f = flow.Flow.from_json(graph_json)
     if f.solo_flow():

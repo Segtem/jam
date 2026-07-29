@@ -111,15 +111,21 @@ def desde_comando(nombre, comando, *, categoria="", descripcion="", tags=None, s
 
 
 def kind_de_grafo(grafo) -> str:
-    """`flow` si TODOS los nodos son ops de flow; si no, `graph` (el grafo de verbos del canvas).
+    """`funcion` si declara pines; `flow` si TODOS los nodos son ops de flow; si no, `graph`.
 
     Es la MISMA detección que usa `api.run_graph_json()`, a propósito: un preset tiene que correr por
     el runner que le corresponde. Marcarlo siempre como `flow` hacía que un canvas de verbos —Place,
     Mesh, TreeGen— cayera en el evaluador de flow, donde cada verbo es una op desconocida.
+
+    Una función se reconoce por lo mismo que la hace función: tiene `input`/`output`. No hay un botón
+    aparte de «guardar como función» — se guarda un grafo y el contenido decide qué es.
     """
     from . import flow
     if isinstance(grafo, (dict, list)):
         grafo = json.dumps(grafo)
+    nodos = (json.loads(grafo) or {}).get("nodes", {}) if grafo else {}
+    if any((n.get("verb") or n.get("kind")) in ("input", "output") for n in nodos.values()):
+        return "funcion"
     return "flow" if flow.Flow.from_json(grafo).solo_flow() else "graph"
 
 
@@ -146,6 +152,12 @@ def aplicar(preset) -> dict:
     from . import panel
     nombre = preset.get("nombre", "?")
     kind = preset.get("kind", "tool")
+    # Una función no se aplica: es un CUERPO con pines sueltos, y correrlo tal cual significaría
+    # ejecutar `input`/`output` como si fueran verbos. Se usa instanciándola en un grafo.
+    if kind == "funcion" or (preset.get("graph") and kind_de_grafo(preset["graph"]) == "funcion"):
+        return {"ok": False, "nombre": nombre,
+                "texto": f"[{nombre}] es una FUNCIÓN: no se aplica sola — "
+                         f"instanciala en el grafo con el nodo «fn:{nombre}»"}
     if kind in ("flow", "graph"):
         grafo = preset.get("graph")
         if not grafo:

@@ -110,13 +110,18 @@ def verde_editor_vigente(fm: dict) -> list[str]:
     if not ancestro:
         return [f"verde_editor: {sha} no es antecesor de HEAD"]
 
-    tocado = git("diff", "--name-only", f"{sha}..HEAD", "--", *VIVO)
-    if tocado:
-        archivos = tocado.split("\n")
+    # Lo commiteado desde la foto, MÁS lo que está sin commitear: mirar sólo el historial daba
+    # «verde» con el código vivo modificado en el árbol de trabajo, que es justo cuando más miente.
+    tocado = [f for f in git("diff", "--name-only", f"{sha}..HEAD", "--", *VIVO).split("\n") if f]
+    sucio = [f for f in git("status", "--porcelain", "--", *VIVO).split("\n") if f]
+    if tocado or sucio:
+        detalle = (f"{len(tocado)} archivo(s) commiteados" if tocado else "")
+        detalle += (" y " if tocado and sucio else "") + (f"{len(sucio)} sin commitear" if sucio else "")
+        # porcelain es `XY ruta`, y la X puede ser un espacio: cortar en 3 se comía una letra
+        ejemplo = (tocado or [s[2:].strip() for s in sucio])[0]
         return [
-            f"verde_editor ({sha}, {fm['verde_editor_fecha']}) quedó VIEJO: desde ahí cambiaron "
-            f"{len(archivos)} archivo(s) vivos, p.ej. {archivos[0]}. "
-            "Volvé a correr la verificación con motor y actualizá el campo."
+            f"verde_editor ({sha}, {fm['verde_editor_fecha']}) quedó VIEJO: cambiaron {detalle}, "
+            f"p.ej. {ejemplo}. Volvé a correr la verificación con motor y actualizá el campo."
         ]
     return []
 
