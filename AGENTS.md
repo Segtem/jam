@@ -100,6 +100,9 @@ redistribuir, nunca relicenciar CC0. Los repos van privados.
 ## Dónde está escrito lo demás
 
 - **`RELEVO.md`** — el turno actual. Siempre vigente, siempre uno solo.
-- **`Vault-kb/`** — 46 documentos, nomenclatura `AAAA-MM-DD-TIPO-Nombre-vX.X.md` verificada por
-  `tools/vault.py`. Empezá por `Vault-kb/README.md`, que es el índice generado.
-- El protocolo de relevo, explicado: `Vault-kb/2026-07-29-GUIA-Relevo-Claude-Codex-v1.0.md`.
+- **`Vault-kb/`** — 46 documentos en 5 carpetas (`00-Proceso`, `01-Graph`, `02-TreeGen`,
+  `03-Mesh-y-materiales`, `04-Ejecucion-y-pruebas`). Nomenclatura `AAAA-MM-DD-TIPO-Nombre-vX.X.md`,
+  y **el `area:` de cada doc tiene que ser su carpeta** — lo verifica `tools/vault.py`. Empezá por
+  `Vault-kb/README.md`, que es el índice generado (no se edita a mano).
+- El protocolo de relevo, explicado:
+  `Vault-kb/00-Proceso/2026-07-29-GUIA-Relevo-Claude-Codex-v1.0.md`.

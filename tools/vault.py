@@ -24,23 +24,21 @@ from pathlib import Path
 VAULT = Path(__file__).resolve().parents[1] / "Vault-kb"
 TIPOS = {"INFORME", "PLAN", "ROADMAP", "CONCEPTO", "GUIA", "ESTADO", "ADR"}
 NOMBRE = re.compile(r"^(\d{4}-\d{2}-\d{2})-([A-Z]+)-(.+)-v(\d+\.\d+)$")
-OBLIGATORIOS = ("title", "tipo", "version", "date", "updated")
+OBLIGATORIOS = ("title", "tipo", "version", "date", "updated", "area")
 
-# (título del grupo, predicado sobre el nombre de archivo) — el primero que matchea gana
-GRUPOS = [
-    ("Dirección y proceso", lambda n: "ROADMAP" in n or "GUIA-Convencion" in n or "Relevo" in n),
-    ("TreeGen — el árbol procedural", lambda n: "TreeGen" in n),
-    ("Graph — el editor de nodos", lambda n: any(
-        k in n for k in ("Graph", "Estetica-Nodos", "Seleccion-Multiple", "Accesibilidad",
-                         "Nodos-De-Debug", "Puente-P-a-F"))),
-    ("Mesh y materiales", lambda n: any(
-        k in n for k in ("Mesh", "Materiales", "Nanite", "Vertex-Color", "Oraculo-De-Forma"))),
-    ("Ejecución, presets y pruebas", lambda n: True),
-]
+# La CARPETA es la taxonomía: un documento vive en una y sólo una, y su `area:` lo dice.
+# Antes esto era una heurística de palabras clave sobre el nombre; la carpeta es un dato.
+CARPETAS = {
+    "00-Proceso": "Proceso y dirección",
+    "01-Graph": "Graph — el editor de nodos",
+    "02-TreeGen": "TreeGen — el árbol procedural",
+    "03-Mesh-y-materiales": "Mesh y materiales",
+    "04-Ejecucion-y-pruebas": "Ejecución, presets y pruebas",
+}
 
 
 def docs() -> list[Path]:
-    return sorted(p for p in VAULT.glob("*.md") if p.name != "README.md")
+    return sorted(p for p in VAULT.rglob("*.md") if p.name != "README.md")
 
 
 def frontmatter(ruta: Path) -> dict:
@@ -57,9 +55,27 @@ def frontmatter(ruta: Path) -> dict:
 
 def verificar() -> list[str]:
     fallas: list[str] = []
-    nombres = {p.stem for p in VAULT.glob("*.md")}
+    nombres = {p.stem for p in VAULT.rglob("*.md")}
+
+    # un wikilink apunta por NOMBRE, no por ruta: dos archivos homónimos en carpetas distintas
+    # dejan el enlace a cara o cruz, y el verificador lo daría por bueno
+    vistos: dict[str, Path] = {}
+    for p in docs():
+        if p.stem in vistos:
+            fallas.append(f"{p.stem}: el mismo nombre en dos carpetas "
+                          f"({vistos[p.stem].parent.name} y {p.parent.name})")
+        vistos[p.stem] = p
+
+    for p in sorted(VAULT.glob("*.md")):
+        if p.name != "README.md":
+            fallas.append(f"{p.name}: suelto en la raíz del vault — va en una de {list(CARPETAS)}")
 
     for p in docs():
+        carpeta = p.parent.name
+        if p.parent == VAULT or carpeta not in CARPETAS:
+            fallas.append(f"{p.name}: vive en «{carpeta}», que no es una carpeta del vault")
+            continue
+
         m = NOMBRE.match(p.stem)
         if not m:
             fallas.append(f"{p.name}: no sigue AAAA-MM-DD-TIPO-Nombre-vX.X")
@@ -82,8 +98,10 @@ def verificar() -> list[str]:
             fallas.append(f"{p.name}: el archivo dice {tipo} y el frontmatter dice {fm['tipo']}")
         if fm["updated"] != fecha:
             fallas.append(f"{p.name}: la fecha del nombre ({fecha}) no es `updated:` ({fm['updated']})")
+        if fm["area"] != carpeta:
+            fallas.append(f"{p.name}: está en {carpeta} y su `area:` dice {fm['area']}")
 
-    for p in sorted(VAULT.glob("*.md")):
+    for p in sorted(VAULT.rglob("*.md")):
         for destino in enlaces(p.read_text(encoding="utf-8")):
             if destino not in nombres:
                 fallas.append(f"{p.name}: enlace roto → [[{destino}]]")
@@ -111,29 +129,25 @@ def enlaces(texto: str) -> list[str]:
 
 def escribir_indice() -> None:
     todos = docs()
-    grupos: dict[str, list[Path]] = {t: [] for t, _ in GRUPOS}
-    for p in todos:
-        for titulo, pred in GRUPOS:
-            if pred(p.name):
-                grupos[titulo].append(p)
-                break
-
     lineas = [
         "# Vault-kb de Jam",
         "",
-        f"{len(todos)} documentos. Nomenclatura `AAAA-MM-DD-TIPO-Nombre-vX.X.md` — la explica",
+        f"{len(todos)} documentos en {len(CARPETAS)} carpetas. Nomenclatura",
+        "`AAAA-MM-DD-TIPO-Nombre-vX.X.md` — la explica",
         "[[2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0|la guía de convención]].",
+        "La carpeta es la taxonomía: cada doc vive en una sola y su `area:` lo dice.",
         "Este índice y las reglas los verifica `tools/vault.py`.",
         "",
         "`INFORME` = lo que pasó · `PLAN` = lo que falta · `ROADMAP` = hacia dónde ·",
         "`CONCEPTO` = un principio · `GUIA` = cómo se usa.",
         "",
     ]
-    for titulo, _ in GRUPOS:
-        if not grupos[titulo]:
+    for carpeta, titulo in CARPETAS.items():
+        dentro = [p for p in todos if p.parent.name == carpeta]
+        if not dentro:
             continue
-        lineas += [f"## {titulo}", ""]
-        for p in sorted(grupos[titulo], key=lambda x: x.name, reverse=True):
+        lineas += [f"## {titulo}", "", f"`{carpeta}/` · {len(dentro)} documentos", ""]
+        for p in sorted(dentro, key=lambda x: x.name, reverse=True):
             fm = frontmatter(p)
             estado = fm.get("status", "")
             lineas.append(f"- [[{p.stem}|{fm.get('title', p.stem)}]]"

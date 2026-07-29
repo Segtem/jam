@@ -60,7 +60,7 @@ Quince minutos, en este orden — si algo falla acá, arrastra a todo lo demás:
 
 **0. Lo que Brian haya encontrado** en la lista de arriba. Bloqueante: es código de este turno.
 
-**1. Fase 5 — funciones con firma** (`Vault-kb/2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0.md`,
+**1. Fase 5 — funciones con firma** (`Vault-kb/01-Graph/2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0.md`,
 §Fase 5). Es lo de mayor palanca y —esto es lo que la hace buena para un turno de agente— **el grueso
 es cerebro puro y se verifica con tests, sin motor**:
 
