@@ -219,4 +219,4 @@ Toda herramienta de Jam debería responder claramente:
 - [[2026-07-25-PLAN-Contrato-Unificado-Graph-Flow-Presets-Web-v1.0|Contrato unificado de ejecución]]
 - [[2026-07-26-PLAN-Preview-Transaccional-Efectos-PCG-v1.0|Preview transaccional y efectos de PCG]]
 - [[2026-07-25-PLAN-Infraestructura-Pruebas-Jam-Oraculo-v1.0|Infraestructura de pruebas]]
-- [[2026-07-26-PLAN-Seleccion-Multiple-Alineacion-Nodos-v1.0|Selección múltiple y alineación]]
+- [[2026-07-29-INFORME-Seleccion-Multiple-Alineacion-Nodos-v2.0|Selección múltiple y alineación]]

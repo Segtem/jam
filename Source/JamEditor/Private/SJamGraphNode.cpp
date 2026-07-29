@@ -76,6 +76,9 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 	OnInputClickedDelegate = InArgs._OnInputClicked;
 	OnOutputClickedDelegate = InArgs._OnOutputClicked;
 	OnDeleteClickedDelegate = InArgs._OnDeleteClicked;
+	OnClickedDelegate = InArgs._OnClicked;
+	OnDeleteSelectionDelegate = InArgs._OnDeleteSelection;
+	IsSelectedAttr = InArgs._IsSelected;
 	RebuildBodyBrush();
 	if (!IconPath.IsEmpty())
 	{
@@ -445,7 +448,8 @@ int32 SJamGraphNode::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGe
 
 	// Selección/hover lavanda alrededor del componente, equivalente al rectángulo violeta de GH. El
 	// foco propio o de uno de sus controles mantiene visible qué nodo recibirá la tecla Supr.
-	if (IsHovered() || bDragging || HasKeyboardFocus() || HasFocusedDescendants())
+	if (IsHovered() || bDragging || HasKeyboardFocus() || HasFocusedDescendants()
+		|| IsSelectedAttr.Get(false))
 	{
 		FSlateDrawElement::MakeBox(OutDrawElements, LayerId,
 			AllottedGeometry.ToPaintGeometry(
@@ -607,6 +611,9 @@ FReply SJamGraphNode::OnMouseButtonDown(const FGeometry& MyGeometry, const FPoin
 {
 	if (MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
 	{
+		// Primero la selección, después el arrastre: así arrastrar un nodo que YA estaba elegido
+		// mueve todo el grupo, y arrastrar uno suelto lo convierte antes en la selección.
+		OnClickedDelegate.ExecuteIfBound(MouseEvent.IsShiftDown(), MouseEvent.IsControlDown());
 		bDragging = true;
 		return FReply::Handled()
 			.CaptureMouse(SharedThis(this))
@@ -619,9 +626,17 @@ FReply SJamGraphNode::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& In
 {
 	if (InKeyEvent.GetKey() == EKeys::Delete)
 	{
-		// Reusar el callback de la × garantiza que también desaparezcan los cables y se refresquen los
-		// pines conectados. Un text box enfocado consume Supr antes de que el evento llegue al nodo.
-		OnDeleteClickedDelegate.ExecuteIfBound();
+		// Va al editor, que es el único que sabe si hay UNO o VARIOS elegidos: `Supr` sobre un nodo
+		// de un grupo tiene que borrar el grupo. La × en cambio siempre borra ESE nodo, que es lo
+		// que dice el botón. Un text box enfocado consume Supr antes de que llegue acá.
+		if (OnDeleteSelectionDelegate.IsBound())
+		{
+			OnDeleteSelectionDelegate.Execute();
+		}
+		else
+		{
+			OnDeleteClickedDelegate.ExecuteIfBound();
+		}
 		return FReply::Handled();
 	}
 	return SCompoundWidget::OnKeyDown(MyGeometry, InKeyEvent);

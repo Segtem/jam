@@ -380,6 +380,72 @@ private:
 };
 
 
+/**
+ * El cuadro de selección (marquee). Va en una capa PROPIA por encima de los nodos: dibujado en la
+ * capa de wires quedaría tapado justo por lo que se está tratando de encerrar. No recibe clics
+ * (HitTestInvisible) — sólo pinta.
+ */
+class SJamMarqueeLayer : public SLeafWidget
+{
+public:
+	SLATE_BEGIN_ARGS(SJamMarqueeLayer) {}
+	SLATE_END_ARGS()
+
+	void Construct(const FArguments&,
+		TFunction<bool(FVector2D&, FVector2D&)> InGetter,
+		TFunction<void(FVector2D&, float&)> InXform)
+	{
+		Getter = MoveTemp(InGetter);
+		XformGetter = MoveTemp(InXform);
+		SetVisibility(EVisibility::HitTestInvisible);
+	}
+
+	virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
+		const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId,
+		const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override
+	{
+		FVector2D A, B;
+		if (!Getter || !Getter(A, B))
+		{
+			return LayerId;
+		}
+		FVector2D Pan = FVector2D::ZeroVector;
+		float Zoom = 1.0f;
+		if (XformGetter) { XformGetter(Pan, Zoom); }
+
+		// El cuadro se guarda en MODELO; se lleva a pantalla con el mismo pan/zoom que los nodos,
+		// así queda pegado al grafo aunque el lienzo esté paneado.
+		const FVector2D P0((A + Pan) * Zoom);
+		const FVector2D P1((B + Pan) * Zoom);
+		const FVector2D Min(FMath::Min(P0.X, P1.X), FMath::Min(P0.Y, P1.Y));
+		const FVector2D Max(FMath::Max(P0.X, P1.X), FMath::Max(P0.Y, P1.Y));
+
+		const FSlateBrush* White = FAppStyle::GetBrush("WhiteBrush");
+		// Relleno lavanda muy tenue + borde: el mismo idioma que el halo de selección del nodo, para
+		// que se lea «esto va a quedar elegido» y no «esto es otra herramienta».
+		FSlateDrawElement::MakeBox(OutDrawElements, LayerId,
+			AllottedGeometry.ToPaintGeometry(Max - Min, FSlateLayoutTransform(Min)),
+			White, ESlateDrawEffect::None, FLinearColor(0.55f, 0.35f, 0.82f, 0.14f));
+
+		TArray<FVector2D> Borde;
+		Borde.Add(Min);
+		Borde.Add(FVector2D(Max.X, Min.Y));
+		Borde.Add(Max);
+		Borde.Add(FVector2D(Min.X, Max.Y));
+		Borde.Add(Min);
+		FSlateDrawElement::MakeLines(OutDrawElements, LayerId + 1, AllottedGeometry.ToPaintGeometry(),
+			Borde, ESlateDrawEffect::None, FLinearColor(0.43f, 0.24f, 0.70f, 0.95f), true, 1.0f);
+		return LayerId + 1;
+	}
+
+	virtual FVector2D ComputeDesiredSize(float) const override { return FVector2D::ZeroVector; }
+
+private:
+	TFunction<bool(FVector2D&, FVector2D&)> Getter;
+	TFunction<void(FVector2D&, float&)> XformGetter;
+};
+
+
 void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>& InTools)
 {
 	Tools = InTools;
@@ -389,6 +455,7 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 	OnDiscardPreview = InArgs._OnDiscardPreview;
 	OnSaveGraph = InArgs._OnSaveGraph;
 	OnInspect = InArgs._OnInspect;
+	OnLayout = InArgs._OnLayout;
 	ActiveAsset = InArgs._ActiveAsset;
 	OnOpenContent = InArgs._OnOpenContent;
 
@@ -506,6 +573,15 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 				+ SOverlay::Slot()
 				[
 					SAssignNew(Canvas, SCanvas)
+				]
+				// Cuadro de selección, POR ENCIMA de los nodos (si no, lo tapa lo que estás encerrando).
+				+ SOverlay::Slot()
+				[
+					SAssignNew(MarqueeLayer, SJamMarqueeLayer,
+						TFunction<bool(FVector2D&, FVector2D&)>(
+							[this](FVector2D& A, FVector2D& B) { return GetMarquee(A, B); }),
+						TFunction<void(FVector2D&, float&)>(
+							[this](FVector2D& P, float& Z) { P = PanOffset; Z = Zoom; }))
 				]
 				// Buscador de nodos (doble clic en el fondo), como el search box de Grasshopper.
 				+ SOverlay::Slot()
@@ -1297,13 +1373,29 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At)
 		.OutputLabel(DataName(T->OutName))
 		.Params(Params)
 		.HasInput(bHasInput)
+		.IsSelected_Lambda([this, Id]() { return SelectedNodeIds.Contains(Id); })
 		.OnDragDelta_Lambda([this, Id](const FVector2D& D)
 		{
 			// D viene en píxeles de pantalla; el modelo vive antes del zoom (render transform).
-			if (FGNode* N = FindNode(Id)) { N->Pos += D / Zoom; }
+			// Arrastrar un nodo elegido mueve TODO el grupo, conservando las distancias — es el
+			// gesto que hace que la selección múltiple sirva para algo.
+			if (SelectedNodeIds.Contains(Id))
+			{
+				MoveSelection(D / Zoom);
+			}
+			else if (FGNode* N = FindNode(Id))
+			{
+				N->Pos += D / Zoom;
+			}
 		})
 		.OnOutputClicked_Lambda([this, Id]() { OnPinClicked(Id, TEXT("out"), true); })
 		.OnInputClicked_Lambda([this, Id](const FString& Pin) { OnPinClicked(Id, Pin, false); })
+		.OnClicked_Lambda([this, Id](bool bShift, bool bCtrl) { ClickNode(Id, bShift, bCtrl); })
+		.OnDeleteSelection_Lambda([this, Id]()
+		{
+			// `Supr` sobre un nodo de un grupo borra el grupo; sobre uno suelto, ese nodo.
+			if (SelectedNodeIds.Contains(Id)) { DeleteSelection(); } else { DeleteNode(Id); }
+		})
 		.OnDeleteClicked_Lambda([this, Id]() { DeleteNode(Id); });
 
 	Node.Widget = Widget;
@@ -1339,7 +1431,125 @@ void SJamGraphEditor::DeleteNode(const FString& Id)
 	Edges.RemoveAll([&Id](const FGEdge& E) { return E.From == Id || E.To == Id; });
 	if (PendingSource == Id) { PendingSource.Empty(); }
 	Nodes.RemoveAll([&Id](const FGNode& X) { return X.Id == Id; });
+	SelectedNodeIds.Remove(Id);   // un id borrado que queda elegido reaparece al reusarse el número
 	RefreshCabledPins();   // borrar un nodo pudo dejar pines de otros sin su cable
+}
+
+// ---- selección ----
+
+void SJamGraphEditor::ClickNode(const FString& Id, bool bShift, bool bCtrl)
+{
+	if (bCtrl)
+	{
+		if (SelectedNodeIds.Contains(Id)) { SelectedNodeIds.Remove(Id); }
+		else { SelectedNodeIds.Add(Id); }
+		return;
+	}
+	if (bShift)
+	{
+		SelectedNodeIds.Add(Id);
+		return;
+	}
+	// Sin modificadores: reemplaza la selección… salvo que el nodo YA esté elegido. Sin esa
+	// excepción, agarrar un grupo por cualquiera de sus nodos lo desarmaría en el mismo gesto con
+	// el que se lo quiere mover.
+	if (!SelectedNodeIds.Contains(Id))
+	{
+		SelectedNodeIds.Reset();
+		SelectedNodeIds.Add(Id);
+	}
+}
+
+void SJamGraphEditor::ClearSelection()
+{
+	SelectedNodeIds.Reset();
+}
+
+void SJamGraphEditor::SelectAll()
+{
+	SelectedNodeIds.Reset();
+	for (const FGNode& N : Nodes)
+	{
+		SelectedNodeIds.Add(N.Id);
+	}
+}
+
+void SJamGraphEditor::DeleteSelection()
+{
+	// Copia: `DeleteNode` toca `SelectedNodeIds`, y recorrer un TSet mientras se modifica es UB.
+	TArray<FString> Ids = SelectedNodeIds.Array();
+	for (const FString& Id : Ids)
+	{
+		DeleteNode(Id);
+	}
+	SelectedNodeIds.Reset();
+}
+
+void SJamGraphEditor::MoveSelection(const FVector2D& DeltaModelo)
+{
+	for (const FString& Id : SelectedNodeIds)
+	{
+		if (FGNode* N = FindNode(Id)) { N->Pos += DeltaModelo; }
+	}
+}
+
+bool SJamGraphEditor::GetMarquee(FVector2D& OutA, FVector2D& OutB) const
+{
+	if (!bMarquee)
+	{
+		return false;
+	}
+	OutA = MarqueeA;
+	OutB = MarqueeB;
+	return true;
+}
+
+void SJamGraphEditor::AcomodarSeleccion(const FString& Accion)
+{
+	if (SelectedNodeIds.Num() < 2 || !OnLayout.IsBound())
+	{
+		return;
+	}
+	// Rectángulos en coordenadas de MODELO: lo que `jam.layout` sabe leer. El ancho es fijo; el
+	// alto NO (depende de cuántos params tiene el verbo), y es justo el que hace que alinear
+	// «abajo» sea distinto de alinear por `y`.
+	TArray<FString> Filas;
+	for (const FGNode& N : Nodes)
+	{
+		if (!SelectedNodeIds.Contains(N.Id)) { continue; }
+		Filas.Add(FString::Printf(
+			TEXT("{\"id\":\"%s\",\"x\":%.3f,\"y\":%.3f,\"w\":%.3f,\"h\":%.3f}"),
+			*N.Id, N.Pos.X, N.Pos.Y, NodeWidth, N.Height));
+	}
+	const FString Json = FString::Printf(TEXT("[%s]"), *FString::Join(Filas, TEXT(",")));
+
+	const FString Res = OnLayout.Execute(Json, Accion);
+	TSharedPtr<FJsonObject> Obj;
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Res);
+	if (!FJsonSerializer::Deserialize(Reader, Obj) || !Obj.IsValid()
+		|| !Obj->GetBoolField(TEXT("ok")))
+	{
+		if (Output.IsValid())
+		{
+			Output->SetText(FText::FromString(FString::Printf(
+				TEXT("No se pudo acomodar: %s"), *Res)));
+		}
+		return;
+	}
+	const TSharedPtr<FJsonObject>* Pos = nullptr;
+	if (!Obj->TryGetObjectField(TEXT("pos"), Pos) || Pos == nullptr)
+	{
+		return;
+	}
+	for (const TPair<FString, TSharedPtr<FJsonValue>>& KV : (*Pos)->Values)
+	{
+		const TArray<TSharedPtr<FJsonValue>>* XY = nullptr;
+		if (!KV.Value->TryGetArray(XY) || XY == nullptr || XY->Num() != 2) { continue; }
+		if (FGNode* N = FindNode(KV.Key))
+		{
+			N->Pos = FVector2D((*XY)[0]->AsNumber(), (*XY)[1]->AsNumber());
+		}
+	}
 }
 
 int32 SJamGraphEditor::PinIndex(const FString& Id, const FString& Pin) const
@@ -1911,11 +2121,52 @@ FReply SJamGraphEditor::OnMouseButtonDown(const FGeometry& MyGeometry, const FPo
 	}
 	if (MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
 	{
+		// Arrastrar sobre el FONDO abre el cuadro de selección. Los nodos manejan su propio clic,
+		// así que si el evento llegó hasta acá es porque el punto está vacío.
+		if (WireLayer.IsValid())
+		{
+			const FGeometry& Lienzo = WireLayer->GetCachedGeometry();
+			const FVector2D Local = Lienzo.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition());
+			const FVector2D Tam = Lienzo.GetLocalSize();
+			// Sólo dentro del lienzo: un clic en el menú o en el ribbon no puede abrir un marquee.
+			if (Local.X >= 0.0f && Local.Y >= 0.0f && Local.X <= Tam.X && Local.Y <= Tam.Y)
+			{
+				bMarquee = true;
+				MarqueeA = MarqueeB = LocalToModel(Local);
+				bMarqueeAgrega = MouseEvent.IsShiftDown() || MouseEvent.IsControlDown();
+				MarqueeBase = bMarqueeAgrega ? SelectedNodeIds : TSet<FString>();
+				if (!bMarqueeAgrega) { ClearSelection(); }
+				return FReply::Handled()
+					.CaptureMouse(SharedThis(this))
+					.SetUserFocus(SharedThis(this), EFocusCause::Mouse);
+			}
+		}
 		// El fondo recibe foco para deseleccionar el nodo anterior; Supr ya no puede borrar un nodo
 		// después de que el usuario hizo clic en un espacio vacío del canvas.
 		return FReply::Handled().SetUserFocus(SharedThis(this), EFocusCause::Mouse);
 	}
 	return FReply::Unhandled();
+}
+
+FReply SJamGraphEditor::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent)
+{
+	const FKey Tecla = InKeyEvent.GetKey();
+	if (Tecla == EKeys::A && InKeyEvent.IsControlDown())
+	{
+		SelectAll();
+		return FReply::Handled();
+	}
+	if (Tecla == EKeys::Escape)
+	{
+		ClearSelection();
+		return FReply::Handled();
+	}
+	if (Tecla == EKeys::Delete && SelectedNodeIds.Num() > 0)
+	{
+		DeleteSelection();
+		return FReply::Handled();
+	}
+	return SCompoundWidget::OnKeyDown(MyGeometry, InKeyEvent);
 }
 
 FReply SJamGraphEditor::OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
@@ -1933,6 +2184,16 @@ FReply SJamGraphEditor::OnMouseMove(const FGeometry& MyGeometry, const FPointerE
 		// hay una conexión en curso: repintar la capa de wires para que el cable siga al mouse.
 		WireLayer->Invalidate(EInvalidateWidgetReason::Paint);
 	}
+	if (bMarquee && HasMouseCapture() && WireLayer.IsValid())
+	{
+		MarqueeB = LocalToModel(
+			WireLayer->GetCachedGeometry().AbsoluteToLocal(MouseEvent.GetScreenSpacePosition()));
+		if (MarqueeLayer.IsValid())
+		{
+			MarqueeLayer->Invalidate(EInvalidateWidgetReason::Paint);
+		}
+		return FReply::Handled();
+	}
 	if (bPanning && HasMouseCapture())
 	{
 		const float S = MyGeometry.GetAccumulatedLayoutTransform().GetScale();
@@ -1948,6 +2209,31 @@ FReply SJamGraphEditor::OnMouseButtonUp(const FGeometry& MyGeometry, const FPoin
 		|| MouseEvent.GetEffectingButton() == EKeys::MiddleMouseButton))
 	{
 		bPanning = false;
+		return FReply::Handled().ReleaseMouseCapture();
+	}
+	if (bMarquee && MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
+	{
+		bMarquee = false;
+		// Cruzar alcanza: si el cuadro TOCA el nodo, entra. Exigir contención completa obliga a
+		// arrastrar por fuera de todo. Es la misma regla que `jam.layout.en_marco`, donde está
+		// testeada; acá se aplica sobre los rectángulos vivos del canvas.
+		const FVector2D Min(FMath::Min(MarqueeA.X, MarqueeB.X), FMath::Min(MarqueeA.Y, MarqueeB.Y));
+		const FVector2D Max(FMath::Max(MarqueeA.X, MarqueeB.X), FMath::Max(MarqueeA.Y, MarqueeB.Y));
+		SelectedNodeIds = MarqueeBase;
+		// Área cero (un clic sin arrastrar) no toca nada: por eso el clic en el fondo LIMPIA en vez
+		// de agarrar lo que hubiera abajo del cursor.
+		if (Min.X < Max.X && Min.Y < Max.Y)
+		{
+			for (const FGNode& N : Nodes)
+			{
+				if (N.Pos.X < Max.X && N.Pos.X + NodeWidth > Min.X
+					&& N.Pos.Y < Max.Y && N.Pos.Y + N.Height > Min.Y)
+				{
+					SelectedNodeIds.Add(N.Id);
+				}
+			}
+		}
+		MarqueeBase.Reset();
 		return FReply::Handled().ReleaseMouseCapture();
 	}
 	return FReply::Unhandled();
@@ -1974,6 +2260,43 @@ void SJamGraphEditor::FillEditMenu(FMenuBuilder& MB)
 {
 	MB.AddMenuEntry(LOCTEXT("ClearAll", "Vaciar el grafo"), FText::GetEmpty(), FSlateIcon(),
 		FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::NewGraph)));
+
+	MB.BeginSection(TEXT("Seleccion"), LOCTEXT("SectionSelect", "Selección"));
+	MB.AddMenuEntry(LOCTEXT("SelectAll", "Seleccionar todo\tCtrl+A"),
+		LOCTEXT("SelectAllTip", "Elige todos los nodos del grafo"), FSlateIcon(),
+		FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::SelectAll)));
+	MB.AddMenuEntry(LOCTEXT("SelectNone", "No seleccionar nada\tEsc"), FText::GetEmpty(), FSlateIcon(),
+		FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::ClearSelection)));
+	MB.AddMenuEntry(LOCTEXT("DeleteSel", "Borrar la selección\tSupr"),
+		LOCTEXT("DeleteSelTip", "Borra los nodos elegidos y sus cables"), FSlateIcon(),
+		FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::DeleteSelection)));
+	MB.EndSection();
+
+	// Alinear y distribuir: las posiciones las decide `jam.layout` (puro y testeado). Requieren 2+
+	// nodos elegidos; con menos, la acción no hace nada porque no hay contra qué alinear.
+	MB.BeginSection(TEXT("Acomodar"), LOCTEXT("SectionAlign", "Alinear y distribuir"));
+	auto Entrada = [&MB, this](const TCHAR* Etiqueta, const TCHAR* Tip, const TCHAR* Accion)
+	{
+		const FString A(Accion);
+		MB.AddMenuEntry(FText::FromString(Etiqueta), FText::FromString(Tip), FSlateIcon(),
+			FUIAction(
+				FExecuteAction::CreateLambda([this, A]() { AcomodarSeleccion(A); }),
+				FCanExecuteAction::CreateLambda([this]() { return SelectedNodeIds.Num() >= 2; })));
+	};
+	Entrada(TEXT("Alinear a la izquierda"),
+		TEXT("Todos al borde izquierdo del cuadro que los envuelve"), TEXT("izquierda"));
+	Entrada(TEXT("Alinear a la derecha"),
+		TEXT("Alinea el borde DERECHO, no la x"), TEXT("derecha"));
+	Entrada(TEXT("Alinear arriba"), TEXT("Todos al borde superior"), TEXT("arriba"));
+	Entrada(TEXT("Alinear abajo"),
+		TEXT("Alinea el borde INFERIOR — los nodos con más params son más altos"), TEXT("abajo"));
+	Entrada(TEXT("Centrar en columna"), TEXT("Centros alineados en X"), TEXT("centro-x"));
+	Entrada(TEXT("Centrar en fila"), TEXT("Centros alineados en Y"), TEXT("centro-y"));
+	Entrada(TEXT("Distribuir en horizontal"),
+		TEXT("Mismo hueco entre uno y el siguiente; los extremos no se mueven"), TEXT("dist-x"));
+	Entrada(TEXT("Distribuir en vertical"),
+		TEXT("Mismo hueco entre uno y el siguiente; los extremos no se mueven"), TEXT("dist-y"));
+	MB.EndSection();
 }
 
 void SJamGraphEditor::FillViewMenu(FMenuBuilder& MB)
@@ -2019,6 +2342,7 @@ void SJamGraphEditor::NewGraph()
 	}
 	Nodes.Reset();
 	Edges.Reset();
+	SelectedNodeIds.Reset();
 	PendingSource.Empty();
 	PendingSourcePin.Empty();
 	NextId = 1;

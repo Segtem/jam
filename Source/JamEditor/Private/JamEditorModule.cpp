@@ -137,6 +137,7 @@ void FJamEditorModule::OpenGraph()
 		.ActiveAsset_Lambda([this]() { return SelectedAssetName; })
 		.OnOpenContent_Raw(this, &FJamEditorModule::OpenContentWindow)
 		.OnInspect_Raw(this, &FJamEditorModule::InspectGraphNode)
+		.OnLayout_Raw(this, &FJamEditorModule::LayoutGraphNodes)
 		.OnSaveGraph_Raw(this, &FJamEditorModule::SaveGraphAsPreset));
 	Win->SetOnWindowClosed(FOnWindowClosed::CreateLambda(
 		[this](const TSharedRef<SWindow>&) { GraphWindow.Reset(); }));
@@ -179,6 +180,14 @@ FString FJamEditorModule::InspectGraphNode(const FString& NodeId, const FString&
 		TEXT("import jam.api as _a; print(_a.inspect_json(%s, %s, 200, %s, %s))"),
 		*ToPyStr(NodeId), *ToPyStr(Filter), *ToPyStr(Sort),
 		bDescending ? TEXT("True") : TEXT("False"));
+	return ExecPythonCapture(Stmt);
+}
+
+FString FJamEditorModule::LayoutGraphNodes(const FString& NodesJson, const FString& Action)
+{
+	const FString Stmt = FString::Printf(
+		TEXT("import jam.api as _a; print(_a.acomodar(%s, %s))"),
+		*ToPyStr(NodesJson), *ToPyStr(Action));
 	return ExecPythonCapture(Stmt);
 }
 

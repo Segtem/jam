@@ -35,9 +35,9 @@ Este índice y las reglas los verifica `tools/vault.py`.
 
 ## Graph — el editor de nodos
 
+- [[2026-07-29-INFORME-Seleccion-Multiple-Alineacion-Nodos-v2.0|Selección múltiple y alineación de nodos Graph]] · *implementado*
 - [[2026-07-27-INFORME-Puente-P-a-F-Ops-Flow-v1.0|Puente P → F: las ops de Flow como verbos del Graph]] · *implementado*
 - [[2026-07-27-INFORME-Nodos-De-Debug-Ver-El-Stream-v1.0|Nodos de debug: ver el stream, no sólo medirlo]] · *implementado*
-- [[2026-07-26-PLAN-Seleccion-Multiple-Alineacion-Nodos-v1.0|Selección múltiple y alineación de nodos Graph]] · *pendiente*
 - [[2026-07-26-INFORME-Graph-Tab-Mesh-Verbos-Malla-v1.0|Graph: tab Mesh y verbos de malla procedural]] · *implementado-mvp*
 - [[2026-07-26-GUIA-Ejemplo-Graph-Pino-Procedural-v1.0|Ejemplo Graph: pino procedural TreeGen]] · *implementado*
 - [[2026-07-25-PLAN-Tipado-Cardinalidad-Conexiones-Graph-v1.0|Tipado y cardinalidad de conexiones Graph]] · *en-progreso*

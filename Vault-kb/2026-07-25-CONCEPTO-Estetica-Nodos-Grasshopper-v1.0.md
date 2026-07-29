@@ -157,7 +157,7 @@ No se implementaron todavía nodos funcionales específicos como `Colour Wheel`,
 presentadores Slate por clase de dato y mantener este componente como marco común.
 
 La selección actual sigue siendo individual y basada en foco. El marquee, el movimiento/eliminación
-de grupos y Align/Distribute se registraron en [[2026-07-26-PLAN-Seleccion-Multiple-Alineacion-Nodos-v1.0|Selección múltiple y alineación]].
+de grupos y Align/Distribute se registraron en [[2026-07-29-INFORME-Seleccion-Multiple-Alineacion-Nodos-v2.0|Selección múltiple y alineación]].
 
 ## Verificación
 

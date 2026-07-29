@@ -60,12 +60,13 @@ no se puede escribir el test, el ítem está mal planteado, no incompleto.
 | Zoom | ✅ rueda, clamp 0.35–2.5, anclado al cursor | `OnMouseWheel` / `ApplyZoom` |
 | Crear nodo | ✅ doble clic (buscador) · clic en la ficha (va al centro) · arrastre (va donde soltás) | `SJamVerbTile` / `AddNodeAlCentro` |
 | Mover un nodo | ✅ arrastrar el cuerpo | `SJamGraphNode::OnMouseMove` |
-| Seleccionar | ⚠️ **uno solo**, y es el foco de teclado, no un estado | `SupportsKeyboardFocus` |
-| Borrar | ✅ `Supr` sobre el nodo enfocado, o la `×` | `SJamGraphNode::OnKeyDown` |
+| Seleccionar | ✅ **Fase 0 hecha** — marquee, `Shift`/`Ctrl`+clic, `Ctrl+A`, `Esc` | `SelectedNodeIds` |
+| Mover / borrar en grupo | ✅ **Fase 0 hecha** | `MoveSelection` / `DeleteSelection` |
+| Alinear y distribuir | ✅ **hecho** — 8 acciones en el menú Edit | `jam/layout.py` (puro) |
+| Borrar | ✅ `Supr` sobre la selección, o la `×` por nodo | `SJamGraphNode::OnKeyDown` |
 | Borrar cable | ✅ `Alt` + clic | ver [[2026-07-25-INFORME-Graph-Eliminar-Conexiones-Alt-Click-v1.0\|Eliminar conexiones con Alt+click]] |
 | Guardar / abrir | ✅ JSON en disco, ida y vuelta | `BuildJson()` / `SaveDiagram` / `OpenDiagram` |
 | Flag de debug por nodo | ✅ el Display de Houdini | `SJamGraphNode::bDebugEnabled` |
-| **Selección múltiple** | ❌ | — |
 | **Copiar / cortar / pegar** | ❌ | — |
 | **Duplicar** | ❌ | — |
 | **Deshacer / rehacer** | ❌ | — |
@@ -81,9 +82,10 @@ Dos hallazgos que valen más que la tabla:
 una barata: el portapapeles es un JSON, el Deshacer es una pila de JSON, y duplicar es pegar lo que
 acabás de copiar. No hay que inventar un modelo de comandos.
 
-**La selección hoy es el foco de teclado.** No es un estado del editor. Todo lo demás —mover en
-grupo, borrar en grupo, alinear, copiar— está bloqueado detrás de convertirla en uno. Es la Fase 0 y
-no se puede saltear.
+**La selección era el foco de teclado.** No era un estado del editor, y todo lo demás —mover en
+grupo, borrar en grupo, alinear, copiar— estaba bloqueado detrás de convertirla en uno. Era la Fase 0
+y no se podía saltear: **se hizo el 2026-07-29**, ver
+[[2026-07-29-INFORME-Seleccion-Multiple-Alineacion-Nodos-v2.0\|Selección múltiple y alineación]].
 
 ---
 
@@ -161,24 +163,18 @@ migrar tres ventanas ahora que seis después.
 
 ## 3. Fases
 
-### Fase 0 — La selección es un estado (`SelectedNodeIds`)
+### Fase 0 — La selección es un estado (`SelectedNodeIds`) — ✅ HECHA 2026-07-29
 
-Habilita casi todo lo demás. Ya está especificada en detalle en
-[[2026-07-26-PLAN-Seleccion-Multiple-Alineacion-Nodos-v1.0\|Selección múltiple y alineación]]; acá va
-lo mínimo:
+Todo lo de esta fase está implementado; el detalle está en
+[[2026-07-29-INFORME-Seleccion-Multiple-Alineacion-Nodos-v2.0\|Selección múltiple y alineación]].
+Junto con ella salió **alinear y distribuir** (que era Fase 7) porque es su primer pago concreto.
 
-- `TSet<FString> SelectedNodeIds` en el editor; el nodo recibe `IsSelected` como atributo y pinta el
-  halo lavanda de forma declarativa.
-- **Marquee**: arrastrar el izquierdo sobre el fondo dibuja el rectángulo; al soltar entra lo que
-  interseca. Clic en el fondo limpia.
-- `Shift`+clic agrega, `Ctrl`+clic alterna.
-- `Ctrl+A` selecciona todo; `Esc` limpia.
-- Arrastrar un nodo seleccionado mueve **todo el grupo** con el mismo delta.
-- `Supr` borra el grupo entero, con sus cables, en **una** operación.
-
-> **Verificable:** el hit-test del marquee es geometría pura —rectángulos contra rectángulos en
-> coordenadas de modelo— así que sale a Python como función pura y se testea sin editor: rectángulo
-> que toca 3 de 5 nodos ⇒ los 3 esperados, con cualquier pan y cualquier zoom.
+Una corrección al plan original, que decía que el hit-test del marquee saldría a Python como función
+pura: **queda en C++**. Mandar la selección al cerebro en cada mouse-up mete un viaje a Python en el
+medio de un gesto, y es aritmética de rectángulos. Pero entonces la regla queda escrita dos veces, así
+que se ata como ya se ata la paleta de colores: `test_layout.py` **lee el `.cpp`** y exige que la
+condición siga siendo cruce con desigualdad estricta. Las cuentas que sí valen un viaje —alinear y
+distribuir, que son una acción y no un gesto— viven en `jam/layout.py`, puro y testeado.
 
 ### Fase 1 — El portapapeles y el historial son JSON
 
@@ -325,7 +321,7 @@ Ordenadas por lo que rinden, no por lo que cuestan:
    *bypass flag* de Houdini y vale oro para aislar un problema. Encaja con el flag de debug que ya
    existe.
 3. **Alinear y distribuir** — `Q`/`W`/`E`/`R` como en Blueprint. Detalle en
-   [[2026-07-26-PLAN-Seleccion-Multiple-Alineacion-Nodos-v1.0\|Selección múltiple y alineación]].
+   [[2026-07-29-INFORME-Seleccion-Multiple-Alineacion-Nodos-v2.0\|Selección múltiple y alineación]].
 4. **Reroute** — doble clic sobre un cable inserta un punto de paso. Grafo largo = cables que cruzan
    todo.
 5. **Auto-layout** — ordenar el grafo por capas topológicas. `graph.topo_order()` ya existe: el layout
@@ -396,7 +392,7 @@ Fases 0 y 1 juntas son **un día**, y son las que más se notan por hora inverti
 
 ## 7. Relacionado
 
-- [[2026-07-26-PLAN-Seleccion-Multiple-Alineacion-Nodos-v1.0|Selección múltiple y alineación]] — el detalle de la Fase 0
+- [[2026-07-29-INFORME-Seleccion-Multiple-Alineacion-Nodos-v2.0|Selección múltiple y alineación]] — el detalle de la Fase 0
 - [[2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0|Visión y roadmap de producto]] — dónde encaja
 - [[2026-07-25-CONCEPTO-Estetica-Nodos-Grasshopper-v1.0|Estética de nodos Grasshopper]] — el lenguaje visual
 - [[2026-07-27-INFORME-Nodos-De-Debug-Ver-El-Stream-v1.0|Nodos de debug: ver el stream]] — el visor 2D es su continuación

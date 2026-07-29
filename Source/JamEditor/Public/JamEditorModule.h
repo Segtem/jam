@@ -86,6 +86,8 @@ private:
 	/** Inspector: datos del último Run de un nodo, filtrados. Sin nodo devuelve la lista. */
 	FString InspectGraphNode(const FString& NodeId, const FString& Filter,
 		const FString& Sort, bool bDescending);
+	/** Alinear/distribuir la selección del Graph: las cuentas las hace `jam.layout` (puro). */
+	FString LayoutGraphNodes(const FString& NodesJson, const FString& Action);
 	/** Fija o descarta únicamente el Preview propiedad de la ventana Graph. */
 	FString BakeGraphPreview();
 	FString DiscardGraphPreview();

@@ -18,6 +18,9 @@ class SWidget;
 DECLARE_DELEGATE_RetVal_OneParam(FString, FOnRunGraph, const FString& /*json*/);
 /** Acción del ciclo Preview propia del Graph (Bake/Discard), sin argumentos. */
 DECLARE_DELEGATE_RetVal(FString, FOnGraphPreviewAction);
+/** Acomodar la selección: (JSON de rectángulos, acción) → JSON {ok, pos}. Las cuentas las hace
+ *  `jam.layout`, que es puro y testeado; el editor sólo manda rectángulos y aplica posiciones. */
+DECLARE_DELEGATE_RetVal_TwoParams(FString, FOnLayout, const FString& /*nodos*/, const FString& /*accion*/);
 /** Inspector de datos: (node_id, filtro) → JSON {nodos, filas}. Node vacío = sólo la lista. */
 DECLARE_DELEGATE_RetVal_FourParams(FString, FOnInspect, const FString& /*node*/,
 	const FString& /*filtro*/, const FString& /*orden*/, bool /*descendente*/);
@@ -50,6 +53,8 @@ public:
 		SLATE_EVENT(FOnRunGraph, OnSaveGraph)
 		/** Datos del último Run para el inspector. */
 		SLATE_EVENT(FOnInspect, OnInspect)
+		/** Alinear/distribuir: lo resuelve `jam.layout`. */
+		SLATE_EVENT(FOnLayout, OnLayout)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs, const TArray<FJamTool>& InTools);
@@ -117,6 +122,23 @@ private:
 	virtual FReply OnDrop(const FGeometry& MyGeometry, const FDragDropEvent& DragDropEvent) override;
 	void DeleteNode(const FString& Id);
 
+	// ---- selección: un ESTADO del editor, no el foco de teclado ----
+	// Mientras la selección fue «el nodo con foco» no había forma de mover, borrar, copiar ni
+	// alinear más de uno. Todo lo de abajo cuelga de este TSet.
+	/** Clic en el cuerpo de un nodo. Shift agrega, Ctrl alterna; sin modificadores reemplaza —
+	 *  salvo que el nodo YA esté elegido, para no romper un grupo justo antes de arrastrarlo. */
+	void ClickNode(const FString& Id, bool bShift, bool bCtrl);
+	void ClearSelection();
+	void SelectAll();
+	/** Borra todos los elegidos con sus cables, en UNA operación (un solo refresco de pines). */
+	void DeleteSelection();
+	/** Mueve la selección entera el mismo delta (en unidades de modelo). */
+	void MoveSelection(const FVector2D& DeltaModelo);
+	/** Alinear/distribuir por `jam.layout`: «izquierda…centro-y», «dist-x», «dist-y». */
+	void AcomodarSeleccion(const FString& Accion);
+	/** Rectángulo del marquee en coordenadas de MODELO; false si no hay uno en curso. */
+	bool GetMarquee(FVector2D& OutA, FVector2D& OutB) const;
+
 	// ---- menú principal estilo Grasshopper (File / Edit / View / Display / Solution) ----
 	void FillFileMenu(class FMenuBuilder& MB);
 	void FillEditMenu(class FMenuBuilder& MB);
@@ -181,6 +203,9 @@ private:
 	// Canvas: doble clic → buscador · arrastre con botón derecho/medio → pan.
 	// Es focusable para que un clic en el fondo quite el foco/selección del nodo anterior.
 	virtual bool SupportsKeyboardFocus() const override { return true; }
+	/** Atajos del canvas: `Ctrl+A` todo, `Esc` nada, `Supr` la selección. Sólo corren si el foco NO
+	 *  está en un campo de edición — ahí esas teclas son del campo. */
+	virtual FReply OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent) override;
 	virtual FReply OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual FReply OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual FReply OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
@@ -214,6 +239,7 @@ private:
 	FOnGraphPreviewAction OnDiscardPreview;
 	FOnRunGraph OnSaveGraph;
 	FOnInspect OnInspect;
+	FOnLayout OnLayout;
 
 	/** Nodos del último Run (id + tipo + cantidad) que alimentan el selector del inspector. */
 	TArray<TSharedPtr<FString>> InspectNodes;
@@ -250,6 +276,20 @@ private:
 	FVector2D PanOffset = FVector2D::ZeroVector;
 	bool bPanning = false;
 	float Zoom = 1.0f;
+
+	/** Nodos elegidos. Es LA fuente de la selección: el halo, el arrastre en grupo, `Supr`, alinear
+	 *  y (más adelante) copiar y colapsar a función leen todos de acá. */
+	TSet<FString> SelectedNodeIds;
+	// Marquee (arrastre con el izquierdo sobre el fondo). Se guarda en coordenadas de MODELO para
+	// que el cuadro quede pegado al grafo y no a la pantalla.
+	bool bMarquee = false;
+	FVector2D MarqueeA = FVector2D::ZeroVector;
+	FVector2D MarqueeB = FVector2D::ZeroVector;
+	/** Selección de antes de empezar el marquee: con Shift/Ctrl el cuadro SUMA a lo que ya había. */
+	TSet<FString> MarqueeBase;
+	bool bMarqueeAgrega = false;
+	/** Capa que pinta el cuadro por encima de los nodos (sin recibir clics). */
+	TSharedPtr<class SWidget> MarqueeLayer;
 
 	// Para el cable-fantasma: última posición del cursor (local a la capa de wires) + esa capa (para
 	// repintarla mientras se arrastra una conexión).

@@ -38,6 +38,9 @@ DECLARE_DELEGATE_OneParam(FOnNodeDragDelta, const FVector2D&);
 /** Clic en un pin de ENTRADA: pasa el nombre del pin — «in» = stream, o el nombre de un parámetro
  *  (count, spacing…). Cada parámetro es un pin propio, como en Grasshopper. */
 DECLARE_DELEGATE_OneParam(FOnPinClicked, const FString& /*pin*/);
+/** Clic en el CUERPO del nodo, con los modificadores: Shift agrega a la selección, Ctrl alterna.
+ *  El nodo no sabe qué está seleccionado —eso es del editor—; sólo reporta el gesto. */
+DECLARE_DELEGATE_TwoParams(FOnNodeClicked, bool /*bShift*/, bool /*bCtrl*/);
 
 /**
  * Un componente del canvas «Grasshopper» de Jam: título flotante, cuerpo biselado, controles de
@@ -66,11 +69,19 @@ public:
 		/** false en los nodos FUENTE (asset, create_spline): no reciben nada, van sin pin de entrada
 		 *  — la convención de Grasshopper para componentes sin inputs. */
 		SLATE_ARGUMENT(bool, HasInput)
+		/** Si el nodo está en la selección del editor: pinta el halo aunque no tenga el foco. La
+		    selección es un ESTADO del editor, no el foco de teclado — por eso llega como atributo y
+		    no como un bool que habría que ir sincronizando nodo por nodo. */
+		SLATE_ATTRIBUTE(bool, IsSelected)
 		SLATE_EVENT(FOnNodeDragDelta, OnDragDelta)
 		SLATE_EVENT(FSimpleDelegate, OnOutputClicked)
 		/** Recibe el nombre del pin: «in» (stream) o el de un parámetro. */
 		SLATE_EVENT(FOnPinClicked, OnInputClicked)
 		SLATE_EVENT(FSimpleDelegate, OnDeleteClicked)
+		/** Clic en el cuerpo (con modificadores): el editor actualiza la selección. */
+		SLATE_EVENT(FOnNodeClicked, OnClicked)
+		/** `Supr` sobre el nodo. Lo resuelve el editor, que es el que sabe si hay varios elegidos. */
+		SLATE_EVENT(FSimpleDelegate, OnDeleteSelection)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);
@@ -158,6 +169,10 @@ private:
 	FOnPinClicked OnInputClickedDelegate;
 	FSimpleDelegate OnOutputClickedDelegate;
 	FSimpleDelegate OnDeleteClickedDelegate;
+	FOnNodeClicked OnClickedDelegate;
+	FSimpleDelegate OnDeleteSelectionDelegate;
+	/** Lo lee `OnPaint` para pintar el halo; la fuente es el `TSet` del editor. */
+	TAttribute<bool> IsSelectedAttr;
 
 public:
 	/** Flag de debug del nodo: el display flag de Houdini / la tecla D de PCG. Cuando está

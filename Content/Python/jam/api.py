@@ -319,6 +319,31 @@ def preview_2d(node_id: str = "", ancho: int = 320, alto: int = 320, canal: int 
                       ensure_ascii=True)
 
 
+def acomodar(nodos_json: str, accion: str) -> str:
+    """Alinear/distribuir la selección del canvas. JSON `{ok, pos: {id: [x, y]}}`.
+
+    `nodos_json` es `[{"id","x","y","w","h"}]` en coordenadas de MODELO. `accion` es uno de
+    `izquierda/derecha/arriba/abajo/centro-x/centro-y` (alinear) o `dist-x`/`dist-y` (distribuir).
+
+    Las cuentas viven en `jam.layout`, puro y testeado, y no en Slate: son las mismas con cualquier
+    pan, zoom y DPI, y así se pueden verificar sin abrir el editor.
+    """
+    import json
+
+    from . import layout
+
+    try:
+        nodos = json.loads(nodos_json) or []
+        if str(accion) in ("dist-x", "dist-y"):
+            pos = layout.distribuir(nodos, str(accion)[-1])
+        else:
+            pos = layout.alinear(nodos, str(accion))
+    except (ValueError, TypeError, json.JSONDecodeError) as e:
+        return json.dumps({"ok": False, "error": str(e)}, ensure_ascii=True)
+    return json.dumps({"ok": True, "pos": {k: [v[0], v[1]] for k, v in pos.items()}},
+                      ensure_ascii=True)
+
+
 def params_de_nodo_nuevo(verbo: str) -> str:
     """Los params con los que nace un nodo en el canvas. JSON `{param: valor}`.
 
