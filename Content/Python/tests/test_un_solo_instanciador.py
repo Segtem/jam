@@ -178,3 +178,35 @@ class ScatterMultiplicadorTests(unittest.TestCase):
         params.update({"count": 6, "area": 400.0, "surface": False})
         tools.REGISTRO["scatter"]["fn"](None, **params)
         self.assertTrue(tools.dato_producido_runtime("scatter"))
+
+
+class UnaEntradaPorCosaTests(unittest.TestCase):
+    """Ningún nodo puede ofrecer DOS pines para lo mismo."""
+
+    def test_no_verb_offers_the_asset_twice(self):
+        """`place` tenía el pin del header (A) y además una fila `asset`: dos lugares donde enchufar
+        lo mismo, y ninguna pista de cuál. El del header queda, porque es donde está la entrada
+        principal de TODOS los nodos y hace que el grafo se lea igual en todos lados."""
+        dobles = sorted(v for v, i in tools.REGISTRO.items()
+                        if i.get("asset_row") and i.get("in_name") == "A")
+        self.assertEqual(dobles, [], "estos verbos ofrecen el asset por dos pines distintos")
+
+    def test_a_verb_whose_header_takes_something_else_keeps_its_asset_row(self):
+        """No es «sacar todas las filas asset»: `mesh_leaf` toma una CURVA arriba y un asset en la
+        fila, y ahí son dos entradas distintas de verdad."""
+        self.assertTrue(tools.REGISTRO["mesh_leaf"]["asset_row"])
+        self.assertEqual(tools.REGISTRO["mesh_leaf"]["in_name"], "S")
+
+    def test_consuming_an_asset_and_drawing_a_pin_for_it_are_different_questions(self):
+        """`place` CONSUME un asset —hay que resolvérselo— pero lo recibe por su entrada principal.
+        Mezclar las dos cosas en un solo flag rompió la resolución de assets cuando lo intenté."""
+        self.assertTrue(tools.REGISTRO["place"]["asset_pin"], "sí consume un asset")
+        self.assertFalse(tools.REGISTRO["place"]["asset_row"], "pero no dibuja un pin propio")
+
+    def test_the_asset_pin_is_only_typed_where_it_exists(self):
+        """El tipado tiene que coincidir con lo que se dibuja, o un grafo viejo queda con una arista
+        válida para Python e invisible en el canvas."""
+        from jam import graph
+
+        self.assertIsNone(graph._tipo_entrada("place", "asset", tools.REGISTRO))
+        self.assertEqual(graph._tipo_entrada("mesh_leaf", "asset", tools.REGISTRO), "A")

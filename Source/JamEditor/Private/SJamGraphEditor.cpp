@@ -1227,10 +1227,15 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At)
 	}
 
 	TArray<FJamNodeParam> Params;
-	// Pin «asset» EXPLÍCITO primero (es la entrada principal): se puede cablear la salida de un nodo
-	// `asset` acá, o escribir el nombre. Vacío es un error de Compile; el Graph nunca hereda en silencio
-	// el asset activo ni el primero de la biblioteca (esa comodidad queda limitada a la Dash Bar).
-	if (T->bAssetPin)
+	// Pin «asset» explícito: se puede cablear la salida de un nodo `asset` acá, o escribir el nombre.
+	// Vacío es un error de Compile; el Graph nunca hereda en silencio el asset activo ni el primero de
+	// la biblioteca (esa comodidad queda limitada a la Dash Bar).
+	//
+	// Quién dibuja este pin lo decide el REGISTRO (`asset_row`), que excluye a los verbos cuya
+	// entrada principal ya es un asset: en `place` o `drop`, el pin del header y una fila `asset`
+	// serían la misma cosa dos veces. Los que la conservan reciben otra cosa por el header —
+	// `mesh_leaf` toma una curva arriba y un asset acá.
+	if (T->bAssetRow)
 	{
 		Params.Add(FJamNodeParam(TEXT("asset"), FString(), TEXT("str"), TArray<FString>(),
 			TEXT("A"), DataColor(TEXT("A"))));
@@ -1367,7 +1372,7 @@ FString SJamGraphEditor::InputDataTypeFor(const FString& NodeId, const FString& 
 	{
 		return FString();
 	}
-	if (Pin == TEXT("asset") && T->bAssetPin)
+	if (Pin == TEXT("asset") && T->bAssetRow)
 	{
 		return TEXT("A");
 	}
@@ -2078,7 +2083,7 @@ bool SJamGraphEditor::LoadGraphJson(const FString& Json)
 		{
 			for (const TPair<FString, TSharedPtr<FJsonValue>>& PV : (*ParamsObj)->Values)
 			{
-				const bool bKnownParam = (PV.Key == TEXT("asset") && Tool->bAssetPin)
+				const bool bKnownParam = (PV.Key == TEXT("asset") && Tool->bAssetRow)
 					|| Tool->Params.ContainsByPredicate(
 						[&PV](const FJamParam& Param) { return Param.Name == PV.Key; });
 				if (!bKnownParam)
@@ -2153,7 +2158,7 @@ bool SJamGraphEditor::LoadGraphJson(const FString& Json)
 			{
 				InType = ToTool->InName;
 			}
-			else if (ToPin == TEXT("asset") && ToTool && ToTool->bAssetPin)
+			else if (ToPin == TEXT("asset") && ToTool && ToTool->bAssetRow)
 			{
 				InType = TEXT("A");
 			}

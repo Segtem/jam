@@ -204,7 +204,10 @@ def _tipo_entrada(verb: str, pin: str, registro: dict) -> str | None:
     if pin == PIN_IN:
         return info.get("in_name") if not info.get("source") and info.get("aridad", 1) != 0 else None
     if pin == PIN_ASSET:
-        return "A" if info.get("asset_pin") else None
+        # `asset_row`, no `asset_pin`: el primero es «tiene su propio pin en el canvas» y el
+        # segundo «consume un asset». `place` consume uno pero lo recibe por su entrada principal,
+        # así que un cable a `place.asset` no apunta a ningún pin que exista.
+        return "A" if info.get("asset_row") else None
     data_type = info.get("data_params", {}).get(pin)
     if data_type:
         return data_type

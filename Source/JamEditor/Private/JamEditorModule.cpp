@@ -320,6 +320,7 @@ void FJamEditorModule::LoadSpec(bool bIncludeFlow)
 		O->TryGetStringField(TEXT("doc"), T.Doc);
 		O->TryGetBoolField(TEXT("source"), T.bSource);
 		O->TryGetBoolField(TEXT("asset_pin"), T.bAssetPin);
+		O->TryGetBoolField(TEXT("asset_row"), T.bAssetRow);
 		T.Arity = T.bSource ? 0 : 1;
 		double ArityValue = static_cast<double>(T.Arity);
 		if (O->TryGetNumberField(TEXT("aridad"), ArityValue))

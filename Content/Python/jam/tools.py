@@ -2043,8 +2043,18 @@ for _nombre, _info in REGISTRO.items():
     _info["min_inputs"] = GRAPH_MIN_INPUTS.get(_nombre, 0 if _source else 1)
     _info["in_name"] = "" if _source else GRAPH_IN_NAMES.get(_nombre, "A")
     _info["asset_required"] = _nombre not in GRAPH_NO_ASSET
+    # `asset_pin` = este verbo CONSUME un asset (y hay que resolvérselo). No confundir con dibujar
+    # una fila: son dos preguntas distintas y mezclarlas rompe la resolución.
     _info["asset_pin"] = bool(
         _info["asset_required"] or _info.get("optional_asset_argument", False))
+    # `asset_row` = además tiene su PROPIO pin `asset` en el canvas. Sólo cuando la entrada
+    # principal no es ya un asset: en `place` o `drop`, el pin del header y una fila `asset` serían
+    # la misma cosa dos veces —dos lugares donde enchufar lo mismo y ninguna pista de cuál—. Los que
+    # sí la tienen reciben OTRA cosa por el header: `mesh_leaf` toma una curva arriba y un asset acá.
+    #
+    # Se deriva acá y no en la UI para que el canvas, el tipado de los cables y el ejecutor no
+    # puedan tener tres opiniones sobre qué pines existen.
+    _info["asset_row"] = bool(_info["asset_pin"] and _info["in_name"] != "A")
     _info["out_name"] = GRAPH_OUT_NAMES.get(_nombre, "A")
 
 
@@ -2078,6 +2088,7 @@ def spec_json(*, include_graph_only: bool = False) -> str:
             # Tipo del pin gordo de entrada: en el grafo de verbos viaja el asset/actor activo.
             "in_name": info["in_name"],
             "asset_pin": info["asset_pin"],
+            "asset_row": info["asset_row"],
             "out_name": info["out_name"],
             # `opciones` → la UI dibuja una LISTA en vez de un campo de texto (anclas, modos…)
             "params": [{"nombre": k, "default": str(v), "tipo": tipo(v),

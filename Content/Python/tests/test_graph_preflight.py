@@ -18,14 +18,21 @@ from jam import session, tools
 def _tool(*, source=False, asset_required=True, asset_pin=None, out="A", in_name="A",
           params=None, arity=None, min_inputs=None):
     resolved_arity = (0 if source else 1) if arity is None else arity
+    entrada = "" if source else in_name
+    # Misma regla que `tools.py`: un verbo cuya entrada PRINCIPAL ya es un asset no tiene además una
+    # fila `asset` — serían dos pines para lo mismo. Se deriva acá igual que allá para que este
+    # registro de mentira no pueda quedar describiendo un canvas que ya no existe.
+    pin = asset_required if asset_pin is None else asset_pin
     return {
         "source": source,
         "aridad": resolved_arity,
         "min_inputs": (0 if source else 1) if min_inputs is None else min_inputs,
-        "in_name": "" if source else in_name,
+        "in_name": entrada,
         "out_name": out,
         "asset_required": asset_required,
-        "asset_pin": asset_required if asset_pin is None else asset_pin,
+        "asset_pin": bool(pin),
+        # «tiene su propio pin en el canvas», que no es lo mismo que «consume un asset»
+        "asset_row": bool(pin) and entrada != "A",
         "params": params or {},
     }
 
@@ -167,15 +174,34 @@ class GraphPreflightTests(unittest.TestCase):
         self.assertIn("no encontrado", " ".join(caught.exception.diagnostics["place"]))
 
     def test_text_cannot_connect_directly_to_asset_pin(self) -> None:
+        # Se usa `mesh_leaf` y no `place`: `place` recibe el asset por su pin PRINCIPAL, así que ya
+        # no tiene una fila `asset` aparte —eran dos pines para lo mismo—. `mesh_leaf` sí la tiene,
+        # porque por el header recibe una curva: ahí son dos entradas distintas de verdad.
         graph = JamGraph()
         graph.add("text", {"name": "path", "value": "Rock"}, nid="text")
-        graph.add("place", {}, nid="place")
-        graph.connect("text", "place", "asset")
+        graph.add("curve_bezier", {}, nid="curva")
+        graph.add("mesh_leaf", {}, nid="hoja")
+        graph.connect("curva", "hoja")
+        graph.connect("text", "hoja", "asset")
 
         with self.assertRaises(GraphValidationError) as caught:
             self.compile(graph)
 
-        self.assertIn("esperaba A, recibió T", " ".join(caught.exception.diagnostics["place"]))
+        self.assertIn("esperaba A, recibió T", " ".join(caught.exception.diagnostics["hoja"]))
+
+    def test_a_verb_whose_main_input_is_an_asset_has_no_separate_asset_pin(self) -> None:
+        """El duplicado que se sacó: `place` ofrecía el asset por el pin del header Y por una fila
+        propia. Dos lugares donde enchufar lo mismo, sin ninguna pista de cuál."""
+        graph = JamGraph()
+        graph.add("asset", {"name": "Rock"}, nid="a")
+        graph.add("place", {}, nid="place")
+        graph.connect("a", "place", "asset")
+
+        with self.assertRaises(GraphValidationError) as caught:
+            self.compile(graph)
+
+        self.assertIn("pin de entrada desconocido",
+                      " ".join(caught.exception.diagnostics["place"]))
 
     def test_text_can_drive_asset_name_then_asset_can_feed_place(self) -> None:
         graph = JamGraph()

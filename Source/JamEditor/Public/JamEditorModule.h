@@ -40,7 +40,11 @@ struct FJamTool
 	FString Group;            // subgrupo dentro del tab (el «panel» de Grasshopper); puede ir vacío
 	FString Doc;
 	bool bSource = false;     // en el grafo, nodo FUENTE (sin pin de entrada)
-	bool bAssetPin = false;   // consume un asset → en el grafo lleva un pin «asset» explícito
+	bool bAssetPin = false;   // CONSUME un asset (hay que resolvérselo)
+	/** Además dibuja su PROPIO pin «asset» en el canvas. No es lo mismo que consumirlo: `place`
+	    consume uno pero lo recibe por su entrada principal, y una fila aparte serían dos pines para
+	    la misma cosa. Lo deriva el registro (`tools.asset_row`), no la UI. */
+	bool bAssetRow = false;
 	int32 Arity = 1;          // 0=fuente · 1=unario · -1=variádico (varios cables en «in»)
 	FString InName;           // tipo que recibe el pin gordo: A=asset/actor · P=stream de puntos
 	FString OutName;          // nombre de la salida (la «variable» del pin de salida, estilo GH)
