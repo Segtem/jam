@@ -3,7 +3,7 @@ turno: 2026-07-29 · claude-code → codex
 saliente: claude-code
 entrante: codex
 desde: 2026-07-29
-verde_editor: 15c4cae
+verde_editor: 19d2593
 verde_editor_fecha: 2026-07-29
 ---
 
@@ -19,8 +19,8 @@ docking de los tres paneles.
 
 | Qué | Comando | Resultado |
 |---|---|---|
-| Cerebro | `cd Content/Python/tests && PYTHONPATH=$PWD/.. python -m unittest discover -s . -p "test_*.py" -q` | **459 OK**, 0.3 s |
-| Vault | `python tools/vault.py` | **46 docs**, en regla |
+| Cerebro | `cd Content/Python/tests && PYTHONPATH=$PWD/.. python -m unittest discover -s . -p "test_*.py" -q` | **477 OK**, 0.3 s |
+| Vault | `python tools/vault.py` | **47 docs** en 5 carpetas, en regla |
 | Motor | `tools/experiments/verifica_ejemplos.py` headless | **8/8 tutoriales · TODO VERDE** |
 | Editor | arranque + carga del módulo | los 3 spawners registran, **sin warnings de tab** |
 
@@ -60,19 +60,18 @@ Quince minutos, en este orden — si algo falla acá, arrastra a todo lo demás:
 
 **0. Lo que Brian haya encontrado** en la lista de arriba. Bloqueante: es código de este turno.
 
-**1. Fase 5 — funciones con firma** (`Vault-kb/01-Graph/2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0.md`,
-§Fase 5). Es lo de mayor palanca y —esto es lo que la hace buena para un turno de agente— **el grueso
-es cerebro puro y se verifica con tests, sin motor**:
+**1. Fase 5 — la capa de Slate de las funciones.** El **cerebro ya está hecho y cableado**
+(`jam/funcion.py`, 18 tests, expansión inline verificada contra el grafo plano equivalente; ver
+[el informe](Vault-kb/01-Graph/2026-07-29-INFORME-Funciones-Graph-Firma-v1.0.md)). Falta lo de
+arriba, que es gesto y por lo tanto queda en la frontera:
 
-- verbos `input` / `output` dentro de un compound → la firma del subgrafo;
-- instanciarlo como **un** nodo con esos pines;
-- compilar por **expansión inline** en `graph.compilar`, para que el oráculo siga midiendo lo mismo
-  que antes (si la función fuese opaca, el oráculo pierde el interior);
-- guarda de recursión.
+- **instanciar desde el ribbon**: una función guardada aparece como un nodo, y `funcion.firma()` ya
+  devuelve los pines en el orden en que se ven. Sólo hay que dibujarlos;
+- **`Ctrl+G`, colapsar la selección a función**: los cables que cruzan el borde de la selección se
+  vuelven `input`/`output`. Acá es donde la Fase 0 se paga sola — la selección ya es un estado.
 
-*Terminado* = una función con 2 entradas y 1 salida, usada dos veces en un grafo, compila al mismo
-resultado que el grafo expandido a mano, y hay un test que lo afirma. `Ctrl+G` («colapsar la
-selección a función») es la capa fina de Slate, va al final y queda en la frontera de verificación.
+*Terminado* = guardar una selección como función, instanciarla dos veces, y que el Compile del
+canvas dé verde con los nodos `f1__…` en el reporte.
 
 **2. Fase 7 — bypass (`D`) y comentarios (`C`).** El bypass es cerebro (compilar salteando el nodo,
 pasando la entrada a la salida) y por lo tanto verificable; el comentario es Slate.
@@ -103,6 +102,12 @@ Todo esto ya está en `AGENTS.md` o en el Vault; acá queda el resumen de por qu
   justo al acoplar.
 - Llamar al destructor de un `TGuardValue` de pila es doble destrucción. **Lo hice dos veces** en la
   misma sesión; la segunda la atajó el compilador de casualidad. Bloque con *scope*, siempre.
+- **Un mutante sobrevivió** al probar las funciones: ordenar la firma por id en vez de por posición
+  pasaba en verde, porque en el test el id `a` caía justo en el pin de arriba y los dos órdenes
+  coincidían. El test no discriminaba. Si no se rompe el código a propósito, esto no se ve.
+- **El verificador del relevo tenía el mismo agujero que persigue**: miraba sólo lo commiteado desde
+  la foto de `verde_editor`, así que daba VERDE con el código vivo modificado en el árbol de
+  trabajo. Corregido: ahora mira también lo que está sin commitear.
 - Un verificador que reporta roto lo que está bien **es peor que no verificar**: enseña a ignorarlo.
   Salió de dos falsos positivos del verificador del vault (la barra escapada `\|` de las tablas y
   los `[[ejemplos]]` dentro de comillas invertidas). Se arregló el verificador, no los documentos.
