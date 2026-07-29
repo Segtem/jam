@@ -118,11 +118,20 @@ de manejarlo headless. Los puntos donde se marca un paso se auditaron uno por un
 —hay 9 llamadas a `Marcar()` y 4 bloques de silencio— pero eso es lectura, no medición. Que `Ctrl+Z`
 haga lo correcto hay que probarlo a mano.
 
-## Lo que queda de la Fase 1
+## El resto de la Fase 1, hecho el mismo día
 
-Copiar / cortar / pegar y duplicar, que usan el mismo mecanismo (un JSON del subconjunto elegido) y
-ahora son baratos. Ver
-[[2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0\|el roadmap de accesibilidad]].
+Copiar / cortar / pegar / duplicar salieron enseguida y con el mismo mecanismo: `BuildJson()` ahora
+acepta un filtro, así que un recorte es el mismo JSON con menos nodos. Va al portapapeles **del
+sistema**, no a un buffer interno, y por eso se pega entre dos ventanas de Graph y el fragmento se
+puede leer a ojo o pegar en el vault.
+
+Dos detalles que valen: **un cable sólo viaja si sus DOS puntas están en el recorte** (uno a medias
+no es un grafo, y pegarlo dejaría una entrada conectada a la nada); y cada cable pegado pasa por
+`CanConnect`, **la misma compuerta que conectar a mano** — un cable pegado no puede entrar por una
+puerta que un cable dibujado no podría cruzar.
+
+Pegar N nodos con sus cables es UN paso. Como `PegarJson` tiene `return`s de error adentro, el
+silencio va con `TGuardValue` y el `Marcar()` lo hace el que llama, según lo que devuelva.
 
 ## Relacionado
 

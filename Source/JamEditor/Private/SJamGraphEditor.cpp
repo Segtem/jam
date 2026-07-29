@@ -17,6 +17,7 @@
 #include "Widgets/Layout/SExpandableArea.h"
 #include "Widgets/Layout/SSeparator.h"
 #include "Serialization/JsonSerializer.h"
+#include "HAL/PlatformApplicationMisc.h"   // portapapeles del sistema (copiar/pegar nodos)
 #include "Widgets/Input/SMultiLineEditableTextBox.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Framework/Application/SlateApplication.h"
@@ -1522,6 +1523,206 @@ void SJamGraphEditor::Rehacer()
 	}
 }
 
+// ---- portapapeles ----
+
+void SJamGraphEditor::Copiar(bool bCortar)
+{
+	if (SelectedNodeIds.Num() == 0)
+	{
+		return;
+	}
+	// Al portapapeles DEL SISTEMA y no a un buffer interno: así se pega entre dos ventanas de Graph,
+	// y el fragmento se puede pegar en un chat o en el vault — es el mismo JSON de un .jamgraph.
+	const FString Recorte = BuildJson(&SelectedNodeIds);
+	FPlatformApplicationMisc::ClipboardCopy(*Recorte);
+	const int32 Cuantos = SelectedNodeIds.Num();
+	if (bCortar)
+	{
+		DeleteSelection();
+	}
+	if (Output.IsValid())
+	{
+		Output->SetText(FText::FromString(FString::Printf(
+			TEXT("%s: %d nodo%s"), bCortar ? TEXT("cortado") : TEXT("copiado"),
+			Cuantos, Cuantos == 1 ? TEXT("") : TEXT("s"))));
+	}
+}
+
+void SJamGraphEditor::Pegar()
+{
+	FString Recorte;
+	FPlatformApplicationMisc::ClipboardPaste(Recorte);
+	if (PegarJson(Recorte, /*bDesplazar*/ true)) { Marcar(); }
+}
+
+void SJamGraphEditor::Duplicar()
+{
+	if (SelectedNodeIds.Num() == 0)
+	{
+		return;
+	}
+	// Sin tocar el portapapeles: duplicar no puede pisar lo que tenías copiado.
+	if (PegarJson(BuildJson(&SelectedNodeIds), /*bDesplazar*/ true)) { Marcar(); }
+}
+
+bool SJamGraphEditor::PegarJson(const FString& Json, bool bDesplazar)
+{
+	TSharedPtr<FJsonObject> Root;
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Json);
+	const TSharedPtr<FJsonObject>* NodesObj = nullptr;
+	if (!FJsonSerializer::Deserialize(Reader, Root) || !Root.IsValid()
+		|| !Root->TryGetObjectField(TEXT("nodes"), NodesObj) || NodesObj == nullptr)
+	{
+		// El portapapeles del sistema puede tener cualquier cosa: no es un error del usuario.
+		if (Output.IsValid())
+		{
+			Output->SetText(LOCTEXT("PasteNotGraph", "el portapapeles no tiene nodos de Jam."));
+		}
+		return false;
+	}
+
+	// Corrimiento fijo para que lo pegado no quede exactamente encima del original y parezca que no
+	// pasó nada. Pegar dos veces escalona, que es lo que hace todo editor nodal.
+	const FVector2D Corrimiento = bDesplazar ? FVector2D(26.0f, 26.0f) : FVector2D::ZeroVector;
+
+	// Todo el pegado corre callado: N nodos con sus cables son UN Ctrl+Z. El paso lo registra el que
+	// llamó, según lo que devolvamos — así el `Marcar()` no queda adentro del silencio. Con
+	// `TGuardValue` porque acá abajo hay `return`s: una bandera a mano se quedaría prendida y mataría
+	// el historial en silencio por el resto de la sesión.
+	TGuardValue<bool> Callado(bSinHistorial, true);
+	TMap<FString, FString> IdMap;
+	TSet<FString> Pegados;
+	for (const TPair<FString, TSharedPtr<FJsonValue>>& KV : (*NodesObj)->Values)
+	{
+		const TSharedPtr<FJsonObject> NO = KV.Value.IsValid() ? KV.Value->AsObject() : nullptr;
+		FString Verb;
+		double X = 0.0, Y = 0.0;
+		if (!NO.IsValid() || !NO->TryGetStringField(TEXT("verb"), Verb) || FindTool(Verb) == nullptr
+			|| !NO->TryGetNumberField(TEXT("x"), X) || !NO->TryGetNumberField(TEXT("y"), Y))
+		{
+			continue;   // nodo ilegible o de un verbo que este Jam no tiene: se saltea, no se aborta
+		}
+		const FVector2D At(static_cast<float>(X) + Corrimiento.X, static_cast<float>(Y) + Corrimiento.Y);
+		// Ids NUEVOS a propósito: los del recorte casi seguro ya existen en este grafo.
+		const FString NewId = AddNode(Verb, &At);
+		if (NewId.IsEmpty())
+		{
+			continue;
+		}
+		IdMap.Add(KV.Key, NewId);
+		Pegados.Add(NewId);
+		if (FGNode* Node = FindNode(NewId); Node && Node->Widget.IsValid())
+		{
+			TMap<FString, FString> Params;
+			const TSharedPtr<FJsonObject>* PO = nullptr;
+			if (NO->TryGetObjectField(TEXT("params"), PO) && PO != nullptr)
+			{
+				for (const TPair<FString, TSharedPtr<FJsonValue>>& PV : (*PO)->Values)
+				{
+					FString Value;
+					if (PV.Value.IsValid() && PV.Value->TryGetString(Value))
+					{
+						Params.Add(PV.Key, Value);
+					}
+				}
+			}
+			Node->Widget->SetParamValues(Params);
+			bool bDebug = false;
+			if (NO->TryGetBoolField(TEXT("debug"), bDebug)) { Node->Widget->SetDebugEnabled(bDebug); }
+		}
+	}
+	if (Pegados.Num() == 0)
+	{
+		if (Output.IsValid())
+		{
+			Output->SetText(LOCTEXT("PasteNothing", "no había nada pegable en el portapapeles."));
+		}
+		return false;
+	}
+
+	const TArray<TSharedPtr<FJsonValue>>* EdgesArr = nullptr;
+	if (Root->TryGetArrayField(TEXT("edges"), EdgesArr) && EdgesArr != nullptr)
+	{
+		for (const TSharedPtr<FJsonValue>& EV : *EdgesArr)
+		{
+			const TArray<TSharedPtr<FJsonValue>>* E = nullptr;
+			if (!EV.IsValid() || !EV->TryGetArray(E) || E == nullptr || (E->Num() != 2 && E->Num() != 4))
+			{
+				continue;
+			}
+			FString From, FromPin = TEXT("out"), To, ToPin = TEXT("in");
+			const bool bStrings = E->Num() == 2
+				? (*E)[0]->TryGetString(From) && (*E)[1]->TryGetString(To)
+				: (*E)[0]->TryGetString(From) && (*E)[1]->TryGetString(FromPin)
+					&& (*E)[2]->TryGetString(To) && (*E)[3]->TryGetString(ToPin);
+			const FString* NuevoFrom = bStrings ? IdMap.Find(From) : nullptr;
+			const FString* NuevoTo = bStrings ? IdMap.Find(To) : nullptr;
+			if (NuevoFrom == nullptr || NuevoTo == nullptr)
+			{
+				continue;   // una punta quedó afuera del pegado
+			}
+			// La MISMA compuerta que usa conectar a mano: un cable pegado no puede entrar por una
+			// puerta que un cable dibujado no podría cruzar.
+			FString Error;
+			if (CanConnect(*NuevoFrom, FromPin, *NuevoTo, ToPin, Error))
+			{
+				Edges.Add(FGEdge{*NuevoFrom, FromPin, *NuevoTo, ToPin});
+			}
+		}
+	}
+	RefreshCabledPins();
+	// Lo pegado queda elegido: es lo que uno quiere mover o volver a pegar enseguida.
+	SelectedNodeIds = Pegados;
+	if (Output.IsValid())
+	{
+		Output->SetText(FText::FromString(FString::Printf(TEXT("pegado: %d nodos"), Pegados.Num())));
+	}
+	return true;
+}
+
+void SJamGraphEditor::Encuadrar(bool bSoloSeleccion)
+{
+	if (!WireLayer.IsValid() || Nodes.Num() == 0)
+	{
+		return;
+	}
+	const bool bRecorte = bSoloSeleccion && SelectedNodeIds.Num() > 0;
+	FVector2D Min(TNumericLimits<float>::Max(), TNumericLimits<float>::Max());
+	FVector2D Max(TNumericLimits<float>::Lowest(), TNumericLimits<float>::Lowest());
+	int32 Contados = 0;
+	for (const FGNode& N : Nodes)
+	{
+		if (bRecorte && !SelectedNodeIds.Contains(N.Id)) { continue; }
+		Min.X = FMath::Min(Min.X, N.Pos.X);
+		Min.Y = FMath::Min(Min.Y, N.Pos.Y);
+		Max.X = FMath::Max(Max.X, N.Pos.X + NodeWidth);
+		Max.Y = FMath::Max(Max.Y, N.Pos.Y + N.Height);
+		++Contados;
+	}
+	if (Contados == 0)
+	{
+		return;
+	}
+	const FVector2D Lienzo = WireLayer->GetCachedGeometry().GetLocalSize();
+	if (Lienzo.X <= 1.0f || Lienzo.Y <= 1.0f)
+	{
+		return;
+	}
+	const float Margen = 40.0f;
+	const FVector2D Cuadro = (Max - Min) + FVector2D(Margen * 2.0f, Margen * 2.0f);
+	// El mismo clamp que el zoom con la rueda: encuadrar no puede dejar la vista en un zoom al que
+	// después no se puede volver arrastrando.
+	Zoom = FMath::Clamp(FMath::Min(Lienzo.X / Cuadro.X, Lienzo.Y / Cuadro.Y), 0.35f, 2.5f);
+	// pantalla = (modelo + Pan) * Zoom  ⇒  centrar el cuadro es despejar Pan.
+	PanOffset = Lienzo / (2.0f * Zoom) - (Min + Max) * 0.5f;
+	ApplyZoom();
+	if (Output.IsValid())
+	{
+		Output->SetText(FText::FromString(FString::Printf(
+			TEXT("encuadrado: %d nodo%s"), Contados, Contados == 1 ? TEXT("") : TEXT("s"))));
+	}
+}
+
 // ---- selección ----
 
 void SJamGraphEditor::ClickNode(const FString& Id, bool bShift, bool bCtrl)
@@ -1965,13 +2166,17 @@ bool SJamGraphEditor::GetPendingWire(FVector2D& OutFrom, FVector2D& OutTo, FLine
 	return true;
 }
 
-FString SJamGraphEditor::BuildJson() const
+FString SJamGraphEditor::BuildJson(const TSet<FString>* Solo) const
 {
 	TSharedRef<FJsonObject> Root = MakeShared<FJsonObject>();
 	Root->SetNumberField(TEXT("schema_version"), 1);
 	TSharedRef<FJsonObject> NodesObj = MakeShared<FJsonObject>();
 	for (const FGNode& N : Nodes)
 	{
+		if (Solo != nullptr && !Solo->Contains(N.Id))
+		{
+			continue;
+		}
 		TSharedRef<FJsonObject> J = MakeShared<FJsonObject>();
 		J->SetStringField(TEXT("verb"), N.Verb);
 		TSharedRef<FJsonObject> P = MakeShared<FJsonObject>();
@@ -1998,6 +2203,10 @@ FString SJamGraphEditor::BuildJson() const
 	TArray<TSharedPtr<FJsonValue>> EdgesArr;
 	for (const FGEdge& E : Edges)
 	{
+		if (Solo != nullptr && (!Solo->Contains(E.From) || !Solo->Contains(E.To)))
+		{
+			continue;   // cable con una punta afuera del recorte: no viaja
+		}
 		// [from, from_pin, to, to_pin] — conexión por pin (jam.flow lo entiende; también acepta [from,to]).
 		TArray<TSharedPtr<FJsonValue>> Quad;
 		Quad.Add(MakeShared<FJsonValueString>(E.From));
@@ -2262,6 +2471,36 @@ FReply SJamGraphEditor::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& 
 		Rehacer();   // el otro Rehacer que tiene todo el mundo en el dedo
 		return FReply::Handled();
 	}
+	if (Tecla == EKeys::C && InKeyEvent.IsControlDown())
+	{
+		Copiar(/*bCortar*/ false);
+		return FReply::Handled();
+	}
+	if (Tecla == EKeys::X && InKeyEvent.IsControlDown())
+	{
+		Copiar(/*bCortar*/ true);
+		return FReply::Handled();
+	}
+	if (Tecla == EKeys::V && InKeyEvent.IsControlDown())
+	{
+		Pegar();
+		return FReply::Handled();
+	}
+	if (Tecla == EKeys::D && InKeyEvent.IsControlDown())
+	{
+		Duplicar();
+		return FReply::Handled();
+	}
+	if (Tecla == EKeys::F && !InKeyEvent.IsControlDown())
+	{
+		Encuadrar(/*bSoloSeleccion*/ true);
+		return FReply::Handled();
+	}
+	if (Tecla == EKeys::Home)
+	{
+		Encuadrar(/*bSoloSeleccion*/ false);
+		return FReply::Handled();
+	}
 	if (Tecla == EKeys::A && InKeyEvent.IsControlDown())
 	{
 		SelectAll();
@@ -2383,6 +2622,27 @@ void SJamGraphEditor::FillEditMenu(FMenuBuilder& MB)
 	MB.AddMenuEntry(LOCTEXT("ClearAll", "Vaciar el grafo"), FText::GetEmpty(), FSlateIcon(),
 		FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::NewGraph)));
 
+	MB.BeginSection(TEXT("Portapapeles"), LOCTEXT("SectionClip", "Portapapeles"));
+	{
+		// Todas piden 2+… no: piden AL MENOS UNO elegido. Pegar es la excepción, siempre se puede
+		// intentar (el portapapeles puede venir de otra ventana de Graph).
+		const FCanExecuteAction HayAlgo = FCanExecuteAction::CreateLambda(
+			[this]() { return SelectedNodeIds.Num() > 0; });
+		MB.AddMenuEntry(LOCTEXT("Copy", "Copiar\tCtrl+C"),
+			LOCTEXT("CopyTip", "Copia los nodos elegidos como JSON al portapapeles del sistema"),
+			FSlateIcon(), FUIAction(FExecuteAction::CreateLambda(
+				[this]() { Copiar(false); }), HayAlgo));
+		MB.AddMenuEntry(LOCTEXT("Cut", "Cortar\tCtrl+X"), FText::GetEmpty(), FSlateIcon(),
+			FUIAction(FExecuteAction::CreateLambda([this]() { Copiar(true); }), HayAlgo));
+		MB.AddMenuEntry(LOCTEXT("Paste", "Pegar\tCtrl+V"),
+			LOCTEXT("PasteTip", "Pega nodos copiados acá o en otra ventana de Graph"), FSlateIcon(),
+			FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::Pegar)));
+		MB.AddMenuEntry(LOCTEXT("Duplicate", "Duplicar\tCtrl+D"),
+			LOCTEXT("DuplicateTip", "Copia y pega sin tocar el portapapeles"), FSlateIcon(),
+			FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::Duplicar), HayAlgo));
+	}
+	MB.EndSection();
+
 	MB.BeginSection(TEXT("Seleccion"), LOCTEXT("SectionSelect", "Selección"));
 	MB.AddMenuEntry(LOCTEXT("SelectAll", "Seleccionar todo\tCtrl+A"),
 		LOCTEXT("SelectAllTip", "Elige todos los nodos del grafo"), FSlateIcon(),
@@ -2423,6 +2683,11 @@ void SJamGraphEditor::FillEditMenu(FMenuBuilder& MB)
 
 void SJamGraphEditor::FillViewMenu(FMenuBuilder& MB)
 {
+	MB.AddMenuEntry(LOCTEXT("FrameSelected", "Encuadrar la selección\tF"),
+		LOCTEXT("FrameSelectedTip", "Lleva la vista a lo elegido (o a todo, si no hay nada elegido)"),
+		FSlateIcon(), FUIAction(FExecuteAction::CreateLambda([this]() { Encuadrar(true); })));
+	MB.AddMenuEntry(LOCTEXT("FrameAll", "Encuadrar todo\tInicio"), FText::GetEmpty(), FSlateIcon(),
+		FUIAction(FExecuteAction::CreateLambda([this]() { Encuadrar(false); })));
 	MB.AddMenuEntry(LOCTEXT("ResetView", "Reencuadrar (reset zoom/pan)"), FText::GetEmpty(), FSlateIcon(),
 		FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::ResetView)));
 }

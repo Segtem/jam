@@ -68,9 +68,9 @@ no se puede escribir el test, el ítem está mal planteado, no incompleto.
 | Guardar / abrir | ✅ JSON en disco, ida y vuelta | `BuildJson()` / `SaveDiagram` / `OpenDiagram` |
 | Flag de debug por nodo | ✅ el Display de Houdini | `SJamGraphNode::bDebugEnabled` |
 | Deshacer / rehacer | ✅ **Fase 1** — `Ctrl+Z` / `Ctrl+Shift+Z`, 50 pasos | `Marcar` / `Deshacer` |
-| **Copiar / cortar / pegar** | ❌ | — |
-| **Duplicar** | ❌ | — |
-| **Foco (`F`) / encuadre** | ❌ | — |
+| Copiar / cortar / pegar | ✅ **Fase 1** — al portapapeles del SISTEMA, es el mismo JSON | `Copiar` / `PegarJson` |
+| Duplicar | ✅ `Ctrl+D`, sin tocar el portapapeles | `Duplicar` |
+| Foco (`F`) / encuadre (`Inicio`) | ✅ **Fase 2, parte** | `Encuadrar` |
 | **Captura del grafo entero** | ❌ | — |
 | **Comentarios / grupos** | ❌ | — |
 | **Funciones (subgrafo con firma)** | ❌ (hay Compounds, sin entradas/salidas declaradas) | `jam/preset.py` |
@@ -180,16 +180,20 @@ distribuir, que son una acción y no un gesto— viven en `jam/layout.py`, puro 
 
 Lo caro ya está hecho: el grafo serializa.
 
-**Copiar / cortar / pegar** (`Ctrl+C` / `Ctrl+X` / `Ctrl+V`)
+**Copiar / cortar / pegar** (`Ctrl+C` / `Ctrl+X` / `Ctrl+V`) — ✅ HECHO 2026-07-29
 
-- Copiar = `BuildJson()` **del subconjunto seleccionado**, más las aristas cuyos dos extremos están
-  adentro. Al portapapeles del sistema (`FPlatformApplicationMisc::ClipboardCopy`) — así se pega
-  entre dos ventanas de Graph, y se puede pegar el JSON en un chat o en el vault.
-- Pegar = deserializar, **reasignar ids**, desplazar un delta fijo (o pegar en el cursor) y dejar lo
-  pegado seleccionado.
-- Cortar = copiar + borrar la selección.
+- Copiar = `BuildJson()` **del subconjunto seleccionado**, más las aristas con LAS DOS puntas adentro
+  (un cable a medias no es un grafo). Al portapapeles del sistema, así se pega entre dos ventanas de
+  Graph y el fragmento se puede pegar en un chat o en el vault: es el mismo JSON de un `.jamgraph`.
+- Pegar = deserializar, **ids nuevos**, corrimiento fijo de 26 u, y lo pegado queda elegido. Cada
+  cable pegado pasa por `CanConnect`, **la misma compuerta que conectar a mano**: un cable pegado no
+  puede entrar por una puerta que un cable dibujado no podría cruzar.
+- Cortar = copiar + borrar la selección. Un solo paso del historial.
+- Lo ilegible se saltea en silencio: el portapapeles del sistema puede tener cualquier cosa, y eso no
+  es un error del usuario.
 
-**Duplicar** (`Ctrl+D`, y `Alt`+arrastre como en Houdini) = copiar + pegar sin tocar el portapapeles.
+**Duplicar** (`Ctrl+D`) — ✅ HECHO. Sin tocar el portapapeles: duplicar no puede pisar lo copiado.
+Falta `Alt`+arrastre, como en Houdini.
 
 **Deshacer / rehacer** (`Ctrl+Z` / `Ctrl+Shift+Z`) — ✅ HECHO 2026-07-29
 
@@ -209,8 +213,8 @@ Dos correcciones al plan original:
 
 | Atajo | Qué hace | De dónde sale |
 |---|---|---|
-| `F` | encuadra la selección (o todo, si no hay selección) | Blueprint, Houdini, Maya |
-| `Home` / `A` | encuadra el grafo entero | Blueprint / Houdini |
+| `F` ✅ | encuadra la selección (o todo, si no hay selección) | Blueprint, Houdini, Maya |
+| `Inicio` ✅ | encuadra el grafo entero | Blueprint / Houdini |
 | `Ctrl+F` | buscar nodo por verbo o por parámetro, y saltar a él | «Find in Blueprints» |
 | `Ctrl+1..9` | guardar la vista actual | *quickmarks* de Houdini |
 | `1..9` | volver a esa vista | idem |

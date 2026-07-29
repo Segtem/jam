@@ -203,7 +203,24 @@ private:
 	void DiscardPreview();
 	/** Aplica el envelope {report,nodes} de Compile o Run al output y a los estados de los nodos. */
 	void ApplyGraphResult(const FString& Result);
-	FString BuildJson() const;
+	/** JSON del grafo. Con `Solo`, únicamente esos nodos y las aristas con LAS DOS puntas adentro —
+	 *  un cable a medias no es un grafo, y pegarlo dejaría una entrada conectada a la nada. */
+	FString BuildJson(const TSet<FString>* Solo = nullptr) const;
+
+	// ---- portapapeles: es el mismo JSON, así que se pega entre ventanas y se lee a ojo ----
+	void Copiar(bool bCortar);
+	void Pegar();
+	/** Duplicar = copiar y pegar sin pisar el portapapeles del sistema. */
+	void Duplicar();
+	/** Inserta un fragmento JSON en el grafo actual con ids NUEVOS, corrido para que no tape al
+	 *  original, y deja lo pegado seleccionado. Ignora en silencio lo que no sea un fragmento
+	 *  válido: el portapapeles del sistema puede tener cualquier cosa.
+	 *  Devuelve si pegó algo — el que llama decide si eso fue un paso del historial. Todo el pegado
+	 *  corre callado, así que N nodos con sus cables son UN Ctrl+Z. */
+	bool PegarJson(const FString& Json, bool bDesplazar);
+
+	/** Encuadra la selección (o todo el grafo si no hay ninguna): la tecla `F` de siempre. */
+	void Encuadrar(bool bSoloSeleccion);
 	const FJamTool* FindTool(const FString& Verb) const;
 	FGNode* FindNode(const FString& Id);
 	/** Color del cable que SALE de un nodo (según el tipo de su salida). */
