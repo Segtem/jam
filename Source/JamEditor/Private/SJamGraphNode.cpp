@@ -392,7 +392,14 @@ void SJamGraphNode::RebuildBodyBrush()
 	// una huella mínima de la categoría en el neutro y reserva los colores fuertes para el oráculo.
 	FLinearColor Fill = FMath::Lerp(
 		FLinearColor(0.76f, 0.77f, 0.78f, 1.0f), IconColor, 0.10f);
-	if (ResultState == TEXT("warn"))
+	if (ResultState == TEXT("aviso"))
+	{
+		// AMARILLO: pasó algo que no es un error pero que hay que saber — «12 pisados contra lo que
+		// ya estaba». El nodo corrió y su resultado sirve; lo que cambia es que no salió gratis.
+		// Es un escalón distinto del naranja, que significa «el oráculo dice REVISAR».
+		Fill = FLinearColor(0.95f, 0.82f, 0.16f, 1.0f);
+	}
+	else if (ResultState == TEXT("warn"))
 	{
 		Fill = FLinearColor(1.0f, 0.56f, 0.08f, 1.0f);   // naranja GH
 	}
@@ -547,6 +554,7 @@ void SJamGraphNode::SetResult(const FString& State, const FString& Text)
 FLinearColor SJamGraphNode::StateColor() const
 {
 	if (ResultState == TEXT("ok"))    { return FLinearColor(0.13f, 0.55f, 0.22f, 1.0f); }
+	if (ResultState == TEXT("aviso")) { return FLinearColor(0.80f, 0.68f, 0.10f, 1.0f); }
 	if (ResultState == TEXT("warn"))  { return FLinearColor(0.85f, 0.48f, 0.03f, 1.0f); }
 	if (ResultState == TEXT("error")) { return FLinearColor(0.80f, 0.12f, 0.12f, 1.0f); }
 	return FLinearColor(0.24f, 0.24f, 0.23f, 1.0f);   // neutro: contorno oscuro del componente

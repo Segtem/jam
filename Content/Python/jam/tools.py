@@ -363,12 +363,20 @@ def t_scatter(asset, *, count=24, area=800.0, pattern="poisson", spacing=0.0, ri
 
 
 def _veredicto_scatter(actores, centro, semi, v) -> str:
-    """Reporte del reparto: cuánto pasó el filtro + el oráculo (cantidad/contención/clavado/cobertura)."""
+    """Reporte del reparto: el filtro, el oráculo de la TANDA, y el oráculo contra la ESCENA.
+
+    Los dos chequeos hacen falta y miden cosas distintas. El primero dice si el reparto está bien
+    hecho —cantidad, contención, sin clavarse, cobertura—. El segundo dice si además convive con lo
+    que ya había, y es el que faltaba: dos scatter seguidos con los mismos parámetros caen
+    exactamente uno encima del otro, y el primero informaba «REPARTO SANO · 0 clavados» porque
+    dentro de su propia tanda, efectivamente, nadie se pisaba.
+    """
     from . import ue
     cab = (f"SCATTER · {v['colocados']} colocados de {v['candidatos']} candidatos "
            f"({v['patron']}, sep {v['spacing']}cm, {v['assets']} asset(s), {v['mascaras']} máscara(s), "
            f"{v['filtrados']} filtrados, {v['pisados']} evitados por huella)")
-    oraculo = ue.scatter_texto(actores, centro, semi, len(actores))
+    existentes = ue.vecinos_en_zona(centro, semi, ignorar=actores)
+    oraculo = ue.scatter_texto(actores, centro, semi, len(actores), existentes=existentes)
     return f"{cab}\n{oraculo}"
 
 

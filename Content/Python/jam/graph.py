@@ -535,13 +535,32 @@ def validar(g: JamGraph, **kwargs) -> dict[str, list[str]]:
 # ---- ejecución (reusa las tools y el oráculo; sólo acepta un GraphPlan válido) ----
 
 
+# El símbolo con el que un veredicto pide AMARILLO. Lo pone el oráculo, no el ejecutor: quien sabe
+# si algo es «indeseado pero aceptable» es quien midió.
+AVISO = "\u26a0"
+
+
 def _estado(texto: str) -> str:
     """Convención de Grasshopper llevada al oráculo: cada nodo se pinta por su VEREDICTO.
-    error (rojo) = reventó · warn (naranja) = el oráculo dice REVISAR ✗ · ok (verde) = ✓."""
+
+    Cuatro escalones, y el del medio es el que faltaba:
+
+    * **rojo** (`error`) — reventó, no hay resultado.
+    * **naranja** (`warn`) — el oráculo dice REVISAR ✗: el resultado NO sirve.
+    * **amarillo** (`aviso`) — ⚠ pasó algo indeseado pero aceptable. El nodo corrió y su resultado
+      sirve; lo que cambia es que no salió gratis («12 pisados contra lo que ya estaba»). Sin este
+      escalón, eso se pintaba de VERDE y era exactamente lo que hacía falta ver.
+    * **verde** (`ok`) — ✓.
+
+    El orden importa: un texto puede traer ✓ y ⚠ a la vez —el verbo hizo lo suyo y algo hay que
+    mirar— y en ese caso gana el amarillo.
+    """
     if texto.startswith("[error]"):
         return "error"
     if "✗" in texto:
         return "warn"
+    if AVISO in texto:
+        return "aviso"
     return "ok" if "✓" in texto else "info"
 
 

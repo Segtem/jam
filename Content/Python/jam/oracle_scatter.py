@@ -69,6 +69,44 @@ def verificar(
     }
 
 
+def contra_la_escena(piezas: list, existentes: list, *, tol: float = geometry.TOL_CM) -> dict:
+    """Segundo chequeo: cuántas de las piezas nuevas pisan algo que YA ESTABA en la escena.
+
+    El de arriba mide la TANDA contra sí misma, y eso deja pasar el caso peor: dos scatter seguidos
+    con los mismos parámetros caen exactamente uno encima del otro y el oráculo informa «0 clavados»
+    —porque dentro de cada tanda, efectivamente, nadie se pisa—. Medir la propia tanda y llamarlo
+    veredicto es el oráculo haciéndose trampa al solitario.
+
+    No es un error: colocar encima de algo puede ser lo que uno quiere. Por eso sale como AVISO
+    (amarillo) y no como ✗.
+    """
+    pisadas = []
+    for nueva in piezas:
+        for vieja in existentes:
+            d = geometry.penetracion(nueva.aabb, vieja.aabb, tol)
+            if d > 0.0:
+                pisadas.append((nueva.nombre, vieja.nombre, round(d, 1)))
+                break     # con una alcanza: lo que importa es CUÁNTAS piezas nuevas pisan algo
+    return {
+        "existentes": len(existentes),
+        "pisadas": pisadas,
+        "limpias": len(piezas) - len(pisadas),
+    }
+
+
+def texto_contra_la_escena(r: dict, colocadas: int) -> str:
+    """El renglón del segundo chequeo. Vacío si no había nada con qué chocar."""
+    if not r["existentes"]:
+        return ""
+    if not r["pisadas"]:
+        return (f"  \u2713 ninguna de las {colocadas} pisa algo de lo que ya estaba "
+                f"({r['existentes']} pieza(s) en la zona)")
+    muestra = "; ".join(f"{a}\u00d7{b} ({d}cm)" for a, b, d in r["pisadas"][:3])
+    extra = "" if len(r["pisadas"]) <= 3 else f" (+{len(r['pisadas']) - 3} m\u00e1s)"
+    return (f"  \u26a0 {colocadas} colocados \u00b7 {len(r['pisadas'])} pisados contra lo que ya "
+            f"estaba: {muestra}{extra}")
+
+
 def es_ok(r: dict) -> bool:
     return r["cantidad_ok"] and not r["fuera"] and not r["interpenetra"] and r["cobertura_ok"]
 
@@ -78,8 +116,16 @@ def verificar_texto(
     centro: tuple[float, float],
     semi: tuple[float, float],
     cantidad_pedida: int,
+    *,
+    existentes: list | None = None,
     **kw,
 ) -> str:
+    """Veredicto en DOS pasos: la tanda contra sí misma, y después contra la escena.
+
+    Los dos hacen falta y miden cosas distintas. El primero dice si el reparto está bien hecho; el
+    segundo, si además convive con lo que ya había. Un scatter puede ser impecable y estar
+    íntegramente encima de otro.
+    """
     r = verificar(piezas, centro, semi, cantidad_pedida, **kw)
     lineas = [f"SCATTER · {r['cantidad']}/{cantidad_pedida} instancias · cobertura {int(r['cobertura'] * 100)}%"]
     if not r["cantidad_ok"]:
@@ -94,4 +140,8 @@ def verificar_texto(
         lineas.append(f"  ✗ cobertura {int(r['cobertura'] * 100)}% < mínimo — reparto amontonado")
     if es_ok(r):
         lineas.append("  ✓ REPARTO SANO — cantidad, contenido, sin clavarse, bien cubierto")
+    if existentes:
+        renglon = texto_contra_la_escena(contra_la_escena(piezas, existentes), len(piezas))
+        if renglon:
+            lineas.append(renglon)
     return "\n".join(lineas)

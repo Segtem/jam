@@ -155,9 +155,34 @@ def placement_texto(actor, otros) -> str:
     return oracle_placement.verificar_texto(pieza(actor), otras)
 
 
-def scatter_texto(actores, centro, semi, cantidad, **kw) -> str:
+def vecinos_en_zona(centro, semi, ignorar=(), margen: float = 300.0) -> list:
+    """Los actores que YA están en la zona del reparto, sin contar los de esta tanda.
+
+    Es lo que el segundo chequeo del oráculo necesita para poder decir «pisados contra lo que ya
+    estaba». El margen agranda la caja porque una pieza cuyo CENTRO cae afuera igual puede meter
+    medio cuerpo adentro.
+    """
+    ignorar_rutas = {a.get_path_name() for a in ignorar if a is not None}
+    cx, cy = centro
+    sx, sy = semi
+    cerca = []
+    for actor in actores_nivel():
+        if actor.get_path_name() in ignorar_rutas:
+            continue
+        try:
+            origen = actor.get_actor_location()
+        except Exception:  # noqa: BLE001 — un actor sin transform no participa del reparto
+            continue
+        if abs(origen.x - cx) <= sx + margen and abs(origen.y - cy) <= sy + margen:
+            cerca.append(actor)
+    return cerca
+
+
+def scatter_texto(actores, centro, semi, cantidad, *, existentes=None, **kw) -> str:
     from . import oracle_scatter
-    return oracle_scatter.verificar_texto(piezas(actores), centro, semi, cantidad, **kw)
+    return oracle_scatter.verificar_texto(
+        piezas(actores), centro, semi, cantidad,
+        existentes=piezas(existentes) if existentes else None, **kw)
 
 
 def scatter(actores, centro, semi, cantidad, **kw) -> dict:
