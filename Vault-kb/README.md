@@ -1,15 +1,16 @@
 # Vault-kb de Jam
 
-45 documentos. Nomenclatura `AAAA-MM-DD-TIPO-Nombre-vX.X.md` — la explica
+46 documentos. Nomenclatura `AAAA-MM-DD-TIPO-Nombre-vX.X.md` — la explica
 [[2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0|la guía de convención]].
 Este índice y las reglas los verifica `tools/vault.py`.
 
 `INFORME` = lo que pasó · `PLAN` = lo que falta · `ROADMAP` = hacia dónde ·
 `CONCEPTO` = un principio · `GUIA` = cómo se usa.
 
-## Dirección de producto
+## Dirección y proceso
 
 - [[2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0|Roadmap: accesibilidad y velocidad del Graph]] · *propuesta*
+- [[2026-07-29-GUIA-Relevo-Claude-Codex-v1.0|Guía: el relevo entre Claude Code y Codex]] · *vigente*
 - [[2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0|Guía: convención de documentación del Vault-kb de Jam]] · *vigente*
 - [[2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0|Visión y roadmap de producto para Jam]] · *propuesta*
 

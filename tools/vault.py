@@ -28,7 +28,7 @@ OBLIGATORIOS = ("title", "tipo", "version", "date", "updated")
 
 # (título del grupo, predicado sobre el nombre de archivo) — el primero que matchea gana
 GRUPOS = [
-    ("Dirección de producto", lambda n: "ROADMAP" in n or "GUIA-Convencion" in n),
+    ("Dirección y proceso", lambda n: "ROADMAP" in n or "GUIA-Convencion" in n or "Relevo" in n),
     ("TreeGen — el árbol procedural", lambda n: "TreeGen" in n),
     ("Graph — el editor de nodos", lambda n: any(
         k in n for k in ("Graph", "Estetica-Nodos", "Seleccion-Multiple", "Accesibilidad",
