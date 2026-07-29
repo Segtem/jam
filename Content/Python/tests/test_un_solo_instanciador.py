@@ -202,6 +202,25 @@ class UnaEntradaPorCosaTests(unittest.TestCase):
         self.assertIn('bFilaEsLaEntrada = (T->InName == TEXT("A") && T->bAssetRow)', cpp)
         self.assertIn("bHasInput = !T->bSource && !bFilaEsLaEntrada", cpp)
 
+    def test_that_row_carries_the_MAIN_input_pin_so_saved_graphs_still_anchor(self):
+        """La fila se llama «asset» —que es lo que hay que leer— pero su PIN es «in».
+
+        Sin esto, un grafo guardado que cablea a `place.in` ancla su cable en un nub del header que
+        ya no se dibuja: la flecha queda colgando de la nada. Pasó con los tutoriales de Aprender.
+        """
+        cpp = (RAIZ_CPP / "SJamGraphEditor.cpp").read_text(encoding="utf-8")
+        self.assertIn('PinDeLaFila = bFilaEsLaEntrada ? TEXT("in") : TEXT("asset")', cpp)
+        self.assertIn("Node.PinNames.Add(PinDeLaFila)", cpp)
+
+    def test_the_wire_looks_for_in_among_the_rows_before_falling_back_to_the_header(self):
+        """`PinIndex` devolvía -1 (header) para «in» SIEMPRE. Con la entrada mudada a una fila, eso
+        dejaba el cable anclado arriba mientras el pin estaba abajo."""
+        cpp = (RAIZ_CPP / "SJamGraphEditor.cpp").read_text(encoding="utf-8")
+        cuerpo = cpp.split("int32 SJamGraphEditor::PinIndex")[1].split("\n}")[0]
+        self.assertNotIn('Pin == TEXT("in") || Pin == TEXT("out")', cuerpo,
+                         "«in» ya no puede resolverse siempre al header")
+        self.assertIn("PinNames.IndexOfByKey(Pin)", cuerpo)
+
     def test_a_verb_that_takes_something_else_keeps_its_header_nub(self):
         """No es «sacar el nub»: `mesh_leaf` recibe una CURVA por el header y un asset en la fila.
         Ahí son dos entradas distintas de verdad y las dos tienen que estar."""
@@ -212,7 +231,17 @@ class UnaEntradaPorCosaTests(unittest.TestCase):
         """Que el campo se deshabilite al cablearlo no es cosmética: es lo que dice de dónde está
         saliendo el valor. Ya existía para todo param cableado, y la fila `asset` es uno más."""
         cpp = (RAIZ_CPP / "SJamGraphNode.cpp").read_text(encoding="utf-8")
-        self.assertIn("!CabledPins.Contains(Key)", cpp)
+        self.assertIn("!CabledPins.Contains(PinParaGrisear)", cpp,
+                      "el gris tiene que mirar el PIN de la fila, no su etiqueta")
+
+        # Y el conjunto de pines cableados tiene que INCLUIR «in»: en estos verbos ese pin ES la
+        # fila `asset`, con su campo de texto. Excluyéndolo —como se hacía cuando «in» era siempre
+        # el nub del header— el campo se queda blanco y editable con un cable entrando, que es
+        # justo la señal que dice de dónde sale el valor.
+        editor = (RAIZ_CPP / "SJamGraphEditor.cpp").read_text(encoding="utf-8")
+        cuerpo = editor.split("void SJamGraphEditor::RefreshCabledPins")[1].split("\n}")[0]
+        self.assertNotIn('E.ToPin != TEXT("in")', cuerpo,
+                         "excluir «in» deja el campo de la fila `asset` editable estando cableado")
 
 
 if __name__ == "__main__":

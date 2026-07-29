@@ -309,14 +309,16 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 
 		// Si el pin de este parámetro tiene un CABLE, el input se deshabilita (grisea): el valor lo manda
 		// el cable, no el campo — como GH cuando un input está wired. IsEnabled se lee por atributo.
+		const FString PinParaGrisear = P.PinName.IsEmpty() ? Key : P.PinName;
 		Input->SetEnabled(TAttribute<bool>::CreateLambda(
-			[this, Key]() { return !CabledPins.Contains(Key); }));
+			[this, PinParaGrisear]() { return !CabledPins.Contains(PinParaGrisear); }));
 
+		const FString PinDeLaFila = P.PinName.IsEmpty() ? Key : P.PinName;
 		LeftCol->AddSlot().AutoHeight()
 		[
 			Cell(RowH, MakeNub(FString::Printf(TEXT("pin «%s» · tipo %s"), *Key, *P.DataType),
 				P.PinColor,
-				[this, Key]() { OnInputClickedDelegate.ExecuteIfBound(Key); }))
+				[this, PinDeLaFila]() { OnInputClickedDelegate.ExecuteIfBound(PinDeLaFila); }))
 		];
 		ParamCol->AddSlot().AutoHeight()
 		[

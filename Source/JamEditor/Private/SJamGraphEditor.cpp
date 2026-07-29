@@ -1227,19 +1227,25 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At)
 	}
 
 	TArray<FJamNodeParam> Params;
-	// Pin «asset» explícito: se puede cablear la salida de un nodo `asset` acá, o escribir el nombre.
-	// Vacío es un error de Compile; el Graph nunca hereda en silencio el asset activo ni el primero de
-	// la biblioteca (esa comodidad queda limitada a la Dash Bar).
+	// La fila `asset`: pin con NOMBRE y campo de texto, que se grisea solo cuando le entra un cable.
+	// Vacío es un error de Compile; el Graph nunca hereda en silencio el asset activo ni el primero
+	// de la biblioteca (esa comodidad queda limitada a la Dash Bar).
 	//
-	// Quién dibuja este pin lo decide el REGISTRO (`asset_row`), que excluye a los verbos cuya
-	// entrada principal ya es un asset: en `place` o `drop`, el pin del header y una fila `asset`
-	// serían la misma cosa dos veces. Los que la conservan reciben otra cosa por el header —
-	// `mesh_leaf` toma una curva arriba y un asset acá.
+	// Cuando el asset es la entrada PRINCIPAL del verbo, esta fila ES esa entrada —y por eso no hay
+	// además un nub anónimo en el header: sería la misma cosa dos veces—. Los que reciben otra cosa
+	// arriba la conservan como parámetro aparte: `mesh_leaf` toma una curva por el header.
+	const bool bFilaEsLaEntrada = (T->InName == TEXT("A") && T->bAssetRow);
 	if (T->bAssetRow)
 	{
-		Params.Add(FJamNodeParam(TEXT("asset"), FString(), TEXT("str"), TArray<FString>(),
-			TEXT("A"), DataColor(TEXT("A"))));
-		Node.PinNames.Add(TEXT("asset"));
+		FJamNodeParam Fila(TEXT("asset"), FString(), TEXT("str"), TArray<FString>(),
+			TEXT("A"), DataColor(TEXT("A")));
+		// Cuando el asset ES la entrada principal, esta fila no es un parámetro aparte: es LA
+		// entrada. Su pin se llama «in», así el cable de un grafo guardado ancla acá y no en un nub
+		// del header que ya no se dibuja.
+		const FString PinDeLaFila = bFilaEsLaEntrada ? TEXT("in") : TEXT("asset");
+		Fila.PinName = PinDeLaFila;
+		Params.Add(Fila);
+		Node.PinNames.Add(PinDeLaFila);
 	}
 	// Params con los que NACE el nodo. Para los que colocan algo, Python devuelve el punto de mira
 	// ya escrito en x/y/z: capturado UNA vez, acá, y no leído en cada Run.
@@ -1278,10 +1284,6 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At)
 	const FString Id = Node.Id;
 	// Nodos FUENTE (producen el dato, no lo reciben): sin pin de entrada, convención de Grasshopper.
 	// El flag viene del spec (data-driven): asset/pick/create_spline y las fuentes de flow.
-	// Sin nub anónimo en el header cuando la entrada principal es un asset: para esos verbos la fila
-	// `asset` —con su nombre y su campo— es la entrada, y un punto de color arriba sería la misma
-	// cosa dos veces. Los demás sí lo llevan: es por donde entra su malla, su curva o sus puntos.
-	const bool bFilaEsLaEntrada = (T->InName == TEXT("A") && T->bAssetRow);
 	const bool bHasInput = !T->bSource && !bFilaEsLaEntrada;
 
 	TSharedRef<SJamGraphNode> Widget = SNew(SJamGraphNode)
@@ -1342,12 +1344,14 @@ void SJamGraphEditor::DeleteNode(const FString& Id)
 
 int32 SJamGraphEditor::PinIndex(const FString& Id, const FString& Pin) const
 {
-	if (Pin == TEXT("in") || Pin == TEXT("out"))
+	if (Pin == TEXT("out"))
 	{
-		return -1;   // header (stream / salida)
+		return -1;   // header
 	}
 	const FGNode* N = Nodes.FindByPredicate([&Id](const FGNode& X) { return X.Id == Id; });
 	if (N == nullptr) { return -1; }
+	// «in» normalmente vive en el header (-1), pero en los verbos cuya entrada es un asset vive en
+	// la FILA `asset`. Buscarlo siempre en PinNames resuelve los dos casos: si no está, es header.
 	return N->PinNames.IndexOfByKey(Pin);
 }
 
@@ -1538,7 +1542,10 @@ void SJamGraphEditor::RefreshCabledPins()
 		TSet<FString> Pins;
 		for (const FGEdge& E : Edges)
 		{
-			if (E.To == N.Id && E.ToPin != TEXT("in"))
+			// Se incluye «in»: en los verbos cuya entrada es un asset, ese pin ES una fila con
+			// campo de texto, y cableado tiene que grisearse como cualquier otro. En los demás el
+			// «in» es el nub del header, que no tiene campo, así que sumarlo no cambia nada.
+			if (E.To == N.Id)
 			{
 				Pins.Add(E.ToPin);
 			}

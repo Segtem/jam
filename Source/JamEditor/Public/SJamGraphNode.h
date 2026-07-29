@@ -18,6 +18,12 @@ struct FJamNodeParam
 	TArray<FString> Options;  // dominio cerrado (enum) → dropdown en vez de texto libre
 	FString DataType;         // tipo del cable esperado: N/N[]/T/B/A/A[]/AF/H/S/F/P/M
 	FLinearColor PinColor = FLinearColor(0.28f, 0.30f, 0.34f, 1.0f);
+	/** Nombre del PIN, cuando no es el de la etiqueta. La fila `asset` de un verbo que recibe un
+	    asset por su entrada principal se llama «asset» —que es lo que hay que leer— pero SU PIN es
+	    «in»: es la entrada del nodo, no un parámetro aparte. Sin esto habría dos pines (el nub del
+	    header y el de la fila) para la misma cosa, y los grafos guardados anclarían su cable en un
+	    pin que ya no se dibuja. */
+	FString PinName;
 
 	FJamNodeParam() = default;
 	FJamNodeParam(const FString& InName, const FString& InValue,
