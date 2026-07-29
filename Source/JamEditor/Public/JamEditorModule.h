@@ -6,6 +6,9 @@
 #include "Types/SlateEnums.h"
 
 class SWindow;
+class SDockTab;
+class SJamGraphEditor;
+class FSpawnTabArgs;
 class SWidget;
 class SBox;
 class SHorizontalBox;
@@ -75,9 +78,21 @@ public:
 
 private:
 	void RegisterMenus();
+
+	// ---- los tres paneles son NOMAD TABS, no ventanas sueltas ----
+	// Una `SWindow` no se puede acoplar: el docking de Unreal sólo conoce tabs. Como tabs, los
+	// paneles se anclan a cualquier lado del editor (o al costado, como sidebar), aparecen en
+	// Window ▸ Tools, y **su posición queda guardada en el layout** — que es el «siempre visible».
+	void RegisterTabs();
+	void UnregisterTabs();
+	TSharedRef<SDockTab> SpawnDashTab(const FSpawnTabArgs& Args);
+	TSharedRef<SDockTab> SpawnGraphTab(const FSpawnTabArgs& Args);
+	TSharedRef<SDockTab> SpawnContentTab(const FSpawnTabArgs& Args);
+
 	void OpenDashBar();
-	void OnDashClosed(const TSharedRef<SWindow>& Window);
+	void OnDashClosed(TSharedRef<SDockTab> Tab);
 	void OpenGraph();
+	void OnGraphClosed(TSharedRef<SDockTab> Tab);
 	void OpenWebUI();
 	/** Corre un JamGraph (JSON) vía Python (jam.panel.ejecutar_grafo) y devuelve el reporte. */
 	FString RunGraphJson(const FString& Json);
@@ -111,7 +126,7 @@ private:
 	// Content browser — VENTANA APARTE (como los paneles de Dash): no le come lugar a la Dash Bar
 	// y se puede dejar abierta al lado. Trae árbol de carpetas + conteo real + «mostrar más».
 	void OpenContentWindow();
-	void OnContentClosed(const TSharedRef<SWindow>& Window);
+	void OnContentClosed(TSharedRef<SDockTab> Tab);
 	TSharedRef<SWidget> BuildContentBrowser();
 	void PopulateContent(const FString& Query);
 	void RefreshContent();
@@ -173,9 +188,16 @@ private:
 	TSharedPtr<SHorizontalBox> DashTabContent;    // fichas con icono de la categoría activa
 	FString LogText;
 
-	TSharedPtr<SWindow> DashWindow;
-	TSharedPtr<SWindow> GraphWindow;
-	TSharedPtr<SWindow> ContentWindow;
+	// Débiles: el dueño del tab es el tab manager. Si los tuviéramos fuertes, cerrar el panel no
+	// liberaría nada y «¿está abierto?» diría que sí para siempre.
+	TWeakPtr<SDockTab> DashTab;
+	TWeakPtr<SDockTab> GraphTab;
+	TWeakPtr<SDockTab> ContentTab;
+	/** El canvas vivo, para poder guardar su estado cuando cierran el panel. */
+	TWeakPtr<SJamGraphEditor> GraphWidget;
+	/** Grafo de la última vez que se cerró el panel: al reabrirlo vuelve el trabajo.
+	 *  Antes cerrar la ventana perdía el diagrama sin preguntar. */
+	FString GraphEstadoGuardado;
 	TSharedPtr<SVerticalBox> ParamsBox;
 	TSharedPtr<SEditableTextBox> CmdBox;
 	TSharedPtr<SEditableTextBox> SearchBox;

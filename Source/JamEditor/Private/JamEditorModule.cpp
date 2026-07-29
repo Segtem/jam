@@ -4,6 +4,10 @@
 #include "Modules/ModuleManager.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Widgets/SWindow.h"
+#include "Widgets/Docking/SDockTab.h"
+#include "Framework/Docking/TabManager.h"
+#include "WorkspaceMenuStructure.h"
+#include "WorkspaceMenuStructureModule.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/SNullWidget.h"
 #include "Widgets/Layout/SWrapBox.h"
@@ -49,25 +53,63 @@ static FString ToPyStr(const FString& In)
 	return FString::Printf(TEXT("'%s'"), *S);
 }
 
+// Ids de los tres paneles. Son la CLAVE con la que el editor guarda su posición en el layout: si
+// cambian, el usuario pierde el acomodo que tenía y los paneles vuelven a aparecer flotando.
+namespace JamTabs
+{
+	static const FName Dash("JamDashBar");
+	static const FName Graph("JamGraph");
+	static const FName Content("JamContent");
+}
+
 void FJamEditorModule::StartupModule()
 {
 	UToolMenus::RegisterStartupCallback(
 		FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FJamEditorModule::RegisterMenus));
+	RegisterTabs();
 
-	UE_LOG(LogTemp, Display, TEXT("[JamEditor] módulo C++ cargado — Dash Bar disponible en Tools."));
+	UE_LOG(LogTemp, Display, TEXT("[JamEditor] módulo C++ cargado — paneles en Window ▸ Tools."));
 }
 
 void FJamEditorModule::ShutdownModule()
 {
 	UToolMenus::UnRegisterStartupCallback(this);
 	UToolMenus::UnregisterOwner(this);
-	for (TSharedPtr<SWindow>* W : { &DashWindow, &GraphWindow, &ContentWindow })
+	UnregisterTabs();
+}
+
+void FJamEditorModule::RegisterTabs()
+{
+	// Nomad = el tab no pertenece a un editor de assets: se puede acoplar en cualquier lado del
+	// editor, quedar flotando, o irse al costado como sidebar. Es lo que hacen el Content Browser,
+	// el Class Viewer y el resto de los paneles del motor.
+	const TSharedRef<FWorkspaceItem> Grupo = WorkspaceMenu::GetMenuStructure().GetToolsCategory();
+
+	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(JamTabs::Dash,
+		FOnSpawnTab::CreateRaw(this, &FJamEditorModule::SpawnDashTab))
+		.SetDisplayName(LOCTEXT("DashTabTitle", "Jam — Dash Bar"))
+		.SetTooltipText(LOCTEXT("DashTabTip", "Barra de herramientas de Jam: params, comando y oráculo"))
+		.SetGroup(Grupo);
+
+	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(JamTabs::Graph,
+		FOnSpawnTab::CreateRaw(this, &FJamEditorModule::SpawnGraphTab))
+		.SetDisplayName(LOCTEXT("GraphTabTitle", "Jam — Graph"))
+		.SetTooltipText(LOCTEXT("GraphTabTip", "Editor de nodos: cada nodo es un comando, correr = orden topológico + oráculo"))
+		.SetGroup(Grupo);
+
+	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(JamTabs::Content,
+		FOnSpawnTab::CreateRaw(this, &FJamEditorModule::SpawnContentTab))
+		.SetDisplayName(LOCTEXT("ContentTabTitle", "Jam — Content"))
+		.SetTooltipText(LOCTEXT("ContentTabTip", "Navegador de assets de Jam, con miniaturas"))
+		.SetGroup(Grupo);
+}
+
+void FJamEditorModule::UnregisterTabs()
+{
+	// Sin esto, recargar el plugin en caliente deja spawners apuntando a un módulo que ya no está.
+	for (const FName& Id : { JamTabs::Dash, JamTabs::Graph, JamTabs::Content })
 	{
-		if (W->IsValid())
-		{
-			(*W)->RequestDestroyWindow();
-			W->Reset();
-		}
+		FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(Id);
 	}
 }
 
@@ -116,20 +158,14 @@ void FJamEditorModule::OpenWebUI()
 
 void FJamEditorModule::OpenGraph()
 {
-	if (GraphWindow.IsValid())
-	{
-		GraphWindow->BringToFront();
-		return;
-	}
+	FGlobalTabmanager::Get()->TryInvokeTab(JamTabs::Graph);
+}
+
+TSharedRef<SDockTab> FJamEditorModule::SpawnGraphTab(const FSpawnTabArgs& /*Args*/)
+{
 	LoadSpec(/*bIncludeFlow*/ true);
 
-	TSharedRef<SWindow> Win = SNew(SWindow)
-		.Title(LOCTEXT("GraphTitle", "Jam — Graph (Grasshopper)"))
-		.ClientSize(FVector2D(780.0f, 560.0f))
-		.AutoCenter(EAutoCenter::PreferredWorkArea);
-
-	Win->SetContent(
-		SNew(SJamGraphEditor, Tools)
+	TSharedRef<SJamGraphEditor> Canvas = SNew(SJamGraphEditor, Tools)
 		.OnRunGraph_Raw(this, &FJamEditorModule::RunGraphJson)
 		.OnCompileGraph_Raw(this, &FJamEditorModule::CompileGraphJson)
 		.OnBakePreview_Raw(this, &FJamEditorModule::BakeGraphPreview)
@@ -138,12 +174,32 @@ void FJamEditorModule::OpenGraph()
 		.OnOpenContent_Raw(this, &FJamEditorModule::OpenContentWindow)
 		.OnInspect_Raw(this, &FJamEditorModule::InspectGraphNode)
 		.OnLayout_Raw(this, &FJamEditorModule::LayoutGraphNodes)
-		.OnSaveGraph_Raw(this, &FJamEditorModule::SaveGraphAsPreset));
-	Win->SetOnWindowClosed(FOnWindowClosed::CreateLambda(
-		[this](const TSharedRef<SWindow>&) { GraphWindow.Reset(); }));
+		.OnSaveGraph_Raw(this, &FJamEditorModule::SaveGraphAsPreset);
+	GraphWidget = Canvas;
 
-	FSlateApplication::Get().AddWindow(Win);
-	GraphWindow = Win;
+	TSharedRef<SDockTab> Tab = SNew(SDockTab)
+		.TabRole(ETabRole::NomadTab)
+		[
+			Canvas
+		];
+	Tab->SetOnTabClosed(SDockTab::FOnTabClosedCallback::CreateRaw(
+		this, &FJamEditorModule::OnGraphClosed));
+	GraphTab = Tab;
+
+	// Si el panel se había cerrado con un diagrama adentro, vuelve puesto. Antes cerrarlo tiraba el
+	// trabajo sin preguntar; ahora cerrar y reabrir es sólo esconder y mostrar.
+	Canvas->RestaurarCanvas(GraphEstadoGuardado);
+	return Tab;
+}
+
+void FJamEditorModule::OnGraphClosed(TSharedRef<SDockTab> /*Tab*/)
+{
+	if (const TSharedPtr<SJamGraphEditor> Canvas = GraphWidget.Pin())
+	{
+		GraphEstadoGuardado = Canvas->EstadoDelCanvas();
+	}
+	GraphTab.Reset();
+	GraphWidget.Reset();
 }
 
 FString FJamEditorModule::SaveGraphAsPreset(const FString& Json)
@@ -203,32 +259,29 @@ FString FJamEditorModule::DiscardGraphPreview()
 
 void FJamEditorModule::OpenDashBar()
 {
-	if (DashWindow.IsValid())
-	{
-		DashWindow->BringToFront();
-		return;
-	}
+	FGlobalTabmanager::Get()->TryInvokeTab(JamTabs::Dash);
+}
 
+TSharedRef<SDockTab> FJamEditorModule::SpawnDashTab(const FSpawnTabArgs& /*Args*/)
+{
 	LoadSpec();
 
-	TSharedRef<SWindow> Win = SNew(SWindow)
-		.Title(LOCTEXT("DashTitle", "Jam — Dash Bar"))
-		.ClientSize(FVector2D(560.0f, 440.0f))
-		.AutoCenter(EAutoCenter::PreferredWorkArea)
-		.SupportsMaximize(false)
-		.SupportsMinimize(false);
-
-	Win->SetContent(BuildDashContent());
-	Win->SetOnWindowClosed(FOnWindowClosed::CreateRaw(this, &FJamEditorModule::OnDashClosed));
-
-	FSlateApplication::Get().AddWindow(Win);
-	DashWindow = Win;
+	TSharedRef<SWidget> Contenido = BuildDashContent();
+	TSharedRef<SDockTab> Tab = SNew(SDockTab)
+		.TabRole(ETabRole::NomadTab)
+		[
+			Contenido
+		];
+	Tab->SetOnTabClosed(SDockTab::FOnTabClosedCallback::CreateRaw(
+		this, &FJamEditorModule::OnDashClosed));
+	DashTab = Tab;
 
 	// Refresco del punto de mira a 20 Hz, todo en C++ (los campos x/y/z en vivo no pagan Python).
-	Win->RegisterActiveTimer(0.05f, FWidgetActiveTimerDelegate::CreateLambda(
+	// El timer va en el CONTENIDO y no en la ventana: un tab acoplado no tiene ventana propia.
+	Contenido->RegisterActiveTimer(0.05f, FWidgetActiveTimerDelegate::CreateLambda(
 		[this](double, float) -> EActiveTimerReturnType
 		{
-			if (!DashWindow.IsValid())
+			if (!DashTab.IsValid())
 			{
 				return EActiveTimerReturnType::Stop;
 			}
@@ -261,11 +314,12 @@ void FJamEditorModule::OpenDashBar()
 		}
 		SelectTool(Inicial);
 	}
+	return Tab;
 }
 
-void FJamEditorModule::OnDashClosed(const TSharedRef<SWindow>& /*Window*/)
+void FJamEditorModule::OnDashClosed(TSharedRef<SDockTab> /*Tab*/)
 {
-	DashWindow.Reset();
+	DashTab.Reset();
 	ParamsBox.Reset();
 	CmdBox.Reset();
 	OutputBox.Reset();
@@ -857,33 +911,32 @@ void FJamEditorModule::FindAndSelectTool(const FString& Query)
 
 void FJamEditorModule::OpenContentWindow()
 {
-	if (ContentWindow.IsValid())
-	{
-		ContentWindow->BringToFront();
-		return;
-	}
+	FGlobalTabmanager::Get()->TryInvokeTab(JamTabs::Content);
+}
+
+TSharedRef<SDockTab> FJamEditorModule::SpawnContentTab(const FSpawnTabArgs& /*Args*/)
+{
 	if (!ThumbnailPool.IsValid())
 	{
 		ThumbnailPool = MakeShareable(new FAssetThumbnailPool(256));
 	}
 
-	TSharedRef<SWindow> Win = SNew(SWindow)
-		.Title(LOCTEXT("ContentTitle", "Jam — Content"))
-		.ClientSize(FVector2D(820.0f, 620.0f))
-		.AutoCenter(EAutoCenter::PreferredWorkArea);
-
-	Win->SetContent(BuildContentBrowser());
-	Win->SetOnWindowClosed(FOnWindowClosed::CreateRaw(this, &FJamEditorModule::OnContentClosed));
-
-	FSlateApplication::Get().AddWindow(Win);
-	ContentWindow = Win;
+	TSharedRef<SDockTab> Tab = SNew(SDockTab)
+		.TabRole(ETabRole::NomadTab)
+		[
+			BuildContentBrowser()
+		];
+	Tab->SetOnTabClosed(SDockTab::FOnTabClosedCallback::CreateRaw(
+		this, &FJamEditorModule::OnContentClosed));
+	ContentTab = Tab;
 
 	PopulateContent(FString());
+	return Tab;
 }
 
-void FJamEditorModule::OnContentClosed(const TSharedRef<SWindow>& /*Window*/)
+void FJamEditorModule::OnContentClosed(TSharedRef<SDockTab> /*Tab*/)
 {
-	ContentWindow.Reset();
+	ContentTab.Reset();
 	ContentGrid.Reset();
 	ContentFolderList.Reset();
 	ContentSearchBox.Reset();
@@ -1290,7 +1343,7 @@ void FJamEditorModule::SelectAsset(const FString& Name, const FString& Path)
 		AssetLabel->SetText(FText::FromString(FString::Printf(TEXT("Asset: %s"), *Name)));
 	}
 	ShowActiveThumbnail(Path);
-	if (DashWindow.IsValid())
+	if (DashTab.IsValid())
 	{
 		AppendLog(FString::Printf(TEXT("asset %s"), *Name), Out);
 	}

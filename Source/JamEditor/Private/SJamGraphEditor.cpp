@@ -1523,6 +1523,81 @@ void SJamGraphEditor::Rehacer()
 	}
 }
 
+// ---- estado del canvas (cerrar el panel ya no tira el trabajo) ----
+
+FString SJamGraphEditor::EstadoDelCanvas() const
+{
+	TSharedRef<FJsonObject> Root = MakeShared<FJsonObject>();
+	TSharedRef<FJsonObject> Vista = MakeShared<FJsonObject>();
+	Vista->SetNumberField(TEXT("x"), PanOffset.X);
+	Vista->SetNumberField(TEXT("y"), PanOffset.Y);
+	Vista->SetNumberField(TEXT("zoom"), Zoom);
+	Root->SetObjectField(TEXT("view"), Vista);
+
+	// El grafo se guarda como OBJETO y no como string: así el estado entero sigue siendo un JSON que
+	// se puede leer y diffear, en vez de un JSON con otro JSON escapado adentro.
+	TSharedPtr<FJsonObject> Grafo;
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(BuildJson());
+	if (FJsonSerializer::Deserialize(Reader, Grafo) && Grafo.IsValid())
+	{
+		Root->SetObjectField(TEXT("graph"), Grafo);
+	}
+	Root->SetStringField(TEXT("path"), CurrentPath);
+
+	FString Json;
+	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&Json);
+	FJsonSerializer::Serialize(Root, Writer);
+	return Json;
+}
+
+void SJamGraphEditor::RestaurarCanvas(const FString& Json)
+{
+	if (Json.IsEmpty())
+	{
+		return;
+	}
+	TSharedPtr<FJsonObject> Root;
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Json);
+	const TSharedPtr<FJsonObject>* Grafo = nullptr;
+	if (!FJsonSerializer::Deserialize(Reader, Root) || !Root.IsValid()
+		|| !Root->TryGetObjectField(TEXT("graph"), Grafo) || Grafo == nullptr)
+	{
+		return;
+	}
+	FString GrafoJson;
+	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&GrafoJson);
+	FJsonSerializer::Serialize(Grafo->ToSharedRef(), Writer);
+
+	// Reabrir el panel NO es un paso deshacible: el historial arranca de cero con el grafo puesto.
+	TGuardValue<bool> Callado(bSinHistorial, true);
+	if (!LoadGraphJson(GrafoJson))
+	{
+		return;
+	}
+	Anterior = BuildJson();
+	Deshechos.Reset();
+	Rehechos.Reset();
+
+	const TSharedPtr<FJsonObject>* Vista = nullptr;
+	if (Root->TryGetObjectField(TEXT("view"), Vista) && Vista != nullptr)
+	{
+		double X = 0.0, Y = 0.0, Z = 1.0;
+		(*Vista)->TryGetNumberField(TEXT("x"), X);
+		(*Vista)->TryGetNumberField(TEXT("y"), Y);
+		(*Vista)->TryGetNumberField(TEXT("zoom"), Z);
+		PanOffset = FVector2D(static_cast<float>(X), static_cast<float>(Y));
+		Zoom = FMath::Clamp(static_cast<float>(Z), 0.35f, 2.5f);
+		ApplyZoom();
+	}
+	// `LoadGraphJson` pasa por `NewGraph`, que limpia el archivo actual: recuperarlo es lo que hace
+	// que «Guardar» siga sobrescribiendo el .jamgraph en el que venías y no pida nombre de nuevo.
+	FString Documento;
+	if (Root->TryGetStringField(TEXT("path"), Documento))
+	{
+		CurrentPath = Documento;
+	}
+}
+
 // ---- portapapeles ----
 
 void SJamGraphEditor::Copiar(bool bCortar)

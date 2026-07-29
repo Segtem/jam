@@ -1,6 +1,6 @@
 # Vault-kb de Jam
 
-44 documentos. Nomenclatura `AAAA-MM-DD-TIPO-Nombre-vX.X.md` — la explica
+45 documentos. Nomenclatura `AAAA-MM-DD-TIPO-Nombre-vX.X.md` — la explica
 [[2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0|la guía de convención]].
 Este índice y las reglas los verifica `tools/vault.py`.
 
@@ -59,6 +59,7 @@ Este índice y las reglas los verifica `tools/vault.py`.
 ## Ejecución, presets y pruebas
 
 - [[2026-07-29-INFORME-Historial-Deshacer-Rehacer-v1.0|Historial del Graph: deshacer y rehacer]] · *implementado*
+- [[2026-07-29-INFORME-Docking-Paneles-Nomad-Tabs-v1.0|Docking: los tres paneles de Jam son nomad tabs]] · *implementado*
 - [[2026-07-26-PLAN-Preview-Transaccional-Efectos-PCG-v1.0|Preview transaccional y efectos de PCG]] · *en-progreso*
 - [[2026-07-25-PLAN-Infraestructura-Pruebas-Jam-Oraculo-v1.0|Infraestructura de pruebas de Jam y Oráculo]] · *pendiente*
 - [[2026-07-25-PLAN-Errores-Resultados-Observables-Flow-v1.0|Errores y resultados observables de Flow]] · *pendiente*

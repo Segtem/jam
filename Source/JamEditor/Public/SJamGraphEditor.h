@@ -88,6 +88,13 @@ public:
 	static TSharedRef<SWidget> MakeBadge(const FLinearColor& Color, const FString& Code, float Size,
 		const FString& IconPath = FString());
 
+	// ---- estado del canvas, para sobrevivir al cierre del panel ----
+	// El panel es un tab: cerrarlo destruye el widget. Sin esto, cerrar Jam ▸ Graph tiraba el
+	// diagrama sin preguntar. Viaja el grafo Y la vista, porque volver a un grafo que está en otro
+	// zoom y en otro lado se siente como que no volvió.
+	FString EstadoDelCanvas() const;
+	void RestaurarCanvas(const FString& Json);
+
 private:
 	struct FGNode
 	{

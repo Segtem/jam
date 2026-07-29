@@ -74,7 +74,7 @@ no se puede escribir el test, el ítem está mal planteado, no incompleto.
 | **Captura del grafo entero** | ❌ | — |
 | **Comentarios / grupos** | ❌ | — |
 | **Funciones (subgrafo con firma)** | ❌ (hay Compounds, sin entradas/salidas declaradas) | `jam/preset.py` |
-| **Docking del panel** | ❌ es una `SWindow` suelta | `JamEditorModule.cpp:126` |
+| Docking del panel | ✅ **Fase 3** — los tres paneles son nomad tabs | `RegisterTabs` |
 
 Dos hallazgos que valen más que la tabla:
 
@@ -151,13 +151,12 @@ Lo que gana un **nomad tab**:
 - se puede seguir arrancando flotante si querés (es lo que significa *nomad*).
 
 Costo: bajo. Hay que cambiar el ciclo de vida —de `SWindow` + `OnWindowClosed` a `SDockTab` +
-`OnTabClosed`— y desregistrar los spawners en `ShutdownModule`. **Riesgo conocido:** el tab se
-destruye y se recrea al acoplar, así que el estado del Graph (nodos, aristas, pan, zoom) no puede
-vivir sólo en el widget o se pierde al mover el panel. Ya hay `BuildJson()`/`OpenDiagram`: el módulo
-guarda el JSON al cerrar el tab y lo restaura al abrirlo.
+`OnTabClosed`— y desregistrar los spawners en `ShutdownModule`.
 
-**Recomendación: hacerlo temprano**, en la Fase 3, antes de invertir más en el canvas. Es más barato
-migrar tres ventanas ahora que seis después.
+**HECHO el 2026-07-29**; el detalle está en
+[[2026-07-29-INFORME-Docking-Paneles-Nomad-Tabs-v1.0\|Docking: los paneles son nomad tabs]]. De
+regalo, cerrar el panel de Graph ya no tira el diagrama: el módulo guarda el estado (grafo + vista +
+archivo actual) al cerrar el tab y lo repone al abrirlo.
 
 ---
 

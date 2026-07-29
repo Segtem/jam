@@ -26,7 +26,8 @@ public class JamEditor : ModuleRules
 			"AssetRegistry",
 			"PythonScriptPlugin",
 			"DesktopPlatform",   // diálogos Abrir/Guardar diagrama
-			"ApplicationCore",   // portapapeles del sistema (copiar/pegar nodos)
+			"ApplicationCore",       // portapapeles del sistema (copiar/pegar nodos)
+			"WorkspaceMenuStructure", // categoría de los paneles en Window ▸ Tools
 		});
 	}
 }
