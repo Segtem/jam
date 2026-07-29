@@ -57,6 +57,22 @@
 			"icono": "jam-ej-debug",
 			"doc": "El mismo nodo Debug conectado a cinco tipos distintos: puntos, frames, curva, serie y malla.\nEs el ejemplo para aprender a MIRAR lo que viaja por un cable en vez de adivinarlo.",
 			"mensaje": "Ejemplo cargado: banco de pruebas de Debug. Compile y después Run graph — cada carril dibuja un tipo distinto."
+		},
+		{
+			"archivo": "Primer-material.jamgraph",
+			"titulo": "Primer material",
+			"grupo": "Materiales",
+			"icono": "jam-ej-primer-material",
+			"doc": "Un material armado ficha por ficha con la paleta del tab Shader —un color y una rugosidad— horneado, y puesto sobre una caja.\nMirá el cable COBRE: por ahí no viaja un material sino el GRAFO que lo describe; recién Build lo convierte en asset. Y ese asset entra por el pin A de Mesh Material, sin copiar rutas a mano.",
+			"mensaje": "Primer material cargado. Compile y después Run graph: se crea M_MiPrimerMaterial y aparece una caja pintada con él. El veredicto del Build dice cuánto cuesta el shader."
+		},
+		{
+			"archivo": "UVs-para-texturar.jamgraph",
+			"titulo": "UVs para texturar",
+			"grupo": "Materiales",
+			"icono": "jam-ej-uvs",
+			"doc": "Proyección cúbica + empaquetado, la cadena con la que se despliega cualquier cosa dura y facetada.\nLo que hay que mirar es el VEREDICTO en el Output: la proyección deja las islas encimadas (5× su caja) y fuera del 0..1; empaquetar las separa y las mete adentro. Unas UVs se juzgan por esos números, no mirando el checker.",
+			"mensaje": "UVs cargado. Compile y después Run graph — leé el Output: cada paso informa densidad, aprovechamiento y si algo quedó encimado o fuera del 0..1."
 		}
 	]
 }

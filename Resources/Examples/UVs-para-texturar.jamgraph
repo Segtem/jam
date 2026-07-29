@@ -1,0 +1,103 @@
+{
+	"schema_version": 1,
+	"nodes": {
+		"escalera": {
+			"verb": "mesh_stairs",
+			"params": {
+				"step_width": "150.0",
+				"step_height": "18.0",
+				"step_depth": "28.0",
+				"steps": "10",
+				"floating": "False"
+			},
+			"asset": null,
+			"x": 40,
+			"y": 60
+		},
+		"proyectar": {
+			"verb": "mesh_uv_box",
+			"params": {
+				"size_x": "0.0",
+				"size_y": "0.0",
+				"size_z": "0.0",
+				"yaw": "0.0",
+				"pitch": "0.0",
+				"roll": "0.0",
+				"channel": "0",
+				"min_island_tris": "2"
+			},
+			"asset": null,
+			"x": 340,
+			"y": 60
+		},
+		"empaquetar": {
+			"verb": "mesh_uv_pack",
+			"params": {
+				"resolution": "1024",
+				"channel": "0",
+				"optimize_rotation": "True"
+			},
+			"asset": null,
+			"x": 640,
+			"y": 60
+		},
+		"malla": {
+			"verb": "mesh_to_static",
+			"params": {
+				"name": "SM_EscaleraUV",
+				"folder": "/Game/Jam/Meshes",
+				"collision": "True",
+				"recompute_tangents": "True",
+				"show_vertex_colors": "True"
+			},
+			"asset": null,
+			"x": 940,
+			"y": 60
+		},
+		"colocar": {
+			"verb": "place",
+			"params": {
+				"x": "0.0",
+				"y": "0.0",
+				"z": "0.0",
+				"view": "True",
+				"surface": "True",
+				"anchor": "base",
+				"sink": "0.0",
+				"align": "False",
+				"physics": "False",
+				"yaw": "0.0",
+				"scale": "1.0"
+			},
+			"asset": null,
+			"x": 1240,
+			"y": 60
+		}
+	},
+	"edges": [
+		[
+			"escalera",
+			"out",
+			"proyectar",
+			"in"
+		],
+		[
+			"proyectar",
+			"out",
+			"empaquetar",
+			"in"
+		],
+		[
+			"empaquetar",
+			"out",
+			"malla",
+			"in"
+		],
+		[
+			"malla",
+			"out",
+			"colocar",
+			"in"
+		]
+	]
+}

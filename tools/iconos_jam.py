@@ -527,6 +527,17 @@ ICONOS = {
                               curva("M12 15l4-3M12 12l-4-2", S, 1.4),
                               fila((16, 8, 12), 6, H, 1.9),
                               punto(14, 3.5, H, 1.9), punto(10, 3.5, H, 1.9)),
+    # Los dos tutoriales de material: uno arma un shader y lo pone sobre algo; el otro despliega.
+    "jam-ej-primer-material": svg(caja(2.5, 5, 5, 4, MATERIAL), caja(2.5, 14, 5, 4, MATERIAL),
+                                  curva("M7.5 7h2v9h-2M7.5 11.5h2", TINTA, 1.1),
+                                  flecha(11, 11.5, 13.5, 11.5),
+                                  f'<circle cx="18" cy="11.5" r="4.6" stroke="{ASSET}" '
+                                  f'stroke-width="1.7" fill="{ASSET}" fill-opacity="0.75"/>',
+                                  curva("M15.8 9.2a3.2 3.2 0 0 1 2.7-1", "#DDDDE2", 1.2)),
+    "jam-ej-uvs": svg(malla("M3 4h8v8H3z", M, False), curva("M3 4l8 8", M, 1.1),
+                      flecha(12, 8, 14.5, 8),
+                      malla("M16 4h6v4h-6z", M), malla("M16 9h3v4h-3z", M),
+                      malla("M20 9h2v4h-2z", M), malla("M16 14h6v3h-6z", M)),
     "jam-ej-debug": svg(punto(5, 6, P, 1.5), frame(5, 13, F, 3.2), curva("M4 20h5", S, 1.5),
                         curva("M13 4v16", TINTA, 1.0),
                         f'<circle cx="18" cy="12" r="4.5" stroke="{TINTA}" stroke-width="1.4"/>',

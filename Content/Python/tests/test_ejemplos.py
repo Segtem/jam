@@ -67,16 +67,22 @@ class GrafosTests(unittest.TestCase):
         """El Compile del canvas sobre cada tutorial, en lo que se puede comprobar sin editor.
 
         Cubre lo que rompe un cambio de código: verbos que ya no existen, params renombrados, tipos
-        incompatibles, ciclos, aridades. NO cubre si los assets que referencia el grafo están en el
-        proyecto — eso necesita el registro de assets de Unreal y lo verifica
-        `tools/experiments/verifica_ejemplos.py`. Se filtra explícitamente en vez de mirar para otro
-        lado: un diagnóstico que el test no puede juzgar no debería hacerlo fallar ni pasar callado.
+        incompatibles, ciclos, aridades. NO cubre si los assets que referencia el grafo EXISTEN en
+        el proyecto — eso necesita el registro de Unreal y lo verifica
+        `tools/experiments/verifica_ejemplos.py`.
+
+        Lo que se filtra es sólo eso, y por su texto exacto. El primer filtro descartaba cualquier
+        mensaje con la palabra «asset», y así se comió un «requiere asset explícito» —que es
+        estructural y este test SÍ puede juzgar— dejando pasar dos tutoriales que no corrían en el
+        canvas. Un filtro ancho no es prudencia: es un test que se calla.
         """
+        solo_del_editor = ("no pude resolver asset", "asset no encontrado")
         for archivo in sorted(EJEMPLOS.glob("*.jamgraph")):
             with self.subTest(ejemplo=archivo.name):
                 g = graph.JamGraph.from_json(archivo.read_text(encoding="utf-8"))
                 estructurales = {
-                    nid: [m for m in mensajes if "asset" not in m.lower()]
+                    nid: [m for m in mensajes
+                          if not any(p in m.lower() for p in solo_del_editor)]
                     for nid, mensajes in graph.validar(g).items()
                 }
                 estructurales = {n: m for n, m in estructurales.items() if m}

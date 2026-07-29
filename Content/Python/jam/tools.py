@@ -1055,10 +1055,20 @@ def t_mesh_uv_scale(mesh_input, *, u=1.0, v=1.0, channel=0,
     )
 
 
-def t_mesh_material(mesh_input, *, material="") -> str:
+def t_mesh_material(mesh_input, *, material="", material_asset=None) -> str:
+    """Asigna un material a la malla. El cable `A` manda sobre el campo de texto.
+
+    El pin existe porque sin él el único camino era COPIAR la ruta que había impreso
+    `material_build` en otro nodo, que es exactamente la clase de paso manual que un grafo
+    está para eliminar — y que se rompe en silencio en cuanto alguien renombra el material.
+
+    El campo se conserva para apuntar a un material que ya existe en el proyecto (uno del motor,
+    uno importado) sin tener que construirlo en el grafo.
+    """
     from . import mesh
+    ruta = str(material_asset or "").strip() or str(material)
     return _mesh_output(
-        "mesh_material", mesh.assign_material(mesh_input, material=str(material)), "MATERIAL M")
+        "mesh_material", mesh.assign_material(mesh_input, material=ruta), "MATERIAL M")
 
 
 def t_mesh_merge(mesh_inputs) -> str:
@@ -1527,8 +1537,12 @@ REGISTRO = {
                                  "origin_u": 0.0, "origin_v": 0.0},
                       "doc": "escala un canal UV existente sobre toda la malla M"},
     "mesh_material": {"fn": t_mesh_material, "cat": "Mesh", "graph_only": True,
-                      "params": {"material": "/Engine/EngineMaterials/DefaultMaterial.DefaultMaterial"},
-                      "doc": "asigna material y section a M; Mesh to Static conserva el slot"},
+                      "params": {"material": "/Engine/EngineMaterials/DefaultMaterial.DefaultMaterial",
+                                 "material_asset": ""},
+                      "data_params": {"material_asset": "A"},
+                      "optional_data_params": ("material_asset",),
+                      "doc": "asigna material y section a M; el pin A acepta la salida de material_build "
+                             "(y manda sobre el campo); Mesh to Static conserva el slot"},
     "mesh_merge":  {"fn": t_mesh_merge, "cat": "Mesh", "graph_only": True, "params": {},
                      "doc": "combina dos o más mallas M en una salida"},
     "mesh_normals": {"fn": t_mesh_normals, "cat": "Mesh", "graph_only": True,
@@ -1638,7 +1652,14 @@ GRAPH_NO_ASSET = {"asset", "pick", "create_spline", "pivot_set",
                   "asset_set", "choose_asset", "curve_branches", "mesh_leaf",
                   "copy_asset_selection", "hism_output",
                   "mesh_color", "mesh_uv_scale", "mesh_material", "mesh_bark", "points_to_frames", "debug",
-                  "mesh_normals", "mesh_to_static"}
+                  "mesh_normals", "mesh_to_static",
+                  # UVs procedurales y todo el frente de shader: ninguno necesita un asset de
+                  # entrada — trabajan sobre la malla que les llega o sobre el grafo de material.
+                  # Sin estar acá, `validar` los rechaza con «requiere asset explícito» y NO se
+                  # pueden correr desde el canvas, aunque llamar a su función directamente funcione.
+                  "mesh_uv_box", "mesh_uv_unwrap", "mesh_uv_pack",
+                  "material_node", "material_connect", "material_output", "material_build",
+                  "material_function", "material_call", "material_instance", "material_wind"}
 GRAPH_IN_NAMES = {"points_to_frames": "P", "debug": "*", "curve_child": "S", "curve_noise": "S", "curve_frames": "S", "distribute_frames": "F",
                   "transform_frames": "F", "branch_from_frames": "F", "curve_branches": "S",
                   "asset_set": "A", "choose_asset": "F",

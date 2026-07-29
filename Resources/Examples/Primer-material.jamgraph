@@ -1,0 +1,174 @@
+{
+	"schema_version": 1,
+	"nodes": {
+		"color": {
+			"verb": "mat_color",
+			"params": {
+				"id": "color",
+				"inputs": "",
+				"props": "constant=#B0764A",
+				"x": "0",
+				"y": "0"
+			},
+			"asset": null,
+			"x": 40,
+			"y": 40
+		},
+		"rug": {
+			"verb": "mat_scalar",
+			"params": {
+				"id": "rugosidad",
+				"inputs": "",
+				"props": "parameter_name=Rugosidad, default_value=0.55",
+				"x": "0",
+				"y": "0"
+			},
+			"asset": null,
+			"x": 40,
+			"y": 200
+		},
+		"a_color": {
+			"verb": "material_output",
+			"params": {
+				"node": "color",
+				"target": "MP_BASE_COLOR",
+				"from_output": ""
+			},
+			"asset": null,
+			"x": 340,
+			"y": 40
+		},
+		"a_rug": {
+			"verb": "material_output",
+			"params": {
+				"node": "rugosidad",
+				"target": "MP_ROUGHNESS",
+				"from_output": ""
+			},
+			"asset": null,
+			"x": 340,
+			"y": 200
+		},
+		"hornear": {
+			"verb": "material_build",
+			"params": {
+				"name": "M_MiPrimerMaterial",
+				"folder": "/Game/Jam/Materials",
+				"blend_mode": "",
+				"shading_model": "",
+				"two_sided": "False",
+				"use_attributes": "False",
+				"max_instructions": "0"
+			},
+			"asset": null,
+			"x": 640,
+			"y": 120
+		},
+		"caja": {
+			"verb": "mesh_box",
+			"params": {
+				"size_x": "200.0",
+				"size_y": "200.0",
+				"size_z": "200.0",
+				"steps_x": "0",
+				"steps_y": "0",
+				"steps_z": "0"
+			},
+			"asset": null,
+			"x": 40,
+			"y": 380
+		},
+		"pintar": {
+			"verb": "mesh_material",
+			"params": {
+				"material": "/Engine/EngineMaterials/DefaultMaterial.DefaultMaterial",
+				"material_asset": ""
+			},
+			"asset": null,
+			"x": 340,
+			"y": 380
+		},
+		"malla": {
+			"verb": "mesh_to_static",
+			"params": {
+				"name": "SM_MiPrimerMaterial",
+				"folder": "/Game/Jam/Meshes",
+				"collision": "True",
+				"recompute_tangents": "True",
+				"show_vertex_colors": "True"
+			},
+			"asset": null,
+			"x": 640,
+			"y": 380
+		},
+		"colocar": {
+			"verb": "place",
+			"params": {
+				"x": "0.0",
+				"y": "0.0",
+				"z": "0.0",
+				"view": "True",
+				"surface": "True",
+				"anchor": "base",
+				"sink": "0.0",
+				"align": "False",
+				"physics": "False",
+				"yaw": "0.0",
+				"scale": "1.0"
+			},
+			"asset": null,
+			"x": 940,
+			"y": 380
+		}
+	},
+	"edges": [
+		[
+			"color",
+			"out",
+			"rug",
+			"in"
+		],
+		[
+			"rug",
+			"out",
+			"a_color",
+			"in"
+		],
+		[
+			"a_color",
+			"out",
+			"a_rug",
+			"in"
+		],
+		[
+			"a_rug",
+			"out",
+			"hornear",
+			"in"
+		],
+		[
+			"caja",
+			"out",
+			"pintar",
+			"in"
+		],
+		[
+			"hornear",
+			"out",
+			"pintar",
+			"material_asset"
+		],
+		[
+			"pintar",
+			"out",
+			"malla",
+			"in"
+		],
+		[
+			"malla",
+			"out",
+			"colocar",
+			"in"
+		]
+	]
+}
