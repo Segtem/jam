@@ -3,7 +3,7 @@ turno: 2026-07-29 · claude-code → codex
 saliente: claude-code
 entrante: codex
 desde: 2026-07-29
-verde_editor: 19d2593
+verde_editor: 80373ea
 verde_editor_fecha: 2026-07-29
 ---
 
@@ -19,13 +19,14 @@ docking de los tres paneles.
 
 | Qué | Comando | Resultado |
 |---|---|---|
-| Cerebro | `cd Content/Python/tests && PYTHONPATH=$PWD/.. python -m unittest discover -s . -p "test_*.py" -q` | **477 OK**, 0.3 s |
+| Cerebro | `cd Content/Python/tests && PYTHONPATH=$PWD/.. python -m unittest discover -s . -p "test_*.py" -q` | **489 OK**, 0.3 s |
 | Vault | `python tools/vault.py` | **47 docs** en 5 carpetas, en regla |
 | Motor | `tools/experiments/verifica_ejemplos.py` headless | **8/8 tutoriales · TODO VERDE** |
 | Editor | arranque + carga del módulo | los 3 spawners registran, **sin warnings de tab** |
+| Oráculo (repo aparte) | `python tools/corpus.py --resumen` en `~/Dev/oracle` | **11 casos**, en regla |
 
-La verificación con motor es del commit `15c4cae`; desde ahí no se tocó `Source/` ni
-`Content/Python/`, así que sigue hablando del código que hay. `relevo.py` lo comprueba solo.
+La verificación con motor es del commit `80373ea`; desde ahí no se tocó `Source/`, `Content/Python/`
+ni `oraculo/`, así que sigue hablando del código que hay. `relevo.py` lo comprueba solo.
 
 ## Frontera de verificación
 
@@ -76,6 +77,21 @@ canvas dé verde con los nodos `f1__…` en el reporte.
 **2. Fase 7 — bypass (`D`) y comentarios (`C`).** El bypass es cerebro (compilar salteando el nodo,
 pasando la entrada a la salida) y por lo tanto verificable; el comentario es Slate.
 
+**3. `oracle` — repo nuevo, `Segtem/oracle` en `~/Dev/oracle`.** Decisión de Brian de esta sesión:
+el oráculo se abstrae en un **modo de trabajar** —un metalenguaje de medidas— y su primer dominio es
+**el proceso de construir con un LLM**, no la geometría. Va el paso 0 de 5: están el corpus (11 casos
+donde la medición dijo bien y no estaba bien) y `ESPECIFICACION.md` (el álgebra: medida como dato,
+seis operadores, clausura). **Todavía no hay evaluador, a propósito** — el corpus es el criterio de
+aceptación de lo que venga.
+
+Siguiente paso ahí: la primera medida, `proceso.test_con_mutante_que_lo_mata`, que tres casos
+reclaman. *Terminado* = los 11 casos del corpus se ponen en ROJO; el que quede verde señala lenguaje
+o medida faltante, y hay que decir cuál. **Condición de parada escrita en la especificación**: si no
+entran con los seis operadores, se rediseña en vez de agregar operadores.
+
+Lo que NO hay que hacer ahí: migrar `oraculo/` viejo (queda en Jam), transporte por red, parser de
+sintaxis propia, y macros.
+
 **Para un turno con Brian delante, no para éste:** el visor 2D de texturas (el motor está entero en
 `jam/preview2d.py` y **no lo consume nadie** en `Source/`; falta el `FSlateDynamicImageBrush`) y el
 gizmo flotante de alineación de `Reference/align.png`. Los dos son gesto puro: un agente los escribe
@@ -111,3 +127,13 @@ Todo esto ya está en `AGENTS.md` o en el Vault; acá queda el resumen de por qu
 - Un verificador que reporta roto lo que está bien **es peor que no verificar**: enseña a ignorarlo.
   Salió de dos falsos positivos del verificador del vault (la barra escapada `\|` de las tablas y
   los `[[ejemplos]]` dentro de comillas invertidas). Se arregló el verificador, no los documentos.
+- **El arnés de mutación mentía por bytecode viejo.** `max` y `min` ocupan lo mismo, y CPython
+  invalida el `.pyc` por (mtime, tamaño): mutar y restaurar dentro del mismo segundo dejaba a Python
+  corriendo el bytecode mutado. Hay que limpiar `__pycache__` entre mutantes o los resultados son al
+  azar. Es el caso `006` del corpus.
+- **De 11 defectos medidos hoy, ninguno lo atrapó un verificador propio por diseño**: 4 los vio
+  Brian, 3 la mutación, 3 la casualidad, 1 un parser ajeno. Con 489 tests en verde y dos
+  verificadores corriendo. Ése es el número que motivó el repo `oracle`.
+- **La definición de «código vivo» del relevo estaba incompleta**: `oraculo/` no estaba en `VIVO`, y
+  el plugin lo importa (`jam.nivel`, `jam.oracle_espacio`). Una edición ahí pasaba sin invalidar la
+  verificación con motor. Corregido — mismo agujero que el caso `007`, en otra ropa.
