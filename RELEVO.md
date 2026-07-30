@@ -23,7 +23,7 @@ docking de los tres paneles.
 | Vault | `python tools/vault.py` | **47 docs** · **las dos implementaciones coinciden** (modo sombra) |
 | Motor | `tools/experiments/verifica_ejemplos.py` headless | **8/8 tutoriales · TODO VERDE** |
 | Editor | arranque + carga del módulo | los 3 spawners registran, **sin warnings de tab** |
-| Oráculo (repo aparte, `~/Dev/oracle`) | `corpus.py` · `aceptacion.py` · `diferencial.py` · `mutar.py` · `unittest discover -s tests -t .` | **29 casos · aceptación ✓ · 111 tests** · proyecto de Jam: `--proyecto medidas` → diferencial 1259 · 80/80 |
+| Oráculo (repo aparte, `~/Dev/oracle`) | `corpus.py` · `aceptacion.py` · `diferencial.py` · `mutar.py` · `unittest discover -s tests -t .` | **29 casos · aceptación ✓ · 111 tests** · proyecto de Jam: `--proyecto medidas` → diferencial 269 · 80/80 · **3 dominios declarados** |
 
 La verificación con motor es del commit `80373ea`; desde ahí no se tocó `Source/`, `Content/Python/`
 ni `oraculo/`, así que sigue hablando del código que hay. `relevo.py` lo comprueba solo.
@@ -167,8 +167,15 @@ No edites `vendor/oracle/` a mano — se hace en `Segtem/oracle` y se trae.
    — eso fue el caso `014` del corpus.
 2. **Los huecos del corpus**: el `012` (umbral duplicado) quedó **cerrado por construcción** con la
    macro `peor`. Siguen `004` y `011`.
-3. **Declarar los dos arneses que faltan** (`relevo`, `geometria`) con `nucleo.dominio`, como ya se
-   hizo con `vault`: 193 → 157 líneas y se fue todo lo general. Es lo único mecánico que queda.
+3. **Los tres arneses ya están declarados** con `nucleo.dominio` (`vault`, `relevo`, `geometria`):
+   511 → 460 líneas, y lo que se fue es todo lo general. Los emisores viven en `tools/emitir_*.py` y
+   escriben a `medidas/diferencial/`. Si tocás `vault.py`, `relevo.py`, `oracle_placement` u
+   `oracle_snap`, hay que regenerarlos y el diferencial tiene que seguir en cero desacuerdos.
+
+   ⚠️ El diferencial bajó de 1259 a **269 veredictos** y eso NO es una pérdida: antes cada medida se
+   contrastaba contra una expectativa que el emisor escribía en Python —o sea, no era información
+   independiente—. Ahora se comprueba el acuerdo GLOBAL contra la referencia real, y lo que fija cada
+   medida por separado es la mutación (80/80) y la guarda de polaridad del `Dominio`.
 
 **Las cuatro preguntas abiertas de la especificación de `oracle` están cerradas**, y sólo una amplió
 el álgebra: la ausencia trajo `agrupar`. El orden resultó ser un campo del hecho; la recursión salió

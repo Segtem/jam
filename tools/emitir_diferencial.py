@@ -1,17 +1,16 @@
-"""Genera la prueba diferencial de geometría para el repo `oracle`.
+"""El dominio `geometria` de Jam, declarado. Diferencial contra `oracle_placement` y `oracle_snap`.
 
-    python tools/emitir_diferencial.py [--n 300]
+    python tools/emitir_diferencial.py
 
-Jam tiene los oráculos de colocación y snap escritos a mano, y son una **implementación
-independiente**: no comparten una línea con el álgebra de `oracle`. Este script genera mundos, los
-juzga con esos oráculos, y vuelca (evidencia, veredicto esperado) como DATOS.
+Los oráculos de colocación y snap de Jam son una **implementación independiente**: no comparten una
+línea con el álgebra de oracle. Acá se montan escenarios, se extraen sus hechos, y se contrasta.
 
-Con eso `oracle` se verifica contra una implementación que no conoce, y sin ninguna dependencia en
-tiempo de ejecución: la única cosa que viaja entre los repos es un archivo de hechos.
+Antes esto generaba 300 mundos al azar y confiaba en que la mezcla cubriera todo. Ahora los defectos
+van **declarados** —uno por medida— con variación por repetición: apuntado en vez de a la escopeta, y
+el `Dominio` se niega si alguna medida se queda sin una de sus dos polaridades.
 
-Además comprueba que el fixture tenga **las dos polaridades** para cada medida. Un diferencial de una
-sola polaridad deja la medida floja — es la lección que dio el sensor de mutación: si ningún caso
-espera verde, quitarle el filtro a la medida pasa inadvertido.
+Y lo que se fue, igual que en los otros dos arneses: la función que reimplementaba las medidas en
+Python para saber qué debería dar cada una.
 """
 
 from __future__ import annotations
@@ -23,16 +22,25 @@ from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ / "Content" / "Python"))
+sys.path.insert(0, str(RAIZ / "vendor" / "oracle"))
 
-from jam import oracle_placement, oracle_snap                      # noqa: E402
-from jam.geometry import AABB, Pieza, Vec3                         # noqa: E402
+from jam import oracle_placement, oracle_snap        # noqa: E402
+from jam.geometry import AABB, Pieza, Vec3           # noqa: E402
+from nucleo.dominio import Dominio, generar          # noqa: E402
+from nucleo.medida import cargar_catalogo            # noqa: E402
+from nucleo.proyecto import (Proyecto, catalogos_a_cargar,  # noqa: E402
+                             registrar_escalares)
 
-DESTINO = RAIZ / "medidas" / "diferencial" / "geometria.json"
+PROYECTO = Proyecto(RAIZ / "medidas")
+DESTINO = PROYECTO.diferencial / "geometria.json"
+
+MEDIDAS = ("colocacion.bounds", "colocacion.interpenetracion", "snap.grilla", "snap.yaw")
+DEFECTOS = ("volumen_degenerado", "interpenetracion", "fuera_de_grilla", "yaw_fuera_de_paso")
 
 
-def _pieza(nombre, c, e, loc=None, yaw=0.0) -> Pieza:
-    loc = loc or c
-    return Pieza(nombre=nombre, aabb=AABB(Vec3(*c), Vec3(*e)), location=Vec3(*loc), yaw=yaw)
+def _pieza(nombre, centro, extension, loc=None, yaw=0.0) -> Pieza:
+    return Pieza(nombre=nombre, aabb=AABB(Vec3(*centro), Vec3(*extension)),
+                 location=Vec3(*(loc or centro)), yaw=yaw)
 
 
 def _plano(p: Pieza) -> dict:
@@ -44,73 +52,64 @@ def _plano(p: Pieza) -> dict:
             "lx": l.x, "ly": l.y, "lz": l.z, "yaw": p.yaw}
 
 
-def _mundo(semilla: int) -> list[Pieza]:
-    """Mezcla a propósito: posiciones en y fuera de grilla, yaw en y fuera de paso, volúmenes
-    degenerados, y SIEMPRE una escenografía de fondo que envuelve todo."""
-    r = random.Random(semilla)
-    coord = lambda: r.choice([0.0, 100.0, 200.0, -100.0, 25.0, 100.5, 137.0])   # noqa: E731
-    yaws = [0.0, 90.0, 180.0, 90.4, 92.0, 45.0]
-    ext = lambda: r.choice([50.0, 25.0, 200.0, 0.0, 0.0001])                    # noqa: E731
+def montar(defecto: str | None, i: int = 0) -> list[Pieza]:
+    """Un mundo con el defecto declarado puesto, y el resto variado por la repetición.
 
-    piezas = [_pieza(f"p{i}", (coord(), coord(), r.choice([0.0, 25.0, 100.0])),
-                     (ext(), ext(), 50.0), yaw=r.choice(yaws))
-              for i in range(r.randint(2, 5))]
-    piezas.append(_pieza("SkySphere", (0.0, 0.0, 0.0), (60000.0, 60000.0, 60000.0)))
-    return piezas
+    El sujeto es siempre la primera pieza. Y siempre hay una escenografía descomunal: sin ella, la
+    regla que la ignora existe sin estar verificada — eso ya pasó una vez y lo delató la mutación.
+    """
+    r = random.Random(hash((defecto or "limpio", i)) & 0xFFFF)
+    en_grilla = lambda: float(r.randrange(-3, 4) * 100)          # noqa: E731
+
+    centro = [en_grilla(), en_grilla(), 0.0]
+    extension = (50.0, 50.0, 50.0)
+    yaw = float(r.choice([0, 90, 180, 270]))
+
+    if defecto == "volumen_degenerado":
+        extension = (0.0, 50.0, 50.0)
+    elif defecto == "fuera_de_grilla":
+        centro[0] += r.choice([1.5, 7.0, 37.0])
+    elif defecto == "yaw_fuera_de_paso":
+        yaw += r.choice([0.6, 2.0, 45.0])
+
+    sujeto = _pieza("sujeto", tuple(centro), extension, yaw=yaw)
+    vecinas = [_pieza(f"v{j}", (en_grilla() + 1000.0, en_grilla(), 0.0), (50.0, 50.0, 50.0))
+               for j in range(r.randint(1, 3))]
+    if defecto == "interpenetracion":
+        vecinas.append(_pieza("clavada", (centro[0] + 20.0, centro[1], centro[2]),
+                              (50.0, 50.0, 50.0)))
+    vecinas.append(_pieza("SkySphere", (0.0, 0.0, 0.0), (60000.0, 60000.0, 60000.0)))
+    return [sujeto, *vecinas]
 
 
-def generar(n: int) -> dict:
-    grupos: dict[str, list[dict]] = {m: [] for m in
-                                     ("colocacion.bounds", "colocacion.interpenetracion",
-                                      "snap.grilla", "snap.yaw")}
-    for semilla in range(n):
-        mundo = _mundo(semilla)
-        sujeto, otras = mundo[0], mundo[1:]
+def hechos(mundo: list[Pieza]) -> dict:
+    return {"pieza": [_plano(mundo[0])], "vecina": [_plano(p) for p in mundo[1:]]}
 
-        col = oracle_placement.verificar(sujeto, otras)
-        grupos["colocacion.bounds"].append(
-            {"evidencia": {"pieza": [_plano(sujeto)]}, "esperado_ok": bool(col["bounds_ok"])})
-        grupos["colocacion.interpenetracion"].append(
-            {"evidencia": {"pieza": [_plano(sujeto)], "vecina": [_plano(o) for o in otras]},
-             "esperado_ok": col["interpenetra"] == []})
 
-        snap = oracle_snap.verificar_grilla(sujeto)
-        grupos["snap.grilla"].append(
-            {"evidencia": {"pieza": [_plano(sujeto)]},
-             "esperado_ok": all(snap["ejes_ok"].values())})
-        grupos["snap.yaw"].append(
-            {"evidencia": {"pieza": [_plano(sujeto)]}, "esperado_ok": bool(snap["yaw_ok"])})
+def referencia(mundo: list[Pieza]) -> bool:
+    """Los oráculos escritos a mano de Jam, corridos de verdad."""
+    sujeto, otras = mundo[0], mundo[1:]
+    col = oracle_placement.verificar(sujeto, otras)
+    snap = oracle_snap.verificar_grilla(sujeto)
+    return (bool(col["bounds_ok"]) and col["interpenetra"] == []
+            and all(snap["ejes_ok"].values()) and bool(snap["yaw_ok"]))
 
-    return grupos
+
+GEOMETRIA = Dominio(
+    nombre="geometria", montar=montar, hechos=hechos, referencia=referencia,
+    defectos=DEFECTOS, repeticiones=50,
+    descripcion="Brianholl/jam · oracle_placement + oracle_snap (implementación independiente)")
 
 
 def main() -> int:
-    n = 300
-    if "--n" in sys.argv:
-        n = int(sys.argv[sys.argv.index("--n") + 1])
-
-    grupos = generar(n)
-    problemas = []
-    print(f"mundos generados: {n}\n")
-    for medida, casos in sorted(grupos.items()):
-        verdes = sum(1 for c in casos if c["esperado_ok"])
-        rojos = len(casos) - verdes
-        print(f"  {medida:<32} {verdes:>4} verdes · {rojos:>4} rojos")
-        # las DOS polaridades o la medida queda floja (lección del sensor de mutación)
-        if verdes < 10 or rojos < 10:
-            problemas.append(f"{medida}: {verdes} verdes y {rojos} rojos — falta una polaridad")
-
-    if problemas:
-        print("\nNO SE ESCRIBE — el fixture no discriminaría:")
-        for p in problemas:
-            print("  ·", p)
-        return 1
+    registrar_escalares(PROYECTO)
+    catalogo = cargar_catalogo(catalogos_a_cargar(PROYECTO))
+    medidas = [catalogo[m] for m in MEDIDAS if m in catalogo]
+    fixture = generar(GEOMETRIA, medidas)
 
     DESTINO.parent.mkdir(parents=True, exist_ok=True)
-    DESTINO.write_text(json.dumps(
-        {"origen": "Brianholl/jam · oracle_placement + oracle_snap (implementación independiente)",
-         "mundos": n, "grupos": grupos}, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
-    print(f"\nescrito: {DESTINO}")
+    DESTINO.write_text(json.dumps(fixture, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    print(f"{len(medidas)} medidas × {fixture['mundos']} escenarios · escrito: {DESTINO}")
     return 0
 
 
