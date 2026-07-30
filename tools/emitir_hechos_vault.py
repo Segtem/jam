@@ -1,16 +1,15 @@
-"""Emite los HECHOS del vault, y la prueba diferencial contra `tools/vault.py`.
+"""El dominio `vault` de Jam, declarado. Genera su prueba diferencial contra `tools/vault.py`.
 
     python tools/emitir_hechos_vault.py
 
-`tools/vault.py` es un verificador escrito a mano: seis reglas en ramas `if`. Este script mira lo
-mismo pero **no juzga**: produce relaciones planas (`documento`, `enlace`), que es lo que un sensor
-debe hacer. Las reglas viven en `oracle`, como medidas declaradas con su umbral, su defensa y su
-punto ciego.
+Acá vive **sólo lo particular de este dominio**: cómo se arma un vault de prueba, cómo se extraen sus
+hechos, qué defectos se le pueden inyectar, y cuál es la implementación independiente contra la que se
+contrasta. Todo lo demás —comprobar que el sensor y la referencia coincidan, exigir las dos
+polaridades, escribir el fixture— lo pone `nucleo.dominio` de oracle.
 
-Para que el reemplazo sea verificable y no un acto de fe, además genera casos con **un defecto
-inyectado de cada tipo**: copia el vault a un temporal, lo rompe, corre `vault.py` ahí, y anota su
-veredicto. El emisor se niega a escribir si su expectativa por medida no coincide con el veredicto
-global del verificador de verdad.
+Antes esto eran 193 líneas, y treinta eran una función `espera()` que reimplementaba las medidas en
+Python para saber qué debería dar cada una. Ya no existe: el fixture guarda los hechos y el veredicto
+de la referencia, que es la única información independiente que hay.
 """
 
 from __future__ import annotations
@@ -25,43 +24,42 @@ import unicodedata
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[1]
-DESTINO = RAIZ / "medidas" / "diferencial" / "vault.json"
+sys.path.insert(0, str(RAIZ / "vendor" / "oracle"))
+
+from nucleo.dominio import Dominio, generar          # noqa: E402
+from nucleo.medida import cargar_catalogo            # noqa: E402
+from nucleo.proyecto import (Proyecto, catalogos_a_cargar,  # noqa: E402
+                             registrar_escalares)
+
+PROYECTO = Proyecto(RAIZ / "medidas")
+DESTINO = PROYECTO.diferencial / "vault.json"
 
 NOMBRE = re.compile(r"^(\d{4}-\d{2}-\d{2})-([A-Z]+)-(.+)-v(\d+\.\d+)$")
 TIPOS = {"INFORME", "PLAN", "ROADMAP", "CONCEPTO", "GUIA", "ESTADO", "ADR"}
 CARPETAS = ("00-Proceso", "01-Graph", "02-TreeGen", "03-Mesh-y-materiales", "04-Ejecucion-y-pruebas")
+_TEMPORALES: list[str] = []
 
-MEDIDAS = ("vault.nombre_sigue_la_convencion", "vault.tipo_coincide", "vault.fecha_coincide",
-           "vault.area_es_la_carpeta", "vault.nombre_es_ascii", "vault.enlace_resuelve",
-           # las cuatro que faltaban: el modo sombra de `vault.py` las delató, porque el
-           # verificador a mano las comprobaba y ninguna medida las cubría
-           "vault.ningun_doc_suelto_en_la_raiz", "vault.carpeta_conocida",
-           "vault.nombre_unico_en_el_vault", "vault.frontmatter_completo")
 
+# ---- el SENSOR: hechos, sin un solo `if` que decida si algo está mal ----
 
 def _frontmatter(texto: str) -> dict:
     if not texto.startswith("---\n") or "\n---\n" not in texto:
         return {}
-    d = {}
-    for linea in texto[4:texto.index("\n---\n", 4)].split("\n"):
-        m = re.match(r"^(\w+):\s*(.*)$", linea)
-        if m:
-            d[m.group(1)] = m.group(2).strip().strip('"')
-    return d
+    return {m.group(1): m.group(2).strip().strip('"')
+            for m in (re.match(r"^(\w+):\s*(.*)$", l)
+                      for l in texto[4:texto.index("\n---\n", 4)].split("\n")) if m}
 
 
 def _enlaces(texto: str) -> list[str]:
-    limpio = re.sub(r"```.*?```", "", texto, flags=re.S)
-    limpio = re.sub(r"`[^`\n]*`", "", limpio)
+    limpio = re.sub(r"`[^`\n]*`", "", re.sub(r"```.*?```", "", texto, flags=re.S))
     return [e.split("|")[0].split("#")[0].rstrip("\\").strip()
             for e in re.findall(r"\[\[([^\]]+)\]\]", limpio)]
 
 
-def hechos(vault: Path) -> dict:
-    """Relaciones planas. Sin juicio: acá no hay ningún `if` que decida si algo está mal."""
+def hechos(raiz: Path) -> dict:
+    vault = raiz / "Vault-kb"
     nombres = {p.stem for p in vault.rglob("*.md")}
-    docs, enlaces = [], []
-
+    docs = []
     for p in sorted(vault.rglob("*.md")):
         if p.name == "README.md":
             continue
@@ -72,7 +70,7 @@ def hechos(vault: Path) -> dict:
         docs.append({
             "nombre": p.stem,
             "carpeta": p.parent.name if p.parent != vault else "",
-            "sigue_convencion": bool(m) and (m.group(2) in TIPOS if m else False),
+            "sigue_convencion": bool(m) and m.group(2) in TIPOS,
             "tipo_en_nombre": m.group(2) if m else "",
             "tipo_declarado": fm.get("tipo", ""),
             "fecha_en_nombre": m.group(1) if m else "",
@@ -83,30 +81,13 @@ def hechos(vault: Path) -> dict:
             "frontmatter_completo": all(
                 k in fm for k in ("title", "tipo", "version", "date", "updated", "area")),
         })
-
-    for p in sorted(vault.rglob("*.md")):
-        for destino in _enlaces(p.read_text(encoding="utf-8")):
-            enlaces.append({"origen": p.stem, "destino": destino, "resuelve": destino in nombres})
-
+    enlaces = [{"origen": p.stem, "destino": d, "resuelve": d in nombres}
+               for p in sorted(vault.rglob("*.md"))
+               for d in _enlaces(p.read_text(encoding="utf-8"))]
     return {"documento": docs, "enlace": enlaces}
 
 
-def espera(h: dict) -> dict:
-    """Qué debería decir cada medida sobre estos hechos. Se CONTRASTA contra `vault.py`."""
-    d, e = h["documento"], h["enlace"]
-    return {
-        "vault.nombre_sigue_la_convencion": all(x["sigue_convencion"] for x in d),
-        "vault.tipo_coincide": all(x["tipo_en_nombre"] == x["tipo_declarado"] for x in d),
-        "vault.fecha_coincide": all(x["fecha_en_nombre"] == x["updated"] for x in d),
-        "vault.area_es_la_carpeta": all(x["area"] == x["carpeta"] for x in d),
-        "vault.nombre_es_ascii": all(x["nombre_es_ascii"] for x in d),
-        "vault.enlace_resuelve": all(x["resuelve"] for x in e),
-        "vault.ningun_doc_suelto_en_la_raiz": all(x["carpeta"] != "" for x in d),
-        "vault.carpeta_conocida": all(x["carpeta_conocida"] for x in d),
-        "vault.nombre_unico_en_el_vault": len({x["nombre"] for x in d}) == len(d),
-        "vault.frontmatter_completo": all(x["frontmatter_completo"] for x in d),
-    }
-
+# ---- los DEFECTOS: uno por medida, o la medida no queda fijada ----
 
 DEFECTOS = {
     "nombre_roto": lambda p: p.rename(p.with_name("archivo-sin-convencion.md")),
@@ -120,13 +101,11 @@ DEFECTOS = {
                count=1, flags=re.M), encoding="utf-8"),
     "enlace_roto": lambda p: p.write_text(
         p.read_text(encoding="utf-8") + "\n\n[[documento-que-no-existe]]\n", encoding="utf-8"),
-    # sin este defecto, `vault.nombre_es_ascii` quedaba con una sola polaridad y no fijaba nada
     "nombre_con_acento": lambda p: p.rename(
         p.with_name(p.name.replace("INFORME-", "INFORME-Ación-", 1))),
     "suelto_en_la_raiz": lambda p: shutil.copy(p, p.parents[1] / p.name),
-    "carpeta_inventada": lambda p: (
-        (p.parents[1] / "99-Inventada").mkdir(exist_ok=True),
-        shutil.move(str(p), str(p.parents[1] / "99-Inventada" / p.name))),
+    "carpeta_inventada": lambda p: ((p.parents[1] / "99-Inventada").mkdir(exist_ok=True),
+                                    shutil.move(str(p), str(p.parents[1] / "99-Inventada" / p.name))),
     "nombre_duplicado": lambda p: shutil.copy(p, p.parents[1] / "02-TreeGen" / p.name),
     "frontmatter_incompleto": lambda p: p.write_text(
         re.sub(r"^version: .*$\n", "", p.read_text(encoding="utf-8"), count=1, flags=re.M),
@@ -134,58 +113,43 @@ DEFECTOS = {
 }
 
 
-def _copia_y_rompe(defecto: str | None) -> tuple[dict, bool]:
-    """Copia vault + verificador a un temporal, aplica el defecto, y corre el verificador REAL."""
-    with tempfile.TemporaryDirectory() as d:
-        raiz = Path(d)
-        (raiz / "tools").mkdir()
-        shutil.copy(RAIZ / "tools" / "vault.py", raiz / "tools" / "vault.py")
-        shutil.copytree(RAIZ / "Vault-kb", raiz / "Vault-kb")
+def montar(defecto: str | None) -> Path:
+    """Copia el vault y su verificador a un temporal, y aplica el defecto si hay."""
+    raiz = Path(tempfile.mkdtemp())
+    _TEMPORALES.append(str(raiz))
+    (raiz / "tools").mkdir()
+    shutil.copy(RAIZ / "tools" / "vault.py", raiz / "tools" / "vault.py")
+    shutil.copytree(RAIZ / "Vault-kb", raiz / "Vault-kb")
+    if defecto:
+        DEFECTOS[defecto](next((raiz / "Vault-kb" / "01-Graph").glob("*INFORME*.md")))
+    return raiz
 
-        if defecto:
-            objetivo = next((raiz / "Vault-kb" / "01-Graph").glob("*INFORME*.md"))
-            DEFECTOS[defecto](objetivo)
 
-        r = subprocess.run([sys.executable, "tools/vault.py"], cwd=str(raiz),
-                           capture_output=True, text=True)
-        return hechos(raiz / "Vault-kb"), r.returncode == 0
+def referencia(raiz: Path) -> bool:
+    """La implementación INDEPENDIENTE: el verificador escrito a mano, corrido de verdad."""
+    return subprocess.run([sys.executable, "tools/vault.py"], cwd=str(raiz),
+                          capture_output=True, text=True).returncode == 0
+
+
+VAULT = Dominio(
+    nombre="vault", montar=montar, hechos=hechos, referencia=referencia,
+    defectos=tuple(DEFECTOS),
+    descripcion="Brianholl/jam · tools/vault.py (verificador escrito a mano)")
 
 
 def main() -> int:
-    grupos: dict[str, list[dict]] = {m: [] for m in MEDIDAS}
-    problemas = []
-
-    for defecto in [None, *DEFECTOS]:
-        h, jam_ok = _copia_y_rompe(defecto)
-        esperado = espera(h)
-        # el amarre: mi expectativa por medida tiene que dar lo mismo que el verificador de verdad
-        if all(esperado.values()) != jam_ok:
-            problemas.append(f"«{defecto or 'sin defecto'}»: vault.py dice ok={jam_ok} y la "
-                             f"conjunción de las medidas dice {all(esperado.values())}")
-        for mid in MEDIDAS:
-            grupos[mid].append({"evidencia": h, "esperado_ok": esperado[mid]})
-        print(f"  {defecto or 'sin defecto':<16} vault.py ok={jam_ok:<5} "
-              f"medidas en rojo: {[m for m, v in esperado.items() if not v] or '—'}")
-
-    # la misma guarda que el emisor de geometría: sin las dos polaridades la medida no se fija
-    for mid, casos in grupos.items():
-        verdes = sum(1 for c in casos if c["esperado_ok"])
-        if verdes == 0 or verdes == len(casos):
-            problemas.append(f"{mid}: {verdes}/{len(casos)} verdes — falta una polaridad, "
-                             f"hay que inyectar un defecto que la active")
-
-    if problemas:
-        print("\nNO SE ESCRIBE — el sensor y el verificador no coinciden:")
-        for p in problemas:
-            print("  ·", p)
-        return 1
+    registrar_escalares(PROYECTO)
+    catalogo = cargar_catalogo(catalogos_a_cargar(PROYECTO))
+    medidas = [m for k, m in catalogo.items() if k.startswith("vault.")]
+    try:
+        fixture = generar(VAULT, medidas)
+    finally:
+        for d in _TEMPORALES:
+            shutil.rmtree(d, ignore_errors=True)
 
     DESTINO.parent.mkdir(parents=True, exist_ok=True)
-    DESTINO.write_text(json.dumps(
-        {"origen": "Brianholl/jam · tools/vault.py (verificador escrito a mano)",
-         "mundos": len(DEFECTOS) + 1, "grupos": grupos}, ensure_ascii=False, indent=1) + "\n",
-        encoding="utf-8")
-    print(f"\nescrito: {DESTINO}")
+    DESTINO.write_text(json.dumps(fixture, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    print(f"{len(medidas)} medidas × {fixture['mundos']} escenarios · escrito: {DESTINO}")
     return 0
 
 
