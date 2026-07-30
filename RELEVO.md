@@ -23,7 +23,7 @@ docking de los tres paneles.
 | Vault | `python tools/vault.py` | **47 docs** · **las dos implementaciones coinciden** (modo sombra) |
 | Motor | `tools/experiments/verifica_ejemplos.py` headless | **8/8 tutoriales · TODO VERDE** |
 | Editor | arranque + carga del módulo | los 3 spawners registran, **sin warnings de tab** |
-| Oráculo (repo aparte, `~/Dev/oracle`) | `corpus.py` · `aceptacion.py` · `diferencial.py` · `mutar.py` · `unittest discover -s tests -t .` | **25 casos · aceptación ✓ · 107 tests** · proyecto de Jam: `--proyecto medidas` → diferencial 1259 · 80/80 |
+| Oráculo (repo aparte, `~/Dev/oracle`) | `corpus.py` · `aceptacion.py` · `diferencial.py` · `mutar.py` · `unittest discover -s tests -t .` | **29 casos · aceptación ✓ · 111 tests** · proyecto de Jam: `--proyecto medidas` → diferencial 1259 · 80/80 |
 
 La verificación con motor es del commit `80373ea`; desde ahí no se tocó `Source/`, `Content/Python/`
 ni `oraculo/`, así que sigue hablando del código que hay. `relevo.py` lo comprueba solo.
@@ -167,12 +167,14 @@ No edites `vendor/oracle/` a mano — se hace en `Segtem/oracle` y se trae.
    — eso fue el caso `014` del corpus.
 2. **Los huecos del corpus**: el `012` (umbral duplicado) quedó **cerrado por construcción** con la
    macro `peor`. Siguen `004` y `011`.
-3. **Recursión y orden** — las dos preguntas abiertas que quedan de la especificación, y las dos las
-   pide Jam: «alcanzable desde» (el cierre de imports, la conectividad de un grafo) y «elementos
-   consecutivos» (el oráculo de continuidad del spline). La **ausencia** ya se resolvió con `agrupar`,
-   sin traer nulos.
-3b. **Declarar los dos arneses que faltan** (`relevo`, `geometria`) con `nucleo.dominio`, como ya se
-   hizo con `vault`: 193 → 157 líneas y se fue todo lo general.
+3. **Declarar los dos arneses que faltan** (`relevo`, `geometria`) con `nucleo.dominio`, como ya se
+   hizo con `vault`: 193 → 157 líneas y se fue todo lo general. Es lo único mecánico que queda.
+
+**Las cuatro preguntas abiertas de la especificación de `oracle` están cerradas**, y sólo una amplió
+el álgebra: la ausencia trajo `agrupar`. El orden resultó ser un campo del hecho; la recursión salió
+del álgebra hacia el sensor (`alcanzable` es un hecho, no una consulta); y la igualdad exacta sobre
+flotantes se resolvió **prohibiéndola**. Los operadores quedaron en cinco de seis: sólo `con` sigue
+esperando su disparador.
 4. **El volcado a `.md`/`.txt`** para NotebookLM, que Brian pidió para cuando esto estuviera listo.
 
 Dos reglas del repo que hay que respetar y son fáciles de romper sin querer:
