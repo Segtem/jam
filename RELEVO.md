@@ -23,7 +23,7 @@ docking de los tres paneles.
 | Vault | `python tools/vault.py` | **47 docs** en 5 carpetas, en regla |
 | Motor | `tools/experiments/verifica_ejemplos.py` headless | **8/8 tutoriales · TODO VERDE** |
 | Editor | arranque + carga del módulo | los 3 spawners registran, **sin warnings de tab** |
-| Oráculo (repo aparte, `~/Dev/oracle`) | `corpus.py` · `aceptacion.py` · `diferencial.py` · `mutar.py` · `unittest discover -s tests -t .` | **20 casos · aceptación ✓ · diferencial 1200/1200 · 44/44 medida · 211/242 código · 81 tests** |
+| Oráculo (repo aparte, `~/Dev/oracle`) | `corpus.py` · `aceptacion.py` · `diferencial.py` · `mutar.py` · `unittest discover -s tests -t .` | **20 casos · aceptación ✓ · diferencial 1242/1242 · 68/68 medida · 211/242 código · 81 tests** |
 
 La verificación con motor es del commit `80373ea`; desde ahí no se tocó `Source/`, `Content/Python/`
 ni `oraculo/`, así que sigue hablando del código que hay. `relevo.py` lo comprueba solo.
@@ -120,9 +120,19 @@ vista. **No los declares equivalentes en masa para pintar verde** — sería exa
 el repo persigue. Bajan escribiendo tests, o declarando equivalentes de a uno en `equivalentes.json`
 CON SU RAZÓN ESCRITA.
 
-**Siguiente — paso 5, el último: cablearlo.** Que `relevo.py` y `vault.py` de Jam dejen de ser
-verificadores escritos a mano y se re-expresen como medidas del catálogo. Recién ahora, con el marco
-probado contra sí mismo, contra una implementación independiente y contra su propio código.
+**El paso 5 va a medias.** `tools/vault.py` ya está re-expresado como **seis medidas** en
+`catalogos/vault/`, verificadas por diferencial contra el verificador escrito a mano (42 veredictos,
+cero desacuerdos). Van **tres dominios** —proceso, geometría, vault— con los mismos operadores.
+
+⚠️ **`vault.py` SIGUE EN USO y no hay que reemplazarlo todavía.** El reemplazo va cuando el
+diferencial lleve tiempo en verde, no el mismo día que se escribió. Y **Jam no depende de `oracle`**:
+el patrón es Jam emite hechos (`tools/emitir_hechos_vault.py`, `tools/emitir_diferencial.py`) y oracle
+los juzga. Si se toca `vault.py`, hay que regenerar el fixture y el diferencial tiene que seguir en
+cero.
+
+**Siguiente — la otra mitad del paso 5:** `relevo.py` re-expresado como medidas, con su emisor de
+hechos y su diferencial. Es el mismo patrón, y conviene hacerlo con cuidado porque es la herramienta
+que abre y cierra los turnos.
 
 Dos reglas del repo que hay que respetar y son fáciles de romper sin querer:
 
