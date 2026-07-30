@@ -154,6 +154,12 @@ No edites `vendor/oracle/` a mano — se hace en `Segtem/oracle` y se trae.
 **Lo que queda, en orden de valor:**
 
 0. **Migrar `relevo.py` a modo sombra**, igual que `vault.py`.
+0b. **Sacar los oráculos de Jam y reemplazarlos por `oracle`** (pedido de Brian). ⚠️ Tiene una
+   trampa: `jam/oracle_*.py` los llama el EDITOR, así que el vendor tiene que estar en el path del
+   intérprete embebido de UE — hoy `vendor/oracle` es hermano de `Content/Python/`, no está en él.
+   Hay que decidir si se mueve bajo `Content/Python/` o se inserta el path (que es el olor de
+   `bridge.py`). Y sólo 4 de los 7 oráculos vivos están re-expresados (placement y snap): faltan
+   scatter, pared, physics, reemplazo y espacio.
 1. **Los 31 mutantes de código vivos** de `oracle`, de a uno: o un test que falta, o un equivalente
    declarado en `equivalentes.json` **con su razón escrita**. No declararlos en masa.
 2. **Los 3 huecos del corpus** (`004`, `011`, `012`): dos son defectos del lenguaje, uno no tiene
