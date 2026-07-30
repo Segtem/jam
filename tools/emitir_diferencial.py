@@ -21,12 +21,13 @@ import random
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "Content" / "Python"))
+RAIZ = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(RAIZ / "Content" / "Python"))
 
 from jam import oracle_placement, oracle_snap                      # noqa: E402
 from jam.geometry import AABB, Pieza, Vec3                         # noqa: E402
 
-DESTINO = Path.home() / "Dev" / "oracle" / "diferencial" / "geometria.json"
+DESTINO = RAIZ / "medidas" / "diferencial" / "geometria.json"
 
 
 def _pieza(nombre, c, e, loc=None, yaw=0.0) -> Pieza:

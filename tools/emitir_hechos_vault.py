@@ -25,7 +25,7 @@ import unicodedata
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[1]
-DESTINO = Path.home() / "Dev" / "oracle" / "diferencial" / "vault.json"
+DESTINO = RAIZ / "medidas" / "diferencial" / "vault.json"
 
 NOMBRE = re.compile(r"^(\d{4}-\d{2}-\d{2})-([A-Z]+)-(.+)-v(\d+\.\d+)$")
 TIPOS = {"INFORME", "PLAN", "ROADMAP", "CONCEPTO", "GUIA", "ESTADO", "ADR"}

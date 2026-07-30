@@ -28,7 +28,7 @@ import tempfile
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[1]
-DESTINO = Path.home() / "Dev" / "oracle" / "diferencial" / "relevo.json"
+DESTINO = RAIZ / "medidas" / "diferencial" / "relevo.json"
 
 MEDIDAS = ("relevo.testigo_tiene_sus_campos", "relevo.testigo_tiene_sus_secciones",
            "relevo.agentes_conocidos", "relevo.el_relevo_tiene_dos_puntas",

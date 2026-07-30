@@ -183,7 +183,7 @@ def veredicto_del_oraculo():
         from emitir_hechos_vault import hechos
         from nucleo.medida import cargar_catalogo, evaluar
 
-        medidas = [m for k, m in cargar_catalogo(raiz / "vendor" / "oracle" / "catalogos").items()
+        medidas = [m for k, m in cargar_catalogo(raiz / "medidas" / "catalogos" / "vault").items()
                    if k.startswith("vault.")]
         return evaluar(medidas, hechos(VAULT)), None
     except Exception as e:  # noqa: BLE001
