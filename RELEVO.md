@@ -20,7 +20,7 @@ docking de los tres paneles.
 | Qué | Comando | Resultado |
 |---|---|---|
 | Cerebro | `cd Content/Python/tests && PYTHONPATH=$PWD/.. python -m unittest discover -s . -p "test_*.py" -q` | **489 OK**, 0.3 s |
-| Vault | `python tools/vault.py` | **47 docs** en 5 carpetas, en regla |
+| Vault | `python tools/vault.py` | **47 docs** · **las dos implementaciones coinciden** (modo sombra) |
 | Motor | `tools/experiments/verifica_ejemplos.py` headless | **8/8 tutoriales · TODO VERDE** |
 | Editor | arranque + carga del módulo | los 3 spawners registran, **sin warnings de tab** |
 | Oráculo (repo aparte, `~/Dev/oracle`) | `corpus.py` · `aceptacion.py` · `diferencial.py` · `mutar.py` · `unittest discover -s tests -t .` | **20 casos · aceptación ✓ · diferencial 1290/1290 · 88/88 medida · 211/242 código · 81 tests** |
@@ -135,12 +135,25 @@ cero.
 Van **23 medidas en cuatro dominios** — proceso, geometría, vault y relevo — con los mismos
 operadores.
 
-⚠️ **Los dos verificadores originales SIGUEN EN USO y no hay que reemplazarlos todavía.** Están
-re-expresados y verificados, que no es lo mismo que probados en el tiempo. Menos `relevo.py`, que es
-lo que abre y cierra los turnos: romperlo en un relevo sería el peor momento posible.
+**La mudanza empezó** (pedido de Brian): `oracle` está **vendorizado en `vendor/oracle/`** por
+`git subtree` (squash de `b679981`), y `tools/vault.py` corre en **MODO SOMBRA** — calcula el
+veredicto por los dos caminos y **sale con código 2 si difieren**. El informe que imprime es el del
+oráculo, porque enumera lo que NO mira.
+
+⚠️ **No borres el verificador escrito a mano de `vault.py`.** La sombra es el chequeo; sin él, el
+reemplazo sería un acto de fe. Se quita cuando el diferencial lleve tiempo en verde.
+
+⚠️ **`relevo.py` todavía NO está migrado, a propósito**: es lo que abre y cierra los turnos, y va de a
+uno. Sus cinco medidas ya existen y están verificadas; falta el modo sombra, que es el mismo patrón
+que quedó escrito en `vault.py`.
+
+**Cómo actualizar el vendor:**
+`git subtree pull --prefix=vendor/oracle git@github.com:Segtem/oracle.git main --squash`
+No edites `vendor/oracle/` a mano — se hace en `Segtem/oracle` y se trae.
 
 **Lo que queda, en orden de valor:**
 
+0. **Migrar `relevo.py` a modo sombra**, igual que `vault.py`.
 1. **Los 31 mutantes de código vivos** de `oracle`, de a uno: o un test que falta, o un equivalente
    declarado en `equivalentes.json` **con su razón escrita**. No declararlos en masa.
 2. **Los 3 huecos del corpus** (`004`, `011`, `012`): dos son defectos del lenguaje, uno no tiene

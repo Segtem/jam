@@ -12,6 +12,20 @@ Comprueba tres cosas, que son las tres que se rompen solas:
 
 La 3 es la que importa: un vault con enlaces rotos se degrada en silencio, igual que un test que no
 discrimina. Ver la guía de convención en el propio vault.
+
+## Modo sombra (migración a `oracle`)
+
+Las mismas reglas están re-expresadas como **diez medidas declaradas** en
+`vendor/oracle/catalogos/vault/`, con su umbral, su defensa y —lo que este archivo nunca pudo decir—
+**su punto ciego**. Mientras dure la migración se calculan LOS DOS veredictos y se comparan: si
+difieren, esto sale con código 2 y no deja pasar nada. Un reemplazo que se declara sin comparar es un
+acto de fe.
+
+El informe que se imprime es el del oráculo, porque enumera lo que NO mira. Las reglas de acá siguen
+siendo la referencia hasta que el diferencial lleve tiempo en verde.
+
+Si el vendor no está disponible (una copia suelta de este archivo, por ejemplo), la sombra se saltea
+y se dice: el verificador a mano tiene que seguir funcionando solo.
 """
 
 from __future__ import annotations
@@ -156,16 +170,59 @@ def escribir_indice() -> None:
     (VAULT / "README.md").write_text("\n".join(lineas), encoding="utf-8")
 
 
+def veredicto_del_oraculo():
+    """(informe, None) con las medidas del vendor, o (None, motivo) si no se puede calcular.
+
+    Nunca levanta: el verificador a mano tiene que seguir funcionando aunque el vendor falte.
+    """
+    try:
+        raiz = VAULT.parent
+        sys.path.insert(0, str(raiz / "vendor" / "oracle"))
+        sys.path.insert(0, str(raiz / "tools"))
+        import catalogos  # noqa: F401  registra las escalares declaradas
+        from emitir_hechos_vault import hechos
+        from nucleo.medida import cargar_catalogo, evaluar
+
+        medidas = [m for k, m in cargar_catalogo(raiz / "vendor" / "oracle" / "catalogos").items()
+                   if k.startswith("vault.")]
+        return evaluar(medidas, hechos(VAULT)), None
+    except Exception as e:  # noqa: BLE001
+        return None, f"{type(e).__name__}: {e}"
+
+
 def main() -> int:
     if "--indice" in sys.argv:
         escribir_indice()
     fallas = verificar()
+    a_mano_ok = not fallas
+    informe, motivo = veredicto_del_oraculo()
+
+    # La comparación es el punto de la migración: dos implementaciones que no coinciden significan
+    # que una de las dos miente, y no se sabe cuál.
+    if informe is not None and informe.ok != a_mano_ok:
+        print("VAULT ✗✗ — LOS DOS VERIFICADORES NO COINCIDEN, y eso es peor que cualquier falla")
+        print(f"  a mano: {'ok' if a_mano_ok else f'{len(fallas)} problema(s)'}")
+        print(f"  oráculo: {'ok' if informe.ok else 'rojo'}")
+        print("\n" + informe.texto())
+        for f in fallas:
+            print("  ·", f)
+        return 2
+
     if fallas:
         print(f"VAULT: {len(fallas)} problema(s)")
         for f in fallas:
             print("  ·", f)
+        if informe is not None:
+            print("\n" + informe.texto())
         return 1
-    print(f"VAULT OK · {len(docs())} docs · nombres, frontmatter y wikilinks en regla")
+
+    if informe is None:
+        print(f"VAULT OK · {len(docs())} docs · nombres, frontmatter y wikilinks en regla")
+        print(f"  (sin sombra del oráculo: {motivo})")
+        return 0
+
+    print(f"VAULT OK · {len(docs())} docs · las dos implementaciones coinciden\n")
+    print(informe.texto())
     return 0
 
 
