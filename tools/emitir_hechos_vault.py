@@ -113,7 +113,7 @@ DEFECTOS = {
 }
 
 
-def montar(defecto: str | None) -> Path:
+def montar(defecto: str | None, i: int = 0) -> Path:
     """Copia el vault y su verificador a un temporal, y aplica el defecto si hay."""
     raiz = Path(tempfile.mkdtemp())
     _TEMPORALES.append(str(raiz))
