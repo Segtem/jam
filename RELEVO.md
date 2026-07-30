@@ -23,7 +23,7 @@ docking de los tres paneles.
 | Vault | `python tools/vault.py` | **47 docs** en 5 carpetas, en regla |
 | Motor | `tools/experiments/verifica_ejemplos.py` headless | **8/8 tutoriales · TODO VERDE** |
 | Editor | arranque + carga del módulo | los 3 spawners registran, **sin warnings de tab** |
-| Oráculo (repo aparte, `~/Dev/oracle`) | `tools/corpus.py` · `tools/aceptacion.py` · `unittest discover -s tests -t .` | **11 casos · aceptación ✓ · 32 tests** |
+| Oráculo (repo aparte, `~/Dev/oracle`) | `tools/corpus.py` · `tools/aceptacion.py` · `tools/mutar.py` · `unittest discover -s tests -t .` | **18 casos · aceptación ✓ · 28/28 mutantes · 48 tests** |
 
 La verificación con motor es del commit `80373ea`; desde ahí no se tocó `Source/`, `Content/Python/`
 ni `oraculo/`, así que sigue hablando del código que hay. `relevo.py` lo comprueba solo.
@@ -94,11 +94,17 @@ de datos en `catalogos/`, y `tools/aceptacion.py` — donde **el corpus juzga al
 con medida se ponen en rojo, los 2 con hueco declarado quedan verdes a propósito. Corre también el
 nivel L2 (el catálogo servido como relación y medido por una medida, sin mecanismo nuevo).
 
-**Siguiente paso ahí — paso 3, el sensor de mutación**: producir hechos
-`mutante(id, apunta_a, murio)` del repo vivo, **con caché frío** (`max` y `min` ocupan lo mismo y
-CPython invalida el `.pyc` por mtime+tamaño; sin limpiar `__pycache__` el arnés reporta al azar).
-*Terminado* = `proceso.test_con_mutante_que_lo_mata` corre sobre código real y no sobre evidencia
-guardada. Después viene el paso 4, el catálogo de geometría, que es el que dispara `unir`.
+**El paso 3 está hecho a medias, y a propósito** (`f6360d2`): el sensor muta las **medidas** —que son
+datos, así que el caché frío es verdadero por construcción— y sus hechos los juzga una medida del
+catálogo. 28 mutantes, 28 muertos. **Falta la otra mitad: mutar CÓDIGO Python**, que es la que atrapó
+3 de los 11 casos del corpus. Ahí sí hace falta el arnés con caché frío — `max` y `min` ocupan lo
+mismo y CPython invalida el `.pyc` por (mtime, tamaño), así que sin limpiar `__pycache__` entre
+mutantes el resultado es al azar (caso `006`).
+
+**Siguiente paso — paso 4, el catálogo de geometría.** Es el que prueba que el álgebra es general
+(proceso y geometría no se parecen en nada) y el que dispara el operador `unir`. Su criterio ya
+existe: la prueba diferencial de 300 mundos de `jam/tests/test_medida.py`. Si el álgebra no reproduce
+esos veredictos, el álgebra está mal.
 
 Dos reglas del repo que hay que respetar y son fáciles de romper sin querer:
 
