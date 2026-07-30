@@ -35,8 +35,19 @@ python vendor/oracle/tools/mutar.py       --proyecto medidas   # ¿los casos fij
 python vendor/oracle/tools/estudio.py     --proyecto medidas   # volcar todo a Markdown plano
 ```
 
-⚠️ **No edites `vendor/oracle/` a mano** — se cambia en el repo de arriba y se trae con
-`git subtree pull --prefix=vendor/oracle git@github.com:Segtem/oracle.git main --squash`.
+⚠️ **`oracle` es un SEGUNDO REPOSITORIO y se commitea aparte.** Vive en `~/Dev/oracle`
+(`git@github.com:Segtem/oracle.git`). El flujo es siempre el mismo:
+
+```bash
+cd ~/Dev/oracle && …cambiar… && git commit && git push        # 1. arriba
+cd ~/Dev/jam && git subtree pull --prefix=vendor/oracle \
+    git@github.com:Segtem/oracle.git main --squash            # 2. traer
+git commit && git push                                        # 3. abajo
+```
+
+**No edites `vendor/oracle/` a mano**: es una copia vendorizada y editarla la separa del upstream en
+silencio. Y al terminar el turno, **los dos repos tienen que quedar empujados** — `relevo.py --cerrar`
+sólo mira Jam.
 
 Lo que hay que saber antes de tocarlo, en una frase: **una medida es un dato**, y declara
 obligatoriamente **la defensa de su umbral** y **qué NO ve**. El informe verde termina enumerando sus
