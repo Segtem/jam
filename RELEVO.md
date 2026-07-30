@@ -125,6 +125,14 @@ Dos reglas del repo que hay que respetar y son fáciles de romper sin querer:
 Lo que NO hay que hacer ahí: migrar `oraculo/` viejo (queda en Jam), transporte por red, parser de
 sintaxis propia, y macros.
 
+**Al terminar `oracle` (pedido de Brian, 2026-07-29):** volcar todo a `.md`/`.txt` plano para que
+Brian lo suba a NotebookLM y lo estudie. **No existe ninguna skill de NotebookLM** —lo verifiqué: 276
+plugins en el marketplace oficial, ninguno— así que no hay que buscarla: es sólo generar los archivos.
+
+Lo único que no es «copiar y pegar»: el **corpus y el catálogo son JSON**, y NotebookLM los lee mal
+crudos — hay que volcarlos a prosa y tablas. Y conviene incluir **los mensajes de commit**, porque
+buena parte del «por qué» y de las correcciones vive ahí y no en los documentos.
+
 **Para un turno con Brian delante, no para éste:** el visor 2D de texturas (el motor está entero en
 `jam/preview2d.py` y **no lo consume nadie** en `Source/`; falta el `FSlateDynamicImageBrush`) y el
 gizmo flotante de alineación de `Reference/align.png`. Los dos son gesto puro: un agente los escribe
