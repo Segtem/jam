@@ -32,7 +32,11 @@ TIPOS = {"INFORME", "PLAN", "ROADMAP", "CONCEPTO", "GUIA", "ESTADO", "ADR"}
 CARPETAS = ("00-Proceso", "01-Graph", "02-TreeGen", "03-Mesh-y-materiales", "04-Ejecucion-y-pruebas")
 
 MEDIDAS = ("vault.nombre_sigue_la_convencion", "vault.tipo_coincide", "vault.fecha_coincide",
-           "vault.area_es_la_carpeta", "vault.nombre_es_ascii", "vault.enlace_resuelve")
+           "vault.area_es_la_carpeta", "vault.nombre_es_ascii", "vault.enlace_resuelve",
+           # las cuatro que faltaban: el modo sombra de `vault.py` las delató, porque el
+           # verificador a mano las comprobaba y ninguna medida las cubría
+           "vault.ningun_doc_suelto_en_la_raiz", "vault.carpeta_conocida",
+           "vault.nombre_unico_en_el_vault", "vault.frontmatter_completo")
 
 
 def _frontmatter(texto: str) -> dict:
@@ -75,6 +79,9 @@ def hechos(vault: Path) -> dict:
             "updated": fm.get("updated", ""),
             "area": fm.get("area", ""),
             "nombre_es_ascii": plano == cuerpo,
+            "carpeta_conocida": (p.parent.name in CARPETAS) if p.parent != vault else False,
+            "frontmatter_completo": all(
+                k in fm for k in ("title", "tipo", "version", "date", "updated", "area")),
         })
 
     for p in sorted(vault.rglob("*.md")):
@@ -94,6 +101,10 @@ def espera(h: dict) -> dict:
         "vault.area_es_la_carpeta": all(x["area"] == x["carpeta"] for x in d),
         "vault.nombre_es_ascii": all(x["nombre_es_ascii"] for x in d),
         "vault.enlace_resuelve": all(x["resuelve"] for x in e),
+        "vault.ningun_doc_suelto_en_la_raiz": all(x["carpeta"] != "" for x in d),
+        "vault.carpeta_conocida": all(x["carpeta_conocida"] for x in d),
+        "vault.nombre_unico_en_el_vault": len({x["nombre"] for x in d}) == len(d),
+        "vault.frontmatter_completo": all(x["frontmatter_completo"] for x in d),
     }
 
 
@@ -112,6 +123,14 @@ DEFECTOS = {
     # sin este defecto, `vault.nombre_es_ascii` quedaba con una sola polaridad y no fijaba nada
     "nombre_con_acento": lambda p: p.rename(
         p.with_name(p.name.replace("INFORME-", "INFORME-Ación-", 1))),
+    "suelto_en_la_raiz": lambda p: shutil.copy(p, p.parents[1] / p.name),
+    "carpeta_inventada": lambda p: (
+        (p.parents[1] / "99-Inventada").mkdir(exist_ok=True),
+        shutil.move(str(p), str(p.parents[1] / "99-Inventada" / p.name))),
+    "nombre_duplicado": lambda p: shutil.copy(p, p.parents[1] / "02-TreeGen" / p.name),
+    "frontmatter_incompleto": lambda p: p.write_text(
+        re.sub(r"^version: .*$\n", "", p.read_text(encoding="utf-8"), count=1, flags=re.M),
+        encoding="utf-8"),
 }
 
 
