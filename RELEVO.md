@@ -23,7 +23,7 @@ docking de los tres paneles.
 | Vault | `python tools/vault.py` | **47 docs** · **las dos implementaciones coinciden** (modo sombra) |
 | Motor | `tools/experiments/verifica_ejemplos.py` headless | **8/8 tutoriales · TODO VERDE** |
 | Editor | arranque + carga del módulo | los 3 spawners registran, **sin warnings de tab** |
-| Oráculo (repo aparte, `~/Dev/oracle`) | `corpus.py` · `aceptacion.py` · `diferencial.py` · `mutar.py` · `unittest discover -s tests -t .` | **21 casos · aceptación ✓ · diferencial 1358/1358 · 104/104 medida · 95 tests** |
+| Oráculo (repo aparte, `~/Dev/oracle`) | `corpus.py` · `aceptacion.py` · `diferencial.py` · `mutar.py` · `unittest discover -s tests -t .` | **31 casos · aceptación ✓ · diferencial 1358/1358 · 124/124 medida · 111 tests** |
 
 La verificación con motor es del commit `80373ea`; desde ahí no se tocó `Source/`, `Content/Python/`
 ni `oraculo/`, así que sigue hablando del código que hay. `relevo.py` lo comprueba solo.
@@ -167,8 +167,9 @@ No edites `vendor/oracle/` a mano — se hace en `Segtem/oracle` y se trae.
    — eso fue el caso `014` del corpus.
 2. **Los huecos del corpus**: el `012` (umbral duplicado) quedó **cerrado por construcción** con la
    macro `peor`. Siguen `004` y `011`.
-3. **El modo simulación** (§5 de la especificación) no tiene un solo usuario. Es la mitad GPSS, y la
-   más resistente a Goodhart: se puede sastrear un umbral, no un jugador simulado.
+3. **Recursión y orden** — las dos preguntas abiertas de la especificación que Jam pide concretamente:
+   «alcanzable desde» (el cierre de imports, la conectividad de un grafo) y «piezas consecutivas a lo
+   largo de una curva», que es el oráculo de continuidad del spline.
 4. **El volcado a `.md`/`.txt`** para NotebookLM, que Brian pidió para cuando esto estuviera listo.
 
 Dos reglas del repo que hay que respetar y son fáciles de romper sin querer:
