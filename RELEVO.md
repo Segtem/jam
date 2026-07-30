@@ -23,7 +23,7 @@ docking de los tres paneles.
 | Vault | `python tools/vault.py` | **47 docs** en 5 carpetas, en regla |
 | Motor | `tools/experiments/verifica_ejemplos.py` headless | **8/8 tutoriales · TODO VERDE** |
 | Editor | arranque + carga del módulo | los 3 spawners registran, **sin warnings de tab** |
-| Oráculo (repo aparte, `~/Dev/oracle`) | `tools/corpus.py` · `tools/aceptacion.py` · `tools/mutar.py` · `unittest discover -s tests -t .` | **18 casos · aceptación ✓ · 28/28 mutantes · 48 tests** |
+| Oráculo (repo aparte, `~/Dev/oracle`) | `corpus.py` · `aceptacion.py` · `diferencial.py` · `mutar.py` · `unittest discover -s tests -t .` | **19 casos · aceptación ✓ · diferencial 1200/1200 · 44/44 mutantes · 53 tests** |
 
 La verificación con motor es del commit `80373ea`; desde ahí no se tocó `Source/`, `Content/Python/`
 ni `oraculo/`, así que sigue hablando del código que hay. `relevo.py` lo comprueba solo.
@@ -101,10 +101,19 @@ catálogo. 28 mutantes, 28 muertos. **Falta la otra mitad: mutar CÓDIGO Python*
 mismo y CPython invalida el `.pyc` por (mtime, tamaño), así que sin limpiar `__pycache__` entre
 mutantes el resultado es al azar (caso `006`).
 
-**Siguiente paso — paso 4, el catálogo de geometría.** Es el que prueba que el álgebra es general
-(proceso y geometría no se parecen en nada) y el que dispara el operador `unir`. Su criterio ya
-existe: la prueba diferencial de 300 mundos de `jam/tests/test_medida.py`. Si el álgebra no reproduce
-esos veredictos, el álgebra está mal.
+**El paso 4 está hecho** (`8a4d24b`): dos dominios —proceso y geometría— con **los mismos operadores
+y sin adaptador**. `unir` entró al llegar su disparador; van 4 operadores de 6.
+
+La verificación vive a caballo de los dos repos y conviene no romperla: **`jam/tools/emitir_diferencial.py`**
+genera 300 mundos con los oráculos escritos a mano de Jam (implementación independiente) y escribe
+`~/Dev/oracle/diferencial/geometria.json`. `oracle/tools/diferencial.py` los re-juzga: **1200
+veredictos, cero desacuerdos**. Si se toca `jam/oracle_placement` o `jam/oracle_snap`, hay que
+regenerar el fixture y el diferencial tiene que seguir en cero.
+
+**Siguiente paso — la otra mitad del paso 3: mutar CÓDIGO Python.** Lo que hay muta *medidas*, que son
+datos. Mutar el código es lo que atrapó 3 de los casos del corpus, y ahí sí hace falta el arnés con
+caché frío. Después, paso 5: `relevo.py` y `vault.py` dejan de ser verificadores a mano y se
+re-expresan como medidas.
 
 Dos reglas del repo que hay que respetar y son fáciles de romper sin querer:
 
