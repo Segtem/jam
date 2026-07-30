@@ -23,7 +23,7 @@ docking de los tres paneles.
 | Vault | `python tools/vault.py` | **47 docs** en 5 carpetas, en regla |
 | Motor | `tools/experiments/verifica_ejemplos.py` headless | **8/8 tutoriales · TODO VERDE** |
 | Editor | arranque + carga del módulo | los 3 spawners registran, **sin warnings de tab** |
-| Oráculo (repo aparte, `~/Dev/oracle`) | `corpus.py` · `aceptacion.py` · `diferencial.py` · `mutar.py` · `unittest discover -s tests -t .` | **19 casos · aceptación ✓ · diferencial 1200/1200 · 44/44 mutantes · 53 tests** |
+| Oráculo (repo aparte, `~/Dev/oracle`) | `corpus.py` · `aceptacion.py` · `diferencial.py` · `mutar.py` · `unittest discover -s tests -t .` | **20 casos · aceptación ✓ · diferencial 1200/1200 · 44/44 medida · 211/242 código · 81 tests** |
 
 La verificación con motor es del commit `80373ea`; desde ahí no se tocó `Source/`, `Content/Python/`
 ni `oraculo/`, así que sigue hablando del código que hay. `relevo.py` lo comprueba solo.
@@ -110,10 +110,19 @@ genera 300 mundos con los oráculos escritos a mano de Jam (implementación inde
 veredictos, cero desacuerdos**. Si se toca `jam/oracle_placement` o `jam/oracle_snap`, hay que
 regenerar el fixture y el diferencial tiene que seguir en cero.
 
-**Siguiente paso — la otra mitad del paso 3: mutar CÓDIGO Python.** Lo que hay muta *medidas*, que son
-datos. Mutar el código es lo que atrapó 3 de los casos del corpus, y ahí sí hace falta el arnés con
-caché frío. Después, paso 5: `relevo.py` y `vault.py` dejan de ser verificadores a mano y se
-re-expresan como medidas.
+**El paso 3 está completo** (`b57b8fa`): `tools/mutar_codigo.py` genera mutantes del AST —no los
+declara nadie a mano, para que el autor no elija lo que sus tests ya atrapan— y limpia el caché antes
+de cada corrida. Encontró que **53 tests en verde convivían con 88 mutantes vivos**, incluidos cuatro
+de los seis comparadores del álgebra. Hoy: 211/242.
+
+⚠️ **`mutar_codigo.py` sale en ROJO a propósito**: quedan 31 mutantes vivos y el número está a la
+vista. **No los declares equivalentes en masa para pintar verde** — sería exactamente el Goodhart que
+el repo persigue. Bajan escribiendo tests, o declarando equivalentes de a uno en `equivalentes.json`
+CON SU RAZÓN ESCRITA.
+
+**Siguiente — paso 5, el último: cablearlo.** Que `relevo.py` y `vault.py` de Jam dejen de ser
+verificadores escritos a mano y se re-expresen como medidas del catálogo. Recién ahora, con el marco
+probado contra sí mismo, contra una implementación independiente y contra su propio código.
 
 Dos reglas del repo que hay que respetar y son fáciles de romper sin querer:
 
