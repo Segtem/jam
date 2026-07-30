@@ -23,7 +23,7 @@ docking de los tres paneles.
 | Vault | `python tools/vault.py` | **47 docs** · **las dos implementaciones coinciden** (modo sombra) |
 | Motor | `tools/experiments/verifica_ejemplos.py` headless | **8/8 tutoriales · TODO VERDE** |
 | Editor | arranque + carga del módulo | los 3 spawners registran, **sin warnings de tab** |
-| Oráculo (repo aparte, `~/Dev/oracle`) | `corpus.py` · `aceptacion.py` · `diferencial.py` · `mutar.py` · `unittest discover -s tests -t .` | **20 casos · aceptación ✓ · diferencial 1290/1290 · 88/88 medida · 211/242 código · 81 tests** |
+| Oráculo (repo aparte, `~/Dev/oracle`) | `corpus.py` · `aceptacion.py` · `diferencial.py` · `mutar.py` · `unittest discover -s tests -t .` | **21 casos · aceptación ✓ · diferencial 1358/1358 · 104/104 medida · 95 tests** |
 
 La verificación con motor es del commit `80373ea`; desde ahí no se tocó `Source/`, `Content/Python/`
 ni `oraculo/`, así que sigue hablando del código que hay. `relevo.py` lo comprueba solo.
@@ -160,10 +160,13 @@ No edites `vendor/oracle/` a mano — se hace en `Segtem/oracle` y se trae.
    Hay que decidir si se mueve bajo `Content/Python/` o se inserta el path (que es el olor de
    `bridge.py`). Y sólo 4 de los 7 oráculos vivos están re-expresados (placement y snap): faltan
    scatter, pared, physics, reemplazo y espacio.
-1. **Los 31 mutantes de código vivos** de `oracle`, de a uno: o un test que falta, o un equivalente
+1. **Los mutantes de código vivos** de `oracle`, de a uno: o un test que falta, o un equivalente
    declarado en `equivalentes.json` **con su razón escrita**. No declararlos en masa.
-2. **Los 3 huecos del corpus** (`004`, `011`, `012`): dos son defectos del lenguaje, uno no tiene
-   forma mecánica conocida. Su número es una métrica y tiene que bajar.
+   ⚠️ `tools/mutar_codigo.py` tarda **varios minutos**: corré con timeout largo. Si lo matás, ahora
+   restaura solo (`atexit` + SIGTERM/SIGINT/SIGHUP), pero igual conviene mirar `git status` después
+   — eso fue el caso `014` del corpus.
+2. **Los huecos del corpus**: el `012` (umbral duplicado) quedó **cerrado por construcción** con la
+   macro `peor`. Siguen `004` y `011`.
 3. **El modo simulación** (§5 de la especificación) no tiene un solo usuario. Es la mitad GPSS, y la
    más resistente a Goodhart: se puede sastrear un umbral, no un jugador simulado.
 4. **El volcado a `.md`/`.txt`** para NotebookLM, que Brian pidió para cuando esto estuviera listo.
