@@ -32,7 +32,34 @@ python tools/aceptacion.py    # tu caso tiene que ponerse rojo
 python tools/mutar.py         # y el corpus tiene que fijar tu medida
 ```
 
-## La forma
+## La forma corta: las macros
+
+**26 de las 27 medidas del catálogo están escritas como macro.** Son azúcar que expande a la forma
+canónica —`--expandir` te muestra en qué—, así que el evaluador, la mutación y el inventario no se
+enteran de que existen.
+
+```json
+["ninguno", "proceso.test_con_mutante_que_lo_mata",
+  "mutante", "m",
+  ["==", ["campo", "m", "murio"], false],
+  "un mutante que sobrevive es un test que no discrimina",
+  "cuenta mutantes DECLARADOS. NO ve los que nadie escribió"]
+```
+
+| Macro | Para qué | Cuántas la usan |
+|---|---|---|
+| `ninguno` | ninguna fila debe cumplir el predicado | 22 |
+| `ninguno-par` | lo mismo sobre PARES de la misma relación | 2 |
+| `peor` | el peor caso de una expresión no pasa de una tolerancia | 2 |
+
+**`peor` recibe la tolerancia una sola vez** y genera con ella el filtro y el umbral. Antes había que
+escribirla dos veces y nada las mantenía juntas — era el caso `012` del corpus, cerrado por
+construcción.
+
+Las macros no son un embudo: si tu caso no encaja, la forma canónica sigue siendo válida.
+`colocacion.interpenetracion` está escrita así porque une dos relaciones DISTINTAS.
+
+## La forma canónica
 
 ```json
 ["medida", "dominio.nombre",
@@ -78,9 +105,9 @@ El 90% de las medidas son así: filtrás lo malo, contás, y el umbral es `<= 0`
   ["alcance", "desvío del PIVOTE. NO ve si el pivote está bien puesto dentro de la malla"]]
 ```
 
-Acá el valor es centímetros y no una cuenta, que dice más en el informe. El costo: la tolerancia
-aparece **dos veces** —en el `donde` y en el `umbral`— y nada las mantiene juntas. Está anotado como
-deuda de diseño en el caso `012` del corpus.
+Acá el valor es centímetros y no una cuenta, y eso dice más en el informe. **Escrita a mano, la
+tolerancia aparece dos veces** —en el `donde` y en el `umbral`— y nada las mantiene juntas: era el
+caso `012` del corpus. Por eso esta forma se escribe con la macro `peor`, que la recibe una sola vez.
 
 ### 3. Comparar filas entre sí
 
