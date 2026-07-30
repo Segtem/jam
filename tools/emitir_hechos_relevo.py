@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -28,6 +29,7 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ / "vendor" / "oracle"))
 
+from nucleo.diferencial import Procedencia           # noqa: E402
 from nucleo.dominio import Dominio, generar          # noqa: E402
 from nucleo.medida import cargar_catalogo            # noqa: E402
 from nucleo.proyecto import (Proyecto, catalogos_a_cargar,  # noqa: E402
@@ -61,6 +63,15 @@ verde_editor_fecha: 2026-01-01
 DEFECTOS = ("falta_campo", "falta_seccion", "mismo_agente", "agente_desconocido",
             "commit_inexistente", "codigo_vivo_commiteado", "codigo_vivo_sin_commitear")
 _TEMPORALES: list[str] = []
+PROCEDENCIA = Procedencia(
+    raiz=RAIZ,
+    emisor=("tools/emitir_hechos_relevo.py",),
+    referencia=("tools/relevo.py",),
+    desde_proyecto="..",
+)
+_GIT_ENV = {**os.environ,
+            "GIT_AUTHOR_DATE": "2000-01-01T00:00:00+00:00",
+            "GIT_COMMITTER_DATE": "2000-01-01T00:00:00+00:00"}
 
 
 def _cargar_relevo(raiz: Path):
@@ -92,7 +103,8 @@ def montar(defecto: str | None, i: int = 0) -> Path:
         subprocess.run(["git", "-C", str(raiz), "config", k, v], check=True)
     (raiz / "RELEVO.md").write_text(TESTIGO.format(sha="PENDIENTE"), encoding="utf-8")
     subprocess.run(["git", "-C", str(raiz), "add", "-A"], check=True)
-    subprocess.run(["git", "-C", str(raiz), "commit", "-qm", "base"], check=True)
+    subprocess.run(["git", "-C", str(raiz), "commit", "-qm", "base"],
+                   check=True, env=_GIT_ENV)
     sha = _git(raiz, "rev-parse", "--short", "HEAD")
 
     testigo = TESTIGO.format(sha="0000000" if defecto == "commit_inexistente" else sha)
@@ -108,11 +120,13 @@ def montar(defecto: str | None, i: int = 0) -> Path:
 
     if defecto == "codigo_vivo_commiteado":
         (raiz / "Source" / "vivo.cpp").write_text("int main(){return 1;}\n", encoding="utf-8")
-        subprocess.run(["git", "-C", str(raiz), "commit", "-qam", "toca vivo"], check=True)
+        subprocess.run(["git", "-C", str(raiz), "commit", "-qam", "toca vivo"],
+                       check=True, env=_GIT_ENV)
     elif defecto == "codigo_vivo_sin_commitear":
         (raiz / "Source" / "vivo.cpp").write_text("int main(){return 2;}\n", encoding="utf-8")
     else:
-        subprocess.run(["git", "-C", str(raiz), "commit", "-qam", "testigo"], check=True)
+        subprocess.run(["git", "-C", str(raiz), "commit", "-qam", "testigo"],
+                       check=True, env=_GIT_ENV)
     return raiz
 
 
@@ -171,13 +185,15 @@ def main() -> int:
     catalogo = cargar_catalogo(catalogos_a_cargar(PROYECTO))
     medidas = [catalogo[m] for m in MEDIDAS if m in catalogo]
     try:
-        fixture = generar(RELEVO, medidas)
+        fixture = generar(RELEVO, medidas, procedencia=PROCEDENCIA)
     finally:
         for d in _TEMPORALES:
             shutil.rmtree(d, ignore_errors=True)
 
     DESTINO.parent.mkdir(parents=True, exist_ok=True)
-    DESTINO.write_text(json.dumps(fixture, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    DESTINO.write_text(
+        json.dumps(fixture, ensure_ascii=False, indent=1, sort_keys=True, allow_nan=False) + "\n",
+        encoding="utf-8")
     print(f"{len(medidas)} medidas × {fixture['mundos']} escenarios · escrito: {DESTINO}")
     return 0
 

@@ -1,6 +1,817 @@
 {
- "origen": "Brianholl/jam · tools/relevo.py (revisar_testigo + verde_editor_vigente)",
  "dominio": "relevo",
+ "escenarios": [
+  {
+   "defecto": "",
+   "evidencia": {
+    "agente": [
+     {
+      "conocido": true,
+      "nombre": "claude-code",
+      "rol": "saliente"
+     },
+     {
+      "conocido": true,
+      "nombre": "codex",
+      "rol": "entrante"
+     }
+    ],
+    "cambio": [
+     {
+      "archivo": "(ninguno)",
+      "commiteado": true,
+      "es_codigo_vivo": false
+     }
+    ],
+    "testigo_campo": [
+     {
+      "nombre": "turno",
+      "presente": true
+     },
+     {
+      "nombre": "saliente",
+      "presente": true
+     },
+     {
+      "nombre": "entrante",
+      "presente": true
+     },
+     {
+      "nombre": "desde",
+      "presente": true
+     },
+     {
+      "nombre": "verde_editor",
+      "presente": true
+     },
+     {
+      "nombre": "verde_editor_fecha",
+      "presente": true
+     }
+    ],
+    "testigo_seccion": [
+     {
+      "nombre": "## Verde al soltar",
+      "presente": true
+     },
+     {
+      "nombre": "## Frontera de verificación",
+      "presente": true
+     },
+     {
+      "nombre": "## Para las manos de Brian",
+      "presente": true
+     },
+     {
+      "nombre": "## Lo próximo",
+      "presente": true
+     },
+     {
+      "nombre": "## No toques esto",
+      "presente": true
+     },
+     {
+      "nombre": "## Lo que aprendí este turno",
+      "presente": true
+     }
+    ],
+    "verificacion": [
+     {
+      "commit": "6f0231a",
+      "es_ancestro": true,
+      "existe": true,
+      "que": "motor"
+     }
+    ]
+   },
+   "id": "sin-defecto",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "proceso.verificacion_vigente": true,
+     "relevo.agentes_conocidos": true,
+     "relevo.el_relevo_tiene_dos_puntas": true,
+     "relevo.testigo_tiene_sus_campos": true,
+     "relevo.testigo_tiene_sus_secciones": true,
+     "relevo.verificacion_existe": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "falta_campo",
+   "evidencia": {
+    "agente": [
+     {
+      "conocido": true,
+      "nombre": "claude-code",
+      "rol": "saliente"
+     },
+     {
+      "conocido": true,
+      "nombre": "codex",
+      "rol": "entrante"
+     }
+    ],
+    "cambio": [
+     {
+      "archivo": "(ninguno)",
+      "commiteado": true,
+      "es_codigo_vivo": false
+     }
+    ],
+    "testigo_campo": [
+     {
+      "nombre": "turno",
+      "presente": true
+     },
+     {
+      "nombre": "saliente",
+      "presente": true
+     },
+     {
+      "nombre": "entrante",
+      "presente": true
+     },
+     {
+      "nombre": "desde",
+      "presente": false
+     },
+     {
+      "nombre": "verde_editor",
+      "presente": true
+     },
+     {
+      "nombre": "verde_editor_fecha",
+      "presente": true
+     }
+    ],
+    "testigo_seccion": [
+     {
+      "nombre": "## Verde al soltar",
+      "presente": true
+     },
+     {
+      "nombre": "## Frontera de verificación",
+      "presente": true
+     },
+     {
+      "nombre": "## Para las manos de Brian",
+      "presente": true
+     },
+     {
+      "nombre": "## Lo próximo",
+      "presente": true
+     },
+     {
+      "nombre": "## No toques esto",
+      "presente": true
+     },
+     {
+      "nombre": "## Lo que aprendí este turno",
+      "presente": true
+     }
+    ],
+    "verificacion": [
+     {
+      "commit": "6f0231a",
+      "es_ancestro": true,
+      "existe": true,
+      "que": "motor"
+     }
+    ]
+   },
+   "id": "falta_campo",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "proceso.verificacion_vigente": true,
+     "relevo.agentes_conocidos": true,
+     "relevo.el_relevo_tiene_dos_puntas": true,
+     "relevo.testigo_tiene_sus_campos": false,
+     "relevo.testigo_tiene_sus_secciones": true,
+     "relevo.verificacion_existe": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "falta_seccion",
+   "evidencia": {
+    "agente": [
+     {
+      "conocido": true,
+      "nombre": "claude-code",
+      "rol": "saliente"
+     },
+     {
+      "conocido": true,
+      "nombre": "codex",
+      "rol": "entrante"
+     }
+    ],
+    "cambio": [
+     {
+      "archivo": "(ninguno)",
+      "commiteado": true,
+      "es_codigo_vivo": false
+     }
+    ],
+    "testigo_campo": [
+     {
+      "nombre": "turno",
+      "presente": true
+     },
+     {
+      "nombre": "saliente",
+      "presente": true
+     },
+     {
+      "nombre": "entrante",
+      "presente": true
+     },
+     {
+      "nombre": "desde",
+      "presente": true
+     },
+     {
+      "nombre": "verde_editor",
+      "presente": true
+     },
+     {
+      "nombre": "verde_editor_fecha",
+      "presente": true
+     }
+    ],
+    "testigo_seccion": [
+     {
+      "nombre": "## Verde al soltar",
+      "presente": true
+     },
+     {
+      "nombre": "## Frontera de verificación",
+      "presente": true
+     },
+     {
+      "nombre": "## Para las manos de Brian",
+      "presente": true
+     },
+     {
+      "nombre": "## Lo próximo",
+      "presente": true
+     },
+     {
+      "nombre": "## No toques esto",
+      "presente": false
+     },
+     {
+      "nombre": "## Lo que aprendí este turno",
+      "presente": true
+     }
+    ],
+    "verificacion": [
+     {
+      "commit": "6f0231a",
+      "es_ancestro": true,
+      "existe": true,
+      "que": "motor"
+     }
+    ]
+   },
+   "id": "falta_seccion",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "proceso.verificacion_vigente": true,
+     "relevo.agentes_conocidos": true,
+     "relevo.el_relevo_tiene_dos_puntas": true,
+     "relevo.testigo_tiene_sus_campos": true,
+     "relevo.testigo_tiene_sus_secciones": false,
+     "relevo.verificacion_existe": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "mismo_agente",
+   "evidencia": {
+    "agente": [
+     {
+      "conocido": true,
+      "nombre": "claude-code",
+      "rol": "saliente"
+     },
+     {
+      "conocido": true,
+      "nombre": "claude-code",
+      "rol": "entrante"
+     }
+    ],
+    "cambio": [
+     {
+      "archivo": "(ninguno)",
+      "commiteado": true,
+      "es_codigo_vivo": false
+     }
+    ],
+    "testigo_campo": [
+     {
+      "nombre": "turno",
+      "presente": true
+     },
+     {
+      "nombre": "saliente",
+      "presente": true
+     },
+     {
+      "nombre": "entrante",
+      "presente": true
+     },
+     {
+      "nombre": "desde",
+      "presente": true
+     },
+     {
+      "nombre": "verde_editor",
+      "presente": true
+     },
+     {
+      "nombre": "verde_editor_fecha",
+      "presente": true
+     }
+    ],
+    "testigo_seccion": [
+     {
+      "nombre": "## Verde al soltar",
+      "presente": true
+     },
+     {
+      "nombre": "## Frontera de verificación",
+      "presente": true
+     },
+     {
+      "nombre": "## Para las manos de Brian",
+      "presente": true
+     },
+     {
+      "nombre": "## Lo próximo",
+      "presente": true
+     },
+     {
+      "nombre": "## No toques esto",
+      "presente": true
+     },
+     {
+      "nombre": "## Lo que aprendí este turno",
+      "presente": true
+     }
+    ],
+    "verificacion": [
+     {
+      "commit": "6f0231a",
+      "es_ancestro": true,
+      "existe": true,
+      "que": "motor"
+     }
+    ]
+   },
+   "id": "mismo_agente",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "proceso.verificacion_vigente": true,
+     "relevo.agentes_conocidos": true,
+     "relevo.el_relevo_tiene_dos_puntas": false,
+     "relevo.testigo_tiene_sus_campos": true,
+     "relevo.testigo_tiene_sus_secciones": true,
+     "relevo.verificacion_existe": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "agente_desconocido",
+   "evidencia": {
+    "agente": [
+     {
+      "conocido": true,
+      "nombre": "claude-code",
+      "rol": "saliente"
+     },
+     {
+      "conocido": false,
+      "nombre": "gemini",
+      "rol": "entrante"
+     }
+    ],
+    "cambio": [
+     {
+      "archivo": "(ninguno)",
+      "commiteado": true,
+      "es_codigo_vivo": false
+     }
+    ],
+    "testigo_campo": [
+     {
+      "nombre": "turno",
+      "presente": true
+     },
+     {
+      "nombre": "saliente",
+      "presente": true
+     },
+     {
+      "nombre": "entrante",
+      "presente": true
+     },
+     {
+      "nombre": "desde",
+      "presente": true
+     },
+     {
+      "nombre": "verde_editor",
+      "presente": true
+     },
+     {
+      "nombre": "verde_editor_fecha",
+      "presente": true
+     }
+    ],
+    "testigo_seccion": [
+     {
+      "nombre": "## Verde al soltar",
+      "presente": true
+     },
+     {
+      "nombre": "## Frontera de verificación",
+      "presente": true
+     },
+     {
+      "nombre": "## Para las manos de Brian",
+      "presente": true
+     },
+     {
+      "nombre": "## Lo próximo",
+      "presente": true
+     },
+     {
+      "nombre": "## No toques esto",
+      "presente": true
+     },
+     {
+      "nombre": "## Lo que aprendí este turno",
+      "presente": true
+     }
+    ],
+    "verificacion": [
+     {
+      "commit": "6f0231a",
+      "es_ancestro": true,
+      "existe": true,
+      "que": "motor"
+     }
+    ]
+   },
+   "id": "agente_desconocido",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "proceso.verificacion_vigente": true,
+     "relevo.agentes_conocidos": false,
+     "relevo.el_relevo_tiene_dos_puntas": true,
+     "relevo.testigo_tiene_sus_campos": true,
+     "relevo.testigo_tiene_sus_secciones": true,
+     "relevo.verificacion_existe": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "commit_inexistente",
+   "evidencia": {
+    "agente": [
+     {
+      "conocido": true,
+      "nombre": "claude-code",
+      "rol": "saliente"
+     },
+     {
+      "conocido": true,
+      "nombre": "codex",
+      "rol": "entrante"
+     }
+    ],
+    "cambio": [
+     {
+      "archivo": "(ninguno)",
+      "commiteado": true,
+      "es_codigo_vivo": false
+     }
+    ],
+    "testigo_campo": [
+     {
+      "nombre": "turno",
+      "presente": true
+     },
+     {
+      "nombre": "saliente",
+      "presente": true
+     },
+     {
+      "nombre": "entrante",
+      "presente": true
+     },
+     {
+      "nombre": "desde",
+      "presente": true
+     },
+     {
+      "nombre": "verde_editor",
+      "presente": true
+     },
+     {
+      "nombre": "verde_editor_fecha",
+      "presente": true
+     }
+    ],
+    "testigo_seccion": [
+     {
+      "nombre": "## Verde al soltar",
+      "presente": true
+     },
+     {
+      "nombre": "## Frontera de verificación",
+      "presente": true
+     },
+     {
+      "nombre": "## Para las manos de Brian",
+      "presente": true
+     },
+     {
+      "nombre": "## Lo próximo",
+      "presente": true
+     },
+     {
+      "nombre": "## No toques esto",
+      "presente": true
+     },
+     {
+      "nombre": "## Lo que aprendí este turno",
+      "presente": true
+     }
+    ],
+    "verificacion": [
+     {
+      "commit": "0000000",
+      "es_ancestro": false,
+      "existe": false,
+      "que": "motor"
+     }
+    ]
+   },
+   "id": "commit_inexistente",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "proceso.verificacion_vigente": true,
+     "relevo.agentes_conocidos": true,
+     "relevo.el_relevo_tiene_dos_puntas": true,
+     "relevo.testigo_tiene_sus_campos": true,
+     "relevo.testigo_tiene_sus_secciones": true,
+     "relevo.verificacion_existe": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "codigo_vivo_commiteado",
+   "evidencia": {
+    "agente": [
+     {
+      "conocido": true,
+      "nombre": "claude-code",
+      "rol": "saliente"
+     },
+     {
+      "conocido": true,
+      "nombre": "codex",
+      "rol": "entrante"
+     }
+    ],
+    "cambio": [
+     {
+      "archivo": "Source/vivo.cpp",
+      "commiteado": true,
+      "es_codigo_vivo": true
+     }
+    ],
+    "testigo_campo": [
+     {
+      "nombre": "turno",
+      "presente": true
+     },
+     {
+      "nombre": "saliente",
+      "presente": true
+     },
+     {
+      "nombre": "entrante",
+      "presente": true
+     },
+     {
+      "nombre": "desde",
+      "presente": true
+     },
+     {
+      "nombre": "verde_editor",
+      "presente": true
+     },
+     {
+      "nombre": "verde_editor_fecha",
+      "presente": true
+     }
+    ],
+    "testigo_seccion": [
+     {
+      "nombre": "## Verde al soltar",
+      "presente": true
+     },
+     {
+      "nombre": "## Frontera de verificación",
+      "presente": true
+     },
+     {
+      "nombre": "## Para las manos de Brian",
+      "presente": true
+     },
+     {
+      "nombre": "## Lo próximo",
+      "presente": true
+     },
+     {
+      "nombre": "## No toques esto",
+      "presente": true
+     },
+     {
+      "nombre": "## Lo que aprendí este turno",
+      "presente": true
+     }
+    ],
+    "verificacion": [
+     {
+      "commit": "6f0231a",
+      "es_ancestro": true,
+      "existe": true,
+      "que": "motor"
+     }
+    ]
+   },
+   "id": "codigo_vivo_commiteado",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "proceso.verificacion_vigente": false,
+     "relevo.agentes_conocidos": true,
+     "relevo.el_relevo_tiene_dos_puntas": true,
+     "relevo.testigo_tiene_sus_campos": true,
+     "relevo.testigo_tiene_sus_secciones": true,
+     "relevo.verificacion_existe": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "codigo_vivo_sin_commitear",
+   "evidencia": {
+    "agente": [
+     {
+      "conocido": true,
+      "nombre": "claude-code",
+      "rol": "saliente"
+     },
+     {
+      "conocido": true,
+      "nombre": "codex",
+      "rol": "entrante"
+     }
+    ],
+    "cambio": [
+     {
+      "archivo": "Source/vivo.cpp",
+      "commiteado": false,
+      "es_codigo_vivo": true
+     }
+    ],
+    "testigo_campo": [
+     {
+      "nombre": "turno",
+      "presente": true
+     },
+     {
+      "nombre": "saliente",
+      "presente": true
+     },
+     {
+      "nombre": "entrante",
+      "presente": true
+     },
+     {
+      "nombre": "desde",
+      "presente": true
+     },
+     {
+      "nombre": "verde_editor",
+      "presente": true
+     },
+     {
+      "nombre": "verde_editor_fecha",
+      "presente": true
+     }
+    ],
+    "testigo_seccion": [
+     {
+      "nombre": "## Verde al soltar",
+      "presente": true
+     },
+     {
+      "nombre": "## Frontera de verificación",
+      "presente": true
+     },
+     {
+      "nombre": "## Para las manos de Brian",
+      "presente": true
+     },
+     {
+      "nombre": "## Lo próximo",
+      "presente": true
+     },
+     {
+      "nombre": "## No toques esto",
+      "presente": true
+     },
+     {
+      "nombre": "## Lo que aprendí este turno",
+      "presente": true
+     }
+    ],
+    "verificacion": [
+     {
+      "commit": "6f0231a",
+      "es_ancestro": true,
+      "existe": true,
+      "que": "motor"
+     }
+    ]
+   },
+   "id": "codigo_vivo_sin_commitear",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "proceso.verificacion_vigente": false,
+     "relevo.agentes_conocidos": true,
+     "relevo.el_relevo_tiene_dos_puntas": true,
+     "relevo.testigo_tiene_sus_campos": true,
+     "relevo.testigo_tiene_sus_secciones": true,
+     "relevo.verificacion_existe": true
+    }
+   },
+   "referencia_ok": false
+  }
+ ],
+ "esquema": "oracle.diferencial/v1",
+ "frescura": {
+  "algoritmo": "sha256",
+  "configuracion": {
+   "defectos": [
+    "falta_campo",
+    "falta_seccion",
+    "mismo_agente",
+    "agente_desconocido",
+    "commit_inexistente",
+    "codigo_vivo_commiteado",
+    "codigo_vivo_sin_commitear"
+   ],
+   "descripcion": "Brianholl/jam · tools/relevo.py (revisar_testigo + verde_editor_vigente)",
+   "extra": {},
+   "nombre": "relevo",
+   "repeticiones": 1
+  },
+  "fuentes": {
+   "emisor": [
+    "tools/emitir_hechos_relevo.py"
+   ],
+   "referencia": [
+    "tools/relevo.py"
+   ]
+  },
+  "huellas": {
+   "catalogo": "920c5bac0127e85df448103e748da6cba2512b58dad718d14599706422f64f08",
+   "configuracion": "c5fcf7f8aa88cbec11d893a4a16e2d158751f0649d8cf844da0677bedf11c512",
+   "emisor": "8ef4f1fab9e875614dd79a4c82540cbc3a5a5d10da2f66b89766d055601725fc",
+   "referencia": "ab4f0d8b5e810435344d344f1424860cc3d6c1f5effc15f8c895b5b876ccda0e"
+  },
+  "raiz_fuentes": ".."
+ },
  "medidas": [
   "relevo.testigo_tiene_sus_campos",
   "relevo.testigo_tiene_sus_secciones",
@@ -10,694 +821,5 @@
   "proceso.verificacion_vigente"
  ],
  "mundos": 8,
- "escenarios": [
-  {
-   "id": "sin-defecto",
-   "defecto": "",
-   "evidencia": {
-    "testigo_campo": [
-     {
-      "nombre": "turno",
-      "presente": true
-     },
-     {
-      "nombre": "saliente",
-      "presente": true
-     },
-     {
-      "nombre": "entrante",
-      "presente": true
-     },
-     {
-      "nombre": "desde",
-      "presente": true
-     },
-     {
-      "nombre": "verde_editor",
-      "presente": true
-     },
-     {
-      "nombre": "verde_editor_fecha",
-      "presente": true
-     }
-    ],
-    "testigo_seccion": [
-     {
-      "nombre": "## Verde al soltar",
-      "presente": true
-     },
-     {
-      "nombre": "## Frontera de verificación",
-      "presente": true
-     },
-     {
-      "nombre": "## Para las manos de Brian",
-      "presente": true
-     },
-     {
-      "nombre": "## Lo próximo",
-      "presente": true
-     },
-     {
-      "nombre": "## No toques esto",
-      "presente": true
-     },
-     {
-      "nombre": "## Lo que aprendí este turno",
-      "presente": true
-     }
-    ],
-    "agente": [
-     {
-      "rol": "saliente",
-      "nombre": "claude-code",
-      "conocido": true
-     },
-     {
-      "rol": "entrante",
-      "nombre": "codex",
-      "conocido": true
-     }
-    ],
-    "verificacion": [
-     {
-      "que": "motor",
-      "commit": "575fefd",
-      "existe": true,
-      "es_ancestro": true
-     }
-    ],
-    "cambio": [
-     {
-      "archivo": "(ninguno)",
-      "commiteado": true,
-      "es_codigo_vivo": false
-     }
-    ]
-   },
-   "referencia_ok": true
-  },
-  {
-   "id": "falta_campo",
-   "defecto": "falta_campo",
-   "evidencia": {
-    "testigo_campo": [
-     {
-      "nombre": "turno",
-      "presente": true
-     },
-     {
-      "nombre": "saliente",
-      "presente": true
-     },
-     {
-      "nombre": "entrante",
-      "presente": true
-     },
-     {
-      "nombre": "desde",
-      "presente": false
-     },
-     {
-      "nombre": "verde_editor",
-      "presente": true
-     },
-     {
-      "nombre": "verde_editor_fecha",
-      "presente": true
-     }
-    ],
-    "testigo_seccion": [
-     {
-      "nombre": "## Verde al soltar",
-      "presente": true
-     },
-     {
-      "nombre": "## Frontera de verificación",
-      "presente": true
-     },
-     {
-      "nombre": "## Para las manos de Brian",
-      "presente": true
-     },
-     {
-      "nombre": "## Lo próximo",
-      "presente": true
-     },
-     {
-      "nombre": "## No toques esto",
-      "presente": true
-     },
-     {
-      "nombre": "## Lo que aprendí este turno",
-      "presente": true
-     }
-    ],
-    "agente": [
-     {
-      "rol": "saliente",
-      "nombre": "claude-code",
-      "conocido": true
-     },
-     {
-      "rol": "entrante",
-      "nombre": "codex",
-      "conocido": true
-     }
-    ],
-    "verificacion": [
-     {
-      "que": "motor",
-      "commit": "575fefd",
-      "existe": true,
-      "es_ancestro": true
-     }
-    ],
-    "cambio": [
-     {
-      "archivo": "(ninguno)",
-      "commiteado": true,
-      "es_codigo_vivo": false
-     }
-    ]
-   },
-   "referencia_ok": false
-  },
-  {
-   "id": "falta_seccion",
-   "defecto": "falta_seccion",
-   "evidencia": {
-    "testigo_campo": [
-     {
-      "nombre": "turno",
-      "presente": true
-     },
-     {
-      "nombre": "saliente",
-      "presente": true
-     },
-     {
-      "nombre": "entrante",
-      "presente": true
-     },
-     {
-      "nombre": "desde",
-      "presente": true
-     },
-     {
-      "nombre": "verde_editor",
-      "presente": true
-     },
-     {
-      "nombre": "verde_editor_fecha",
-      "presente": true
-     }
-    ],
-    "testigo_seccion": [
-     {
-      "nombre": "## Verde al soltar",
-      "presente": true
-     },
-     {
-      "nombre": "## Frontera de verificación",
-      "presente": true
-     },
-     {
-      "nombre": "## Para las manos de Brian",
-      "presente": true
-     },
-     {
-      "nombre": "## Lo próximo",
-      "presente": true
-     },
-     {
-      "nombre": "## No toques esto",
-      "presente": false
-     },
-     {
-      "nombre": "## Lo que aprendí este turno",
-      "presente": true
-     }
-    ],
-    "agente": [
-     {
-      "rol": "saliente",
-      "nombre": "claude-code",
-      "conocido": true
-     },
-     {
-      "rol": "entrante",
-      "nombre": "codex",
-      "conocido": true
-     }
-    ],
-    "verificacion": [
-     {
-      "que": "motor",
-      "commit": "575fefd",
-      "existe": true,
-      "es_ancestro": true
-     }
-    ],
-    "cambio": [
-     {
-      "archivo": "(ninguno)",
-      "commiteado": true,
-      "es_codigo_vivo": false
-     }
-    ]
-   },
-   "referencia_ok": false
-  },
-  {
-   "id": "mismo_agente",
-   "defecto": "mismo_agente",
-   "evidencia": {
-    "testigo_campo": [
-     {
-      "nombre": "turno",
-      "presente": true
-     },
-     {
-      "nombre": "saliente",
-      "presente": true
-     },
-     {
-      "nombre": "entrante",
-      "presente": true
-     },
-     {
-      "nombre": "desde",
-      "presente": true
-     },
-     {
-      "nombre": "verde_editor",
-      "presente": true
-     },
-     {
-      "nombre": "verde_editor_fecha",
-      "presente": true
-     }
-    ],
-    "testigo_seccion": [
-     {
-      "nombre": "## Verde al soltar",
-      "presente": true
-     },
-     {
-      "nombre": "## Frontera de verificación",
-      "presente": true
-     },
-     {
-      "nombre": "## Para las manos de Brian",
-      "presente": true
-     },
-     {
-      "nombre": "## Lo próximo",
-      "presente": true
-     },
-     {
-      "nombre": "## No toques esto",
-      "presente": true
-     },
-     {
-      "nombre": "## Lo que aprendí este turno",
-      "presente": true
-     }
-    ],
-    "agente": [
-     {
-      "rol": "saliente",
-      "nombre": "claude-code",
-      "conocido": true
-     },
-     {
-      "rol": "entrante",
-      "nombre": "claude-code",
-      "conocido": true
-     }
-    ],
-    "verificacion": [
-     {
-      "que": "motor",
-      "commit": "575fefd",
-      "existe": true,
-      "es_ancestro": true
-     }
-    ],
-    "cambio": [
-     {
-      "archivo": "(ninguno)",
-      "commiteado": true,
-      "es_codigo_vivo": false
-     }
-    ]
-   },
-   "referencia_ok": false
-  },
-  {
-   "id": "agente_desconocido",
-   "defecto": "agente_desconocido",
-   "evidencia": {
-    "testigo_campo": [
-     {
-      "nombre": "turno",
-      "presente": true
-     },
-     {
-      "nombre": "saliente",
-      "presente": true
-     },
-     {
-      "nombre": "entrante",
-      "presente": true
-     },
-     {
-      "nombre": "desde",
-      "presente": true
-     },
-     {
-      "nombre": "verde_editor",
-      "presente": true
-     },
-     {
-      "nombre": "verde_editor_fecha",
-      "presente": true
-     }
-    ],
-    "testigo_seccion": [
-     {
-      "nombre": "## Verde al soltar",
-      "presente": true
-     },
-     {
-      "nombre": "## Frontera de verificación",
-      "presente": true
-     },
-     {
-      "nombre": "## Para las manos de Brian",
-      "presente": true
-     },
-     {
-      "nombre": "## Lo próximo",
-      "presente": true
-     },
-     {
-      "nombre": "## No toques esto",
-      "presente": true
-     },
-     {
-      "nombre": "## Lo que aprendí este turno",
-      "presente": true
-     }
-    ],
-    "agente": [
-     {
-      "rol": "saliente",
-      "nombre": "claude-code",
-      "conocido": true
-     },
-     {
-      "rol": "entrante",
-      "nombre": "gemini",
-      "conocido": false
-     }
-    ],
-    "verificacion": [
-     {
-      "que": "motor",
-      "commit": "575fefd",
-      "existe": true,
-      "es_ancestro": true
-     }
-    ],
-    "cambio": [
-     {
-      "archivo": "(ninguno)",
-      "commiteado": true,
-      "es_codigo_vivo": false
-     }
-    ]
-   },
-   "referencia_ok": false
-  },
-  {
-   "id": "commit_inexistente",
-   "defecto": "commit_inexistente",
-   "evidencia": {
-    "testigo_campo": [
-     {
-      "nombre": "turno",
-      "presente": true
-     },
-     {
-      "nombre": "saliente",
-      "presente": true
-     },
-     {
-      "nombre": "entrante",
-      "presente": true
-     },
-     {
-      "nombre": "desde",
-      "presente": true
-     },
-     {
-      "nombre": "verde_editor",
-      "presente": true
-     },
-     {
-      "nombre": "verde_editor_fecha",
-      "presente": true
-     }
-    ],
-    "testigo_seccion": [
-     {
-      "nombre": "## Verde al soltar",
-      "presente": true
-     },
-     {
-      "nombre": "## Frontera de verificación",
-      "presente": true
-     },
-     {
-      "nombre": "## Para las manos de Brian",
-      "presente": true
-     },
-     {
-      "nombre": "## Lo próximo",
-      "presente": true
-     },
-     {
-      "nombre": "## No toques esto",
-      "presente": true
-     },
-     {
-      "nombre": "## Lo que aprendí este turno",
-      "presente": true
-     }
-    ],
-    "agente": [
-     {
-      "rol": "saliente",
-      "nombre": "claude-code",
-      "conocido": true
-     },
-     {
-      "rol": "entrante",
-      "nombre": "codex",
-      "conocido": true
-     }
-    ],
-    "verificacion": [
-     {
-      "que": "motor",
-      "commit": "0000000",
-      "existe": false,
-      "es_ancestro": false
-     }
-    ],
-    "cambio": [
-     {
-      "archivo": "(ninguno)",
-      "commiteado": true,
-      "es_codigo_vivo": false
-     }
-    ]
-   },
-   "referencia_ok": false
-  },
-  {
-   "id": "codigo_vivo_commiteado",
-   "defecto": "codigo_vivo_commiteado",
-   "evidencia": {
-    "testigo_campo": [
-     {
-      "nombre": "turno",
-      "presente": true
-     },
-     {
-      "nombre": "saliente",
-      "presente": true
-     },
-     {
-      "nombre": "entrante",
-      "presente": true
-     },
-     {
-      "nombre": "desde",
-      "presente": true
-     },
-     {
-      "nombre": "verde_editor",
-      "presente": true
-     },
-     {
-      "nombre": "verde_editor_fecha",
-      "presente": true
-     }
-    ],
-    "testigo_seccion": [
-     {
-      "nombre": "## Verde al soltar",
-      "presente": true
-     },
-     {
-      "nombre": "## Frontera de verificación",
-      "presente": true
-     },
-     {
-      "nombre": "## Para las manos de Brian",
-      "presente": true
-     },
-     {
-      "nombre": "## Lo próximo",
-      "presente": true
-     },
-     {
-      "nombre": "## No toques esto",
-      "presente": true
-     },
-     {
-      "nombre": "## Lo que aprendí este turno",
-      "presente": true
-     }
-    ],
-    "agente": [
-     {
-      "rol": "saliente",
-      "nombre": "claude-code",
-      "conocido": true
-     },
-     {
-      "rol": "entrante",
-      "nombre": "codex",
-      "conocido": true
-     }
-    ],
-    "verificacion": [
-     {
-      "que": "motor",
-      "commit": "575fefd",
-      "existe": true,
-      "es_ancestro": true
-     }
-    ],
-    "cambio": [
-     {
-      "archivo": "Source/vivo.cpp",
-      "commiteado": true,
-      "es_codigo_vivo": true
-     }
-    ]
-   },
-   "referencia_ok": false
-  },
-  {
-   "id": "codigo_vivo_sin_commitear",
-   "defecto": "codigo_vivo_sin_commitear",
-   "evidencia": {
-    "testigo_campo": [
-     {
-      "nombre": "turno",
-      "presente": true
-     },
-     {
-      "nombre": "saliente",
-      "presente": true
-     },
-     {
-      "nombre": "entrante",
-      "presente": true
-     },
-     {
-      "nombre": "desde",
-      "presente": true
-     },
-     {
-      "nombre": "verde_editor",
-      "presente": true
-     },
-     {
-      "nombre": "verde_editor_fecha",
-      "presente": true
-     }
-    ],
-    "testigo_seccion": [
-     {
-      "nombre": "## Verde al soltar",
-      "presente": true
-     },
-     {
-      "nombre": "## Frontera de verificación",
-      "presente": true
-     },
-     {
-      "nombre": "## Para las manos de Brian",
-      "presente": true
-     },
-     {
-      "nombre": "## Lo próximo",
-      "presente": true
-     },
-     {
-      "nombre": "## No toques esto",
-      "presente": true
-     },
-     {
-      "nombre": "## Lo que aprendí este turno",
-      "presente": true
-     }
-    ],
-    "agente": [
-     {
-      "rol": "saliente",
-      "nombre": "claude-code",
-      "conocido": true
-     },
-     {
-      "rol": "entrante",
-      "nombre": "codex",
-      "conocido": true
-     }
-    ],
-    "verificacion": [
-     {
-      "que": "motor",
-      "commit": "575fefd",
-      "existe": true,
-      "es_ancestro": true
-     }
-    ],
-    "cambio": [
-     {
-      "archivo": "Source/vivo.cpp",
-      "commiteado": false,
-      "es_codigo_vivo": true
-     }
-    ]
-   },
-   "referencia_ok": false
-  }
- ]
+ "origen": "Brianholl/jam · tools/relevo.py (revisar_testigo + verde_editor_vigente)"
 }

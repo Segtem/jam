@@ -25,7 +25,8 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-from .algebra import COMPARADORES, _cmp, desde, resumir
+from .algebra import (COMPARADORES, ErrorDeAlgebra, comparar, desde, resumir,
+                      validar_finito, validar_resumen, validar_tuberia)
 from .macro import es_macro, expandir
 
 
@@ -104,27 +105,43 @@ class Medida:
         _, mid, tuberia, resumen, umbral, alcance = d
         if not isinstance(mid, str) or not mid.strip() or " " in mid:
             raise MedidaMalDeclarada(f"id inválido: «{mid}»")
+        try:
+            validar_tuberia(tuberia)
+            validar_resumen(resumen)
+        except ErrorDeAlgebra as e:
+            raise MedidaMalDeclarada(f"{mid}: {e}") from e
         if not (isinstance(umbral, list) and len(umbral) == 4 and umbral[0] == "umbral"):
             raise MedidaMalDeclarada(f"{mid}: el umbral es ['umbral', op, valor, porque]")
         _, op, limite, porque = umbral
         if op not in COMPARADORES:
             raise MedidaMalDeclarada(f"{mid}: operador «{op}» no está en {list(COMPARADORES)}")
+        if not isinstance(limite, (str, int, float, bool)):
+            raise MedidaMalDeclarada(
+                f"{mid}: el valor del umbral tiene que ser escalar, no {type(limite).__name__}")
+        try:
+            validar_finito(limite, "el valor del umbral")
+        except ErrorDeAlgebra as e:
+            raise MedidaMalDeclarada(f"{mid}: {e}") from e
+        if op in ("==", "!=") and isinstance(limite, float):
+            raise MedidaMalDeclarada(
+                f"{mid}: la igualdad exacta de umbral sobre un flotante está prohibida; "
+                "usá una comparación de orden con tolerancia")
         # las dos reglas que hacen a esto un oráculo y no un validador
-        if not str(porque).strip():
+        if not isinstance(porque, str) or not porque.strip():
             raise MedidaMalDeclarada(
                 f"{mid}: el umbral {op} {limite} no trae defensa — un número que nadie puede "
                 f"discutir es una métrica esperando a volverse objetivo")
         if not (isinstance(alcance, list) and len(alcance) == 2 and alcance[0] == "alcance"
-                and str(alcance[1]).strip()):
+                and isinstance(alcance[1], str) and alcance[1].strip()):
             raise MedidaMalDeclarada(f"{mid}: falta `alcance` — hay que declarar qué NO ve")
         return cls(id=mid, tuberia=tuberia, resumen=resumen, op=op, limite=limite,
-                   porque=str(porque), alcance=str(alcance[1]),
+                   porque=porque, alcance=alcance[1],
                    fuente=tuple(fuente) if es_macro(fuente) else ())
 
     def evaluar(self, evidencia: dict) -> Veredicto:
         testigos = desde(self.tuberia, evidencia)
         valor = resumir(self.resumen, testigos)
-        return Veredicto(id=self.id, valor=valor, ok=_cmp(self.op)(valor, self.limite),
+        return Veredicto(id=self.id, valor=valor, ok=comparar(self.op, valor, self.limite),
                          umbral=f"{self.op} {self.limite}", porque=self.porque,
                          alcance=self.alcance, testigos=tuple(testigos))
 
@@ -163,10 +180,12 @@ class Informe:
 
     @property
     def ok(self) -> bool:
-        return all(v.ok for v in self.veredictos)
+        return bool(self.veredictos) and all(v.ok for v in self.veredictos)
 
     def texto(self) -> str:
         """Nunca dice «TODO VERDE» a secas: un verde termina enumerando lo que no miró."""
+        if not self.veredictos:
+            return "VEREDICTO: SIN MEDIDAS — no hay nada que evaluar"
         lineas = [v.linea() for v in self.veredictos]
         malas = [v for v in self.veredictos if not v.ok]
         if malas:

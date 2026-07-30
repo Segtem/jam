@@ -26,6 +26,7 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ / "vendor" / "oracle"))
 
+from nucleo.diferencial import Procedencia           # noqa: E402
 from nucleo.dominio import Dominio, generar          # noqa: E402
 from nucleo.medida import cargar_catalogo            # noqa: E402
 from nucleo.proyecto import (Proyecto, catalogos_a_cargar,  # noqa: E402
@@ -38,6 +39,12 @@ NOMBRE = re.compile(r"^(\d{4}-\d{2}-\d{2})-([A-Z]+)-(.+)-v(\d+\.\d+)$")
 TIPOS = {"INFORME", "PLAN", "ROADMAP", "CONCEPTO", "GUIA", "ESTADO", "ADR"}
 CARPETAS = ("00-Proceso", "01-Graph", "02-TreeGen", "03-Mesh-y-materiales", "04-Ejecucion-y-pruebas")
 _TEMPORALES: list[str] = []
+PROCEDENCIA = Procedencia(
+    raiz=RAIZ,
+    emisor=("tools/emitir_hechos_vault.py",),
+    referencia=("tools/vault.py", "Vault-kb"),
+    desde_proyecto="..",
+)
 
 
 # ---- el SENSOR: hechos, sin un solo `if` que decida si algo está mal ----
@@ -142,13 +149,15 @@ def main() -> int:
     catalogo = cargar_catalogo(catalogos_a_cargar(PROYECTO))
     medidas = [m for k, m in catalogo.items() if k.startswith("vault.")]
     try:
-        fixture = generar(VAULT, medidas)
+        fixture = generar(VAULT, medidas, procedencia=PROCEDENCIA)
     finally:
         for d in _TEMPORALES:
             shutil.rmtree(d, ignore_errors=True)
 
     DESTINO.parent.mkdir(parents=True, exist_ok=True)
-    DESTINO.write_text(json.dumps(fixture, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    DESTINO.write_text(
+        json.dumps(fixture, ensure_ascii=False, indent=1, sort_keys=True, allow_nan=False) + "\n",
+        encoding="utf-8")
     print(f"{len(medidas)} medidas × {fixture['mundos']} escenarios · escrito: {DESTINO}")
     return 0
 

@@ -16,6 +16,7 @@ Python para saber qué debería dar cada una.
 from __future__ import annotations
 
 import json
+import hashlib
 import random
 import sys
 from pathlib import Path
@@ -26,6 +27,7 @@ sys.path.insert(0, str(RAIZ / "vendor" / "oracle"))
 
 from jam import oracle_placement, oracle_snap        # noqa: E402
 from jam.geometry import AABB, Pieza, Vec3           # noqa: E402
+from nucleo.diferencial import Procedencia           # noqa: E402
 from nucleo.dominio import Dominio, generar          # noqa: E402
 from nucleo.medida import cargar_catalogo            # noqa: E402
 from nucleo.proyecto import (Proyecto, catalogos_a_cargar,  # noqa: E402
@@ -36,6 +38,13 @@ DESTINO = PROYECTO.diferencial / "geometria.json"
 
 MEDIDAS = ("colocacion.bounds", "colocacion.interpenetracion", "snap.grilla", "snap.yaw")
 DEFECTOS = ("volumen_degenerado", "interpenetracion", "fuera_de_grilla", "yaw_fuera_de_paso")
+PROCEDENCIA = Procedencia(
+    raiz=RAIZ,
+    emisor=("tools/emitir_diferencial.py", "Content/Python/jam/geometry.py"),
+    referencia=("Content/Python/jam/oracle_placement.py",
+                "Content/Python/jam/oracle_snap.py"),
+    desde_proyecto="..",
+)
 
 
 def _pieza(nombre, centro, extension, loc=None, yaw=0.0) -> Pieza:
@@ -58,7 +67,9 @@ def montar(defecto: str | None, i: int = 0) -> list[Pieza]:
     El sujeto es siempre la primera pieza. Y siempre hay una escenografía descomunal: sin ella, la
     regla que la ignora existe sin estar verificada — eso ya pasó una vez y lo delató la mutación.
     """
-    r = random.Random(hash((defecto or "limpio", i)) & 0xFFFF)
+    material = f"{defecto or 'limpio'}\0{i}".encode("utf-8")
+    semilla = int.from_bytes(hashlib.sha256(material).digest()[:8], "big")
+    r = random.Random(semilla)
     en_grilla = lambda: float(r.randrange(-3, 4) * 100)          # noqa: E731
 
     centro = [en_grilla(), en_grilla(), 0.0]
@@ -105,10 +116,12 @@ def main() -> int:
     registrar_escalares(PROYECTO)
     catalogo = cargar_catalogo(catalogos_a_cargar(PROYECTO))
     medidas = [catalogo[m] for m in MEDIDAS if m in catalogo]
-    fixture = generar(GEOMETRIA, medidas)
+    fixture = generar(GEOMETRIA, medidas, procedencia=PROCEDENCIA)
 
     DESTINO.parent.mkdir(parents=True, exist_ok=True)
-    DESTINO.write_text(json.dumps(fixture, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    DESTINO.write_text(
+        json.dumps(fixture, ensure_ascii=False, indent=1, sort_keys=True, allow_nan=False) + "\n",
+        encoding="utf-8")
     print(f"{len(medidas)} medidas × {fixture['mundos']} escenarios · escrito: {DESTINO}")
     return 0
 
