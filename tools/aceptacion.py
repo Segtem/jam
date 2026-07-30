@@ -1,6 +1,6 @@
 """La prueba de aceptación del marco: **el corpus juzga al oráculo, no al revés.**
 
-    python tools/aceptacion.py
+    python tools/aceptacion.py [--proyecto <ruta>] [--confiar-escalares]
 
 Criterio 4 de la especificación, ejecutable:
 
@@ -8,8 +8,8 @@ Criterio 4 de la especificación, ejecutable:
   · todo caso `verde_correcto` tiene que salir **VERDE**. Son la otra polaridad, y no son relleno:
     sin ellos `quitar_filtro` sobrevive siempre, porque contar sin filtro sólo da verde con la
     relación vacía. Un corpus de puros defectos deja las medidas flojas;
-  · los casos con `sin_medida_todavia` **quedan verdes a propósito**: son el hueco declarado. Su
-    número es una métrica del marco y tiene que bajar;
+  · los casos sin medida distinguen `abierto`, `resuelto` y `limite_humano`; sólo los abiertos son
+    deuda del marco y su número tiene que bajar;
   · y al final corre el nivel L2: las medidas del catálogo servidas **como relación**, medidas por
     una medida. Sin mecanismo nuevo — es lo que vuelve esto un metalenguaje.
 
@@ -28,11 +28,11 @@ sys.path.insert(0, str(RAIZ))
 import catalogos.escalares  # noqa: F401,E402  registra las escalares declaradas
 from nucleo.marco import hechos_de_casos  # noqa: E402
 from nucleo.medida import cargar_catalogo, como_hechos, evaluar  # noqa: E402
-from nucleo.proyecto import (catalogos_a_cargar, registrar_escalares, resolver,
-                             sin_bandera)  # noqa: E402
+from nucleo.proyecto import (EscalaresInvalidas, EscalaresNoConfiables, catalogos_a_cargar,
+                             confiar_escalares, escalares_del_proyecto, problemas_estructura,
+                             resolver)  # noqa: E402
 
 PROY = resolver(sys.argv[1:])
-registrar_escalares(PROY)
 
 
 def casos() -> list[dict]:
@@ -47,20 +47,33 @@ def _relaciones(m) -> list[str]:
     return [fuente[1]] if fuente[0] == "de" else [fuente[1][1], fuente[2][1]]
 
 
-def main() -> int:
+def _ejecutar() -> int:
+    estructura = problemas_estructura(PROY, ("catalogos", "corpus"))
+    if estructura:
+        print("PROYECTO INVÁLIDO — " + "; ".join(estructura))
+        return 1
     catalogo = cargar_catalogo(catalogos_a_cargar(PROY))
     todos = casos()
     fallas: list[str] = []
     rojos = 0
     verdes = 0
     huecos: list[str] = []
+    archivados = {"resuelto": [], "limite_humano": []}
 
     print(f"catálogo: {len(catalogo)} medidas · corpus: {len(todos)} casos\n")
+
+    if not todos:
+        print("ACEPTACIÓN NO APLICABLE — SIN CASOS: un corpus vacío no puede juzgar al oráculo")
+        return 1
 
     for c in todos:
         mid = c.get("medida")
         if not mid:
-            huecos.append(f"{c['id']} — {c.get('sin_medida_todavia', '')[:70]}")
+            estado = c.get("estado_sin_medida", "abierto")
+            if estado == "abierto":
+                huecos.append(f"{c['id']} — {c.get('sin_medida_todavia', '')[:70]}")
+            elif estado in archivados:
+                archivados[estado].append(c["id"])
             continue
         if mid not in catalogo:
             fallas.append(f"{c['id']}: reclama la medida «{mid}» y no está en el catálogo")
@@ -81,6 +94,9 @@ def main() -> int:
           f"huecos declarados: {len(huecos)}")
     for h in huecos:
         print(f"  hueco  {h}")
+    for estado, ids in archivados.items():
+        for cid in ids:
+            print(f"  {estado:<14} {cid}")
 
     # ---- L2: el marco medido con sus propias medidas ----
     # Antes esto era una lista de `if`s en este archivo. El veredicto sobre el marco es un dato como
@@ -104,6 +120,19 @@ def main() -> int:
     print(f"\nACEPTACIÓN ✓ — {rojos} defectos en rojo, {verdes} verdes correctos, "
           f"{len(huecos)} huecos declarados sin tapar")
     return 0
+
+
+def main() -> int:
+    argv = sys.argv[1:]
+    if "-h" in argv or "--help" in argv:
+        print(__doc__)
+        return 0
+    try:
+        with escalares_del_proyecto(PROY, confiar=confiar_escalares(argv)):
+            return _ejecutar()
+    except (EscalaresNoConfiables, EscalaresInvalidas) as e:
+        print(f"ESCALARES EXTERNAS NO EJECUTADAS — {e}")
+        return 1
 
 
 if __name__ == "__main__":

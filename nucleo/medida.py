@@ -25,19 +25,40 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-from .algebra import COMPARADORES, _cmp, desde, resumir
+from .algebra import (COMPARADORES, ErrorDeAlgebra, LimitesAlgebra, comparar, desde, resumir,
+                      validar_finito, validar_resumen, validar_tuberia)
 from .macro import es_macro, expandir
 
 
-# Las relaciones cuyo sujeto es el LENGUAJE, no el mundo. Una medida sobre cualquiera de éstas es de
-# nivel meta, y su nombre tiene que decirlo.
-#
-# La primera versión de la regla decía «es meta si mide sobre `medida`». Alcanzaba para las dos
-# medidas que había y se rompió al aparecer las que miden CASOS: el corpus también es parte del
-# lenguaje, no del mundo. La línea que sí se sostiene es ésta — `medida`, `caso` y `medida_en_uso`
-# hablan del catálogo y de lo que lo fija; `mutante`, `hallazgo` o `afirmacion` hablan del TRABAJO de
-# construir, que es el dominio `proceso`.
-RELACIONES_DEL_LENGUAJE = frozenset({"medida", "caso", "medida_en_uso"})
+@dataclass(frozen=True)
+class ClasificacionMeta:
+    """Contrato extensible para distinguir lenguaje y mundo.
+
+    El núcleo trae las relaciones que él mismo produce, pero no pretende conocer las relaciones
+    reflexivas de cada proyecto. Un perfil puede añadirlas y también declarar sus prefijos.
+    """
+
+    relaciones_del_lenguaje: frozenset[str] = frozenset({"medida", "caso", "medida_en_uso"})
+    prefijos_meta: tuple[str, ...] = ("meta.",)
+
+    def __post_init__(self) -> None:
+        if (not isinstance(self.relaciones_del_lenguaje, frozenset)
+                or any(not isinstance(r, str) or not r.strip()
+                       for r in self.relaciones_del_lenguaje)):
+            raise MedidaMalDeclarada(
+                "las relaciones del lenguaje deben ser un frozenset de textos no vacíos")
+        if (not isinstance(self.prefijos_meta, tuple) or not self.prefijos_meta
+                or any(not isinstance(p, str) or not p for p in self.prefijos_meta)):
+            raise MedidaMalDeclarada("los prefijos meta deben ser una tupla de textos no vacíos")
+
+    def con(self, *, relaciones=(), prefijos=()) -> "ClasificacionMeta":
+        """Devuelve un contrato ampliado sin mutar el compartido por otro consumidor."""
+        return ClasificacionMeta(
+            self.relaciones_del_lenguaje.union(relaciones),
+            tuple(dict.fromkeys((*self.prefijos_meta, *prefijos))))
+
+
+CLASIFICACION_META_BASE = ClasificacionMeta()
 
 
 class MedidaMalDeclarada(ValueError):
@@ -104,27 +125,43 @@ class Medida:
         _, mid, tuberia, resumen, umbral, alcance = d
         if not isinstance(mid, str) or not mid.strip() or " " in mid:
             raise MedidaMalDeclarada(f"id inválido: «{mid}»")
+        try:
+            validar_tuberia(tuberia)
+            validar_resumen(resumen)
+        except ErrorDeAlgebra as e:
+            raise MedidaMalDeclarada(f"{mid}: {e}") from e
         if not (isinstance(umbral, list) and len(umbral) == 4 and umbral[0] == "umbral"):
             raise MedidaMalDeclarada(f"{mid}: el umbral es ['umbral', op, valor, porque]")
         _, op, limite, porque = umbral
         if op not in COMPARADORES:
             raise MedidaMalDeclarada(f"{mid}: operador «{op}» no está en {list(COMPARADORES)}")
+        if not isinstance(limite, (str, int, float, bool)):
+            raise MedidaMalDeclarada(
+                f"{mid}: el valor del umbral tiene que ser escalar, no {type(limite).__name__}")
+        try:
+            validar_finito(limite, "el valor del umbral")
+        except ErrorDeAlgebra as e:
+            raise MedidaMalDeclarada(f"{mid}: {e}") from e
+        if op in ("==", "!=") and isinstance(limite, float):
+            raise MedidaMalDeclarada(
+                f"{mid}: la igualdad exacta de umbral sobre un flotante está prohibida; "
+                "usá una comparación de orden con tolerancia")
         # las dos reglas que hacen a esto un oráculo y no un validador
-        if not str(porque).strip():
+        if not isinstance(porque, str) or not porque.strip():
             raise MedidaMalDeclarada(
                 f"{mid}: el umbral {op} {limite} no trae defensa — un número que nadie puede "
                 f"discutir es una métrica esperando a volverse objetivo")
         if not (isinstance(alcance, list) and len(alcance) == 2 and alcance[0] == "alcance"
-                and str(alcance[1]).strip()):
+                and isinstance(alcance[1], str) and alcance[1].strip()):
             raise MedidaMalDeclarada(f"{mid}: falta `alcance` — hay que declarar qué NO ve")
         return cls(id=mid, tuberia=tuberia, resumen=resumen, op=op, limite=limite,
-                   porque=str(porque), alcance=str(alcance[1]),
+                   porque=porque, alcance=alcance[1],
                    fuente=tuple(fuente) if es_macro(fuente) else ())
 
-    def evaluar(self, evidencia: dict) -> Veredicto:
-        testigos = desde(self.tuberia, evidencia)
-        valor = resumir(self.resumen, testigos)
-        return Veredicto(id=self.id, valor=valor, ok=_cmp(self.op)(valor, self.limite),
+    def evaluar(self, evidencia: dict, limites: LimitesAlgebra | None = None) -> Veredicto:
+        testigos = desde(self.tuberia, evidencia, limites)
+        valor = resumir(self.resumen, testigos, limites)
+        return Veredicto(id=self.id, valor=valor, ok=comparar(self.op, valor, self.limite),
                          umbral=f"{self.op} {self.limite}", porque=self.porque,
                          alcance=self.alcance, testigos=tuple(testigos))
 
@@ -163,10 +200,12 @@ class Informe:
 
     @property
     def ok(self) -> bool:
-        return all(v.ok for v in self.veredictos)
+        return bool(self.veredictos) and all(v.ok for v in self.veredictos)
 
     def texto(self) -> str:
         """Nunca dice «TODO VERDE» a secas: un verde termina enumerando lo que no miró."""
+        if not self.veredictos:
+            return "VEREDICTO: SIN MEDIDAS — no hay nada que evaluar"
         lineas = [v.linea() for v in self.veredictos]
         malas = [v for v in self.veredictos if not v.ok]
         if malas:
@@ -181,8 +220,8 @@ class Informe:
                           ensure_ascii=False)
 
 
-def evaluar(medidas, evidencia: dict) -> Informe:
-    return Informe(tuple(m.evaluar(evidencia) for m in medidas))
+def evaluar(medidas, evidencia: dict, limites: LimitesAlgebra | None = None) -> Informe:
+    return Informe(tuple(m.evaluar(evidencia, limites) for m in medidas))
 
 
 # ---- derivados de la declaración: el «OpenAPI» del oráculo ----
@@ -196,7 +235,7 @@ def puntos_ciegos(medidas) -> list[dict]:
     return [{"id": m.id, "alcance": m.alcance} for m in medidas]
 
 
-def como_hechos(medidas) -> list[dict]:
+def como_hechos(medidas, clasificacion: ClasificacionMeta | None = None) -> list[dict]:
     """Las medidas COMO RELACIÓN, para poder medirlas con el mismo álgebra (L2 = L1 sobre L1).
 
     Es la pieza que vuelve esto un metalenguaje: no hay mecanismo nuevo, sólo se sirve el catálogo
@@ -208,6 +247,9 @@ def como_hechos(medidas) -> list[dict]:
             return ""
         return fuente[1] if fuente[0] == "de" else fuente[1][1]
 
+    clasificacion = clasificacion or CLASIFICACION_META_BASE
+    if not isinstance(clasificacion, ClasificacionMeta):
+        raise MedidaMalDeclarada("`clasificacion` debe ser ClasificacionMeta")
     salida = []
     for m in medidas:
         rel = relacion_de(m)
@@ -219,7 +261,7 @@ def como_hechos(medidas) -> list[dict]:
             # la guardó en la carpeta `meta/`. Que se puedan comparar es lo que permite verificar que
             # la convención se cumpla en vez de confiar en ella.
             "dominio": m.id.split(".")[0],
-            "es_meta_por_el_nombre": m.id.startswith("meta."),
-            "es_meta_por_lo_que_mide": rel in RELACIONES_DEL_LENGUAJE,
+            "es_meta_por_el_nombre": m.id.startswith(clasificacion.prefijos_meta),
+            "es_meta_por_lo_que_mide": rel in clasificacion.relaciones_del_lenguaje,
         })
     return salida
