@@ -23,12 +23,32 @@ dentro del motor, **con una diferencia — todo lo que produce lo verifica un or
 Crear libre con la mejor herramienta, medir desde afuera. El juego que lo empuja es BotOO
 (`Brianholl/BotOO`), un Hunt: Showdown lovecrafteano de 1920.
 
+## `oracle`: el verificador es un lenguaje aparte
+
+`vendor/oracle/` es un **subtree** de `Segtem/oracle`: un metalenguaje de medidas para construir
+herramientas con un LLM. Jam es su primer **proyecto** — sus medidas, sensores y fixtures viven en
+`medidas/`.
+
+```bash
+python vendor/oracle/tools/diferencial.py --proyecto medidas   # medidas vs verificadores a mano
+python vendor/oracle/tools/mutar.py       --proyecto medidas   # ¿los casos fijan las medidas?
+python vendor/oracle/tools/estudio.py     --proyecto medidas   # volcar todo a Markdown plano
+```
+
+⚠️ **No edites `vendor/oracle/` a mano** — se cambia en el repo de arriba y se trae con
+`git subtree pull --prefix=vendor/oracle git@github.com:Segtem/oracle.git main --squash`.
+
+Lo que hay que saber antes de tocarlo, en una frase: **una medida es un dato**, y declara
+obligatoriamente **la defensa de su umbral** y **qué NO ve**. El informe verde termina enumerando sus
+puntos ciegos. Todo lo demás está en
+`Vault-kb/00-Proceso/2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0.md`.
+
 ## La arquitectura, en una regla
 
 **El cerebro es puro y el adaptador es fino.**
 
 - `Content/Python/jam/*.py` — cerebro. **Cero `import unreal`.** Por eso se puede testear sin motor,
-  y por eso los 459 tests corren en 0.3 s.
+  y por eso los 489 tests corren en 0.3 s.
 - `Content/Python/jam/ue.py` — **el único** adaptador al motor.
 - `Source/JamEditor/` — C++ de Slate (paneles, Graph). La lógica sigue en Python; el C++ la llama
   con `ExecPythonCommandEx`.
@@ -96,11 +116,14 @@ redistribuir, nunca relicenciar CC0. Los repos van privados.
 | `add_edge` de PCG | **No lanza** al fallar: hay que verificar el grafo después. |
 | Destructor explícito de un `TGuardValue` de pila | Doble destrucción. Usar un bloque con *scope*. |
 | `grep --include=*.cpp` en fish | fish expande el glob: va **entre comillas**. |
+| Mutar código y restaurar en el mismo segundo | CPython invalida el `.pyc` por (mtime, tamaño): `max` y `min` ocupan lo mismo, así que sigue corriendo el **bytecode mutado**. Limpiar `__pycache__` entre mutantes. |
+| Matar un proceso que escribe sobre fuentes | **`SIGTERM` no ejecuta el `finally`**. Una corrida cortada dejó un archivo mutado en el árbol; hace falta `atexit` + manejadores de señal, y mirar `git status` después. |
+| Editar `vendor/oracle/` a mano | Es un subtree: se separa del upstream en silencio. Se cambia arriba y se trae con `git subtree pull`. |
 
 ## Dónde está escrito lo demás
 
 - **`RELEVO.md`** — el turno actual. Siempre vigente, siempre uno solo.
-- **`Vault-kb/`** — 46 documentos en 5 carpetas (`00-Proceso`, `01-Graph`, `02-TreeGen`,
+- **`Vault-kb/`** — 48 documentos en 5 carpetas (`00-Proceso`, `01-Graph`, `02-TreeGen`,
   `03-Mesh-y-materiales`, `04-Ejecucion-y-pruebas`). Nomenclatura `AAAA-MM-DD-TIPO-Nombre-vX.X.md`,
   y **el `area:` de cada doc tiene que ser su carpeta** — lo verifica `tools/vault.py`. Empezá por
   `Vault-kb/README.md`, que es el índice generado (no se edita a mano).

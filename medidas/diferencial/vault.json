@@ -60,6 +60,19 @@
       "frontmatter_completo": true
      },
      {
+      "nombre": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "carpeta": "00-Proceso",
+      "sigue_convencion": true,
+      "tipo_en_nombre": "INFORME",
+      "tipo_declarado": "INFORME",
+      "fecha_en_nombre": "2026-07-30",
+      "updated": "2026-07-30",
+      "area": "00-Proceso",
+      "nombre_es_ascii": true,
+      "carpeta_conocida": true,
+      "frontmatter_completo": true
+     },
+     {
       "nombre": "2026-07-25-CONCEPTO-Estetica-Nodos-Grasshopper-v1.0",
       "carpeta": "01-Graph",
       "sigue_convencion": true,
@@ -691,6 +704,16 @@
      {
       "origen": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
       "destino": "2026-07-29-INFORME-Docking-Paneles-Nomad-Tabs-v1.0",
+      "resuelve": true
+     },
+     {
+      "origen": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
+      "resuelve": true
+     },
+     {
+      "origen": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
       "resuelve": true
      },
      {
@@ -1850,6 +1873,11 @@
      },
      {
       "origen": "README",
+      "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "resuelve": true
+     },
+     {
+      "origen": "README",
       "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
       "resuelve": true
      },
@@ -2121,6 +2149,19 @@
       "tipo_declarado": "GUIA",
       "fecha_en_nombre": "2026-07-29",
       "updated": "2026-07-29",
+      "area": "00-Proceso",
+      "nombre_es_ascii": true,
+      "carpeta_conocida": true,
+      "frontmatter_completo": true
+     },
+     {
+      "nombre": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "carpeta": "00-Proceso",
+      "sigue_convencion": true,
+      "tipo_en_nombre": "INFORME",
+      "tipo_declarado": "INFORME",
+      "fecha_en_nombre": "2026-07-30",
+      "updated": "2026-07-30",
       "area": "00-Proceso",
       "nombre_es_ascii": true,
       "carpeta_conocida": true,
@@ -2761,6 +2802,16 @@
       "resuelve": true
      },
      {
+      "origen": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
+      "resuelve": true
+     },
+     {
+      "origen": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
+      "resuelve": true
+     },
+     {
       "origen": "2026-07-25-CONCEPTO-Estetica-Nodos-Grasshopper-v1.0",
       "destino": "2026-07-29-INFORME-Seleccion-Multiple-Alineacion-Nodos-v2.0",
       "resuelve": true
@@ -3917,6 +3968,11 @@
      },
      {
       "origen": "README",
+      "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "resuelve": true
+     },
+     {
+      "origen": "README",
       "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
       "resuelve": true
      },
@@ -4188,6 +4244,19 @@
       "tipo_declarado": "GUIA",
       "fecha_en_nombre": "2026-07-29",
       "updated": "2026-07-29",
+      "area": "00-Proceso",
+      "nombre_es_ascii": true,
+      "carpeta_conocida": true,
+      "frontmatter_completo": true
+     },
+     {
+      "nombre": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "carpeta": "00-Proceso",
+      "sigue_convencion": true,
+      "tipo_en_nombre": "INFORME",
+      "tipo_declarado": "INFORME",
+      "fecha_en_nombre": "2026-07-30",
+      "updated": "2026-07-30",
       "area": "00-Proceso",
       "nombre_es_ascii": true,
       "carpeta_conocida": true,
@@ -4828,6 +4897,16 @@
       "resuelve": true
      },
      {
+      "origen": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
+      "resuelve": true
+     },
+     {
+      "origen": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
+      "resuelve": true
+     },
+     {
       "origen": "2026-07-25-CONCEPTO-Estetica-Nodos-Grasshopper-v1.0",
       "destino": "2026-07-29-INFORME-Seleccion-Multiple-Alineacion-Nodos-v2.0",
       "resuelve": true
@@ -5984,6 +6063,11 @@
      },
      {
       "origen": "README",
+      "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "resuelve": true
+     },
+     {
+      "origen": "README",
       "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
       "resuelve": true
      },
@@ -6255,6 +6339,19 @@
       "tipo_declarado": "GUIA",
       "fecha_en_nombre": "2026-07-29",
       "updated": "2026-07-29",
+      "area": "00-Proceso",
+      "nombre_es_ascii": true,
+      "carpeta_conocida": true,
+      "frontmatter_completo": true
+     },
+     {
+      "nombre": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "carpeta": "00-Proceso",
+      "sigue_convencion": true,
+      "tipo_en_nombre": "INFORME",
+      "tipo_declarado": "INFORME",
+      "fecha_en_nombre": "2026-07-30",
+      "updated": "2026-07-30",
       "area": "00-Proceso",
       "nombre_es_ascii": true,
       "carpeta_conocida": true,
@@ -6895,6 +6992,16 @@
       "resuelve": true
      },
      {
+      "origen": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
+      "resuelve": true
+     },
+     {
+      "origen": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
+      "resuelve": true
+     },
+     {
       "origen": "2026-07-25-CONCEPTO-Estetica-Nodos-Grasshopper-v1.0",
       "destino": "2026-07-29-INFORME-Seleccion-Multiple-Alineacion-Nodos-v2.0",
       "resuelve": true
@@ -8051,6 +8158,11 @@
      },
      {
       "origen": "README",
+      "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "resuelve": true
+     },
+     {
+      "origen": "README",
       "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
       "resuelve": true
      },
@@ -8322,6 +8434,19 @@
       "tipo_declarado": "GUIA",
       "fecha_en_nombre": "2026-07-29",
       "updated": "2026-07-29",
+      "area": "00-Proceso",
+      "nombre_es_ascii": true,
+      "carpeta_conocida": true,
+      "frontmatter_completo": true
+     },
+     {
+      "nombre": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "carpeta": "00-Proceso",
+      "sigue_convencion": true,
+      "tipo_en_nombre": "INFORME",
+      "tipo_declarado": "INFORME",
+      "fecha_en_nombre": "2026-07-30",
+      "updated": "2026-07-30",
       "area": "00-Proceso",
       "nombre_es_ascii": true,
       "carpeta_conocida": true,
@@ -8962,6 +9087,16 @@
       "resuelve": true
      },
      {
+      "origen": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
+      "resuelve": true
+     },
+     {
+      "origen": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
+      "resuelve": true
+     },
+     {
       "origen": "2026-07-25-CONCEPTO-Estetica-Nodos-Grasshopper-v1.0",
       "destino": "2026-07-29-INFORME-Seleccion-Multiple-Alineacion-Nodos-v2.0",
       "resuelve": true
@@ -10118,6 +10253,11 @@
      },
      {
       "origen": "README",
+      "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "resuelve": true
+     },
+     {
+      "origen": "README",
       "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
       "resuelve": true
      },
@@ -10389,6 +10529,19 @@
       "tipo_declarado": "GUIA",
       "fecha_en_nombre": "2026-07-29",
       "updated": "2026-07-29",
+      "area": "00-Proceso",
+      "nombre_es_ascii": true,
+      "carpeta_conocida": true,
+      "frontmatter_completo": true
+     },
+     {
+      "nombre": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "carpeta": "00-Proceso",
+      "sigue_convencion": true,
+      "tipo_en_nombre": "INFORME",
+      "tipo_declarado": "INFORME",
+      "fecha_en_nombre": "2026-07-30",
+      "updated": "2026-07-30",
       "area": "00-Proceso",
       "nombre_es_ascii": true,
       "carpeta_conocida": true,
@@ -11026,6 +11179,16 @@
      {
       "origen": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
       "destino": "2026-07-29-INFORME-Docking-Paneles-Nomad-Tabs-v1.0",
+      "resuelve": true
+     },
+     {
+      "origen": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
+      "resuelve": true
+     },
+     {
+      "origen": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
       "resuelve": true
      },
      {
@@ -12190,6 +12353,11 @@
      },
      {
       "origen": "README",
+      "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "resuelve": true
+     },
+     {
+      "origen": "README",
       "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
       "resuelve": true
      },
@@ -12461,6 +12629,19 @@
       "tipo_declarado": "GUIA",
       "fecha_en_nombre": "2026-07-29",
       "updated": "2026-07-29",
+      "area": "00-Proceso",
+      "nombre_es_ascii": true,
+      "carpeta_conocida": true,
+      "frontmatter_completo": true
+     },
+     {
+      "nombre": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "carpeta": "00-Proceso",
+      "sigue_convencion": true,
+      "tipo_en_nombre": "INFORME",
+      "tipo_declarado": "INFORME",
+      "fecha_en_nombre": "2026-07-30",
+      "updated": "2026-07-30",
       "area": "00-Proceso",
       "nombre_es_ascii": true,
       "carpeta_conocida": true,
@@ -13098,6 +13279,16 @@
      {
       "origen": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
       "destino": "2026-07-29-INFORME-Docking-Paneles-Nomad-Tabs-v1.0",
+      "resuelve": true
+     },
+     {
+      "origen": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
+      "resuelve": true
+     },
+     {
+      "origen": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
       "resuelve": true
      },
      {
@@ -14257,6 +14448,11 @@
      },
      {
       "origen": "README",
+      "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "resuelve": true
+     },
+     {
+      "origen": "README",
       "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
       "resuelve": true
      },
@@ -14528,6 +14724,19 @@
       "tipo_declarado": "GUIA",
       "fecha_en_nombre": "2026-07-29",
       "updated": "2026-07-29",
+      "area": "00-Proceso",
+      "nombre_es_ascii": true,
+      "carpeta_conocida": true,
+      "frontmatter_completo": true
+     },
+     {
+      "nombre": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "carpeta": "00-Proceso",
+      "sigue_convencion": true,
+      "tipo_en_nombre": "INFORME",
+      "tipo_declarado": "INFORME",
+      "fecha_en_nombre": "2026-07-30",
+      "updated": "2026-07-30",
       "area": "00-Proceso",
       "nombre_es_ascii": true,
       "carpeta_conocida": true,
@@ -15181,6 +15390,16 @@
       "resuelve": true
      },
      {
+      "origen": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
+      "resuelve": true
+     },
+     {
+      "origen": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
+      "resuelve": true
+     },
+     {
       "origen": "2026-07-25-CONCEPTO-Estetica-Nodos-Grasshopper-v1.0",
       "destino": "2026-07-29-INFORME-Seleccion-Multiple-Alineacion-Nodos-v2.0",
       "resuelve": true
@@ -16357,6 +16576,11 @@
      },
      {
       "origen": "README",
+      "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "resuelve": true
+     },
+     {
+      "origen": "README",
       "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
       "resuelve": true
      },
@@ -16628,6 +16852,19 @@
       "tipo_declarado": "GUIA",
       "fecha_en_nombre": "2026-07-29",
       "updated": "2026-07-29",
+      "area": "00-Proceso",
+      "nombre_es_ascii": true,
+      "carpeta_conocida": true,
+      "frontmatter_completo": true
+     },
+     {
+      "nombre": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "carpeta": "00-Proceso",
+      "sigue_convencion": true,
+      "tipo_en_nombre": "INFORME",
+      "tipo_declarado": "INFORME",
+      "fecha_en_nombre": "2026-07-30",
+      "updated": "2026-07-30",
       "area": "00-Proceso",
       "nombre_es_ascii": true,
       "carpeta_conocida": true,
@@ -17268,6 +17505,16 @@
       "resuelve": true
      },
      {
+      "origen": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
+      "resuelve": true
+     },
+     {
+      "origen": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
+      "resuelve": true
+     },
+     {
       "origen": "2026-07-25-CONCEPTO-Estetica-Nodos-Grasshopper-v1.0",
       "destino": "2026-07-29-INFORME-Seleccion-Multiple-Alineacion-Nodos-v2.0",
       "resuelve": true
@@ -18424,6 +18671,11 @@
      },
      {
       "origen": "README",
+      "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "resuelve": true
+     },
+     {
+      "origen": "README",
       "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
       "resuelve": true
      },
@@ -18695,6 +18947,19 @@
       "tipo_declarado": "GUIA",
       "fecha_en_nombre": "2026-07-29",
       "updated": "2026-07-29",
+      "area": "00-Proceso",
+      "nombre_es_ascii": true,
+      "carpeta_conocida": true,
+      "frontmatter_completo": true
+     },
+     {
+      "nombre": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "carpeta": "00-Proceso",
+      "sigue_convencion": true,
+      "tipo_en_nombre": "INFORME",
+      "tipo_declarado": "INFORME",
+      "fecha_en_nombre": "2026-07-30",
+      "updated": "2026-07-30",
       "area": "00-Proceso",
       "nombre_es_ascii": true,
       "carpeta_conocida": true,
@@ -19348,6 +19613,16 @@
       "resuelve": true
      },
      {
+      "origen": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
+      "resuelve": true
+     },
+     {
+      "origen": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
+      "resuelve": true
+     },
+     {
       "origen": "2026-07-25-CONCEPTO-Estetica-Nodos-Grasshopper-v1.0",
       "destino": "2026-07-29-INFORME-Seleccion-Multiple-Alineacion-Nodos-v2.0",
       "resuelve": true
@@ -20524,6 +20799,11 @@
      },
      {
       "origen": "README",
+      "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "resuelve": true
+     },
+     {
+      "origen": "README",
       "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
       "resuelve": true
      },
@@ -20795,6 +21075,19 @@
       "tipo_declarado": "GUIA",
       "fecha_en_nombre": "2026-07-29",
       "updated": "2026-07-29",
+      "area": "00-Proceso",
+      "nombre_es_ascii": true,
+      "carpeta_conocida": true,
+      "frontmatter_completo": true
+     },
+     {
+      "nombre": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "carpeta": "00-Proceso",
+      "sigue_convencion": true,
+      "tipo_en_nombre": "INFORME",
+      "tipo_declarado": "INFORME",
+      "fecha_en_nombre": "2026-07-30",
+      "updated": "2026-07-30",
       "area": "00-Proceso",
       "nombre_es_ascii": true,
       "carpeta_conocida": true,
@@ -21435,6 +21728,16 @@
       "resuelve": true
      },
      {
+      "origen": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
+      "resuelve": true
+     },
+     {
+      "origen": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
+      "resuelve": true
+     },
+     {
       "origen": "2026-07-25-CONCEPTO-Estetica-Nodos-Grasshopper-v1.0",
       "destino": "2026-07-29-INFORME-Seleccion-Multiple-Alineacion-Nodos-v2.0",
       "resuelve": true
@@ -22587,6 +22890,11 @@
      {
       "origen": "README",
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
+      "resuelve": true
+     },
+     {
+      "origen": "README",
+      "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
       "resuelve": true
      },
      {

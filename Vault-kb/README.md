@@ -1,6 +1,6 @@
 # Vault-kb de Jam
 
-47 documentos en 5 carpetas. Nomenclatura
+48 documentos en 5 carpetas. Nomenclatura
 `AAAA-MM-DD-TIPO-Nombre-vX.X.md` — la explica
 [[2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0|la guía de convención]].
 La carpeta es la taxonomía: cada doc vive en una sola y su `area:` lo dice.
@@ -11,8 +11,9 @@ Este índice y las reglas los verifica `tools/vault.py`.
 
 ## Proceso y dirección
 
-`00-Proceso/` · 3 documentos
+`00-Proceso/` · 4 documentos
 
+- [[2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0|Oracle: un metalenguaje de medidas para construir herramientas con un LLM]] · *implementado*
 - [[2026-07-29-GUIA-Relevo-Claude-Codex-v1.0|Guía: el relevo entre Claude Code y Codex]] · *vigente*
 - [[2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0|Guía: convención de documentación del Vault-kb de Jam]] · *vigente*
 - [[2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0|Visión y roadmap de producto para Jam]] · *propuesta*

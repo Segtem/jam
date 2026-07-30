@@ -1,8 +1,8 @@
 ---
-turno: 2026-07-29 · claude-code → codex
+turno: 2026-07-30 · claude-code → codex
 saliente: claude-code
 entrante: codex
-desde: 2026-07-29
+desde: 2026-07-30
 verde_editor: 80373ea
 verde_editor_fecha: 2026-07-29
 ---
@@ -11,239 +11,135 @@ verde_editor_fecha: 2026-07-29
 
 Entra **codex**. Corré `python tools/relevo.py` antes de leer esto; si sale rojo, eso es el turno.
 
-El turno que cierra hizo el **roadmap de accesibilidad del Graph, fases 0 a 3**: la selección pasó a
-ser un estado, y encima de eso vinieron alinear/distribuir, el historial, el portapapeles y el
-docking de los tres paneles.
+El turno que cierra hizo dos cosas grandes. En **Jam**: el roadmap de accesibilidad del Graph (fases 0
+a 3) y las funciones con firma (fase 5, cerebro). Y después nació **`oracle`** —repo aparte,
+`Segtem/oracle`— que es un metalenguaje de medidas para construir herramientas con un LLM. Jam pasó a
+ser su primer proyecto.
+
+**Leé primero** `Vault-kb/00-Proceso/2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0.md`: son
+diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 
 ## Verde al soltar
 
 | Qué | Comando | Resultado |
 |---|---|---|
-| Cerebro | `cd Content/Python/tests && PYTHONPATH=$PWD/.. python -m unittest discover -s . -p "test_*.py" -q` | **489 OK**, 0.3 s |
-| Vault | `python tools/vault.py` | **47 docs** · **las dos implementaciones coinciden** (modo sombra) |
+| Cerebro de Jam | `cd Content/Python/tests && PYTHONPATH=$PWD/.. python -m unittest discover -s . -p "test_*.py" -q` | **489 OK**, 0.3 s |
+| Vault (modo sombra) | `python tools/vault.py` | **48 docs · las dos implementaciones coinciden** |
 | Motor | `tools/experiments/verifica_ejemplos.py` headless | **8/8 tutoriales · TODO VERDE** |
-| Editor | arranque + carga del módulo | los 3 spawners registran, **sin warnings de tab** |
-| Oráculo (repo aparte, `~/Dev/oracle`) | `corpus.py` · `aceptacion.py` · `diferencial.py` · `mutar.py` · `unittest discover -s tests -t .` | **29 casos · aceptación ✓ · 111 tests** · proyecto de Jam: `--proyecto medidas` → diferencial 269 · 80/80 · **3 dominios declarados** |
+| oracle sobre sí mismo | `cd ~/Dev/oracle && python tools/aceptacion.py` | **15 rojos · 11 verdes · 3 huecos** |
+| oracle sobre Jam | `python vendor/oracle/tools/diferencial.py --proyecto medidas` | **269 veredictos, 0 desacuerdos** |
+| » mutación de medidas | `python vendor/oracle/tools/mutar.py --proyecto medidas` | **80/80 mutantes muertos** |
+| » tests de oracle | `cd ~/Dev/oracle && python -m unittest discover -s tests -t . -q` | **111 OK** |
 
 La verificación con motor es del commit `80373ea`; desde ahí no se tocó `Source/`, `Content/Python/`
-ni `oraculo/`, así que sigue hablando del código que hay. `relevo.py` lo comprueba solo.
+ni `oraculo/`. `relevo.py` lo comprueba solo.
 
-## Frontera de verificación — CERRADA el 2026-07-29
+**Un rojo conocido y deliberado:** `cd ~/Dev/oracle && python tools/mutar_codigo.py` deja **31
+mutantes vivos** de 242. Es código del núcleo que ningún test fija, y el número está a la vista a
+propósito. **No los declares equivalentes en masa para pintar verde** — sería exactamente el Goodhart
+que el repo persigue. Bajan escribiendo tests, o declarando equivalentes **de a uno con su razón
+escrita** en `equivalentes.json`. Tarda varios minutos: corré con timeout largo.
 
-**Brian probó el editor y confirmó que todo funciona.** Con eso se cierra la deuda más cara que tenía
-el proyecto: cinco tandas seguidas de C++ que nadie había ejercido con las manos.
+## Frontera de verificación
 
-| Cosa | Estado |
-|---|---|
-| Marquee, `Shift`/`Ctrl`+clic, arrastre en grupo | ✅ Brian, en el editor |
-| `Ctrl+Z` / `Ctrl+Shift+Z` (50 pasos) | ✅ |
-| `Ctrl+C`/`X`/`V`/`D` contra el portapapeles del sistema | ✅ |
-| `F` / `Inicio` (encuadre) | ✅ |
-| Acoplar un panel, sidebar, y que vuelva al reabrir el editor | ✅ |
-| Alinear/distribuir (8 acciones del menú Edit) | ✅ cerebro con tests **y** el menú a mano |
+Lo de Slate quedó **cerrado** el 2026-07-29: Brian probó el editor y confirmó que todo funciona
+—marquee, historial, portapapeles, docking, alinear—. Desde entonces no se escribió nada de Slate, así
+que esa frontera sigue en pie.
 
-**Precisión sobre el alcance de esta confirmación**, para que el registro no diga más de lo que
-sabe: es un «todo funciona bien» **global**, no gesto por gesto. Alcanza para construir encima con
-confianza; si algo aparece más adelante, no queda contradiciendo a este documento.
+Lo que **nadie ejerció con las manos** de este turno:
 
-Lo que sigue valiendo: **lo que se escriba de Slate a partir de acá vuelve a nacer sin verificar** y
-hay que volver a listarlo abajo. La frontera no se cierra de una vez, se cierra por turno.
+| Cosa | Quién puede verificarla | Estado |
+|---|---|---|
+| El paquete de estudio subido a NotebookLM | Brian | ⏳ generado, sin abrir |
+| Que el informe del modo sombra de `vault.py` se lea bien | Brian | ⏳ |
+| Todo lo demás de `oracle` | ✅ sus propias herramientas, el diferencial y la mutación | verificado |
 
 ## Para las manos de Brian
 
-**Nada pendiente.** La lista de este turno eran seis gestos —acoplar el Graph y reabrir el editor,
-marquee + arrastre en grupo + `Ctrl+Z`, `Ctrl+C`/`V`, alinear, `F`/`Inicio`, y cerrar/reabrir el tab
-con un diagrama puesto— y Brian los probó el 2026-07-29 sin encontrar nada.
+**Una sola cosa, y no es urgente:** subir `~/Dev/oracle/estudio/` a NotebookLM y estudiarlo. Son 10
+documentos planos, 212 KB, generados por `python vendor/oracle/tools/estudio.py --proyecto medidas`.
+Empezá por `00-esencia.md` y `08-los-numeros.md` —diez minutos— y después `07-el-diario.md`, que es el
+más revelador porque muestra el proceso y no el resultado.
+
+Nada en el editor está esperando manos. Si Codex escribe Slate este turno, **tiene que volver a
+listarlo acá**: máximo seis gestos, quince minutos. Es el mecanismo que funcionó — cuatro tandas
+pidiendo «probá cuando puedas» no habían movido nada.
 
 *(Esta sección es obligatoria y no se borra cuando está vacía: si se pudiera omitir, un turno dejaría
-de pedir manos sin que nadie lo note. Vacía dice «no hace falta»; ausente no dice nada.)*
-
-Al cerrar el próximo turno va acá lo nuevo de Slate: **máximo seis gestos, quince minutos**. Es el
-mecanismo que funcionó — cuatro tandas pidiendo «probá cuando puedas» no habían movido nada.
+de pedir manos sin que nadie lo note.)*
 
 ## Lo próximo
 
-**0. Nada bloqueante.** Brian ya probó el editor y no encontró nada. Se puede construir encima de las
-fases 0 a 3 con confianza.
+**1. Fase 5 — la capa de Slate de las funciones del Graph.** El cerebro está hecho y cableado
+(`jam/funcion.py`, 18 tests, expansión inline verificada contra el grafo plano equivalente; el informe
+está en `Vault-kb/01-Graph/`). Falta lo de arriba, que es gesto:
 
-**1. Fase 5 — la capa de Slate de las funciones.** El **cerebro ya está hecho y cableado**
-(`jam/funcion.py`, 18 tests, expansión inline verificada contra el grafo plano equivalente; ver
-[el informe](Vault-kb/01-Graph/2026-07-29-INFORME-Funciones-Graph-Firma-v1.0.md)). Falta lo de
-arriba, que es gesto y por lo tanto queda en la frontera:
+- **instanciar desde el ribbon**: `funcion.firma()` ya devuelve los pines en el orden en que se ven;
+- **`Ctrl+G`, colapsar la selección a función**: los cables que cruzan el borde se vuelven
+  `input`/`output`. Acá la Fase 0 se paga sola, porque la selección ya es un estado.
 
-- **instanciar desde el ribbon**: una función guardada aparece como un nodo, y `funcion.firma()` ya
-  devuelve los pines en el orden en que se ven. Sólo hay que dibujarlos;
-- **`Ctrl+G`, colapsar la selección a función**: los cables que cruzan el borde de la selección se
-  vuelven `input`/`output`. Acá es donde la Fase 0 se paga sola — la selección ya es un estado.
+*Terminado* = guardar una selección como función, instanciarla dos veces, y que el Compile del canvas
+dé verde con los nodos `f1__…` en el reporte.
 
-*Terminado* = guardar una selección como función, instanciarla dos veces, y que el Compile del
-canvas dé verde con los nodos `f1__…` en el reporte.
+**2. Fase 7 del Graph — bypass (`D`) y comentarios (`C`).** El bypass es cerebro y por lo tanto
+verificable; el comentario es Slate.
 
-**2. Fase 7 — bypass (`D`) y comentarios (`C`).** El bypass es cerebro (compilar salteando el nodo,
-pasando la entrada a la salida) y por lo tanto verificable; el comentario es Slate.
+**3. Los 31 mutantes de código vivos de `oracle`**, de a uno.
 
-**3. `oracle` — repo nuevo, `Segtem/oracle` en `~/Dev/oracle`.** Decisión de Brian de esta sesión:
-el oráculo se abstrae en un **modo de trabajar** —un metalenguaje de medidas— y su primer dominio es
-**el proceso de construir con un LLM**, no la geometría. Va el paso 0 de 5: están el corpus (11 casos
-donde la medición dijo bien y no estaba bien) y `ESPECIFICACION.md` (el álgebra: medida como dato,
-seis operadores, clausura). **Todavía no hay evaluador, a propósito** — el corpus es el criterio de
-aceptación de lo que venga.
+**4. Reemplazar de verdad los verificadores escritos a mano** de Jam (`vault.py`, `relevo.py`). Están
+re-expresados como medidas y verificados por diferencial, y **siguen en uso los originales**. El
+reemplazo va cuando el diferencial lleve tiempo en verde, no el mismo día en que se escribió.
 
-**Pasos 1 y 2 también están hechos** (`988bcfe`): el evaluador (`nucleo/`), 8 medidas como archivos
-de datos en `catalogos/`, y `tools/aceptacion.py` — donde **el corpus juzga al oráculo**: los 9 casos
-con medida se ponen en rojo, los 2 con hueco declarado quedan verdes a propósito. Corre también el
-nivel L2 (el catálogo servido como relación y medido por una medida, sin mecanismo nuevo).
+**5. Re-expresar los otros cinco oráculos vivos del plugin** como medidas: `scatter`, `pared`,
+`physics`, `reemplazo`, `espacio`. Ya están `placement` y `snap`. Cada uno con su sensor y su
+diferencial, siguiendo el patrón de `tools/emitir_diferencial.py`.
 
-**El paso 3 está hecho a medias, y a propósito** (`f6360d2`): el sensor muta las **medidas** —que son
-datos, así que el caché frío es verdadero por construcción— y sus hechos los juzga una medida del
-catálogo. 28 mutantes, 28 muertos. **Falta la otra mitad: mutar CÓDIGO Python**, que es la que atrapó
-3 de los 11 casos del corpus. Ahí sí hace falta el arnés con caché frío — `max` y `min` ocupan lo
-mismo y CPython invalida el `.pyc` por (mtime, tamaño), así que sin limpiar `__pycache__` entre
-mutantes el resultado es al azar (caso `006`).
-
-**El paso 4 está hecho** (`8a4d24b`): dos dominios —proceso y geometría— con **los mismos operadores
-y sin adaptador**. `unir` entró al llegar su disparador; van 4 operadores de 6.
-
-La verificación vive a caballo de los dos repos y conviene no romperla: **`jam/tools/emitir_diferencial.py`**
-genera 300 mundos con los oráculos escritos a mano de Jam (implementación independiente) y escribe
-`~/Dev/oracle/diferencial/geometria.json`. `oracle/tools/diferencial.py` los re-juzga: **1200
-veredictos, cero desacuerdos**. Si se toca `jam/oracle_placement` o `jam/oracle_snap`, hay que
-regenerar el fixture y el diferencial tiene que seguir en cero.
-
-**El paso 3 está completo** (`b57b8fa`): `tools/mutar_codigo.py` genera mutantes del AST —no los
-declara nadie a mano, para que el autor no elija lo que sus tests ya atrapan— y limpia el caché antes
-de cada corrida. Encontró que **53 tests en verde convivían con 88 mutantes vivos**, incluidos cuatro
-de los seis comparadores del álgebra. Hoy: 211/242.
-
-⚠️ **`mutar_codigo.py` sale en ROJO a propósito**: quedan 31 mutantes vivos y el número está a la
-vista. **No los declares equivalentes en masa para pintar verde** — sería exactamente el Goodhart que
-el repo persigue. Bajan escribiendo tests, o declarando equivalentes de a uno en `equivalentes.json`
-CON SU RAZÓN ESCRITA.
-
-**El paso 5 va a medias.** `tools/vault.py` ya está re-expresado como **seis medidas** en
-`catalogos/vault/`, verificadas por diferencial contra el verificador escrito a mano (42 veredictos,
-cero desacuerdos). Van **tres dominios** —proceso, geometría, vault— con los mismos operadores.
-
-⚠️ **`vault.py` SIGUE EN USO y no hay que reemplazarlo todavía.** El reemplazo va cuando el
-diferencial lleve tiempo en verde, no el mismo día que se escribió. Y **Jam no depende de `oracle`**:
-el patrón es Jam emite hechos (`tools/emitir_hechos_vault.py`, `tools/emitir_diferencial.py`) y oracle
-los juzga. Si se toca `vault.py`, hay que regenerar el fixture y el diferencial tiene que seguir en
-cero.
-
-**El paso 5 está hecho** (`b679981`): `relevo.py` también quedó re-expresado, con su emisor
-(`tools/emitir_hechos_relevo.py`, que monta un repo git de verdad por escenario) y su diferencial.
-Van **23 medidas en cuatro dominios** — proceso, geometría, vault y relevo — con los mismos
-operadores.
-
-**La mudanza empezó** (pedido de Brian): `oracle` está **vendorizado en `vendor/oracle/`** por
-`git subtree` (squash de `b679981`), y `tools/vault.py` corre en **MODO SOMBRA** — calcula el
-veredicto por los dos caminos y **sale con código 2 si difieren**. El informe que imprime es el del
-oráculo, porque enumera lo que NO mira.
-
-⚠️ **No borres el verificador escrito a mano de `vault.py`.** La sombra es el chequeo; sin él, el
-reemplazo sería un acto de fe. Se quita cuando el diferencial lleve tiempo en verde.
-
-⚠️ **`relevo.py` todavía NO está migrado, a propósito**: es lo que abre y cierra los turnos, y va de a
-uno. Sus cinco medidas ya existen y están verificadas; falta el modo sombra, que es el mismo patrón
-que quedó escrito en `vault.py`.
-
-**Cómo actualizar el vendor:**
-`git subtree pull --prefix=vendor/oracle git@github.com:Segtem/oracle.git main --squash`
-No edites `vendor/oracle/` a mano — se hace en `Segtem/oracle` y se trae.
-
-**Lo que queda, en orden de valor:**
-
-0. **Migrar `relevo.py` a modo sombra**, igual que `vault.py`.
-0b. **Sacar los oráculos de Jam y reemplazarlos por `oracle`** (pedido de Brian). ⚠️ Tiene una
-   trampa: `jam/oracle_*.py` los llama el EDITOR, así que el vendor tiene que estar en el path del
-   intérprete embebido de UE — hoy `vendor/oracle` es hermano de `Content/Python/`, no está en él.
-   Hay que decidir si se mueve bajo `Content/Python/` o se inserta el path (que es el olor de
-   `bridge.py`). Y sólo 4 de los 7 oráculos vivos están re-expresados (placement y snap): faltan
-   scatter, pared, physics, reemplazo y espacio.
-1. **Los mutantes de código vivos** de `oracle`, de a uno: o un test que falta, o un equivalente
-   declarado en `equivalentes.json` **con su razón escrita**. No declararlos en masa.
-   ⚠️ `tools/mutar_codigo.py` tarda **varios minutos**: corré con timeout largo. Si lo matás, ahora
-   restaura solo (`atexit` + SIGTERM/SIGINT/SIGHUP), pero igual conviene mirar `git status` después
-   — eso fue el caso `014` del corpus.
-2. **Los huecos del corpus**: el `012` (umbral duplicado) quedó **cerrado por construcción** con la
-   macro `peor`. Siguen `004` y `011`.
-3. **Los tres arneses ya están declarados** con `nucleo.dominio` (`vault`, `relevo`, `geometria`):
-   511 → 460 líneas, y lo que se fue es todo lo general. Los emisores viven en `tools/emitir_*.py` y
-   escriben a `medidas/diferencial/`. Si tocás `vault.py`, `relevo.py`, `oracle_placement` u
-   `oracle_snap`, hay que regenerarlos y el diferencial tiene que seguir en cero desacuerdos.
-
-   ⚠️ El diferencial bajó de 1259 a **269 veredictos** y eso NO es una pérdida: antes cada medida se
-   contrastaba contra una expectativa que el emisor escribía en Python —o sea, no era información
-   independiente—. Ahora se comprueba el acuerdo GLOBAL contra la referencia real, y lo que fija cada
-   medida por separado es la mutación (80/80) y la guarda de polaridad del `Dominio`.
-
-**Las cuatro preguntas abiertas de la especificación de `oracle` están cerradas**, y sólo una amplió
-el álgebra: la ausencia trajo `agrupar`. El orden resultó ser un campo del hecho; la recursión salió
-del álgebra hacia el sensor (`alcanzable` es un hecho, no una consulta); y la igualdad exacta sobre
-flotantes se resolvió **prohibiéndola**. Los operadores quedaron en cinco de seis: sólo `con` sigue
-esperando su disparador.
-4. **El volcado a `.md`/`.txt`** para NotebookLM, que Brian pidió para cuando esto estuviera listo.
-
-Dos reglas del repo que hay que respetar y son fáciles de romper sin querer:
-
-- **sólo 3 de los 6 operadores están implementados** (`de`, `donde`, `resumen`), a propósito: son los
-  únicos con usuario. Los otros levantan un error con su disparador. No implementarlos «de paso».
-- **el repo no tiene dependencias, ni de desarrollo.** Tests en `unittest` puro. El oráculo viejo de
-  Jam tenía 13 archivos escritos para pytest sin pytest instalado: 0 tests corriendo por 8 días.
-
-Lo que NO hay que hacer ahí: migrar `oraculo/` viejo (queda en Jam), transporte por red, parser de
-sintaxis propia, y macros.
-
-**Al terminar `oracle` (pedido de Brian, 2026-07-29):** volcar todo a `.md`/`.txt` plano para que
-Brian lo suba a NotebookLM y lo estudie. **No existe ninguna skill de NotebookLM** —lo verifiqué: 276
-plugins en el marketplace oficial, ninguno— así que no hay que buscarla: es sólo generar los archivos.
-
-Lo único que no es «copiar y pegar»: el **corpus y el catálogo son JSON**, y NotebookLM los lee mal
-crudos — hay que volcarlos a prosa y tablas. Y conviene incluir **los mensajes de commit**, porque
-buena parte del «por qué» y de las correcciones vive ahí y no en los documentos.
+⚠️ **La trampa del paso 5**: `jam/oracle_*.py` los llama el **editor**, así que el vendor tendría que
+estar en el path del intérprete embebido de UE — y hoy `vendor/oracle` es *hermano* de
+`Content/Python/`, no está adentro. Hay que decidir si se mueve bajo `Content/Python/` o se inserta el
+path, que es el olor de `bridge.py`. **Yo movería.**
 
 **Para un turno con Brian delante, no para éste:** el visor 2D de texturas (el motor está entero en
-`jam/preview2d.py` y **no lo consume nadie** en `Source/`; falta el `FSlateDynamicImageBrush`) y el
-gizmo flotante de alineación de `Reference/align.png`. Los dos son gesto puro: un agente los escribe
-a ciegas y nadie sabe si andan.
+`jam/preview2d.py` y no lo consume nadie en `Source/`) y el gizmo flotante de alineación de
+`Reference/align.png`. Los dos son gesto puro.
 
 ## No toques esto
 
+- **`vendor/oracle/` es un subtree: no lo edites a mano.** Se cambia en `Segtem/oracle` y se trae con
+  `git subtree pull --prefix=vendor/oracle git@github.com:Segtem/oracle.git main --squash`. Editar la
+  copia la separa del upstream en silencio.
+- **No borres el verificador escrito a mano de `tools/vault.py`.** La sombra es el chequeo; sin él el
+  reemplazo sería un acto de fe. Y si tocás `vault.py`, `relevo.py`, `oracle_placement` u
+  `oracle_snap`, **regenerá el fixture** con el emisor correspondiente y el diferencial tiene que
+  seguir en cero desacuerdos.
+- **En `oracle`, no agregues un operador al álgebra hasta que una SEGUNDA medida lo necesite.** Van
+  cinco de seis; `con` levanta un error que dice cuál sería su disparador. Tres de las cuatro preguntas
+  abiertas se cerraron sin ampliar el lenguaje, y eso es lo único que prueba que el juego chico
+  alcanzaba.
 - **Los ids de los nomad tabs** (`JamDashBar` / `JamGraph` / `JamContent`): son la clave persistente
   del layout. Renombrarlos le borra a Brian el acomodo de los paneles.
-- **`Marcar()` va DESPUÉS de mutar, no antes.** `BuildJson()` lee los widgets vivos, así que una
-  foto tomada «antes» ya contiene lo que acabás de tipear y un `Ctrl+Z` deshace dos cosas.
+- **`Marcar()` va DESPUÉS de mutar, no antes.** `BuildJson()` lee los widgets vivos, así que una foto
+  tomada «antes» ya contiene lo que acabás de tipear y un `Ctrl+Z` deshace dos cosas.
 - **Los ids de nodo no se renumeran al cargar.** Se rompió una vez: el oráculo y el inspector
   referencian nodos por id.
 - El resto de las trampas permanentes, en `AGENTS.md`.
 
 ## Lo que aprendí este turno
 
-Todo esto ya está en `AGENTS.md` o en el Vault; acá queda el resumen de por qué se agregó.
+Lo durable está en `AGENTS.md`, en el vault y en el corpus de `oracle`. Acá el resumen de por qué.
 
-- Una `SWindow` **no se puede acoplar**: el docking de Unreal sólo conoce tabs. No había que
-  arreglar la ventana, había que dejar de usar ventanas.
-- **Un tab acoplado no tiene ventana propia** — el timer de 20 Hz del punto de mira tuvo que mudarse
-  al widget de contenido. Habría sido un bug silencioso: los campos x/y/z dejaban de actualizarse
-  justo al acoplar.
-- Llamar al destructor de un `TGuardValue` de pila es doble destrucción. **Lo hice dos veces** en la
-  misma sesión; la segunda la atajó el compilador de casualidad. Bloque con *scope*, siempre.
-- **Un mutante sobrevivió** al probar las funciones: ordenar la firma por id en vez de por posición
-  pasaba en verde, porque en el test el id `a` caía justo en el pin de arriba y los dos órdenes
-  coincidían. El test no discriminaba. Si no se rompe el código a propósito, esto no se ve.
-- **El verificador del relevo tenía el mismo agujero que persigue**: miraba sólo lo commiteado desde
-  la foto de `verde_editor`, así que daba VERDE con el código vivo modificado en el árbol de
-  trabajo. Corregido: ahora mira también lo que está sin commitear.
-- Un verificador que reporta roto lo que está bien **es peor que no verificar**: enseña a ignorarlo.
-  Salió de dos falsos positivos del verificador del vault (la barra escapada `\|` de las tablas y
-  los `[[ejemplos]]` dentro de comillas invertidas). Se arregló el verificador, no los documentos.
-- **El arnés de mutación mentía por bytecode viejo.** `max` y `min` ocupan lo mismo, y CPython
-  invalida el `.pyc` por (mtime, tamaño): mutar y restaurar dentro del mismo segundo dejaba a Python
-  corriendo el bytecode mutado. Hay que limpiar `__pycache__` entre mutantes o los resultados son al
-  azar. Es el caso `006` del corpus.
-- **De 11 defectos medidos hoy, ninguno lo atrapó un verificador propio por diseño**: 4 los vio
-  Brian, 3 la mutación, 3 la casualidad, 1 un parser ajeno. Con 489 tests en verde y dos
-  verificadores corriendo. Ése es el número que motivó el repo `oracle`.
-- **La definición de «código vivo» del relevo estaba incompleta**: `oraculo/` no estaba en `VIVO`, y
-  el plugin lo importa (`jam.nivel`, `jam.oracle_espacio`). Una edición ahí pasaba sin invalidar la
-  verificación con motor. Corregido — mismo agujero que el caso `007`, en otra ropa.
+- **Un verificador que reporta roto lo que está bien es peor que ninguno**: enseña a ignorarlo. Es el
+  caso `008` del corpus, y en un solo día lo cometí **tres veces** escribiendo medidas nuevas.
+- **De 16 defectos reales, 14 fueron falsos verdes**, y ninguno lo atrapó un verificador propio en el
+  momento: 8 la mutación, 5 Brian, 4 la casualidad, 1 un parser ajeno. Con 489 tests en verde.
+- **El arnés de mutación mentía por bytecode viejo.** `max` y `min` ocupan lo mismo y CPython invalida
+  el `.pyc` por (mtime, tamaño): hay que limpiar `__pycache__` entre mutantes o el resultado es al azar.
+- **`SIGTERM` no ejecuta el `finally`.** Una corrida de `mutar_codigo.py` cortada por timeout dejó un
+  archivo del núcleo **mutado en el árbol de trabajo**; lo salvó `git checkout`, no la herramienta. Y
+  había un test que decía cubrir eso y sólo probaba el camino feliz.
+- **Una medida necesita evidencia de las dos polaridades.** Un corpus de puros defectos deja la medida
+  floja — es lo mismo que evaluar un clasificador sólo con positivos.
+- **Los verificadores no se juzgan con `if`s.** El veredicto sobre el propio marco tenía que ser un
+  dato, como todos los demás.
+- **Dos veces afirmé una proporción de memoria y las dos estaban mal.** Ahora los números del README de
+  `oracle` los mide `tools/estudio.py`.
