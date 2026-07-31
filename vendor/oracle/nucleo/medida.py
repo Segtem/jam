@@ -114,7 +114,8 @@ class Medida:
     fuente: tuple = ()          # cómo estaba escrita: macro o canónica
 
     @classmethod
-    def de_datos(cls, d: list) -> "Medida":
+    def de_datos(cls, d: list, *, registro=None,
+                 limites: LimitesAlgebra | None = None) -> "Medida":
         # Las macros se expanden ANTES de construir, como en LISP: de acá para adentro nadie sabe
         # que existieron, así que el evaluador, la mutación, el inventario y el L2 no cambian.
         fuente = d
@@ -126,8 +127,8 @@ class Medida:
         if not isinstance(mid, str) or not mid.strip() or " " in mid:
             raise MedidaMalDeclarada(f"id inválido: «{mid}»")
         try:
-            validar_tuberia(tuberia)
-            validar_resumen(resumen)
+            validar_tuberia(tuberia, limites, registro=registro)
+            validar_resumen(resumen, limites, registro=registro)
         except ErrorDeAlgebra as e:
             raise MedidaMalDeclarada(f"{mid}: {e}") from e
         if not (isinstance(umbral, list) and len(umbral) == 4 and umbral[0] == "umbral"):
@@ -158,9 +159,10 @@ class Medida:
                    porque=porque, alcance=alcance[1],
                    fuente=tuple(fuente) if es_macro(fuente) else ())
 
-    def evaluar(self, evidencia: dict, limites: LimitesAlgebra | None = None) -> Veredicto:
-        testigos = desde(self.tuberia, evidencia, limites)
-        valor = resumir(self.resumen, testigos, limites)
+    def evaluar(self, evidencia: dict, limites: LimitesAlgebra | None = None, *,
+                registro=None) -> Veredicto:
+        testigos = desde(self.tuberia, evidencia, limites, registro=registro)
+        valor = resumir(self.resumen, testigos, limites, registro=registro)
         return Veredicto(id=self.id, valor=valor, ok=comparar(self.op, valor, self.limite),
                          umbral=f"{self.op} {self.limite}", porque=self.porque,
                          alcance=self.alcance, testigos=tuple(testigos))
@@ -176,18 +178,24 @@ class Medida:
         return list(self.fuente) if self.fuente else self.a_datos()
 
 
-def cargar(ruta: Path) -> Medida:
-    return Medida.de_datos(json.loads(Path(ruta).read_text(encoding="utf-8")))
+def cargar(ruta: Path, *, registro=None,
+           limites: LimitesAlgebra | None = None) -> Medida:
+    return Medida.de_datos(
+        json.loads(Path(ruta).read_text(encoding="utf-8")),
+        registro=registro,
+        limites=limites,
+    )
 
 
-def cargar_catalogo(*directorios) -> dict[str, Medida]:
+def cargar_catalogo(*directorios, registro=None,
+                    limites: LimitesAlgebra | None = None) -> dict[str, Medida]:
     """Una o varias carpetas de medidas. Un id repetido entre carpetas es un error, no una
     sobrescritura silenciosa: si el proyecto quiere cambiar una medida base, la renombra."""
     salida: dict[str, Medida] = {}
     if len(directorios) == 1 and isinstance(directorios[0], (list, tuple)):
         directorios = directorios[0]
     for p in sorted(x for d in directorios for x in Path(d).rglob("*.json")):
-        m = cargar(p)
+        m = cargar(p, registro=registro, limites=limites)
         if m.id in salida:
             raise MedidaMalDeclarada(f"el id «{m.id}» está dos veces (último: {p.name})")
         salida[m.id] = m
@@ -220,11 +228,38 @@ class Informe:
                           ensure_ascii=False)
 
 
-def evaluar(medidas, evidencia: dict, limites: LimitesAlgebra | None = None) -> Informe:
-    return Informe(tuple(m.evaluar(evidencia, limites) for m in medidas))
+def evaluar(medidas, evidencia: dict, limites: LimitesAlgebra | None = None, *,
+            registro=None) -> Informe:
+    return Informe(tuple(
+        m.evaluar(evidencia, limites, registro=registro) for m in medidas))
 
 
 # ---- derivados de la declaración: el «OpenAPI» del oráculo ----
+
+def relaciones_de_fuente(fuente) -> tuple[str, ...]:
+    """Relaciones de una fuente canónica, sin inferirlas del id ni del dominio de la medida."""
+    match fuente:
+        case ["de", relacion, _alias]:
+            return (relacion,)
+        case ["unir", izquierda, derecha]:
+            return tuple(dict.fromkeys((
+                *relaciones_de_fuente(izquierda),
+                *relaciones_de_fuente(derecha),
+            )))
+        case _:
+            return ()
+
+
+def relaciones_de_medida(medida) -> tuple[str, ...]:
+    tuberia = medida.tuberia
+    return relaciones_de_fuente(tuberia[1]) if isinstance(tuberia, list) and len(tuberia) > 1 else ()
+
+
+def medidas_aplicables(medidas, evidencia: dict) -> list:
+    """Selecciona juezas por su entrada declarada, no por ids conocidos por la herramienta."""
+    relaciones = set(evidencia)
+    return [medida for medida in medidas
+            if set(relaciones_de_medida(medida)) <= relaciones]
 
 def inventario(medidas) -> list[dict]:
     """Todos los umbrales con su defensa. Antes vivían escondidos en firmas de funciones."""
@@ -242,10 +277,8 @@ def como_hechos(medidas, clasificacion: ClasificacionMeta | None = None) -> list
     como una relación más.
     """
     def relacion_de(m):
-        fuente = m.tuberia[1] if len(m.tuberia) > 1 else []
-        if not fuente:
-            return ""
-        return fuente[1] if fuente[0] == "de" else fuente[1][1]
+        relaciones = relaciones_de_medida(m)
+        return relaciones[0] if relaciones else ""
 
     clasificacion = clasificacion or CLASIFICACION_META_BASE
     if not isinstance(clasificacion, ClasificacionMeta):
