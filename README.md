@@ -66,13 +66,10 @@ que escribe la herramienta y su test con la misma mano y no recuerda ayer.
 
 ### El costo, dicho
 
-**2202 líneas de lenguaje.** Contra las medidas escritas en él: **trece a uno** si se cuenta sólo el
-catálogo base, **seis a uno** contando las medidas de Jam. Ésa es la apuesta y ésa es la
-métrica: que el segundo número crezca y el primero no.
-
-*(El núcleo y el catálogo base los mide `python tools/estudio.py`; la razón con Jam usa el mismo
-conteo directo de líneas. Dos veces los afirmé de memoria y las dos estaban mal — la proporción base
-la dije «treinta a uno» cuando el catálogo tenía la mitad de las medidas que tiene hoy.)*
+**2202 líneas de lenguaje.** Contra las medidas universales escritas en él: **trece a uno**. Ésa es
+la apuesta y ésa es la métrica: que los catálogos de los proyectos crezcan sin hacer crecer el
+metalenguaje. Los catálogos externos no se incorporan al núcleo para mejorar artificialmente la
+proporción.
 
 Es la única medición del proyecto **que no se puede sastrear escribiendo más medidas** — escribir más
 medidas es justamente lo que la mejora. Si en seis meses la proporción no se movió, el lenguaje no
@@ -207,8 +204,9 @@ comprobar cachés de CPython, el proyecto lo declara:
 {"esquema": "oracle.proyecto/v1", "perfiles": ["python"]}
 ```
 
-Sin `oracle.json`, sólo se carga el catálogo universal. Un perfil desconocido o repetido falla
-cerrado. El propio Oracle declara `python` porque usa ese perfil para probarse.
+Sin `oracle.json`, se carga el catálogo universal. Un perfil desconocido o repetido falla cerrado.
+Un proyecto v1 puede declarar `"catalogo_base": false` para trabajar sólo con su catálogo y sus
+perfiles explícitos. El propio Oracle declara `python` porque usa ese perfil para probarse.
 
 Los dominios que estuvieron acá durante el desarrollo —geometría, vault, relevo, una cola, un
 laberinto— se fueron a los proyectos que los usan. Eran instancias, y acumularlas era la tentación de
@@ -216,66 +214,105 @@ no abstraer.
 
 ## Estado
 
-> **Estado auditado el 2026-07-30; P2.3 en curso.** Los bypasses de simulación, baseline, caché,
+> **Estado auditado el 2026-07-31; P3 de embedding cerrado del lado de Oracle.** Los bypasses de simulación, baseline, caché,
 > equivalentes y verdes vacuos tienen regresiones fail-closed; timeout y error del arnés son estados
 > distintos de una muerte. P2.1 ya aísla la mutación de código en una copia, con bloqueo,
 > subprocesos acotados y reanudación verificable. Ver
 > [`AUDITORIA-2026-07-30.md`](AUDITORIA-2026-07-30.md) y
 > [`PLAN-CORRECCION.md`](PLAN-CORRECCION.md).
 
-**El prototipo contiene los cinco componentes.** El [corpus](corpus/) (42 casos), la [especificación](ESPECIFICACION.md) del álgebra,
+**El paquete contiene los cinco componentes.** El [corpus](corpus/) (42 casos), la [especificación](ESPECIFICACION.md) del álgebra,
 el evaluador (`nucleo/`), **las medidas universales** dentro de [`catalogos/`](catalogos/) —como
 archivos de datos, no como código—, el sensor de mutación y la prueba diferencial.
 
 **¿Querés escribir una medida?** → [`ESCRIBIR-UNA-MEDIDA.md`](ESCRIBIR-UNA-MEDIDA.md).
 `python tools/medida.py --relaciones` te dice qué hechos hay para medir; `--nueva` crea el archivo.
 
+Requiere Python 3.11 o posterior. Se puede usar desde el checkout o instalar sin dependencias:
+
+```bash
+python -m pip install .
+oracle-medida --proyecto /ruta/al/proyecto --relaciones
+```
+
+El wheel instala sólo paquetes bajo `oracle_metalenguaje.*`; no ocupa los nombres genéricos
+`nucleo`, `catalogos`, `perfiles` ni `tools`. Tampoco distribuye el corpus ni los fixtures de
+autocertificación del checkout. Por eso un comando instalado fuera de un proyecto siempre requiere
+`--proyecto` (o `ORACLE_PROYECTO`) y falla con un diagnóstico breve si no lo recibe.
+
+Como biblioteca, la frontera pública es `oracle_metalenguaje`; el consumidor no necesita importar
+`nucleo`, `catalogos`, `perfiles` ni `tools`:
+
+```python
+from oracle_metalenguaje import Motor
+
+motor = Motor.desde_proyecto("/ruta/al/proyecto", confiar_escalares=True)
+informe = motor.evaluar({"item": [{"id": "a", "valor": 4}]})
+print(informe.ok, informe.texto())
+```
+
+`confiar_escalares=True` ejecuta el `escalares.py` del proyecto y por eso nunca es implícito. Cada
+motor conserva sus propios límites y UDF: dos proyectos pueden declarar el mismo nombre sin
+sobrescribirse. `Motor.desde_datos(...)` y `Motor.desde_medidas(...)` cubren catálogos mantenidos en
+memoria. Si ninguna medida puede consumir las relaciones entregadas, la API levanta
+`SinMedidasAplicables` en vez de fabricar un informe verde vacío.
+
+Un host puede aportar perfiles reutilizables sin escribir dentro de la instalación. Cada raíz tiene
+la forma `<raíz>/<perfil>/catalogos`; `oracle.json` sólo selecciona el nombre y no puede inventarse
+una ruta con autoridad propia:
+
+```python
+motor = Motor.desde_proyecto(
+    "/ruta/al/proyecto",
+    raices_perfiles=("/ruta/a/perfiles-del-host",),
+)
+```
+
+Una raíz ausente o symlink y un nombre presente en dos fuentes se rechazan en vez de elegir por
+orden accidental.
+
 ```bash
 python tools/medida.py --relaciones              # qué se puede medir, derivado de la evidencia real
 python tools/corpus.py --resumen                 # el corpus está en regla
 python tools/aceptacion.py                       # el corpus juzga al oráculo
-python tools/diferencial.py                      # el álgebra vs una implementación independiente
+python tools/diferencial.py --proyecto <proyecto-con-fixtures>  # referencia independiente
 python tools/mutar.py                            # ¿el corpus ALCANZA para fijar las medidas?
-python -m unittest discover -s tests -t . -q     # 292 tests, cero dependencias
+python -m unittest discover -s tests -t . -q     # suite sin dependencias
+python tools/verificar_instalacion.py             # wheel + Motor desde un cwd vacío
 ```
 
+Oracle no conserva fixtures diferenciales propios en este repositorio. Ejecutar el diferencial sin
+fixtures devuelve estado no-verde; el flujo temporal de un proyecto externo prueba el camino
+positivo. Esto evita convertir «no había nada que comparar» en una certificación accidental.
+
 27 defectos en rojo · 12 verdes correctos · 0 huecos abiertos · 2 casos resueltos conservados ·
-1 límite humano · **269 acuerdos globales de Jam
-con referencias independientes y 1158 veredictos individuales estables** · 129/129 mutantes de
-medida · 292 tests.
+1 límite humano.
 
-> **`tools/mutar_codigo.py` sigue saliendo en ROJO.** La mutación de medidas volvió a verde sin
-> reducir el denominador: ocho casos mínimos fijaron los bordes de umbral y dos fijaron mutaciones
-> internas. El baseline histórico de código dejó 503/616 mutantes muertos y 113 vivos,
-> sin timeout ni error de arnés. Las rondas actuales crean su propia copia automáticamente y pueden
-> persistir progreso con `--manifiesto`/`--reanudar`. P2.3 invalidó correctamente ese denominador:
-> el alcance actual incluye los perfiles y suma 1090 sitios. Doce particiones fijaron
-> 859/859; quedan los 231 sitios de `perfiles/python/mutacion_codigo.py` por ejecutar y triage,
-> no “113” trasladados por inercia.
-> Se podrían declarar equivalentes en masa para
-> pintar verde — y eso sería exactamente el Goodhart que este repositorio persigue. El número baja
-> escribiendo tests o declarando equivalentes **de a uno y con su razón escrita**.
+<!-- cifras:inicio -->
+335 tests · 129/129 mutantes de medida · **1129 sitios de mutación de código** (924 + 205 del motor Python).
+<!-- cifras:fin -->
 
-### Dos dominios, un álgebra
+> **`tools/mutar_codigo.py` sale en VERDE.** El baseline histórico 503/616 quedó invalidado cuando
+> cambió la arquitectura. El denominador vigente incluye núcleo y perfiles: 868/868 sitios de las
+> doce particiones previas y 205/205 del motor Python: **1073/1073**, sin timeout, error de arnés ni equivalentes
+> declarados. Cada ronda muta una copia, puede persistir progreso con
+> `--manifiesto`/`--reanudar` y firma también sus tests y archivos de soporte.
+
+### Tres dominios, un álgebra
 
 Es el criterio que decide si esto es general o si es una cosa disfrazada de otra:
 
 | Dominio | Qué mide | Cómo se verifica |
 |---|---|---|
 | **proceso** | un agente construyendo herramientas: mutantes, afirmaciones, verificaciones vencidas | el corpus de fallas reales |
-| **geometría** | piezas en un nivel: interpenetración, bounds, snap a grilla y yaw | 250 escenarios globales contra los oráculos escritos a mano de Jam |
-| **vault** | la documentación de un proyecto: convención de nombres, coherencia del frontmatter, enlaces | 11 escenarios globales contra `tools/vault.py` de Jam |
-| **relevo** | la entrega de un turno entre dos agentes: testigo completo, agentes conocidos, verificación reproducible | 8 escenarios globales contra `tools/relevo.py` |
-| **cola** | un sistema con recursos limitados: rechazos, esperas — el caso canónico de GPSS | corridas reales de `simuladores/cola.py` |
-| **laberinto** | recorrer una topología con información parcial y presupuesto finito | corridas reales, y la invariante de que nadie alcanza lo que no tiene camino |
+| **simulación** | corridas, trazas, presupuesto y reproducibilidad | contratos del runner y corpus de trazas |
+| **demo externo** | items buenos/malos con una UDF propia | flujo temporal completo fuera del árbol de Oracle |
 
 No se parecen en nada, y usan **los mismos operadores sin un solo adaptador**.
 
-La prueba más limpia de que el álgebra cierra: `proceso.verificacion_vigente` se escribió para un caso
-del corpus, y **juzgó los hechos del sensor de relevo sin una sola modificación**. La misma medida, dos
-sensores distintos, dominios distintos. La prueba diferencial
-la genera Jam (`tools/emitir_diferencial.py`) con código que no comparte una línea con este álgebra;
-lo único que viaja entre los repos es un archivo de hechos.
+La prueba más limpia de que el álgebra cierra es el proyecto externo temporal de integración: define
+su catálogo, corpus, fixtures y una UDF sin modificar Oracle, y completa autoría, aceptación,
+diferencial, mutación de medidas y estudio. Lo único que cruza la frontera son hechos y declaraciones.
 
 Esos archivos usan `oracle.diferencial/v1`. Guardan SHA-256 del emisor, las fuentes de referencia, el
 catálogo canónico y la configuración; si alguno cambia, el fixture queda vencido antes de evaluarse.
@@ -370,20 +407,14 @@ Hacen falta los dos, y conviene no confundir el verde de uno con el del otro.
 
 ### Qué falta
 
-- **Reemplazar de verdad los verificadores de Jam.** `vault.py` y `relevo.py` están re-expresados y
-  verificados por diferencial, y **siguen en uso los originales**. El reemplazo va cuando el
-  diferencial lleve tiempo en verde, no el mismo día en que se escribió — y menos `relevo.py`, que es
-  la herramienta que abre y cierra los turnos.
-- **El baseline actual de código**: doce particiones ya están en 859/859; quedan los 231 sitios de
-  `perfiles/python/mutacion_codigo.py` por ejecutar y triar. El denominador total es 1090; el antiguo
-  503/616 quedó vencido al mover código a perfiles.
-- **Los 11 mutantes de medida vivos al aplicar el denominador P1.1 sobre Jam**: sus fixtures necesitan
-  escenarios de borde y combinaciones discriminantes; no se corrigen debilitando el mutador.
+- **Elegir una licencia.** El paquete, entry points y CI ya existen, pero la decisión legal no se
+  infiere del código ni la toma el agente por el autor.
+- **Un consumidor real independiente.** El proyecto externo sintético demuestra desacoplamiento
+  técnico; la adopción por un proyecto no diseñado junto con Oracle sigue siendo evidencia externa,
+  no algo que este repositorio pueda fabricar.
 - **La frontera humana del caso `011`**: la medición puede exigir trazabilidad, pero una atribución
   causal no tiene un verificador mecánico genérico. `004` y `012` ya figuran como resueltos y no
   inflan la deuda abierta.
-- **Declarar los dos arneses que faltan** en el proyecto de Jam (`relevo`, `geometria`) con
-  `nucleo.dominio`, como ya se hizo con `vault`.
 
 ## Por qué el corpus va primero
 

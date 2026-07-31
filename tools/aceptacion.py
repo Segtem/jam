@@ -27,33 +27,25 @@ sys.path.insert(0, str(RAIZ))
 
 import catalogos.escalares  # noqa: F401,E402  registra las escalares declaradas
 from nucleo.marco import hechos_de_casos  # noqa: E402
-from nucleo.medida import cargar_catalogo, como_hechos, evaluar  # noqa: E402
+from nucleo.medida import (cargar_catalogo, como_hechos, evaluar,
+                           medidas_aplicables)  # noqa: E402
 from nucleo.proyecto import (EscalaresInvalidas, EscalaresNoConfiables, catalogos_a_cargar,
-                             confiar_escalares, escalares_del_proyecto, problemas_estructura,
-                             resolver)  # noqa: E402
+                             confiar_escalares, escalares_del_proyecto,
+                             problemas_estructura)  # noqa: E402
+from tools.sesion import resolver_cli  # noqa: E402
 
-PROY = resolver(sys.argv[1:])
-
-
-def casos() -> list[dict]:
+def casos(proy) -> list[dict]:
     return [json.loads(p.read_text(encoding="utf-8"))
-            for p in sorted((PROY.corpus).rglob("*.json"))]
+            for p in sorted(proy.corpus.rglob("*.json"))]
 
 
-def _relaciones(m) -> list[str]:
-    fuente = m.tuberia[1] if len(m.tuberia) > 1 else []
-    if not fuente:
-        return []
-    return [fuente[1]] if fuente[0] == "de" else [fuente[1][1], fuente[2][1]]
-
-
-def _ejecutar() -> int:
-    estructura = problemas_estructura(PROY, ("catalogos", "corpus"))
+def _ejecutar(proy) -> int:
+    estructura = problemas_estructura(proy, ("catalogos", "corpus"))
     if estructura:
         print("PROYECTO INVÁLIDO — " + "; ".join(estructura))
         return 1
-    catalogo = cargar_catalogo(catalogos_a_cargar(PROY))
-    todos = casos()
+    catalogo = cargar_catalogo(catalogos_a_cargar(proy))
+    todos = casos(proy)
     fallas: list[str] = []
     rojos = 0
     verdes = 0
@@ -105,8 +97,7 @@ def _ejecutar() -> int:
     evidencia_meta = {"medida": como_hechos(catalogo.values()),
                       **hechos_de_casos(catalogo, todos)}
     metas = [m for mid, m in sorted(catalogo.items()) if mid.startswith("meta.")]
-    informe_meta = evaluar([m for m in metas
-                            if all(k in evidencia_meta for k in _relaciones(m))], evidencia_meta)
+    informe_meta = evaluar(medidas_aplicables(metas, evidencia_meta), evidencia_meta)
     for v in informe_meta.veredictos:
         print(" ", v.linea())
         if not v.ok:
@@ -122,14 +113,17 @@ def _ejecutar() -> int:
     return 0
 
 
-def main() -> int:
-    argv = sys.argv[1:]
+def main(argv: list[str] | None = None) -> int:
+    argv = list(sys.argv[1:] if argv is None else argv)
     if "-h" in argv or "--help" in argv:
         print(__doc__)
         return 0
+    proy = resolver_cli(argv)
+    if proy is None:
+        return 1
     try:
-        with escalares_del_proyecto(PROY, confiar=confiar_escalares(argv)):
-            return _ejecutar()
+        with escalares_del_proyecto(proy, confiar=confiar_escalares(argv)):
+            return _ejecutar(proy)
     except (EscalaresNoConfiables, EscalaresInvalidas) as e:
         print(f"ESCALARES EXTERNAS NO EJECUTADAS — {e}")
         return 1
