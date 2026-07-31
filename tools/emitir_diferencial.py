@@ -27,11 +27,12 @@ sys.path.insert(0, str(RAIZ / "vendor" / "oracle"))
 
 from jam import oracle_placement, oracle_snap        # noqa: E402
 from jam.geometry import AABB, Pieza, Vec3           # noqa: E402
+import catalogos.escalares                           # noqa: F401,E402
 from nucleo.diferencial import Procedencia           # noqa: E402
 from nucleo.dominio import Dominio, generar          # noqa: E402
 from nucleo.medida import cargar_catalogo            # noqa: E402
 from nucleo.proyecto import (Proyecto, catalogos_a_cargar,  # noqa: E402
-                             registrar_escalares)
+                             escalares_del_proyecto)
 
 PROYECTO = Proyecto(RAIZ / "medidas")
 DESTINO = PROYECTO.diferencial / "geometria.json"
@@ -40,7 +41,8 @@ MEDIDAS = ("colocacion.bounds", "colocacion.interpenetracion", "snap.grilla", "s
 DEFECTOS = ("volumen_degenerado", "interpenetracion", "fuera_de_grilla", "yaw_fuera_de_paso")
 PROCEDENCIA = Procedencia(
     raiz=RAIZ,
-    emisor=("tools/emitir_diferencial.py", "Content/Python/jam/geometry.py"),
+    emisor=("tools/emitir_diferencial.py", "Content/Python/jam/geometry.py",
+            "medidas/escalares.py"),
     referencia=("Content/Python/jam/oracle_placement.py",
                 "Content/Python/jam/oracle_snap.py"),
     desde_proyecto="..",
@@ -113,10 +115,12 @@ GEOMETRIA = Dominio(
 
 
 def main() -> int:
-    registrar_escalares(PROYECTO)
-    catalogo = cargar_catalogo(catalogos_a_cargar(PROYECTO))
-    medidas = [catalogo[m] for m in MEDIDAS if m in catalogo]
-    fixture = generar(GEOMETRIA, medidas, procedencia=PROCEDENCIA)
+    # Este emisor es parte del propio proyecto Jam: su `escalares.py` es código versionado y
+    # deliberadamente confiado. El contexto restaura el registro incluso si generar falla.
+    with escalares_del_proyecto(PROYECTO, confiar=True):
+        catalogo = cargar_catalogo(catalogos_a_cargar(PROYECTO))
+        medidas = [catalogo[m] for m in MEDIDAS if m in catalogo]
+        fixture = generar(GEOMETRIA, medidas, procedencia=PROCEDENCIA)
 
     DESTINO.parent.mkdir(parents=True, exist_ok=True)
     DESTINO.write_text(

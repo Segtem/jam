@@ -18839,7 +18839,8 @@
   "fuentes": {
    "emisor": [
     "tools/emitir_diferencial.py",
-    "Content/Python/jam/geometry.py"
+    "Content/Python/jam/geometry.py",
+    "medidas/escalares.py"
    ],
    "referencia": [
     "Content/Python/jam/oracle_placement.py",
@@ -18849,7 +18850,7 @@
   "huellas": {
    "catalogo": "0ed6d6bc1f3b27e7bf6418f354a5f10e703ce602610cd506f138a4b031c1d174",
    "configuracion": "51bbf3fd976c3f924891c32290bf552b78f9432ace7e45c637cad5db15dcc295",
-   "emisor": "b45e248b1505749d0697300ecace5a6b0b3f9cf35dae021ffcc871e9b22781cb",
+   "emisor": "64d4a49b0e37ae429fd6c214115f5c5c8b6e38f27a1c33e6f0d183328c8a9ac9",
    "referencia": "9d410f41f81ad8ab0b5604af35c9eff2e92ae33233879e80201d5b52fb633d96"
   },
   "raiz_fuentes": ".."

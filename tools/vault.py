@@ -16,7 +16,7 @@ discrimina. Ver la guía de convención en el propio vault.
 ## Modo sombra (migración a `oracle`)
 
 Las mismas reglas están re-expresadas como **diez medidas declaradas** en
-`vendor/oracle/catalogos/vault/`, con su umbral, su defensa y —lo que este archivo nunca pudo decir—
+`medidas/catalogos/vault/`, con su umbral, su defensa y —lo que este archivo nunca pudo decir—
 **su punto ciego**. Mientras dure la migración se calculan LOS DOS veredictos y se comparan: si
 difieren, esto sale con código 2 y no deja pasar nada. Un reemplazo que se declara sin comparar es un
 acto de fe.
@@ -179,13 +179,11 @@ def veredicto_del_oraculo():
         raiz = VAULT.parent
         sys.path.insert(0, str(raiz / "vendor" / "oracle"))
         sys.path.insert(0, str(raiz / "tools"))
-        import catalogos  # noqa: F401  registra las escalares declaradas
         from emitir_hechos_vault import hechos
-        from nucleo.medida import cargar_catalogo, evaluar
+        from oracle_metalenguaje import Motor
 
-        medidas = [m for k, m in cargar_catalogo(raiz / "medidas" / "catalogos" / "vault").items()
-                   if k.startswith("vault.")]
-        return evaluar(medidas, hechos(VAULT)), None
+        motor = Motor.desde_proyecto(raiz / "medidas", confiar_escalares=True)
+        return motor.evaluar(hechos(VAULT)), None
     except Exception as e:  # noqa: BLE001
         return None, f"{type(e).__name__}: {e}"
 

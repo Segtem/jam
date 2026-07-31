@@ -14,11 +14,7 @@ implementación independiente; si divergen, esto está mal.
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "vendor" / "oracle"))
-
-from nucleo.algebra import escalar
+from oracle_metalenguaje import escalar
 
 TOL_CM = 1.0            # menos que esto = tocándose, no interpenetrando
 MAX_VECINO_CM = 50000.0  # semi-extensión > 500 m = escenografía de fondo (envuelve el mapa)
@@ -30,10 +26,10 @@ def _ejes(p: dict):
 
 @escalar("penetracion", "cm")
 def penetracion(a: dict, b: dict, tol: float = TOL_CM) -> float:
-    """Profundidad de interpenetración en cm; 0 si están separados (regla del eje separador).
+    """Profundidad efectiva en cm después de descontar la tolerancia de contacto.
 
-    Devuelve 0 —no negativo— cuando hay un eje que los separa: «tocarse» no es «clavarse», y por eso
-    el umbral de la medida puede ser `<= 0` sin tolerancias extra.
+    Devuelve 0 cuando algún eje no supera la tolerancia: «tocarse» no es «clavarse». Por encima,
+    informa sólo el exceso, y por eso el umbral de la medida puede ser `<= 0` sin repetir `tol`.
     """
     solapes = []
     for (ca, ea), (cb, eb) in zip(_ejes(a), _ejes(b)):
@@ -41,7 +37,7 @@ def penetracion(a: dict, b: dict, tol: float = TOL_CM) -> float:
         if solape <= tol:
             return 0.0
         solapes.append(solape)
-    return min(solapes)
+    return min(solapes) - tol
 
 
 @escalar("es_fondo")

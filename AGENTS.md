@@ -30,9 +30,9 @@ herramientas con un LLM. Jam es su primer **proyecto** — sus medidas, sensores
 `medidas/`.
 
 ```bash
-python vendor/oracle/tools/diferencial.py --proyecto medidas   # medidas vs verificadores a mano
-python vendor/oracle/tools/mutar.py       --proyecto medidas   # ¿los casos fijan las medidas?
-python vendor/oracle/tools/estudio.py     --proyecto medidas   # volcar todo a Markdown plano
+python vendor/oracle/tools/diferencial.py --proyecto medidas --confiar-escalares
+python vendor/oracle/tools/mutar.py       --proyecto medidas --confiar-escalares
+python vendor/oracle/tools/estudio.py     --proyecto medidas --confiar-escalares
 ```
 
 ⚠️ **`oracle` es un SEGUNDO REPOSITORIO y se commitea aparte.** Vive en `~/Dev/oracle`

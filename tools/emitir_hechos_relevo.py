@@ -29,11 +29,12 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ / "vendor" / "oracle"))
 
+import catalogos.escalares                           # noqa: F401,E402
 from nucleo.diferencial import Procedencia           # noqa: E402
 from nucleo.dominio import Dominio, generar          # noqa: E402
 from nucleo.medida import cargar_catalogo            # noqa: E402
 from nucleo.proyecto import (Proyecto, catalogos_a_cargar,  # noqa: E402
-                             registrar_escalares)
+                             escalares_del_proyecto)
 
 PROYECTO = Proyecto(RAIZ / "medidas")
 DESTINO = PROYECTO.diferencial / "relevo.json"
@@ -65,7 +66,7 @@ DEFECTOS = ("falta_campo", "falta_seccion", "mismo_agente", "agente_desconocido"
 _TEMPORALES: list[str] = []
 PROCEDENCIA = Procedencia(
     raiz=RAIZ,
-    emisor=("tools/emitir_hechos_relevo.py",),
+    emisor=("tools/emitir_hechos_relevo.py", "medidas/escalares.py"),
     referencia=("tools/relevo.py",),
     desde_proyecto="..",
 )
@@ -181,11 +182,11 @@ RELEVO = Dominio(
 
 
 def main() -> int:
-    registrar_escalares(PROYECTO)
-    catalogo = cargar_catalogo(catalogos_a_cargar(PROYECTO))
-    medidas = [catalogo[m] for m in MEDIDAS if m in catalogo]
     try:
-        fixture = generar(RELEVO, medidas, procedencia=PROCEDENCIA)
+        with escalares_del_proyecto(PROYECTO, confiar=True):
+            catalogo = cargar_catalogo(catalogos_a_cargar(PROYECTO))
+            medidas = [catalogo[m] for m in MEDIDAS if m in catalogo]
+            fixture = generar(RELEVO, medidas, procedencia=PROCEDENCIA)
     finally:
         for d in _TEMPORALES:
             shutil.rmtree(d, ignore_errors=True)

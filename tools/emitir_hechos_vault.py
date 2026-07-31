@@ -26,11 +26,12 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ / "vendor" / "oracle"))
 
+import catalogos.escalares                           # noqa: F401,E402
 from nucleo.diferencial import Procedencia           # noqa: E402
 from nucleo.dominio import Dominio, generar          # noqa: E402
 from nucleo.medida import cargar_catalogo            # noqa: E402
 from nucleo.proyecto import (Proyecto, catalogos_a_cargar,  # noqa: E402
-                             registrar_escalares)
+                             escalares_del_proyecto)
 
 PROYECTO = Proyecto(RAIZ / "medidas")
 DESTINO = PROYECTO.diferencial / "vault.json"
@@ -41,7 +42,7 @@ CARPETAS = ("00-Proceso", "01-Graph", "02-TreeGen", "03-Mesh-y-materiales", "04-
 _TEMPORALES: list[str] = []
 PROCEDENCIA = Procedencia(
     raiz=RAIZ,
-    emisor=("tools/emitir_hechos_vault.py",),
+    emisor=("tools/emitir_hechos_vault.py", "medidas/escalares.py"),
     referencia=("tools/vault.py", "Vault-kb"),
     desde_proyecto="..",
 )
@@ -145,11 +146,11 @@ VAULT = Dominio(
 
 
 def main() -> int:
-    registrar_escalares(PROYECTO)
-    catalogo = cargar_catalogo(catalogos_a_cargar(PROYECTO))
-    medidas = [m for k, m in catalogo.items() if k.startswith("vault.")]
     try:
-        fixture = generar(VAULT, medidas, procedencia=PROCEDENCIA)
+        with escalares_del_proyecto(PROYECTO, confiar=True):
+            catalogo = cargar_catalogo(catalogos_a_cargar(PROYECTO))
+            medidas = [m for k, m in catalogo.items() if k.startswith("vault.")]
+            fixture = generar(VAULT, medidas, procedencia=PROCEDENCIA)
     finally:
         for d in _TEMPORALES:
             shutil.rmtree(d, ignore_errors=True)

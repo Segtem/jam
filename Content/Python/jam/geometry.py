@@ -20,7 +20,7 @@ MAX_VECINO_CM = 50000.0     # semi-extensión > 500 m en un eje = escenografía 
 
 
 def penetracion(a: AABB, b: AABB, tol: float = TOL_CM) -> float:
-    """Profundidad de interpenetración en cm entre dos AABB; 0.0 si están separados (eje separador)."""
+    """Profundidad efectiva tras descontar la tolerancia; 0 si no supera el contacto permitido."""
     solapes = []
     for ca, ea, cb, eb in (
         (a.origin.x, a.extent.x, b.origin.x, b.extent.x),
@@ -31,7 +31,7 @@ def penetracion(a: AABB, b: AABB, tol: float = TOL_CM) -> float:
         if solape <= tol:
             return 0.0
         solapes.append(solape)
-    return min(solapes)
+    return min(solapes) - tol
 
 
 def es_fondo(a: AABB, max_cm: float = MAX_VECINO_CM) -> bool:

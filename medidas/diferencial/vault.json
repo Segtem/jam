@@ -2186,19 +2186,6 @@
       "carpeta_conocida": true,
       "fecha_en_nombre": "2026-07-25",
       "frontmatter_completo": true,
-      "nombre": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
-      "nombre_es_ascii": true,
-      "sigue_convencion": true,
-      "tipo_declarado": "INFORME",
-      "tipo_en_nombre": "INFORME",
-      "updated": "2026-07-25"
-     },
-     {
-      "area": "01-Graph",
-      "carpeta": "01-Graph",
-      "carpeta_conocida": true,
-      "fecha_en_nombre": "2026-07-25",
-      "frontmatter_completo": true,
       "nombre": "2026-07-25-INFORME-Fix-Graph-Cable-Fantasma-v1.0",
       "nombre_es_ascii": true,
       "sigue_convencion": true,
@@ -2277,6 +2264,19 @@
       "carpeta_conocida": true,
       "fecha_en_nombre": "2026-07-29",
       "frontmatter_completo": true,
+      "nombre": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-07-29"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-07-29",
+      "frontmatter_completo": true,
       "nombre": "2026-07-29-INFORME-Historial-Deshacer-Rehacer-v1.0",
       "nombre_es_ascii": true,
       "sigue_convencion": true,
@@ -2321,7 +2321,7 @@
       "sigue_convencion": false,
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "",
-      "updated": "2026-07-29"
+      "updated": "2026-07-25"
      },
      {
       "area": "02-TreeGen",
@@ -2817,11 +2817,6 @@
       "resuelve": true
      },
      {
-      "destino": "2026-07-25-INFORME-Fix-Graph-Cable-Fantasma-v1.0",
-      "origen": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
-      "resuelve": true
-     },
-     {
       "destino": "2026-07-25-PLAN-Contrato-Unificado-Graph-Flow-Presets-Web-v1.0",
       "origen": "2026-07-25-PLAN-Persistencia-Segura-Diagramas-Graph-v1.0",
       "resuelve": true
@@ -2869,6 +2864,26 @@
      {
       "destino": "2026-07-25-PLAN-Persistencia-Segura-Diagramas-Graph-v1.0",
       "origen": "2026-07-29-INFORME-Docking-Paneles-Nomad-Tabs-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
+      "origen": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
+      "origen": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-INFORME-Seleccion-Multiple-Alineacion-Nodos-v2.0",
+      "origen": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
       "resuelve": true
      },
      {
@@ -2987,22 +3002,7 @@
       "resuelve": true
      },
      {
-      "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
-      "origen": "archivo-sin-convencion",
-      "resuelve": true
-     },
-     {
-      "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
-      "origen": "archivo-sin-convencion",
-      "resuelve": true
-     },
-     {
-      "destino": "2026-07-29-INFORME-Seleccion-Multiple-Alineacion-Nodos-v2.0",
-      "origen": "archivo-sin-convencion",
-      "resuelve": true
-     },
-     {
-      "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "destino": "2026-07-25-INFORME-Fix-Graph-Cable-Fantasma-v1.0",
       "origen": "archivo-sin-convencion",
       "resuelve": true
      },
@@ -4004,7 +4004,7 @@
      {
       "destino": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
       "origen": "README",
-      "resuelve": false
+      "resuelve": true
      },
      {
       "destino": "2026-07-29-INFORME-Docking-Paneles-Nomad-Tabs-v1.0",
@@ -4039,7 +4039,7 @@
      {
       "destino": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
       "origen": "README",
-      "resuelve": true
+      "resuelve": false
      },
      {
       "destino": "2026-07-25-CONCEPTO-Estetica-Nodos-Grasshopper-v1.0",
@@ -4299,7 +4299,7 @@
       "nombre": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
       "nombre_es_ascii": true,
       "sigue_convencion": true,
-      "tipo_declarado": "INFORME",
+      "tipo_declarado": "PLAN",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-07-25"
      },
@@ -4390,7 +4390,7 @@
       "nombre": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
       "nombre_es_ascii": true,
       "sigue_convencion": true,
-      "tipo_declarado": "PLAN",
+      "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-07-29"
      },
@@ -6411,7 +6411,7 @@
       "sigue_convencion": true,
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
-      "updated": "2026-07-25"
+      "updated": "2020-01-01"
      },
      {
       "area": "01-Graph",
@@ -6502,7 +6502,7 @@
       "sigue_convencion": true,
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
-      "updated": "2020-01-01"
+      "updated": "2026-07-29"
      },
      {
       "area": "01-Graph",
@@ -8511,7 +8511,7 @@
       "updated": "2026-07-25"
      },
      {
-      "area": "01-Graph",
+      "area": "99-Inventada",
       "carpeta": "01-Graph",
       "carpeta_conocida": true,
       "fecha_en_nombre": "2026-07-25",
@@ -8602,7 +8602,7 @@
       "updated": "2026-07-29"
      },
      {
-      "area": "99-Inventada",
+      "area": "01-Graph",
       "carpeta": "01-Graph",
       "carpeta_conocida": true,
       "fecha_en_nombre": "2026-07-29",
@@ -11262,6 +11262,11 @@
       "resuelve": true
      },
      {
+      "destino": "documento-que-no-existe",
+      "origen": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
+      "resuelve": false
+     },
+     {
       "destino": "2026-07-25-PLAN-Contrato-Unificado-Graph-Flow-Presets-Web-v1.0",
       "origen": "2026-07-25-PLAN-Persistencia-Segura-Diagramas-Graph-v1.0",
       "resuelve": true
@@ -11330,11 +11335,6 @@
       "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
       "origen": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
       "resuelve": true
-     },
-     {
-      "destino": "documento-que-no-existe",
-      "origen": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
-      "resuelve": false
      },
      {
       "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
@@ -12741,8 +12741,8 @@
       "carpeta_conocida": true,
       "fecha_en_nombre": "2026-07-25",
       "frontmatter_completo": true,
-      "nombre": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
-      "nombre_es_ascii": true,
+      "nombre": "2026-07-25-INFORME-Ación-Fix-Graph-Buscador-Doble-Clic-v1.0",
+      "nombre_es_ascii": false,
       "sigue_convencion": true,
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
@@ -12819,8 +12819,8 @@
       "carpeta_conocida": true,
       "fecha_en_nombre": "2026-07-29",
       "frontmatter_completo": true,
-      "nombre": "2026-07-29-INFORME-Ación-Funciones-Graph-Firma-v1.0",
-      "nombre_es_ascii": false,
+      "nombre": "2026-07-29-INFORME-Docking-Paneles-Nomad-Tabs-v1.0",
+      "nombre_es_ascii": true,
       "sigue_convencion": true,
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
@@ -12832,7 +12832,7 @@
       "carpeta_conocida": true,
       "fecha_en_nombre": "2026-07-29",
       "frontmatter_completo": true,
-      "nombre": "2026-07-29-INFORME-Docking-Paneles-Nomad-Tabs-v1.0",
+      "nombre": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
       "nombre_es_ascii": true,
       "sigue_convencion": true,
       "tipo_declarado": "INFORME",
@@ -13373,7 +13373,7 @@
      },
      {
       "destino": "2026-07-25-INFORME-Fix-Graph-Cable-Fantasma-v1.0",
-      "origen": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
+      "origen": "2026-07-25-INFORME-Ación-Fix-Graph-Buscador-Doble-Clic-v1.0",
       "resuelve": true
      },
      {
@@ -13413,26 +13413,6 @@
      },
      {
       "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
-      "origen": "2026-07-29-INFORME-Ación-Funciones-Graph-Firma-v1.0",
-      "resuelve": true
-     },
-     {
-      "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
-      "origen": "2026-07-29-INFORME-Ación-Funciones-Graph-Firma-v1.0",
-      "resuelve": true
-     },
-     {
-      "destino": "2026-07-29-INFORME-Seleccion-Multiple-Alineacion-Nodos-v2.0",
-      "origen": "2026-07-29-INFORME-Ación-Funciones-Graph-Firma-v1.0",
-      "resuelve": true
-     },
-     {
-      "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
-      "origen": "2026-07-29-INFORME-Ación-Funciones-Graph-Firma-v1.0",
-      "resuelve": true
-     },
-     {
-      "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
       "origen": "2026-07-29-INFORME-Docking-Paneles-Nomad-Tabs-v1.0",
       "resuelve": true
      },
@@ -13444,6 +13424,26 @@
      {
       "destino": "2026-07-25-PLAN-Persistencia-Segura-Diagramas-Graph-v1.0",
       "origen": "2026-07-29-INFORME-Docking-Paneles-Nomad-Tabs-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
+      "origen": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
+      "origen": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-INFORME-Seleccion-Multiple-Alineacion-Nodos-v2.0",
+      "origen": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
       "resuelve": true
      },
      {
@@ -14559,7 +14559,7 @@
      {
       "destino": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
       "origen": "README",
-      "resuelve": false
+      "resuelve": true
      },
      {
       "destino": "2026-07-29-INFORME-Docking-Paneles-Nomad-Tabs-v1.0",
@@ -14594,7 +14594,7 @@
      {
       "destino": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
       "origen": "README",
-      "resuelve": true
+      "resuelve": false
      },
      {
       "destino": "2026-07-25-CONCEPTO-Estetica-Nodos-Grasshopper-v1.0",
@@ -15408,14 +15408,14 @@
       "area": "01-Graph",
       "carpeta": "",
       "carpeta_conocida": false,
-      "fecha_en_nombre": "2026-07-29",
+      "fecha_en_nombre": "2026-07-25",
       "frontmatter_completo": true,
-      "nombre": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "nombre": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
       "nombre_es_ascii": true,
       "sigue_convencion": true,
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
-      "updated": "2026-07-29"
+      "updated": "2026-07-25"
      }
     ],
     "enlace": [
@@ -16640,23 +16640,8 @@
       "resuelve": true
      },
      {
-      "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
-      "origen": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
-      "resuelve": true
-     },
-     {
-      "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
-      "origen": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
-      "resuelve": true
-     },
-     {
-      "destino": "2026-07-29-INFORME-Seleccion-Multiple-Alineacion-Nodos-v2.0",
-      "origen": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
-      "resuelve": true
-     },
-     {
-      "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
-      "origen": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "destino": "2026-07-25-INFORME-Fix-Graph-Cable-Fantasma-v1.0",
+      "origen": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
       "resuelve": true
      },
      {
@@ -16994,19 +16979,6 @@
       "carpeta_conocida": true,
       "fecha_en_nombre": "2026-07-25",
       "frontmatter_completo": true,
-      "nombre": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
-      "nombre_es_ascii": true,
-      "sigue_convencion": true,
-      "tipo_declarado": "INFORME",
-      "tipo_en_nombre": "INFORME",
-      "updated": "2026-07-25"
-     },
-     {
-      "area": "01-Graph",
-      "carpeta": "01-Graph",
-      "carpeta_conocida": true,
-      "fecha_en_nombre": "2026-07-25",
-      "frontmatter_completo": true,
       "nombre": "2026-07-25-INFORME-Fix-Graph-Cable-Fantasma-v1.0",
       "nombre_es_ascii": true,
       "sigue_convencion": true,
@@ -17073,6 +17045,19 @@
       "fecha_en_nombre": "2026-07-29",
       "frontmatter_completo": true,
       "nombre": "2026-07-29-INFORME-Docking-Paneles-Nomad-Tabs-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-07-29"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-07-29",
+      "frontmatter_completo": true,
+      "nombre": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
       "nombre_es_ascii": true,
       "sigue_convencion": true,
       "tipo_declarado": "INFORME",
@@ -17538,14 +17523,14 @@
       "area": "01-Graph",
       "carpeta": "99-Inventada",
       "carpeta_conocida": false,
-      "fecha_en_nombre": "2026-07-29",
+      "fecha_en_nombre": "2026-07-25",
       "frontmatter_completo": true,
-      "nombre": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "nombre": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
       "nombre_es_ascii": true,
       "sigue_convencion": true,
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
-      "updated": "2026-07-29"
+      "updated": "2026-07-25"
      }
     ],
     "enlace": [
@@ -17625,11 +17610,6 @@
       "resuelve": true
      },
      {
-      "destino": "2026-07-25-INFORME-Fix-Graph-Cable-Fantasma-v1.0",
-      "origen": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
-      "resuelve": true
-     },
-     {
       "destino": "2026-07-25-PLAN-Contrato-Unificado-Graph-Flow-Presets-Web-v1.0",
       "origen": "2026-07-25-PLAN-Persistencia-Segura-Diagramas-Graph-v1.0",
       "resuelve": true
@@ -17677,6 +17657,26 @@
      {
       "destino": "2026-07-25-PLAN-Persistencia-Segura-Diagramas-Graph-v1.0",
       "origen": "2026-07-29-INFORME-Docking-Paneles-Nomad-Tabs-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
+      "origen": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
+      "origen": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-INFORME-Seleccion-Multiple-Alineacion-Nodos-v2.0",
+      "origen": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
       "resuelve": true
      },
      {
@@ -18750,23 +18750,8 @@
       "resuelve": true
      },
      {
-      "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
-      "origen": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
-      "resuelve": true
-     },
-     {
-      "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
-      "origen": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
-      "resuelve": true
-     },
-     {
-      "destino": "2026-07-29-INFORME-Seleccion-Multiple-Alineacion-Nodos-v2.0",
-      "origen": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
-      "resuelve": true
-     },
-     {
-      "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
-      "origen": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "destino": "2026-07-25-INFORME-Fix-Graph-Cable-Fantasma-v1.0",
+      "origen": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
       "resuelve": true
      },
      {
@@ -19242,6 +19227,19 @@
       "updated": "2026-07-29"
      },
      {
+      "area": "01-Graph",
+      "carpeta": "02-TreeGen",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-07-25",
+      "frontmatter_completo": true,
+      "nombre": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-07-25"
+     },
+     {
       "area": "02-TreeGen",
       "carpeta": "02-TreeGen",
       "carpeta_conocida": true,
@@ -19474,19 +19472,6 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-07-27"
-     },
-     {
-      "area": "01-Graph",
-      "carpeta": "02-TreeGen",
-      "carpeta_conocida": true,
-      "fecha_en_nombre": "2026-07-29",
-      "frontmatter_completo": true,
-      "nombre": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
-      "nombre_es_ascii": true,
-      "sigue_convencion": true,
-      "tipo_declarado": "INFORME",
-      "tipo_en_nombre": "INFORME",
-      "updated": "2026-07-29"
      },
      {
       "area": "03-Mesh-y-materiales",
@@ -19935,6 +19920,11 @@
      {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
       "origen": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-25-INFORME-Fix-Graph-Cable-Fantasma-v1.0",
+      "origen": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
       "resuelve": true
      },
      {
@@ -20600,26 +20590,6 @@
      {
       "destino": "2026-07-27-INFORME-Oraculo-De-Forma-Malla-Referencia-v1.0",
       "origen": "2026-07-27-INFORME-TreeGen-UV-Materiales-Sections-HISM-v1.0",
-      "resuelve": true
-     },
-     {
-      "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
-      "origen": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
-      "resuelve": true
-     },
-     {
-      "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
-      "origen": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
-      "resuelve": true
-     },
-     {
-      "destino": "2026-07-29-INFORME-Seleccion-Multiple-Alineacion-Nodos-v2.0",
-      "origen": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
-      "resuelve": true
-     },
-     {
-      "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
-      "origen": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
       "resuelve": true
      },
      {
@@ -21246,7 +21216,7 @@
       "carpeta": "01-Graph",
       "carpeta_conocida": true,
       "fecha_en_nombre": "2026-07-25",
-      "frontmatter_completo": true,
+      "frontmatter_completo": false,
       "nombre": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
       "nombre_es_ascii": true,
       "sigue_convencion": true,
@@ -21337,7 +21307,7 @@
       "carpeta": "01-Graph",
       "carpeta_conocida": true,
       "fecha_en_nombre": "2026-07-29",
-      "frontmatter_completo": false,
+      "frontmatter_completo": true,
       "nombre": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
       "nombre_es_ascii": true,
       "sigue_convencion": true,
@@ -23306,7 +23276,8 @@
   },
   "fuentes": {
    "emisor": [
-    "tools/emitir_hechos_vault.py"
+    "tools/emitir_hechos_vault.py",
+    "medidas/escalares.py"
    ],
    "referencia": [
     "tools/vault.py",
@@ -23314,10 +23285,10 @@
    ]
   },
   "huellas": {
-   "catalogo": "43c804e2f420bb0f5ff48ca87886206bde3ebf1ab06069a82af6b69ccd8567ad",
+   "catalogo": "99372ef74c544a44c24bbbe91d0dd050320a7a0e37d88ea94e6cf2d0de34f79c",
    "configuracion": "407a21668fb6d1cc90b20875fa7e2a1044832d4f2e47f759f46e63edcb27e073",
-   "emisor": "f3738a7861910d71c6eb00aa7850701aee5bf95e9aa8a8d16b3410bc89a7f545",
-   "referencia": "b7d84d148d6b4842185dcb1c8283dcd8186495a0fc01f35335f2f38102fbece6"
+   "emisor": "18c02353863b94b3f888e9701c24b5fe541192fa7b9b3b6217a06782442ecb6e",
+   "referencia": "52b941d16724de55128ca23bab2261497ba7c337ee3e9adad4dc380dc119e498"
   },
   "raiz_fuentes": ".."
  },

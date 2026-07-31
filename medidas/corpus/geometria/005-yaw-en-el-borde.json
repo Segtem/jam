@@ -1,0 +1,12 @@
+{
+  "id": "005-yaw-en-el-borde",
+  "fecha": "2026-07-31",
+  "origen": {"repo": "Brianholl/jam", "commit": "integracion-oracle-p3"},
+  "titulo": "El primer flotante fuera de la tolerancia angular sigue siendo rojo",
+  "etiqueta": "falso_verde",
+  "sintoma": "Aflojar 0.5 grados al siguiente flotante no cambiaba ningún caso existente.",
+  "como_se_detecto": "mutacion",
+  "medida": "snap.yaw",
+  "evidencia": {"pieza": [{"id": "a", "yaw": 0.5000000000000001}]},
+  "leccion": "Un umbral angular necesita un caso rojo inmediatamente después del límite."
+}

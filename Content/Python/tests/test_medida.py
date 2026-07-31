@@ -103,6 +103,15 @@ class DiferencialTests(unittest.TestCase):
                 nuevo = catalogo.BOUNDS.evaluar({"pieza": p}).ok
                 self.assertEqual(nuevo, viejo)
 
+    def test_la_profundidad_descuenta_la_tolerancia_de_contacto(self) -> None:
+        a = _pieza("a", 0.0, 0.0, 0.0)
+        b = _pieza("b", 98.5, 0.0, 0.0)
+
+        self.assertAlmostEqual(geometry.penetracion(a.aabb, b.aabb), 0.5)
+        self.assertEqual(oracle_placement.verificar(a, [b])["interpenetra"], [("b", 0.5)])
+        self.assertAlmostEqual(
+            catalogo.INTERPENETRACION.evaluar({"pieza": a, "otras": [b]}).valor, 0.5)
+
     def test_interpenetracion_coincide_en_veredicto_y_en_testigos(self) -> None:
         vistos = {True: 0, False: 0}
         for semilla in range(300):
