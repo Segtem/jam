@@ -1,10 +1,10 @@
 ---
-turno: 2026-07-30 · claude-code → codex
-saliente: claude-code
-entrante: codex
-desde: 2026-07-30
-verde_editor: 80373ea
-verde_editor_fecha: 2026-07-29
+turno: 2026-08-01 · codex → claude-code
+saliente: codex
+entrante: claude-code
+desde: 2026-08-01
+verde_editor: b7b886e
+verde_editor_fecha: 2026-08-01
 ---
 
 # Testigo
