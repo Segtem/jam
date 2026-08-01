@@ -18,7 +18,7 @@ conviene construir todavía.
 
 ## Qué es Jam
 
-Plugin de Unreal Engine 5.7.4: un asistente in-editor tipo Dash (PolygonFlow) para crear cosas
+Plugin de Unreal Engine 5.8.1: un asistente in-editor tipo Dash (PolygonFlow) para crear cosas
 dentro del motor, **con una diferencia — todo lo que produce lo verifica un oráculo determinista**.
 Crear libre con la mejor herramienta, medir desde afuera. El juego que lo empuja es BotOO
 (`Brianholl/BotOO`), un Hunt: Showdown lovecrafteano de 1920.
@@ -70,7 +70,7 @@ cerebro y Slate no se separen en silencio.
 
 ## Recetas
 
-Motor: `~/Dev/engines/UnrealEngine_5.7` · proyecto host: `/home/workstation/Dev/games/BotOO`.
+Motor: `~/Dev/engines/UnrealEngine_5.8` (5.8.1) · proyecto host: `/home/workstation/Dev/games/BotOO`.
 
 ```bash
 # tests del cerebro (rápido, sin motor) — el que se corre siempre
@@ -80,9 +80,11 @@ cd Content/Python/tests && PYTHONPATH=$PWD/.. python -m unittest discover -s . -
 python tools/vault.py            #  --indice reescribe Vault-kb/README.md
 
 # compilar el C++ del editor  (~16-19 s incremental)
-ENG=~/Dev/engines/UnrealEngine_5.7
+# -NoUBA: Unreal Build Accelerator se confunde con el symlink Plugins/Jam -> ~/Dev/jam
+# (ASSERT: cross-process rename-while-open). Sin esa flag el build falla siempre.
+ENG=~/Dev/engines/UnrealEngine_5.8
 $ENG/Engine/Build/BatchFiles/Linux/Build.sh BotOOEditor Linux Development \
-  -Project="/home/workstation/Dev/games/BotOO/BotOO.uproject" -WaitMutex -FromMsBuild
+  -Project="/home/workstation/Dev/games/BotOO/BotOO.uproject" -WaitMutex -FromMsBuild -NoUBA
 
 # correr algo dentro del editor, sin ventana
 $ENG/Engine/Binaries/Linux/UnrealEditor-Cmd \
