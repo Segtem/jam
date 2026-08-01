@@ -24,6 +24,9 @@ DECLARE_DELEGATE_RetVal_TwoParams(FString, FOnLayout, const FString& /*nodos*/, 
 /** Inspector de datos: (node_id, filtro) → JSON {nodos, filas}. Node vacío = sólo la lista. */
 DECLARE_DELEGATE_RetVal_FourParams(FString, FOnInspect, const FString& /*node*/,
 	const FString& /*filtro*/, const FString& /*orden*/, bool /*descendente*/);
+/** Colapsar selección: (grafo completo, ids elegidos) → {ok,graph,tool,report}. */
+DECLARE_DELEGATE_RetVal_TwoParams(FString, FOnCollapseFunction,
+	const FString& /*graph*/, const FString& /*selected*/);
 
 /** Una fila del inspector: sus celdas ya formateadas por Python, una por columna. */
 struct FJamInspectRow
@@ -55,6 +58,7 @@ public:
 		SLATE_EVENT(FOnInspect, OnInspect)
 		/** Alinear/distribuir: lo resuelve `jam.layout`. */
 		SLATE_EVENT(FOnLayout, OnLayout)
+		SLATE_EVENT(FOnCollapseFunction, OnCollapseFunction)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs, const TArray<FJamTool>& InTools);
@@ -105,6 +109,8 @@ private:
 		/** Pines de entrada en ORDEN de fila (incluye «asset» si el verbo lo tiene): el índice acá es
 		 *  la fila donde se ancla el wire. */
 		TArray<FString> PinNames;
+		/** Pines de salida nombrados de una función, en orden de fila. */
+		TArray<FString> OutputPinNames;
 		TSharedPtr<SJamGraphNode> Widget;
 	};
 
@@ -190,6 +196,7 @@ private:
 	void ResetView();
 	/** Índice del parámetro `Pin` en el verbo del nodo `Id`, o -1 si es «in»/«out» (header). */
 	int32 PinIndex(const FString& Id, const FString& Pin) const;
+	int32 OutputPinIndex(const FString& Id, const FString& Pin) const;
 	/** Tipos efectivos de los extremos y validación central de un cable. */
 	FString OutputDataTypeFor(const FString& NodeId, const FString& Pin) const;
 	FString InputDataTypeFor(const FString& NodeId, const FString& Pin) const;
@@ -219,6 +226,8 @@ private:
 	void Pegar();
 	/** Duplicar = copiar y pegar sin pisar el portapapeles del sistema. */
 	void Duplicar();
+	/** Ctrl+G: el cerebro puro decide el borde; Slate instala el tool devuelto y carga el padre. */
+	void ColapsarSeleccion();
 	/** Inserta un fragmento JSON en el grafo actual con ids NUEVOS, corrido para que no tape al
 	 *  original, y deja lo pegado seleccionado. Ignora en silencio lo que no sea un fragmento
 	 *  válido: el portapapeles del sistema puede tener cualquier cosa.
@@ -231,7 +240,7 @@ private:
 	const FJamTool* FindTool(const FString& Verb) const;
 	FGNode* FindNode(const FString& Id);
 	/** Color del cable que SALE de un nodo (según el tipo de su salida). */
-	FLinearColor WireColorFor(const FString& NodeId) const;
+	FLinearColor WireColorFor(const FString& NodeId, const FString& Pin = TEXT("out")) const;
 
 	/** Buscador de nodos al doble clic en el canvas vacío (como el search box de Grasshopper). */
 	/** Abre el buscador en coordenadas locales al overlay del canvas (mismo espacio que WireLayer). */
@@ -281,6 +290,7 @@ private:
 	FOnRunGraph OnSaveGraph;
 	FOnInspect OnInspect;
 	FOnLayout OnLayout;
+	FOnCollapseFunction OnCollapseFunction;
 
 	/** Nodos del último Run (id + tipo + cantidad) que alimentan el selector del inspector. */
 	TArray<TSharedPtr<FString>> InspectNodes;

@@ -6,8 +6,8 @@ Los oráculos de colocación y snap de Jam son una **implementación independien
 línea con el álgebra de oracle. Acá se montan escenarios, se extraen sus hechos, y se contrasta.
 
 Antes esto generaba 300 mundos al azar y confiaba en que la mezcla cubriera todo. Ahora los defectos
-van **declarados** —uno por medida— con variación por repetición: apuntado en vez de a la escopeta, y
-el `Dominio` se niega si alguna medida se queda sin una de sus dos polaridades.
+van **declarados** —al menos uno por medida— con variación por repetición: apuntado en vez de a la
+escopeta, y el `Dominio` se niega si alguna medida se queda sin una de sus dos polaridades.
 
 Y lo que se fue, igual que en los otros dos arneses: la función que reimplementaba las medidas en
 Python para saber qué debería dar cada una.
@@ -37,8 +37,23 @@ from nucleo.proyecto import (Proyecto, catalogos_a_cargar,  # noqa: E402
 PROYECTO = Proyecto(RAIZ / "medidas")
 DESTINO = PROYECTO.diferencial / "geometria.json"
 
-MEDIDAS = ("colocacion.bounds", "colocacion.interpenetracion", "snap.grilla", "snap.yaw")
-DEFECTOS = ("volumen_degenerado", "interpenetracion", "fuera_de_grilla", "yaw_fuera_de_paso")
+MEDIDAS = (
+    "colocacion.bounds",
+    "colocacion.interpenetracion",
+    "snap.grilla",
+    "snap.yaw",
+    "snap.al_ras",
+    "snap.comparte_cara",
+)
+DEFECTOS = (
+    "volumen_degenerado",
+    "interpenetracion",
+    "fuera_de_grilla",
+    "yaw_fuera_de_paso",
+    "hueco_al_ras",
+    "clavado_al_ras",
+    "desalineado_al_ras",
+)
 PROCEDENCIA = Procedencia(
     raiz=RAIZ,
     emisor=("tools/emitir_diferencial.py", "Content/Python/jam/geometry.py",
@@ -86,8 +101,20 @@ def montar(defecto: str | None, i: int = 0) -> list[Pieza]:
         yaw += r.choice([0.6, 2.0, 45.0])
 
     sujeto = _pieza("sujeto", tuple(centro), extension, yaw=yaw)
-    vecinas = [_pieza(f"v{j}", (en_grilla() + 1000.0, en_grilla(), 0.0), (50.0, 50.0, 50.0))
-               for j in range(r.randint(1, 3))]
+    objetivo_centro = [centro[0] + extension[0] + 50.0, centro[1], centro[2]]
+    if defecto == "hueco_al_ras":
+        objetivo_centro[0] += 2.0
+    elif defecto == "clavado_al_ras":
+        objetivo_centro[0] -= 2.0
+    elif defecto == "desalineado_al_ras":
+        # Solape lateral exactamente igual a la tolerancia: comparte arista, no una cara.
+        objetivo_centro[1] += extension[1] + 50.0 - 1.0
+    objetivo = _pieza("objetivo", tuple(objetivo_centro), (50.0, 50.0, 50.0))
+    vecinas = [objetivo]
+    vecinas.extend(
+        _pieza(f"v{j}", (en_grilla() + 1000.0, en_grilla(), 0.0), (50.0, 50.0, 50.0))
+        for j in range(r.randint(1, 3))
+    )
     if defecto == "interpenetracion":
         vecinas.append(_pieza("clavada", (centro[0] + 20.0, centro[1], centro[2]),
                               (50.0, 50.0, 50.0)))
@@ -96,7 +123,11 @@ def montar(defecto: str | None, i: int = 0) -> list[Pieza]:
 
 
 def hechos(mundo: list[Pieza]) -> dict:
-    return {"pieza": [_plano(mundo[0])], "vecina": [_plano(p) for p in mundo[1:]]}
+    return {
+        "pieza": [_plano(mundo[0])],
+        "vecina": [_plano(p) for p in mundo[1:]],
+        "objetivo": [_plano(mundo[1]) | {"eje": "x"}],
+    }
 
 
 def referencia(mundo: list[Pieza]) -> bool:
@@ -104,8 +135,10 @@ def referencia(mundo: list[Pieza]) -> bool:
     sujeto, otras = mundo[0], mundo[1:]
     col = oracle_placement.verificar(sujeto, otras)
     snap = oracle_snap.verificar_grilla(sujeto)
+    ras = oracle_snap.verificar_ras(sujeto, otras[0], "x")
     return (bool(col["bounds_ok"]) and col["interpenetra"] == []
-            and all(snap["ejes_ok"].values()) and bool(snap["yaw_ok"]))
+            and all(snap["ejes_ok"].values()) and bool(snap["yaw_ok"])
+            and bool(ras["al_ras"]))
 
 
 GEOMETRIA = Dominio(

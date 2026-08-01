@@ -4,7 +4,7 @@ tipo: INFORME
 version: "1.0"
 date: 2026-07-29
 updated: 2026-07-29
-status: implementado-cerebro
+status: implementado
 area: 01-Graph
 tags:
   - jam
@@ -82,11 +82,33 @@ en el pin de arriba y los dos órdenes coincidían: el test no discriminaba nada
 propósito al revés que la posición. Es el argumento entero de la prueba por mutación — sin romper el
 código a propósito, ese test se quedaba en la suite dando una seguridad falsa.
 
-## Lo que falta (capa de Slate)
+## La capa de Slate
 
-- **Instanciar desde el ribbon**: `firma()` ya devuelve los pines ordenados; falta dibujarlos.
-- **`Ctrl+G`, colapsar la selección a función**: los cables que cruzan el borde de la selección se
-  vuelven `input`/`output`. Es donde la Fase 0 se paga sola, porque la selección ya es un estado.
+El spec combinado suma un tab **Funciones** con los verbos de borde y cada preset de función como
+`fn:<nombre>`. Una instancia ya no se aplana al contrato clásico de un solo `in`/`out`: Slate recibe
+arrays `inputs`/`outputs`, dibuja cada pin nombrado en su propia fila y ancla el wire a esa fila. El
+nombre sigue siendo parte del contrato incluso si se llama literalmente `in` u `out`.
+
+**`Ctrl+G` colapsa la selección.** Slate manda el grafo entero y los ids elegidos a
+`api.collapse_function`; `funcion.colapsar` hace la transformación pura. Agrupa fan-out, crea un
+`input` por endpoint exterior entrante y un `output` por endpoint interior saliente, guarda el cuerpo
+como preset local y devuelve el padre con una instancia. El C++ instala la nueva ficha y carga ese
+padre: no decide el borde ni los tipos.
+
+La verificación quedó en **25 tests de función, 496 totales**. Se mutó a propósito la agrupación del
+fan-out entrante: el test nuevo dio rojo por apuntar el padre a un pin inexistente y volvió a verde al
+restaurarla. `tools/experiments/verifica_funcion_graph.py` corrió dentro de UE 5.7.4: guardó una
+selección, encontró su firma en `spec_all`, la instanció dos veces y obtuvo `Compile ✓` con
+`f1__t1`, `f1__n1`, `f2__t1` y `f2__n1`.
+
+La frontera que queda es visual y manual: confirmar que el gesto `Ctrl+G`, las filas de pines y el
+cableado se leen y responden bien en el panel Slate.
+
+El primer gesto manual encontró un defecto real del puente: `preset.guardar` emite un log y luego
+`collapse_function` devuelve JSON, mientras `ExecPythonCapture` concatena ambas salidas. El preset se
+guardaba pero Slate intentaba deserializar `log + JSON`. La respuesta de este borde ahora lleva el
+marcador `JAMCOLLAPSE:` y C++ conserva lo que sigue a su última aparición. El test de contrato se
+probó mutando `FromEnd` por `FromStart`; quedó rojo y volvió a verde tras restaurarlo.
 
 ## Relacionado
 

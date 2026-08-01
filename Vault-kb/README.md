@@ -1,6 +1,6 @@
 # Vault-kb de Jam
 
-48 documentos en 5 carpetas. Nomenclatura
+50 documentos en 5 carpetas. Nomenclatura
 `AAAA-MM-DD-TIPO-Nombre-vX.X.md` — la explica
 [[2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0|la guía de convención]].
 La carpeta es la taxonomía: cada doc vive en una sola y su `area:` lo dice.
@@ -11,9 +11,11 @@ Este índice y las reglas los verifica `tools/vault.py`.
 
 ## Proceso y dirección
 
-`00-Proceso/` · 4 documentos
+`00-Proceso/` · 6 documentos
 
+- [[2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0|P3 de Oracle: autonomía de embedding antes de migrar Jam]] · *completo*
 - [[2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0|Oracle: un metalenguaje de medidas para construir herramientas con un LLM]] · *implementado*
+- [[2026-07-30-INFORME-Auditoria-Viabilidad-Lenguaje-Propio-Oracle-v1.0|Auditoría de viabilidad: un lenguaje propio para Oracle]] · *dictamen-desaconsejado*
 - [[2026-07-29-GUIA-Relevo-Claude-Codex-v1.0|Guía: el relevo entre Claude Code y Codex]] · *vigente*
 - [[2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0|Guía: convención de documentación del Vault-kb de Jam]] · *vigente*
 - [[2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0|Visión y roadmap de producto para Jam]] · *propuesta*
@@ -25,7 +27,7 @@ Este índice y las reglas los verifica `tools/vault.py`.
 - [[2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0|Roadmap: accesibilidad y velocidad del Graph]] · *propuesta*
 - [[2026-07-29-INFORME-Seleccion-Multiple-Alineacion-Nodos-v2.0|Selección múltiple y alineación de nodos Graph]] · *implementado*
 - [[2026-07-29-INFORME-Historial-Deshacer-Rehacer-v1.0|Historial del Graph: deshacer y rehacer]] · *implementado*
-- [[2026-07-29-INFORME-Funciones-Graph-Firma-v1.0|Funciones del Graph: un subgrafo con firma]] · *implementado-cerebro*
+- [[2026-07-29-INFORME-Funciones-Graph-Firma-v1.0|Funciones del Graph: un subgrafo con firma]] · *implementado*
 - [[2026-07-29-INFORME-Docking-Paneles-Nomad-Tabs-v1.0|Docking: los tres paneles de Jam son nomad tabs]] · *implementado*
 - [[2026-07-27-INFORME-Nodos-De-Debug-Ver-El-Stream-v1.0|Nodos de debug: ver el stream, no sólo medirlo]] · *implementado*
 - [[2026-07-25-PLAN-Tipado-Cardinalidad-Conexiones-Graph-v1.0|Tipado y cardinalidad de conexiones Graph]] · *en-progreso*

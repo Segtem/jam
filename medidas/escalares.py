@@ -61,3 +61,35 @@ def desvio_de_grilla(p: dict, grilla: float) -> float:
 @escalar("desvio_de_paso", "grados")
 def desvio_de_paso(valor: float, paso: float) -> float:
     return abs(valor - round(valor / paso) * paso)
+
+
+def _eje_de(config: dict) -> str:
+    eje = config.get("eje")
+    if eje not in {"x", "y", "z"}:
+        raise ValueError(f"eje de snap inválido: {eje!r}")
+    return eje
+
+
+@escalar("desvio_de_contacto", "cm")
+def desvio_de_contacto(a: dict, b: dict) -> float:
+    """Distancia absoluta entre las caras que deberían tocarse sobre el eje elegido.
+
+    Da cero tanto sin hueco como sin solape. Que las caras realmente se compartan en los otros dos
+    ejes es otra pregunta y la responde `solape_lateral_minimo`.
+    """
+    eje = _eje_de(b)
+    distancia_centros = abs(a[f"o{eje}"] - b[f"o{eje}"])
+    suma_extensiones = a[f"e{eje}"] + b[f"e{eje}"]
+    return abs(distancia_centros - suma_extensiones)
+
+
+@escalar("solape_lateral_minimo", "cm")
+def solape_lateral_minimo(a: dict, b: dict) -> float:
+    """Menor solape sobre los dos ejes laterales a la cara solicitada."""
+    eje = _eje_de(b)
+    laterales = [otro for otro in ("x", "y", "z") if otro != eje]
+    return min(
+        (a[f"e{otro}"] + b[f"e{otro}"])
+        - abs(a[f"o{otro}"] - b[f"o{otro}"])
+        for otro in laterales
+    )

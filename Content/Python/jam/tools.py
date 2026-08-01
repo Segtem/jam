@@ -302,7 +302,7 @@ def _veredicto_entorno(actor) -> str:
     """Oráculo de PLACE: ¿el ladrillo quedó bien en su entorno? APOYADO sobre superficie (raycast,
     gap≈0, con su pendiente) + SIN CLAVARSE con vecinos reales (excluye soporte, landscape y no-geometría)."""
     import unreal as U
-    from . import geometry, oracle_placement, physics, ue
+    from . import geometry, physics, ue
     aabb = ue.aabb(actor)
     base_z = aabb.origin.z - aabb.extent.z
 
@@ -334,7 +334,7 @@ def _veredicto_entorno(actor) -> str:
                if a != actor and physics._es_geometria(a) and not es_terreno_o_proxy(a)
                and ghost.TAG not in ue.tags(a)   # el fantasma está justo donde colocás: no es vecino
                and a.get_actor_label() != soporte]
-    r = oracle_placement.verificar(ue.pieza(actor), ue.piezas(vecinos))
+    r = ue.placement(actor, [actor, *vecinos])
     if r["interpenetra"]:
         det = ", ".join(f"{n} ({d}cm)" for n, d in r["interpenetra"])
         clava = f"CLAVA ✗ con {det}"

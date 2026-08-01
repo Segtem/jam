@@ -509,6 +509,15 @@ ICONOS = {
     "jam-debug": svg(f'<circle cx="12" cy="12" r="7" stroke="{TINTA}" stroke-width="1.4"/>',
                      frame(12, 14, F, 4), punto(12, 12, P, 1.4)),
 
+    # ── funciones del Graph: borde y llamada con firma nombrada ─────────────────
+    "jam-function-input": svg(punto(4, 12, P, 1.8), curva("M6 12h5", TINTA, 1.4),
+                               caja(11, 8, 9, 8, ASSET)),
+    "jam-function-output": svg(caja(4, 8, 9, 8, ASSET), curva("M13 12h5", TINTA, 1.4),
+                                punto(20, 12, P, 1.8)),
+    "jam-function-call": svg(punto(3, 8, P, 1.5), punto(3, 16, M, 1.5),
+                              curva("M5 8h3M5 16h3", TINTA, 1.1), caja(8, 5, 8, 14, ASSET),
+                              curva("M16 12h3", TINTA, 1.1), punto(21, 12, ASSET, 1.5)),
+
     # ── tab Aprender: los ejemplos ──────────────────────────────────────────────
     # Un ejemplo no es un verbo, así que su icono no puede diagramar una firma. Lo que dibuja es el
     # RESULTADO — lo que vas a ver en pantalla al correrlo —, que es lo que hace elegir cuál abrir.

@@ -194,8 +194,10 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 	];
 	RightCol->AddSlot().AutoHeight()
 	[
-		Cell(HeaderH, MakeNub(TEXT("salida (clic para conectar)"), InArgs._OutputColor,
-			[this]() { OnOutputClickedDelegate.ExecuteIfBound(); }))
+		Cell(HeaderH, InArgs._OutputPins.Num() == 0 && !InArgs._OutName.IsEmpty()
+			? MakeNub(TEXT("salida (clic para conectar)"), InArgs._OutputColor,
+				[this]() { OnOutputClickedDelegate.ExecuteIfBound(TEXT("out")); })
+			: StaticCastSharedRef<SWidget>(SNullWidget::NullWidget))
 	];
 
 	// Slider del nodo `number`: el `value` se arrastra dentro de [min, max] (el Number Slider de GH). El
@@ -358,6 +360,50 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 				])
 		];
 		RightCol->AddSlot().AutoHeight()[ Cell(RowH, StaticCastSharedRef<SWidget>(SNullWidget::NullWidget)) ];
+	}
+
+	// Una función puede tener N entradas y M salidas. Van en filas enfrentadas y NOMBRADAS: el
+	// nombre es parte del contrato, no una etiqueta cosmética. Las filas empiezan después de los
+	// parámetros comunes para que el editor pueda calcular su Y con la misma métrica fija.
+	const int32 SignatureRows = FMath::Max(InArgs._InputPins.Num(), InArgs._OutputPins.Num());
+	for (int32 Row = 0; Row < SignatureRows; ++Row)
+	{
+		const bool bHasIn = InArgs._InputPins.IsValidIndex(Row);
+		const bool bHasOut = InArgs._OutputPins.IsValidIndex(Row);
+		const FJamNodePin InPin = bHasIn ? InArgs._InputPins[Row] : FJamNodePin();
+		const FJamNodePin OutPin = bHasOut ? InArgs._OutputPins[Row] : FJamNodePin();
+		LeftCol->AddSlot().AutoHeight()
+		[
+			Cell(RowH, bHasIn
+				? MakeNub(FString::Printf(TEXT("entrada «%s» · tipo %s"), *InPin.Name, *InPin.DataType),
+					InPin.Color, [this, Nombre = InPin.Name]()
+					{ OnInputClickedDelegate.ExecuteIfBound(Nombre); })
+				: StaticCastSharedRef<SWidget>(SNullWidget::NullWidget))
+		];
+		ParamCol->AddSlot().AutoHeight()
+		[
+			Cell(RowH,
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+				[
+					SNew(STextBlock).Text(FText::FromString(bHasIn ? InPin.Name : FString()))
+					.ColorAndOpacity(JamInk).Font(FCoreStyle::GetDefaultFontStyle("Regular", 7))
+				]
+				+ SHorizontalBox::Slot().FillWidth(1.0f)[ SNew(SSpacer) ]
+				+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+				[
+					SNew(STextBlock).Text(FText::FromString(bHasOut ? OutPin.Name : FString()))
+					.ColorAndOpacity(JamInk).Font(FCoreStyle::GetDefaultFontStyle("Regular", 7))
+				])
+		];
+		RightCol->AddSlot().AutoHeight()
+		[
+			Cell(RowH, bHasOut
+				? MakeNub(FString::Printf(TEXT("salida «%s» · tipo %s"), *OutPin.Name, *OutPin.DataType),
+					OutPin.Color, [this, Nombre = OutPin.Name]()
+					{ OnOutputClickedDelegate.ExecuteIfBound(Nombre); })
+				: StaticCastSharedRef<SWidget>(SNullWidget::NullWidget))
+		];
 	}
 
 	TSharedRef<SHorizontalBox> MainContent = SNew(SHorizontalBox)

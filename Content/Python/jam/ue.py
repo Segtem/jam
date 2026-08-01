@@ -166,10 +166,36 @@ def actores_nivel() -> list:
 
 # ---- puentes actor → oráculo puro (para callers que tienen actores del editor) ----
 
+def _registrar_sombra(dominio: str, comparacion) -> None:
+    """Hace observable la sombra sin permitir que gobierne todavía la operación del editor."""
+    prefijo = f"[Jam][Oracle sombra] {dominio}"
+    if comparacion.error:
+        unreal.log_error(f"{prefijo} NO EVALUÓ — {comparacion.error}")
+    elif comparacion.diferencias:
+        unreal.log_error(f"{prefijo} DIFIERE — {'; '.join(comparacion.diferencias)}")
+    else:
+        unreal.log(f"{prefijo} coincide con la referencia ✓")
+
+
+def _ejecutar_sombra(dominio: str, comparador: str, *args, **kwargs) -> None:
+    """La sombra puede fallar fuerte y visible, pero no altera el resultado que aún gobierna."""
+    try:
+        from . import oracle_shadow
+        comparacion = getattr(oracle_shadow, comparador)(*args, **kwargs)
+    except Exception as exc:  # noqa: BLE001 — frontera de rollback del modo sombra
+        unreal.log_error(
+            f"[Jam][Oracle sombra] {dominio} NO ARRANCÓ — {type(exc).__name__}: {exc}")
+        return
+    _registrar_sombra(dominio, comparacion)
+
+
 def placement(actor, otros) -> dict:
     from . import oracle_placement
+    sujeto = pieza(actor)
     otras = piezas([o for o in otros if o != actor])
-    return oracle_placement.verificar(pieza(actor), otras)
+    referencia = oracle_placement.verificar(sujeto, otras)
+    _ejecutar_sombra("placement", "comparar_placement", sujeto, otras, referencia)
+    return referencia
 
 
 def placement_texto(actor, otros) -> str:
@@ -223,17 +249,36 @@ def scatter(actores, centro, semi, cantidad, **kw) -> dict:
 
 def snap_grilla_texto(actor, grilla=100.0, **kw) -> str:
     from . import oracle_snap
-    return oracle_snap.texto_grilla(pieza(actor), grilla, **kw)
+    sujeto = pieza(actor)
+    referencia = oracle_snap.verificar_grilla(sujeto, grilla, **kw)
+    _ejecutar_sombra("snap", "comparar_snap", sujeto, referencia, grilla=grilla, **kw)
+    return oracle_snap.texto_grilla(sujeto, grilla, **kw)
 
 
 def snap_grilla(actor, grilla=100.0, **kw) -> dict:
     from . import oracle_snap
-    return oracle_snap.verificar_grilla(pieza(actor), grilla, **kw)
+    sujeto = pieza(actor)
+    referencia = oracle_snap.verificar_grilla(sujeto, grilla, **kw)
+    _ejecutar_sombra("snap", "comparar_snap", sujeto, referencia, grilla=grilla, **kw)
+    return referencia
 
 
 def snap_ras_texto(actor, objetivo, eje="x", **kw) -> str:
     from . import oracle_snap
-    return oracle_snap.texto_ras(pieza(actor), pieza(objetivo), eje, **kw)
+    sujeto, meta = pieza(actor), pieza(objetivo)
+    referencia = oracle_snap.verificar_ras(sujeto, meta, eje, **kw)
+    _ejecutar_sombra(
+        "snap.al_ras", "comparar_al_ras", sujeto, meta, eje, referencia, **kw)
+    return oracle_snap.texto_ras(sujeto, meta, eje, **kw)
+
+
+def snap_ras(actor, objetivo, eje="x", **kw) -> dict:
+    from . import oracle_snap
+    sujeto, meta = pieza(actor), pieza(objetivo)
+    referencia = oracle_snap.verificar_ras(sujeto, meta, eje, **kw)
+    _ejecutar_sombra(
+        "snap.al_ras", "comparar_al_ras", sujeto, meta, eje, referencia, **kw)
+    return referencia
 
 
 def physics_texto(actor, soportes=None, **kw) -> str:

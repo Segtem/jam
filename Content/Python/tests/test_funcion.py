@@ -8,6 +8,7 @@ no la imagen — los ids cambian a propósito y no son parte del contrato.
 from __future__ import annotations
 
 import json
+from pathlib import Path
 import sys
 import types
 import unittest
@@ -18,7 +19,7 @@ _unreal_fake = sys.modules.setdefault("unreal", types.ModuleType("unreal"))
 if not hasattr(_unreal_fake, "TopLevelAssetPath"):
     _unreal_fake.TopLevelAssetPath = lambda package, name: (package, name)
 
-from jam.funcion import FuncionError, expandir, firma
+from jam.funcion import FuncionError, colapsar, expandir, firma, herramientas
 from jam.graph import JamGraph, compilar
 
 
@@ -96,6 +97,111 @@ class FirmaTests(unittest.TestCase):
 
         with self.assertRaises(FuncionError):
             firma(c)
+
+    def test_el_spec_de_una_funcion_conserva_todos_los_pines_y_su_orden(self) -> None:
+        c = JamGraph()
+        c.add("input", {"name": "abajo", "type": "M"}, nid="a", y=100.0)
+        c.add("input", {"name": "arriba", "type": "P"}, nid="b", y=0.0)
+        c.add("output", {"name": "uno", "type": "M"}, nid="s1", y=0.0)
+        c.add("output", {"name": "dos", "type": "A"}, nid="s2", y=100.0)
+
+        tool = herramientas({"doble": c})[-1]
+
+        self.assertEqual(tool["verbo"], "fn:doble")
+        self.assertEqual(tool["inputs"], [
+            {"name": "arriba", "tipo": "P"}, {"name": "abajo", "tipo": "M"}])
+        self.assertEqual(tool["outputs"], [
+            {"name": "uno", "tipo": "M"}, {"name": "dos", "tipo": "A"}])
+
+
+class ColapsarTests(unittest.TestCase):
+    def _grafo(self) -> JamGraph:
+        g = JamGraph()
+        g.add("mesh_cylinder", {"radius": 30.0}, nid="cil", x=0, y=20)
+        g.add("mesh_transform", {"escala": 2.0}, nid="t1", x=200, y=20)
+        g.add("mesh_normals", {}, nid="n1", x=400, y=20)
+        g.add("mesh_to_static", {"name": "Muro"}, nid="fin", x=600, y=20)
+        g.connect("cil", "t1")
+        g.connect("t1", "n1")
+        g.connect("n1", "fin")
+        return g
+
+    def test_colapsar_recablea_ambos_bordes_y_expandir_recupera_el_plan(self) -> None:
+        original = self._grafo()
+
+        padre, cuerpo = colapsar(original, {"t1", "n1"}, "preparar", registro=REGISTRY,
+                                 biblio={})
+
+        self.assertEqual(firma(cuerpo), {
+            "entradas": [{"name": "in", "tipo": "M"}],
+            "salidas": [{"name": "salida", "tipo": "M"}],
+        })
+        self.assertIn(("cil", "out", "f1", "in"), padre.edges)
+        self.assertIn(("f1", "salida", "fin", "in"), padre.edges)
+        self.assertEqual(_perfil(expandir(padre, {"preparar": cuerpo})), _perfil(original))
+
+    def test_el_fanout_entrante_se_vuelve_un_solo_pin(self) -> None:
+        g = self._grafo()
+        g.add("mesh_normals", {}, nid="n2", x=400, y=100)
+        g.connect("cil", "n2")
+
+        padre, cuerpo = colapsar(g, {"t1", "n1", "n2"}, "rama", registro=REGISTRY, biblio={})
+
+        self.assertEqual(len(firma(cuerpo)["entradas"]), 1)
+        self.assertEqual(len([e for e in padre.edges if e[2] == "f1"]), 1)
+        entrada = next(n for n in cuerpo.nodes.values() if n["verb"] == "input")
+        bid = next(nid for nid, n in cuerpo.nodes.items() if n is entrada)
+        self.assertEqual(len([e for e in cuerpo.edges if e[0] == bid]), 2)
+
+    def test_seleccion_vacia_no_es_una_funcion(self) -> None:
+        with self.assertRaises(FuncionError):
+            colapsar(self._grafo(), set(), "nada", registro=REGISTRY, biblio={})
+
+    def test_el_borde_de_api_guarda_el_cuerpo_y_devuelve_tool_mas_padre(self) -> None:
+        from jam import api, funcion, preset
+        g = self._grafo()
+        with mock.patch.object(funcion, "biblioteca", return_value={}), \
+             mock.patch.object(preset, "guardar", return_value="/tmp/preparar.json"):
+            r = json.loads(api.collapse_function("preparar", g.to_json(), '["t1", "n1"]'))
+
+        self.assertTrue(r["ok"], r["report"])
+        self.assertEqual(r["tool"]["verbo"], "fn:preparar")
+        self.assertEqual(r["tool"]["inputs"][0]["name"], "in")
+        self.assertEqual(r["tool"]["outputs"][0]["name"], "salida")
+        self.assertEqual(r["graph"]["nodes"]["f1"]["verb"], "fn:preparar")
+
+
+class SlateContratoTests(unittest.TestCase):
+    """Las reglas forzosamente repetidas en Slate quedan atadas al contrato del cerebro."""
+
+    RAIZ = Path(__file__).resolve().parents[3]
+
+    def test_slate_lee_pines_nombrados_y_no_aplana_la_firma_a_in_out(self) -> None:
+        modulo = (self.RAIZ / "Source/JamEditor/Private/JamEditorModule.cpp").read_text()
+        editor = (self.RAIZ / "Source/JamEditor/Private/SJamGraphEditor.cpp").read_text()
+        nodo = (self.RAIZ / "Source/JamEditor/Private/SJamGraphNode.cpp").read_text()
+
+        self.assertIn('LeerPines(TEXT("inputs"), T.InputPins)', modulo)
+        self.assertIn('LeerPines(TEXT("outputs"), T.OutputPins)', modulo)
+        self.assertIn('FString::Join(Entradas, TEXT(", "))', editor)
+        self.assertIn("OutputPinIndex(E.From, E.FromPin)", editor)
+        self.assertIn("OnOutputClickedDelegate.ExecuteIfBound(Nombre)", nodo)
+        # `in`/`out` son nombres legales de firma: la búsqueda dinámica tiene que ganarles a los
+        # pines clásicos del header, que en una función están vacíos.
+        self.assertLess(editor.index("T->OutputPins.FindByPredicate"),
+                        editor.index('if (Pin == TEXT("out")) { return T->OutName; }'))
+        self.assertLess(editor.index("T->InputPins.FindByPredicate"),
+                        editor.index('if (Pin == TEXT("in"))'))
+
+    def test_ctrl_g_pasa_por_el_borde_publico_y_no_colapsa_en_cpp(self) -> None:
+        modulo = (self.RAIZ / "Source/JamEditor/Private/JamEditorModule.cpp").read_text()
+        editor = (self.RAIZ / "Source/JamEditor/Private/SJamGraphEditor.cpp").read_text()
+
+        self.assertIn("_a.collapse_function", modulo)
+        self.assertIn('ResponseMarker(TEXT("JAMCOLLAPSE:"))', modulo)
+        self.assertIn("Raw.Find(ResponseMarker, ESearchCase::CaseSensitive, ESearchDir::FromEnd)", modulo)
+        self.assertIn("EKeys::G && InKeyEvent.IsControlDown()", editor)
+        self.assertIn("OnCollapseFunction.Execute(BuildJson(), SelectedJson)", editor)
 
 
 class ExpansionTests(unittest.TestCase):

@@ -1,0 +1,8 @@
+[
+  "medida",
+  "snap.al_ras",
+  ["desde", ["unir", ["de", "pieza", "a"], ["de", "objetivo", "b"]]],
+  ["resumen", "max", ["desvio_de_contacto", ["hecho", "a"], ["hecho", "b"]]],
+  ["umbral", "<=", 1.0, "hasta 1 cm se considera contacto: evita rechazar ruido de bounds sin aceptar una junta visible"],
+  ["alcance", "contacto de las caras sobre el eje solicitado. NO ve si las piezas comparten superficie en los otros dos ejes, ni la geometría real dentro del AABB"]
+]

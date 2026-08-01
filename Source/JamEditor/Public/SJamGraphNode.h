@@ -34,6 +34,14 @@ struct FJamNodeParam
 		  DataType(InDataType), PinColor(InPinColor) {}
 };
 
+/** Pin nombrado de una función: no es un parámetro editable, es parte de su firma. */
+struct FJamNodePin
+{
+	FString Name;
+	FString DataType;
+	FLinearColor Color = FLinearColor(0.28f, 0.30f, 0.34f, 1.0f);
+};
+
 DECLARE_DELEGATE_OneParam(FOnNodeDragDelta, const FVector2D&);
 /** Clic en un pin de ENTRADA: pasa el nombre del pin — «in» = stream, o el nombre de un parámetro
  *  (count, spacing…). Cada parámetro es un pin propio, como en Grasshopper. */
@@ -66,6 +74,9 @@ public:
 		SLATE_ARGUMENT(FString, OutputLabel)
 		/** (nombre, default) por cada param. */
 		SLATE_ARGUMENT(TArray<FJamNodeParam>, Params)
+		/** Firma dinámica. Se dibuja en filas enfrentadas, sin campos de valor. */
+		SLATE_ARGUMENT(TArray<FJamNodePin>, InputPins)
+		SLATE_ARGUMENT(TArray<FJamNodePin>, OutputPins)
 		/** false en los nodos FUENTE (asset, create_spline): no reciben nada, van sin pin de entrada
 		 *  — la convención de Grasshopper para componentes sin inputs. */
 		SLATE_ARGUMENT(bool, HasInput)
@@ -74,7 +85,7 @@ public:
 		    no como un bool que habría que ir sincronizando nodo por nodo. */
 		SLATE_ATTRIBUTE(bool, IsSelected)
 		SLATE_EVENT(FOnNodeDragDelta, OnDragDelta)
-		SLATE_EVENT(FSimpleDelegate, OnOutputClicked)
+		SLATE_EVENT(FOnPinClicked, OnOutputClicked)
 		/** Recibe el nombre del pin: «in» (stream) o el de un parámetro. */
 		SLATE_EVENT(FOnPinClicked, OnInputClicked)
 		SLATE_EVENT(FSimpleDelegate, OnDeleteClicked)
@@ -174,7 +185,7 @@ private:
 	TSharedPtr<FSlateVectorImageBrush> IconBrush;
 	FOnNodeDragDelta OnDragDelta;
 	FOnPinClicked OnInputClickedDelegate;
-	FSimpleDelegate OnOutputClickedDelegate;
+	FOnPinClicked OnOutputClickedDelegate;
 	FSimpleDelegate OnDeleteClickedDelegate;
 	FOnNodeClicked OnClickedDelegate;
 	FSimpleDelegate OnDeleteSelectionDelegate;

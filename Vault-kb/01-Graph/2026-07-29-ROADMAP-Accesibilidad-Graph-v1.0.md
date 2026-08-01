@@ -73,7 +73,7 @@ no se puede escribir el test, el ítem está mal planteado, no incompleto.
 | Foco (`F`) / encuadre (`Inicio`) | ✅ **Fase 2, parte** | `Encuadrar` |
 | **Captura del grafo entero** | ❌ | — |
 | **Comentarios / grupos** | ❌ | — |
-| **Funciones (subgrafo con firma)** | ✅ **Fase 5, cerebro** — `input`/`output`, `fn:<nombre>`, expansión inline. Falta el ribbon y `Ctrl+G` | `jam/funcion.py` |
+| **Funciones (subgrafo con firma)** | ✅ **Fase 5 completa** — `input`/`output`, `fn:<nombre>`, expansión inline, ribbon y `Ctrl+G` | `jam/funcion.py` + Slate |
 | Docking del panel | ✅ **Fase 3** — los tres paneles son nomad tabs | `RegisterTabs` |
 
 Dos hallazgos que valen más que la tabla:
@@ -262,7 +262,7 @@ JSON, sin Slate y sin editor. Más pobre visualmente, pero:
 Van las dos: `DrawWidget` para «mostrale esto a alguien», el renderer puro para «documentá y
 verificá esto». La segunda es la que sólo Jam puede tener.
 
-### Fase 5 — Funciones: el Compound con firma — ✅ CEREBRO HECHO 2026-07-29
+### Fase 5 — Funciones: el Compound con firma — ✅ COMPLETA 2026-07-30
 
 Hoy un `preset kind=flow` guarda un grafo entero y lo aplica (`jam/preset.py`). Es el Cluster de
 Grasshopper, el HDA de Houdini, el «Collapse to Function» de Blueprint. Lo que le falta es lo mismo

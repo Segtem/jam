@@ -80,7 +80,7 @@ static const TMap<FString, FString>& JamIconMap()
 			return Loaded;
 		}
 
-		for (const TPair<FString, TSharedPtr<FJsonValue>>& Entry : Root->Values)
+		for (const TPair<FString, TSharedPtr<FJsonValue>> Entry : Root->Values)
 		{
 			FString IconName;
 			if (Entry.Value.IsValid() && Entry.Value->TryGetString(IconName) && !IconName.IsEmpty())
@@ -457,6 +457,7 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 	OnSaveGraph = InArgs._OnSaveGraph;
 	OnInspect = InArgs._OnInspect;
 	OnLayout = InArgs._OnLayout;
+	OnCollapseFunction = InArgs._OnCollapseFunction;
 	ActiveAsset = InArgs._ActiveAsset;
 	OnOpenContent = InArgs._OnOpenContent;
 
@@ -1009,7 +1010,8 @@ FString SJamGraphEditor::VerbCode(const FString& Verb)
 
 FString SJamGraphEditor::IconPathForVerb(const FString& Verb)
 {
-	const FString* IconName = JamIconMap().Find(Verb);
+	const FString FuncionIcon(TEXT("jam-function-call"));
+	const FString* IconName = Verb.StartsWith(TEXT("fn:")) ? &FuncionIcon : JamIconMap().Find(Verb);
 	const TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(TEXT("Jam"));
 	if (IconName == nullptr || !Plugin.IsValid())
 	{
@@ -1111,9 +1113,27 @@ void SJamGraphEditor::RebuildTabContent()
 				const FString Verb = T.Verb;
 				// Sólo el icono; el nombre y la FIRMA DE TIPOS van en el tooltip. «S → M» dice más
 				// que cualquier nombre a la hora de decidir si un verbo sirve donde estás parado.
-				const FString Firma = T.bSource
-					? FString::Printf(TEXT("\u2192 %s"), *T.OutName)
-					: FString::Printf(TEXT("%s \u2192 %s"), *T.InName, *T.OutName);
+				FString Firma;
+				if (T.InputPins.Num() > 0 || T.OutputPins.Num() > 0)
+				{
+					TArray<FString> Entradas, Salidas;
+					for (const FJamTool::FPin& P : T.InputPins)
+					{
+						Entradas.Add(FString::Printf(TEXT("%s:%s"), *P.Name, *P.Type));
+					}
+					for (const FJamTool::FPin& P : T.OutputPins)
+					{
+						Salidas.Add(FString::Printf(TEXT("%s:%s"), *P.Name, *P.Type));
+					}
+					Firma = FString::Join(Entradas, TEXT(", ")) + TEXT(" \u2192 ")
+						+ FString::Join(Salidas, TEXT(", "));
+				}
+				else
+				{
+					Firma = T.bSource
+						? FString::Printf(TEXT("\u2192 %s"), *T.OutName)
+						: FString::Printf(TEXT("%s \u2192 %s"), *T.InName, *T.OutName);
+				}
 				ColumnBox->AddSlot().AutoHeight().Padding(1.0f)
 				[
 					SNew(SJamVerbTile)
@@ -1376,10 +1396,24 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At,
 		Node.PinNames.Add(P.Name);
 	}
 
+	TArray<FJamNodePin> NamedInputs;
+	for (const FJamTool::FPin& P : T->InputPins)
+	{
+		NamedInputs.Add(FJamNodePin{P.Name, P.Type, DataColor(P.Type)});
+		Node.PinNames.Add(P.Name);   // después de Params: ése es también su índice visual de fila
+	}
+	TArray<FJamNodePin> NamedOutputs;
+	for (const FJamTool::FPin& P : T->OutputPins)
+	{
+		NamedOutputs.Add(FJamNodePin{P.Name, P.Type, DataColor(P.Type)});
+		Node.OutputPinNames.Add(P.Name);
+	}
+
 	const FString Id = Node.Id;
 	// Nodos FUENTE (producen el dato, no lo reciben): sin pin de entrada, convención de Grasshopper.
 	// El flag viene del spec (data-driven): asset/pick/create_spline y las fuentes de flow.
 	const bool bHasInput = !T->bSource && !bFilaEsLaEntrada;
+	const bool bHasHeaderInput = T->InputPins.Num() == 0 && bHasInput;
 
 	TSharedRef<SJamGraphNode> Widget = SNew(SJamGraphNode)
 		.Verb(Verb)
@@ -1391,7 +1425,9 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At,
 		.InputLabel(DataName(T->InName))
 		.OutputLabel(DataName(T->OutName))
 		.Params(Params)
-		.HasInput(bHasInput)
+		.InputPins(NamedInputs)
+		.OutputPins(NamedOutputs)
+		.HasInput(bHasHeaderInput)
 		.IsSelected_Lambda([this, Id]() { return SelectedNodeIds.Contains(Id); })
 		.OnDragDelta_Lambda([this, Id](const FVector2D& D)
 		{
@@ -1407,7 +1443,7 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At,
 				N->Pos += D / Zoom;
 			}
 		})
-		.OnOutputClicked_Lambda([this, Id]() { OnPinClicked(Id, TEXT("out"), true); })
+		.OnOutputClicked_Lambda([this, Id](const FString& Pin) { OnPinClicked(Id, Pin, true); })
 		.OnInputClicked_Lambda([this, Id](const FString& Pin) { OnPinClicked(Id, Pin, false); })
 		.OnClicked_Lambda([this, Id](bool bShift, bool bCtrl) { ClickNode(Id, bShift, bCtrl); })
 		.OnDragEnd_Lambda([this]() { Marcar(); })
@@ -1421,7 +1457,8 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At,
 
 	Node.Widget = Widget;
 
-	const float Height = SJamGraphNode::NodeHeight(Params.Num());
+	const float Height = SJamGraphNode::NodeHeight(
+		Params.Num() + FMath::Max(NamedInputs.Num(), NamedOutputs.Num()));
 	Node.Height = Height;
 	Canvas->AddSlot()
 		.Position(TAttribute<FVector2D>::CreateLambda([this, Id]()
@@ -1640,6 +1677,94 @@ void SJamGraphEditor::Duplicar()
 	if (PegarJson(BuildJson(&SelectedNodeIds), /*bDesplazar*/ true)) { Marcar(); }
 }
 
+void SJamGraphEditor::ColapsarSeleccion()
+{
+	if (SelectedNodeIds.Num() == 0 || !OnCollapseFunction.IsBound()) { return; }
+
+	TArray<TSharedPtr<FJsonValue>> Elegidos;
+	for (const FString& Id : SelectedNodeIds)
+	{
+		Elegidos.Add(MakeShared<FJsonValueString>(Id));
+	}
+	FString SelectedJson;
+	const TSharedRef<TJsonWriter<>> SelectedWriter = TJsonWriterFactory<>::Create(&SelectedJson);
+	FJsonSerializer::Serialize(Elegidos, SelectedWriter);
+
+	const FString Res = OnCollapseFunction.Execute(BuildJson(), SelectedJson);
+	TSharedPtr<FJsonObject> Root;
+	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Res);
+	if (!FJsonSerializer::Deserialize(Reader, Root) || !Root.IsValid())
+	{
+		if (Output.IsValid()) { Output->SetText(FText::FromString(TEXT("FUNCIÓN ✗ — respuesta ilegible: ") + Res)); }
+		return;
+	}
+	FString Report;
+	Root->TryGetStringField(TEXT("report"), Report);
+	bool bOk = false;
+	if (!Root->TryGetBoolField(TEXT("ok"), bOk) || !bOk)
+	{
+		if (Output.IsValid()) { Output->SetText(FText::FromString(Report)); }
+		return;
+	}
+
+	// El preset acaba de nacer y el canvas ya estaba construido: instalar su ficha antes de cargar
+	// el padre, porque `LoadGraphJson` rechaza correctamente cualquier verbo que no conoce.
+	const TSharedPtr<FJsonObject>* ToolObj = nullptr;
+	if (!Root->TryGetObjectField(TEXT("tool"), ToolObj) || ToolObj == nullptr)
+	{
+		if (Output.IsValid()) { Output->SetText(LOCTEXT("CollapseNoTool", "FUNCIÓN ✗ — falta el spec de la instancia")); }
+		return;
+	}
+	FJamTool Tool;
+	(*ToolObj)->TryGetStringField(TEXT("verbo"), Tool.Verb);
+	(*ToolObj)->TryGetStringField(TEXT("cat"), Tool.Cat);
+	(*ToolObj)->TryGetStringField(TEXT("grupo"), Tool.Group);
+	(*ToolObj)->TryGetStringField(TEXT("doc"), Tool.Doc);
+	(*ToolObj)->TryGetBoolField(TEXT("source"), Tool.bSource);
+	double Arity = Tool.bSource ? 0.0 : 1.0;
+	(*ToolObj)->TryGetNumberField(TEXT("aridad"), Arity);
+	Tool.Arity = static_cast<int32>(Arity);
+	auto LeerPines = [&ToolObj](const TCHAR* Campo, TArray<FJamTool::FPin>& Destino)
+	{
+		const TArray<TSharedPtr<FJsonValue>>* Pines = nullptr;
+		if (!(*ToolObj)->TryGetArrayField(Campo, Pines) || Pines == nullptr) { return; }
+		for (const TSharedPtr<FJsonValue>& V : *Pines)
+		{
+			const TSharedPtr<FJsonObject> P = V.IsValid() ? V->AsObject() : nullptr;
+			FJamTool::FPin Pin;
+			if (P.IsValid() && P->TryGetStringField(TEXT("name"), Pin.Name)
+				&& P->TryGetStringField(TEXT("tipo"), Pin.Type))
+			{
+				Destino.Add(Pin);
+			}
+		}
+	};
+	LeerPines(TEXT("inputs"), Tool.InputPins);
+	LeerPines(TEXT("outputs"), Tool.OutputPins);
+	if (Tool.Verb.IsEmpty())
+	{
+		if (Output.IsValid()) { Output->SetText(LOCTEXT("CollapseBadTool", "FUNCIÓN ✗ — spec sin verbo")); }
+		return;
+	}
+	Tools.RemoveAll([&Tool](const FJamTool& T) { return T.Verb == Tool.Verb; });
+	Tools.Add(MoveTemp(Tool));
+	if (ActiveTab == TEXT("Funciones")) { RebuildTabContent(); }
+
+	const TSharedPtr<FJsonObject>* GraphObj = nullptr;
+	if (!Root->TryGetObjectField(TEXT("graph"), GraphObj) || GraphObj == nullptr)
+	{
+		if (Output.IsValid()) { Output->SetText(LOCTEXT("CollapseNoGraph", "FUNCIÓN ✗ — falta el grafo padre")); }
+		return;
+	}
+	FString GraphJson;
+	const TSharedRef<TJsonWriter<>> GraphWriter = TJsonWriterFactory<>::Create(&GraphJson);
+	FJsonSerializer::Serialize(GraphObj->ToSharedRef(), GraphWriter);
+	if (LoadGraphJson(GraphJson) && Output.IsValid())
+	{
+		Output->SetText(FText::FromString(Report));
+	}
+}
+
 bool SJamGraphEditor::PegarJson(const FString& Json, bool bDesplazar)
 {
 	TSharedPtr<FJsonObject> Root;
@@ -1667,7 +1792,7 @@ bool SJamGraphEditor::PegarJson(const FString& Json, bool bDesplazar)
 	TGuardValue<bool> Callado(bSinHistorial, true);
 	TMap<FString, FString> IdMap;
 	TSet<FString> Pegados;
-	for (const TPair<FString, TSharedPtr<FJsonValue>>& KV : (*NodesObj)->Values)
+	for (const TPair<FString, TSharedPtr<FJsonValue>> KV : (*NodesObj)->Values)
 	{
 		const TSharedPtr<FJsonObject> NO = KV.Value.IsValid() ? KV.Value->AsObject() : nullptr;
 		FString Verb;
@@ -1692,7 +1817,7 @@ bool SJamGraphEditor::PegarJson(const FString& Json, bool bDesplazar)
 			const TSharedPtr<FJsonObject>* PO = nullptr;
 			if (NO->TryGetObjectField(TEXT("params"), PO) && PO != nullptr)
 			{
-				for (const TPair<FString, TSharedPtr<FJsonValue>>& PV : (*PO)->Values)
+				for (const TPair<FString, TSharedPtr<FJsonValue>> PV : (*PO)->Values)
 				{
 					FString Value;
 					if (PV.Value.IsValid() && PV.Value->TryGetString(Value))
@@ -1913,7 +2038,7 @@ void SJamGraphEditor::AcomodarSeleccion(const FString& Accion)
 	{
 		return;
 	}
-	for (const TPair<FString, TSharedPtr<FJsonValue>>& KV : (*Pos)->Values)
+	for (const TPair<FString, TSharedPtr<FJsonValue>> KV : (*Pos)->Values)
 	{
 		const TArray<TSharedPtr<FJsonValue>>* XY = nullptr;
 		if (!KV.Value->TryGetArray(XY) || XY == nullptr || XY->Num() != 2) { continue; }
@@ -1938,15 +2063,31 @@ int32 SJamGraphEditor::PinIndex(const FString& Id, const FString& Pin) const
 	return N->PinNames.IndexOfByKey(Pin);
 }
 
+int32 SJamGraphEditor::OutputPinIndex(const FString& Id, const FString& Pin) const
+{
+	const FGNode* N = Nodes.FindByPredicate([&Id](const FGNode& X) { return X.Id == Id; });
+	if (N == nullptr) { return -1; }
+	const int32 FirmaIndex = N->OutputPinNames.IndexOfByKey(Pin);
+	if (FirmaIndex == INDEX_NONE) { return Pin == TEXT("out") ? -1 : INDEX_NONE; }
+	// Las filas de firma empiezan después de todos los params/asset. `PinNames` contiene esos params
+	// y luego las entradas nombradas; restarlas recupera exactamente el offset visual.
+	const FJamTool* T = FindTool(N->Verb);
+	const int32 EntradasDeFirma = T ? T->InputPins.Num() : 0;
+	return N->PinNames.Num() - EntradasDeFirma + FirmaIndex;
+}
+
 FString SJamGraphEditor::OutputDataTypeFor(const FString& NodeId, const FString& Pin) const
 {
-	if (Pin != TEXT("out"))
-	{
-		return FString();
-	}
 	const FGNode* N = Nodes.FindByPredicate([&NodeId](const FGNode& X) { return X.Id == NodeId; });
 	const FJamTool* T = N ? FindTool(N->Verb) : nullptr;
-	return T ? T->OutName : FString();
+	if (T == nullptr) { return FString(); }
+	if (const FJamTool::FPin* P = T->OutputPins.FindByPredicate(
+		[&Pin](const FJamTool::FPin& X) { return X.Name == Pin; }))
+	{
+		return P->Type;
+	}
+	if (Pin == TEXT("out")) { return T->OutName; }
+	return FString();
 }
 
 FString SJamGraphEditor::InputDataTypeFor(const FString& NodeId, const FString& Pin) const
@@ -1956,6 +2097,11 @@ FString SJamGraphEditor::InputDataTypeFor(const FString& NodeId, const FString& 
 	if (N == nullptr || T == nullptr)
 	{
 		return FString();
+	}
+	if (const FJamTool::FPin* P = T->InputPins.FindByPredicate(
+		[&Pin](const FJamTool::FPin& X) { return X.Name == Pin; }))
+	{
+		return P->Type;
 	}
 	if (Pin == TEXT("in"))
 	{
@@ -1988,7 +2134,7 @@ static bool JamTiposCompatibles(const FString& OutType, const FString& InType)
 	{
 		return false;
 	}
-	return InType == TEXT("*") || OutType == InType;
+	return InType == TEXT("*") || OutType == TEXT("*") || OutType == InType;
 }
 
 bool SJamGraphEditor::CanConnect(const FString& From, const FString& FromPin, const FString& To,
@@ -2190,11 +2336,9 @@ FString SJamGraphEditor::DataName(const FString& Type)
 	return Type;
 }
 
-FLinearColor SJamGraphEditor::WireColorFor(const FString& NodeId) const
+FLinearColor SJamGraphEditor::WireColorFor(const FString& NodeId, const FString& Pin) const
 {
-	const FGNode* N = Nodes.FindByPredicate([&NodeId](const FGNode& X) { return X.Id == NodeId; });
-	const FJamTool* T = N ? FindTool(N->Verb) : nullptr;
-	return DataColor(T ? T->OutName : FString());
+	return DataColor(OutputDataTypeFor(NodeId, Pin));
 }
 
 TArray<SJamGraphEditor::FJamWire> SJamGraphEditor::GetWireEndpoints() const
@@ -2210,12 +2354,12 @@ TArray<SJamGraphEditor::FJamWire> SJamGraphEditor::GetWireEndpoints() const
 			// La capa de wires NO está bajo el render transform del canvas → se aplica acá a mano.
 			// Salida por el centro del pin «out» (header, derecha); entrada por el pin exacto (por su
 			// índice de parámetro), como los grips por parámetro de Grasshopper.
-			const float AY = SJamGraphNode::PinLocalY(-1);
+			const float AY = SJamGraphNode::PinLocalY(OutputPinIndex(E.From, E.FromPin));
 			const float BY = SJamGraphNode::PinLocalY(PinIndex(E.To, E.ToPin));
 			FJamWire W;
 			W.A = (FVector2D(A->Pos.X + NodeWidth - Half, A->Pos.Y + AY) + PanOffset) * Zoom;
 			W.B = (FVector2D(B->Pos.X + Half, B->Pos.Y + BY) + PanOffset) * Zoom;
-			W.Color = WireColorFor(E.From);   // color = tipo del dato que SALE del origen
+			W.Color = WireColorFor(E.From, E.FromPin);   // color = tipo del dato que SALE del origen
 			Out.Add(W);
 		}
 	}
@@ -2234,10 +2378,10 @@ bool SJamGraphEditor::GetPendingWire(FVector2D& OutFrom, FVector2D& OutTo, FLine
 		return false;
 	}
 	const float Half = SJamGraphNode::PinColW * 0.5f;
-	const float AY = SJamGraphNode::PinLocalY(-1);
+	const float AY = SJamGraphNode::PinLocalY(OutputPinIndex(PendingSource, PendingSourcePin));
 	OutFrom = (FVector2D(A->Pos.X + NodeWidth - Half, A->Pos.Y + AY) + PanOffset) * Zoom;
 	OutTo = LastMousePos;
-	OutColor = WireColorFor(PendingSource);
+	OutColor = WireColorFor(PendingSource, PendingSourcePin);
 	return true;
 }
 
@@ -2566,6 +2710,11 @@ FReply SJamGraphEditor::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& 
 		Duplicar();
 		return FReply::Handled();
 	}
+	if (Tecla == EKeys::G && InKeyEvent.IsControlDown())
+	{
+		ColapsarSeleccion();
+		return FReply::Handled();
+	}
 	if (Tecla == EKeys::F && !InKeyEvent.IsControlDown())
 	{
 		Encuadrar(/*bSoloSeleccion*/ true);
@@ -2715,6 +2864,9 @@ void SJamGraphEditor::FillEditMenu(FMenuBuilder& MB)
 		MB.AddMenuEntry(LOCTEXT("Duplicate", "Duplicar\tCtrl+D"),
 			LOCTEXT("DuplicateTip", "Copia y pega sin tocar el portapapeles"), FSlateIcon(),
 			FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::Duplicar), HayAlgo));
+		MB.AddMenuEntry(LOCTEXT("CollapseFunction", "Colapsar a función\tCtrl+G"),
+			LOCTEXT("CollapseFunctionTip", "Guarda lo elegido como función y lo reemplaza por una instancia"),
+			FSlateIcon(), FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::ColapsarSeleccion), HayAlgo));
 	}
 	MB.EndSection();
 
@@ -2873,7 +3025,7 @@ bool SJamGraphEditor::LoadGraphJson(const FString& Json)
 	{
 		return Fail(TEXT("el diagrama no contiene un objeto 'nodes'; el grafo actual no se modificó."));
 	}
-	for (const TPair<FString, TSharedPtr<FJsonValue>>& KV : (*NodesObj)->Values)
+	for (const TPair<FString, TSharedPtr<FJsonValue>> KV : (*NodesObj)->Values)
 	{
 		const TSharedPtr<FJsonObject> NO = KV.Value.IsValid() ? KV.Value->AsObject() : nullptr;
 		if (!NO.IsValid())
@@ -2908,7 +3060,7 @@ bool SJamGraphEditor::LoadGraphJson(const FString& Json)
 		}
 		if (ParamsObj != nullptr)
 		{
-			for (const TPair<FString, TSharedPtr<FJsonValue>>& PV : (*ParamsObj)->Values)
+			for (const TPair<FString, TSharedPtr<FJsonValue>> PV : (*ParamsObj)->Values)
 			{
 				const bool bKnownParam = (PV.Key == TEXT("asset") && Tool->bAssetRow)
 					|| Tool->Params.ContainsByPredicate(
@@ -2979,9 +3131,26 @@ bool SJamGraphEditor::LoadGraphJson(const FString& Json)
 			}
 			const FJamTool* FromTool = FindTool(LoadedNodes[*FromIdx].Verb);
 			const FJamTool* ToTool = FindTool(LoadedNodes[*ToIdx].Verb);
-			const FString OutType = (FromPin == TEXT("out") && FromTool) ? FromTool->OutName : FString();
+			FString OutType;
+			if (FromTool)
+			{
+				if (const FJamTool::FPin* Pin = FromTool->OutputPins.FindByPredicate(
+					[&FromPin](const FJamTool::FPin& P) { return P.Name == FromPin; }))
+				{
+					OutType = Pin->Type;
+				}
+				else if (FromPin == TEXT("out")) { OutType = FromTool->OutName; }
+			}
 			FString InType;
-			if (ToPin == TEXT("in") && ToTool && !ToTool->bSource && ToTool->Arity != 0)
+			if (ToTool)
+			{
+				if (const FJamTool::FPin* Pin = ToTool->InputPins.FindByPredicate(
+					[&ToPin](const FJamTool::FPin& P) { return P.Name == ToPin; }))
+				{
+					InType = Pin->Type;
+				}
+			}
+			if (InType.IsEmpty() && ToPin == TEXT("in") && ToTool && !ToTool->bSource && ToTool->Arity != 0)
 			{
 				InType = ToTool->InName;
 			}

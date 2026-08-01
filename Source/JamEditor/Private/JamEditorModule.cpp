@@ -174,6 +174,7 @@ TSharedRef<SDockTab> FJamEditorModule::SpawnGraphTab(const FSpawnTabArgs& /*Args
 		.OnOpenContent_Raw(this, &FJamEditorModule::OpenContentWindow)
 		.OnInspect_Raw(this, &FJamEditorModule::InspectGraphNode)
 		.OnLayout_Raw(this, &FJamEditorModule::LayoutGraphNodes)
+		.OnCollapseFunction_Raw(this, &FJamEditorModule::CollapseGraphFunction)
 		.OnSaveGraph_Raw(this, &FJamEditorModule::SaveGraphAsPreset);
 	GraphWidget = Canvas;
 
@@ -211,6 +212,26 @@ FString FJamEditorModule::SaveGraphAsPreset(const FString& Json)
 	const FString Out = ExecPythonCapture(Stmt);
 	UE_LOG(LogTemp, Display, TEXT("[JamEditor] %s"), *Out);
 	return Out;
+}
+
+FString FJamEditorModule::CollapseGraphFunction(const FString& Json, const FString& SelectedJson)
+{
+	static const FString ResponseMarker(TEXT("JAMCOLLAPSE:"));
+	const FDateTime Ahora = FDateTime::Now();
+	const FString Nombre = FString::Printf(TEXT("Función %s-%03d"),
+		*Ahora.ToString(TEXT("%H%M%S")), Ahora.GetMillisecond());
+	const FString Stmt = FString::Printf(
+		TEXT("import jam.api as _a; print('JAMCOLLAPSE:' + _a.collapse_function(%s, %s, %s))"),
+		*ToPyStr(Nombre), *ToPyStr(Json), *ToPyStr(SelectedJson));
+	const FString Raw = ExecPythonCapture(Stmt);
+	const int32 MarkerAt = Raw.Find(ResponseMarker, ESearchCase::CaseSensitive, ESearchDir::FromEnd);
+	if (MarkerAt == INDEX_NONE)
+	{
+		return Raw;
+	}
+	FString Response = Raw.Mid(MarkerAt + ResponseMarker.Len());
+	Response.TrimStartAndEndInline();
+	return Response;
 }
 
 FString FJamEditorModule::RunGraphJson(const FString& Json)
@@ -392,6 +413,24 @@ void FJamEditorModule::LoadSpec(bool bIncludeFlow)
 		}
 		O->TryGetStringField(TEXT("in_name"), T.InName);
 		O->TryGetStringField(TEXT("out_name"), T.OutName);
+		auto LeerPines = [&O](const TCHAR* Campo, TArray<FJamTool::FPin>& Destino)
+		{
+			const TArray<TSharedPtr<FJsonValue>>* Pines = nullptr;
+			if (!O->TryGetArrayField(Campo, Pines) || Pines == nullptr) { return; }
+			for (const TSharedPtr<FJsonValue>& PV : *Pines)
+			{
+				const TSharedPtr<FJsonObject> PO = PV.IsValid() ? PV->AsObject() : nullptr;
+				if (!PO.IsValid()) { continue; }
+				FJamTool::FPin Pin;
+				if (PO->TryGetStringField(TEXT("name"), Pin.Name)
+					&& PO->TryGetStringField(TEXT("tipo"), Pin.Type) && !Pin.Name.IsEmpty())
+				{
+					Destino.Add(Pin);
+				}
+			}
+		};
+		LeerPines(TEXT("inputs"), T.InputPins);
+		LeerPines(TEXT("outputs"), T.OutputPins);
 		const TArray<TSharedPtr<FJsonValue>>* Ps = nullptr;
 		if (O->TryGetArrayField(TEXT("params"), Ps) && Ps)
 		{
@@ -1624,7 +1663,7 @@ TMap<FString, FString> FJamEditorModule::ParamsDeNodoNuevo(const FString& Verb)
 {
 	TMap<FString, FString> Salida;
 	const FString Json = ExecPythonCapture(FString::Printf(
-		TEXT("import jam.api as a; print(a.params_de_nodo_nuevo('%s'))"), *Verb));
+		TEXT("import jam.api as a; print(a.params_de_nodo_nuevo(%s))"), *ToPyStr(Verb)));
 
 	TSharedPtr<FJsonObject> Root;
 	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Json);
@@ -1634,7 +1673,7 @@ TMap<FString, FString> FJamEditorModule::ParamsDeNodoNuevo(const FString& Verb)
 		// comodidad, no un requisito, y no puede impedir crear un nodo.
 		return Salida;
 	}
-	for (const TPair<FString, TSharedPtr<FJsonValue>>& Par : Root->Values)
+	for (const TPair<FString, TSharedPtr<FJsonValue>> Par : Root->Values)
 	{
 		FString Texto;
 		if (Par.Value.IsValid() && Par.Value->TryGetString(Texto))

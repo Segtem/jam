@@ -16,6 +16,10 @@ a 3) y las funciones con firma (fase 5, cerebro). Y después nació **`oracle`**
 `Segtem/oracle`— que es un metalenguaje de medidas para construir herramientas con un LLM. Jam pasó a
 ser su primer proyecto.
 
+Codex completó arriba de eso la **capa Slate de la Fase 5**: funciones dinámicas en el ribbon con
+pines múltiples nombrados y `Ctrl+G` para colapsar una selección. El borde y el colapso viven en
+Python puro; C++ sólo dibuja y transmite el gesto.
+
 **Leé primero** `Vault-kb/00-Proceso/2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0.md`: son
 diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 
@@ -23,16 +27,18 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 
 | Qué | Comando | Resultado |
 |---|---|---|
-| Cerebro de Jam | `cd Content/Python/tests && PYTHONPATH=$PWD/.. python -m unittest discover -s . -p "test_*.py" -q` | **489 OK**, 0.3 s |
+| Cerebro de Jam | `cd Content/Python/tests && PYTHONPATH=$PWD/.. python -m unittest discover -s . -p "test_*.py" -q` | **496 OK**, 0.3 s |
 | Vault (modo sombra) | `python tools/vault.py` | **48 docs · las dos implementaciones coinciden** |
-| Motor | `tools/experiments/verifica_ejemplos.py` headless | **8/8 tutoriales · TODO VERDE** |
+| Motor | `tools/experiments/verifica_funcion_graph.py` headless | **guardar + firma en ribbon + 2 instancias + Compile · TODO VERDE** |
 | oracle sobre sí mismo | `cd ~/Dev/oracle && python tools/aceptacion.py` | **15 rojos · 11 verdes · 3 huecos** |
 | oracle sobre Jam | `python vendor/oracle/tools/diferencial.py --proyecto medidas` | **269 veredictos, 0 desacuerdos** |
 | » mutación de medidas | `python vendor/oracle/tools/mutar.py --proyecto medidas` | **80/80 mutantes muertos** |
 | » tests de oracle | `cd ~/Dev/oracle && python -m unittest discover -s tests -t . -q` | **111 OK** |
 
-La verificación con motor es del commit `80373ea`; desde ahí no se tocó `Source/`, `Content/Python/`
-ni `oraculo/`. `relevo.py` lo comprueba solo.
+El campo `verde_editor` todavía apunta al último commit cerrado (`80373ea`). El worktree actual sí se
+compiló y pasó `verifica_funcion_graph.py`, pero **antes de cerrar** hay que commitearlo, actualizar
+ese campo al commit verificado y volver a correr `relevo.py --cerrar`; mientras tanto el rojo del
+relevo por código vivo modificado es correcto.
 
 **Un rojo conocido y deliberado:** `cd ~/Dev/oracle && python tools/mutar_codigo.py` deja **31
 mutantes vivos** de 242. Es código del núcleo que ningún test fija, y el número está a la vista a
@@ -42,59 +48,58 @@ escrita** en `equivalentes.json`. Tarda varios minutos: corré con timeout largo
 
 ## Frontera de verificación
 
-Lo de Slate quedó **cerrado** el 2026-07-29: Brian probó el editor y confirmó que todo funciona
-—marquee, historial, portapapeles, docking, alinear—. Desde entonces no se escribió nada de Slate, así
-que esa frontera sigue en pie.
+Lo anterior de Slate quedó **cerrado** el 2026-07-29: Brian confirmó marquee, historial,
+portapapeles, docking y alinear. La Fase 5 nueva compiló y pasó por Unreal headless, pero nadie ejerció
+todavía su gesto ni miró sus pines en el panel; ésa es la nueva frontera.
 
 Lo que **nadie ejerció con las manos** de este turno:
 
 | Cosa | Quién puede verificarla | Estado |
 |---|---|---|
+| `Ctrl+G` + dibujo/cableado de pines múltiples de función | Brian | ⏳ compilado y headless verde; falta gesto |
 | El paquete de estudio subido a NotebookLM | Brian | ⏳ generado, sin abrir |
 | Que el informe del modo sombra de `vault.py` se lea bien | Brian | ⏳ |
 | Todo lo demás de `oracle` | ✅ sus propias herramientas, el diferencial y la mutación | verificado |
 
 ## Para las manos de Brian
 
-**Una sola cosa, y no es urgente:** subir `~/Dev/oracle/estudio/` a NotebookLM y estudiarlo. Son 10
-documentos planos, 212 KB, generados por `python vendor/oracle/tools/estudio.py --proyecto medidas`.
-Empezá por `00-esencia.md` y `08-los-numeros.md` —diez minutos— y después `07-el-diario.md`, que es el
-más revelador porque muestra el proceso y no el resultado.
+**Funciones del Graph — cinco gestos, diez minutos:**
 
-Nada en el editor está esperando manos. Si Codex escribe Slate este turno, **tiene que volver a
-listarlo acá**: máximo seis gestos, quince minutos. Es el mecanismo que funcionó — cuatro tandas
-pidiendo «probá cuando puedas» no habían movido nada.
+1. Abrí Jam ▸ Graph y armá una cadena de cuatro nodos Mesh.
+2. Seleccioná los dos del medio y apretá `Ctrl+G`: deben quedar reemplazados por una función cableada.
+3. Abrí el tab **Funciones**: la ficha nueva debe instanciar un nodo con `in` y `salida` legibles.
+4. Agregá una segunda instancia en serie y tendé sus dos cables por esos pines.
+5. Compile: tiene que dar verde y listar nodos `f1__…`/`f2__…` (el nombre exacto del primer id puede variar).
+
+En el primer intento manual, `Ctrl+G` sí guardó el preset pero Slate mostró «respuesta ilegible»:
+`preset.guardar` había escrito un log antes del JSON y `ExecPythonCapture` los concatenó. El borde C++
+ahora imprime `JAMCOLLAPSE:` y recorta desde la última aparición antes de deserializar; el contrato
+está atado en `test_funcion.py`, discriminó al mutarlo y el plugin recompiló. Falta repetir el gesto
+con el binario nuevo. Quedó como artefacto válido de ese intento el preset local
+`funcion-072657-271.json`; no se borró automáticamente.
+
+Después, sin urgencia: subir `~/Dev/oracle/estudio/` a NotebookLM. Empezá por `00-esencia.md`,
+`08-los-numeros.md` y `07-el-diario.md`.
 
 *(Esta sección es obligatoria y no se borra cuando está vacía: si se pudiera omitir, un turno dejaría
 de pedir manos sin que nadie lo note.)*
 
 ## Lo próximo
 
-**1. Fase 5 — la capa de Slate de las funciones del Graph.** El cerebro está hecho y cableado
-(`jam/funcion.py`, 18 tests, expansión inline verificada contra el grafo plano equivalente; el informe
-está en `Vault-kb/01-Graph/`). Falta lo de arriba, que es gesto:
-
-- **instanciar desde el ribbon**: `funcion.firma()` ya devuelve los pines en el orden en que se ven;
-- **`Ctrl+G`, colapsar la selección a función**: los cables que cruzan el borde se vuelven
-  `input`/`output`. Acá la Fase 0 se paga sola, porque la selección ya es un estado.
-
-*Terminado* = guardar una selección como función, instanciarla dos veces, y que el Compile del canvas
-dé verde con los nodos `f1__…` en el reporte.
-
-**2. Fase 7 del Graph — bypass (`D`) y comentarios (`C`).** El bypass es cerebro y por lo tanto
+**1. Fase 7 del Graph — bypass (`D`) y comentarios (`C`).** El bypass es cerebro y por lo tanto
 verificable; el comentario es Slate.
 
-**3. Los 31 mutantes de código vivos de `oracle`**, de a uno.
+**2. Los 31 mutantes de código vivos de `oracle`**, de a uno.
 
-**4. Reemplazar de verdad los verificadores escritos a mano** de Jam (`vault.py`, `relevo.py`). Están
+**3. Reemplazar de verdad los verificadores escritos a mano** de Jam (`vault.py`, `relevo.py`). Están
 re-expresados como medidas y verificados por diferencial, y **siguen en uso los originales**. El
 reemplazo va cuando el diferencial lleve tiempo en verde, no el mismo día en que se escribió.
 
-**5. Re-expresar los otros cinco oráculos vivos del plugin** como medidas: `scatter`, `pared`,
+**4. Re-expresar los otros cinco oráculos vivos del plugin** como medidas: `scatter`, `pared`,
 `physics`, `reemplazo`, `espacio`. Ya están `placement` y `snap`. Cada uno con su sensor y su
 diferencial, siguiendo el patrón de `tools/emitir_diferencial.py`.
 
-⚠️ **La trampa del paso 5**: `jam/oracle_*.py` los llama el **editor**, así que el vendor tendría que
+⚠️ **La trampa del paso 4**: `jam/oracle_*.py` los llama el **editor**, así que el vendor tendría que
 estar en el path del intérprete embebido de UE — y hoy `vendor/oracle` es *hermano* de
 `Content/Python/`, no está adentro. Hay que decidir si se mueve bajo `Content/Python/` o se inserta el
 path, que es el olor de `bridge.py`. **Yo movería.**

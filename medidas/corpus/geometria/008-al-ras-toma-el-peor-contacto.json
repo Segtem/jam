@@ -1,0 +1,18 @@
+{
+  "id": "008-al-ras-toma-el-peor-contacto",
+  "fecha": "2026-07-31",
+  "origen": {"repo": "Brianholl/jam", "commit": "sombra-snap-al-ras"},
+  "titulo": "Un lote al ras falla si uno de sus objetivos conserva un hueco",
+  "etiqueta": "falso_verde",
+  "sintoma": "Resumir por mínimo ocultaba el objetivo separado detrás de otro contacto perfecto.",
+  "como_se_detecto": "mutacion",
+  "medida": "snap.al_ras",
+  "evidencia": {
+    "pieza": [{"id": "a", "ox": 0.0, "oy": 0.0, "oz": 0.0, "ex": 0.0, "ey": 50.0, "ez": 50.0}],
+    "objetivo": [
+      {"id": "contacto", "eje": "x", "ox": 0.0, "oy": 0.0, "oz": 0.0, "ex": 0.0, "ey": 50.0, "ez": 50.0},
+      {"id": "hueco", "eje": "x", "ox": 2.0, "oy": 0.0, "oz": 0.0, "ex": 0.0, "ey": 50.0, "ez": 50.0}
+    ]
+  },
+  "leccion": "La semántica de lote exige el máximo error: todos los contactos solicitados deben quedar al ras."
+}

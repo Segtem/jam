@@ -206,7 +206,7 @@ def spec_all() -> str:
     entrada trae su `cat`; las de flow además `source`/`aridad`."""
     import json
 
-    from . import flow, tools
+    from . import flow, funcion, tools
     # El canvas incorpora también herramientas graph-only, como el tab Mesh cuyos cables transportan
     # DynamicMesh `M`. La Dash Bar conserva sólo verbos útiles como acción aislada.
     verbos = json.loads(tools.spec_json(include_graph_only=True))
@@ -216,12 +216,36 @@ def spec_all() -> str:
     # tipos (`in_name`/`out_name` = P) que usan el Preflight y el canvas.
     ya_estan = {item["verbo"] for item in verbos["tools"]}
     solo_flow = [item for item in ops["tools"] if item["verbo"] not in ya_estan]
+    funciones = funcion.herramientas()
     cats_flow = [item["cat"] for item in solo_flow]
     cats = verbos["categorias"] + [c for c in ops["categorias"]
                                    if c not in verbos["categorias"] and c in cats_flow]
+    if funciones and "Funciones" not in cats:
+        cats.append("Funciones")
     from . import ribbon
-    todas = ribbon.anotar(verbos["tools"] + solo_flow)
+    todas = ribbon.anotar(verbos["tools"] + solo_flow) + funciones
     return json.dumps({"categorias": cats, "tools": todas}, ensure_ascii=True)
+
+
+def collapse_function(nombre: str, graph_json: str, selected_json: str,
+                      scope: str = "local") -> str:
+    """Colapsa la selección, guarda el cuerpo y devuelve el grafo padre + spec de la instancia."""
+    import json
+
+    from . import funcion, preset
+    from .graph import JamGraph
+    try:
+        seleccion = set(json.loads(selected_json))
+        padre, cuerpo = funcion.colapsar(
+            JamGraph.from_json(graph_json), seleccion, nombre)
+        p = preset.desde_grafo(nombre, cuerpo.to_json(), scope=scope)
+        ruta = preset.guardar(p)
+        tool = funcion.herramientas({nombre: cuerpo})[-1]
+        return json.dumps({"ok": True, "graph": json.loads(padre.to_json()), "tool": tool,
+                           "report": f"FUNCIÓN guardada ✓ — «{nombre}» ({scope})  {ruta}"},
+                          ensure_ascii=True)
+    except (ValueError, TypeError, OSError) as e:
+        return json.dumps({"ok": False, "report": f"FUNCIÓN ✗ — {e}"}, ensure_ascii=True)
 
 
 def confirm(owner: str = "") -> str:

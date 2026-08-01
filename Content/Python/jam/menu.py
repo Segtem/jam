@@ -208,21 +208,21 @@ def selftest_snap() -> bool:
 
     # (a) grilla
     caja = place.colocar(ruta, (x0 + 137.4, 62.9, 11.1), (0.0, 0.0, 37.0))
-    g_antes = oracle_snap.verificar_grilla(ue.pieza(caja), 100.0)
-    _log("grilla " + oracle_snap.texto_grilla(ue.pieza(caja), 100.0))
+    g_antes = ue.snap_grilla(caja, 100.0)
+    _log("grilla " + ue.snap_grilla_texto(caja, 100.0))
     snap.a_grilla(caja, 100.0)
-    g_desp = oracle_snap.verificar_grilla(ue.pieza(caja), 100.0)
-    _log("grilla " + oracle_snap.texto_grilla(ue.pieza(caja), 100.0))
+    g_desp = ue.snap_grilla(caja, 100.0)
+    _log("grilla " + ue.snap_grilla_texto(caja, 100.0))
 
     # (b) al ras: objetivo en el origen local; actor con un hueco de 60cm sobre +x (cubos de 100)
     obj = place.colocar(ruta, (x0, 5000.0, 0.0))
     obj.set_actor_label("Jam_objetivo")
     act = place.colocar(ruta, (x0 + 260.0, 5000.0, 0.0))  # centros a 260 → gap 160 sobre x
-    r_antes = oracle_snap.verificar_ras(ue.pieza(act), ue.pieza(obj), "x")
-    _log("ras    " + oracle_snap.texto_ras(ue.pieza(act), ue.pieza(obj), "x"))
+    r_antes = ue.snap_ras(act, obj, "x")
+    _log("ras    " + ue.snap_ras_texto(act, obj, "x"))
     snap.al_ras(act, obj, "x")
-    r_desp = oracle_snap.verificar_ras(ue.pieza(act), ue.pieza(obj), "x")
-    _log("ras    " + oracle_snap.texto_ras(ue.pieza(act), ue.pieza(obj), "x"))
+    r_desp = ue.snap_ras(act, obj, "x")
+    _log("ras    " + ue.snap_ras_texto(act, obj, "x"))
 
     actor_sub = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
     for x in (caja, obj, act):

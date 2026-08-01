@@ -38,6 +38,12 @@ struct FJamParam
 /** Una herramienta de Jam vista desde la UI: verbo + doc + params. */
 struct FJamTool
 {
+	struct FPin
+	{
+		FString Name;
+		FString Type;
+	};
+
 	FString Verb;
 	FString Cat;
 	FString Group;            // subgrupo dentro del tab (el «panel» de Grasshopper); puede ir vacío
@@ -51,6 +57,9 @@ struct FJamTool
 	int32 Arity = 1;          // 0=fuente · 1=unario · -1=variádico (varios cables en «in»)
 	FString InName;           // tipo que recibe el pin gordo: A=asset/actor · P=stream de puntos
 	FString OutName;          // nombre de la salida (la «variable» del pin de salida, estilo GH)
+	/** Firma dinámica de `fn:<nombre>`. Vacíos = contrato clásico de un solo `in`/`out`. */
+	TArray<FPin> InputPins;
+	TArray<FPin> OutputPins;
 	TArray<FJamParam> Params;
 };
 
@@ -108,6 +117,8 @@ private:
 	FString DiscardGraphPreview();
 	/** Guarda el grafo del canvas como preset compound. */
 	FString SaveGraphAsPreset(const FString& Json);
+	/** Guarda la selección como función y devuelve el grafo padre para reemplazar el canvas. */
+	FString CollapseGraphFunction(const FString& Json, const FString& SelectedJson);
 
 	/** Carga el spec en `Tools`. `bIncludeFlow`=true suma las ops de flow (source/mask/instance) para
 	 *  el canvas estilo Houdini; false = sólo verbos (Dash Bar). */
