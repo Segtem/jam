@@ -79,15 +79,15 @@ static bool JamPedirNombre(const FText& Titulo, const FString& Inicial,
 				+ SHorizontalBox::Slot().AutoWidth().Padding(0.0f, 0.0f, 6.0f, 0.0f)
 				[
 					SNew(SButton).Text(LOCTEXT("FunctionNameCancel", "Cancelar"))
-					.OnClicked_Lambda([Dialogo]()
+					.OnClicked_Lambda([&Dialogo]()
 					{ Dialogo->RequestDestroyWindow(); return FReply::Handled(); })
 				]
 				+ SHorizontalBox::Slot().AutoWidth()
 				[
 					SNew(SButton).Text(LOCTEXT("FunctionNameAccept", "Aceptar"))
-					.IsEnabled_Lambda([Campo]()
+					.IsEnabled_Lambda([&Campo]()
 					{ return Campo.IsValid() && !Campo->GetText().IsEmptyOrWhitespace(); })
-					.OnClicked_Lambda([&OutNombre, &bAceptado, Campo, Dialogo]()
+					.OnClicked_Lambda([&OutNombre, &bAceptado, &Campo, &Dialogo]()
 					{
 						OutNombre = Campo->GetText().ToString().TrimStartAndEnd();
 						bAceptado = !OutNombre.IsEmpty();

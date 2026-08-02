@@ -32,9 +32,9 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 
 | Qué | Comando | Resultado |
 |---|---|---|
-| Cerebro de Jam | `cd Content/Python/tests && PYTHONPATH=$PWD/.. python -m unittest discover -s . -p "test_*.py" -q` | **521 OK**, 0.3 s |
+| Cerebro de Jam | `cd Content/Python/tests && PYTHONPATH=$PWD/.. python -m unittest discover -s . -p "test_*.py" -q` | **522 OK**, 0.3 s |
 | Vault (modo sombra) | `python tools/vault.py` | **54 docs · las dos implementaciones coinciden** |
-| Motor | `tools/experiments/verifica_funcion_graph.py` headless | **ABM completo + identidad estable + 2 instancias + Compile · TODO VERDE** |
+| Motor | sonda headless + gesto real `+ Nueva función` | **ABM completo + identidad estable + modal visible + Compile · TODO VERDE** |
 | Nanite→Fracture | `tools/experiments/verifica_nanite_fracture_58.py` en editor GUI | **2/2 materiales distintos + GC Nanite · TODO VERDE; cierre 139** |
 | UE 5.8.1 | APIs + ejemplos + material/UV + PCG real | **98 símbolos + 75 métodos · 8/8 ejemplos · material/UV verde · 287 HISM** |
 | Oracle en UE 5.8.1 | `tools/experiments/verifica_oracle_shadow.py` con editor completo | **placement + snap funcional verde; cierre 139** |
@@ -61,7 +61,7 @@ Lo que **nadie ejerció con las manos** de este turno:
 
 | Cosa | Quién puede verificarla | Estado |
 |---|---|---|
-| ABM, `Ctrl+G` + dibujo/cableado de pines múltiples de función | Brian | ⏳ compilado y borde real verde; faltan gestos |
+| Resto del ABM, `Ctrl+G` + dibujo/cableado de pines múltiples | Brian | ⏳ `+ Nueva` confirmado; faltan editar/renombrar/borrar/cablear |
 | Aspecto de una GC Nanite fracturada y rotura en PIE | Brian | ⏳ metadata/materiales verdes; falta viewport y simulación |
 | El paquete de estudio subido a NotebookLM | Brian | ⏳ generado, sin abrir |
 | Que el informe del modo sombra de `vault.py` se lea bien | Brian | ⏳ |
@@ -88,6 +88,11 @@ ahora imprime `JAMCOLLAPSE:` y recorta desde la última aparición antes de dese
 está atado en `test_funcion.py`, discriminó al mutarlo y el plugin recompiló. Falta repetir el gesto
 con el binario nuevo. Quedó como artefacto válido de ese intento el preset local
 `funcion-072657-271.json`; no se borró automáticamente.
+
+El primer intento de **+ Nueva función** también reveló un crash distinto: las lambdas del modal
+capturaban `Campo` y `Dialogo` por valor dentro del mismo `SAssignNew`, congelando dos punteros nulos.
+El stack cayó antes de Python. Ahora se capturan por referencia durante la vida modal; el test
+discriminó con el código roto, el plugin recompiló y Brian creó **Sumar dos números** por la UI real.
 
 Después, sin urgencia: subir `~/Dev/oracle/estudio/` a NotebookLM. Empezá por `00-esencia.md`,
 `08-los-numeros.md` y `07-el-diario.md`.
@@ -167,3 +172,6 @@ Lo durable está en `AGENTS.md`, en el vault y en el corpus de `oracle`. Acá el
   permite renombrar sin reescribir ni romper todas sus llamadas.
 - **En Dataflow 5.8 los materiales son un cable, no un parche posterior.** Los nodos y terminales v2
   transportan el array completo; asignar `[m0, m0]` había borrado silenciosamente el resto.
+- **Predeclarar un `TSharedPtr` no vuelve segura una captura por valor dentro de su `SAssignNew`.** La
+  lambda se construye antes de la asignación y congela `nullptr`; en un modal, capturar el local por
+  referencia es seguro porque la función no retorna mientras la ventana vive.

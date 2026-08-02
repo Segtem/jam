@@ -282,6 +282,18 @@ class SlateContratoTests(unittest.TestCase):
         self.assertIn("BuildJson()", editor)
         self.assertIn("el grafo abierto todavía usa", editor)
 
+    def test_el_modal_no_captura_shared_ptrs_antes_de_sassignnew(self) -> None:
+        editor = (self.RAIZ / "Source/JamEditor/Private/SJamGraphEditor.cpp").read_text()
+
+        # El diálogo es modal: JamPedirNombre no retorna mientras sus callbacks viven, por lo que
+        # las referencias locales son seguras. Capturarlas por valor dentro del mismo SAssignNew
+        # congela nullptr y crashea al pulsar Aceptar/Cancelar.
+        self.assertIn(".OnClicked_Lambda([&Dialogo]()", editor)
+        self.assertIn(".IsEnabled_Lambda([&Campo]()", editor)
+        self.assertIn("&Campo, &Dialogo]", editor)
+        self.assertNotIn(".OnClicked_Lambda([Dialogo]()", editor)
+        self.assertNotIn(".IsEnabled_Lambda([Campo]()", editor)
+
 
 class ExpansionTests(unittest.TestCase):
     def test_usar_la_funcion_dos_veces_compila_al_mismo_plan_que_el_grafo_plano(self) -> None:

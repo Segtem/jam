@@ -141,3 +141,22 @@ que todavía no existe índice global de dependencias.
 La compilación C++ contra 5.8.1 quedó verde y `verifica_funcion_graph.py` demostró en el motor el
 guardado, la publicación de la firma, dos expansiones y el Compile. Sigue pendiente ejercer con las
 manos los diálogos y botones Slate; por eso el plan conserva `status: en-progreso`.
+
+## Incidente del primer gesto manual: captura nula en el modal
+
+Al pulsar **+ Nueva función**, escribir un nombre y aceptar, el editor caía en
+`TSharedPtr::IsValid()` dentro de `JamPedirNombre`. El cuerpo vacío no intervenía: el stack no
+llegaba a Python ni a `function_manage`.
+
+`Dialogo` y `Campo` se declaraban antes de `SAssignNew`, pero sus callbacks se construían dentro de
+esa misma expresión y los capturaban **por valor**. En ese instante ambos `TSharedPtr` todavía eran
+`nullptr`; asignarlos después no modifica la copia congelada en la lambda. Aceptar dereferenciaba el
+diálogo nulo y Cancelar compartía el mismo defecto.
+
+Como el diálogo es modal, `JamPedirNombre` no retorna mientras esos callbacks pueden ejecutarse. La
+corrección segura es capturar por referencia los dos locales (`&Campo`, `&Dialogo`). Un test de
+contrato lee el `.cpp` y se probó rojo contra las capturas por valor antes de restaurar el código.
+
+Después de recompilar 5.8.1, Brian repitió el camino real y creó **Sumar dos números**. El log mostró
+el preset estable, `JAMFUNCTION {"ok": true}` y el cuerpo `entrada → salida`, sin otra aserción ni
+señal. Queda pendiente completar los demás gestos del ABM.
