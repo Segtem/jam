@@ -2,6 +2,7 @@
 #include "SJamGraphEditor.h"
 
 #include "Modules/ModuleManager.h"
+#include "Containers/Ticker.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Widgets/SWindow.h"
 #include "Widgets/Docking/SDockTab.h"
@@ -51,6 +52,38 @@ static FString ToPyStr(const FString& In)
 	S.ReplaceInline(TEXT("\r"), TEXT(""));
 	S.ReplaceInline(TEXT("\n"), TEXT("\\n"));
 	return FString::Printf(TEXT("'%s'"), *S);
+}
+
+/**
+ * Restablece el estado global de entrada después de destruir la ventana flotante del Graph.
+ *
+ * ReleaseAllPointerCapture no alcanza: Slate puede conservar el lock del cursor, el foco o volver a
+ * aplicar el reply del cierre después de OnTabClosed. ResetToDefaultInputSettings limpia los tres.
+ * La segunda pasada se agenda para el tick siguiente, cuando el SWindow del docking ya desapareció.
+ */
+static void RestablecerEntradaTrasCerrarGraph(const TCHAR* Fase, bool bEnfocarVentanaRegular)
+{
+	if (!FSlateApplication::IsInitialized())
+	{
+		return;
+	}
+	FSlateApplication& Slate = FSlateApplication::Get();
+	const bool bTeniaCaptor = Slate.HasAnyMouseCaptor();
+	const bool bTeniaMenu = Slate.AnyMenusVisible();
+	const bool bTeniaModal = Slate.GetActiveModalWindow().IsValid();
+	Slate.DismissAllMenus();
+	Slate.ResetToDefaultInputSettings();
+	if (bEnfocarVentanaRegular)
+	{
+		if (const TSharedPtr<SWindow> Ventana = Slate.GetActiveTopLevelRegularWindow())
+		{
+			Ventana->BringToFront(/*bForce*/ true);
+		}
+	}
+	UE_LOG(LogTemp, Display,
+		TEXT("[JamEditor] cierre Graph %s — captor=%s menu=%s modal=%s; entrada restablecida"),
+		Fase, bTeniaCaptor ? TEXT("sí") : TEXT("no"), bTeniaMenu ? TEXT("sí") : TEXT("no"),
+		bTeniaModal ? TEXT("sí") : TEXT("no"));
 }
 
 // Ids de los tres paneles. Son la CLAVE con la que el editor guarda su posición en el layout: si
@@ -200,17 +233,22 @@ void FJamEditorModule::OnGraphClosed(TSharedRef<SDockTab> /*Tab*/)
 	// haya ido. Entonces el editor queda visible pero no recibe clics: los eventos siguen dirigidos a
 	// un widget huérfano. Cerrarlos MIENTRAS el canvas todavía vive permite que Slate desarme bien su
 	// popup y después libera cualquier captura residual del Graph.
-	if (FSlateApplication::IsInitialized())
-	{
-		FSlateApplication::Get().DismissAllMenus();
-		FSlateApplication::Get().ReleaseAllPointerCapture();
-	}
+	RestablecerEntradaTrasCerrarGraph(TEXT("inmediato"), /*bEnfocarVentanaRegular*/ false);
 	if (const TSharedPtr<SJamGraphEditor> Canvas = GraphWidget.Pin())
 	{
 		GraphEstadoGuardado = Canvas->EstadoDelCanvas();
 	}
 	GraphTab.Reset();
 	GraphWidget.Reset();
+
+	// OnTabClosed ocurre dentro del reply que cierra el tab: ese reply y la destrucción de la ventana
+	// flotante todavía pueden alterar captura/foco al volver. Repetir en el próximo tick actúa sobre
+	// el estado FINAL y devuelve explícitamente el foco a la ventana regular que quedó visible.
+	FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([](float)
+	{
+		RestablecerEntradaTrasCerrarGraph(TEXT("diferido"), /*bEnfocarVentanaRegular*/ true);
+		return false;
+	}), 0.0f);
 }
 
 FString FJamEditorModule::SaveGraphAsPreset(const FString& Json)

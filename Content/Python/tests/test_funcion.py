@@ -296,11 +296,17 @@ class SlateContratoTests(unittest.TestCase):
         modulo = (self.RAIZ / "Source/JamEditor/Private/JamEditorModule.cpp").read_text()
         cierre = modulo.split("void FJamEditorModule::OnGraphClosed", 1)[1].split("\n}", 1)[0]
 
-        self.assertIn("DismissAllMenus()", cierre)
-        self.assertIn("ReleaseAllPointerCapture()", cierre)
-        # Hay que cerrar el popup con su widget todavía vivo; resetear primero reproduce el bloqueo.
-        self.assertLess(cierre.index("DismissAllMenus()"), cierre.index("GraphWidget.Reset()"))
-        self.assertLess(cierre.index("ReleaseAllPointerCapture()"), cierre.index("GraphWidget.Reset()"))
+        self.assertIn('RestablecerEntradaTrasCerrarGraph(TEXT("inmediato")', cierre)
+        self.assertIn("GraphWidget.Reset()", cierre)
+        self.assertIn("FTSTicker::GetCoreTicker().AddTicker", cierre)
+        self.assertIn('RestablecerEntradaTrasCerrarGraph(TEXT("diferido")', cierre)
+        helper = modulo.split("static void RestablecerEntradaTrasCerrarGraph", 1)[1].split("\n}", 1)[0]
+        self.assertIn("DismissAllMenus()", helper)
+        self.assertIn("ResetToDefaultInputSettings()", helper)
+        self.assertIn("GetActiveTopLevelRegularWindow()", helper)
+        self.assertIn("BringToFront", helper)
+        # La segunda limpieza tiene que ocurrir después de soltar las referencias del Graph.
+        self.assertLess(cierre.index("GraphWidget.Reset()"), cierre.index("AddTicker"))
 
     def test_slate_ofrece_abm_y_guarda_el_cuerpo_por_el_borde_publico(self) -> None:
         modulo = (self.RAIZ / "Source/JamEditor/Private/JamEditorModule.cpp").read_text()

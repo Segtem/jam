@@ -64,9 +64,10 @@ por lo que cambiar sólo tests ya no invalida falsamente esa evidencia.
 
 El selector con nombres completos es posterior a ese checkpoint. Su C++ compiló contra 5.8.1, pero
 `verde_editor` no se adelanta hasta que alguien despliegue la lista y confirme lo que realmente pinta.
-En el primer gesto, cerrar Graph dejó el editor sin clics por un popup/captor huérfano; el cierre ahora
-descarta menús y libera toda captura antes de destruir el canvas. Ese segundo C++ también requiere
-recompilar y repetir el gesto.
+Cerrar Graph dejó el editor sin clics: la liberación simple tampoco alcanzó. El cierre ahora hace un
+reset completo de entrada inmediatamente y otro en el tick posterior a destruir la ventana. El gesto
+real registró `captor=sí` antes, `captor=no` después, y Brian recuperó los botones. **Cuidado con UBT:**
+dos intentos cargaron el `.so` viejo porque el reloj del sandbox fechó el fuente detrás del binario.
 
 **Un rojo histórico y deliberado:** el relevo anterior midió 31 mutantes de código vivos de 242. El
 denominador cambió desde entonces y ese número no se revalidó en esta revisión. **No declares
@@ -82,7 +83,8 @@ Lo que **nadie ejerció con las manos** de este turno:
 
 | Cosa | Quién puede verificarla | Estado |
 |---|---|---|
-| Selector de tipos completo y cierre sin captura huérfana | Brian | ⏳ primer cierre bloqueó clics; fix recompilado, falta reiniciar/repetir |
+| Cierre de Graph sin captura huérfana | Brian | ✅ captor sí→no; botones respondieron después del cierre |
+| Selector de tipos completo | Brian | ⏳ falta desplegar la lista y confirmar la presentación real |
 | Maths: Sumar/Restar/Multiplicar/Dividir, pines y resultado | Brian | ⏳ núcleo/tests/build verdes; falta guardar, reabrir, ejecutar e inspeccionar |
 | Resto del ABM, `Ctrl+G` + dibujo/cableado de pines múltiples | Brian | ⏳ `+ Nueva` confirmado; faltan editar/renombrar/borrar/cablear |
 | Aspecto de una GC Nanite fracturada y rotura en PIE | Brian | ⏳ metadata/materiales verdes; falta viewport y simulación |

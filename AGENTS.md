@@ -122,6 +122,7 @@ redistribuir, nunca relicenciar CC0. Los repos van privados.
 | Pila de Material Layers sin los arrays *editor-only* paralelos | **Voltea el editor** (assert + SIGSEGV). |
 | `Target.cs` desparejos | En UE 5.8.1, ambos con `BuildSettingsVersion.V7` + `EngineIncludeOrderVersion.Unreal5_8` o no comparte el entorno del motor. |
 | Tocar C++ y no recompilar | El editor sigue corriendo el binario viejo y «no anduvo» miente. |
+| Relojes distintos entre sandbox y host | UBT puede decir `Target is up to date` aunque cambió el `.cpp`, si el `.so` tiene una fecha futura. Comparar `stat`; tocar el fuente desde el host y comprobar un marcador con `strings -el` antes de abrir. |
 | `Constant3Vector` | La propiedad es `constant`, no `r/g/b`. |
 | Enums de UE | **No son subscriptables** — `getattr(Enum, nombre)`. |
 | `get_statistics` de materiales | Da **cero** headless; el costo sólo se mide con GUI. |

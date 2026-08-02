@@ -168,7 +168,18 @@ aceptar clics. `OnGraphClosed` guardaba el canvas y soltaba sus referencias sin 
 emergentes ni liberar una posible captura global de puntero. Un popup/captor cuyo widget dueño ya no
 existe puede seguir recibiendo los eventos de Slate y bloquear el resto de Unreal.
 
-El cierre ahora llama `DismissAllMenus()` y `ReleaseAllPointerCapture()` mientras el canvas todavía
-vive, y sólo después guarda y resetea el tab. El contrato lee el `.cpp`, exige ambas operaciones y su
-orden; se demostró rojo retirando la liberación antes de restaurarla. Compila y queda pendiente repetir
-el gesto real con el binario nuevo.
+La primera corrección —`DismissAllMenus()` y `ReleaseAllPointerCapture()` mientras el canvas todavía
+vivía— no alcanzó en el gesto real. `ReleaseAllPointerCapture` no restablece el lock del cursor ni el
+foco, y `OnTabClosed` corre dentro del mismo reply que todavía tiene que destruir la ventana flotante.
+Ese reply puede volver a alterar la entrada después de retornar del callback.
+
+La corrección definitiva llama `ResetToDefaultInputSettings()` inmediatamente, guarda y suelta el
+Graph, y agenda una segunda pasada con `FTSTicker` para el tick siguiente. Esa pasada actúa sobre el
+estado final, ya sin el `SWindow` de docking, y devuelve al frente la ventana regular. El contrato exige
+las dos fases y se probó rojo sustituyendo el reset completo por la antigua liberación parcial.
+
+El gesto real del 2026-08-02 cerró Graph con `captor=sí menu=no modal=no`; la fase inmediata lo liberó
+y la diferida registró `captor=no menu=no modal=no`. Brian volvió a usar los botones y cerró BotOO
+normalmente. Antes hubo dos falsos intentos: el reloj del sandbox dejó el `.cpp` dos horas detrás del
+`.so`, UBT informó `Target is up to date` y el editor cargó el binario viejo. La verificación válida
+forzó la fecha del fuente y comprobó los marcadores dentro del módulo con `strings -el`.
