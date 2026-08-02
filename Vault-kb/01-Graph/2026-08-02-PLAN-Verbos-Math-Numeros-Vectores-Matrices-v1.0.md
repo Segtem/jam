@@ -192,7 +192,7 @@ por ejemplo `dividendo (Número)`, `divisor (Número)` y `resultado (Número)` s
 `dividendo`, `divisor` y salida `N`. Los cuatro nodos aparecen en **Maths/Aritmética**, con iconos
 propios. Sus resultados escalares quedan en la caché de ejecución y se pueden abrir en el inspector.
 
-La base pasó 540 tests y compiló con UE 5.8.1. La sonda
+La base pasó 547 tests y compiló con UE 5.8.1. La sonda
 `tools/experiments/verifica_math_graph.py` pasó además por el intérprete embebido y el contrato
 público de Slate: spec, Compile, Run, Inspector=`40.000` y división por cero rechazada. El commandlet
 termina con código 1 por nueve paquetes ilegibles preexistentes de BotOO; el marcador
@@ -203,9 +203,31 @@ mutar `a + b` por `a - b` y al declarar un pin numérico como texto; ambas mutac
 También están cubiertos paridad Flow/Graph, orden no conmutativo, división por cero, no finitos,
 overflow, cable incompatible y el contrato de etiquetas de Slate.
 
-Queda abierta una sola frontera para esta entrega: construir, guardar, reabrir y ejecutar la cadena
-con gestos en el Graph del editor, y confirmar visualmente los pines y el resultado del inspector. Hasta
-ese gesto no se marca completa la Fase 1 ni se avanza sobre vectores o matrices.
+La revisión del primer gesto manual encontró dos contratos que no estaban separados. Aunque un
+grafo compuesto sólo por valores no puede modificar la escena, `api.run_graph_json` lo clasificaba
+como Flow y `panel.ejecutar_flow_json` abría igualmente un Preview vacío. Además de agregar
+`ok: true` y `preview: false` al envelope, la ruta pública ahora ejecuta esos grafos directamente y
+termina con `RUN ✓ — … valores, sin efectos en la escena`; por lo tanto no crea ni descarta el
+Preview anterior. Un grafo que contiene geometría conserva el camino transaccional de Preview.
+
+La salida clásica también tenía tres conceptos mezclados. Quedan separados de forma explícita:
+
+| Concepto | Ejemplo Math | Uso |
+|---|---|---|
+| Identidad estable del pin | `out` | cables y callbacks |
+| Código de tipo | `N` | protocolo, compatibilidad y color |
+| Rótulo humano | `resultado (Número)` | presentación en Slate |
+
+Slate ya no pinta el código `N` como si fuera un segundo nombre de salida. El tooltip del grip sigue
+exponiendo `out` y `N` para diagnóstico, mientras el cuerpo del nodo muestra una sola vez el rótulo
+humano. Un test que lee el C++ ata esta división al spec de Python. La sonda en Unreal fue decisiva:
+una primera prueba de la función interna pasó, pero la API real siguió abriendo Preview; al mover el
+test al borde público reprodujo el rojo y luego validó la corrección.
+
+Queda abierta una sola frontera para esta entrega: guardar, reabrir y ejecutar la cadena con gestos
+en el Graph del editor, y confirmar el resultado del inspector sin que aparezca un Preview vacío. La
+captura real ya confirmó `resultado (Número)` como rótulo único. Hasta el gesto de ejecución completo
+no se marca completa la Fase 1 ni se avanza sobre vectores o matrices.
 
 ## Oracle y frontera
 

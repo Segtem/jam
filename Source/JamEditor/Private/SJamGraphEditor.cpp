@@ -605,6 +605,48 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 			]
 		]
 
+		// Editar una función reemplaza temporalmente el canvas. La barra permanece visible aunque se
+		// cambie de tab y ofrece el viaje de vuelta al documento anterior; antes File > Nuevo era el
+		// único camino práctico y además dejaba el modo de edición prendido.
+		+ SVerticalBox::Slot().AutoHeight().Padding(6.0f, 1.0f)
+		[
+			SNew(SBorder)
+			.BorderImage(FAppStyle::GetBrush("Brushes.Header"))
+			.BorderBackgroundColor(FLinearColor(0.16f, 0.11f, 0.04f, 1.0f))
+			.Padding(FMargin(8.0f, 4.0f))
+			.Visibility_Lambda([this]()
+			{
+				return FuncionEnEdicion.IsEmpty() ? EVisibility::Collapsed : EVisibility::Visible;
+			})
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot().FillWidth(1.0f).VAlign(VAlign_Center)
+				[
+					SNew(STextBlock)
+					.Text_Lambda([this]()
+					{
+						return FText::FromString(FString(TEXT("Editando función: "))
+							+ NombreFuncionEnEdicion
+							+ TEXT(" · input/output definen sus pines"));
+					})
+				]
+				+ SHorizontalBox::Slot().AutoWidth().Padding(4.0f, 0.0f)
+				[
+					SNew(SButton).Text(LOCTEXT("SaveAndCloseFunction", "Guardar y volver al grafo"))
+					.OnClicked_Lambda([this]()
+					{ GuardarYCerrarFuncion(); return FReply::Handled(); })
+				]
+				+ SHorizontalBox::Slot().AutoWidth().Padding(4.0f, 0.0f)
+				[
+					SNew(SButton).Text(LOCTEXT("CloseFunctionWithoutSave", "Volver sin guardar"))
+					.ToolTipText(LOCTEXT("CloseFunctionWithoutSaveTip",
+						"Descarta los cambios desde el último guardado y recupera el grafo anterior"))
+					.OnClicked_Lambda([this]()
+					{ VolverDeFuncion(false); return FReply::Handled(); })
+				]
+			]
+		]
+
 		// Canvas: wires detrás, nodos encima. RECORTADO a su área: sin esto, un nodo arrastrado cerca
 		// del borde superior se dibuja por encima del ribbon y del menú.
 		+ SVerticalBox::Slot().FillHeight(1.0f).Padding(6.0f, 2.0f)
@@ -1135,6 +1177,7 @@ void SJamGraphEditor::RebuildTabContent()
 			[
 				SNew(SButton).Text(LOCTEXT("NewFunction", "+ Nueva función"))
 				.ToolTipText(LOCTEXT("NewFunctionTip", "Crea una firma vacía y abre su cuerpo para editar"))
+				.IsEnabled_Lambda([this]() { return FuncionEnEdicion.IsEmpty(); })
 				.OnClicked_Lambda([this]() { NuevaFuncion(); return FReply::Handled(); })
 			]
 			+ SVerticalBox::Slot().AutoHeight().Padding(1.0f)
@@ -1548,7 +1591,8 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At,
 		.DisplayName(T->Label.IsEmpty() ? Verb : T->Label)
 		.IconPath(IconPathForVerb(Verb))
 		.IconColor(CategoryColor(T->Cat))
-		.OutName(T->OutName)
+		.OutputPinName(TEXT("out"))
+		.OutputDataType(T->OutName)
 		.InputColor(DataColor(T->InName))
 		.OutputColor(DataColor(T->OutName))
 		.InputLabel(DataName(T->InName))
@@ -1651,7 +1695,7 @@ void SJamGraphEditor::RestaurarSnapshot(const FString& Json)
 	// «Guardar» pidiera nombre en vez de sobrescribir el .jamgraph en el que venías trabajando.
 	const FString Documento = CurrentPath;
 	TGuardValue<bool> Callado(bSinHistorial, true);
-	if (LoadGraphJson(Json))
+	if (LoadGraphJson(Json, /*bConservarEdicionFuncion*/ true))
 	{
 		Anterior = BuildJson();
 	}
@@ -1710,6 +1754,12 @@ FString SJamGraphEditor::EstadoDelCanvas() const
 		Root->SetObjectField(TEXT("graph"), Grafo);
 	}
 	Root->SetStringField(TEXT("path"), CurrentPath);
+	if (!FuncionEnEdicion.IsEmpty())
+	{
+		Root->SetStringField(TEXT("function_edit_verb"), FuncionEnEdicion);
+		Root->SetStringField(TEXT("function_edit_name"), NombreFuncionEnEdicion);
+		Root->SetStringField(TEXT("function_return_state"), EstadoAntesDeEditarFuncion);
+	}
 
 	FString Json;
 	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&Json);
@@ -1763,6 +1813,10 @@ void SJamGraphEditor::RestaurarCanvas(const FString& Json)
 	{
 		CurrentPath = Documento;
 	}
+	Root->TryGetStringField(TEXT("function_edit_verb"), FuncionEnEdicion);
+	Root->TryGetStringField(TEXT("function_edit_name"), NombreFuncionEnEdicion);
+	Root->TryGetStringField(TEXT("function_return_state"), EstadoAntesDeEditarFuncion);
+	if (ActiveTab == TEXT("Funciones")) { RebuildTabContent(); }
 }
 
 // ---- portapapeles ----
@@ -1963,7 +2017,7 @@ bool SJamGraphEditor::AplicarRespuestaFuncion(const FString& Res, bool bCargarCu
 		FString GraphJson;
 		const TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&GraphJson);
 		FJsonSerializer::Serialize(GraphObj->ToSharedRef(), Writer);
-		if (!LoadGraphJson(GraphJson)) { return false; }
+		if (!LoadGraphJson(GraphJson, /*bConservarEdicionFuncion*/ true)) { return false; }
 		FuncionEnEdicion = Verb;
 		NombreFuncionEnEdicion = Nombre;
 	}
@@ -1974,18 +2028,28 @@ bool SJamGraphEditor::AplicarRespuestaFuncion(const FString& Res, bool bCargarCu
 
 void SJamGraphEditor::NuevaFuncion()
 {
-	if (!OnFunctionManage.IsBound()) { return; }
+	if (!FuncionEnEdicion.IsEmpty() || !OnFunctionManage.IsBound()) { return; }
 	FString Nombre;
 	if (!JamPedirNombre(LOCTEXT("NewFunctionTitle", "Nueva función"), TEXT(""), AsShared(), Nombre))
 	{ return; }
-	AplicarRespuestaFuncion(OnFunctionManage.Execute(TEXT("create"), TEXT(""), Nombre), true);
+	EstadoAntesDeEditarFuncion = EstadoDelCanvas();
+	if (!AplicarRespuestaFuncion(
+		OnFunctionManage.Execute(TEXT("create"), TEXT(""), Nombre), true))
+	{
+		EstadoAntesDeEditarFuncion.Reset();
+	}
 }
 
 void SJamGraphEditor::EditarFuncion(const FString& Verb)
 {
-	if (OnFunctionManage.IsBound())
+	if (FuncionEnEdicion.IsEmpty() && OnFunctionManage.IsBound())
 	{
-		AplicarRespuestaFuncion(OnFunctionManage.Execute(TEXT("get"), Verb, TEXT("")), true);
+		EstadoAntesDeEditarFuncion = EstadoDelCanvas();
+		if (!AplicarRespuestaFuncion(
+			OnFunctionManage.Execute(TEXT("get"), Verb, TEXT("")), true))
+		{
+			EstadoAntesDeEditarFuncion.Reset();
+		}
 	}
 }
 
@@ -1994,6 +2058,43 @@ void SJamGraphEditor::GuardarFuncion()
 	if (FuncionEnEdicion.IsEmpty() || !OnFunctionManage.IsBound()) { return; }
 	AplicarRespuestaFuncion(
 		OnFunctionManage.Execute(TEXT("update"), FuncionEnEdicion, BuildJson()), false);
+}
+
+void SJamGraphEditor::GuardarYCerrarFuncion()
+{
+	if (FuncionEnEdicion.IsEmpty() || !OnFunctionManage.IsBound()) { return; }
+	if (AplicarRespuestaFuncion(
+		OnFunctionManage.Execute(TEXT("update"), FuncionEnEdicion, BuildJson()), false))
+	{
+		VolverDeFuncion(true);
+	}
+}
+
+void SJamGraphEditor::VolverDeFuncion(bool bCambiosGuardados)
+{
+	if (FuncionEnEdicion.IsEmpty()) { return; }
+	const FString Nombre = NombreFuncionEnEdicion;
+	const FString Destino = EstadoAntesDeEditarFuncion;
+	FuncionEnEdicion.Reset();
+	NombreFuncionEnEdicion.Reset();
+	EstadoAntesDeEditarFuncion.Reset();
+	if (Destino.IsEmpty())
+	{
+		NewGraph();
+	}
+	else
+	{
+		RestaurarCanvas(Destino);
+	}
+	if (ActiveTab == TEXT("Funciones")) { RebuildTabContent(); }
+	if (Output.IsValid())
+	{
+		const FString Mensaje = bCambiosGuardados
+			? FString::Printf(TEXT("FUNCIÓN guardada ✓ — «%s» · de vuelta en el grafo"), *Nombre)
+			: FString::Printf(
+				TEXT("Cambios sin guardar descartados — «%s» · de vuelta en el grafo"), *Nombre);
+		Output->SetText(FText::FromString(Mensaje));
+	}
 }
 
 void SJamGraphEditor::RenombrarFuncion(const FString& Verb, const FString& NombreActual)
@@ -3243,6 +3344,9 @@ void SJamGraphEditor::NewGraph()
 	// `New` inicia un DOCUMENTO nuevo. Conservar esta ruta hacía que el Save siguiente sobrescribiera
 	// silenciosamente el .jamgraph anterior.
 	CurrentPath.Empty();
+	FuncionEnEdicion.Reset();
+	NombreFuncionEnEdicion.Reset();
+	EstadoAntesDeEditarFuncion.Reset();
 	if (Output.IsValid())
 	{
 		Output->SetText(LOCTEXT("NewDone", "grafo vacío."));
@@ -3250,7 +3354,7 @@ void SJamGraphEditor::NewGraph()
 	Marcar();   // vaciar el grafo también se deshace (queda callado cuando lo llama LoadGraphJson)
 }
 
-bool SJamGraphEditor::LoadGraphJson(const FString& Json)
+bool SJamGraphEditor::LoadGraphJson(const FString& Json, bool bConservarEdicionFuncion)
 {
 	// Si ya venimos callados es porque nos llamó Deshacer/Rehacer: ese viaje NO es un paso nuevo.
 	// Abrir un diagrama o cargar un tutorial sí lo es, y se registra como UNO solo.
@@ -3475,7 +3579,16 @@ bool SJamGraphEditor::LoadGraphJson(const FString& Json)
 	// silencio para el resto de la sesión.
 	{
 		TGuardValue<bool> Callado(bSinHistorial, true);
+		const FString FuncionActiva = FuncionEnEdicion;
+		const FString NombreActivo = NombreFuncionEnEdicion;
+		const FString EstadoRetorno = EstadoAntesDeEditarFuncion;
 		NewGraph();
+		if (bConservarEdicionFuncion)
+		{
+			FuncionEnEdicion = FuncionActiva;
+			NombreFuncionEnEdicion = NombreActivo;
+			EstadoAntesDeEditarFuncion = EstadoRetorno;
+		}
 		TMap<FString, FString> IdMap;
 		for (const FLoadedNode& Loaded : LoadedNodes)
 		{

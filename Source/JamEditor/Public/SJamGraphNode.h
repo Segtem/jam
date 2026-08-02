@@ -69,8 +69,9 @@ public:
 		/** Ruta absoluta del SVG que ocupa el centro del componente. */
 		SLATE_ARGUMENT(FString, IconPath)
 		SLATE_ARGUMENT(FLinearColor, IconColor)
-		/** Nombre de la salida (la «variable» del pin de salida, estilo GH: P/N/T/A…). */
-		SLATE_ARGUMENT(FString, OutName)
+		/** Identidad estable del pin y tipo del dato: `out` y `N` son conceptos distintos. */
+		SLATE_ARGUMENT(FString, OutputPinName)
+		SLATE_ARGUMENT(FString, OutputDataType)
 		/** Colores semánticos de los bordes de los grips de stream y salida. */
 		SLATE_ARGUMENT(FLinearColor, InputColor)
 		SLATE_ARGUMENT(FLinearColor, OutputColor)
@@ -166,7 +167,6 @@ private:
 	FString Verb;
 	FString DisplayName;
 	FString IconPath;
-	FString OutName;
 	FLinearColor IconColor = FLinearColor(0.35f, 0.35f, 0.38f, 1.0f);
 	FString ResultState;
 	bool bDragging = false;

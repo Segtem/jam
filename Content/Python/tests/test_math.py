@@ -8,12 +8,13 @@ from pathlib import Path
 import sys
 import types
 import unittest
+from unittest import mock
 
 _unreal_fake = sys.modules.setdefault("unreal", types.ModuleType("unreal"))
 if not hasattr(_unreal_fake, "TopLevelAssetPath"):
     _unreal_fake.TopLevelAssetPath = lambda package, name: (package, name)
 
-from jam import api, debug, flow, math_core, ribbon  # noqa: E402
+from jam import api, debug, flow, graph as graph_module, math_core, panel, ribbon  # noqa: E402
 from jam.graph import (GraphValidationError, JamGraph, compilar, ejecutar_detalle,
                        ultima_corrida)  # noqa: E402
 
@@ -156,6 +157,38 @@ class CalculoMathTests(unittest.TestCase):
         self.assertEqual(tabla["columnas"], [{"nombre": "valor", "tipo": "num"}])
         self.assertEqual(tabla["filas"], [[42.0]])
 
+    def test_run_de_solo_valores_no_abre_ni_descarta_preview(self) -> None:
+        g = JamGraph()
+        g.add("math_add", {"a": 57, "b": 31}, nid="sumar")
+
+        with mock.patch.object(
+                panel, "_preview", side_effect=AssertionError("Math no debe entrar a Preview")):
+            respuesta = json.loads(api.run_graph_json(g.to_json()))
+
+        self.assertTrue(respuesta["ok"])
+        self.assertFalse(respuesta["preview"])
+        self.assertNotIn("PREVIEW", respuesta["report"])
+        self.assertIn("sin efectos en la escena", respuesta["report"])
+        self.assertEqual(respuesta["nodes"]["sumar"]["estado"], "ok")
+        self.assertEqual(ultima_corrida()["sumar"], 88.0)
+
+    def test_un_grafo_con_geometria_conserva_el_camino_preview(self) -> None:
+        g = JamGraph()
+        g.add("mesh_box", {}, nid="caja")
+
+        def preview_realista(fn, _widget=None, *, owner="graph"):
+            return fn(None) + f"\nPREVIEW [{owner}]"
+
+        with mock.patch.object(graph_module, "compilar", return_value=object()), \
+                mock.patch.object(graph_module, "ejecutar_detalle", return_value=(
+                    "[caja·mesh_box] creada", {"caja": {"estado": "ok", "texto": "creada"}})), \
+                mock.patch.object(panel, "_preview", side_effect=preview_realista) as preview:
+            respuesta = json.loads(panel.ejecutar_grafo_json(g.to_json()))
+
+        preview.assert_called_once()
+        self.assertTrue(respuesta["preview"])
+        self.assertIn("PREVIEW [graph]", respuesta["report"])
+
 
 class ErroresMathTests(unittest.TestCase):
     def test_dividir_por_cero_es_error_de_compile_en_graph_y_flow(self) -> None:
@@ -218,9 +251,17 @@ class SlateMathContratoTests(unittest.TestCase):
         self.assertIn("Param.Label = P.Label", editor)
         self.assertIn('TEXT("%s (%s)"), *T->OutLabel, *DataName(T->OutName)', editor)
         self.assertIn("FText::FromString(Label)", nodo)
+        self.assertIn("SLATE_ARGUMENT(FString, OutputPinName)",
+                      (self.RAIZ / "Source/JamEditor/Public/SJamGraphNode.h").read_text())
+        self.assertIn("SLATE_ARGUMENT(FString, OutputDataType)",
+                      (self.RAIZ / "Source/JamEditor/Public/SJamGraphNode.h").read_text())
+        self.assertIn(".OutputPinName(TEXT(\"out\"))", editor)
+        self.assertIn(".OutputDataType(T->OutName)", editor)
+        # El código N es tipo/protocolo: no se vuelve a pintar como si fuera nombre del pin.
+        self.assertNotIn("FM2->Measure(OutName", nodo)
         # La identidad de los cables/JSON sigue usando Name y OutName, no las etiquetas traducidas.
         self.assertIn("Node.PinNames.Add(P.Name)", editor)
-        self.assertIn(".OutName(T->OutName)", editor)
+        self.assertIn('ExecuteIfBound(OutputPinName)', nodo)
 
 
 if __name__ == "__main__":

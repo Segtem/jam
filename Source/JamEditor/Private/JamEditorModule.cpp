@@ -7,6 +7,7 @@
 #include "Widgets/SWindow.h"
 #include "Widgets/Docking/SDockTab.h"
 #include "Framework/Docking/TabManager.h"
+#include "GenericPlatform/GenericWindow.h"
 #include "WorkspaceMenuStructure.h"
 #include "WorkspaceMenuStructureModule.h"
 #include "Widgets/SBoxPanel.h"
@@ -86,6 +87,161 @@ static void RestablecerEntradaTrasCerrarGraph(const TCHAR* Fase, bool bEnfocarVe
 		bTeniaModal ? TEXT("sí") : TEXT("no"));
 }
 
+/**
+ * Hace visible y utilizable el tab aunque el layout persistido lo haya dejado maximizado,
+ * minimizado o fuera de las pantallas actuales. En Linux/SDL 5.8 una ventana flotante restaurada
+ * maximizada puede conservar una superficie/hit-test obsoletos hasta el primer resize manual.
+ */
+static void AsegurarVentanaGraphVisible(const TSharedRef<SDockTab>& Tab,
+	const TWeakPtr<SWindow>& VentanaDeReferencia, const TCHAR* Fase, bool bLimpiarEntrada)
+{
+	if (!FSlateApplication::IsInitialized()) { return; }
+	FSlateApplication& Slate = FSlateApplication::Get();
+	if (bLimpiarEntrada)
+	{
+		Slate.DismissAllMenus();
+		Slate.ResetToDefaultInputSettings();
+	}
+	Tab->ActivateInParent(ETabActivationCause::SetDirectly);
+	const TSharedPtr<SWindow> Ventana = Slate.FindWidgetWindow(Tab);
+	if (!Ventana.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[JamEditor] abrir Graph %s — tab sin SWindow"), Fase);
+		return;
+	}
+
+	const TSharedPtr<SWindow> Referencia = VentanaDeReferencia.Pin();
+	const bool bEsVentanaPrincipal = Referencia.IsValid() && Referencia == Ventana;
+	const TSharedPtr<FGenericWindow> Nativa = Ventana->GetNativeWindow();
+	const bool bMaximizada = Nativa.IsValid() && Nativa->IsMaximized();
+	const bool bMinimizada = Nativa.IsValid() && Nativa->IsMinimized();
+	if (!bEsVentanaPrincipal && (bMaximizada || bMinimizada))
+	{
+		// Restore provoca el mismo cambio de estado que arreglaba manualmente «achicar y maximizar».
+		Ventana->Restore();
+	}
+
+	const FSlateRect ReferenciaRect = Referencia.IsValid()
+		? Referencia->GetRectInScreen() : Slate.GetPreferredWorkArea();
+	const FSlateRect Area = Slate.GetWorkArea(ReferenciaRect);
+	FSlateRect Rect = Ventana->GetRectInScreen();
+	bool bSolapa = false;
+	const FSlateRect Cruce = Rect.IntersectionWith(Area, bSolapa);
+	const bool bAreaVisible = bSolapa && Cruce.Right - Cruce.Left >= 160.0f
+		&& Cruce.Bottom - Cruce.Top >= 100.0f;
+	const float Ancho = Rect.Right - Rect.Left;
+	const float Alto = Rect.Bottom - Rect.Top;
+	const bool bTamanoValido = Ancho >= 640.0f && Alto >= 420.0f
+		&& Ancho <= (Area.Right - Area.Left) * 1.10f
+		&& Alto <= (Area.Bottom - Area.Top) * 1.10f;
+	bool bReubicada = false;
+	if (!bEsVentanaPrincipal && (!bAreaVisible || !bTamanoValido))
+	{
+		const float NuevoAncho = FMath::Clamp((Area.Right - Area.Left) * 0.82f, 900.0f, 1600.0f);
+		const float NuevoAlto = FMath::Clamp((Area.Bottom - Area.Top) * 0.82f, 620.0f, 1050.0f);
+		const FVector2D Pos(Area.Left + ((Area.Right - Area.Left) - NuevoAncho) * 0.5f,
+			Area.Top + ((Area.Bottom - Area.Top) - NuevoAlto) * 0.5f);
+		Ventana->ReshapeWindow(Pos, FVector2D(NuevoAncho, NuevoAlto));
+		Rect = Ventana->GetRectInScreen();
+		bReubicada = true;
+	}
+	Slate.InvalidateAllWidgets(false);
+	Ventana->BringToFront(/*bForce*/ true);
+	UE_LOG(LogTemp, Display,
+		TEXT("[JamEditor] abrir Graph %s — principal=%s max=%s min=%s reubicada=%s rect=%.0f,%.0f %.0fx%.0f"),
+		Fase, bEsVentanaPrincipal ? TEXT("sí") : TEXT("no"), bMaximizada ? TEXT("sí") : TEXT("no"),
+		bMinimizada ? TEXT("sí") : TEXT("no"), bReubicada ? TEXT("sí") : TEXT("no"),
+		Rect.Left, Rect.Top, Rect.Right - Rect.Left, Rect.Bottom - Rect.Top);
+}
+
+/**
+ * UE 5.8 + SDL/Wayland puede arrancar maximizado con la geometría cacheada de Slate distinta de la
+ * que KWin terminó asignando. La ventana se dibuja, pero Slate descarta los clics por estar fuera de
+ * su rectángulo de hit-test. Un resize manual lo corrige; acá repetimos ese ciclo una vez, después de
+ * restaurar el layout, sin cambiar el tamaño/estado que eligió el usuario.
+ */
+static void SincronizarVentanaPrincipalTrasLayout()
+{
+	if (!FSlateApplication::IsInitialized()) { return; }
+	const TSharedPtr<SWindow> Ventana = FGlobalTabmanager::Get()->GetRootWindow();
+	if (!Ventana.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[JamEditor] ventana principal todavía no disponible"));
+		return;
+	}
+
+	const TSharedPtr<FGenericWindow> Nativa = Ventana->GetNativeWindow();
+	const bool bEstabaMaximizada = Nativa.IsValid() && Nativa->IsMaximized();
+	const bool bEstabaMinimizada = Nativa.IsValid() && Nativa->IsMinimized();
+	const FSlateRect RectAntes = Ventana->GetRectInScreen();
+	if (bEstabaMaximizada || bEstabaMinimizada)
+	{
+		// KWin necesita completar esta transición antes del ReshapeWindow; hacerlo todo en el mismo
+		// frame reproduce el estado incoherente que intentamos reparar.
+		Ventana->Restore();
+	}
+
+	const TWeakPtr<SWindow> VentanaDebil = Ventana;
+	FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda(
+		[VentanaDebil, bEstabaMaximizada, RectAntes](float)
+		{
+			const TSharedPtr<SWindow> VentanaViva = VentanaDebil.Pin();
+			if (!VentanaViva.IsValid() || !FSlateApplication::IsInitialized()) { return false; }
+			FSlateApplication& Slate = FSlateApplication::Get();
+			FSlateRect Rect = VentanaViva->GetRectInScreen();
+			const FSlateRect Area = Slate.GetWorkArea(RectAntes);
+			const float Ancho = Rect.Right - Rect.Left;
+			const float Alto = Rect.Bottom - Rect.Top;
+			bool bSolapa = false;
+			const FSlateRect Cruce = Rect.IntersectionWith(Area, bSolapa);
+			const bool bRectValido = bSolapa && Cruce.Right - Cruce.Left >= 320.0f
+				&& Cruce.Bottom - Cruce.Top >= 200.0f && Ancho >= 640.0f && Alto >= 420.0f;
+			if (!bRectValido)
+			{
+				const float NuevoAncho = FMath::Clamp((Area.Right - Area.Left) * 0.82f, 900.0f, 1600.0f);
+				const float NuevoAlto = FMath::Clamp((Area.Bottom - Area.Top) * 0.82f, 620.0f, 1050.0f);
+				Rect = FSlateRect(
+					Area.Left + ((Area.Right - Area.Left) - NuevoAncho) * 0.5f,
+					Area.Top + ((Area.Bottom - Area.Top) - NuevoAlto) * 0.5f,
+					0.0f, 0.0f);
+				Rect.Right = Rect.Left + NuevoAncho;
+				Rect.Bottom = Rect.Top + NuevoAlto;
+			}
+
+			// Incluso si el rect no cambió, ReshapeWindow fuerza a SDL/Wayland a notificarle a Slate la
+			// geometría real. Esa notificación es la parte que falta al arranque maximizado.
+			VentanaViva->ReshapeWindow(
+				FVector2D(Rect.Left, Rect.Top), FVector2D(Rect.Right - Rect.Left, Rect.Bottom - Rect.Top));
+			Slate.InvalidateAllWidgets(false);
+
+			FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda(
+				[VentanaDebil, bEstabaMaximizada](float)
+				{
+					const TSharedPtr<SWindow> VentanaFinal = VentanaDebil.Pin();
+					if (!VentanaFinal.IsValid() || !FSlateApplication::IsInitialized()) { return false; }
+					if (bEstabaMaximizada)
+					{
+						if (const TSharedPtr<FGenericWindow> NativaFinal = VentanaFinal->GetNativeWindow())
+						{
+							NativaFinal->Maximize();
+						}
+					}
+					FSlateApplication& SlateFinal = FSlateApplication::Get();
+					SlateFinal.DismissAllMenus();
+					SlateFinal.ResetToDefaultInputSettings();
+					SlateFinal.InvalidateAllWidgets(false);
+					VentanaFinal->BringToFront(/*bForce*/ true);
+					const FSlateRect RectFinal = VentanaFinal->GetRectInScreen();
+					UE_LOG(LogTemp, Display,
+						TEXT("[JamEditor] ventana principal resincronizada — max=%s rect=%.0f,%.0f %.0fx%.0f"),
+						bEstabaMaximizada ? TEXT("sí") : TEXT("no"), RectFinal.Left, RectFinal.Top,
+						RectFinal.Right - RectFinal.Left, RectFinal.Bottom - RectFinal.Top);
+					return false;
+				}), 0.12f);
+			return false;
+		}), 0.12f);
+}
+
 // Ids de los tres paneles. Son la CLAVE con la que el editor guarda su posición en el layout: si
 // cambian, el usuario pierde el acomodo que tenía y los paneles vuelven a aparecer flotando.
 namespace JamTabs
@@ -100,6 +256,13 @@ void FJamEditorModule::StartupModule()
 	UToolMenus::RegisterStartupCallback(
 		FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FJamEditorModule::RegisterMenus));
 	RegisterTabs();
+	// Se ejecuta cuando el layout persistido y KWin ya asignaron la ventana raíz. No se abre ningún
+	// panel ni se cambia ninguna clave del layout: sólo se resincroniza la geometría del hit-test.
+	FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([](float)
+	{
+		SincronizarVentanaPrincipalTrasLayout();
+		return false;
+	}), 1.0f);
 
 	UE_LOG(LogTemp, Display, TEXT("[JamEditor] módulo C++ cargado — paneles en Window ▸ Tools."));
 }
@@ -191,7 +354,27 @@ void FJamEditorModule::OpenWebUI()
 
 void FJamEditorModule::OpenGraph()
 {
-	FGlobalTabmanager::Get()->TryInvokeTab(JamTabs::Graph);
+	const TWeakPtr<SWindow> VentanaDeReferencia = FSlateApplication::IsInitialized()
+		? FSlateApplication::Get().GetActiveTopLevelRegularWindow() : TWeakPtr<SWindow>();
+	const TSharedPtr<SDockTab> Tab = FGlobalTabmanager::Get()->TryInvokeTab(JamTabs::Graph);
+	if (!Tab.IsValid())
+	{
+		UE_LOG(LogTemp, Error, TEXT("[JamEditor] no se pudo abrir el tab JamGraph"));
+		return;
+	}
+	AsegurarVentanaGraphVisible(Tab.ToSharedRef(), VentanaDeReferencia,
+		TEXT("inmediato"), /*bLimpiarEntrada*/ false);
+	const TWeakPtr<SDockTab> TabDebil = Tab;
+	FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda(
+		[TabDebil, VentanaDeReferencia](float)
+		{
+			if (const TSharedPtr<SDockTab> TabVivo = TabDebil.Pin())
+			{
+				AsegurarVentanaGraphVisible(TabVivo.ToSharedRef(), VentanaDeReferencia,
+					TEXT("diferido"), /*bLimpiarEntrada*/ true);
+			}
+			return false;
+		}), 0.05f);
 }
 
 TSharedRef<SDockTab> FJamEditorModule::SpawnGraphTab(const FSpawnTabArgs& /*Args*/)
@@ -220,6 +403,23 @@ TSharedRef<SDockTab> FJamEditorModule::SpawnGraphTab(const FSpawnTabArgs& /*Args
 	Tab->SetOnTabClosed(SDockTab::FOnTabClosedCallback::CreateRaw(
 		this, &FJamEditorModule::OnGraphClosed));
 	GraphTab = Tab;
+
+	// El layout persistido y Window > Tools llaman al SPAWNER directamente: no necesariamente pasan
+	// por OpenGraph(). Recién después de retornar de acá el TabManager adjunta el tab a su SWindow,
+	// por eso la garantía de visibilidad vive también en el tick siguiente al nacimiento.
+	const TWeakPtr<SDockTab> TabDebil = Tab;
+	const TWeakPtr<SWindow> VentanaDeReferencia = FSlateApplication::IsInitialized()
+		? FSlateApplication::Get().GetActiveTopLevelRegularWindow() : TWeakPtr<SWindow>();
+	FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda(
+		[TabDebil, VentanaDeReferencia](float)
+		{
+			if (const TSharedPtr<SDockTab> TabVivo = TabDebil.Pin())
+			{
+				AsegurarVentanaGraphVisible(TabVivo.ToSharedRef(), VentanaDeReferencia,
+					TEXT("spawn diferido"), /*bLimpiarEntrada*/ true);
+			}
+			return false;
+		}), 0.05f);
 
 	// Si el panel se había cerrado con un diagrama adentro, vuelve puesto. Antes cerrarlo tiraba el
 	// trabajo sin preguntar; ahora cerrar y reabrir es sólo esconder y mostrar.

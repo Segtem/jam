@@ -52,6 +52,8 @@ try:
 
     corrida = json.loads(api.run_graph_json(reabierto.to_json()))
     estados = {nid: dato.get("estado") for nid, dato in corrida.get("nodes", {}).items()}
+    exigir(corrida.get("ok") is True and corrida.get("preview") is False,
+           f"Run de valores declaró efectos de escena: {corrida}")
     exigir(estados and all(estado == "ok" for estado in estados.values()),
            f"Run rojo: estados={estados} reporte={corrida.get('report')}")
     inspeccion = json.loads(api.inspect_json("resultado"))

@@ -92,11 +92,72 @@ def firma(cuerpo: JamGraph) -> dict:
         vistos: set[str] = set()
         for nid, n in _orden_visual(cuerpo, verb):
             nombre = _nombre_borde(nid, n)
+            tipo = str(n.get("params", {}).get("type", "*")).strip()
+            if tipo not in TIPOS_PIN:
+                raise FuncionError(f"{nid}: tipo de pin desconocido: «{tipo}»")
             if nombre in vistos:
                 raise FuncionError(f"hay dos `{verb}` llamados «{nombre}»: el pin sería ambiguo")
             vistos.add(nombre)
-            salida[clave].append({"name": nombre, "tipo": str(n.get("params", {}).get("type", "*"))})
+            salida[clave].append({"name": nombre, "tipo": tipo})
     return salida
+
+
+def es_cuerpo(cuerpo: JamGraph) -> bool:
+    """Un `input`/`output` convierte al diagrama en definición: no es un grafo ejecutable solo."""
+    return any(n.get("verb") in VERBOS_BORDE for n in cuerpo.nodes.values())
+
+
+def validar_cuerpo(cuerpo: JamGraph, biblio: dict[str, JamGraph] | None = None) \
+        -> tuple[dict, dict[str, list[str]]]:
+    """Valida firma y DAG sin inventar valores para las entradas de la función.
+
+    Cada borde se reemplaza sólo durante Compile por un verbo sintético con SU tipo. Así el
+    compilador normal verifica pines, tipos, cardinalidad, ciclos y parámetros del interior, pero
+    nunca intenta ejecutar `input`/`output` como si fueran tools de escena.
+    """
+    try:
+        contrato = firma(cuerpo)
+    except FuncionError as exc:
+        return {"entradas": [], "salidas": []}, {"_graph": [str(exc)]}
+
+    try:
+        expandido = expandir(cuerpo, biblioteca() if biblio is None else biblio) \
+            if any(es_instancia(n.get("verb", "")) for n in cuerpo.nodes.values()) else cuerpo
+    except FuncionError as exc:
+        return contrato, {"_graph": [str(exc)]}
+
+    from . import graph, tools
+    comprobable = JamGraph()
+    comprobable.edges = list(expandido.edges)
+    registro = dict(tools.REGISTRO)
+    for nid, nodo in expandido.nodes.items():
+        copia = {"verb": nodo.get("verb", ""), "params": dict(nodo.get("params", {})),
+                 "asset": nodo.get("asset"), "x": nodo.get("x", 0.0),
+                 "y": nodo.get("y", 0.0), "debug": bool(nodo.get("debug", False))}
+        if copia["verb"] in VERBOS_BORDE:
+            tipo = str(copia["params"].get("type", "*"))
+            es_entrada = copia["verb"] == "input"
+            if es_entrada and tipo == "N":
+                copia["verb"] = "number"
+                copia["params"] = {"name": f"__entrada_{nid}", "value": 0.0,
+                                   "min": 0.0, "max": 100.0}
+                comprobable.nodes[nid] = copia
+                continue
+            if es_entrada and tipo == "T":
+                copia["verb"] = "text"
+                copia["params"] = {"name": f"__entrada_{nid}", "value": ""}
+                comprobable.nodes[nid] = copia
+                continue
+            sintetico = f"__borde_funcion_{copia['verb']}_{nid}"
+            registro[sintetico] = {
+                "source": es_entrada, "aridad": 0 if es_entrada else 1,
+                "in_name": "" if es_entrada else tipo,
+                "out_name": tipo, "asset_required": False, "asset_pin": False,
+                "asset_row": False, "params": {"name": "", "type": "*"},
+            }
+            copia["verb"] = sintetico
+        comprobable.nodes[nid] = copia
+    return contrato, graph.validar(comprobable, registro=registro)
 
 
 def herramientas(cuerpos: dict[str, JamGraph] | None = None) -> list[dict]:

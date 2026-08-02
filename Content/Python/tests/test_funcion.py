@@ -124,6 +124,44 @@ class FirmaTests(unittest.TestCase):
         self.assertEqual(tool["outputs"], [
             {"name": "uno", "tipo": "M"}, {"name": "dos", "tipo": "A"}])
 
+    def test_compile_valida_el_cuerpo_y_run_explica_como_ejecutar_la_instancia(self) -> None:
+        from jam import api
+
+        c = JamGraph()
+        c.add("input", {"name": "Num1", "type": "N"}, nid="a")
+        c.add("input", {"name": "Num2", "type": "N"}, nid="b")
+        c.add("math_add", {"a": 0.0, "b": 0.0}, nid="suma")
+        c.add("output", {"name": "salida", "type": "N"}, nid="sale")
+        c.connect("a", "suma", "a")
+        c.connect("b", "suma", "b")
+        c.connect("suma", "sale")
+
+        compilado = json.loads(api.compile_graph_json(c.to_json()))
+        corrida = json.loads(api.run_graph_json(c.to_json()))
+
+        self.assertTrue(compilado["ok"], compilado["report"])
+        self.assertFalse(compilado["preview"])
+        self.assertIn("Num1: Número (N)", compilado["report"])
+        self.assertNotIn("verbo desconocido", compilado["report"])
+        self.assertFalse(corrida["ok"])
+        self.assertFalse(corrida["preview"])
+        self.assertIn("no se ejecuta sola", corrida["report"])
+        self.assertIn("Guardar y volver al grafo", corrida["report"])
+        self.assertTrue(all(n["estado"] == "info" for n in corrida["nodes"].values()))
+
+    def test_compile_de_funcion_rechaza_un_tipo_de_pin_inventado(self) -> None:
+        from jam import api
+
+        c = JamGraph()
+        c.add("input", {"name": "dato", "type": "ZZ"}, nid="entrada")
+        c.add("output", {"name": "salida", "type": "ZZ"}, nid="salida")
+        c.connect("entrada", "salida")
+
+        compilado = json.loads(api.compile_graph_json(c.to_json()))
+
+        self.assertFalse(compilado["ok"])
+        self.assertIn("tipo de pin desconocido", compilado["report"])
+
 
 class ColapsarTests(unittest.TestCase):
     def _grafo(self) -> JamGraph:
@@ -308,6 +346,51 @@ class SlateContratoTests(unittest.TestCase):
         # La segunda limpieza tiene que ocurrir después de soltar las referencias del Graph.
         self.assertLess(cierre.index("GraphWidget.Reset()"), cierre.index("AddTicker"))
 
+    def test_abrir_graph_recupera_una_ventana_invisible_o_maximizada(self) -> None:
+        modulo = (self.RAIZ / "Source/JamEditor/Private/JamEditorModule.cpp").read_text()
+        apertura = modulo.split("void FJamEditorModule::OpenGraph", 1)[1].split("\n}", 1)[0]
+        helper = modulo.split("static void AsegurarVentanaGraphVisible", 1)[1].split(
+            "// Ids de los tres paneles", 1)[0]
+
+        self.assertIn("TryInvokeTab(JamTabs::Graph)", apertura)
+        self.assertIn("AsegurarVentanaGraphVisible", apertura)
+        self.assertIn("FTSTicker::GetCoreTicker().AddTicker", apertura)
+        self.assertIn("FindWidgetWindow(Tab)", helper)
+        self.assertIn("ActivateInParent", helper)
+        self.assertIn("IsMaximized()", helper)
+        self.assertIn("IsMinimized()", helper)
+        self.assertIn("Ventana->Restore()", helper)
+        self.assertIn("IntersectionWith(Area", helper)
+        self.assertIn("Ventana->ReshapeWindow", helper)
+        self.assertIn("Ventana->BringToFront", helper)
+        self.assertIn("ResetToDefaultInputSettings", helper)
+        spawn = modulo.split("FJamEditorModule::SpawnGraphTab", 1)[1].split(
+            "void FJamEditorModule::OnGraphClosed", 1)[0]
+        self.assertIn("FTSTicker::GetCoreTicker().AddTicker", spawn)
+        self.assertIn('TEXT("spawn diferido")', spawn)
+        self.assertIn("AsegurarVentanaGraphVisible", spawn)
+        # Los ids persistentes no se cambian para esconder un layout roto.
+        self.assertIn('static const FName Graph("JamGraph")', modulo)
+
+    def test_arranque_resincroniza_el_hit_test_de_la_ventana_principal_en_wayland(self) -> None:
+        modulo = (self.RAIZ / "Source/JamEditor/Private/JamEditorModule.cpp").read_text()
+        helper = modulo.split("static void SincronizarVentanaPrincipalTrasLayout", 1)[1].split(
+            "// Ids de los tres paneles", 1)[0]
+        arranque = modulo.split("void FJamEditorModule::StartupModule", 1)[1].split("\n}", 1)[0]
+
+        self.assertIn("FGlobalTabmanager::Get()->GetRootWindow()", helper)
+        self.assertIn("IsMaximized()", helper)
+        self.assertIn("Ventana->Restore()", helper)
+        self.assertIn("VentanaViva->ReshapeWindow", helper)
+        self.assertIn("NativaFinal->Maximize()", helper)
+        self.assertIn("ResetToDefaultInputSettings()", helper)
+        self.assertIn("BringToFront", helper)
+        # Las transiciones no pueden comprimirse en un frame: Wayland confirma la geometría async.
+        self.assertGreaterEqual(helper.count("FTSTicker::GetCoreTicker().AddTicker"), 2)
+        self.assertIn("SincronizarVentanaPrincipalTrasLayout()", arranque)
+        self.assertIn("1.0f", arranque)
+        self.assertIn('static const FName Graph("JamGraph")', modulo)
+
     def test_slate_ofrece_abm_y_guarda_el_cuerpo_por_el_borde_publico(self) -> None:
         modulo = (self.RAIZ / "Source/JamEditor/Private/JamEditorModule.cpp").read_text()
         editor = (self.RAIZ / "Source/JamEditor/Private/SJamGraphEditor.cpp").read_text()
@@ -319,6 +402,23 @@ class SlateContratoTests(unittest.TestCase):
         self.assertIn("GuardarFuncion", editor)
         self.assertIn("BuildJson()", editor)
         self.assertIn("el grafo abierto todavía usa", editor)
+
+    def test_editar_funcion_tiene_regreso_explicito_y_recupera_el_grafo_anterior(self) -> None:
+        editor = (self.RAIZ / "Source/JamEditor/Private/SJamGraphEditor.cpp").read_text()
+        cabecera = (self.RAIZ / "Source/JamEditor/Public/SJamGraphEditor.h").read_text()
+
+        self.assertIn('"Guardar y volver al grafo"', editor)
+        self.assertIn('"Volver sin guardar"', editor)
+        self.assertIn("EstadoAntesDeEditarFuncion = EstadoDelCanvas()", editor)
+        self.assertIn('SetStringField(TEXT("function_return_state")', editor)
+        self.assertIn('TryGetStringField(TEXT("function_return_state")', editor)
+        self.assertIn("RestaurarCanvas(Destino)", editor)
+        self.assertIn("GuardarYCerrarFuncion", cabecera)
+        # El cuerpo se carga sin perder el estado de retorno; un New común sí apaga el modo.
+        self.assertIn("LoadGraphJson(GraphJson, /*bConservarEdicionFuncion*/ true)", editor)
+        nuevo = editor.split("void SJamGraphEditor::NewGraph()", 1)[1].split("\n}", 1)[0]
+        self.assertIn("FuncionEnEdicion.Reset()", nuevo)
+        self.assertIn("EstadoAntesDeEditarFuncion.Reset()", nuevo)
 
     def test_el_modal_no_captura_shared_ptrs_antes_de_sassignnew(self) -> None:
         editor = (self.RAIZ / "Source/JamEditor/Private/SJamGraphEditor.cpp").read_text()

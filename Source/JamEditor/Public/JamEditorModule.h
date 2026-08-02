@@ -62,7 +62,7 @@ struct FJamTool
 	bool bAssetRow = false;
 	int32 Arity = 1;          // 0=fuente · 1=unario · -1=variádico (varios cables en «in»)
 	FString InName;           // tipo que recibe el pin gordo: A=asset/actor · P=stream de puntos
-	FString OutName;          // nombre de la salida (la «variable» del pin de salida, estilo GH)
+	FString OutName;          // código de tipo legado del pin estable `out` (A/P/N/M…)
 	/** Nombre humano opcional del pin de salida; OutName conserva el código de tipo/protocolo. */
 	FString OutLabel;
 	/** Firma dinámica de `fn:<nombre>`. Vacíos = contrato clásico de un solo `in`/`out`. */

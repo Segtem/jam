@@ -39,6 +39,19 @@ tests, incluidas dos mutaciones deliberadas. La sonda embebida dio
 de guardar/reabrir/ejecutar. El commandlet retorna 1 sólo por nueve paquetes ilegibles de BotOO que
 Asset Registry ya reporta al arrancar.
 
+La revisión posterior del botón **Run** encontró que los grafos Math puros entraban por el adaptador
+Flow y abrían un Preview vacío. La ruta pública ahora devuelve `preview: false`, no reemplaza el
+Preview de escena y reporta explícitamente «sin efectos en la escena»; los grafos con geometría
+siguen siendo transaccionales. La salida Slate separa además pin estable `out`, tipo protocolar `N` y
+rótulo `resultado (Número)`, así que ya no pinta el código corto como un segundo nombre.
+
+La edición de una función tiene ahora regreso explícito al grafo llamador y Compile entiende los
+bordes `input/output` como firma, no como tools desconocidas. Finalmente se corrigió el bloqueo de
+clics al arrancar maximizado en **UE 5.8.1 + Wayland**: Jam resincroniza la geometría de la ventana
+raíz después del layout, y tanto `OpenGraph` como el spawner real de `Window → Tools` recuperan una
+ventana flotante inválida. Son **547 tests OK**; build 5.8.1 verde. En el gesto real el menú abrió
+Graph por el spawner y el panel recibió una acción que construyó Preview siete segundos después.
+
 **Leé primero** `Vault-kb/00-Proceso/2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0.md`: son
 diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 
@@ -46,10 +59,10 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 
 | Qué | Comando | Resultado |
 |---|---|---|
-| Cerebro de Jam | `cd Content/Python/tests && PYTHONPATH=$PWD/.. python -m unittest discover -s . -p "test_*.py" -q` | **540 OK**, 0.3 s |
-| Math en UE 5.8.1 | `tools/experiments/verifica_math_graph.py` en `UnrealEditor-Cmd` | **spec + Compile + Run + Inspector=40.000 + cero rechazado · TODO VERDE** |
+| Cerebro de Jam | `cd Content/Python/tests && PYTHONPATH=$PWD/.. python -m unittest discover -s . -p "test_*.py" -q` | **547 OK**, 0.3 s |
+| Math en UE 5.8.1 | `tools/experiments/verifica_math_graph.py` en `UnrealEditor-Cmd` | **spec + Compile + Run sin Preview + Inspector=40.000 + cero rechazado · TODO VERDE** |
 | Vault (modo sombra) | `python tools/vault.py` | **55 docs · las dos implementaciones coinciden** |
-| Motor | sonda headless + gesto real `+ Nueva función` | **ABM completo + identidad estable + modal visible + Compile · TODO VERDE** |
+| Motor | sonda headless + gestos reales de función/ventana | **ABM + Compile de cuerpo + ventana Wayland interactiva · TODO VERDE** |
 | Nanite→Fracture | `tools/experiments/verifica_nanite_fracture_58.py` en editor GUI | **2/2 materiales distintos + GC Nanite · TODO VERDE; cierre 139** |
 | UE 5.8.1 | APIs + ejemplos + material/UV + PCG real | **98 símbolos + 75 métodos · 8/8 ejemplos · material/UV verde · 287 HISM** |
 | Oracle en UE 5.8.1 | `tools/experiments/verifica_oracle_shadow.py` con editor completo | **placement + snap funcional verde; cierre 139** |
@@ -83,9 +96,9 @@ Lo que **nadie ejerció con las manos** de este turno:
 
 | Cosa | Quién puede verificarla | Estado |
 |---|---|---|
-| Cierre de Graph sin captura huérfana | Brian | ✅ captor sí→no; botones respondieron después del cierre |
+| Apertura/cierre de Graph y entrada global | Brian | ✅ ventana raíz resincronizada; menú abre Graph; captor sí→no al cerrar |
 | Selector de tipos completo | Brian | ⏳ falta desplegar la lista y confirmar la presentación real |
-| Maths: Sumar/Restar/Multiplicar/Dividir, pines y resultado | Brian | ⏳ núcleo/tests/build verdes; falta guardar, reabrir, ejecutar e inspeccionar |
+| Maths: Sumar/Restar/Multiplicar/Dividir, pines y resultado | Brian | ⏳ 547 tests/sonda/build verdes; falta confirmar Run puro sin Preview en Slate |
 | Resto del ABM, `Ctrl+G` + dibujo/cableado de pines múltiples | Brian | ⏳ `+ Nueva` confirmado; faltan editar/renombrar/borrar/cablear |
 | Aspecto de una GC Nanite fracturada y rotura en PIE | Brian | ⏳ metadata/materiales verdes; falta viewport y simulación |
 | El paquete de estudio subido a NotebookLM | Brian | ⏳ generado, sin abrir |

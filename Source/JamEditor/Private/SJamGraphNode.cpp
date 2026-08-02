@@ -71,7 +71,6 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 	Verb = InArgs._Verb;
 	DisplayName = InArgs._DisplayName;
 	IconPath = InArgs._IconPath;
-	OutName = InArgs._OutName;
 	IconColor = InArgs._IconColor;
 	OnDragDelta = InArgs._OnDragDelta;
 	OnInputClickedDelegate = InArgs._OnInputClicked;
@@ -146,6 +145,8 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 		return SNew(SBox).HeightOverride(H).VAlign(VAlign_Center)[ W ];
 	};
 	auto Spacer = [](float H) { return SNew(SBox).HeightOverride(H); };
+	const FString OutputPinName = InArgs._OutputPinName.IsEmpty()
+		? FString(TEXT("out")) : InArgs._OutputPinName;
 
 	// Anatomía de componente de Grasshopper: cartela flotante arriba (la pinta OnPaint), parámetros en
 	// filas a la izquierda [grip][nombre][valor], nombre vertical en el centro (futuro icono) y salida a
@@ -195,9 +196,10 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 	];
 	RightCol->AddSlot().AutoHeight()
 	[
-		Cell(HeaderH, InArgs._OutputPins.Num() == 0 && !InArgs._OutName.IsEmpty()
-			? MakeNub(TEXT("salida (clic para conectar)"), InArgs._OutputColor,
-				[this]() { OnOutputClickedDelegate.ExecuteIfBound(TEXT("out")); })
+		Cell(HeaderH, InArgs._OutputPins.Num() == 0 && !InArgs._OutputDataType.IsEmpty()
+			? MakeNub(FString::Printf(TEXT("salida «%s» · tipo %s"),
+				*OutputPinName, *InArgs._OutputDataType), InArgs._OutputColor,
+				[this, OutputPinName]() { OnOutputClickedDelegate.ExecuteIfBound(OutputPinName); })
 			: StaticCastSharedRef<SWidget>(SNullWidget::NullWidget))
 	];
 
@@ -625,20 +627,6 @@ int32 SJamGraphNode::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGe
 			FSlateDrawElement::MakeText(OutDrawElements, LayerId + 5,
 				NamePG, CenterName, CenterFont, ESlateDrawEffect::None, JamInk);
 		}
-	}
-
-	// NOMBRE DE LA SALIDA (la «variable» del pin de salida, estilo GH: S/E/P/T…), pegado a la
-	// izquierda del nub «out» a la altura del header.
-	if (!OutName.IsEmpty())
-	{
-		const FSlateFontInfo OFont = FCoreStyle::GetDefaultFontStyle("Bold", 8);
-		const TSharedRef<FSlateFontMeasure> FM2 =
-			FSlateApplication::Get().GetRenderer()->GetFontMeasureService();
-		const FVector2D OS = FM2->Measure(OutName, OFont);
-		const FVector2D OTL(Size.X - PinColW - OS.X - 1.0f, PinLocalY(-1) - OS.Y * 0.5f);
-		FSlateDrawElement::MakeText(OutDrawElements, LayerId + 5,
-			AllottedGeometry.ToPaintGeometry(OS, FSlateLayoutTransform(OTL)), OutName, OFont,
-			ESlateDrawEffect::None, JamInk);
 	}
 
 	return SCompoundWidget::OnPaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements,

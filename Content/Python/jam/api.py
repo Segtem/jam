@@ -58,13 +58,61 @@ def _expandir_funciones(graph_json: str) -> tuple[str, str]:
         return graph_json, str(e)
 
 
+def _compile_cuerpo_funcion(graph_json: str) -> str | None:
+    """Envelope de Compile si el canvas contiene una definición; `None` si es un grafo normal."""
+    import json
+
+    from . import funcion
+    from .graph import JamGraph
+
+    cuerpo = JamGraph.from_json(graph_json)
+    if not funcion.es_cuerpo(cuerpo):
+        return None
+    contrato, diagnosticos = funcion.validar_cuerpo(cuerpo)
+    globales = diagnosticos.get("_graph", [])
+    estados = {}
+    lineas = []
+    for nid, nodo in cuerpo.nodes.items():
+        mensajes = diagnosticos.get(nid, []) or globales
+        if mensajes:
+            texto = " · ".join(mensajes)
+            estados[nid] = {"estado": "error", "texto": texto}
+            lineas.append(f"[{nid}·{nodo.get('verb', '?')}] {texto}")
+        else:
+            estados[nid] = {"estado": "ok", "texto": "Compile ✓"}
+    if diagnosticos:
+        reporte = "COMPILE ✗ — función inválida\n" + "\n".join(lineas)
+    else:
+        def pines(items):
+            return ", ".join(
+                f"{p['name']}: {funcion.ETIQUETAS_TIPOS_PIN[p['tipo']]}" for p in items
+            ) or "ninguno"
+        reporte = (f"COMPILE ✓ — firma de función · {pines(contrato['entradas'])} → "
+                   f"{pines(contrato['salidas'])} · {len(cuerpo.nodes)} nodos")
+    return json.dumps({"ok": not diagnosticos, "preview": False,
+                       "report": reporte, "nodes": estados}, ensure_ascii=True)
+
+
 def run_graph_json(graph_json: str) -> str:
     """JSON {report, nodes:{nid:{estado,texto}}} para pintar el canvas. Detecta SOLO: si el grafo son
     ops de flow (source/mask/instance) lo corre como cadena Houdini; si son verbos, como grafo de
     verbos. Así el mismo botón Run del canvas hace lo correcto sin que la UI sepa la diferencia."""
     import json
 
-    from . import flow, panel
+    from . import flow, funcion, graph, panel
+    cuerpo = graph.JamGraph.from_json(graph_json)
+    if funcion.es_cuerpo(cuerpo):
+        compilado = json.loads(_compile_cuerpo_funcion(graph_json) or "{}")
+        if not compilado.get("ok"):
+            return json.dumps(compilado, ensure_ascii=True)
+        return json.dumps({
+            "ok": False, "preview": False,
+            "report": ("RUN — una definición no se ejecuta sola. "
+                       "Usá «Guardar y volver al grafo», insertá su ficha de Biblioteca y "
+                       "ejecutá la instancia con valores conectados."),
+            "nodes": {nid: {"estado": "info", "texto": "parte de la definición"}
+                      for nid in cuerpo.nodes},
+        }, ensure_ascii=True)
     graph_json, error = _expandir_funciones(graph_json)
     if error:
         return json.dumps({"ok": False, "report": f"RUN ✗ — {error}", "nodes": {}},
@@ -82,6 +130,10 @@ def compile_graph_json(graph_json: str) -> str:
     import json
 
     from . import flow, graph
+
+    cuerpo = _compile_cuerpo_funcion(graph_json)
+    if cuerpo is not None:
+        return cuerpo
 
     graph_json, error = _expandir_funciones(graph_json)
     if error:
@@ -301,7 +353,11 @@ def function_manage(action: str, funcion_id: str = "", payload: str = "",
             cuerpo = d["cuerpo"]
         elif action == "update":
             cuerpo = JamGraph.from_json(payload)
-            funcion.firma(cuerpo)
+            _firma, diagnosticos = funcion.validar_cuerpo(cuerpo)
+            if diagnosticos:
+                detalle = " · ".join(
+                    mensaje for mensajes in diagnosticos.values() for mensaje in mensajes)
+                raise funcion.FuncionError(detalle)
             nombre = d["nombre"]
         elif action == "delete":
             if not preset.borrar_funcion(identidad):

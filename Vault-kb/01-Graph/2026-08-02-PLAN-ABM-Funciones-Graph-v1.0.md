@@ -183,3 +183,42 @@ y la diferida registró `captor=no menu=no modal=no`. Brian volvió a usar los b
 normalmente. Antes hubo dos falsos intentos: el reloj del sandbox dejó el `.cpp` dos horas detrás del
 `.so`, UBT informó `Target is up to date` y el editor cargó el binario viejo. La verificación válida
 forzó la fecha del fuente y comprobó los marcadores dentro del módulo con `strings -el`.
+
+## Incidente al abrir maximizado en UE 5.8.1 + Wayland
+
+El bloqueo de clics reapareció sin cerrar Graph: BotOO arrancaba maximizado, la ventana se dibujaba,
+pero ni el menú principal ni los botones aceptaban puntero. Restaurar la ventana y volver a
+maximizarla manualmente lo corregía. El origen no era otro captor huérfano: el backend Linux de UE
+5.8 advierte que, bajo Wayland, una posición cacheada de `SWindow` distinta de la asignada finalmente
+por el compositor hace que `IsScreenspaceMouseWithin` rechace todos los eventos.
+
+Jam ahora agenda una resincronización de la ventana raíz después de restaurar el layout. Separa en
+ticks la restauración, un `ReshapeWindow` —aunque el rectángulo aparente no cambie— y la vuelta al
+estado maximizado; al final invalida Slate y restablece entrada/foco. No abre paneles, no borra el
+layout y conserva los ids persistentes `JamDashBar`, `JamGraph` y `JamContent`.
+
+La apertura de Graph también se garantiza en las dos rutas reales. El comando de Jam pasa por
+`OpenGraph`, pero el layout persistido y `Window → Tools` invocan directamente `SpawnGraphTab`; este
+último agenda su propia recuperación cuando el TabManager ya adjuntó el tab a un `SWindow`. Si la
+ventana flotante quedó fuera de pantalla, minimizada o con tamaño inválido, se restaura y centra en
+el área de trabajo del monitor activo.
+
+La prueba real del 2026-08-02 registró la ventana principal resincronizada en `1920,0 1920×1048`, el
+Graph creado por el **spawner** en `1920,0 1427×827` y, siete segundos después, una acción del Graph
+que construyó y validó su Preview. Es evidencia de apertura, foco y recepción de clics. El contrato
+de C++ pasó primero con la corrección, se puso rojo al reemplazar deliberadamente `ReshapeWindow` y
+volvió a verde al restaurarlo; la suite completa quedó en 547 tests.
+
+## Edición del cuerpo y regreso al grafo llamador
+
+Abrir **Editar** reemplaza temporalmente el canvas por la definición. Antes no había una salida
+explícita y pulsar Compile/Run sobre ese cuerpo enviaba `input` y `output` al compilador de tools como
+si fueran verbos ejecutables. Ahora una barra persistente identifica la función y ofrece **Guardar y
+volver al grafo** o **Volver sin guardar**; el canvas llamador se serializa y se recupera incluso si
+Graph se cierra y vuelve a abrir durante la edición.
+
+Compile reconoce una definición, valida su firma y convierte sólo durante el análisis los bordes en
+fuentes/sumideros sintéticos tipados. Así reutiliza las reglas normales de DAG, pines, cardinalidad y
+tipos sin inventar que una función tenga valores concretos. Run explica que la definición no se
+ejecuta sola: hay que guardar, insertar su ficha de Biblioteca y conectar valores. El cuerpo real
+`Num1: N, Num2: N → Sumar → salida: N` dio `COMPILE ✓` con cuatro nodos.

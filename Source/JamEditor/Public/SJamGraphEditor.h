@@ -182,7 +182,7 @@ private:
 	/** Vacía el grafo (nodos + wires). */
 	void NewGraph();
 	/** Valida y reconstruye el grafo desde JSON. Un fallo no modifica canvas, vista ni CurrentPath. */
-	bool LoadGraphJson(const FString& Json);
+	bool LoadGraphJson(const FString& Json, bool bConservarEdicionFuncion = false);
 	/** Diálogos de archivo (DesktopPlatform): guardar/abrir un diagrama .jamgraph (JSON). */
 	void SaveDiagram(bool bForceDialog);
 	void OpenDiagram();
@@ -236,6 +236,8 @@ private:
 	void NuevaFuncion();
 	void EditarFuncion(const FString& Verb);
 	void GuardarFuncion();
+	void GuardarYCerrarFuncion();
+	void VolverDeFuncion(bool bCambiosGuardados);
 	void RenombrarFuncion(const FString& Verb, const FString& NombreActual);
 	void EliminarFuncion(const FString& Verb, const FString& NombreActual);
 	bool AplicarRespuestaFuncion(const FString& Res, bool bCargarCuerpo);
@@ -305,6 +307,8 @@ private:
 	FOnFunctionManage OnFunctionManage;
 	FString FuncionEnEdicion;
 	FString NombreFuncionEnEdicion;
+	/** Estado completo del documento que estaba abierto antes de entrar al cuerpo de una función. */
+	FString EstadoAntesDeEditarFuncion;
 
 	/** Nodos del último Run (id + tipo + cantidad) que alimentan el selector del inspector. */
 	TArray<TSharedPtr<FString>> InspectNodes;

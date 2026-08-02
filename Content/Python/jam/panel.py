@@ -726,9 +726,14 @@ def ejecutar_dsl(linea: str, widget=None) -> str:
     return f"verbo desconocido: «{verbo}». «help» lista los verbos."
 
 
+def _solo_valores(g) -> bool:
+    """Un grafo numérico/textual calcula datos, pero no posee ni reemplaza Preview de escena."""
+    from .graph import VALOR_KINDS
+    return bool(g.nodes) and all(nodo.get("verb") in VALOR_KINDS for nodo in g.nodes.values())
+
+
 def ejecutar_grafo(g_json: str, widget=None) -> str:
-    """Corre un JamGraph (JSON) como UN preview: todos los actores del grafo se marcan juntos y
-    Confirmar/Descartar resuelven el grafo entero. Es la ejecución del «Grasshopper» de Jam."""
+    """Corre un JamGraph; sólo abre Preview cuando algún nodo puede producir efectos en escena."""
     from . import graph
     g = graph.JamGraph.from_json(g_json)
     try:
@@ -742,6 +747,8 @@ def ejecutar_grafo(g_json: str, widget=None) -> str:
             raise RuntimeError(texto)
         return texto
 
+    if _solo_valores(g):
+        return correr(widget) + f"\n\nRUN ✓ — {len(g.nodes)} valor(es), sin efectos en la escena"
     return _preview(correr, owner="graph")
 
 
@@ -773,7 +780,8 @@ def ejecutar_flow_json(g_json: str, widget=None, *, owner: str = "graph") -> str
                 continue
             texto = " · ".join(mensajes)
             lineas.append(f"[flow] {texto}")
-        return json.dumps({"report": "\n".join(lineas), "nodes": caja}, ensure_ascii=True)
+        return json.dumps({"ok": False, "preview": False,
+                           "report": "\n".join(lineas), "nodes": caja}, ensure_ascii=True)
 
     def correr(_w):
         try:
@@ -826,6 +834,11 @@ def ejecutar_flow_json(g_json: str, widget=None, *, owner: str = "graph") -> str
             lineas.append(f"[{nid}·{kind}] {txt}")
         return "\n".join(lineas)
 
+    if f.nodos and all(nodo["kind"] in flow.VALOR_KINDS for nodo in f.nodos.values()):
+        reporte = correr(widget) + f"\n\nRUN ✓ — {len(f.nodos)} valor(es), sin efectos en la escena"
+        return json.dumps({"ok": True, "preview": False, "report": reporte, "nodes": caja},
+                          ensure_ascii=True)
+
     reporte = _preview(correr, owner=owner)
     if "_err" in caja:
         return json.dumps({"report": reporte, "nodes": {}}, ensure_ascii=True)
@@ -871,5 +884,12 @@ def ejecutar_grafo_json(g_json: str, widget=None, *, owner: str = "graph") -> st
             raise RuntimeError(texto)
         return texto
 
+    if _solo_valores(g):
+        reporte = correr(widget) + f"\n\nRUN ✓ — {len(g.nodes)} valor(es), sin efectos en la escena"
+        return json.dumps({"ok": True, "preview": False, "report": reporte, "nodes": caja},
+                          ensure_ascii=True)
+
     reporte = _preview(correr, owner=owner)
-    return json.dumps({"report": reporte, "nodes": caja}, ensure_ascii=True)
+    ok = not any(resultado.get("estado") == "error" for resultado in caja.values())
+    return json.dumps({"ok": ok, "preview": ok, "report": reporte, "nodes": caja},
+                      ensure_ascii=True)
