@@ -1,6 +1,6 @@
 # Vault-kb de Jam
 
-50 documentos en 5 carpetas. Nomenclatura
+52 documentos en 5 carpetas. Nomenclatura
 `AAAA-MM-DD-TIPO-Nombre-vX.X.md` — la explica
 [[2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0|la guía de convención]].
 La carpeta es la taxonomía: cada doc vive en una sola y su `area:` lo dice.
@@ -11,8 +11,9 @@ Este índice y las reglas los verifica `tools/vault.py`.
 
 ## Proceso y dirección
 
-`00-Proceso/` · 6 documentos
+`00-Proceso/` · 7 documentos
 
+- [[2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0|Revisión integral de Jam, Oracle y Unreal Engine 5.8.1]] · *en-progreso*
 - [[2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0|P3 de Oracle: autonomía de embedding antes de migrar Jam]] · *completo*
 - [[2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0|Oracle: un metalenguaje de medidas para construir herramientas con un LLM]] · *implementado*
 - [[2026-07-30-INFORME-Auditoria-Viabilidad-Lenguaje-Propio-Oracle-v1.0|Auditoría de viabilidad: un lenguaje propio para Oracle]] · *dictamen-desaconsejado*
@@ -73,8 +74,9 @@ Este índice y las reglas los verifica `tools/vault.py`.
 
 ## Ejecución, presets y pruebas
 
-`04-Ejecucion-y-pruebas/` · 8 documentos
+`04-Ejecucion-y-pruebas/` · 9 documentos
 
+- [[2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0|Certificación de Jam en Unreal Engine 5.8.1]] · *en-progreso*
 - [[2026-07-27-INFORME-Puente-P-a-F-Ops-Flow-v1.0|Puente P → F: las ops de Flow como verbos del Graph]] · *implementado*
 - [[2026-07-26-PLAN-Preview-Transaccional-Efectos-PCG-v1.0|Preview transaccional y efectos de PCG]] · *en-progreso*
 - [[2026-07-25-PLAN-Infraestructura-Pruebas-Jam-Oraculo-v1.0|Infraestructura de pruebas de Jam y Oráculo]] · *pendiente*

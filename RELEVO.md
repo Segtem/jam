@@ -9,7 +9,7 @@ verde_editor_fecha: 2026-08-01
 
 # Testigo
 
-Entra **codex**. Corré `python tools/relevo.py` antes de leer esto; si sale rojo, eso es el turno.
+Entra **claude-code**. Corré `python tools/relevo.py` antes de leer esto; si sale rojo, eso es el turno.
 
 El turno que cierra hizo dos cosas grandes. En **Jam**: el roadmap de accesibilidad del Graph (fases 0
 a 3) y las funciones con firma (fase 5, cerebro). Y después nació **`oracle`** —repo aparte,
@@ -27,24 +27,23 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 
 | Qué | Comando | Resultado |
 |---|---|---|
-| Cerebro de Jam | `cd Content/Python/tests && PYTHONPATH=$PWD/.. python -m unittest discover -s . -p "test_*.py" -q` | **496 OK**, 0.3 s |
-| Vault (modo sombra) | `python tools/vault.py` | **48 docs · las dos implementaciones coinciden** |
+| Cerebro de Jam | `cd Content/Python/tests && PYTHONPATH=$PWD/.. python -m unittest discover -s . -p "test_*.py" -q` | **513 OK**, 0.3 s |
+| Vault (modo sombra) | `python tools/vault.py` | **52 docs · las dos implementaciones coinciden** |
 | Motor | `tools/experiments/verifica_funcion_graph.py` headless | **guardar + firma en ribbon + 2 instancias + Compile · TODO VERDE** |
-| oracle sobre sí mismo | `cd ~/Dev/oracle && python tools/aceptacion.py` | **15 rojos · 11 verdes · 3 huecos** |
-| oracle sobre Jam | `python vendor/oracle/tools/diferencial.py --proyecto medidas` | **269 veredictos, 0 desacuerdos** |
-| » mutación de medidas | `python vendor/oracle/tools/mutar.py --proyecto medidas` | **80/80 mutantes muertos** |
-| » tests de oracle | `cd ~/Dev/oracle && python -m unittest discover -s tests -t . -q` | **111 OK** |
+| UE 5.8.1 | APIs + ejemplos + material/UV + PCG real | **98 símbolos + 75 métodos · 8/8 ejemplos · material/UV verde · 287 HISM** |
+| Oracle en UE 5.8.1 | `tools/experiments/verifica_oracle_shadow.py` con editor completo | **placement + snap funcional verde; cierre 139** |
+| oracle sobre sí mismo | `cd vendor/oracle && python tools/aceptacion.py` | **27 rojos · 12 verdes · 0 huecos** |
+| oracle sobre Jam | `python vendor/oracle/tools/diferencial.py --proyecto medidas --confiar-escalares` | **419 acuerdos · 2558 veredictos estables** |
+| » mutación de medidas | `python vendor/oracle/tools/mutar.py --proyecto medidas --confiar-escalares` | **163/163 mutantes muertos** |
+| » tests de oracle | `cd vendor/oracle && python -m unittest discover -s tests -t . -q` | **339 OK** |
 
-El campo `verde_editor` todavía apunta al último commit cerrado (`80373ea`). El worktree actual sí se
-compiló y pasó `verifica_funcion_graph.py`, pero **antes de cerrar** hay que commitearlo, actualizar
-ese campo al commit verificado y volver a correr `relevo.py --cerrar`; mientras tanto el rojo del
-relevo por código vivo modificado es correcto.
+El campo `verde_editor` apunta al último commit cerrado (`b7b886e`), verificado en UE 5.8.1. La
+revisión iniciada el 2026-08-02 no tocó runtime del editor. `VIVO` ahora distingue la suite de
+`init_unreal.py` y `jam/`, por lo que cambiar sólo tests ya no invalida falsamente esa evidencia.
 
-**Un rojo conocido y deliberado:** `cd ~/Dev/oracle && python tools/mutar_codigo.py` deja **31
-mutantes vivos** de 242. Es código del núcleo que ningún test fija, y el número está a la vista a
-propósito. **No los declares equivalentes en masa para pintar verde** — sería exactamente el Goodhart
-que el repo persigue. Bajan escribiendo tests, o declarando equivalentes **de a uno con su razón
-escrita** en `equivalentes.json`. Tarda varios minutos: corré con timeout largo.
+**Un rojo histórico y deliberado:** el relevo anterior midió 31 mutantes de código vivos de 242. El
+denominador cambió desde entonces y ese número no se revalidó en esta revisión. **No declares
+equivalentes en masa para pintar verde**: bajan escribiendo tests o justificando cada equivalencia.
 
 ## Frontera de verificación
 
@@ -86,10 +85,14 @@ de pedir manos sin que nadie lo note.)*
 
 ## Lo próximo
 
-**1. Fase 7 del Graph — bypass (`D`) y comentarios (`C`).** El bypass es cerebro y por lo tanto
-verificable; el comentario es Slate.
+**1. Continuar el
+[[2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0|plan de revisión integral]].** Las fases 0 y 1
+recuperaron la puerta diferencial y certificaron el embedding/sombra; sigue la matriz completa de
+UE 5.8.1. La primera matriz automatizable está en
+[[2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0|la certificación 5.8.1]]; quedan las fronteras
+manuales y GUI que enumera el informe.
 
-**2. Los 31 mutantes de código vivos de `oracle`**, de a uno.
+**2. Después de certificar la base, Fase 7 del Graph — bypass (`D`) y comentarios (`C`).**
 
 **3. Reemplazar de verdad los verificadores escritos a mano** de Jam (`vault.py`, `relevo.py`). Están
 re-expresados como medidas y verificados por diferencial, y **siguen en uso los originales**. El

@@ -15,9 +15,14 @@ ASSET = library.buscar("SM_", limit=1)[0]
 api.select_asset(ASSET["ruta"])
 
 
+def es_volumen_jam(actor):
+    """Preview conserva el nombre original, pero antepone su propio prefijo al label visible."""
+    return isinstance(actor, unreal.PCGVolume) and "JamPCG_" in actor.get_actor_label()
+
+
 def limpiar_pcg():
     for x in sub.get_all_level_actors():
-        if x.get_actor_label().startswith("JamPCG"):
+        if es_volumen_jam(x):
             try: sub.destroy_actor(x)
             except Exception: pass
 
@@ -46,7 +51,7 @@ limpiar_pcg()
 # 4) PCG USANDO PRESET: los params del preset de scatter dirigen la realización
 r2 = api.run('pcg preset="Escombros densos"')
 log("4 pcg preset → " + r2.replace("\n"," | "))
-vol = next((x for x in sub.get_all_level_actors() if x.get_actor_label().startswith("JamPCG")), None)
+vol = next((x for x in sub.get_all_level_actors() if es_volumen_jam(x)), None)
 assert vol is not None and "Escombros" in vol.get_actor_label(), "el preset se realiza como PCG"
 # el preset «Escombros densos» tiene area=600 → el veredicto lo refleja
 assert "600" in r2, "los params del preset (area 600) dirigen la realización"

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import importlib.util
 import sys
+import tempfile
 import types
 import unittest
 from pathlib import Path
@@ -41,9 +42,28 @@ class ExtractorTests(unittest.TestCase):
         self.assertTrue(all(":" in lugar for lugar in lugares), lugares)
         self.assertTrue(any(lugar.startswith("mesh.py:") for lugar in lugares), lugares)
 
-    def test_ignores_comments_and_log_helpers(self):
+    def test_finds_module_functions_constructors_types_and_enums(self):
         checker = _checker()
-        self.assertNotIn("log", {clase for clase, _m in checker.llamadas(JAM)})
+        encontrado = checker.simbolos(JAM)
+
+        self.assertGreater(len(encontrado), 50)
+        for simbolo in (
+                "get_editor_subsystem", "Vector", "DynamicMesh", "TraceTypeQuery"):
+            self.assertIn(simbolo, encontrado)
+            self.assertTrue(all(":" in lugar for lugar in encontrado[simbolo]))
+
+    def test_ignores_complete_comments(self):
+        checker = _checker()
+        with tempfile.TemporaryDirectory() as temporal:
+            fuente = Path(temporal) / "sonda.py"
+            fuente.write_text(
+                "# unreal.ClaseInventada.metodo\nvalor = unreal.Vector()\n",
+                encoding="utf-8",
+            )
+            encontrado = checker.simbolos(Path(temporal))
+
+        self.assertNotIn("ClaseInventada", encontrado)
+        self.assertIn("Vector", encontrado)
 
 
 class ManglerTests(unittest.TestCase):

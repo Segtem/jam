@@ -84,6 +84,19 @@
       "updated": "2026-07-31"
      },
      {
+      "area": "00-Proceso",
+      "carpeta": "00-Proceso",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
       "area": "01-Graph",
       "carpeta": "01-Graph",
       "carpeta_conocida": true,
@@ -654,6 +667,19 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-07-27"
+     },
+     {
+      "area": "04-Ejecucion-y-pruebas",
+      "carpeta": "04-Ejecucion-y-pruebas",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-02"
      }
     ],
     "enlace": [
@@ -745,6 +771,36 @@
      {
       "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
       "origen": "2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
       "resuelve": true
      },
      {
@@ -1898,7 +1954,27 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -2108,6 +2184,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-27-INFORME-Puente-P-a-F-Ops-Flow-v1.0",
       "origen": "README",
       "resuelve": true
@@ -2248,6 +2329,19 @@
       "tipo_declarado": "PLAN",
       "tipo_en_nombre": "PLAN",
       "updated": "2026-07-31"
+     },
+     {
+      "area": "00-Proceso",
+      "carpeta": "00-Proceso",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
      },
      {
       "area": "01-Graph",
@@ -2820,6 +2914,19 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-07-27"
+     },
+     {
+      "area": "04-Ejecucion-y-pruebas",
+      "carpeta": "04-Ejecucion-y-pruebas",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-02"
      }
     ],
     "enlace": [
@@ -2911,6 +3018,36 @@
      {
       "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
       "origen": "2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
       "resuelve": true
      },
      {
@@ -4064,7 +4201,27 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": false
+     },
+     {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -4274,6 +4431,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-27-INFORME-Puente-P-a-F-Ops-Flow-v1.0",
       "origen": "README",
       "resuelve": true
@@ -4414,6 +4576,19 @@
       "tipo_declarado": "PLAN",
       "tipo_en_nombre": "PLAN",
       "updated": "2026-07-31"
+     },
+     {
+      "area": "00-Proceso",
+      "carpeta": "00-Proceso",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
      },
      {
       "area": "01-Graph",
@@ -4986,6 +5161,19 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-07-27"
+     },
+     {
+      "area": "04-Ejecucion-y-pruebas",
+      "carpeta": "04-Ejecucion-y-pruebas",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-02"
      }
     ],
     "enlace": [
@@ -5077,6 +5265,36 @@
      {
       "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
       "origen": "2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
       "resuelve": true
      },
      {
@@ -6230,7 +6448,27 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -6440,6 +6678,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-27-INFORME-Puente-P-a-F-Ops-Flow-v1.0",
       "origen": "README",
       "resuelve": true
@@ -6580,6 +6823,19 @@
       "tipo_declarado": "PLAN",
       "tipo_en_nombre": "PLAN",
       "updated": "2026-07-31"
+     },
+     {
+      "area": "00-Proceso",
+      "carpeta": "00-Proceso",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
      },
      {
       "area": "01-Graph",
@@ -7152,6 +7408,19 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-07-27"
+     },
+     {
+      "area": "04-Ejecucion-y-pruebas",
+      "carpeta": "04-Ejecucion-y-pruebas",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-02"
      }
     ],
     "enlace": [
@@ -7243,6 +7512,36 @@
      {
       "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
       "origen": "2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
       "resuelve": true
      },
      {
@@ -8396,7 +8695,27 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -8606,6 +8925,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-27-INFORME-Puente-P-a-F-Ops-Flow-v1.0",
       "origen": "README",
       "resuelve": true
@@ -8746,6 +9070,19 @@
       "tipo_declarado": "PLAN",
       "tipo_en_nombre": "PLAN",
       "updated": "2026-07-31"
+     },
+     {
+      "area": "00-Proceso",
+      "carpeta": "00-Proceso",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
      },
      {
       "area": "01-Graph",
@@ -9318,6 +9655,19 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-07-27"
+     },
+     {
+      "area": "04-Ejecucion-y-pruebas",
+      "carpeta": "04-Ejecucion-y-pruebas",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-02"
      }
     ],
     "enlace": [
@@ -9409,6 +9759,36 @@
      {
       "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
       "origen": "2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
       "resuelve": true
      },
      {
@@ -10562,7 +10942,27 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -10772,6 +11172,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-27-INFORME-Puente-P-a-F-Ops-Flow-v1.0",
       "origen": "README",
       "resuelve": true
@@ -10912,6 +11317,19 @@
       "tipo_declarado": "PLAN",
       "tipo_en_nombre": "PLAN",
       "updated": "2026-07-31"
+     },
+     {
+      "area": "00-Proceso",
+      "carpeta": "00-Proceso",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
      },
      {
       "area": "01-Graph",
@@ -11484,6 +11902,19 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-07-27"
+     },
+     {
+      "area": "04-Ejecucion-y-pruebas",
+      "carpeta": "04-Ejecucion-y-pruebas",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-02"
      }
     ],
     "enlace": [
@@ -11575,6 +12006,36 @@
      {
       "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
       "origen": "2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
       "resuelve": true
      },
      {
@@ -12733,7 +13194,27 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -12943,6 +13424,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-27-INFORME-Puente-P-a-F-Ops-Flow-v1.0",
       "origen": "README",
       "resuelve": true
@@ -13083,6 +13569,19 @@
       "tipo_declarado": "PLAN",
       "tipo_en_nombre": "PLAN",
       "updated": "2026-07-31"
+     },
+     {
+      "area": "00-Proceso",
+      "carpeta": "00-Proceso",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
      },
      {
       "area": "01-Graph",
@@ -13655,6 +14154,19 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-07-27"
+     },
+     {
+      "area": "04-Ejecucion-y-pruebas",
+      "carpeta": "04-Ejecucion-y-pruebas",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-02"
      }
     ],
     "enlace": [
@@ -13746,6 +14258,36 @@
      {
       "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
       "origen": "2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
       "resuelve": true
      },
      {
@@ -14899,7 +15441,27 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": false
+     },
+     {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -15109,6 +15671,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-27-INFORME-Puente-P-a-F-Ops-Flow-v1.0",
       "origen": "README",
       "resuelve": true
@@ -15249,6 +15816,19 @@
       "tipo_declarado": "PLAN",
       "tipo_en_nombre": "PLAN",
       "updated": "2026-07-31"
+     },
+     {
+      "area": "00-Proceso",
+      "carpeta": "00-Proceso",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
      },
      {
       "area": "01-Graph",
@@ -15823,6 +16403,19 @@
       "updated": "2026-07-27"
      },
      {
+      "area": "04-Ejecucion-y-pruebas",
+      "carpeta": "04-Ejecucion-y-pruebas",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-02"
+     },
+     {
       "area": "01-Graph",
       "carpeta": "",
       "carpeta_conocida": false,
@@ -15925,6 +16518,36 @@
      {
       "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
       "origen": "2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
       "resuelve": true
      },
      {
@@ -17078,6 +17701,21 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
       "origen": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
       "resuelve": true
@@ -17099,6 +17737,11 @@
      },
      {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -17304,6 +17947,11 @@
      },
      {
       "destino": "2026-07-26-INFORME-Graph-Tab-Mesh-Verbos-Malla-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -17450,6 +18098,19 @@
       "updated": "2026-07-31"
      },
      {
+      "area": "00-Proceso",
+      "carpeta": "00-Proceso",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
       "area": "01-Graph",
       "carpeta": "01-Graph",
       "carpeta_conocida": true,
@@ -18009,6 +18670,19 @@
       "updated": "2026-07-27"
      },
      {
+      "area": "04-Ejecucion-y-pruebas",
+      "carpeta": "04-Ejecucion-y-pruebas",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-02"
+     },
+     {
       "area": "01-Graph",
       "carpeta": "99-Inventada",
       "carpeta_conocida": false,
@@ -18111,6 +18785,36 @@
      {
       "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
       "origen": "2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
       "resuelve": true
      },
      {
@@ -19244,6 +19948,21 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
       "origen": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
       "resuelve": true
@@ -19265,6 +19984,11 @@
      },
      {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -19470,6 +20194,11 @@
      },
      {
       "destino": "2026-07-26-INFORME-Graph-Tab-Mesh-Verbos-Malla-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -19616,6 +20345,19 @@
       "updated": "2026-07-31"
      },
      {
+      "area": "00-Proceso",
+      "carpeta": "00-Proceso",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
       "area": "01-Graph",
       "carpeta": "01-Graph",
       "carpeta_conocida": true,
@@ -20199,6 +20941,19 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-07-27"
+     },
+     {
+      "area": "04-Ejecucion-y-pruebas",
+      "carpeta": "04-Ejecucion-y-pruebas",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-02"
      }
     ],
     "enlace": [
@@ -20290,6 +21045,36 @@
      {
       "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
       "origen": "2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
       "resuelve": true
      },
      {
@@ -21463,7 +22248,27 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -21673,6 +22478,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-27-INFORME-Puente-P-a-F-Ops-Flow-v1.0",
       "origen": "README",
       "resuelve": true
@@ -21813,6 +22623,19 @@
       "tipo_declarado": "PLAN",
       "tipo_en_nombre": "PLAN",
       "updated": "2026-07-31"
+     },
+     {
+      "area": "00-Proceso",
+      "carpeta": "00-Proceso",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
      },
      {
       "area": "01-Graph",
@@ -22385,6 +23208,19 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-07-27"
+     },
+     {
+      "area": "04-Ejecucion-y-pruebas",
+      "carpeta": "04-Ejecucion-y-pruebas",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-02"
      }
     ],
     "enlace": [
@@ -22476,6 +23312,36 @@
      {
       "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
       "origen": "2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
       "resuelve": true
      },
      {
@@ -23629,7 +24495,27 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -23839,6 +24725,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-27-INFORME-Puente-P-a-F-Ops-Flow-v1.0",
       "origen": "README",
       "resuelve": true
@@ -23934,7 +24825,7 @@
    "catalogo": "99372ef74c544a44c24bbbe91d0dd050320a7a0e37d88ea94e6cf2d0de34f79c",
    "configuracion": "407a21668fb6d1cc90b20875fa7e2a1044832d4f2e47f759f46e63edcb27e073",
    "emisor": "197be60d28e63e4f20f9e663ea9910ae265daf1b64580a5f5e8281be5c9d0307",
-   "referencia": "9ec763299a3a90611e0f5cc435b2bc8ef58406eafe5c7fc92892b03644dbc99c"
+   "referencia": "f5265606d431199be9ed05ba7b542d0628acf064208f56e678cda6c500bf3acc"
   },
   "raiz_fuentes": ".."
  },

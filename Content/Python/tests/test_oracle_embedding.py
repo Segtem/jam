@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import importlib.util
+import io
 import json
+import re
 import sys
 import unittest
+from contextlib import redirect_stdout
 from unittest import mock
 from pathlib import Path
 
@@ -23,7 +26,22 @@ def _cargar_vault():
     return modulo
 
 
+def _cargar_relevo():
+    spec = importlib.util.spec_from_file_location("jam_tools_relevo", RAIZ / "tools" / "relevo.py")
+    modulo = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(modulo)
+    return modulo
+
+
 class OracleEmbeddingTests(unittest.TestCase):
+    def test_el_proyecto_pide_el_catalogo_base_que_usa_relevo(self) -> None:
+        configuracion = json.loads((RAIZ / "medidas" / "oracle.json").read_text())
+        fixture = json.loads(
+            (RAIZ / "medidas" / "diferencial" / "relevo.json").read_text())
+
+        self.assertTrue(configuracion["catalogo_base"])
+        self.assertIn("proceso.verificacion_vigente", fixture["medidas"])
+
     def test_el_puente_centraliza_las_dos_raices_de_oraculos(self) -> None:
         bridge.ensure_oraculo_on_path()
 
@@ -192,6 +210,66 @@ class OracleEmbeddingTests(unittest.TestCase):
 
         self.assertNotIn("from nucleo", fuente)
         self.assertNotIn("from catalogos", fuente)
+
+    def test_todo_el_runtime_respeta_la_fachada_publica_de_oracle(self) -> None:
+        runtime = RAIZ / "Content" / "Python" / "jam"
+        import_interno = re.compile(r"^\s*(?:from|import)\s+(?:nucleo|catalogos|perfiles)\b", re.M)
+
+        for archivo in sorted(runtime.glob("*.py")):
+            fuente = archivo.read_text(encoding="utf-8")
+            with self.subTest(archivo=archivo.name):
+                self.assertIsNone(import_interno.search(fuente))
+                if archivo.name != "bridge.py":
+                    self.assertNotIn("vendor/oracle", fuente)
+
+
+class PuertaRelevoOracleTests(unittest.TestCase):
+    @staticmethod
+    def _fm() -> dict:
+        return {
+            "turno": "2026-01-01 · codex → claude-code",
+            "saliente": "codex",
+            "entrante": "claude-code",
+            "desde": "2026-01-01",
+            "verde_editor": "abc123",
+            "verde_editor_fecha": "2026-01-01",
+        }
+
+    def test_codigo_vivo_nombra_runtime_y_no_la_suite(self) -> None:
+        relevo = _cargar_relevo()
+
+        self.assertEqual(
+            ("Source", "Content/Python/init_unreal.py", "Content/Python/jam", "oraculo"),
+            relevo.VIVO,
+        )
+
+    def test_la_apertura_rechaza_un_diferencial_vencido(self) -> None:
+        relevo = _cargar_relevo()
+        with mock.patch.object(relevo, "revisar_testigo", return_value=(self._fm(), [])), \
+             mock.patch.object(relevo, "tags_de_relevo", return_value=[]), \
+             mock.patch.object(relevo, "tests", return_value=[]), \
+             mock.patch.object(relevo, "vault", return_value=[]), \
+             mock.patch.object(relevo, "oracle_diferencial", return_value=["fixture vencido"]), \
+             mock.patch.object(relevo, "verde_editor_vigente", return_value=[]), \
+             redirect_stdout(io.StringIO()) as salida:
+            codigo = relevo.abrir()
+
+        self.assertEqual(1, codigo)
+        self.assertIn("fixture vencido", salida.getvalue())
+
+    def test_el_cierre_rechaza_un_diferencial_vencido(self) -> None:
+        relevo = _cargar_relevo()
+        with mock.patch.object(relevo, "revisar_testigo", return_value=(self._fm(), [])), \
+             mock.patch.object(relevo, "arbol_limpio_y_empujado", return_value=[]), \
+             mock.patch.object(relevo, "tests", return_value=[]), \
+             mock.patch.object(relevo, "vault", return_value=[]), \
+             mock.patch.object(relevo, "oracle_diferencial", return_value=["fixture vencido"]), \
+             mock.patch.object(relevo, "verde_editor_vigente", return_value=[]), \
+             redirect_stdout(io.StringIO()) as salida:
+            codigo = relevo.cerrar()
+
+        self.assertEqual(1, codigo)
+        self.assertIn("fixture vencido", salida.getvalue())
 
 
 if __name__ == "__main__":

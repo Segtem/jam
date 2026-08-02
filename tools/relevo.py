@@ -12,10 +12,12 @@ protocolo es un comando.
   1. el **testigo** (`RELEVO.md`) está bien formado y nombra a quién entra;
   2. los **tests** pasan;
   3. el **vault** está en regla;
-  4. el árbol está **limpio** y **empujado** — el que entra clona, no adivina;
-  5. la **verificación con motor sigue vigente**: `verde_editor` apunta a un commit real y desde ahí
-     **no se tocó `Source/` ni `Content/Python/`**. Ésta es la que importa. Sin ella se puede soltar
-     un turno entero de C++ que nadie compiló, y el que entra construye encima.
+  4. el **diferencial de Oracle** está vigente y sin desacuerdos;
+  5. el árbol está **limpio** y **empujado** — el que entra clona, no adivina;
+  6. la **verificación con motor sigue vigente**: `verde_editor` apunta a un commit real y desde ahí
+     **no se tocó el runtime C++/Python** (`Source/`, `init_unreal.py`, `jam/` u `oraculo/`). Ésta es
+     la que importa. Sin ella se puede soltar un turno entero de código que nadie probó en el motor,
+     y el que entra construye encima.
 
 Recién entonces marca el turno con un tag `relevo/AAAA-MM-DD-<saliente>`, que es lo que le permite
 al que entra ver el turno ajeno con `git log` en vez de leerlo en prosa.
@@ -48,7 +50,7 @@ SECCIONES = (
 # Lo que cambia el comportamiento del editor; tocarlo invalida la verificación con motor.
 # `oraculo/` entra porque el plugin lo IMPORTA (`jam.nivel`, `jam.oracle_espacio` cuelgan de
 # `oraculo.mazes.spacegraph`): quedaba afuera y una edición ahí pasaba como si no fuera código vivo.
-VIVO = ("Source", "Content/Python", "oraculo")
+VIVO = ("Source", "Content/Python/init_unreal.py", "Content/Python/jam", "oraculo")
 
 
 def git(*args: str) -> str:
@@ -151,6 +153,16 @@ def vault() -> list[str]:
     return correr("el vault", [sys.executable, "tools/vault.py"], RAIZ)
 
 
+def oracle_diferencial() -> list[str]:
+    """Exige fixtures vigentes además de acuerdo: un diferencial viejo no es evidencia."""
+    return correr(
+        "el diferencial de Oracle",
+        [sys.executable, "vendor/oracle/tools/diferencial.py",
+         "--proyecto", "medidas", "--confiar-escalares"],
+        RAIZ,
+    )
+
+
 def arbol_limpio_y_empujado() -> list[str]:
     fallas = []
     if git("status", "--porcelain"):
@@ -186,14 +198,14 @@ def abrir() -> int:
         print(f"  el turno anterior ({previos[-1]}) dejó {cuantos or '0'} commits:")
         print(f"    git log {previos[-1]}..HEAD --oneline")
 
-    problemas = tests() + vault() + verde_editor_vigente(fm)
+    problemas = tests() + vault() + oracle_diferencial() + verde_editor_vigente(fm)
     if problemas:
         print("\nLLEGÓ EN ROJO — esto es lo primero del turno, antes que el roadmap:")
         for p in problemas:
             print("  ·", p)
         return 1
 
-    print("\nLLEGÓ VERDE · tests, vault y verificación con motor vigente")
+    print("\nLLEGÓ VERDE · tests, vault, Oracle diferencial y verificación con motor vigente")
     print("Leé RELEVO.md entero antes de tocar nada — sobre todo «No toques esto».")
     return 0
 
@@ -206,7 +218,8 @@ def cerrar() -> int:
             print("  ·", f)
         return 1
 
-    problemas = arbol_limpio_y_empujado() + tests() + vault() + verde_editor_vigente(fm)
+    problemas = (arbol_limpio_y_empujado() + tests() + vault() + oracle_diferencial()
+                 + verde_editor_vigente(fm))
     if problemas:
         print("NO SE SUELTA — no se bendice un relevo rojo:")
         for p in problemas:

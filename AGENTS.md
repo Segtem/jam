@@ -120,7 +120,7 @@ redistribuir, nunca relicenciar CC0. Los repos van privados.
 | `-nullrhi` en UE 5.7.x | **SIGFPE**. Usar `-RenderOffScreen`. |
 | Renombrar un id de nomad tab | Es la **clave persistente del layout**: le borra al usuario el acomodo de los paneles. |
 | Pila de Material Layers sin los arrays *editor-only* paralelos | **Voltea el editor** (assert + SIGSEGV). |
-| `Target.cs` desparejos | Ambos con `BuildSettingsVersion.V6` + `EngineIncludeOrderVersion.Unreal5_7` o no compila. |
+| `Target.cs` desparejos | En UE 5.8.1, ambos con `BuildSettingsVersion.V7` + `EngineIncludeOrderVersion.Unreal5_8` o no comparte el entorno del motor. |
 | Tocar C++ y no recompilar | El editor sigue corriendo el binario viejo y «no anduvo» miente. |
 | `Constant3Vector` | La propiedad es `constant`, no `r/g/b`. |
 | Enums de UE | **No son subscriptables** — `getattr(Enum, nombre)`. |
