@@ -3,7 +3,7 @@ turno: 2026-08-01 · codex → claude-code
 saliente: codex
 entrante: claude-code
 desde: 2026-08-01
-verde_editor: c9ac5f9
+verde_editor: 6905c8e
 verde_editor_fecha: 2026-08-02
 ---
 
@@ -71,9 +71,10 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 | » mutación de medidas | `python vendor/oracle/tools/mutar.py --proyecto medidas --confiar-escalares` | **163/163 mutantes muertos** |
 | » tests de oracle | `cd vendor/oracle && python -m unittest discover -s tests -t . -q` | **339 OK** |
 
-El campo `verde_editor` apunta al checkpoint `c9ac5f9`, compilado y verificado en UE 5.8.1 con las
-sondas y el gesto real **+ Nueva función**. `VIVO` distingue la suite de `init_unreal.py` y `jam/`,
-por lo que cambiar sólo tests ya no invalida falsamente esa evidencia.
+El campo `verde_editor` apunta al checkpoint `6905c8e`, compilado y verificado en UE 5.8.1 con las
+sondas y los gestos reales de función, apertura del menú y Graph interactivo. `VIVO` distingue la
+suite de `init_unreal.py` y `jam/`, por lo que cambiar sólo tests ya no invalida falsamente esa
+evidencia.
 
 El selector con nombres completos es posterior a ese checkpoint. Su C++ compiló contra 5.8.1, pero
 `verde_editor` no se adelanta hasta que alguien despliegue la lista y confirme lo que realmente pinta.
