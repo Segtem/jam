@@ -5,6 +5,7 @@
 #include "Widgets/SCanvas.h"
 #include "Widgets/SOverlay.h"
 #include "Widgets/SLeafWidget.h"
+#include "Widgets/SWindow.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/Layout/SScrollBox.h"
@@ -30,6 +31,7 @@
 #include "IDesktopPlatform.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
+#include "Misc/MessageDialog.h"
 #include "HAL/FileManager.h"
 #include "Rendering/DrawElements.h"
 #include "Math/TransformCalculus2D.h"
@@ -48,6 +50,56 @@ static FString JamParamDataType(const FString& Name, const FString& Type)
 	if (Type == TEXT("int") || Type == TEXT("float")) { return TEXT("N"); }
 	if (Type == TEXT("str")) { return TEXT("T"); }
 	return FString();
+}
+
+/** Diálogo modal mínimo para nombres. Devuelve false al cancelar o cerrar la ventana. */
+static bool JamPedirNombre(const FText& Titulo, const FString& Inicial,
+	const TSharedRef<SWidget>& Owner, FString& OutNombre)
+{
+	bool bAceptado = false;
+	TSharedPtr<SEditableTextBox> Campo;
+	TSharedPtr<SWindow> Dialogo;
+	SAssignNew(Dialogo, SWindow)
+		.Title(Titulo).ClientSize(FVector2D(420.0f, 125.0f))
+		.SupportsMaximize(false).SupportsMinimize(false)
+		[
+			SNew(SVerticalBox)
+			+ SVerticalBox::Slot().AutoHeight().Padding(12.0f, 10.0f, 12.0f, 4.0f)
+			[ SNew(STextBlock).Text(LOCTEXT("FunctionNamePrompt", "Nombre de la función")) ]
+			+ SVerticalBox::Slot().AutoHeight().Padding(12.0f, 0.0f, 12.0f, 10.0f)
+			[
+				SAssignNew(Campo, SEditableTextBox)
+				.Text(FText::FromString(Inicial))
+				.HintText(LOCTEXT("FunctionNameHint", "Ej.: Preparar roca para fractura"))
+				.SelectAllTextWhenFocused(true)
+			]
+			+ SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Right).Padding(12.0f, 0.0f, 12.0f, 10.0f)
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot().AutoWidth().Padding(0.0f, 0.0f, 6.0f, 0.0f)
+				[
+					SNew(SButton).Text(LOCTEXT("FunctionNameCancel", "Cancelar"))
+					.OnClicked_Lambda([Dialogo]()
+					{ Dialogo->RequestDestroyWindow(); return FReply::Handled(); })
+				]
+				+ SHorizontalBox::Slot().AutoWidth()
+				[
+					SNew(SButton).Text(LOCTEXT("FunctionNameAccept", "Aceptar"))
+					.IsEnabled_Lambda([Campo]()
+					{ return Campo.IsValid() && !Campo->GetText().IsEmptyOrWhitespace(); })
+					.OnClicked_Lambda([&OutNombre, &bAceptado, Campo, Dialogo]()
+					{
+						OutNombre = Campo->GetText().ToString().TrimStartAndEnd();
+						bAceptado = !OutNombre.IsEmpty();
+						Dialogo->RequestDestroyWindow();
+						return FReply::Handled();
+					})
+				]
+			]
+		];
+	FSlateApplication::Get().AddModalWindow(
+		Dialogo.ToSharedRef(), FSlateApplication::Get().FindBestParentWindowForDialogs(Owner));
+	return bAceptado;
 }
 
 // El mapping vive junto a los SVG para que cambiar un pictograma no obligue a recompilar C++.
@@ -458,6 +510,7 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 	OnInspect = InArgs._OnInspect;
 	OnLayout = InArgs._OnLayout;
 	OnCollapseFunction = InArgs._OnCollapseFunction;
+	OnFunctionManage = InArgs._OnFunctionManage;
 	ActiveAsset = InArgs._ActiveAsset;
 	OnOpenContent = InArgs._OnOpenContent;
 
@@ -1073,6 +1126,38 @@ void SJamGraphEditor::RebuildTabContent()
 		RebuildLearnTab();
 		return;
 	}
+	if (ActiveTab == TEXT("Funciones"))
+	{
+		TabContentBox->AddSlot().AutoWidth().Padding(4.0f, 1.0f)
+		[
+			SNew(SVerticalBox)
+			+ SVerticalBox::Slot().AutoHeight().Padding(1.0f)
+			[
+				SNew(SButton).Text(LOCTEXT("NewFunction", "+ Nueva función"))
+				.ToolTipText(LOCTEXT("NewFunctionTip", "Crea una firma vacía y abre su cuerpo para editar"))
+				.OnClicked_Lambda([this]() { NuevaFuncion(); return FReply::Handled(); })
+			]
+			+ SVerticalBox::Slot().AutoHeight().Padding(1.0f)
+			[
+				SNew(SButton).Text(LOCTEXT("SaveFunction", "Guardar cambios"))
+				.IsEnabled_Lambda([this]() { return !FuncionEnEdicion.IsEmpty(); })
+				.OnClicked_Lambda([this]() { GuardarFuncion(); return FReply::Handled(); })
+			]
+			+ SVerticalBox::Slot().AutoHeight().Padding(2.0f, 3.0f)
+			[
+				SNew(STextBlock)
+				.Text_Lambda([this]()
+				{
+					return FText::FromString(FuncionEnEdicion.IsEmpty()
+						? TEXT("Sin función abierta")
+						: FString(TEXT("Editando: ")) + NombreFuncionEnEdicion);
+				})
+				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 7))
+			]
+		];
+		TabContentBox->AddSlot().AutoWidth().Padding(3.0f, 2.0f)
+		[ SNew(SSeparator).Orientation(Orient_Vertical).Thickness(1.0f) ];
+	}
 
 	// El tab se parte en SUBGRUPOS (los «paneles» de Grasshopper) y cada uno apila `RibbonRows`
 	// filas. El spec ya llega ordenado por la tabla de layout de `jam/ribbon.py`, así que basta con
@@ -1134,18 +1219,53 @@ void SJamGraphEditor::RebuildTabContent()
 						? FString::Printf(TEXT("\u2192 %s"), *T.OutName)
 						: FString::Printf(TEXT("%s \u2192 %s"), *T.InName, *T.OutName);
 				}
-				ColumnBox->AddSlot().AutoHeight().Padding(1.0f)
-				[
-					SNew(SJamVerbTile)
+				TSharedRef<SJamVerbTile> Tile = SNew(SJamVerbTile)
 					.Verb(Verb)
 					.OnClicked_Lambda([this](FString V) { AddNodeAlCentro(V); })
 					.ToolTipText(FText::FromString(FString::Printf(
 						TEXT("%s   [%s]\n%s\n\nclic = al centro de la vista · arrastrá = donde sueltes"),
-						*T.Verb, *Firma, *T.Doc)))
+						*(T.Label.IsEmpty() ? T.Verb : T.Label), *Firma, *T.Doc)))
+					[ MakeBadge(CategoryColor(T.Cat), VerbCode(Verb), 30.0f, IconPathForVerb(Verb)) ];
+				if (T.Group == TEXT("Biblioteca"))
+				{
+					const FString Nombre = T.Label.IsEmpty() ? T.Verb : T.Label;
+					ColumnBox->AddSlot().AutoHeight().Padding(2.0f)
 					[
-						MakeBadge(CategoryColor(T.Cat), VerbCode(Verb), 30.0f, IconPathForVerb(Verb))
-					]
-				];
+						SNew(SVerticalBox)
+						+ SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center)[ Tile ]
+						+ SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center).Padding(1.0f)
+						[
+							SNew(STextBlock).Text(FText::FromString(Nombre))
+							.Font(FCoreStyle::GetDefaultFontStyle("Regular", 7))
+						]
+						+ SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center)
+						[
+							SNew(SHorizontalBox)
+							+ SHorizontalBox::Slot().AutoWidth().Padding(1.0f)
+							[
+								SNew(SButton).Text(LOCTEXT("EditFunctionShort", "Editar"))
+								.OnClicked_Lambda([this, Verb]()
+								{ EditarFuncion(Verb); return FReply::Handled(); })
+							]
+							+ SHorizontalBox::Slot().AutoWidth().Padding(1.0f)
+							[
+								SNew(SButton).Text(LOCTEXT("RenameFunctionShort", "Nombre"))
+								.OnClicked_Lambda([this, Verb, Nombre]()
+								{ RenombrarFuncion(Verb, Nombre); return FReply::Handled(); })
+							]
+							+ SHorizontalBox::Slot().AutoWidth().Padding(1.0f)
+							[
+								SNew(SButton).Text(LOCTEXT("DeleteFunctionShort", "Eliminar"))
+								.OnClicked_Lambda([this, Verb, Nombre]()
+								{ EliminarFuncion(Verb, Nombre); return FReply::Handled(); })
+							]
+						]
+					];
+				}
+				else
+				{
+					ColumnBox->AddSlot().AutoHeight().Padding(1.0f)[ Tile ];
+				}
 			}
 			Grid->AddSlot().AutoWidth()[ ColumnBox ];
 		}
@@ -1399,13 +1519,13 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At,
 	TArray<FJamNodePin> NamedInputs;
 	for (const FJamTool::FPin& P : T->InputPins)
 	{
-		NamedInputs.Add(FJamNodePin{P.Name, P.Type, DataColor(P.Type)});
+		NamedInputs.Add(FJamNodePin{P.Name, P.Type, DataName(P.Type), DataColor(P.Type)});
 		Node.PinNames.Add(P.Name);   // después de Params: ése es también su índice visual de fila
 	}
 	TArray<FJamNodePin> NamedOutputs;
 	for (const FJamTool::FPin& P : T->OutputPins)
 	{
-		NamedOutputs.Add(FJamNodePin{P.Name, P.Type, DataColor(P.Type)});
+		NamedOutputs.Add(FJamNodePin{P.Name, P.Type, DataName(P.Type), DataColor(P.Type)});
 		Node.OutputPinNames.Add(P.Name);
 	}
 
@@ -1417,6 +1537,7 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At,
 
 	TSharedRef<SJamGraphNode> Widget = SNew(SJamGraphNode)
 		.Verb(Verb)
+		.DisplayName(T->Label.IsEmpty() ? Verb : T->Label)
 		.IconPath(IconPathForVerb(Verb))
 		.IconColor(CategoryColor(T->Cat))
 		.OutName(T->OutName)
@@ -1681,6 +1802,10 @@ void SJamGraphEditor::ColapsarSeleccion()
 {
 	if (SelectedNodeIds.Num() == 0 || !OnCollapseFunction.IsBound()) { return; }
 
+	FString Nombre;
+	if (!JamPedirNombre(LOCTEXT("CollapseNameTitle", "Nueva función"), TEXT(""), AsShared(), Nombre))
+	{ return; }
+
 	TArray<TSharedPtr<FJsonValue>> Elegidos;
 	for (const FString& Id : SelectedNodeIds)
 	{
@@ -1690,7 +1815,7 @@ void SJamGraphEditor::ColapsarSeleccion()
 	const TSharedRef<TJsonWriter<>> SelectedWriter = TJsonWriterFactory<>::Create(&SelectedJson);
 	FJsonSerializer::Serialize(Elegidos, SelectedWriter);
 
-	const FString Res = OnCollapseFunction.Execute(BuildJson(), SelectedJson);
+	const FString Res = OnCollapseFunction.Execute(Nombre, BuildJson(), SelectedJson);
 	TSharedPtr<FJsonObject> Root;
 	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Res);
 	if (!FJsonSerializer::Deserialize(Reader, Root) || !Root.IsValid())
@@ -1717,6 +1842,7 @@ void SJamGraphEditor::ColapsarSeleccion()
 	}
 	FJamTool Tool;
 	(*ToolObj)->TryGetStringField(TEXT("verbo"), Tool.Verb);
+	if (!(*ToolObj)->TryGetStringField(TEXT("label"), Tool.Label)) { Tool.Label = Tool.Verb; }
 	(*ToolObj)->TryGetStringField(TEXT("cat"), Tool.Cat);
 	(*ToolObj)->TryGetStringField(TEXT("grupo"), Tool.Group);
 	(*ToolObj)->TryGetStringField(TEXT("doc"), Tool.Doc);
@@ -1763,6 +1889,151 @@ void SJamGraphEditor::ColapsarSeleccion()
 	{
 		Output->SetText(FText::FromString(Report));
 	}
+}
+
+bool SJamGraphEditor::AplicarRespuestaFuncion(const FString& Res, bool bCargarCuerpo)
+{
+	TSharedPtr<FJsonObject> Root;
+	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Res);
+	if (!FJsonSerializer::Deserialize(Reader, Root) || !Root.IsValid())
+	{
+		if (Output.IsValid()) { Output->SetText(FText::FromString(TEXT("FUNCIÓN ✗ — respuesta ilegible: ") + Res)); }
+		return false;
+	}
+	FString Report;
+	Root->TryGetStringField(TEXT("report"), Report);
+	bool bOk = false;
+	if (!Root->TryGetBoolField(TEXT("ok"), bOk) || !bOk)
+	{
+		if (Output.IsValid()) { Output->SetText(FText::FromString(Report)); }
+		return false;
+	}
+
+	const TSharedPtr<FJsonObject>* ToolObj = nullptr;
+	if (!Root->TryGetObjectField(TEXT("tool"), ToolObj) || ToolObj == nullptr)
+	{
+		if (Output.IsValid()) { Output->SetText(LOCTEXT("ManageNoTool", "FUNCIÓN ✗ — falta el spec")); }
+		return false;
+	}
+	FJamTool Tool;
+	(*ToolObj)->TryGetStringField(TEXT("verbo"), Tool.Verb);
+	if (!(*ToolObj)->TryGetStringField(TEXT("label"), Tool.Label)) { Tool.Label = Tool.Verb; }
+	(*ToolObj)->TryGetStringField(TEXT("cat"), Tool.Cat);
+	(*ToolObj)->TryGetStringField(TEXT("grupo"), Tool.Group);
+	(*ToolObj)->TryGetStringField(TEXT("doc"), Tool.Doc);
+	(*ToolObj)->TryGetBoolField(TEXT("source"), Tool.bSource);
+	double Arity = Tool.bSource ? 0.0 : 1.0;
+	(*ToolObj)->TryGetNumberField(TEXT("aridad"), Arity);
+	Tool.Arity = static_cast<int32>(Arity);
+	auto LeerPines = [&ToolObj](const TCHAR* Campo, TArray<FJamTool::FPin>& Destino)
+	{
+		const TArray<TSharedPtr<FJsonValue>>* Pines = nullptr;
+		if (!(*ToolObj)->TryGetArrayField(Campo, Pines) || Pines == nullptr) { return; }
+		for (const TSharedPtr<FJsonValue>& V : *Pines)
+		{
+			const TSharedPtr<FJsonObject> P = V.IsValid() ? V->AsObject() : nullptr;
+			FJamTool::FPin Pin;
+			if (P.IsValid() && P->TryGetStringField(TEXT("name"), Pin.Name)
+				&& P->TryGetStringField(TEXT("tipo"), Pin.Type)) { Destino.Add(Pin); }
+		}
+	};
+	LeerPines(TEXT("inputs"), Tool.InputPins);
+	LeerPines(TEXT("outputs"), Tool.OutputPins);
+	if (Tool.Verb.IsEmpty()) { return false; }
+
+	const FString Verb = Tool.Verb;
+	const FString Nombre = Tool.Label;
+	Tools.RemoveAll([&Verb](const FJamTool& T) { return T.Verb == Verb; });
+	Tools.Add(MoveTemp(Tool));
+	if (FuncionEnEdicion == Verb) { NombreFuncionEnEdicion = Nombre; }
+
+	if (bCargarCuerpo)
+	{
+		const TSharedPtr<FJsonObject>* GraphObj = nullptr;
+		if (!Root->TryGetObjectField(TEXT("graph"), GraphObj) || GraphObj == nullptr) { return false; }
+		FString GraphJson;
+		const TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&GraphJson);
+		FJsonSerializer::Serialize(GraphObj->ToSharedRef(), Writer);
+		if (!LoadGraphJson(GraphJson)) { return false; }
+		FuncionEnEdicion = Verb;
+		NombreFuncionEnEdicion = Nombre;
+	}
+	if (ActiveTab == TEXT("Funciones")) { RebuildTabContent(); }
+	if (Output.IsValid()) { Output->SetText(FText::FromString(Report)); }
+	return true;
+}
+
+void SJamGraphEditor::NuevaFuncion()
+{
+	if (!OnFunctionManage.IsBound()) { return; }
+	FString Nombre;
+	if (!JamPedirNombre(LOCTEXT("NewFunctionTitle", "Nueva función"), TEXT(""), AsShared(), Nombre))
+	{ return; }
+	AplicarRespuestaFuncion(OnFunctionManage.Execute(TEXT("create"), TEXT(""), Nombre), true);
+}
+
+void SJamGraphEditor::EditarFuncion(const FString& Verb)
+{
+	if (OnFunctionManage.IsBound())
+	{
+		AplicarRespuestaFuncion(OnFunctionManage.Execute(TEXT("get"), Verb, TEXT("")), true);
+	}
+}
+
+void SJamGraphEditor::GuardarFuncion()
+{
+	if (FuncionEnEdicion.IsEmpty() || !OnFunctionManage.IsBound()) { return; }
+	AplicarRespuestaFuncion(
+		OnFunctionManage.Execute(TEXT("update"), FuncionEnEdicion, BuildJson()), false);
+}
+
+void SJamGraphEditor::RenombrarFuncion(const FString& Verb, const FString& NombreActual)
+{
+	if (!OnFunctionManage.IsBound()) { return; }
+	FString Nombre;
+	if (!JamPedirNombre(LOCTEXT("RenameFunctionTitle", "Renombrar función"),
+		NombreActual, AsShared(), Nombre)) { return; }
+	AplicarRespuestaFuncion(OnFunctionManage.Execute(TEXT("rename"), Verb, Nombre), false);
+}
+
+void SJamGraphEditor::EliminarFuncion(const FString& Verb, const FString& NombreActual)
+{
+	if (!OnFunctionManage.IsBound()) { return; }
+	if (Nodes.ContainsByPredicate([&Verb](const FGNode& N) { return N.Verb == Verb; }))
+	{
+		if (Output.IsValid())
+		{
+			Output->SetText(FText::FromString(FString::Printf(
+				TEXT("FUNCIÓN ✗ — el grafo abierto todavía usa «%s»"), *NombreActual)));
+		}
+		return;
+	}
+	const FText Pregunta = FText::FromString(FString::Printf(
+		TEXT("¿Eliminar «%s»?\n\nLos presets externos todavía no tienen índice de referencias."),
+		*NombreActual));
+	if (FMessageDialog::Open(EAppMsgType::YesNo, Pregunta) != EAppReturnType::Yes) { return; }
+
+	const FString Res = OnFunctionManage.Execute(TEXT("delete"), Verb, TEXT(""));
+	TSharedPtr<FJsonObject> Root;
+	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Res);
+	FString Report;
+	bool bOk = false;
+	if (!FJsonSerializer::Deserialize(Reader, Root) || !Root.IsValid()
+		|| !Root->TryGetBoolField(TEXT("ok"), bOk) || !bOk)
+	{
+		if (Root.IsValid()) { Root->TryGetStringField(TEXT("report"), Report); }
+		if (Output.IsValid()) { Output->SetText(FText::FromString(Report.IsEmpty() ? Res : Report)); }
+		return;
+	}
+	Root->TryGetStringField(TEXT("report"), Report);
+	Tools.RemoveAll([&Verb](const FJamTool& T) { return T.Verb == Verb; });
+	if (FuncionEnEdicion == Verb)
+	{
+		FuncionEnEdicion.Reset();
+		NombreFuncionEnEdicion.Reset();
+	}
+	RebuildTabContent();
+	if (Output.IsValid()) { Output->SetText(FText::FromString(Report)); }
 }
 
 bool SJamGraphEditor::PegarJson(const FString& Json, bool bDesplazar)

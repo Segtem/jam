@@ -45,6 +45,8 @@ struct FJamTool
 	};
 
 	FString Verb;
+	/** Etiqueta humana. `Verb` es protocolo estable (`fn:f_…`) y no debe filtrarse a la UI. */
+	FString Label;
 	FString Cat;
 	FString Group;            // subgrupo dentro del tab (el «panel» de Grasshopper); puede ir vacío
 	FString Doc;
@@ -118,7 +120,11 @@ private:
 	/** Guarda el grafo del canvas como preset compound. */
 	FString SaveGraphAsPreset(const FString& Json);
 	/** Guarda la selección como función y devuelve el grafo padre para reemplazar el canvas. */
-	FString CollapseGraphFunction(const FString& Json, const FString& SelectedJson);
+	FString CollapseGraphFunction(const FString& Nombre, const FString& Json,
+		const FString& SelectedJson);
+	/** ABM de una definición: create/get/update/rename/delete. */
+	FString ManageGraphFunction(const FString& Action, const FString& FuncionId,
+		const FString& Payload);
 
 	/** Carga el spec en `Tools`. `bIncludeFlow`=true suma las ops de flow (source/mask/instance) para
 	 *  el canvas estilo Houdini; false = sólo verbos (Dash Bar). */

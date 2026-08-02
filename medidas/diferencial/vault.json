@@ -253,6 +253,19 @@
       "updated": "2026-07-29"
      },
      {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-PLAN-ABM-Funciones-Graph-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
       "area": "02-TreeGen",
       "carpeta": "02-TreeGen",
       "carpeta_conocida": true,
@@ -563,6 +576,19 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-07-28"
+     },
+     {
+      "area": "03-Mesh-y-materiales",
+      "carpeta": "03-Mesh-y-materiales",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-02"
      },
      {
       "area": "04-Ejecucion-y-pruebas",
@@ -1969,6 +1995,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
       "origen": "README",
       "resuelve": true
@@ -2005,6 +2036,11 @@
      },
      {
       "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-ABM-Funciones-Graph-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -2150,6 +2186,11 @@
      },
      {
       "destino": "2026-07-26-GUIA-Ejemplo-Graph-Pino-Procedural-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -2490,6 +2531,19 @@
       "area": "01-Graph",
       "carpeta": "01-Graph",
       "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-PLAN-ABM-Funciones-Graph-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
       "fecha_en_nombre": "",
       "frontmatter_completo": true,
       "nombre": "archivo-sin-convencion",
@@ -2810,6 +2864,19 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-07-28"
+     },
+     {
+      "area": "03-Mesh-y-materiales",
+      "carpeta": "03-Mesh-y-materiales",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-02"
      },
      {
       "area": "04-Ejecucion-y-pruebas",
@@ -4216,6 +4283,11 @@
       "resuelve": false
      },
      {
+      "destino": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
       "origen": "README",
       "resuelve": true
@@ -4252,6 +4324,11 @@
      },
      {
       "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-ABM-Funciones-Graph-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -4397,6 +4474,11 @@
      },
      {
       "destino": "2026-07-26-GUIA-Ejemplo-Graph-Pino-Procedural-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -4747,6 +4829,19 @@
       "updated": "2026-07-29"
      },
      {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-PLAN-ABM-Funciones-Graph-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
       "area": "02-TreeGen",
       "carpeta": "02-TreeGen",
       "carpeta_conocida": true,
@@ -5057,6 +5152,19 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-07-28"
+     },
+     {
+      "area": "03-Mesh-y-materiales",
+      "carpeta": "03-Mesh-y-materiales",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-02"
      },
      {
       "area": "04-Ejecucion-y-pruebas",
@@ -6463,6 +6571,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
       "origen": "README",
       "resuelve": true
@@ -6499,6 +6612,11 @@
      },
      {
       "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-ABM-Funciones-Graph-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -6644,6 +6762,11 @@
      },
      {
       "destino": "2026-07-26-GUIA-Ejemplo-Graph-Pino-Procedural-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -6994,6 +7117,19 @@
       "updated": "2026-07-29"
      },
      {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-PLAN-ABM-Funciones-Graph-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
       "area": "02-TreeGen",
       "carpeta": "02-TreeGen",
       "carpeta_conocida": true,
@@ -7304,6 +7440,19 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-07-28"
+     },
+     {
+      "area": "03-Mesh-y-materiales",
+      "carpeta": "03-Mesh-y-materiales",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-02"
      },
      {
       "area": "04-Ejecucion-y-pruebas",
@@ -8710,6 +8859,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
       "origen": "README",
       "resuelve": true
@@ -8746,6 +8900,11 @@
      },
      {
       "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-ABM-Funciones-Graph-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -8891,6 +9050,11 @@
      },
      {
       "destino": "2026-07-26-GUIA-Ejemplo-Graph-Pino-Procedural-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -9241,6 +9405,19 @@
       "updated": "2026-07-29"
      },
      {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-PLAN-ABM-Funciones-Graph-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
       "area": "02-TreeGen",
       "carpeta": "02-TreeGen",
       "carpeta_conocida": true,
@@ -9551,6 +9728,19 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-07-28"
+     },
+     {
+      "area": "03-Mesh-y-materiales",
+      "carpeta": "03-Mesh-y-materiales",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-02"
      },
      {
       "area": "04-Ejecucion-y-pruebas",
@@ -10957,6 +11147,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
       "origen": "README",
       "resuelve": true
@@ -10993,6 +11188,11 @@
      },
      {
       "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-ABM-Funciones-Graph-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -11138,6 +11338,11 @@
      },
      {
       "destino": "2026-07-26-GUIA-Ejemplo-Graph-Pino-Procedural-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -11488,6 +11693,19 @@
       "updated": "2026-07-29"
      },
      {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-PLAN-ABM-Funciones-Graph-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
       "area": "02-TreeGen",
       "carpeta": "02-TreeGen",
       "carpeta_conocida": true,
@@ -11798,6 +12016,19 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-07-28"
+     },
+     {
+      "area": "03-Mesh-y-materiales",
+      "carpeta": "03-Mesh-y-materiales",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-02"
      },
      {
       "area": "04-Ejecucion-y-pruebas",
@@ -13209,6 +13440,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
       "origen": "README",
       "resuelve": true
@@ -13245,6 +13481,11 @@
      },
      {
       "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-ABM-Funciones-Graph-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -13390,6 +13631,11 @@
      },
      {
       "destino": "2026-07-26-GUIA-Ejemplo-Graph-Pino-Procedural-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -13740,6 +13986,19 @@
       "updated": "2026-07-29"
      },
      {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-PLAN-ABM-Funciones-Graph-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
       "area": "02-TreeGen",
       "carpeta": "02-TreeGen",
       "carpeta_conocida": true,
@@ -14050,6 +14309,19 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-07-28"
+     },
+     {
+      "area": "03-Mesh-y-materiales",
+      "carpeta": "03-Mesh-y-materiales",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-02"
      },
      {
       "area": "04-Ejecucion-y-pruebas",
@@ -15456,6 +15728,11 @@
       "resuelve": false
      },
      {
+      "destino": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
       "origen": "README",
       "resuelve": true
@@ -15492,6 +15769,11 @@
      },
      {
       "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-ABM-Funciones-Graph-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -15637,6 +15919,11 @@
      },
      {
       "destino": "2026-07-26-GUIA-Ejemplo-Graph-Pino-Procedural-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -15987,6 +16274,19 @@
       "updated": "2026-07-29"
      },
      {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-PLAN-ABM-Funciones-Graph-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
       "area": "02-TreeGen",
       "carpeta": "02-TreeGen",
       "carpeta_conocida": true,
@@ -16297,6 +16597,19 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-07-28"
+     },
+     {
+      "area": "03-Mesh-y-materiales",
+      "carpeta": "03-Mesh-y-materiales",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-02"
      },
      {
       "area": "04-Ejecucion-y-pruebas",
@@ -17716,6 +18029,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
       "origen": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
       "resuelve": true
@@ -17772,6 +18090,11 @@
      },
      {
       "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-ABM-Funciones-Graph-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -17917,6 +18240,11 @@
      },
      {
       "destino": "2026-07-26-GUIA-Ejemplo-Graph-Pino-Procedural-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -18254,6 +18582,19 @@
       "updated": "2026-07-29"
      },
      {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-PLAN-ABM-Funciones-Graph-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
       "area": "02-TreeGen",
       "carpeta": "02-TreeGen",
       "carpeta_conocida": true,
@@ -18564,6 +18905,19 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-07-28"
+     },
+     {
+      "area": "03-Mesh-y-materiales",
+      "carpeta": "03-Mesh-y-materiales",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-02"
      },
      {
       "area": "04-Ejecucion-y-pruebas",
@@ -19963,6 +20317,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
       "origen": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
       "resuelve": true
@@ -20019,6 +20378,11 @@
      },
      {
       "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-ABM-Funciones-Graph-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -20164,6 +20528,11 @@
      },
      {
       "destino": "2026-07-26-GUIA-Ejemplo-Graph-Pino-Procedural-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -20514,6 +20883,19 @@
       "updated": "2026-07-29"
      },
      {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-PLAN-ABM-Funciones-Graph-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
       "area": "02-TreeGen",
       "carpeta": "02-TreeGen",
       "carpeta_conocida": true,
@@ -20837,6 +21219,19 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-07-28"
+     },
+     {
+      "area": "03-Mesh-y-materiales",
+      "carpeta": "03-Mesh-y-materiales",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-02"
      },
      {
       "area": "04-Ejecucion-y-pruebas",
@@ -22263,6 +22658,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
       "origen": "README",
       "resuelve": true
@@ -22299,6 +22699,11 @@
      },
      {
       "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-ABM-Funciones-Graph-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -22444,6 +22849,11 @@
      },
      {
       "destino": "2026-07-26-GUIA-Ejemplo-Graph-Pino-Procedural-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -22794,6 +23204,19 @@
       "updated": "2026-07-29"
      },
      {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-PLAN-ABM-Funciones-Graph-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
       "area": "02-TreeGen",
       "carpeta": "02-TreeGen",
       "carpeta_conocida": true,
@@ -23104,6 +23527,19 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-07-28"
+     },
+     {
+      "area": "03-Mesh-y-materiales",
+      "carpeta": "03-Mesh-y-materiales",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-02"
      },
      {
       "area": "04-Ejecucion-y-pruebas",
@@ -24510,6 +24946,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "origen": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
       "origen": "README",
       "resuelve": true
@@ -24546,6 +24987,11 @@
      },
      {
       "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-ABM-Funciones-Graph-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -24695,6 +25141,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-28-INFORME-Primitivas-Tab-Mesh-v1.0",
       "origen": "README",
       "resuelve": true
@@ -24825,7 +25276,7 @@
    "catalogo": "99372ef74c544a44c24bbbe91d0dd050320a7a0e37d88ea94e6cf2d0de34f79c",
    "configuracion": "407a21668fb6d1cc90b20875fa7e2a1044832d4f2e47f759f46e63edcb27e073",
    "emisor": "197be60d28e63e4f20f9e663ea9910ae265daf1b64580a5f5e8281be5c9d0307",
-   "referencia": "f5265606d431199be9ed05ba7b542d0628acf064208f56e678cda6c500bf3acc"
+   "referencia": "1bcfb71e8ee289a41844e488f2d59e3229b9daad9417831dee98bf9a6a20924e"
   },
   "raiz_fuentes": ".."
  },

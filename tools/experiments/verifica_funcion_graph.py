@@ -17,6 +17,7 @@ from jam.graph import JamGraph
 
 
 nombre = f"Verifica función {time.time_ns()}"
+funcion_id = ""
 
 try:
     plano = JamGraph()
@@ -33,11 +34,13 @@ try:
         nombre, plano.to_json(), json.dumps(["t1", "n1"])))
     if not colapsado.get("ok"):
         raise RuntimeError(colapsado.get("report", "collapse_function falló sin reporte"))
+    verbo = colapsado["tool"]["verbo"]
+    funcion_id = verbo.removeprefix("fn:")
 
     padre = JamGraph.from_json(json.dumps(colapsado["graph"]))
-    instancia = next(nid for nid, n in padre.nodes.items() if n["verb"] == f"fn:{nombre}")
+    instancia = next(nid for nid, n in padre.nodes.items() if n["verb"] == verbo)
     # La segunda instancia se pone en serie con la primera: el Compile tiene que expandir ambas.
-    padre.add(f"fn:{nombre}", {}, nid="f2", x=600, y=20)
+    padre.add(verbo, {}, nid="f2", x=600, y=20)
     padre.edges = [e for e in padre.edges if not (e[0] == instancia and e[2] == "fin")]
     padre.connect(instancia, "f2", "in", "salida")
     padre.connect("f2", "fin", "in", "salida")
@@ -50,13 +53,31 @@ try:
             f"Compile no probó las dos expansiones: esperados={sorted(esperados)} "
             f"vistos={sorted(vistos)} reporte={compilado.get('report')}")
 
+    obtenido = json.loads(api.function_manage("get", verbo))
+    if not obtenido.get("ok"):
+        raise RuntimeError(f"ABM get falló: {obtenido}")
+    nombre_nuevo = nombre + " renombrada"
+    renombrado = json.loads(api.function_manage("rename", verbo, nombre_nuevo))
+    if not renombrado.get("ok") or renombrado.get("tool", {}).get("verbo") != verbo:
+        raise RuntimeError(f"ABM rename cambió identidad o falló: {renombrado}")
+    actualizado = json.loads(api.function_manage(
+        "update", verbo, json.dumps(obtenido["graph"])))
+    if not actualizado.get("ok") or actualizado.get("tool", {}).get("label") != nombre_nuevo:
+        raise RuntimeError(f"ABM update perdió metadata o falló: {actualizado}")
+
     spec = json.loads(api.spec_all())
-    tool = next((t for t in spec["tools"] if t["verbo"] == f"fn:{nombre}"), None)
+    tool = next((t for t in spec["tools"] if t["verbo"] == verbo), None)
     if tool is None or [p["name"] for p in tool.get("inputs", [])] != ["in"] \
             or [p["name"] for p in tool.get("outputs", [])] != ["salida"]:
         raise RuntimeError(f"el ribbon no recibió la firma guardada: {tool}")
 
-    unreal.log("JAM_FUNCION_TEST TODO VERDE — guardar selección + dos instancias + "
-               f"Compile {sorted(esperados)}")
+    borrado = json.loads(api.function_manage("delete", verbo))
+    if not borrado.get("ok"):
+        raise RuntimeError(f"ABM delete falló: {borrado}")
+    funcion_id = ""
+
+    unreal.log("JAM_FUNCION_TEST TODO VERDE — ABM completo + dos instancias + "
+               f"identidad estable + Compile {sorted(esperados)}")
 finally:
-    preset.borrar(nombre)
+    if funcion_id:
+        preset.borrar_funcion(funcion_id)

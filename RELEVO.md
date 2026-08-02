@@ -20,6 +20,11 @@ Codex completó arriba de eso la **capa Slate de la Fase 5**: funciones dinámic
 pines múltiples nombrados y `Ctrl+G` para colapsar una selección. El borde y el colapso viven en
 Python puro; C++ sólo dibuja y transmite el gesto.
 
+El 2026-08-02 esa primera capa pasó a una biblioteca administrable: identidad estable separada del
+nombre, ABM Nueva/Editar/Guardar/Renombrar/Eliminar, nombre obligatorio al colapsar y pines
+`nombre (Tipo)`. También se corrigió el flujo Nanite→Fracture para UE 5.8: Dataflow v2 conserva
+materiales y la Geometry Collection hereda Nanite.
+
 **Leé primero** `Vault-kb/00-Proceso/2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0.md`: son
 diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 
@@ -27,9 +32,10 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 
 | Qué | Comando | Resultado |
 |---|---|---|
-| Cerebro de Jam | `cd Content/Python/tests && PYTHONPATH=$PWD/.. python -m unittest discover -s . -p "test_*.py" -q` | **513 OK**, 0.3 s |
-| Vault (modo sombra) | `python tools/vault.py` | **52 docs · las dos implementaciones coinciden** |
-| Motor | `tools/experiments/verifica_funcion_graph.py` headless | **guardar + firma en ribbon + 2 instancias + Compile · TODO VERDE** |
+| Cerebro de Jam | `cd Content/Python/tests && PYTHONPATH=$PWD/.. python -m unittest discover -s . -p "test_*.py" -q` | **521 OK**, 0.3 s |
+| Vault (modo sombra) | `python tools/vault.py` | **54 docs · las dos implementaciones coinciden** |
+| Motor | `tools/experiments/verifica_funcion_graph.py` headless | **ABM completo + identidad estable + 2 instancias + Compile · TODO VERDE** |
+| Nanite→Fracture | `tools/experiments/verifica_nanite_fracture_58.py` en editor GUI | **2/2 materiales distintos + GC Nanite · TODO VERDE; cierre 139** |
 | UE 5.8.1 | APIs + ejemplos + material/UV + PCG real | **98 símbolos + 75 métodos · 8/8 ejemplos · material/UV verde · 287 HISM** |
 | Oracle en UE 5.8.1 | `tools/experiments/verifica_oracle_shadow.py` con editor completo | **placement + snap funcional verde; cierre 139** |
 | oracle sobre sí mismo | `cd vendor/oracle && python tools/aceptacion.py` | **27 rojos · 12 verdes · 0 huecos** |
@@ -55,20 +61,26 @@ Lo que **nadie ejerció con las manos** de este turno:
 
 | Cosa | Quién puede verificarla | Estado |
 |---|---|---|
-| `Ctrl+G` + dibujo/cableado de pines múltiples de función | Brian | ⏳ compilado y headless verde; falta gesto |
+| ABM, `Ctrl+G` + dibujo/cableado de pines múltiples de función | Brian | ⏳ compilado y borde real verde; faltan gestos |
+| Aspecto de una GC Nanite fracturada y rotura en PIE | Brian | ⏳ metadata/materiales verdes; falta viewport y simulación |
 | El paquete de estudio subido a NotebookLM | Brian | ⏳ generado, sin abrir |
 | Que el informe del modo sombra de `vault.py` se lea bien | Brian | ⏳ |
 | Todo lo demás de `oracle` | ✅ sus propias herramientas, el diferencial y la mutación | verificado |
 
 ## Para las manos de Brian
 
-**Funciones del Graph — cinco gestos, diez minutos:**
+**Funciones del Graph — ocho gestos, quince minutos:**
 
 1. Abrí Jam ▸ Graph y armá una cadena de cuatro nodos Mesh.
-2. Seleccioná los dos del medio y apretá `Ctrl+G`: deben quedar reemplazados por una función cableada.
-3. Abrí el tab **Funciones**: la ficha nueva debe instanciar un nodo con `in` y `salida` legibles.
-4. Agregá una segunda instancia en serie y tendé sus dos cables por esos pines.
-5. Compile: tiene que dar verde y listar nodos `f1__…`/`f2__…` (el nombre exacto del primer id puede variar).
+2. Seleccioná los dos del medio y apretá `Ctrl+G`: debe pedir un nombre antes de reemplazarlos.
+3. Abrí **Funciones**: la ficha debe mostrar ese nombre, no `Fn: Función XXXXX-XXXX`.
+4. Tocá **Editar**, renombrá los nodos de borde y elegí sus tipos; guardá. La instancia debe mostrar
+   `nombre (Tipo)` en entradas y salidas.
+5. Tocá **Nombre** y renombrá la función: las llamadas existentes deben conservarse.
+6. Agregá una segunda instancia en serie y tendé sus cables por los pines nombrados.
+7. Intentá eliminarla mientras el canvas la usa: debe negarse. Quitá ambas llamadas y eliminála.
+8. Repetí con una función conservada y Compile: tiene que dar verde y listar nodos
+   `f1__…`/`f2__…` (el nombre exacto del primer id puede variar).
 
 En el primer intento manual, `Ctrl+G` sí guardó el preset pero Slate mostró «respuesta ilegible»:
 `preset.guardar` había escrito un log antes del JSON y `ExecPythonCapture` los concatenó. El borde C++
@@ -151,3 +163,7 @@ Lo durable está en `AGENTS.md`, en el vault y en el corpus de `oracle`. Acá el
   dato, como todos los demás.
 - **Dos veces afirmé una proporción de memoria y las dos estaban mal.** Ahora los números del README de
   `oracle` los mide `tools/estudio.py`.
+- **El nombre visible no puede ser la identidad de una función.** Separar `funcion_id` de la etiqueta
+  permite renombrar sin reescribir ni romper todas sus llamadas.
+- **En Dataflow 5.8 los materiales son un cable, no un parche posterior.** Los nodos y terminales v2
+  transportan el array completo; asignar `[m0, m0]` había borrado silenciosamente el resto.

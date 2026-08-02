@@ -236,13 +236,90 @@ def collapse_function(nombre: str, graph_json: str, selected_json: str,
     from .graph import JamGraph
     try:
         seleccion = set(json.loads(selected_json))
+        funcion_id = funcion.nuevo_id()
         padre, cuerpo = funcion.colapsar(
-            JamGraph.from_json(graph_json), seleccion, nombre)
-        p = preset.desde_grafo(nombre, cuerpo.to_json(), scope=scope)
+            JamGraph.from_json(graph_json), seleccion, funcion_id)
+        p = preset.desde_grafo(
+            nombre, cuerpo.to_json(), scope=scope, funcion_id=funcion_id)
         ruta = preset.guardar(p)
-        tool = funcion.herramientas({nombre: cuerpo})[-1]
+        tool = funcion.herramienta(funcion_id, nombre, cuerpo)
         return json.dumps({"ok": True, "graph": json.loads(padre.to_json()), "tool": tool,
                            "report": f"FUNCIÓN guardada ✓ — «{nombre}» ({scope})  {ruta}"},
+                          ensure_ascii=True)
+    except (ValueError, TypeError, OSError) as e:
+        return json.dumps({"ok": False, "report": f"FUNCIÓN ✗ — {e}"}, ensure_ascii=True)
+
+
+def function_manage(action: str, funcion_id: str = "", payload: str = "",
+                    scope: str = "local") -> str:
+    """ABM de definiciones para Slate. `payload` es nombre en create/rename y grafo en update."""
+    import json
+
+    from . import funcion, preset
+    from .graph import JamGraph
+
+    try:
+        action = str(action or "").strip().lower()
+        identidad = funcion.nombre_de_instancia(funcion_id) \
+            if funcion.es_instancia(funcion_id) else funcion_id
+
+        if action == "create":
+            nombre = str(payload or "").strip()
+            if not nombre:
+                raise funcion.FuncionError("la función necesita un nombre")
+            if any(d["nombre"].casefold() == nombre.casefold()
+                   for d in funcion.listar_definiciones()):
+                raise funcion.FuncionError(f"ya existe una función llamada «{nombre}»")
+            identidad = funcion.nuevo_id()
+            cuerpo = JamGraph()
+            cuerpo.add("input", {"name": "entrada", "type": "*"}, nid="entrada", x=40, y=80)
+            cuerpo.add("output", {"name": "salida", "type": "*"}, nid="salida", x=380, y=80)
+            cuerpo.connect("entrada", "salida")
+            p = preset.desde_grafo(
+                nombre, cuerpo.to_json(), scope=scope, funcion_id=identidad)
+            ruta = preset.guardar(p)
+            tool = funcion.herramienta(identidad, nombre, cuerpo)
+            return json.dumps({"ok": True, "graph": json.loads(cuerpo.to_json()), "tool": tool,
+                               "report": f"FUNCIÓN creada ✓ — «{nombre}»  {ruta}"},
+                              ensure_ascii=True)
+
+        d = funcion.obtener_definicion(identidad)
+        if action == "get":
+            return json.dumps({"ok": True, "graph": json.loads(d["cuerpo"].to_json()),
+                               "tool": funcion.herramienta(
+                                   d["funcion_id"], d["nombre"], d["cuerpo"]),
+                               "report": f"Editando función — «{d['nombre']}»"},
+                              ensure_ascii=True)
+
+        if action == "rename":
+            nombre = str(payload or "").strip()
+            if not nombre:
+                raise funcion.FuncionError("la función necesita un nombre")
+            if any(x["funcion_id"] != identidad and x["nombre"].casefold() == nombre.casefold()
+                   for x in funcion.listar_definiciones()):
+                raise funcion.FuncionError(f"ya existe una función llamada «{nombre}»")
+            cuerpo = d["cuerpo"]
+        elif action == "update":
+            cuerpo = JamGraph.from_json(payload)
+            funcion.firma(cuerpo)
+            nombre = d["nombre"]
+        elif action == "delete":
+            if not preset.borrar_funcion(identidad):
+                raise funcion.FuncionError(f"no pude borrar la función «{d['nombre']}»")
+            return json.dumps({"ok": True, "verbo": funcion.PREFIJO + identidad,
+                               "report": f"FUNCIÓN eliminada ✓ — «{d['nombre']}»"},
+                              ensure_ascii=True)
+        else:
+            raise funcion.FuncionError(f"acción ABM desconocida: {action or '?'}")
+
+        # Una definición legada adopta su identidad anterior explícitamente al primer cambio. El
+        # verbo no cambia, por lo que sus instancias existentes siguen funcionando.
+        p = preset.desde_grafo(nombre, cuerpo.to_json(), descripcion=d["descripcion"],
+                               scope=d["scope"], funcion_id=identidad)
+        ruta = preset.guardar(p)
+        tool = funcion.herramienta(identidad, nombre, cuerpo)
+        return json.dumps({"ok": True, "graph": json.loads(cuerpo.to_json()), "tool": tool,
+                           "report": f"FUNCIÓN actualizada ✓ — «{nombre}»  {ruta}"},
                           ensure_ascii=True)
     except (ValueError, TypeError, OSError) as e:
         return json.dumps({"ok": False, "report": f"FUNCIÓN ✗ — {e}"}, ensure_ascii=True)

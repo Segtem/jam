@@ -22,11 +22,16 @@ diagnóstico («de qué instancia salió este nodo») y sin choques por construc
 
 from __future__ import annotations
 
+import uuid
+
 from .graph import JamGraph
 
 PREFIJO = "fn:"
 VERBOS_BORDE = ("input", "output")
 PIN_IN, PIN_OUT = "in", "out"
+# El mismo vocabulario corto que usan los cables del Graph. El borde de una función no acepta un
+# texto arbitrario: un typo acá convertiría la firma en un tipo que ningún nodo puede conectar.
+TIPOS_PIN = ["*", "A", "A[]", "AF", "B", "F", "H", "M", "MT", "N", "N[]", "P", "S", "T"]
 
 
 class FuncionError(ValueError):
@@ -39,6 +44,11 @@ def es_instancia(verb: str) -> bool:
 
 def nombre_de_instancia(verb: str) -> str:
     return verb[len(PREFIJO):]
+
+
+def nuevo_id() -> str:
+    """Identidad estable de una definición. El nombre humano puede cambiar sin romper instancias."""
+    return "f_" + uuid.uuid4().hex
 
 
 def _nombre_borde(nid: str, nodo: dict) -> str:
@@ -85,7 +95,7 @@ def herramientas(cuerpos: dict[str, JamGraph] | None = None) -> list[dict]:
              {"nombre": "name", "default": "entrada", "tipo": "str", "data_type": "T",
               "opciones": []},
              {"nombre": "type", "default": "*", "tipo": "str", "data_type": "T",
-              "opciones": []},
+              "opciones": TIPOS_PIN},
          ]},
         {"verbo": "output", "cat": "Funciones", "grupo": "Firma",
          "doc": "salida nombrada del cuerpo de una función", "source": False, "aridad": 1,
@@ -94,27 +104,41 @@ def herramientas(cuerpos: dict[str, JamGraph] | None = None) -> list[dict]:
              {"nombre": "name", "default": "salida", "tipo": "str", "data_type": "T",
               "opciones": []},
              {"nombre": "type", "default": "*", "tipo": "str", "data_type": "T",
-              "opciones": []},
+              "opciones": TIPOS_PIN},
          ]},
     ]
     if cuerpos is None:
         try:
-            cuerpos = biblioteca()
+            definiciones = listar_definiciones()
         except (AttributeError, RuntimeError):
             # ``spec_all`` sigue siendo consultable en Python pelado: ahí no existe ``unreal.Paths``
             # y, por definición, tampoco hay presets locales del proyecto que enumerar.
-            cuerpos = {}
+            definiciones = []
+    else:
+        # Compatibilidad del borde puro y de sus tests: {nombre_o_id: JamGraph}. Las definiciones
+        # reales llegan por `listar_definiciones` y sí separan id de etiqueta.
+        definiciones = [
+            {"funcion_id": identidad, "nombre": identidad, "cuerpo": cuerpo}
+            for identidad, cuerpo in cuerpos.items()
+        ]
     salida = list(borde)
-    for nombre, cuerpo in cuerpos.items():
-        f = firma(cuerpo)
-        salida.append({
-            "verbo": PREFIJO + nombre, "cat": "Funciones", "grupo": "Biblioteca",
-            "doc": f"función «{nombre}» — se expande inline antes de Compile",
-            "source": not f["entradas"], "aridad": 0 if not f["entradas"] else 1,
-            "in_name": "", "out_name": "", "asset_pin": False, "asset_row": False,
-            "inputs": f["entradas"], "outputs": f["salidas"], "params": [],
-        })
+    for definicion in definiciones:
+        salida.append(herramienta(
+            definicion["funcion_id"], definicion["nombre"], definicion["cuerpo"]))
     return salida
+
+
+def herramienta(funcion_id: str, nombre: str, cuerpo: JamGraph) -> dict:
+    """Spec de una llamada: verbo interno estable y etiqueta humana independiente."""
+    f = firma(cuerpo)
+    return {
+        "verbo": PREFIJO + funcion_id, "label": nombre,
+        "cat": "Funciones", "grupo": "Biblioteca",
+        "doc": f"función «{nombre}» — se expande inline antes de Compile",
+        "source": not f["entradas"], "aridad": 0 if not f["entradas"] else 1,
+        "in_name": "", "out_name": "", "asset_pin": False, "asset_row": False,
+        "inputs": f["entradas"], "outputs": f["salidas"], "params": [],
+    }
 
 
 def _nombre_pin(preferido: str, base: str, usados: set[str]) -> str:
@@ -357,16 +381,42 @@ def biblioteca_desde_json(mapa: dict[str, str]) -> dict[str, JamGraph]:
 
 
 def biblioteca() -> dict[str, JamGraph]:
-    """Las funciones disponibles = los presets cuyo contenido declara pines (`kind` «funcion»)."""
+    """Cuerpos por identidad. Las funciones legadas conservan su nombre como identidad."""
+    return {d["funcion_id"]: d["cuerpo"] for d in listar_definiciones()}
+
+
+def listar_definiciones() -> list[dict]:
+    """Definiciones disponibles con identidad, etiqueta y cuerpo.
+
+    Un preset anterior a `funcion_id` sigue publicando exactamente `fn:<nombre>`; no se migra a
+    escondidas porque eso dejaría huérfanos los grafos que ya lo llaman.
+    """
     import json as _json
 
     from . import preset
-    salida: dict[str, JamGraph] = {}
+    # `preset.listar` recorre global→local: reemplazar por identidad conserva la precedencia local
+    # y evita publicar dos tools con el mismo verbo para una definición legada sombreada.
+    por_id: dict[str, dict] = {}
     for p in preset.listar(kind="funcion"):
-        cuerpo = (preset.cargar(p["nombre"]) or {}).get("graph")
+        cuerpo = p.get("graph")
         if cuerpo:
-            salida[p["nombre"]] = JamGraph.from_json(_json.dumps(cuerpo))
-    return salida
+            identidad = str(p.get("funcion_id") or p["nombre"])
+            por_id[identidad] = {
+                "funcion_id": identidad,
+                "nombre": str(p["nombre"]),
+                "scope": p.get("scope", "local"),
+                "descripcion": p.get("descripcion", ""),
+                "cuerpo": JamGraph.from_json(_json.dumps(cuerpo)),
+            }
+    return list(por_id.values())
+
+
+def obtener_definicion(funcion_id: str) -> dict:
+    funcion_id = nombre_de_instancia(funcion_id) if es_instancia(funcion_id) else funcion_id
+    for d in listar_definiciones():
+        if d["funcion_id"] == funcion_id:
+            return d
+    raise FuncionError(f"no existe la función «{funcion_id}»")
 
 
 def hay_instancias(graph_json: str) -> bool:

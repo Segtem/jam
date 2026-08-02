@@ -23,9 +23,9 @@ aliases:
 ## Veredicto de esta pasada
 
 La base automatizable de Jam funciona en **Unreal Engine 5.8.1**: compila, sus APIs Python existen,
-los ocho ejemplos compilan, los tutoriales de material y UV ejecutan, PCG genera y la sombra de
-Oracle coincide. La certificación completa sigue abierta porque faltan gestos Slate, Dataflow en GUI,
-Nanite/Substrate y el ciclo manual de Preview/Bake/Discard.
+los ocho ejemplos compilan, los tutoriales de material y UV ejecutan, PCG genera, Nanite→Fracture
+conserva materiales y la sombra de Oracle coincide. La certificación completa sigue abierta porque
+faltan gestos Slate, Substrate y el ciclo manual de Preview/Bake/Discard.
 
 Motor: `5.8.1-0+UE5`. Commit de partida: `bc0bd89`. Proyecto host:
 `/home/workstation/Dev/games/BotOO`.
@@ -39,11 +39,12 @@ Motor: `5.8.1-0+UE5`. Commit de partida: `bc0bd89`. Proyecto host:
 | Catálogo Aprender | Compile público de los ocho `.jamgraph` | **8/8 verdes**: Geometry, cuatro TreeGen, Debug, material y UV | correr/inspeccionar los ejemplos que colocan actores |
 | Material + Geometry/UV | `verifica_tutoriales_material.py` con commandlet rendering | **TODO VERDE**: material, parámetro, cable al mesh, Static Mesh transaccional, proyección y pack UV | inspección visual y costo con GUI cuando corresponda |
 | PCG | editor completo + `-ExecCmds`, 90 ticks | **verde**: 3 nodos, 4/4 cables, preset 600 cm, hex/triangular, 287 HISM | Preview/Bake/Discard manual y PCG 5.8 nuevo |
-| Graph funciones | `verifica_funcion_graph.py` | **verde previo en 5.8.1**: guardar, firma, dos instancias y Compile | `Ctrl+G` y pines múltiples con las manos |
+| Graph funciones | `verifica_funcion_graph.py` | **verde en 5.8.1**: id estable, guardar, firma, dos instancias y Compile | ABM, `Ctrl+G` y pines múltiples con las manos |
 | Oracle | editor completo + `verifica_oracle_shadow.py` | **función verde**: placement, snap y `snap.al_ras` coinciden | desmontaje del proceso cae con código 139 |
 | Slate | build y carga de `JamEditor` | módulo cargado | tabs, historial, gestos y Undo/Redo en GUI |
-| Nanite/Substrate | no corrido todavía | pendiente | conversión, material y medición real |
-| Dataflow/Fracture | no corrido: el camino headless conocido cuelga | pendiente GUI | creación, terminal, materiales y fractura |
+| Nanite | editor GUI + `verifica_nanite_fracture_58.py` | **verde**: copia Nanite y GC con `EnableNanite=true` | inspección visual y materiales incompatibles |
+| Dataflow/Fracture | editor GUI, nodos y terminal v2 | **verde**: GC regenerada; 2/2 materiales distintos conservados | rotura en PIE y shutdown con señal 11 |
+| Substrate | no corrido todavía | pendiente | conversión, material y medición real |
 
 ## Qué amplió esta revisión
 
@@ -69,15 +70,15 @@ No se tocaron: son estado del proyecto host y no evidencia de compatibilidad de 
 los repare, la autoridad es el marcador específico del script en `Saved/Logs/BotOO.log`, acompañado
 por la lista explícita de errores del host; el exit code solo no puede ser puerta verde.
 
-El otro rojo sí cruza Jam, pero está delimitado: `verifica_oracle_shadow.py` emite su marcador verde
-y después el editor cae durante shutdown con `double free or corruption (out)`, código 139. Por eso
-la matriz separa **función** de **ciclo de vida**.
+El otro rojo sí cruza Jam, pero está delimitado: tanto `verifica_oracle_shadow.py` como la nueva
+sonda Nanite/Fracture emiten su marcador verde y después el editor cae durante shutdown con código
+139. Por eso la matriz separa **función** de **ciclo de vida**.
 
 ## Próximo bloque
 
 1. Cerrar Slate/Graph con los cinco gestos pedidos en `RELEVO.md`.
 2. Correr Preview/Bake/Discard de PCG y colocación de ejemplos en una sesión visible.
-3. Certificar Nanite/Substrate y Dataflow/Fracture por sus caminos válidos.
+3. Certificar Substrate y la rotura de Geometry Collections en PIE.
 4. Recién entonces abrir spikes aislados de MCP/Toolsets, PCG 5.8, PVE y Sandboxes.
 
 ## Relacionado
@@ -85,3 +86,4 @@ la matriz separa **función** de **ciclo de vida**.
 - [[2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0|Plan de revisión integral]]
 - [[2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0|Oracle: metalenguaje de medidas]]
 - [[2026-07-29-INFORME-Funciones-Graph-Firma-v1.0|Funciones Graph con firma]]
+- [[2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0|Nanite a Fracture en UE 5.8]]

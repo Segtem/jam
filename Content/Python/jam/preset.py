@@ -51,7 +51,10 @@ def guardar(preset: dict) -> str:
     scope = preset.get("scope", "local")
     d = _dir_global() if scope == "global" else _dir_local()
     d.mkdir(parents=True, exist_ok=True)
-    ruta = d / f"{_slug(preset['nombre'])}.json"
+    # Una función nueva se guarda por identidad, no por etiqueta. Así renombrarla no crea otro
+    # archivo ni rompe las instancias `fn:<funcion_id>`. Los presets viejos siguen por nombre.
+    clave_archivo = preset.get("funcion_id") if preset.get("kind") == "funcion" else None
+    ruta = d / f"{_slug(clave_archivo or preset['nombre'])}.json"
     ruta.write_text(json.dumps(preset, indent=2, ensure_ascii=False), encoding="utf-8")
     unreal.log(f"[Jam] preset guardado ({scope}): {ruta}")
     return str(ruta)
@@ -101,6 +104,26 @@ def borrar(nombre: str) -> bool:
     return False
 
 
+def borrar_funcion(funcion_id: str) -> bool:
+    """Borra la definición por identidad; local gana si hubiera una colisión legada.
+
+    No usa el nombre visible ni supone cómo se llama el archivo: ambas cosas pueden haber cambiado.
+    """
+    for d in (_dir_local(), _dir_global()):
+        if not d.exists():
+            continue
+        for ruta in sorted(d.glob("*.json")):
+            try:
+                p = json.loads(ruta.read_text(encoding="utf-8"))
+            except Exception:  # noqa: BLE001
+                continue
+            identidad = str(p.get("funcion_id") or p.get("nombre") or "")
+            if p.get("kind") == "funcion" and identidad == funcion_id:
+                ruta.unlink()
+                return True
+    return False
+
+
 # ---- construir un preset desde el estado actual (lo que hace el botón «guardar preset») ----
 
 def desde_comando(nombre, comando, *, categoria="", descripcion="", tags=None, scope="local",
@@ -130,13 +153,17 @@ def kind_de_grafo(grafo) -> str:
 
 
 def desde_grafo(nombre, grafo, *, categoria="", descripcion="", tags=None, scope="local",
-                debe_ok=False) -> dict:
+                debe_ok=False, funcion_id="") -> dict:
     """Preset a partir de un grafo (dict o JSON string); el `kind` sale del contenido, no del botón."""
     if isinstance(grafo, str):
         grafo = json.loads(grafo)
-    return {"kind": kind_de_grafo(grafo), "nombre": nombre, "categoria": categoria,
+    kind = kind_de_grafo(grafo)
+    salida = {"kind": kind, "nombre": nombre, "categoria": categoria,
             "descripcion": descripcion, "tags": tags or [], "scope": scope, "graph": grafo,
             "oraculo": {"debe_ok": debe_ok}}
+    if kind == "funcion" and funcion_id:
+        salida["funcion_id"] = funcion_id
+    return salida
 
 
 # ---- aplicar (recrear + verificar, por el camino maduro de la UI) ----

@@ -175,6 +175,7 @@ TSharedRef<SDockTab> FJamEditorModule::SpawnGraphTab(const FSpawnTabArgs& /*Args
 		.OnInspect_Raw(this, &FJamEditorModule::InspectGraphNode)
 		.OnLayout_Raw(this, &FJamEditorModule::LayoutGraphNodes)
 		.OnCollapseFunction_Raw(this, &FJamEditorModule::CollapseGraphFunction)
+		.OnFunctionManage_Raw(this, &FJamEditorModule::ManageGraphFunction)
 		.OnSaveGraph_Raw(this, &FJamEditorModule::SaveGraphAsPreset);
 	GraphWidget = Canvas;
 
@@ -214,12 +215,10 @@ FString FJamEditorModule::SaveGraphAsPreset(const FString& Json)
 	return Out;
 }
 
-FString FJamEditorModule::CollapseGraphFunction(const FString& Json, const FString& SelectedJson)
+FString FJamEditorModule::CollapseGraphFunction(const FString& Nombre, const FString& Json,
+	const FString& SelectedJson)
 {
 	static const FString ResponseMarker(TEXT("JAMCOLLAPSE:"));
-	const FDateTime Ahora = FDateTime::Now();
-	const FString Nombre = FString::Printf(TEXT("Función %s-%03d"),
-		*Ahora.ToString(TEXT("%H%M%S")), Ahora.GetMillisecond());
 	const FString Stmt = FString::Printf(
 		TEXT("import jam.api as _a; print('JAMCOLLAPSE:' + _a.collapse_function(%s, %s, %s))"),
 		*ToPyStr(Nombre), *ToPyStr(Json), *ToPyStr(SelectedJson));
@@ -229,6 +228,21 @@ FString FJamEditorModule::CollapseGraphFunction(const FString& Json, const FStri
 	{
 		return Raw;
 	}
+	FString Response = Raw.Mid(MarkerAt + ResponseMarker.Len());
+	Response.TrimStartAndEndInline();
+	return Response;
+}
+
+FString FJamEditorModule::ManageGraphFunction(const FString& Action, const FString& FuncionId,
+	const FString& Payload)
+{
+	static const FString ResponseMarker(TEXT("JAMFUNCTION:"));
+	const FString Stmt = FString::Printf(
+		TEXT("import jam.api as _a; print('JAMFUNCTION:' + _a.function_manage(%s, %s, %s))"),
+		*ToPyStr(Action), *ToPyStr(FuncionId), *ToPyStr(Payload));
+	const FString Raw = ExecPythonCapture(Stmt);
+	const int32 MarkerAt = Raw.Find(ResponseMarker, ESearchCase::CaseSensitive, ESearchDir::FromEnd);
+	if (MarkerAt == INDEX_NONE) { return Raw; }
 	FString Response = Raw.Mid(MarkerAt + ResponseMarker.Len());
 	Response.TrimStartAndEndInline();
 	return Response;
@@ -399,6 +413,7 @@ void FJamEditorModule::LoadSpec(bool bIncludeFlow)
 		}
 		FJamTool T;
 		T.Verb = O->GetStringField(TEXT("verbo"));
+		if (!O->TryGetStringField(TEXT("label"), T.Label)) { T.Label = T.Verb; }
 		O->TryGetStringField(TEXT("cat"), T.Cat);
 		O->TryGetStringField(TEXT("grupo"), T.Group);
 		O->TryGetStringField(TEXT("doc"), T.Doc);

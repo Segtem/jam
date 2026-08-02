@@ -39,6 +39,7 @@ struct FJamNodePin
 {
 	FString Name;
 	FString DataType;
+	FString TypeLabel;
 	FLinearColor Color = FLinearColor(0.28f, 0.30f, 0.34f, 1.0f);
 };
 
@@ -60,6 +61,8 @@ class SJamGraphNode : public SCompoundWidget
 public:
 	SLATE_BEGIN_ARGS(SJamGraphNode) {}
 		SLATE_ARGUMENT(FString, Verb)
+		/** Título humano separado del verbo interno. */
+		SLATE_ARGUMENT(FString, DisplayName)
 		/** Ruta absoluta del SVG que ocupa el centro del componente. */
 		SLATE_ARGUMENT(FString, IconPath)
 		SLATE_ARGUMENT(FLinearColor, IconColor)
@@ -158,6 +161,7 @@ private:
 	void RebuildBodyBrush();
 
 	FString Verb;
+	FString DisplayName;
 	FString IconPath;
 	FString OutName;
 	FLinearColor IconColor = FLinearColor(0.35f, 0.35f, 0.38f, 1.0f);

@@ -64,6 +64,16 @@ def _vec(x, y, z) -> str:
     return f"{x:.6f},{y:.6f},{z:.6f}"
 
 
+def _usa_nanite(mesh) -> bool:
+    """La GC es otro tipo de asset, pero debe heredar el modo de render de su StaticMesh fuente."""
+    try:
+        subsystem = unreal.get_editor_subsystem(unreal.StaticMeshEditorSubsystem)
+        settings = subsystem.get_nanite_settings(mesh)
+        return bool(settings.get_editor_property("enabled"))
+    except Exception:  # noqa: BLE001
+        return False
+
+
 def _fuente_hueca(df, DFE, mesh, thickness):
     """Rama HUECA GENERAL (idea de Brian): le resta al modelo una COPIA de SÍ MISMO encogida hacia el
     centro → una CÁSCARA que sigue la silueta real, para CUALQUIER forma (barril, cajón, estatua), no
@@ -130,14 +140,22 @@ def fracturar(asset, *, sites: int = 20, seed: int = 123, hollow: bool = False,
     # La FUENTE de la colección: hueca (mesh→boolean→collection) o sólida (staticmesh→collection).
     if hollow:
         fuente = _fuente_hueca(df, DFE, mesh, thickness)   # nodo con salida «Collection»
+        # El camino Mesh→boolean pierde metadata. Un conversor v2 paralelo provee únicamente el
+        # array de materiales que el terminal necesita; su Collection no se usa.
+        meta = DFE.add_dataflow_node(
+            df, "FStaticMeshToCollectionDataflowNode_v2", "meta", V(720, 360))
+        _setp(df, meta, "StaticMesh", mesh.get_path_name())
     else:
-        fuente = DFE.add_dataflow_node(df, "FStaticMeshToCollectionDataflowNode", "src", V(0, 0))
+        fuente = DFE.add_dataflow_node(
+            df, "FStaticMeshToCollectionDataflowNode_v2", "src", V(0, 0))
         _setp(df, fuente, "StaticMesh", mesh.get_path_name())
+        meta = fuente
 
     sel  = DFE.add_dataflow_node(df, "FCollectionTransformSelectionAllDataflowNode", "sel", V(1000, 200))
     frac = DFE.add_dataflow_node(df, "FUniformFractureDataflowNode", "frac", V(1240, 60))
     prox = DFE.add_dataflow_node(df, "FProximityDataflowNode", "prox", V(1480, 60))
-    term = DFE.add_dataflow_node(df, "FGeometryCollectionTerminalDataflowNode", "term", V(1720, 60))
+    term = DFE.add_dataflow_node(
+        df, "FGeometryCollectionTerminalDataflowNode_v2", "term", V(1720, 60))
 
     _setp(df, frac, "MinVoronoiSites", int(sites))
     _setp(df, frac, "MaxVoronoiSites", int(sites))
@@ -151,6 +169,12 @@ def fracturar(asset, *, sites: int = 20, seed: int = 123, hollow: bool = False,
     _conn(df, sel, "TransformSelection", frac, "TransformSelection")
     _conn(df, frac, "Collection", prox, "Collection")
     _conn(df, prox, "Collection", term, "Collection")
+    # UE 5.8: el terminal v2 es quien persiste TODOS los materiales. Dejar este cable afuera y
+    # asignar sólo el primer slot después fue la causa de las GCs grises/sin texturas.
+    _conn(df, meta, "Materials", term, "Materials")
+    if not hollow:
+        _conn(df, meta, "InstancedMeshes", term, "InstancedMeshes")
+        _conn(df, meta, "RootProxyMeshes", term, "RootProxyMeshes")
     unreal.EditorAssetLibrary.save_asset(df_ruta, only_if_is_dirty=False)
 
     gc = at.create_asset(
@@ -159,16 +183,11 @@ def fracturar(asset, *, sites: int = 20, seed: int = 123, hollow: bool = False,
     inst.set_editor_property("dataflow_asset", df)
     inst.set_editor_property("dataflow_terminal", term)
     gc.set_editor_property("dataflow_instance", inst)
+    # Fracture cambia el tipo de asset StaticMesh→GeometryCollection; no debe cambiar el modo de
+    # render. Es el mismo contrato que usa Fracture Mode nativo de Epic al crear una GC.
+    gc.set_editor_property("enable_nanite", _usa_nanite(mesh))
     if not DFB.regenerate_asset_from_dataflow(gc):
         return {"error": "regenerate del Dataflow falló."}
-    # material del static mesh → la GC (si no, queda gris)
-    try:
-        mats = mesh.get_editor_property("static_materials")
-        m0 = mats[0].get_editor_property("material_interface") if mats else None
-        if m0:
-            gc.set_editor_property("materials", [m0, m0])
-    except Exception:  # noqa: BLE001
-        pass
     unreal.EditorAssetLibrary.save_asset(gc_ruta, only_if_is_dirty=False)
     return {"gc": gc, "ruta": gc_ruta, "dataflow_ruta": df_ruta, "sites": int(sites)}
 

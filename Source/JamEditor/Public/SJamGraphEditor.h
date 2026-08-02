@@ -24,9 +24,12 @@ DECLARE_DELEGATE_RetVal_TwoParams(FString, FOnLayout, const FString& /*nodos*/, 
 /** Inspector de datos: (node_id, filtro) → JSON {nodos, filas}. Node vacío = sólo la lista. */
 DECLARE_DELEGATE_RetVal_FourParams(FString, FOnInspect, const FString& /*node*/,
 	const FString& /*filtro*/, const FString& /*orden*/, bool /*descendente*/);
-/** Colapsar selección: (grafo completo, ids elegidos) → {ok,graph,tool,report}. */
-DECLARE_DELEGATE_RetVal_TwoParams(FString, FOnCollapseFunction,
-	const FString& /*graph*/, const FString& /*selected*/);
+/** Colapsar selección: (nombre humano, grafo completo, ids elegidos) → {ok,graph,tool,report}. */
+DECLARE_DELEGATE_RetVal_ThreeParams(FString, FOnCollapseFunction,
+	const FString& /*nombre*/, const FString& /*graph*/, const FString& /*selected*/);
+/** ABM de función: (acción, verbo/id, payload) → envelope JSON. */
+DECLARE_DELEGATE_RetVal_ThreeParams(FString, FOnFunctionManage,
+	const FString& /*accion*/, const FString& /*id*/, const FString& /*payload*/);
 
 /** Una fila del inspector: sus celdas ya formateadas por Python, una por columna. */
 struct FJamInspectRow
@@ -59,6 +62,7 @@ public:
 		/** Alinear/distribuir: lo resuelve `jam.layout`. */
 		SLATE_EVENT(FOnLayout, OnLayout)
 		SLATE_EVENT(FOnCollapseFunction, OnCollapseFunction)
+		SLATE_EVENT(FOnFunctionManage, OnFunctionManage)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs, const TArray<FJamTool>& InTools);
@@ -228,6 +232,13 @@ private:
 	void Duplicar();
 	/** Ctrl+G: el cerebro puro decide el borde; Slate instala el tool devuelto y carga el padre. */
 	void ColapsarSeleccion();
+	/** Biblioteca de funciones: alta, edición del cuerpo, guardado, renombre y baja. */
+	void NuevaFuncion();
+	void EditarFuncion(const FString& Verb);
+	void GuardarFuncion();
+	void RenombrarFuncion(const FString& Verb, const FString& NombreActual);
+	void EliminarFuncion(const FString& Verb, const FString& NombreActual);
+	bool AplicarRespuestaFuncion(const FString& Res, bool bCargarCuerpo);
 	/** Inserta un fragmento JSON en el grafo actual con ids NUEVOS, corrido para que no tape al
 	 *  original, y deja lo pegado seleccionado. Ignora en silencio lo que no sea un fragmento
 	 *  válido: el portapapeles del sistema puede tener cualquier cosa.
@@ -291,6 +302,9 @@ private:
 	FOnInspect OnInspect;
 	FOnLayout OnLayout;
 	FOnCollapseFunction OnCollapseFunction;
+	FOnFunctionManage OnFunctionManage;
+	FString FuncionEnEdicion;
+	FString NombreFuncionEnEdicion;
 
 	/** Nodos del último Run (id + tipo + cantidad) que alimentan el selector del inspector. */
 	TArray<TSharedPtr<FString>> InspectNodes;

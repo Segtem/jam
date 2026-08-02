@@ -69,6 +69,7 @@ namespace
 void SJamGraphNode::Construct(const FArguments& InArgs)
 {
 	Verb = InArgs._Verb;
+	DisplayName = InArgs._DisplayName;
 	IconPath = InArgs._IconPath;
 	OutName = InArgs._OutName;
 	IconColor = InArgs._IconColor;
@@ -386,13 +387,15 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 				SNew(SHorizontalBox)
 				+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
 				[
-					SNew(STextBlock).Text(FText::FromString(bHasIn ? InPin.Name : FString()))
+					SNew(STextBlock).Text(FText::FromString(bHasIn
+						? FString::Printf(TEXT("%s (%s)"), *InPin.Name, *InPin.TypeLabel) : FString()))
 					.ColorAndOpacity(JamInk).Font(FCoreStyle::GetDefaultFontStyle("Regular", 7))
 				]
 				+ SHorizontalBox::Slot().FillWidth(1.0f)[ SNew(SSpacer) ]
 				+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
 				[
-					SNew(STextBlock).Text(FText::FromString(bHasOut ? OutPin.Name : FString()))
+					SNew(STextBlock).Text(FText::FromString(bHasOut
+						? FString::Printf(TEXT("%s (%s)"), *OutPin.Name, *OutPin.TypeLabel) : FString()))
 					.ColorAndOpacity(JamInk).Font(FCoreStyle::GetDefaultFontStyle("Regular", 7))
 				])
 		];
@@ -554,7 +557,7 @@ int32 SJamGraphNode::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGe
 
 	// Cartela superior: nombre humano del verbo y pequeño pico hacia el cuerpo.
 	{
-		const FString Title = FriendlyVerbName(Verb);
+		const FString Title = DisplayName.IsEmpty() ? FriendlyVerbName(Verb) : DisplayName;
 		const FSlateFontInfo Font = FCoreStyle::GetDefaultFontStyle("Regular", 8);
 		const TSharedRef<FSlateFontMeasure> FM =
 			FSlateApplication::Get().GetRenderer()->GetFontMeasureService();
@@ -601,7 +604,7 @@ int32 SJamGraphNode::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGe
 		}
 		else
 		{
-			const FString CenterName = FriendlyVerbName(Verb);
+			const FString CenterName = DisplayName.IsEmpty() ? FriendlyVerbName(Verb) : DisplayName;
 			const FSlateFontInfo CenterFont = FCoreStyle::GetDefaultFontStyle("Bold", 8);
 			const TSharedRef<FSlateFontMeasure> FM =
 				FSlateApplication::Get().GetRenderer()->GetFontMeasureService();

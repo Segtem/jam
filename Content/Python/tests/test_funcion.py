@@ -108,6 +108,7 @@ class FirmaTests(unittest.TestCase):
         tool = herramientas({"doble": c})[-1]
 
         self.assertEqual(tool["verbo"], "fn:doble")
+        self.assertEqual(tool["label"], "doble")
         self.assertEqual(tool["inputs"], [
             {"name": "arriba", "tipo": "P"}, {"name": "abajo", "tipo": "M"}])
         self.assertEqual(tool["outputs"], [
@@ -161,14 +162,70 @@ class ColapsarTests(unittest.TestCase):
         from jam import api, funcion, preset
         g = self._grafo()
         with mock.patch.object(funcion, "biblioteca", return_value={}), \
+             mock.patch.object(funcion, "nuevo_id", return_value="f_prueba"), \
              mock.patch.object(preset, "guardar", return_value="/tmp/preparar.json"):
             r = json.loads(api.collapse_function("preparar", g.to_json(), '["t1", "n1"]'))
 
         self.assertTrue(r["ok"], r["report"])
-        self.assertEqual(r["tool"]["verbo"], "fn:preparar")
+        self.assertEqual(r["tool"]["verbo"], "fn:f_prueba")
+        self.assertEqual(r["tool"]["label"], "preparar")
         self.assertEqual(r["tool"]["inputs"][0]["name"], "in")
         self.assertEqual(r["tool"]["outputs"][0]["name"], "salida")
-        self.assertEqual(r["graph"]["nodes"]["f1"]["verb"], "fn:preparar")
+        self.assertEqual(r["graph"]["nodes"]["f1"]["verb"], "fn:f_prueba")
+
+    def test_renombrar_no_es_parte_de_la_identidad_de_la_llamada(self) -> None:
+        from jam import funcion, preset
+
+        cuerpo = _cuerpo_escalar()
+        presets = [{"kind": "funcion", "funcion_id": "f_estable", "nombre": "Nombre nuevo",
+                    "graph": json.loads(cuerpo.to_json()), "scope": "local"}]
+        with mock.patch.object(preset, "listar", return_value=presets):
+            tool = funcion.herramientas()[-1]
+            biblio = funcion.biblioteca()
+
+        self.assertEqual(tool["verbo"], "fn:f_estable")
+        self.assertEqual(tool["label"], "Nombre nuevo")
+        self.assertIn("f_estable", biblio)
+
+    def test_una_funcion_legada_conserva_fn_nombre(self) -> None:
+        from jam import funcion, preset
+
+        cuerpo = _cuerpo_escalar()
+        presets = [{"kind": "funcion", "nombre": "escalar legado",
+                    "graph": json.loads(cuerpo.to_json()), "scope": "local"}]
+        with mock.patch.object(preset, "listar", return_value=presets):
+            tool = funcion.herramientas()[-1]
+
+        self.assertEqual(tool["verbo"], "fn:escalar legado")
+        self.assertEqual(tool["label"], "escalar legado")
+
+    def test_abm_crea_una_firma_editable_con_identidad_estable(self) -> None:
+        from jam import api, funcion, preset
+
+        with mock.patch.object(funcion, "listar_definiciones", return_value=[]), \
+             mock.patch.object(funcion, "nuevo_id", return_value="f_nueva"), \
+             mock.patch.object(preset, "guardar", return_value="/tmp/f_nueva.json") as guardar:
+            r = json.loads(api.function_manage("create", payload="Preparar roca"))
+
+        self.assertTrue(r["ok"], r["report"])
+        self.assertEqual(r["tool"]["verbo"], "fn:f_nueva")
+        self.assertEqual(r["tool"]["label"], "Preparar roca")
+        self.assertEqual(r["tool"]["inputs"], [{"name": "entrada", "tipo": "*"}])
+        self.assertEqual(r["tool"]["outputs"], [{"name": "salida", "tipo": "*"}])
+        self.assertEqual(guardar.call_args.args[0]["funcion_id"], "f_nueva")
+
+    def test_abm_renombra_sin_cambiar_el_verbo(self) -> None:
+        from jam import api, funcion, preset
+
+        definicion = {"funcion_id": "f_estable", "nombre": "Antes", "scope": "local",
+                      "descripcion": "", "cuerpo": _cuerpo_escalar()}
+        with mock.patch.object(funcion, "listar_definiciones", return_value=[definicion]), \
+             mock.patch.object(preset, "guardar", return_value="/tmp/f_estable.json"):
+            r = json.loads(api.function_manage("rename", "fn:f_estable", "Después"))
+
+        self.assertTrue(r["ok"], r["report"])
+        self.assertEqual(r["tool"]["verbo"], "fn:f_estable")
+        self.assertEqual(r["tool"]["label"], "Después")
 
 
 class SlateContratoTests(unittest.TestCase):
@@ -201,7 +258,29 @@ class SlateContratoTests(unittest.TestCase):
         self.assertIn('ResponseMarker(TEXT("JAMCOLLAPSE:"))', modulo)
         self.assertIn("Raw.Find(ResponseMarker, ESearchCase::CaseSensitive, ESearchDir::FromEnd)", modulo)
         self.assertIn("EKeys::G && InKeyEvent.IsControlDown()", editor)
-        self.assertIn("OnCollapseFunction.Execute(BuildJson(), SelectedJson)", editor)
+        self.assertIn("OnCollapseFunction.Execute(Nombre, BuildJson(), SelectedJson)", editor)
+
+    def test_slate_muestra_etiqueta_humana_y_tipo_en_los_pines(self) -> None:
+        modulo = (self.RAIZ / "Source/JamEditor/Private/JamEditorModule.cpp").read_text()
+        editor = (self.RAIZ / "Source/JamEditor/Private/SJamGraphEditor.cpp").read_text()
+        nodo = (self.RAIZ / "Source/JamEditor/Private/SJamGraphNode.cpp").read_text()
+
+        self.assertIn('TryGetStringField(TEXT("label"), T.Label)', modulo)
+        self.assertIn('.DisplayName(T->Label.IsEmpty() ? Verb : T->Label)', editor)
+        self.assertIn('TEXT("%s (%s)")', nodo)
+        self.assertIn('DisplayName.IsEmpty() ? FriendlyVerbName(Verb) : DisplayName', nodo)
+
+    def test_slate_ofrece_abm_y_guarda_el_cuerpo_por_el_borde_publico(self) -> None:
+        modulo = (self.RAIZ / "Source/JamEditor/Private/JamEditorModule.cpp").read_text()
+        editor = (self.RAIZ / "Source/JamEditor/Private/SJamGraphEditor.cpp").read_text()
+
+        self.assertIn("_a.function_manage", modulo)
+        for accion in ('TEXT("create")', 'TEXT("get")', 'TEXT("update")',
+                       'TEXT("rename")', 'TEXT("delete")'):
+            self.assertIn(accion, editor)
+        self.assertIn("GuardarFuncion", editor)
+        self.assertIn("BuildJson()", editor)
+        self.assertIn("el grafo abierto todavía usa", editor)
 
 
 class ExpansionTests(unittest.TestCase):

@@ -1,6 +1,6 @@
 # Vault-kb de Jam
 
-52 documentos en 5 carpetas. Nomenclatura
+54 documentos en 5 carpetas. Nomenclatura
 `AAAA-MM-DD-TIPO-Nombre-vX.X.md` — la explica
 [[2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0|la guía de convención]].
 La carpeta es la taxonomía: cada doc vive en una sola y su `area:` lo dice.
@@ -23,8 +23,9 @@ Este índice y las reglas los verifica `tools/vault.py`.
 
 ## Graph — el editor de nodos
 
-`01-Graph/` · 12 documentos
+`01-Graph/` · 13 documentos
 
+- [[2026-08-02-PLAN-ABM-Funciones-Graph-v1.0|ABM de funciones del Graph: identidad, firma y cuerpo]] · *en-progreso*
 - [[2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0|Roadmap: accesibilidad y velocidad del Graph]] · *propuesta*
 - [[2026-07-29-INFORME-Seleccion-Multiple-Alineacion-Nodos-v2.0|Selección múltiple y alineación de nodos Graph]] · *implementado*
 - [[2026-07-29-INFORME-Historial-Deshacer-Rehacer-v1.0|Historial del Graph: deshacer y rehacer]] · *implementado*
@@ -63,8 +64,9 @@ Este índice y las reglas los verifica `tools/vault.py`.
 
 ## Mesh y materiales
 
-`03-Mesh-y-materiales/` · 6 documentos
+`03-Mesh-y-materiales/` · 7 documentos
 
+- [[2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0|Nanite a Fracture en UE 5.8: Geometry Collection sin perder materiales]] · *implementado*
 - [[2026-07-28-INFORME-Primitivas-Tab-Mesh-v1.0|Primitivas del tab Mesh]] · *implementado*
 - [[2026-07-28-INFORME-Materiales-Avanzados-Layers-Substrate-Substance-v1.0|Investigación — materiales avanzados: Layers, Substrate, Material Functions y Substance]] · *investigacion-completa*
 - [[2026-07-27-INFORME-Oraculo-De-Forma-Malla-Referencia-v1.0|Oráculo de forma: comparar contra la malla de referencia]] · *implementado*
