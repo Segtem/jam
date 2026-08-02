@@ -19,7 +19,8 @@ _unreal_fake = sys.modules.setdefault("unreal", types.ModuleType("unreal"))
 if not hasattr(_unreal_fake, "TopLevelAssetPath"):
     _unreal_fake.TopLevelAssetPath = lambda package, name: (package, name)
 
-from jam.funcion import FuncionError, colapsar, expandir, firma, herramientas
+from jam.funcion import (ETIQUETAS_TIPOS_PIN, TIPOS_PIN, FuncionError, colapsar, expandir,
+                         firma, herramientas)
 from jam.graph import JamGraph, compilar
 
 
@@ -67,6 +68,15 @@ def _cuerpo_escalar() -> JamGraph:
 
 
 class FirmaTests(unittest.TestCase):
+    def test_el_selector_publica_nombres_completos_sin_cambiar_el_codigo_persistido(self) -> None:
+        for borde in herramientas({})[:2]:
+            tipo = next(p for p in borde["params"] if p["nombre"] == "type")
+            self.assertEqual(tipo["opciones"], TIPOS_PIN)
+            self.assertEqual(tipo["etiquetas_opciones"],
+                             [ETIQUETAS_TIPOS_PIN[codigo] for codigo in TIPOS_PIN])
+        self.assertEqual(ETIQUETAS_TIPOS_PIN["N"], "Número (N)")
+        self.assertEqual(ETIQUETAS_TIPOS_PIN["M"], "Malla dinámica (M)")
+
     def test_la_firma_sale_en_el_orden_en_que_se_ven_los_pines(self) -> None:
         # Los ids van A PROPÓSITO al revés que la posición: si el orden saliera del id (o del orden
         # de inserción), este test pasaría igual y no estaría comprobando nada.
@@ -269,6 +279,28 @@ class SlateContratoTests(unittest.TestCase):
         self.assertIn('.DisplayName(T->Label.IsEmpty() ? Verb : T->Label)', editor)
         self.assertIn('TEXT("%s (%s)")', nodo)
         self.assertIn('DisplayName.IsEmpty() ? FriendlyVerbName(Verb) : DisplayName', nodo)
+
+    def test_slate_separa_etiqueta_visible_de_valor_persistido_en_las_opciones(self) -> None:
+        modulo = (self.RAIZ / "Source/JamEditor/Private/JamEditorModule.cpp").read_text()
+        editor = (self.RAIZ / "Source/JamEditor/Private/SJamGraphEditor.cpp").read_text()
+        nodo = (self.RAIZ / "Source/JamEditor/Private/SJamGraphNode.cpp").read_text()
+
+        self.assertIn('TryGetArrayField(TEXT("etiquetas_opciones"), Labels)', modulo)
+        self.assertIn("P.OptionLabels", editor)
+        self.assertIn("OptionLabels.IsValidIndex(Index) ? OptionLabels[Index] : O", nodo)
+        # Elegir y serializar conserva O/Choice (N, M, A…); la etiqueta nunca entra al JSON.
+        self.assertIn("*Choice = O", nodo)
+        self.assertIn("ParamGetters.Add(Key, [Choice]() { return *Choice; })", nodo)
+
+    def test_cerrar_graph_no_deja_un_popup_o_captor_huerfano(self) -> None:
+        modulo = (self.RAIZ / "Source/JamEditor/Private/JamEditorModule.cpp").read_text()
+        cierre = modulo.split("void FJamEditorModule::OnGraphClosed", 1)[1].split("\n}", 1)[0]
+
+        self.assertIn("DismissAllMenus()", cierre)
+        self.assertIn("ReleaseAllPointerCapture()", cierre)
+        # Hay que cerrar el popup con su widget todavía vivo; resetear primero reproduce el bloqueo.
+        self.assertLess(cierre.index("DismissAllMenus()"), cierre.index("GraphWidget.Reset()"))
+        self.assertLess(cierre.index("ReleaseAllPointerCapture()"), cierre.index("GraphWidget.Reset()"))
 
     def test_slate_ofrece_abm_y_guarda_el_cuerpo_por_el_borde_publico(self) -> None:
         modulo = (self.RAIZ / "Source/JamEditor/Private/JamEditorModule.cpp").read_text()

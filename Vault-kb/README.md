@@ -1,6 +1,6 @@
 # Vault-kb de Jam
 
-54 documentos en 5 carpetas. Nomenclatura
+55 documentos en 5 carpetas. Nomenclatura
 `AAAA-MM-DD-TIPO-Nombre-vX.X.md` — la explica
 [[2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0|la guía de convención]].
 La carpeta es la taxonomía: cada doc vive en una sola y su `area:` lo dice.
@@ -23,8 +23,9 @@ Este índice y las reglas los verifica `tools/vault.py`.
 
 ## Graph — el editor de nodos
 
-`01-Graph/` · 13 documentos
+`01-Graph/` · 14 documentos
 
+- [[2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0|Verbos Math: números, vectores y matrices]] · *propuesta*
 - [[2026-08-02-PLAN-ABM-Funciones-Graph-v1.0|ABM de funciones del Graph: identidad, firma y cuerpo]] · *en-progreso*
 - [[2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0|Roadmap: accesibilidad y velocidad del Graph]] · *propuesta*
 - [[2026-07-29-INFORME-Seleccion-Multiple-Alineacion-Nodos-v2.0|Selección múltiple y alineación de nodos Graph]] · *implementado*

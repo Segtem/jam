@@ -25,6 +25,12 @@ nombre, ABM Nueva/Editar/Guardar/Renombrar/Eliminar, nombre obligatorio al colap
 `nombre (Tipo)`. También se corrigió el flujo Nanite→Fracture para UE 5.8: Dataflow v2 conserva
 materiales y la Geometry Collection hereda Nanite.
 
+El selector de tipos de la firma ya separa protocolo y presentación: los presets conservan `N`,
+`M`, `A[]`, etc., mientras Slate recibe etiquetas como `Número (N)` y `Malla dinámica (M)`. El cambio
+compiló en 5.8.1; queda pendiente el gesto visual en el editor abierto. El diseño de los futuros
+verbos escalares, vectoriales y matriciales quedó en
+[[2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0|el plan de Math]].
+
 **Leé primero** `Vault-kb/00-Proceso/2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0.md`: son
 diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 
@@ -32,8 +38,8 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 
 | Qué | Comando | Resultado |
 |---|---|---|
-| Cerebro de Jam | `cd Content/Python/tests && PYTHONPATH=$PWD/.. python -m unittest discover -s . -p "test_*.py" -q` | **522 OK**, 0.3 s |
-| Vault (modo sombra) | `python tools/vault.py` | **54 docs · las dos implementaciones coinciden** |
+| Cerebro de Jam | `cd Content/Python/tests && PYTHONPATH=$PWD/.. python -m unittest discover -s . -p "test_*.py" -q` | **525 OK**, 0.3 s |
+| Vault (modo sombra) | `python tools/vault.py` | **55 docs · las dos implementaciones coinciden** |
 | Motor | sonda headless + gesto real `+ Nueva función` | **ABM completo + identidad estable + modal visible + Compile · TODO VERDE** |
 | Nanite→Fracture | `tools/experiments/verifica_nanite_fracture_58.py` en editor GUI | **2/2 materiales distintos + GC Nanite · TODO VERDE; cierre 139** |
 | UE 5.8.1 | APIs + ejemplos + material/UV + PCG real | **98 símbolos + 75 métodos · 8/8 ejemplos · material/UV verde · 287 HISM** |
@@ -46,6 +52,12 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 El campo `verde_editor` apunta al checkpoint `c9ac5f9`, compilado y verificado en UE 5.8.1 con las
 sondas y el gesto real **+ Nueva función**. `VIVO` distingue la suite de `init_unreal.py` y `jam/`,
 por lo que cambiar sólo tests ya no invalida falsamente esa evidencia.
+
+El selector con nombres completos es posterior a ese checkpoint. Su C++ compiló contra 5.8.1, pero
+`verde_editor` no se adelanta hasta que alguien despliegue la lista y confirme lo que realmente pinta.
+En el primer gesto, cerrar Graph dejó el editor sin clics por un popup/captor huérfano; el cierre ahora
+descarta menús y libera toda captura antes de destruir el canvas. Ese segundo C++ también requiere
+recompilar y repetir el gesto.
 
 **Un rojo histórico y deliberado:** el relevo anterior midió 31 mutantes de código vivos de 242. El
 denominador cambió desde entonces y ese número no se revalidó en esta revisión. **No declares
@@ -61,6 +73,7 @@ Lo que **nadie ejerció con las manos** de este turno:
 
 | Cosa | Quién puede verificarla | Estado |
 |---|---|---|
+| Selector de tipos completo y cierre sin captura huérfana | Brian | ⏳ primer cierre bloqueó clics; fix recompilado, falta reiniciar/repetir |
 | Resto del ABM, `Ctrl+G` + dibujo/cableado de pines múltiples | Brian | ⏳ `+ Nueva` confirmado; faltan editar/renombrar/borrar/cablear |
 | Aspecto de una GC Nanite fracturada y rotura en PIE | Brian | ⏳ metadata/materiales verdes; falta viewport y simulación |
 | El paquete de estudio subido a NotebookLM | Brian | ⏳ generado, sin abrir |
@@ -74,7 +87,8 @@ Lo que **nadie ejerció con las manos** de este turno:
 1. Abrí Jam ▸ Graph y armá una cadena de cuatro nodos Mesh.
 2. Seleccioná los dos del medio y apretá `Ctrl+G`: debe pedir un nombre antes de reemplazarlos.
 3. Abrí **Funciones**: la ficha debe mostrar ese nombre, no `Fn: Función XXXXX-XXXX`.
-4. Tocá **Editar**, renombrá los nodos de borde y elegí sus tipos; guardá. La instancia debe mostrar
+4. Tocá **Editar**, renombrá los nodos de borde y elegí sus tipos; el selector debe decir
+   `Número (N)`, `Malla dinámica (M)`, etc., no códigos sueltos. Guardá. La instancia debe mostrar
    `nombre (Tipo)` en entradas y salidas.
 5. Tocá **Nombre** y renombrá la función: las llamadas existentes deben conservarse.
 6. Agregá una segunda instancia en serie y tendé sus cables por los pines nombrados.
@@ -109,17 +123,21 @@ UE 5.8.1. La primera matriz automatizable está en
 [[2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0|la certificación 5.8.1]]; quedan las fronteras
 manuales y GUI que enumera el informe.
 
-**2. Después de certificar la base, Fase 7 del Graph — bypass (`D`) y comentarios (`C`).**
+**2. Implementar la Fase 1 de
+[[2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0|Math]]:** registro común de valores y
+nodos escalares Sumar/Restar/Multiplicar/Dividir antes de vectores y matrices.
 
-**3. Reemplazar de verdad los verificadores escritos a mano** de Jam (`vault.py`, `relevo.py`). Están
+**3. Después de certificar la base, Fase 7 del Graph — bypass (`D`) y comentarios (`C`).**
+
+**4. Reemplazar de verdad los verificadores escritos a mano** de Jam (`vault.py`, `relevo.py`). Están
 re-expresados como medidas y verificados por diferencial, y **siguen en uso los originales**. El
 reemplazo va cuando el diferencial lleve tiempo en verde, no el mismo día en que se escribió.
 
-**4. Re-expresar los otros cinco oráculos vivos del plugin** como medidas: `scatter`, `pared`,
+**5. Re-expresar los otros cinco oráculos vivos del plugin** como medidas: `scatter`, `pared`,
 `physics`, `reemplazo`, `espacio`. Ya están `placement` y `snap`. Cada uno con su sensor y su
 diferencial, siguiendo el patrón de `tools/emitir_diferencial.py`.
 
-⚠️ **La trampa del paso 4**: `jam/oracle_*.py` los llama el **editor**, así que el vendor tendría que
+⚠️ **La trampa del paso 5**: `jam/oracle_*.py` los llama el **editor**, así que el vendor tendría que
 estar en el path del intérprete embebido de UE — y hoy `vendor/oracle` es *hermano* de
 `Content/Python/`, no está adentro. Hay que decidir si se mueve bajo `Content/Python/` o se inserta el
 path, que es el olor de `bridge.py`. **Yo movería.**
@@ -175,3 +193,6 @@ Lo durable está en `AGENTS.md`, en el vault y en el corpus de `oracle`. Acá el
 - **Predeclarar un `TSharedPtr` no vuelve segura una captura por valor dentro de su `SAssignNew`.** La
   lambda se construye antes de la asignación y congela `nullptr`; en un modal, capturar el local por
   referencia es seguro porque la función no retorna mientras la ventana vive.
+- **Una etiqueta de opción no es su valor.** Los tipos completos pertenecen a presentación; el código
+  corto pertenece al protocolo. Guardar `Número` en lugar de `N` haría legible la UI rompiendo los
+  presets, y mostrar sólo `N` preservaría los datos a costa de la persona. Slate necesita ambos.

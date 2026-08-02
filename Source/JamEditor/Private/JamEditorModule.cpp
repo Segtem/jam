@@ -196,6 +196,15 @@ TSharedRef<SDockTab> FJamEditorModule::SpawnGraphTab(const FSpawnTabArgs& /*Args
 
 void FJamEditorModule::OnGraphClosed(TSharedRef<SDockTab> /*Tab*/)
 {
+	// Un combo/menu o un arrastre puede seguir siendo el captor global de Slate aunque su tab ya se
+	// haya ido. Entonces el editor queda visible pero no recibe clics: los eventos siguen dirigidos a
+	// un widget huérfano. Cerrarlos MIENTRAS el canvas todavía vive permite que Slate desarme bien su
+	// popup y después libera cualquier captura residual del Graph.
+	if (FSlateApplication::IsInitialized())
+	{
+		FSlateApplication::Get().DismissAllMenus();
+		FSlateApplication::Get().ReleaseAllPointerCapture();
+	}
 	if (const TSharedPtr<SJamGraphEditor> Canvas = GraphWidget.Pin())
 	{
 		GraphEstadoGuardado = Canvas->EstadoDelCanvas();
@@ -468,6 +477,14 @@ void FJamEditorModule::LoadSpec(bool bIncludeFlow)
 						for (const TSharedPtr<FJsonValue>& OV : *Opts)
 						{
 							P.Options.Add(MakeShared<FString>(OV->AsString()));
+						}
+					}
+					const TArray<TSharedPtr<FJsonValue>>* Labels = nullptr;
+					if (PO->TryGetArrayField(TEXT("etiquetas_opciones"), Labels) && Labels)
+					{
+						for (const TSharedPtr<FJsonValue>& LV : *Labels)
+						{
+							P.OptionLabels.Add(MakeShared<FString>(LV->AsString()));
 						}
 					}
 					T.Params.Add(P);
@@ -1412,6 +1429,7 @@ void FJamEditorModule::RebuildParams()
 	ParamIsInt.Empty();
 	ParamValues.Empty();
 	ParamOptions.Empty();
+	ParamOptionLabels.Empty();
 	ParamChoice.Empty();
 	if (!ParamsBox.IsValid())
 	{
@@ -1493,6 +1511,7 @@ void FJamEditorModule::RebuildParams()
 			// Param con dominio cerrado (las anclas): lista, no texto libre — no hay que acordarse
 			// los nombres ni se puede escribir mal uno.
 			ParamOptions.Add(Key, P.Options);
+			ParamOptionLabels.Add(Key, P.OptionLabels);
 			ParamChoice.Add(Key, P.Default);
 			TSharedPtr<STextBlock> Etiqueta;
 			Control = SNew(SComboButton)
@@ -1501,11 +1520,14 @@ void FJamEditorModule::RebuildParams()
 					FMenuBuilder MB(true, nullptr);
 					if (const TArray<TSharedPtr<FString>>* Opts = ParamOptions.Find(Key))
 					{
-						for (const TSharedPtr<FString>& O : *Opts)
+						for (int32 Index = 0; Index < Opts->Num(); ++Index)
 						{
-							const FString V = *O;
+							const FString V = *(*Opts)[Index];
+							const TArray<TSharedPtr<FString>>* Labels = ParamOptionLabels.Find(Key);
+							const FString Label = Labels && Labels->IsValidIndex(Index)
+								? *(*Labels)[Index] : V;
 							MB.AddMenuEntry(
-								FText::FromString(V.IsEmpty() ? TEXT("(ninguna)") : V),
+								FText::FromString(Label.IsEmpty() ? TEXT("(ninguna)") : Label),
 								FText::GetEmpty(), FSlateIcon(),
 								FUIAction(FExecuteAction::CreateLambda([this, Key, V]()
 								{
@@ -1521,6 +1543,21 @@ void FJamEditorModule::RebuildParams()
 					SNew(STextBlock).Text_Lambda([this, Key]()
 					{
 						const FString* V = ParamChoice.Find(Key);
+						if (V)
+						{
+							const TArray<TSharedPtr<FString>>* Opts = ParamOptions.Find(Key);
+							const TArray<TSharedPtr<FString>>* Labels = ParamOptionLabels.Find(Key);
+							if (Opts && Labels)
+							{
+								for (int32 Index = 0; Index < Opts->Num(); ++Index)
+								{
+									if (*(*Opts)[Index] == *V && Labels->IsValidIndex(Index))
+									{
+										return FText::FromString(*(*Labels)[Index]);
+									}
+								}
+							}
+						}
 						return FText::FromString((V && !V->IsEmpty()) ? *V : TEXT("(ninguna)"));
 					})
 				];

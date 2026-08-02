@@ -32,6 +32,25 @@ PIN_IN, PIN_OUT = "in", "out"
 # El mismo vocabulario corto que usan los cables del Graph. El borde de una función no acepta un
 # texto arbitrario: un typo acá convertiría la firma en un tipo que ningún nodo puede conectar.
 TIPOS_PIN = ["*", "A", "A[]", "AF", "B", "F", "H", "M", "MT", "N", "N[]", "P", "S", "T"]
+# El código corto es protocolo y queda en presets/cables. La UI recibe una etiqueta aparte: cambiar
+# `N` por `Número` en `opciones` rompería funciones ya guardadas y volvería ambiguo el intercambio
+# con Slate. El código entre paréntesis conserva además el vocabulario de tooltips y diagnósticos.
+ETIQUETAS_TIPOS_PIN = {
+    "*": "Dato (cualquiera)",
+    "A": "Asset (A)",
+    "A[]": "Conjunto de assets (A[])",
+    "AF": "Asset o frame (AF)",
+    "B": "Booleano (B)",
+    "F": "Flujo de frames (F)",
+    "H": "Instancias HISM (H)",
+    "M": "Malla dinámica (M)",
+    "MT": "Material (MT)",
+    "N": "Número (N)",
+    "N[]": "Serie numérica (N[])",
+    "P": "Flujo de puntos (P)",
+    "S": "Curva (S)",
+    "T": "Texto (T)",
+}
 
 
 class FuncionError(ValueError):
@@ -95,7 +114,8 @@ def herramientas(cuerpos: dict[str, JamGraph] | None = None) -> list[dict]:
              {"nombre": "name", "default": "entrada", "tipo": "str", "data_type": "T",
               "opciones": []},
              {"nombre": "type", "default": "*", "tipo": "str", "data_type": "T",
-              "opciones": TIPOS_PIN},
+              "opciones": TIPOS_PIN,
+              "etiquetas_opciones": [ETIQUETAS_TIPOS_PIN[t] for t in TIPOS_PIN]},
          ]},
         {"verbo": "output", "cat": "Funciones", "grupo": "Firma",
          "doc": "salida nombrada del cuerpo de una función", "source": False, "aridad": 1,
@@ -104,7 +124,8 @@ def herramientas(cuerpos: dict[str, JamGraph] | None = None) -> list[dict]:
              {"nombre": "name", "default": "salida", "tipo": "str", "data_type": "T",
               "opciones": []},
              {"nombre": "type", "default": "*", "tipo": "str", "data_type": "T",
-              "opciones": TIPOS_PIN},
+              "opciones": TIPOS_PIN,
+              "etiquetas_opciones": [ETIQUETAS_TIPOS_PIN[t] for t in TIPOS_PIN]},
          ]},
     ]
     if cuerpos is None:

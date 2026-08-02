@@ -289,16 +289,19 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 			// DROPDOWN (Value List de GH): dominio cerrado → se elige, no se escribe (ni se escribe mal).
 			TSharedRef<FString> Choice = MakeShared<FString>(P.Value);
 			const TArray<FString> Opts = P.Options;
+			const TArray<FString> OptionLabels = P.OptionLabels;
 			Input = SNew(SComboButton)
 				.ComboButtonStyle(&FAppStyle::Get().GetWidgetStyle<FComboButtonStyle>("SimpleComboButton"))
 				// `this` también en la lambda de AFUERA: la de adentro avisa del cambio, y una lambda
 				// anidada no puede capturar lo que la que la contiene no capturó.
-				.OnGetMenuContent_Lambda([this, Choice, Opts]()
+				.OnGetMenuContent_Lambda([this, Choice, Opts, OptionLabels]()
 				{
 					FMenuBuilder MB(true, nullptr);
-					for (const FString& O : Opts)
+					for (int32 Index = 0; Index < Opts.Num(); ++Index)
 					{
-						MB.AddMenuEntry(FText::FromString(O.IsEmpty() ? TEXT("(—)") : O),
+						const FString O = Opts[Index];
+						const FString Label = OptionLabels.IsValidIndex(Index) ? OptionLabels[Index] : O;
+						MB.AddMenuEntry(FText::FromString(Label.IsEmpty() ? TEXT("(—)") : Label),
 							FText::GetEmpty(), FSlateIcon(),
 							FUIAction(FExecuteAction::CreateLambda([this, Choice, O]()
 							{
@@ -313,7 +316,12 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 					SNew(STextBlock)
 					.ColorAndOpacity(JamInk)
 					.Font(FCoreStyle::GetDefaultFontStyle("Regular", 7))
-					.Text_Lambda([Choice]() { return FText::FromString(Choice->IsEmpty() ? TEXT("(—)") : *Choice); })
+					.Text_Lambda([Choice, Opts, OptionLabels]()
+					{
+						const int32 Index = Opts.Find(*Choice);
+						const FString Label = OptionLabels.IsValidIndex(Index) ? OptionLabels[Index] : *Choice;
+						return FText::FromString(Label.IsEmpty() ? TEXT("(—)") : Label);
+					})
 				];
 			ParamGetters.Add(Key, [Choice]() { return *Choice; });
 			ParamSetters.Add(Key, [Choice](const FString& V) { *Choice = V; });

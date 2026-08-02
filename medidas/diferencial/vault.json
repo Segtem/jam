@@ -266,6 +266,19 @@
       "updated": "2026-08-02"
      },
      {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
       "area": "02-TreeGen",
       "carpeta": "02-TreeGen",
       "carpeta_conocida": true,
@@ -1022,6 +1035,16 @@
      {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
       "origen": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-25-PLAN-Tipado-Cardinalidad-Conexiones-Graph-v1.0",
+      "origen": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "origen": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "resuelve": true
      },
      {
@@ -2040,6 +2063,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
       "destino": "2026-08-02-PLAN-ABM-Funciones-Graph-v1.0",
       "origen": "README",
       "resuelve": true
@@ -2534,6 +2562,19 @@
       "fecha_en_nombre": "2026-08-02",
       "frontmatter_completo": true,
       "nombre": "2026-08-02-PLAN-ABM-Funciones-Graph-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "nombre_es_ascii": true,
       "sigue_convencion": true,
       "tipo_declarado": "PLAN",
@@ -3293,6 +3334,16 @@
       "resuelve": true
      },
      {
+      "destino": "2026-07-25-PLAN-Tipado-Cardinalidad-Conexiones-Graph-v1.0",
+      "origen": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "origen": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "resuelve": false
+     },
+     {
       "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
       "origen": "archivo-sin-convencion",
       "resuelve": true
@@ -4324,6 +4375,11 @@
      },
      {
       "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -4842,6 +4898,19 @@
       "updated": "2026-08-02"
      },
      {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
       "area": "02-TreeGen",
       "carpeta": "02-TreeGen",
       "carpeta_conocida": true,
@@ -5598,6 +5667,16 @@
      {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
       "origen": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-25-PLAN-Tipado-Cardinalidad-Conexiones-Graph-v1.0",
+      "origen": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "origen": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "resuelve": true
      },
      {
@@ -6612,6 +6691,11 @@
      },
      {
       "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -7130,6 +7214,19 @@
       "updated": "2026-08-02"
      },
      {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
       "area": "02-TreeGen",
       "carpeta": "02-TreeGen",
       "carpeta_conocida": true,
@@ -7886,6 +7983,16 @@
      {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
       "origen": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-25-PLAN-Tipado-Cardinalidad-Conexiones-Graph-v1.0",
+      "origen": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "origen": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "resuelve": true
      },
      {
@@ -8900,6 +9007,11 @@
      },
      {
       "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -9418,6 +9530,19 @@
       "updated": "2026-08-02"
      },
      {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
       "area": "02-TreeGen",
       "carpeta": "02-TreeGen",
       "carpeta_conocida": true,
@@ -10174,6 +10299,16 @@
      {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
       "origen": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-25-PLAN-Tipado-Cardinalidad-Conexiones-Graph-v1.0",
+      "origen": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "origen": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "resuelve": true
      },
      {
@@ -11192,6 +11327,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
       "destino": "2026-08-02-PLAN-ABM-Funciones-Graph-v1.0",
       "origen": "README",
       "resuelve": true
@@ -11699,6 +11839,19 @@
       "fecha_en_nombre": "2026-08-02",
       "frontmatter_completo": true,
       "nombre": "2026-08-02-PLAN-ABM-Funciones-Graph-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "nombre_es_ascii": true,
       "sigue_convencion": true,
       "tipo_declarado": "PLAN",
@@ -12470,6 +12623,16 @@
       "resuelve": true
      },
      {
+      "destino": "2026-07-25-PLAN-Tipado-Cardinalidad-Conexiones-Graph-v1.0",
+      "origen": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "origen": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-26-INFORME-Graph-Tab-Mesh-Verbos-Malla-v1.0",
       "origen": "2026-07-26-GUIA-Ejemplo-Graph-Pino-Procedural-v1.0",
       "resuelve": true
@@ -13485,6 +13648,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
       "destino": "2026-08-02-PLAN-ABM-Funciones-Graph-v1.0",
       "origen": "README",
       "resuelve": true
@@ -13992,6 +14160,19 @@
       "fecha_en_nombre": "2026-08-02",
       "frontmatter_completo": true,
       "nombre": "2026-08-02-PLAN-ABM-Funciones-Graph-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "nombre_es_ascii": true,
       "sigue_convencion": true,
       "tipo_declarado": "PLAN",
@@ -14758,6 +14939,16 @@
       "resuelve": true
      },
      {
+      "destino": "2026-07-25-PLAN-Tipado-Cardinalidad-Conexiones-Graph-v1.0",
+      "origen": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "origen": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "resuelve": false
+     },
+     {
       "destino": "2026-07-26-INFORME-Graph-Tab-Mesh-Verbos-Malla-v1.0",
       "origen": "2026-07-26-GUIA-Ejemplo-Graph-Pino-Procedural-v1.0",
       "resuelve": true
@@ -15773,6 +15964,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
       "destino": "2026-08-02-PLAN-ABM-Funciones-Graph-v1.0",
       "origen": "README",
       "resuelve": true
@@ -16280,6 +16476,19 @@
       "fecha_en_nombre": "2026-08-02",
       "frontmatter_completo": true,
       "nombre": "2026-08-02-PLAN-ABM-Funciones-Graph-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "nombre_es_ascii": true,
       "sigue_convencion": true,
       "tipo_declarado": "PLAN",
@@ -17059,6 +17268,16 @@
       "resuelve": true
      },
      {
+      "destino": "2026-07-25-PLAN-Tipado-Cardinalidad-Conexiones-Graph-v1.0",
+      "origen": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "origen": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-26-INFORME-Graph-Tab-Mesh-Verbos-Malla-v1.0",
       "origen": "2026-07-26-GUIA-Ejemplo-Graph-Pino-Procedural-v1.0",
       "resuelve": true
@@ -18094,6 +18313,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
       "destino": "2026-08-02-PLAN-ABM-Funciones-Graph-v1.0",
       "origen": "README",
       "resuelve": true
@@ -18588,6 +18812,19 @@
       "fecha_en_nombre": "2026-08-02",
       "frontmatter_completo": true,
       "nombre": "2026-08-02-PLAN-ABM-Funciones-Graph-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "nombre_es_ascii": true,
       "sigue_convencion": true,
       "tipo_declarado": "PLAN",
@@ -19347,6 +19584,16 @@
       "resuelve": true
      },
      {
+      "destino": "2026-07-25-PLAN-Tipado-Cardinalidad-Conexiones-Graph-v1.0",
+      "origen": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "origen": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-26-INFORME-Graph-Tab-Mesh-Verbos-Malla-v1.0",
       "origen": "2026-07-26-GUIA-Ejemplo-Graph-Pino-Procedural-v1.0",
       "resuelve": true
@@ -20378,6 +20625,11 @@
      },
      {
       "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -20896,6 +21148,19 @@
       "updated": "2026-08-02"
      },
      {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
       "area": "02-TreeGen",
       "carpeta": "02-TreeGen",
       "carpeta_conocida": true,
@@ -21665,6 +21930,16 @@
      {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
       "origen": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-25-PLAN-Tipado-Cardinalidad-Conexiones-Graph-v1.0",
+      "origen": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "origen": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "resuelve": true
      },
      {
@@ -22699,6 +22974,11 @@
      },
      {
       "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -23217,6 +23497,19 @@
       "updated": "2026-08-02"
      },
      {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
       "area": "02-TreeGen",
       "carpeta": "02-TreeGen",
       "carpeta_conocida": true,
@@ -23973,6 +24266,16 @@
      {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
       "origen": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-25-PLAN-Tipado-Cardinalidad-Conexiones-Graph-v1.0",
+      "origen": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-INFORME-Funciones-Graph-Firma-v1.0",
+      "origen": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "resuelve": true
      },
      {
@@ -24991,6 +25294,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
       "destino": "2026-08-02-PLAN-ABM-Funciones-Graph-v1.0",
       "origen": "README",
       "resuelve": true
@@ -25276,7 +25584,7 @@
    "catalogo": "99372ef74c544a44c24bbbe91d0dd050320a7a0e37d88ea94e6cf2d0de34f79c",
    "configuracion": "407a21668fb6d1cc90b20875fa7e2a1044832d4f2e47f759f46e63edcb27e073",
    "emisor": "197be60d28e63e4f20f9e663ea9910ae265daf1b64580a5f5e8281be5c9d0307",
-   "referencia": "f08b09aa5ec5fd8d5821ac3494b2b5e6e67cc6a39c585417034a2dd9d2f8810b"
+   "referencia": "51600398ce0cc18dcf2564c66d66597589449a0da5abc93e002cf32884bd6352"
   },
   "raiz_fuentes": ".."
  },

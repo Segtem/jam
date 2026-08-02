@@ -16,6 +16,7 @@ struct FJamNodeParam
 	FString Value;
 	FString Type;             // "bool" | "int" | "float" | "str" (del spec)
 	TArray<FString> Options;  // dominio cerrado (enum) → dropdown en vez de texto libre
+	TArray<FString> OptionLabels; // presentación humana; Options conserva el valor serializado
 	FString DataType;         // tipo del cable esperado: N/N[]/T/B/A/A[]/AF/H/S/F/P/M
 	FLinearColor PinColor = FLinearColor(0.28f, 0.30f, 0.34f, 1.0f);
 	/** Nombre del PIN, cuando no es el de la etiqueta. La fila `asset` de un verbo que recibe un
@@ -28,9 +29,10 @@ struct FJamNodeParam
 	FJamNodeParam() = default;
 	FJamNodeParam(const FString& InName, const FString& InValue,
 		const FString& InType = FString(), const TArray<FString>& InOptions = TArray<FString>(),
+		const TArray<FString>& InOptionLabels = TArray<FString>(),
 		const FString& InDataType = FString(),
 		const FLinearColor& InPinColor = FLinearColor(0.28f, 0.30f, 0.34f, 1.0f))
-		: Name(InName), Value(InValue), Type(InType), Options(InOptions),
+		: Name(InName), Value(InValue), Type(InType), Options(InOptions), OptionLabels(InOptionLabels),
 		  DataType(InDataType), PinColor(InPinColor) {}
 };
 

@@ -1473,7 +1473,7 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At,
 	if (T->bAssetRow)
 	{
 		FJamNodeParam Fila(TEXT("asset"), FString(), TEXT("str"), TArray<FString>(),
-			TEXT("A"), DataColor(TEXT("A")));
+			TArray<FString>(), TEXT("A"), DataColor(TEXT("A")));
 		// Cuando el asset ES la entrada principal, esta fila no es un parámetro aparte: es LA
 		// entrada. Su pin se llama «in», así el cable de un grafo guardado ancla acá y no en un nub
 		// del header que ya no se dibuja.
@@ -1507,12 +1507,18 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At,
 		}
 		// Tipo + opciones del spec → el nodo pinta el widget correcto (toggle/dropdown/texto).
 		TArray<FString> Opts;
+		TArray<FString> OptionLabels;
 		for (const TSharedPtr<FString>& O : P.Options)
 		{
 			if (O.IsValid()) { Opts.Add(*O); }
 		}
+		for (const TSharedPtr<FString>& L : P.OptionLabels)
+		{
+			if (L.IsValid()) { OptionLabels.Add(*L); }
+		}
 		const FString DataType = P.DataType.IsEmpty() ? JamParamDataType(P.Name, P.Type) : P.DataType;
-		Params.Add(FJamNodeParam(P.Name, Value, P.Type, Opts, DataType, DataColor(DataType)));
+		Params.Add(FJamNodeParam(P.Name, Value, P.Type, Opts, OptionLabels,
+			DataType, DataColor(DataType)));
 		Node.PinNames.Add(P.Name);
 	}
 

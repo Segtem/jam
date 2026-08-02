@@ -160,3 +160,15 @@ contrato lee el `.cpp` y se probó rojo contra las capturas por valor antes de r
 Después de recompilar 5.8.1, Brian repitió el camino real y creó **Sumar dos números**. El log mostró
 el preset estable, `JAMFUNCTION {"ok": true}` y el cuerpo `entrada → salida`, sin otra aserción ni
 señal. Queda pendiente completar los demás gestos del ABM.
+
+## Incidente al cerrar Graph con un selector abierto
+
+Durante la verificación de los nombres completos, cerrar el tab Graph dejó el editor visible pero sin
+aceptar clics. `OnGraphClosed` guardaba el canvas y soltaba sus referencias sin cerrar antes los menús
+emergentes ni liberar una posible captura global de puntero. Un popup/captor cuyo widget dueño ya no
+existe puede seguir recibiendo los eventos de Slate y bloquear el resto de Unreal.
+
+El cierre ahora llama `DismissAllMenus()` y `ReleaseAllPointerCapture()` mientras el canvas todavía
+vive, y sólo después guarda y resetea el tab. El contrato lee el `.cpp`, exige ambas operaciones y su
+orden; se demostró rojo retirando la liberación antes de restaurarla. Compila y queda pendiente repetir
+el gesto real con el binario nuevo.
