@@ -3,7 +3,7 @@ turno: 2026-08-01 · codex → claude-code
 saliente: codex
 entrante: claude-code
 desde: 2026-08-01
-verde_editor: ac07e36
+verde_editor: c9ac5f9
 verde_editor_fecha: 2026-08-02
 ---
 
@@ -43,9 +43,9 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 | » mutación de medidas | `python vendor/oracle/tools/mutar.py --proyecto medidas --confiar-escalares` | **163/163 mutantes muertos** |
 | » tests de oracle | `cd vendor/oracle && python -m unittest discover -s tests -t . -q` | **339 OK** |
 
-El campo `verde_editor` apunta al checkpoint `ac07e36`, compilado y verificado en UE 5.8.1 con las
-sondas de funciones y Nanite→Fracture. `VIVO` distingue la suite de `init_unreal.py` y `jam/`, por
-lo que cambiar sólo tests ya no invalida falsamente esa evidencia.
+El campo `verde_editor` apunta al checkpoint `c9ac5f9`, compilado y verificado en UE 5.8.1 con las
+sondas y el gesto real **+ Nueva función**. `VIVO` distingue la suite de `init_unreal.py` y `jam/`,
+por lo que cambiar sólo tests ya no invalida falsamente esa evidencia.
 
 **Un rojo histórico y deliberado:** el relevo anterior midió 31 mutantes de código vivos de 242. El
 denominador cambió desde entonces y ese número no se revalidó en esta revisión. **No declares
