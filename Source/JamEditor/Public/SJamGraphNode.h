@@ -13,6 +13,7 @@ class SEditableTextBox;
 struct FJamNodeParam
 {
 	FString Name;
+	FString Label;            // presentación; Name sigue siendo la identidad del pin/parámetro
 	FString Value;
 	FString Type;             // "bool" | "int" | "float" | "str" (del spec)
 	TArray<FString> Options;  // dominio cerrado (enum) → dropdown en vez de texto libre

@@ -31,6 +31,14 @@ compiló en 5.8.1; queda pendiente el gesto visual en el editor abierto. El dise
 verbos escalares, vectoriales y matriciales quedó en
 [[2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0|el plan de Math]].
 
+La primera base de ese plan ya está implementada: **Sumar, Restar, Multiplicar y Dividir** comparten
+un registro y evaluador puro entre Flow y Graph, muestran pines `nombre (Tipo)`, detectan errores de
+dominio en Compile y publican el resultado escalar al inspector. Compiló contra UE 5.8.1 y pasó 540
+tests, incluidas dos mutaciones deliberadas. La sonda embebida dio
+`JAM_MATH_GRAPH_TEST TODO VERDE` para spec + Compile + Run + Inspector=`40.000`; falta el gesto real
+de guardar/reabrir/ejecutar. El commandlet retorna 1 sólo por nueve paquetes ilegibles de BotOO que
+Asset Registry ya reporta al arrancar.
+
 **Leé primero** `Vault-kb/00-Proceso/2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0.md`: son
 diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 
@@ -38,7 +46,8 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 
 | Qué | Comando | Resultado |
 |---|---|---|
-| Cerebro de Jam | `cd Content/Python/tests && PYTHONPATH=$PWD/.. python -m unittest discover -s . -p "test_*.py" -q` | **525 OK**, 0.3 s |
+| Cerebro de Jam | `cd Content/Python/tests && PYTHONPATH=$PWD/.. python -m unittest discover -s . -p "test_*.py" -q` | **540 OK**, 0.3 s |
+| Math en UE 5.8.1 | `tools/experiments/verifica_math_graph.py` en `UnrealEditor-Cmd` | **spec + Compile + Run + Inspector=40.000 + cero rechazado · TODO VERDE** |
 | Vault (modo sombra) | `python tools/vault.py` | **55 docs · las dos implementaciones coinciden** |
 | Motor | sonda headless + gesto real `+ Nueva función` | **ABM completo + identidad estable + modal visible + Compile · TODO VERDE** |
 | Nanite→Fracture | `tools/experiments/verifica_nanite_fracture_58.py` en editor GUI | **2/2 materiales distintos + GC Nanite · TODO VERDE; cierre 139** |
@@ -74,6 +83,7 @@ Lo que **nadie ejerció con las manos** de este turno:
 | Cosa | Quién puede verificarla | Estado |
 |---|---|---|
 | Selector de tipos completo y cierre sin captura huérfana | Brian | ⏳ primer cierre bloqueó clics; fix recompilado, falta reiniciar/repetir |
+| Maths: Sumar/Restar/Multiplicar/Dividir, pines y resultado | Brian | ⏳ núcleo/tests/build verdes; falta guardar, reabrir, ejecutar e inspeccionar |
 | Resto del ABM, `Ctrl+G` + dibujo/cableado de pines múltiples | Brian | ⏳ `+ Nueva` confirmado; faltan editar/renombrar/borrar/cablear |
 | Aspecto de una GC Nanite fracturada y rotura en PIE | Brian | ⏳ metadata/materiales verdes; falta viewport y simulación |
 | El paquete de estudio subido a NotebookLM | Brian | ⏳ generado, sin abrir |
@@ -123,9 +133,10 @@ UE 5.8.1. La primera matriz automatizable está en
 [[2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0|la certificación 5.8.1]]; quedan las fronteras
 manuales y GUI que enumera el informe.
 
-**2. Implementar la Fase 1 de
-[[2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0|Math]]:** registro común de valores y
-nodos escalares Sumar/Restar/Multiplicar/Dividir antes de vectores y matrices.
+**2. Cerrar el gesto real de la primera entrega de
+[[2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0|Math]]:** guardar/reabrir una cadena con
+Sumar/Restar/Multiplicar/Dividir, ejecutar e inspeccionar el escalar. Después completar los verbos
+escalares de Fase 1; vectores y matrices esperan esa base.
 
 **3. Después de certificar la base, Fase 7 del Graph — bypass (`D`) y comentarios (`C`).**
 

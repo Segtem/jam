@@ -2006,7 +2006,7 @@ def _registrar_ops_flow() -> list[str]:
     from . import flow
     registradas = []
     for kind, meta in flow.OPS_META.items():
-        if kind in REGISTRO or kind not in flow.OPS or kind in ("number", "math", "text"):
+        if kind in REGISTRO or kind not in flow.OPS or kind in flow.VALOR_KINDS:
             continue
         aridad = flow.OPS[kind][1]
         REGISTRO[kind] = {

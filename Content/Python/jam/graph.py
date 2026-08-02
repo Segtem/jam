@@ -16,6 +16,9 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 
+from .math_core import DEFAULTS as _VALUE_DEFAULTS
+from .math_core import VALOR_KINDS
+
 
 #: pin de entrada «gordo» (orden de ejecución + el asset que viaja por el cable). Cualquier OTRO pin
 #: de entrada es un PARÁMETRO del verbo (x, anchor, count…) o el pin especial `asset`.
@@ -25,7 +28,6 @@ PIN_ASSET = "asset"
 
 #: nodos de VALOR (de `jam.flow`): no ejecutan un verbo, aportan un valor con nombre que se puede
 #: cablear a cualquier pin de parámetro. number/math = número · text = texto (anclas, nombres…).
-VALOR_KINDS = ("number", "math", "text")
 # Tipo de pin que acepta cualquier salida (el ayudante de Debug).
 COMODIN = "*"
 
@@ -95,28 +97,11 @@ class JamGraph:
     # ---- valores: los nodos number/math/text aportan una tabla de variables ----
 
     def valores(self) -> dict:
-        """{ nombre: valor } de los nodos de VALOR. Resuelve por pasadas (una expresión puede
-        referenciar otra variable). Reusa el evaluador puro de `jam.flow`."""
-        from .flow import _eval_expr, _num
-        val_nodos = [(nid, n) for nid, n in self.nodes.items() if n["verb"] in VALOR_KINDS]
-        tabla: dict = {}
-        for _ in range(len(val_nodos) + 1):
-            cambio = False
-            for nid, n in val_nodos:
-                p = n.get("params", {})
-                nombre = str(p.get("name") or nid)
-                if n["verb"] == "number":
-                    v = _num(p.get("value", 0.0))
-                elif n["verb"] == "text":
-                    v = str(p.get("value", ""))
-                else:
-                    v = _eval_expr(p.get("expr", "0"),
-                                   {k: x for k, x in tabla.items() if isinstance(x, (int, float))})
-                if v is not None and tabla.get(nombre) != v:
-                    tabla[nombre] = v
-                    cambio = True
-            if not cambio:
-                break
+        """{ nombre: valor } resuelto por el registro común de Graph y Flow."""
+        from .flow import _eval_expr
+        from .math_core import resolver
+        tabla, _por_nodo, _errores = resolver(
+            self.nodes, self.edges, campo_verbo="verb", eval_expr=_eval_expr)
         return tabla
 
     @classmethod
@@ -142,13 +127,6 @@ class JamGraph:
 
 
 # ---- Compile / Preflight puro ----
-
-_VALUE_DEFAULTS = {
-    "number": {"name": "n", "value": 0.0, "min": 0.0, "max": 100.0},
-    "math": {"name": "m", "expr": "0"},
-    "text": {"name": "t", "value": ""},
-}
-
 
 class GraphValidationError(ValueError):
     """El Graph no cumple su contrato y no debe entrar a Preview ni ejecutar tools."""
@@ -184,10 +162,9 @@ def _tipo_default(pin: str, default) -> str:
 
 
 def _tipo_salida(verb: str, registro: dict) -> str | None:
-    if verb in ("number", "math"):
-        return "N"
-    if verb == "text":
-        return "T"
+    if verb in VALOR_KINDS:
+        from .math_core import tipo_salida
+        return tipo_salida(verb)
     info = registro.get(verb)
     return info.get("out_name", "A") if info else None
 
@@ -196,8 +173,8 @@ def _tipo_entrada(verb: str, pin: str, registro: dict) -> str | None:
     if verb in VALOR_KINDS:
         if pin == PIN_IN:
             return None
-        defaults = _VALUE_DEFAULTS[verb]
-        return _tipo_default(pin, defaults[pin]) if pin in defaults else None
+        from .math_core import tipo_param
+        return tipo_param(verb, pin)
     info = registro.get(verb)
     if not info:
         return None
@@ -367,48 +344,13 @@ def compilar(g: JamGraph, *, registro: dict | None = None, resolver_asset=None,
             nombres[nombre] = nid
 
     param_sources = {(b, bp): a for a, _ap, b, bp in valid_edges if bp != PIN_IN}
-    tabla: dict[str, object] = {}
-    valores_por_nodo: dict[str, object] = {}
-    for _ in range(len(nombres) + 1):
-        cambio = False
-        for nid, nodo in g.nodes.items():
-            verb = nodo.get("verb")
-            if verb not in VALOR_KINDS:
-                continue
-            defaults = _VALUE_DEFAULTS[verb]
-            crudos = nodo.get("params", {})
-            efectivos = dict(defaults)
-            efectivos.update({k: v for k, v in crudos.items() if k in defaults})
-            listo = True
-            for pin in defaults:
-                origen = param_sources.get((nid, pin))
-                if origen is not None:
-                    if origen not in valores_por_nodo:
-                        listo = False
-                        break
-                    efectivos[pin] = valores_por_nodo[origen]
-            if not listo:
-                continue
-            nombre = str(efectivos.get("name") or nid)
-            if verb == "number":
-                valor, fallo = _resolver_parametro(efectivos.get("value"), 0.0, tabla)
-            elif verb == "text":
-                valor, fallo = _resolver_parametro(efectivos.get("value"), "", tabla)
-            else:
-                from .flow import _eval_expr
-                valor = _eval_expr(efectivos.get("expr", "0"),
-                                   {k: v for k, v in tabla.items() if isinstance(v, (int, float))})
-                fallo = None if valor is not None else f"expresión sin resolver: «{efectivos.get('expr', '0')}»"
-            if fallo is None and (valores_por_nodo.get(nid) != valor or tabla.get(nombre) != valor):
-                valores_por_nodo[nid] = valor
-                tabla[nombre] = valor
-                cambio = True
-        if not cambio:
-            break
-
-    for nid, nodo in g.nodes.items():
-        if nodo.get("verb") in VALOR_KINDS and nid not in valores_por_nodo:
-            error(nid, "valor o expresión sin resolver")
+    from .flow import _eval_expr
+    from .math_core import resolver as resolver_valores
+    tabla, valores_por_nodo, errores_valor = resolver_valores(
+        g.nodes, valid_edges, campo_verbo="verb", eval_expr=_eval_expr)
+    for nid, mensajes in errores_valor.items():
+        for mensaje in mensajes:
+            error(nid, mensaje)
 
     params_plan: dict[str, dict] = {}
     for nid, nodo in g.nodes.items():
@@ -616,6 +558,9 @@ def ejecutar_detalle(g: JamGraph, plan: GraphPlan | None = None) -> tuple[str, d
             txt = f"{nombre} = {v}" if v is not None else f"{nombre} = (sin resolver)"
             lineas.append(f"[{nid}·{verb}] {txt}")
             por_nodo[nid] = {"estado": "ok" if v is not None else "warn", "texto": txt}
+            if v is not None:
+                runtime_outputs[nid] = v
+                _ULTIMA_CORRIDA[nid] = v
             continue
 
         info = tools.REGISTRO[verb]  # el Compile ya garantizó que existe

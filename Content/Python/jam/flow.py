@@ -19,6 +19,7 @@ para cuando querés abrirlo en fuente+máscaras, como en Houdini.
 from __future__ import annotations
 
 from . import scatter_core as sc
+from .math_core import VALORES, VALOR_KINDS
 
 # registro de operaciones de stream: kind -> (fn, n_entradas)
 #   fn(entradas: list[list[Sample]], params: dict) -> list[Sample]
@@ -41,14 +42,7 @@ OPS_META: dict = {
     # Params/Maths: el «cerebro paramétrico» de Grasshopper. NO producen puntos: aportan un VALOR con
     # nombre a una tabla de variables. Cualquier param de cualquier nodo puede ser una EXPRESIÓN
     # (empieza con «=») que se evalúa contra esa tabla → un slider maneja `count`, `spacing`, etc.
-    "number": {"cat": "Params", "source": True,
-               "params": {"name": "n", "value": 0.0, "min": 0.0, "max": 100.0},
-               "doc": "variable: un número con nombre y rango (el Number Slider de Grasshopper). "
-                      "`value` se arrastra entre `min` y `max`"},
-    "math":   {"cat": "Maths", "source": True, "params": {"name": "m", "expr": "0"},
-               "doc": "expresión sobre variables: sin/cos/sqrt/min/max/clamp/lerp/remap/rand (el Expression)"},
-    "text":   {"cat": "Params", "source": True, "params": {"name": "t", "value": ""},
-               "doc": "variable de TEXTO con nombre (para anclas, nombres de asset, modos…)"},
+    **VALORES,
     "source_surface": {"cat": "Source", "source": True,
                        "params": {"area": 800.0, "count": 40, "pattern": "poisson",
                                   "spacing": 0.0, "seed": 7},
@@ -155,8 +149,7 @@ def spec_json() -> str:
 
     # nombre de la SALIDA de cada op (la «variable» que sale por el pin de salida, estilo GH):
     # P = stream de puntos · N = número · T = texto · A = actores instanciados.
-    out_names = {"number": "N", "math": "N", "text": "T", "instance": "A",
-                 "weight_material": "A"}
+    out_names = {"instance": "A", "weight_material": "A"}
 
     cats = ["Params", "Maths", "Source", "Vector", "Mask", "Weight", "Sets", "Transform", "Combine",
             "Output", "Display"]
@@ -165,14 +158,17 @@ def spec_json() -> str:
         ops_val = m.get("opciones", {})
         nodos.append({
             "verbo": kind,
+            "label": m.get("label", kind),
             "cat": m["cat"],
             "doc": m["doc"],
             "source": bool(m.get("source", False)),
             "aridad": m.get("aridad", 0 if m.get("source") else 1),
             # Todo el flow no-fuente recibe un stream de puntos por su pin gordo.
             "in_name": "" if m.get("source", False) else "P",
-            "out_name": out_names.get(kind, "P"),
-            "params": [{"nombre": k, "default": str(v), "tipo": tipo(v),
+            "out_name": m.get("out_name", out_names.get(kind, "P")),
+            "out_label": m.get("out_label", ""),
+            "params": [{"nombre": k, "label": m.get("etiquetas_params", {}).get(k, k),
+                        "default": str(v), "tipo": tipo(v),
                         "opciones": ops_val.get(k, [])} for k, v in m["params"].items()],
         })
     return json.dumps({"categorias": cats, "tools": nodos}, ensure_ascii=True)
@@ -661,8 +657,7 @@ def _coaccionar(kind: str, params: dict) -> dict:
 PIN_STREAM_IN = "in"
 PIN_OUT = "out"
 
-#: nodos de VALOR: no producen puntos, aportan un valor con nombre (number/math = número, text = texto).
-VALOR_KINDS = ("number", "math", "text")
+#: nodos de VALOR: no producen puntos; el registro compartido vive en ``jam.math_core``.
 
 
 class FlowValidationError(ValueError):
@@ -682,10 +677,9 @@ class FlowValidationError(ValueError):
 
 def _tipo_salida(kind: str) -> str:
     """Tipo público del pin `out`, compartido con el spec que consume Slate."""
-    if kind in ("number", "math"):
-        return "N"
-    if kind == "text":
-        return "T"
+    if kind in VALOR_KINDS:
+        from .math_core import tipo_salida
+        return tipo_salida(kind)
     if kind == "instance":
         return "A"
     return "P"
@@ -693,6 +687,9 @@ def _tipo_salida(kind: str) -> str:
 
 def _tipo_param(kind: str, pin: str) -> str | None:
     """Tipo de un pin de parámetro de Flow; None significa que el pin no existe."""
+    if kind in VALOR_KINDS:
+        from .math_core import tipo_param
+        return tipo_param(kind, pin)
     defaults = OPS_META.get(kind, {}).get("params", {})
     if pin not in defaults:
         return None
@@ -869,6 +866,15 @@ class Flow:
             self.topo()
         except ValueError as exc:
             error("_graph", str(exc))
+
+        # El preflight también resuelve los valores: dividir por cero o producir infinito es un
+        # error de Compile, no algo que aparece recién al correr una herramienta.
+        from .math_core import resolver
+        _tabla, _por_nodo, errores_valor = resolver(
+            self.nodos, self.enlaces, campo_verbo="kind", eval_expr=_eval_expr)
+        for nid, mensajes in errores_valor.items():
+            for mensaje in mensajes:
+                error(nid, mensaje)
         return diagnosticos
 
     def topo(self) -> list[str]:
@@ -892,27 +898,14 @@ class Flow:
         return orden
 
     def _valores(self) -> dict:
-        """Tabla de variables { nombre: valor } de los nodos `number`/`math`. Resuelve por PASADAS
-        (una expresión puede referenciar otra variable) hasta que se asienta o se agotan las pasadas."""
-        val_nodos = [(nid, n) for nid, n in self.nodos.items() if n["kind"] in VALOR_KINDS]
-        tabla: dict = {}
-        for _ in range(len(val_nodos) + 1):
-            cambio = False
-            for nid, n in val_nodos:
-                nombre = str(n["params"].get("name") or nid)
-                if n["kind"] == "number":
-                    v = _num(n["params"].get("value", 0.0))
-                elif n["kind"] == "text":
-                    v = str(n["params"].get("value", ""))
-                else:
-                    v = _eval_expr(n["params"].get("expr", "0"),
-                                   {k: x for k, x in tabla.items() if isinstance(x, (int, float))})
-                if v is not None and tabla.get(nombre) != v:
-                    tabla[nombre] = v
-                    cambio = True
-            if not cambio:
-                break
-        return tabla
+        """Tabla por nombre, resuelta por el mismo núcleo que usa Graph."""
+        return self._valores_resueltos()[0]
+
+    def _valores_resueltos(self) -> tuple[dict, dict]:
+        from .math_core import resolver
+        tabla, por_nodo, _errores = resolver(
+            self.nodos, self.enlaces, campo_verbo="kind", eval_expr=_eval_expr)
+        return tabla, por_nodo
 
     def params_efectivos(self, nid: str, variables: dict, escalar_de: dict) -> dict:
         """Los params de `nid` como los ve la operación: primero se resuelven las EXPRESIONES «=»
@@ -932,8 +925,8 @@ class Flow:
 
     def escalares_de_valor(self, variables: dict) -> dict:
         """El número que cada nodo `number`/`math` lleva por su cable a un pin de parámetro."""
-        return {nid: variables.get(str(n["params"].get("name") or nid))
-                for nid, n in self.nodos.items() if n["kind"] in VALOR_KINDS}
+        _tabla, por_nodo = self._valores_resueltos()
+        return por_nodo
 
     def evaluar(self, ops: dict | None = None) -> dict[str, list]:
         """Corre el grafo; devuelve {id: stream}. Primero arma la tabla de variables (number/math) y con
@@ -944,9 +937,8 @@ class Flow:
         if diagnosticos:
             raise FlowValidationError(diagnosticos)
         self.resultados = {}
-        variables = self._valores()
+        variables, escalar_de = self._valores_resueltos()
         # escalar de cada nodo de valor (lo que un cable suyo lleva a un pin de parámetro).
-        escalar_de = self.escalares_de_valor(variables)
         salida: dict[str, list] = {}
         for nid in self.topo():
             nodo = self.nodos[nid]

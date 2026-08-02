@@ -96,6 +96,15 @@ def _columnas_y_filas(valor):
 
     num, txt = "num", "txt"
 
+    # Los nodos Math también son datos inspeccionables. Una sola fila parece trivial, pero permite
+    # recorrer el grafo nodo por nodo y encontrar exactamente dónde cambió el número.
+    if isinstance(valor, bool):
+        return [("valor", txt)], [["true" if valor else "false"]]
+    if isinstance(valor, (int, float)):
+        return [("valor", num)], [[float(valor)]]
+    if isinstance(valor, str):
+        return [("valor", txt)], [[valor]]
+
     if isinstance(valor, curve.FrameSet):
         cols = [("idx", num), ("x", num), ("y", num), ("z", num), ("escala", num),
                 ("tx", num), ("ty", num), ("tz", num)]

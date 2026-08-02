@@ -223,6 +223,7 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 	for (const FJamNodeParam& P : InArgs._Params)
 	{
 		const FString Key = P.Name;
+		const FString Label = P.Label.IsEmpty() ? Key : P.Label;
 
 		TSharedRef<SWidget> Input = SNullWidget::NullWidget;
 		if (Verb == TEXT("number") && Key == TEXT("value"))
@@ -359,7 +360,7 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 				SNew(SHorizontalBox)
 				+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(1.0f, 0.0f, 3.0f, 0.0f)
 				[
-					SNew(STextBlock).Text(FText::FromString(Key))
+					SNew(STextBlock).Text(FText::FromString(Label))
 					.ColorAndOpacity(JamInk)
 					.Font(FCoreStyle::GetDefaultFontStyle("Regular", 7))
 				]

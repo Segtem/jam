@@ -437,6 +437,7 @@ void FJamEditorModule::LoadSpec(bool bIncludeFlow)
 		}
 		O->TryGetStringField(TEXT("in_name"), T.InName);
 		O->TryGetStringField(TEXT("out_name"), T.OutName);
+		O->TryGetStringField(TEXT("out_label"), T.OutLabel);
 		auto LeerPines = [&O](const TCHAR* Campo, TArray<FJamTool::FPin>& Destino)
 		{
 			const TArray<TSharedPtr<FJsonValue>>* Pines = nullptr;
@@ -465,6 +466,7 @@ void FJamEditorModule::LoadSpec(bool bIncludeFlow)
 				{
 					FJamParam P;
 					P.Name = PO->GetStringField(TEXT("nombre"));
+					if (!PO->TryGetStringField(TEXT("label"), P.Label)) { P.Label = P.Name; }
 					P.Default = PO->GetStringField(TEXT("default"));
 					if (!PO->TryGetStringField(TEXT("tipo"), P.Type))
 					{
@@ -1580,7 +1582,7 @@ void FJamEditorModule::RebuildParams()
 				.FillWidth(0.4f)
 				.VAlign(VAlign_Center)
 				[
-					SNew(STextBlock).Text(FText::FromString(Key))
+					SNew(STextBlock).Text(FText::FromString(P.Label.IsEmpty() ? Key : P.Label))
 				]
 				+ SHorizontalBox::Slot()
 				.FillWidth(0.6f)

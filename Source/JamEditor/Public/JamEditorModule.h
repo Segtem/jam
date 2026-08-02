@@ -27,6 +27,8 @@ class FAssetThumbnailPool;
 struct FJamParam
 {
 	FString Name;
+	/** Etiqueta visible independiente del nombre estable que se serializa y cablea. */
+	FString Label;
 	FString Default;
 	FString Type;
 	/** Override del tipo de cable para parámetros que transportan datos ricos (ej. A[]). */
@@ -61,6 +63,8 @@ struct FJamTool
 	int32 Arity = 1;          // 0=fuente · 1=unario · -1=variádico (varios cables en «in»)
 	FString InName;           // tipo que recibe el pin gordo: A=asset/actor · P=stream de puntos
 	FString OutName;          // nombre de la salida (la «variable» del pin de salida, estilo GH)
+	/** Nombre humano opcional del pin de salida; OutName conserva el código de tipo/protocolo. */
+	FString OutLabel;
 	/** Firma dinámica de `fn:<nombre>`. Vacíos = contrato clásico de un solo `in`/`out`. */
 	TArray<FPin> InputPins;
 	TArray<FPin> OutputPins;

@@ -25,7 +25,7 @@ Este índice y las reglas los verifica `tools/vault.py`.
 
 `01-Graph/` · 14 documentos
 
-- [[2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0|Verbos Math: números, vectores y matrices]] · *propuesta*
+- [[2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0|Verbos Math: números, vectores y matrices]] · *en-progreso*
 - [[2026-08-02-PLAN-ABM-Funciones-Graph-v1.0|ABM de funciones del Graph: identidad, firma y cuerpo]] · *en-progreso*
 - [[2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0|Roadmap: accesibilidad y velocidad del Graph]] · *propuesta*
 - [[2026-07-29-INFORME-Seleccion-Multiple-Alineacion-Nodos-v2.0|Selección múltiple y alineación de nodos Graph]] · *implementado*

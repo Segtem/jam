@@ -4,7 +4,7 @@ tipo: PLAN
 version: "1.0"
 date: 2026-08-02
 updated: 2026-08-02
-status: propuesta
+status: en-progreso
 area: 01-Graph
 tags:
   - jam
@@ -179,6 +179,33 @@ traduce valores cuando una herramienta de Unreal realmente los consume.
   ejecutar y comprobar en el inspector el valor resuelto.
 
 La Fase 1 se considera completa sólo con ese camino real. Las fases 2–4 no bloquean su entrega.
+
+## Avance 2026-08-02 — base escalar implementada
+
+Ya están implementados **Sumar**, **Restar**, **Multiplicar** y **Dividir** como primera entrega de
+la Fase 1. El registro común vive en `jam/math_core.py`: Flow y Graph consumen las mismas firmas,
+defaults, reglas de tipos, evaluación y diagnósticos. Los verbos explícitos no usan `eval`; el único
+caso que conserva el evaluador de expresiones es el nodo compatible **Expresión**.
+
+Slate recibe por spec el nombre visible de cada pin y lo dibuja sin cambiar el protocolo interno:
+por ejemplo `dividendo (Número)`, `divisor (Número)` y `resultado (Número)` siguen serializando pines
+`dividendo`, `divisor` y salida `N`. Los cuatro nodos aparecen en **Maths/Aritmética**, con iconos
+propios. Sus resultados escalares quedan en la caché de ejecución y se pueden abrir en el inspector.
+
+La base pasó 540 tests y compiló con UE 5.8.1. La sonda
+`tools/experiments/verifica_math_graph.py` pasó además por el intérprete embebido y el contrato
+público de Slate: spec, Compile, Run, Inspector=`40.000` y división por cero rechazada. El commandlet
+termina con código 1 por nueve paquetes ilegibles preexistentes de BotOO; el marcador
+`JAM_MATH_GRAPH_TEST TODO VERDE` en `BotOO.log` separa esa deuda del veredicto de Jam.
+
+Las pruebas se hicieron fallar deliberadamente al
+mutar `a + b` por `a - b` y al declarar un pin numérico como texto; ambas mutaciones fueron detectadas.
+También están cubiertos paridad Flow/Graph, orden no conmutativo, división por cero, no finitos,
+overflow, cable incompatible y el contrato de etiquetas de Slate.
+
+Queda abierta una sola frontera para esta entrega: construir, guardar, reabrir y ejecutar la cadena
+con gestos en el Graph del editor, y confirmar visualmente los pines y el resultado del inspector. Hasta
+ese gesto no se marca completa la Fase 1 ni se avanza sobre vectores o matrices.
 
 ## Oracle y frontera
 

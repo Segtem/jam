@@ -1457,6 +1457,12 @@ def _pintado(malla, color_hex: str):
 def _describir(entrada) -> str:
     """Nombre legible del tipo que llegó por el cable, para el veredicto del nodo."""
     from . import curve, fields, variants
+    if isinstance(entrada, bool):
+        return "B"
+    if isinstance(entrada, (int, float)):
+        return "N"
+    if isinstance(entrada, str):
+        return "T"
     if isinstance(entrada, curve.FrameSet):
         return "F"
     if isinstance(entrada, (curve.CurvePath, curve.CurveSet)):

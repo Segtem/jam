@@ -785,7 +785,13 @@ def ejecutar_flow_json(g_json: str, widget=None, *, owner: str = "graph") -> str
         # `graph.ejecutar_detalle`, así que sin esto quedaba sin datos que mostrar — y el síntoma
         # era mudo: el panel decía «todavía no corriste el grafo» después de correrlo.
         graph._ULTIMA_CORRIDA.clear()
-        graph._ULTIMA_CORRIDA.update({nid: s for nid, s in salida.items() if s is not None})
+        graph._ULTIMA_CORRIDA.update({
+            nid: (f.resultados.get(nid, {}).get("value")
+                  if nodo["kind"] in flow.VALOR_KINDS else salida.get(nid))
+            for nid, nodo in f.nodos.items()
+            if (f.resultados.get(nid, {}).get("value")
+                if nodo["kind"] in flow.VALOR_KINDS else salida.get(nid)) is not None
+        })
         lineas = []
         for nid, nodo in f.nodos.items():
             stream = salida.get(nid, [])

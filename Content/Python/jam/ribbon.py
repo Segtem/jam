@@ -57,7 +57,10 @@ GRUPOS: dict[str, list[tuple[str, list[str]]]] = {
     "Combine": [("Unir", ["merge", "weave"])],
     "Display": [("Ver", ["info"])],
     "Params": [("Valores", ["number", "text"])],
-    "Maths": [("Operar", ["math"])],
+    "Maths": [
+        ("Aritmética", ["math_add", "math_subtract", "math_multiply", "math_divide"]),
+        ("Avanzado", ["math"]),
+    ],
     "Source": [("Fuente", ["source_surface"])],
     "Output": [("Salida", ["instance", "weight_material"])],
     "Shader": [

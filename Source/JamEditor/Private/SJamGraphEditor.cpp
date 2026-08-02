@@ -1517,8 +1517,10 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At,
 			if (L.IsValid()) { OptionLabels.Add(*L); }
 		}
 		const FString DataType = P.DataType.IsEmpty() ? JamParamDataType(P.Name, P.Type) : P.DataType;
-		Params.Add(FJamNodeParam(P.Name, Value, P.Type, Opts, OptionLabels,
-			DataType, DataColor(DataType)));
+		FJamNodeParam Param(P.Name, Value, P.Type, Opts, OptionLabels,
+			DataType, DataColor(DataType));
+		Param.Label = P.Label;
+		Params.Add(MoveTemp(Param));
 		Node.PinNames.Add(P.Name);
 	}
 
@@ -1550,7 +1552,8 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At,
 		.InputColor(DataColor(T->InName))
 		.OutputColor(DataColor(T->OutName))
 		.InputLabel(DataName(T->InName))
-		.OutputLabel(DataName(T->OutName))
+		.OutputLabel(T->OutLabel.IsEmpty() ? DataName(T->OutName)
+			: FString::Printf(TEXT("%s (%s)"), *T->OutLabel, *DataName(T->OutName)))
 		.Params(Params)
 		.InputPins(NamedInputs)
 		.OutputPins(NamedOutputs)
