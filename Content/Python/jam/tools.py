@@ -1263,6 +1263,25 @@ def t_mesh_material(mesh_input, *, material="", material_asset=None) -> str:
         "mesh_material", mesh.assign_material(mesh_input, material=ruta), "MATERIAL M")
 
 
+def t_mesh_remap_materials(mesh_input, *, from_id=1, to_id=0) -> str:
+    from . import mesh
+    return _mesh_output(
+        "mesh_remap_materials",
+        mesh.reassign_material_ids(mesh_input, from_id=from_id, to_id=to_id),
+        "REASIGNAR MATERIAL IDS M",
+    )
+
+
+def t_mesh_clean_material_ids(mesh_input, *, remove_duplicate_materials=True) -> str:
+    from . import mesh
+    return _mesh_output(
+        "mesh_clean_material_ids",
+        mesh.clean_material_ids(
+            mesh_input, remove_duplicate_materials=bool(remove_duplicate_materials)),
+        "LIMPIAR MATERIAL IDS M",
+    )
+
+
 def t_mesh_merge(mesh_inputs) -> str:
     from . import mesh
     return _mesh_output("mesh_merge", mesh.merge(mesh_inputs), "MERGE M")
@@ -1795,6 +1814,20 @@ REGISTRO = {
                       "optional_data_params": ("material_asset",),
                       "doc": "asigna material y section a M; el pin A acepta la salida de material_build "
                              "(y manda sobre el campo); Mesh to Static conserva el slot"},
+    "mesh_remap_materials": {
+        "fn": t_mesh_remap_materials, "label": "Reasignar IDs de material",
+        "cat": "Mesh", "graph_only": True,
+        "params": {"from_id": 1, "to_id": 0},
+        "etiquetas_params": {"from_id": "ID de origen", "to_id": "ID de destino"},
+        "doc": "fusiona todos los triángulos de un Material ID en otro ID ya existente; conserva los slots y no modifica la entrada",
+    },
+    "mesh_clean_material_ids": {
+        "fn": t_mesh_clean_material_ids, "label": "Limpiar IDs de material",
+        "cat": "Mesh", "graph_only": True,
+        "params": {"remove_duplicate_materials": True},
+        "etiquetas_params": {"remove_duplicate_materials": "unir materiales duplicados"},
+        "doc": "elimina IDs y slots sin uso, compacta el rango a 0..N-1 y conserva alineada la lista de materiales de M",
+    },
     "mesh_merge":  {"fn": t_mesh_merge, "cat": "Mesh", "graph_only": True, "params": {},
                      "doc": "combina dos o más mallas M en una salida"},
     "mesh_normals": {"fn": t_mesh_normals, "cat": "Mesh", "graph_only": True,
@@ -1941,6 +1974,7 @@ GRAPH_NO_ASSET = {"asset", "pick", "create_spline", "pivot_set", "instance",
                   "asset_set", "choose_asset", "curve_branches", "mesh_leaf",
                   "copy_asset_selection", "hism_output",
                   "mesh_color", "mesh_uv_scale", "mesh_material", "mesh_bark", "points_to_frames", "debug",
+                  "mesh_remap_materials", "mesh_clean_material_ids",
                   "mesh_normals", "mesh_simplify_count", "mesh_simplify_tolerance",
                   "mesh_simplify_edge_length", "mesh_to_static",
                   # UVs procedurales y todo el frente de shader: ninguno necesita un asset de
@@ -1962,6 +1996,7 @@ GRAPH_IN_NAMES = {"points_to_frames": "P", "debug": "*", "curve_child": "S", "cu
                   "copy_asset_selection": "AF",
                   "hism_output": "AF", "mesh_transform": "M", "mesh_color": "M",
                   "mesh_uv_scale": "M", "mesh_material": "M", "mesh_bark": "M",
+                  "mesh_remap_materials": "M", "mesh_clean_material_ids": "M",
                   "mesh_vertex_gradient": "M", "mesh_merge": "M", "mesh_normals": "M",
                   "mesh_simplify_count": "M", "mesh_simplify_tolerance": "M",
                   "mesh_simplify_edge_length": "M",
@@ -1994,6 +2029,7 @@ GRAPH_OUT_NAMES = {"points_to_frames": "F", "debug": "M", "asset": "A", "pick": 
                    "copy_asset_selection": "M",
                    "hism_output": "H", "mesh_transform": "M", "mesh_color": "M",
                    "mesh_uv_scale": "M", "mesh_material": "M", "mesh_bark": "M",
+                   "mesh_remap_materials": "M", "mesh_clean_material_ids": "M",
                    "mesh_vertex_gradient": "M", "mesh_merge": "M", "mesh_normals": "M",
                    "mesh_simplify_count": "M", "mesh_simplify_tolerance": "M",
                    "mesh_simplify_edge_length": "M",

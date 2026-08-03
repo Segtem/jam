@@ -89,6 +89,21 @@ def _materials(source) -> tuple[object | None, ...]:
     return _MESH_MATERIALS.get(id(mesh), ()) if mesh is not None else ()
 
 
+def _material_ids(source) -> list[int]:
+    """Material ID de cada triángulo por la lista nativa, sin iterar millones de veces en Python."""
+    dynamic = _dynamic_mesh(source)
+    if dynamic is None:
+        raise TypeError("la entrada no es una malla procedural M")
+    returned = unreal.GeometryScript_Materials.get_all_triangle_material_i_ds(dynamic)
+    if not isinstance(returned, tuple) or len(returned) < 3 or not bool(returned[-1]):
+        return []
+    index_list = returned[1]
+    converted = unreal.GeometryScript_List.convert_index_list_to_array(index_list)
+    if isinstance(converted, tuple):
+        converted = converted[-1]
+    return [int(value) for value in converted]
+
+
 def _normalized(vector):
     length = math.sqrt(sum(component * component for component in vector))
     if length < 1e-8:
@@ -1364,6 +1379,67 @@ def assign_material(source, *, material: str) -> dict:
     _MESH_MATERIALS[id(result)] = (material_object,)
     name = material_object.get_name() if hasattr(material_object, "get_name") else path.rsplit("/", 1)[-1]
     return {"mesh": result, "info": f"{_info(result)} · material slot 0: {name}"}
+
+
+def reassign_material_ids(source, *, from_id: int = 1, to_id: int = 0) -> dict:
+    """Fusiona una section en otra existente sin modificar M ni inventar un slot sin material."""
+    from . import mesh_material_ids_core as core
+
+    try:
+        plan = core.remap_plan(from_id, to_id, _material_ids(source))
+        result = _clone(source)
+    except (TypeError, ValueError) as exc:
+        return {"error": str(exc)}
+    unreal.GeometryScript_Materials.remap_material_i_ds(
+        result, plan.from_id, plan.to_id)
+    return {
+        "mesh": result,
+        "info": (f"ID {plan.from_id}→{plan.to_id} · "
+                 f"{len(plan.used_before)}→{len(plan.used_after)} IDs usados · {_info(result)}"),
+    }
+
+
+def clean_material_ids(source, *, remove_duplicate_materials: bool = True) -> dict:
+    """Compacta IDs usados a 0..N-1 y mantiene alineada la lista de materiales del cable M."""
+    from . import mesh_material_ids_core as core
+
+    try:
+        ids = _material_ids(source)
+        mapping = core.compact_mapping(ids)
+        result = _clone(source)
+    except (TypeError, ValueError) as exc:
+        return {"error": str(exc)}
+
+    source_slots = list(_materials(source))
+    max_id = max(mapping)
+    # La función nativa exige una posición por cada ID posible. Una malla procedural puede no traer
+    # el sidecar de MaterialInterface; los None sólo completan el contrato y no se publican luego.
+    native_slots = source_slots + [None] * max(0, max_id + 1 - len(source_slots))
+    remove_duplicates = bool(remove_duplicate_materials and source_slots)
+    returned = unreal.GeometryScript_Materials.compact_material_i_ds(
+        result, native_slots, remove_duplicates)
+    compacted_slots = []
+    if isinstance(returned, tuple):
+        compacted_slots = next(
+            (list(value) for value in returned[1:] if isinstance(value, (list, tuple))), [])
+
+    if source_slots:
+        if not compacted_slots:
+            # Fallback conservador para versiones que no expongan el out-param: sólo los slots
+            # realmente usados, en el mismo orden que el mapeo determinista de IDs.
+            compacted_slots = [native_slots[old] for old in mapping]
+        _MESH_MATERIALS[id(result)] = tuple(compacted_slots)
+    else:
+        _MESH_MATERIALS.pop(id(result), None)
+
+    slots_before = len(source_slots)
+    slots_after = len(compacted_slots) if source_slots else 0
+    slots_text = (f" · slots {slots_before}→{slots_after}" if source_slots
+                  else " · sin lista de slots")
+    return {
+        "mesh": result,
+        "info": (f"IDs {list(mapping)}→{list(mapping.values())}{slots_text} · {_info(result)}"),
+    }
 
 
 def merge(sources) -> dict:

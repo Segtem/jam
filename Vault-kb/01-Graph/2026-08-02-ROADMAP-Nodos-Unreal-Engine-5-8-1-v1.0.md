@@ -109,6 +109,28 @@ sólo demuestra repetibilidad para esta entrada y esta build; no anula el contra
 motor. Antes de exponer `mesh_remesh_uniform/adaptive`, Jam necesita una categoría experimental o
 un oráculo por tolerancia que no dependa de igualdad exacta.
 
+#### Tercera evidencia: Material IDs
+
+`mesh_remap_materials` y `mesh_clean_material_ids` quedaron implementados como operadores M → M
+no destructivos dentro del grupo **Mesh → Materiales**. El primero fusiona una section en otra, pero
+sólo si ambos IDs ya están usados: apuntar a un índice nuevo inventaría un slot sin material. El
+segundo llama la compactación nativa y actualiza en el mismo paso el sidecar de `MaterialInterface`
+que Jam transporta hasta `mesh_to_static`.
+
+La sonda `tools/experiments/verifica_mesh_material_ids_58.py` construyó dos ramas con materiales
+distintos y recorrió spec, Compile y Run públicos dentro de UE 5.8.1:
+
+- `mesh_merge`: IDs `{0,1}` y **2 slots**;
+- reasignación `1→0`: ID `{0}` y **2 slots** todavía conservados;
+- limpieza: ID `{0}` y **1 slot**, sin el material ya inutilizado.
+
+Marcador: `JAM_MESH_MATERIAL_IDS_58 TODO VERDE`. La comprobación global quedó en **102 símbolos y
+81 métodos reales**, todos existentes. El test discriminante anuló temporalmente la defensa contra
+un `to_id` inexistente y quedó rojo.
+
+**Lo que no ven:** corrección visual del material, parámetros de una instancia, orden semántico de
+sections ni intención artística. Sólo miden que IDs y slots sigan siendo una correspondencia válida.
+
 ### 2. PCG 5.8
 
 - `pcg_editor_cameras`, `pcg_apply_spline`, `pcg_teleport`.
