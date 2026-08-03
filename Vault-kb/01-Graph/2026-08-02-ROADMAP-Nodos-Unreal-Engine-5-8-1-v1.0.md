@@ -131,6 +131,29 @@ un `to_id` inexistente y quedó rojo.
 **Lo que no ven:** corrección visual del material, parámetros de una instancia, orden semántico de
 sections ni intención artística. Sólo miden que IDs y slots sigan siendo una correspondencia válida.
 
+#### Cuarta evidencia: Validar malla
+
+`mesh_validate` quedó implementado como sensor M → M en **Mesh → Hornear**. No clona ni modifica la
+entrada: mide vértices, rango de IDs de triángulo, densidad de IDs, cierre, lazos de borde ambiguos,
+componentes conectados, canales UV y correspondencia entre Material IDs y slots. Por defecto sólo
+rechaza defectos estructurales; cada grafo puede exigir además cierre, UV, materiales o un máximo de
+componentes.
+
+El juicio vive en `mesh_validate_core.py`, sin `unreal`. Un incumplimiento deliberado deja la ficha
+naranja y hace observable la causa, pero conserva M para que el autor pueda inspeccionarla o
+repararla aguas abajo. Un error de contrato —por ejemplo `max_components < 0`— sí queda rojo.
+
+La sonda `tools/experiments/verifica_mesh_validate_58.py` recorrió spec, Compile y Run públicos en
+UE 5.8.1: una esfera cerrada quedó verde, una grilla con `require_closed=true` quedó naranja por
+«malla abierta», y en ambos casos la salida fue el mismo objeto M de entrada. Marcador:
+`JAM_MESH_VALIDATE_58 TODO VERDE`. Los **102 símbolos y 81 métodos** usados por Jam siguen
+existiendo en el motor. El test discriminante anuló temporalmente la regla de cierre y quedó rojo;
+la suite completa quedó en **581 tests**.
+
+**Lo que no ve:** triángulos degenerados o solapados, normales/tangentes incorrectas, estiramiento
+UV, manifoldness interior, escala, silueta, calidad visual, costo de render ni intención artística.
+Esos hechos requieren sensores separados; el nodo no los infiere de conteos generales.
+
 ### 2. PCG 5.8
 
 - `pcg_editor_cameras`, `pcg_apply_spline`, `pcg_teleport`.

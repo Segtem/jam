@@ -1442,6 +1442,44 @@ def clean_material_ids(source, *, remove_duplicate_materials: bool = True) -> di
     }
 
 
+def validate(source, *, require_closed: bool = False, max_components: int = 0,
+             require_uv: bool = False, require_materials: bool = False) -> dict:
+    """Mide salud topológica y requisitos de producción sin modificar ni clonar la entrada."""
+    from . import mesh_validate_core as core
+
+    dynamic = _dynamic_mesh(source)
+    if dynamic is None:
+        return {"error": "mesh_validate necesita una entrada M válida."}
+    queries = unreal.GeometryScript_MeshQueries
+    loops_result = queries.get_num_open_border_loops(dynamic)
+    loops = int(loops_result[0] if isinstance(loops_result, tuple) else loops_result)
+    ambiguous = bool(loops_result[-1]) if isinstance(loops_result, tuple) else False
+    try:
+        material_ids = tuple(sorted(set(_material_ids(dynamic))))
+    except (TypeError, RuntimeError):
+        material_ids = ()
+    facts = core.MeshFacts(
+        vertices=int(queries.get_vertex_count(dynamic)),
+        triangle_ids=int(queries.get_num_triangle_i_ds(dynamic)),
+        dense=bool(queries.get_is_dense_mesh(dynamic)),
+        closed=bool(queries.get_is_closed_mesh(dynamic)),
+        border_loops=loops,
+        ambiguous_borders=ambiguous,
+        components=int(queries.get_num_connected_components(dynamic)),
+        uv_channels=int(queries.get_num_uv_sets(dynamic)),
+        material_ids=material_ids,
+        material_slots=len(_materials(dynamic)),
+    )
+    try:
+        defects = core.judge(
+            facts, require_closed=bool(require_closed), max_components=int(max_components),
+            require_uv=bool(require_uv), require_materials=bool(require_materials))
+    except ValueError as exc:
+        return {"error": str(exc)}
+    return {"mesh": dynamic, "ok": not defects, "defects": defects,
+            "info": core.summary(facts)}
+
+
 def merge(sources) -> dict:
     meshes = list(sources or [])
     if len(meshes) < 2 or any(_dynamic_mesh(item) is None for item in meshes):

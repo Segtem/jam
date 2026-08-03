@@ -1282,6 +1282,20 @@ def t_mesh_clean_material_ids(mesh_input, *, remove_duplicate_materials=True) ->
     )
 
 
+def t_mesh_validate(mesh_input, *, require_closed=False, max_components=0,
+                    require_uv=False, require_materials=False) -> str:
+    from . import mesh
+    result = mesh.validate(
+        mesh_input, require_closed=bool(require_closed), max_components=int(max_components),
+        require_uv=bool(require_uv), require_materials=bool(require_materials))
+    if "error" in result:
+        raise RuntimeError(result["error"])
+    _RUNTIME_DATA_OUTPUTS["mesh_validate"] = result["mesh"]
+    mark = "✓" if result["ok"] else "✗"
+    defects = "" if result["ok"] else " · " + "; ".join(result["defects"])
+    return f"VALIDAR M {mark} — {result['info']}{defects}"
+
+
 def t_mesh_merge(mesh_inputs) -> str:
     from . import mesh
     return _mesh_output("mesh_merge", mesh.merge(mesh_inputs), "MERGE M")
@@ -1828,6 +1842,15 @@ REGISTRO = {
         "etiquetas_params": {"remove_duplicate_materials": "unir materiales duplicados"},
         "doc": "elimina IDs y slots sin uso, compacta el rango a 0..N-1 y conserva alineada la lista de materiales de M",
     },
+    "mesh_validate": {
+        "fn": t_mesh_validate, "label": "Validar malla", "cat": "Mesh", "graph_only": True,
+        "params": {"require_closed": False, "max_components": 0,
+                   "require_uv": False, "require_materials": False},
+        "etiquetas_params": {"require_closed": "exigir cerrada",
+                              "max_components": "máximo de componentes (0=sin límite)",
+                              "require_uv": "exigir UV", "require_materials": "exigir materiales"},
+        "doc": "mide vacío, huecos de IDs, bordes ambiguos, cierre, componentes, UV y materiales; informa y deja pasar M sin tocarla",
+    },
     "mesh_merge":  {"fn": t_mesh_merge, "cat": "Mesh", "graph_only": True, "params": {},
                      "doc": "combina dos o más mallas M en una salida"},
     "mesh_normals": {"fn": t_mesh_normals, "cat": "Mesh", "graph_only": True,
@@ -1975,6 +1998,7 @@ GRAPH_NO_ASSET = {"asset", "pick", "create_spline", "pivot_set", "instance",
                   "copy_asset_selection", "hism_output",
                   "mesh_color", "mesh_uv_scale", "mesh_material", "mesh_bark", "points_to_frames", "debug",
                   "mesh_remap_materials", "mesh_clean_material_ids",
+                  "mesh_validate",
                   "mesh_normals", "mesh_simplify_count", "mesh_simplify_tolerance",
                   "mesh_simplify_edge_length", "mesh_to_static",
                   # UVs procedurales y todo el frente de shader: ninguno necesita un asset de
@@ -1997,6 +2021,7 @@ GRAPH_IN_NAMES = {"points_to_frames": "P", "debug": "*", "curve_child": "S", "cu
                   "hism_output": "AF", "mesh_transform": "M", "mesh_color": "M",
                   "mesh_uv_scale": "M", "mesh_material": "M", "mesh_bark": "M",
                   "mesh_remap_materials": "M", "mesh_clean_material_ids": "M",
+                  "mesh_validate": "M",
                   "mesh_vertex_gradient": "M", "mesh_merge": "M", "mesh_normals": "M",
                   "mesh_simplify_count": "M", "mesh_simplify_tolerance": "M",
                   "mesh_simplify_edge_length": "M",
@@ -2030,6 +2055,7 @@ GRAPH_OUT_NAMES = {"points_to_frames": "F", "debug": "M", "asset": "A", "pick": 
                    "hism_output": "H", "mesh_transform": "M", "mesh_color": "M",
                    "mesh_uv_scale": "M", "mesh_material": "M", "mesh_bark": "M",
                    "mesh_remap_materials": "M", "mesh_clean_material_ids": "M",
+                   "mesh_validate": "M",
                    "mesh_vertex_gradient": "M", "mesh_merge": "M", "mesh_normals": "M",
                    "mesh_simplify_count": "M", "mesh_simplify_tolerance": "M",
                    "mesh_simplify_edge_length": "M",
