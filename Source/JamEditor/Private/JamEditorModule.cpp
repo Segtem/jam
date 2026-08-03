@@ -662,6 +662,8 @@ void FJamEditorModule::LoadSpec(bool bIncludeFlow)
 		T.Verb = O->GetStringField(TEXT("verbo"));
 		if (!O->TryGetStringField(TEXT("label"), T.Label)) { T.Label = T.Verb; }
 		O->TryGetStringField(TEXT("cat"), T.Cat);
+		O->TryGetStringField(TEXT("seccion"), T.Section);
+		if (T.Section.IsEmpty()) { T.Section = T.Cat; }
 		O->TryGetStringField(TEXT("grupo"), T.Group);
 		O->TryGetStringField(TEXT("doc"), T.Doc);
 		O->TryGetBoolField(TEXT("source"), T.bSource);

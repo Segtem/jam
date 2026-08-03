@@ -33,6 +33,29 @@ def _division(dividendo: float, divisor: float) -> float:
     return dividendo / divisor
 
 
+def _modulo(valor: float, modulo: float) -> float:
+    """Módulo euclídeo con la semántica de Python: el resultado tiene el signo del módulo."""
+    if modulo == 0.0:
+        raise ValorError("modulo", "no puede ser cero")
+    return valor % modulo
+
+
+def _potencia(base: float, exponente: float) -> float:
+    try:
+        return math.pow(base, exponente)
+    except ValueError:
+        raise ValorError(
+            "base", "base y exponente no producen un resultado real") from None
+    except OverflowError:
+        raise ValorError("resultado", "la potencia excede el rango numérico") from None
+
+
+def _raiz_cuadrada(radicando: float) -> float:
+    if radicando < 0.0:
+        raise ValorError("radicando", "no puede ser negativo")
+    return math.sqrt(radicando)
+
+
 # Registro público. El orden sólo es de declaración; ``ribbon.py`` decide el orden visual.
 VALORES: dict[str, dict] = {
     "number": {
@@ -82,6 +105,50 @@ VALORES: dict[str, dict] = {
         "out_label": "resultado",
         "operacion": _division,
         "doc": "divide en orden: dividendo ÷ divisor; divisor cero es error",
+    },
+    "math_negate": {
+        "label": "Negar", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"valor": 0.0}, "tipos": {"valor": "N"},
+        "etiquetas_params": {"valor": "valor (Número)"},
+        "out_label": "resultado",
+        "operacion": lambda valor: -valor,
+        "doc": "invierte el signo de un número: −valor",
+    },
+    "math_absolute": {
+        "label": "Absoluto", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"valor": 0.0}, "tipos": {"valor": "N"},
+        "etiquetas_params": {"valor": "valor (Número)"},
+        "out_label": "resultado",
+        "operacion": abs,
+        "doc": "distancia de un número a cero: |valor|",
+    },
+    "math_modulo": {
+        "label": "Módulo", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"valor": 0.0, "modulo": 1.0},
+        "tipos": {"valor": "N", "modulo": "N"},
+        "etiquetas_params": {
+            "valor": "valor (Número)", "modulo": "módulo (Número)"},
+        "out_label": "resultado",
+        "operacion": _modulo,
+        "doc": "resto euclídeo: valor módulo divisor; módulo cero es error",
+    },
+    "math_power": {
+        "label": "Potencia", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"base": 1.0, "exponente": 2.0},
+        "tipos": {"base": "N", "exponente": "N"},
+        "etiquetas_params": {
+            "base": "base (Número)", "exponente": "exponente (Número)"},
+        "out_label": "resultado",
+        "operacion": _potencia,
+        "doc": "eleva la base al exponente; sólo produce resultados reales finitos",
+    },
+    "math_sqrt": {
+        "label": "Raíz cuadrada", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"radicando": 0.0}, "tipos": {"radicando": "N"},
+        "etiquetas_params": {"radicando": "radicando (Número)"},
+        "out_label": "resultado",
+        "operacion": _raiz_cuadrada,
+        "doc": "raíz cuadrada real; un radicando negativo es error",
     },
     # Compatibilidad: sigue siendo el nodo de texto libre, ahora presentado como opción avanzada.
     "math": {

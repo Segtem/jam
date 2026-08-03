@@ -27,11 +27,17 @@ try:
         ("math_subtract", "Restar"),
         ("math_multiply", "Multiplicar"),
         ("math_divide", "Dividir"),
+        ("math_negate", "Negar"),
+        ("math_absolute", "Absoluto"),
+        ("math_modulo", "Módulo"),
+        ("math_power", "Potencia"),
+        ("math_sqrt", "Raíz cuadrada"),
     ):
         exigir(verbo in spec, f"el spec no publicó {verbo}")
         exigir(spec[verbo]["label"] == etiqueta,
                f"{verbo} publicó etiqueta {spec[verbo]['label']!r}")
         exigir(spec[verbo]["out_label"] == "resultado", f"{verbo} perdió out_label")
+        exigir(spec[verbo]["seccion"] == "Datos", f"{verbo} quedó fuera de Datos")
 
     # (7 + 3) × 4 = 40; cada operando entra por un cable de parámetro real.
     grafo = JamGraph()
@@ -69,8 +75,36 @@ try:
     exigir(not rechazado.get("ok") and "cero" in rechazado.get("report", ""),
            f"Compile aceptó división por cero: {rechazado}")
 
+    # sqrt((((-5) absoluto)^2) módulo 7) = sqrt(4) = 2.
+    lote = JamGraph()
+    lote.add("number", {"value": 5}, nid="cinco")
+    lote.add("math_negate", {}, nid="negar")
+    lote.add("math_absolute", {}, nid="absoluto")
+    lote.add("math_power", {"exponente": 2}, nid="potencia")
+    lote.add("math_modulo", {"modulo": 7}, nid="modulo")
+    lote.add("math_sqrt", {}, nid="raiz")
+    lote.connect("cinco", "negar", "valor")
+    lote.connect("negar", "absoluto", "valor")
+    lote.connect("absoluto", "potencia", "base")
+    lote.connect("potencia", "modulo", "valor")
+    lote.connect("modulo", "raiz", "radicando")
+    compilado_lote = json.loads(api.compile_graph_json(lote.to_json()))
+    exigir(compilado_lote.get("ok"), f"Compile lote rojo: {compilado_lote}")
+    corrida_lote = json.loads(api.run_graph_json(lote.to_json()))
+    exigir(corrida_lote.get("ok") and not corrida_lote.get("preview"),
+           f"Run lote rojo o con Preview: {corrida_lote}")
+    inspeccion_lote = json.loads(api.inspect_json("raiz"))
+    exigir(inspeccion_lote.get("filas") == [["2.000"]],
+           f"resultado del lote inesperado: {inspeccion_lote}")
+
+    raiz_rota = JamGraph()
+    raiz_rota.add("math_sqrt", {"radicando": -1}, nid="raiz")
+    rechazado = json.loads(api.compile_graph_json(raiz_rota.to_json()))
+    exigir(not rechazado.get("ok") and "negativo" in rechazado.get("report", ""),
+           f"Compile aceptó raíz negativa: {rechazado}")
+
     unreal.log("JAM_MATH_GRAPH_TEST TODO VERDE — spec + Compile + Run + "
-               "Inspector=40 + división por cero rechazada")
+               "Inspector=40/2 + división por cero y raíz negativa rechazadas")
 except Exception as exc:  # noqa: BLE001
     unreal.log_error(f"JAM_MATH_GRAPH_TEST ROJO — {type(exc).__name__}: {exc}")
 finally:

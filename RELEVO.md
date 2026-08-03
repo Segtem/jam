@@ -52,6 +52,12 @@ raíz después del layout, y tanto `OpenGraph` como el spawner real de `Window �
 ventana flotante inválida. Son **547 tests OK**; build 5.8.1 verde. En el gesto real el menú abrió
 Graph por el spawner y el panel recibió una acción que construyó Preview siete segundos después.
 
+El 2026-08-03 comenzó el catálogo matemático ampliado: **Negar, Absoluto, Módulo, Potencia y Raíz
+cuadrada** ya están implementados con errores de dominio, iconos propios y paridad Graph/Flow. El
+ribbon principal dejó de ser una tira de veinte categorías: ahora son seis familias más Aprender,
+con una segunda fila de categorías. Son **552 tests**, build 5.8.1 y sonda embebida verdes; falta el
+juicio visual de la nueva organización y los cinco nodos.
+
 **Leé primero** `Vault-kb/00-Proceso/2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0.md`: son
 diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 
@@ -59,9 +65,9 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 
 | Qué | Comando | Resultado |
 |---|---|---|
-| Cerebro de Jam | `cd Content/Python/tests && PYTHONPATH=$PWD/.. python -m unittest discover -s . -p "test_*.py" -q` | **547 OK**, 0.3 s |
-| Math en UE 5.8.1 | `tools/experiments/verifica_math_graph.py` en `UnrealEditor-Cmd` | **spec + Compile + Run sin Preview + Inspector=40.000 + cero rechazado · TODO VERDE** |
-| Vault (modo sombra) | `python tools/vault.py` | **55 docs · las dos implementaciones coinciden** |
+| Cerebro de Jam | `cd Content/Python/tests && PYTHONPATH=$PWD/.. python -m unittest discover -s . -p "test_*.py" -q` | **552 OK**, 0.3 s |
+| Math en UE 5.8.1 | `tools/experiments/verifica_math_graph.py` en `UnrealEditor-Cmd` | **9 verbos · Run sin Preview · Inspector=40/2 · dominios rechazados · TODO VERDE** |
+| Vault (modo sombra) | `python tools/vault.py` | **57 docs · las dos implementaciones coinciden** |
 | Motor | sonda headless + gestos reales de función/ventana | **ABM + Compile de cuerpo + ventana Wayland interactiva · TODO VERDE** |
 | Nanite→Fracture | `tools/experiments/verifica_nanite_fracture_58.py` en editor GUI | **2/2 materiales distintos + GC Nanite · TODO VERDE; cierre 139** |
 | UE 5.8.1 | APIs + ejemplos + material/UV + PCG real | **98 símbolos + 75 métodos · 8/8 ejemplos · material/UV verde · 287 HISM** |
@@ -100,6 +106,8 @@ Lo que **nadie ejerció con las manos** de este turno:
 | Apertura/cierre de Graph y entrada global | Brian | ✅ ventana raíz resincronizada; menú abre Graph; captor sí→no al cerrar |
 | Selector de tipos completo | Brian | ⏳ falta desplegar la lista y confirmar la presentación real |
 | Maths: Sumar/Restar/Multiplicar/Dividir, pines y resultado | Brian | ✅ función/instancia + Run + Inspector + persistencia; sin Preview vacío |
+| Maths: Negar/Absoluto/Módulo/Potencia/Raíz | Brian | ⏳ tests/sonda/build verdes; falta gesto en Datos → Maths |
+| Ribbon jerárquico por familias | Brian | ⏳ abrió/cerró sin crash; falta juzgar orden, densidad y navegación |
 | Resto del ABM, `Ctrl+G` + dibujo/cableado de pines múltiples | Brian | ◐ Nueva/Editar/Guardar/Renombrar/Eliminar verdes; faltan `Ctrl+G` y firmas no numéricas |
 | Aspecto de una GC Nanite fracturada y rotura en PIE | Brian | ⏳ metadata/materiales verdes; falta viewport y simulación |
 | El paquete de estudio subido a NotebookLM | Brian | ⏳ generado, sin abrir |

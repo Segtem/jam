@@ -236,6 +236,23 @@ Dividir— en tests, sonda embebida y gesto humano. La Fase 1 completa todavía 
 Signo, Resto/Potencia, Rango, Mezcla, Redondeo, Ángulos y Comparación enumerados arriba; no se avanza
 a vectores ni matrices antes de completar esa superficie escalar.
 
+## Avance 2026-08-03 — Signo y Resto/Potencia
+
+El segundo lote agrega **Negar**, **Absoluto**, **Módulo**, **Potencia** y **Raíz cuadrada**. Conservan
+el mismo registro puro y publican pines semánticos: `valor`, `módulo`, `base`, `exponente` y
+`radicando`, todos presentados como `nombre (Número)`. Módulo cero, potencia fuera del dominio real,
+overflow y raíz negativa fallan con el pin responsable.
+
+Cada verbo tiene icono propio; la suite impide tanto ausencia como colisiones visuales. Graph y Flow
+resolvieron la misma cadena, y la sonda embebida obtuvo `sqrt((abs(-5)^2) módulo 7) = 2` sin Preview.
+El marcador real quedó `JAM_MATH_GRAPH_TEST TODO VERDE — spec + Compile + Run + Inspector=40/2 +
+división por cero y raíz negativa rechazadas`. La salida 1 del commandlet vuelve a pertenecer a los
+nueve paquetes ilegibles conocidos de BotOO.
+
+La suite completa pasó de 547 a **552 tests**. Dos mutaciones deliberadas discriminaron la raíz y la
+lectura de `seccion` en Slate. C++ compiló en UE 5.8.1; falta ejercer los cinco nodos con gestos en
+**Datos → Maths**.
+
 ## Oracle y frontera
 
 La exactitud aritmética pertenece primero a tests deterministas del cerebro; no hace falta inventar
@@ -244,4 +261,5 @@ Oracle seguirá midiendo el resultado observable después de la expansión norma
 `vendor/oracle/` para implementar este plan.
 
 Relacionado: [[2026-07-25-PLAN-Tipado-Cardinalidad-Conexiones-Graph-v1.0|tipado y cardinalidad del
-Graph]] y [[2026-07-29-INFORME-Funciones-Graph-Firma-v1.0|funciones con firma explícita]].
+Graph]], [[2026-07-29-INFORME-Funciones-Graph-Firma-v1.0|funciones con firma explícita]] y
+[[2026-08-03-ROADMAP-Catalogo-Matematico-Ampliado-v1.0|el catálogo matemático ampliado]].

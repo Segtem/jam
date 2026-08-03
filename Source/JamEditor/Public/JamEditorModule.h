@@ -52,6 +52,8 @@ struct FJamTool
 	/** Etiqueta humana. `Verb` es protocolo estable (`fn:f_…`) y no debe filtrarse a la UI. */
 	FString Label;
 	FString Cat;
+	/** Familia visual compacta del ribbon; no forma parte del protocolo ni de los presets. */
+	FString Section;
 	FString Group;            // subgrupo dentro del tab (el «panel» de Grasshopper); puede ir vacío
 	FString Doc;
 	bool bSource = false;     // en el grafo, nodo FUENTE (sin pin de entrada)

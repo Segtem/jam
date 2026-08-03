@@ -209,6 +209,10 @@ private:
 
 	/** Ribbon estilo Grasshopper: al elegir un tab (categoría) se rellenan sus fichas con icono. */
 	void RebuildTabContent();
+	/** Cambia la familia principal y elige una categoría válida dentro de ella. */
+	void SelectSection(const FString& Section);
+	/** Segunda fila corta: categorías de la familia principal activa. */
+	void RebuildCategoryStrip();
 	/** El tab «Aprender»: fichas que CARGAN un tutorial en vez de crear un nodo. */
 	void RebuildLearnTab();
 	void OnPinClicked(const FString& Id, const FString& Pin, bool bOutput);
@@ -286,8 +290,11 @@ private:
 	    verbos y con dos seguía siendo una tira que obligaba a scrollear. Tres entra en la altura de
 	    un nodo del canvas. El reparto por subgrupo lo decide `jam/ribbon.py`. */
 	static constexpr int32 RibbonRows = 3;
-	TArray<FString> Categories;        // tabs del ribbon, en orden de aparición
-	FString ActiveTab;                 // categoría abierta ahora
+	TArray<FString> Categories;        // categorías reales del protocolo, en orden de aparición
+	TArray<FString> Sections;          // familias compactas de navegación
+	FString ActiveSection;             // familia abierta en la fila principal
+	FString ActiveTab;                 // categoría abierta dentro de la familia
+	TSharedPtr<SHorizontalBox> CategoryStripBox; // segunda fila de categorías
 	TSharedPtr<SHorizontalBox> TabContentBox;   // fichas de la categoría activa
 	TArray<FGNode> Nodes;
 	TArray<FGEdge> Edges;                      // aristas con pin (origen.out → destino.pin)

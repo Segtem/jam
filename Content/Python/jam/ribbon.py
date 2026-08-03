@@ -59,6 +59,8 @@ GRUPOS: dict[str, list[tuple[str, list[str]]]] = {
     "Params": [("Valores", ["number", "text"])],
     "Maths": [
         ("Aritmética", ["math_add", "math_subtract", "math_multiply", "math_divide"]),
+        ("Signo", ["math_negate", "math_absolute"]),
+        ("Resto y potencia", ["math_modulo", "math_power", "math_sqrt"]),
         ("Avanzado", ["math"]),
     ],
     "Source": [("Fuente", ["source_surface"])],
@@ -80,6 +82,18 @@ GRUPOS: dict[str, list[tuple[str, list[str]]]] = {
     "Debug": [("Ver", ["debug"])],
 }
 
+# La fila superior no escala si cada categoría ocupa un tab. Estas familias son sólo navegación:
+# `cat` sigue siendo el contrato y el color de cada herramienta, y los presets no guardan ninguna
+# familia. Dentro de la familia se elige la categoría en una segunda fila corta.
+SECCIONES: list[tuple[str, list[str]]] = [
+    ("Inicio", ["Content", "Place", "Create", "Edit", "Display"]),
+    ("Geometría", ["Mesh", "Vector", "Transform", "Sets", "Combine"]),
+    ("Distribución", ["Scatter", "Mask", "Weight", "Source", "Output"]),
+    ("Datos", ["Params", "Maths", "Debug"]),
+    ("Materiales", ["Shader"]),
+    ("Funciones", ["Funciones"]),
+]
+
 # Cuántas filas apila el ribbon lo decide la UI (`SJamGraphEditor::RibbonRows`), que es la única que
 # lo usa: duplicarlo acá sólo daría dos verdades que se desincronizan.
 
@@ -92,6 +106,14 @@ def grupo_de(cat: str, verbo: str) -> str:
     """
     for nombre, verbos in GRUPOS.get(cat, ()):
         if verbo in verbos:
+            return nombre
+    return ""
+
+
+def seccion_de(cat: str) -> str:
+    """Familia visual de una categoría; vacío obliga a decidir dónde debe aparecer un tab nuevo."""
+    for nombre, categorias in SECCIONES:
+        if cat in categorias:
             return nombre
     return ""
 
@@ -114,4 +136,5 @@ def anotar(tools: list[dict]) -> list[dict]:
     """
     for herramienta in tools:
         herramienta["grupo"] = grupo_de(herramienta["cat"], herramienta["verbo"])
+        herramienta["seccion"] = seccion_de(herramienta["cat"])
     return sorted(tools, key=lambda t: orden_de(t["cat"], t["verbo"]))

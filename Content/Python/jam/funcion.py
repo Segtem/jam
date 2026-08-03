@@ -168,7 +168,7 @@ def herramientas(cuerpos: dict[str, JamGraph] | None = None) -> list[dict]:
     reducir una firma a un único ``in``/``out`` perdería justamente el contrato que la hace útil.
     """
     borde = [
-        {"verbo": "input", "cat": "Funciones", "grupo": "Firma",
+        {"verbo": "input", "cat": "Funciones", "seccion": "Funciones", "grupo": "Firma",
          "doc": "entrada nombrada del cuerpo de una función", "source": True, "aridad": 0,
          "in_name": "", "out_name": "*", "asset_pin": False, "asset_row": False,
          "params": [
@@ -178,7 +178,7 @@ def herramientas(cuerpos: dict[str, JamGraph] | None = None) -> list[dict]:
               "opciones": TIPOS_PIN,
               "etiquetas_opciones": [ETIQUETAS_TIPOS_PIN[t] for t in TIPOS_PIN]},
          ]},
-        {"verbo": "output", "cat": "Funciones", "grupo": "Firma",
+        {"verbo": "output", "cat": "Funciones", "seccion": "Funciones", "grupo": "Firma",
          "doc": "salida nombrada del cuerpo de una función", "source": False, "aridad": 1,
          "in_name": "*", "out_name": "", "asset_pin": False, "asset_row": False,
          "params": [
@@ -215,7 +215,7 @@ def herramienta(funcion_id: str, nombre: str, cuerpo: JamGraph) -> dict:
     f = firma(cuerpo)
     return {
         "verbo": PREFIJO + funcion_id, "label": nombre,
-        "cat": "Funciones", "grupo": "Biblioteca",
+        "cat": "Funciones", "seccion": "Funciones", "grupo": "Biblioteca",
         "doc": f"función «{nombre}» — se expande inline antes de Compile",
         "source": not f["entradas"], "aridad": 0 if not f["entradas"] else 1,
         "in_name": "", "out_name": "", "asset_pin": False, "asset_row": False,

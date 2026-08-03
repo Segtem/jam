@@ -8,6 +8,7 @@ Las dos cosas degradan en silencio — el verbo simplemente no aparece donde deb
 from __future__ import annotations
 
 import json
+from pathlib import Path
 import sys
 import types
 import unittest
@@ -27,6 +28,16 @@ class LayoutTests(unittest.TestCase):
     def test_every_verb_lands_in_a_subgroup(self):
         huerfanos = sorted(f"{t['cat']}.{t['verbo']}" for t in spec()["tools"] if not t["grupo"])
         self.assertEqual(huerfanos, [], "sin subgrupo van al final sin etiqueta")
+
+    def test_every_category_lands_in_one_compact_main_section(self):
+        datos = spec()["tools"]
+        huerfanas = sorted({t["cat"] for t in datos if not t.get("seccion")})
+        self.assertEqual(huerfanas, [])
+        todas = [cat for _seccion, categorias in ribbon.SECCIONES for cat in categorias]
+        self.assertEqual(len(todas), len(set(todas)), "categoría repetida en dos secciones")
+        self.assertLessEqual(len(ribbon.SECCIONES), 7, "la fila principal volvió a ser interminable")
+        for herramienta in datos:
+            self.assertEqual(herramienta["seccion"], ribbon.seccion_de(herramienta["cat"]))
 
     def test_the_table_does_not_name_verbs_that_no_longer_exist(self):
         existen = {t["verbo"] for t in spec()["tools"]}
@@ -66,6 +77,23 @@ class LayoutTests(unittest.TestCase):
                         for cat, grupos in ribbon.GRUPOS.items()
                         for nombre, verbos in grupos if len(verbos) > 18)
         self.assertEqual(gordos, [])
+
+    def test_slate_dibuja_familia_y_categoria_en_dos_niveles(self):
+        raiz = Path(__file__).resolve().parents[3]
+        modulo = (raiz / "Source/JamEditor/Private/JamEditorModule.cpp").read_text()
+        editor = (raiz / "Source/JamEditor/Private/SJamGraphEditor.cpp").read_text()
+        cabecera = (raiz / "Source/JamEditor/Public/SJamGraphEditor.h").read_text()
+
+        self.assertIn('TryGetStringField(TEXT("seccion"), T.Section)', modulo)
+        self.assertIn("TArray<FString> Sections", cabecera)
+        self.assertIn("FString ActiveSection", cabecera)
+        self.assertIn("CategoryStripBox", cabecera)
+        self.assertIn("void SJamGraphEditor::SelectSection", editor)
+        self.assertIn("void SJamGraphEditor::RebuildCategoryStrip", editor)
+        self.assertIn("ActiveSection == Section", editor)
+        self.assertIn("T.Cat == ActiveTab && Familia == Section", editor)
+        # La segunda fila cambia presentación; no reescribe el `cat` de ninguna herramienta.
+        self.assertIn("ActiveTab = Cat", editor)
 
 
 if __name__ == "__main__":

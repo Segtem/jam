@@ -49,7 +49,9 @@ class RegistroMathTests(unittest.TestCase):
     def test_el_registro_es_la_misma_fuente_para_flow_y_graph(self) -> None:
         self.assertIs(flow.VALOR_KINDS, math_core.VALOR_KINDS)
         self.assertEqual(set(math_core.DEFAULTS), set(math_core.VALORES))
-        for verbo in ("math_add", "math_subtract", "math_multiply", "math_divide"):
+        for verbo in ("math_add", "math_subtract", "math_multiply", "math_divide",
+                      "math_negate", "math_absolute", "math_modulo", "math_power",
+                      "math_sqrt"):
             self.assertIn(verbo, flow.OPS_META)
             self.assertEqual(math_core.tipo_salida(verbo), "N")
             for pin in math_core.DEFAULTS[verbo]:
@@ -66,6 +68,11 @@ class RegistroMathTests(unittest.TestCase):
         self.assertEqual(tools["math_subtract"]["label"], "Restar")
         self.assertEqual(tools["math_multiply"]["label"], "Multiplicar")
         self.assertEqual(tools["math_divide"]["label"], "Dividir")
+        self.assertEqual(tools["math_negate"]["label"], "Negar")
+        self.assertEqual(tools["math_absolute"]["label"], "Absoluto")
+        self.assertEqual(tools["math_modulo"]["label"], "Módulo")
+        self.assertEqual(tools["math_power"]["label"], "Potencia")
+        self.assertEqual(tools["math_sqrt"]["label"], "Raíz cuadrada")
         self.assertEqual(tools["math"]["label"], "Expresión")
         self.assertEqual(tools["math_add"]["grupo"], "Aritmética")
         self.assertEqual(tools["math"]["grupo"], "Avanzado")
@@ -76,6 +83,9 @@ class RegistroMathTests(unittest.TestCase):
         self.assertEqual([p["label"] for p in tools["math_divide"]["params"]],
                          ["dividendo (Número)", "divisor (Número)"])
         self.assertEqual(ribbon.grupo_de("Maths", "math_multiply"), "Aritmética")
+        self.assertEqual(ribbon.grupo_de("Maths", "math_negate"), "Signo")
+        self.assertEqual(ribbon.grupo_de("Maths", "math_power"), "Resto y potencia")
+        self.assertEqual(tools["math_power"]["seccion"], "Datos")
 
     def test_las_operaciones_explicitas_no_usan_eval(self) -> None:
         def prohibido(*_args):
@@ -120,6 +130,36 @@ class CalculoMathTests(unittest.TestCase):
 
         self.assertEqual(plan.values_by_node["resta"], 7.0)
         self.assertEqual(plan.values_by_node["division"], 2.5)
+
+    def test_signo_resto_potencia_y_raiz(self) -> None:
+        literal = lambda *_args: None
+        casos = [
+            ("math_negate", {"valor": 7.5}, -7.5),
+            ("math_absolute", {"valor": -7.5}, 7.5),
+            ("math_modulo", {"valor": 17, "modulo": 5}, 2.0),
+            ("math_modulo", {"valor": -1, "modulo": 5}, 4.0),
+            ("math_power", {"base": 2, "exponente": 10}, 1024.0),
+            ("math_sqrt", {"radicando": 81}, 9.0),
+        ]
+        for verbo, params, esperado in casos:
+            with self.subTest(verbo=verbo, params=params):
+                self.assertEqual(math_core.evaluar(verbo, params, {}, literal), esperado)
+
+    def test_nuevos_valores_tienen_paridad_flow_graph(self) -> None:
+        g = JamGraph()
+        g.add("math_absolute", {"valor": -3}, nid="abs")
+        g.add("math_power", {"exponente": 3}, nid="potencia")
+        g.connect("abs", "potencia", "base")
+        f = flow.Flow()
+        f.add("math_absolute", {"valor": -3}, "abs")
+        f.add("math_power", {"exponente": 3}, "potencia")
+        f.connect("abs", "potencia", "base")
+
+        f.evaluar()
+        plan = compilar(g, registro={})
+
+        self.assertEqual(plan.values_by_node["potencia"], 27.0)
+        self.assertEqual(f.resultados["potencia"]["value"], 27.0)
 
     def test_las_propiedades_basicas_discriminan_los_operadores(self) -> None:
         literal = lambda *_args: None
@@ -236,6 +276,19 @@ class ErroresMathTests(unittest.TestCase):
 
         self.assertFalse(respuesta["ok"])
         self.assertIn("cero", respuesta["report"])
+
+    def test_dominios_de_modulo_potencia_y_raiz_fallan_en_el_pin_responsable(self) -> None:
+        casos = [
+            ("math_modulo", {"valor": 3, "modulo": 0}, "modulo"),
+            ("math_power", {"base": -1, "exponente": 0.5}, "base"),
+            ("math_sqrt", {"radicando": -1}, "radicando"),
+        ]
+        for verbo, params, pin in casos:
+            g = JamGraph()
+            g.add(verbo, params, nid="cuenta")
+            with self.subTest(verbo=verbo), self.assertRaises(GraphValidationError) as caught:
+                compilar(g, registro={})
+            self.assertIn(pin, " ".join(caught.exception.diagnostics["cuenta"]))
 
 
 class SlateMathContratoTests(unittest.TestCase):

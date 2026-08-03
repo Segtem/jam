@@ -514,18 +514,29 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 	ActiveAsset = InArgs._ActiveAsset;
 	OnOpenContent = InArgs._OnOpenContent;
 
-	// Ribbon estilo Grasshopper: una fila de TABS (categorías) y, debajo, las fichas de la categoría
-	// activa con ICONO (badge de color + código) + nombre. El tab activo se pinta con el tono de su
-	// categoría. El doble clic en el lienzo abre el buscador igual (los dos caminos conviven).
+	// El antiguo ribbon ponía unas veinte categorías en una sola tira horizontal. Ahora la primera
+	// fila contiene FAMILIAS estables y una segunda fila corta elige la categoría real. `cat` sigue
+	// siendo protocolo/color y `section` es sólo navegación: ningún preset cambia de identidad.
 	Categories.Reset();
+	Sections.Reset();
 	for (const FJamTool& T : Tools)
 	{
 		Categories.AddUnique(T.Cat);
+		Sections.AddUnique(T.Section.IsEmpty() ? T.Cat : T.Section);
 	}
 	if (ActiveTab.IsEmpty() && Categories.Num() > 0)
 	{
 		ActiveTab = Categories[0];
 	}
+	for (const FJamTool& T : Tools)
+	{
+		if (T.Cat == ActiveTab)
+		{
+			ActiveSection = T.Section.IsEmpty() ? T.Cat : T.Section;
+			break;
+		}
+	}
+	if (ActiveSection.IsEmpty() && Sections.Num() > 0) { ActiveSection = Sections[0]; }
 
 	TSharedRef<SHorizontalBox> TabStrip = SNew(SHorizontalBox);
 	TabStrip->AddSlot().AutoWidth().Padding(2.0f, 0.0f)
@@ -535,30 +546,32 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 		.ToolTipText(LOCTEXT("PaletteContentTip", "Elegir el asset activo (abre la ventana de Content)"))
 		.OnClicked_Lambda([this]() { OnOpenContent.ExecuteIfBound(); return FReply::Handled(); })
 	];
-	// «Aprender» va PRIMERO —es lo que busca alguien que recién llega— pero NO es el tab por
+	// «Aprender» va PRIMERO —es lo que busca alguien que recién llega— pero NO es la familia por
 	// defecto: quien usa Jam todos los días no quiere una pantalla de bienvenida entre él y sus
 	// verbos. Se abre en el primer tab de trabajo y este queda a un clic, a la vista.
-	Categories.Insert(JamLearnTab, 0);
-	for (const FString& Cat : Categories)
+	Sections.Insert(JamLearnTab, 0);
+	for (const FString& Section : Sections)
 	{
 		TabStrip->AddSlot().AutoWidth().Padding(1.0f, 0.0f)
 		[
 			SNew(SButton)
-			.ToolTipText(Cat == JamLearnTab
+			.ToolTipText(Section == JamLearnTab
 				? LOCTEXT("LearnTabTip", "Tutoriales y ejemplos: grafos armados para abrir, correr y desarmar")
-				: FText::FromString(FString::Printf(TEXT("Tab «%s»"), *Cat)))
-			// activo = tono de la categoría; inactivo = gris apagado (así se lee cuál está abierto)
-			.ButtonColorAndOpacity_Lambda([this, Cat]()
+				: FText::FromString(FString::Printf(TEXT("Familia «%s»"), *Section)))
+			// activo = tono de la familia; inactivo = gris apagado.
+			.ButtonColorAndOpacity_Lambda([this, Section]()
 			{
-				return ActiveTab == Cat ? CategoryColor(Cat) : FLinearColor(0.22f, 0.22f, 0.24f, 1.0f);
+				return ActiveSection == Section
+					? CategoryColor(Section) : FLinearColor(0.22f, 0.22f, 0.24f, 1.0f);
 			})
-			.OnClicked_Lambda([this, Cat]() { ActiveTab = Cat; RebuildTabContent(); return FReply::Handled(); })
+			.OnClicked_Lambda([this, Section]()
+			{ SelectSection(Section); return FReply::Handled(); })
 			[
 				SNew(SHorizontalBox)
 				+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
-				[ MakeBadge(CategoryColor(Cat), Cat.Left(2).ToUpper(), 14.0f) ]
+				[ MakeBadge(CategoryColor(Section), Section.Left(2).ToUpper(), 14.0f) ]
 				+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(4.0f, 0.0f, 2.0f, 0.0f)
-				[ SNew(STextBlock).Text(FText::FromString(Cat)) ]
+				[ SNew(STextBlock).Text(FText::FromString(Section)) ]
 			]
 		];
 	}
@@ -591,6 +604,15 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 		[
 			SNew(SScrollBox).Orientation(Orient_Horizontal)
 			+ SScrollBox::Slot()[ TabStrip ]
+		]
+
+		// Categorías reales de la familia activa. Son pocas y conservan nombre/color existentes.
+		+ SVerticalBox::Slot().AutoHeight().Padding(8.0f, 2.0f, 8.0f, 0.0f)
+		[
+			SNew(SScrollBox).Orientation(Orient_Horizontal)
+			.Visibility_Lambda([this]()
+			{ return ActiveSection == JamLearnTab ? EVisibility::Collapsed : EVisibility::Visible; })
+			+ SScrollBox::Slot()[ SAssignNew(CategoryStripBox, SHorizontalBox) ]
 		]
 
 		// Ribbon: fichas con icono de la categoría activa (se rellena en RebuildTabContent).
@@ -771,7 +793,8 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 		]
 	];
 
-	RebuildTabContent();   // abre el primer tab con sus fichas
+	RebuildCategoryStrip();
+	RebuildTabContent();   // abre la primera categoría con sus fichas
 	Anterior = BuildJson();   // la foto de arranque: el grafo vacío del que parte el historial
 }
 
@@ -1038,6 +1061,12 @@ void SJamGraphEditor::RefreshInspector()
 FLinearColor SJamGraphEditor::CategoryColor(const FString& Cat)
 {
 	// un tono por categoría (como los tabs de Grasshopper): tools + flow.
+	if (Cat == TEXT("Inicio"))       { return FLinearColor(0.34f, 0.44f, 0.58f, 1.0f); }
+	if (Cat == TEXT("Geometría"))    { return FLinearColor(0.18f, 0.56f, 0.56f, 1.0f); }
+	if (Cat == TEXT("Distribución")) { return FLinearColor(0.24f, 0.56f, 0.34f, 1.0f); }
+	if (Cat == TEXT("Datos"))        { return FLinearColor(0.68f, 0.30f, 0.44f, 1.0f); }
+	if (Cat == TEXT("Materiales"))   { return FLinearColor(0.66f, 0.42f, 0.20f, 1.0f); }
+	if (Cat == TEXT("Funciones"))    { return FLinearColor(0.50f, 0.32f, 0.62f, 1.0f); }
 	if (Cat == TEXT("Content"))  { return FLinearColor(0.40f, 0.44f, 0.50f, 1.0f); }
 	if (Cat == TEXT("Place"))    { return FLinearColor(0.20f, 0.52f, 0.72f, 1.0f); }
 	if (Cat == TEXT("Scatter"))  { return FLinearColor(0.24f, 0.60f, 0.32f, 1.0f); }
@@ -1153,6 +1182,77 @@ TSharedRef<SWidget> SJamGraphEditor::MakeBadge(const FLinearColor& Color, const 
 			Glyph
 		]
 	];
+}
+
+void SJamGraphEditor::SelectSection(const FString& Section)
+{
+	ActiveSection = Section;
+	if (Section == JamLearnTab)
+	{
+		ActiveTab = JamLearnTab;
+	}
+	else
+	{
+		bool bCategoriaActualPertenece = false;
+		for (const FJamTool& T : Tools)
+		{
+			const FString Familia = T.Section.IsEmpty() ? T.Cat : T.Section;
+			if (T.Cat == ActiveTab && Familia == Section)
+			{
+				bCategoriaActualPertenece = true;
+				break;
+			}
+		}
+		if (!bCategoriaActualPertenece)
+		{
+			for (const FJamTool& T : Tools)
+			{
+				const FString Familia = T.Section.IsEmpty() ? T.Cat : T.Section;
+				if (Familia == Section)
+				{
+					ActiveTab = T.Cat;
+					break;
+				}
+			}
+		}
+	}
+	RebuildCategoryStrip();
+	RebuildTabContent();
+}
+
+void SJamGraphEditor::RebuildCategoryStrip()
+{
+	if (!CategoryStripBox.IsValid()) { return; }
+	CategoryStripBox->ClearChildren();
+	if (ActiveSection == JamLearnTab) { return; }
+
+	TArray<FString> CategoriasDeFamilia;
+	for (const FJamTool& T : Tools)
+	{
+		const FString Familia = T.Section.IsEmpty() ? T.Cat : T.Section;
+		if (Familia == ActiveSection) { CategoriasDeFamilia.AddUnique(T.Cat); }
+	}
+	for (const FString& Cat : CategoriasDeFamilia)
+	{
+		CategoryStripBox->AddSlot().AutoWidth().Padding(1.0f, 0.0f)
+		[
+			SNew(SButton)
+			.Text(FText::FromString(Cat))
+			.ToolTipText(FText::FromString(FString::Printf(
+				TEXT("Categoría «%s» dentro de %s"), *Cat, *ActiveSection)))
+			.ButtonColorAndOpacity_Lambda([this, Cat]()
+			{
+				return ActiveTab == Cat
+					? CategoryColor(Cat) : FLinearColor(0.18f, 0.18f, 0.20f, 1.0f);
+			})
+			.OnClicked_Lambda([this, Cat]()
+			{
+				ActiveTab = Cat;
+				RebuildTabContent();
+				return FReply::Handled();
+			})
+		];
+	}
 }
 
 void SJamGraphEditor::RebuildTabContent()
@@ -1907,6 +2007,8 @@ void SJamGraphEditor::ColapsarSeleccion()
 	(*ToolObj)->TryGetStringField(TEXT("verbo"), Tool.Verb);
 	if (!(*ToolObj)->TryGetStringField(TEXT("label"), Tool.Label)) { Tool.Label = Tool.Verb; }
 	(*ToolObj)->TryGetStringField(TEXT("cat"), Tool.Cat);
+	(*ToolObj)->TryGetStringField(TEXT("seccion"), Tool.Section);
+	if (Tool.Section.IsEmpty()) { Tool.Section = Tool.Cat; }
 	(*ToolObj)->TryGetStringField(TEXT("grupo"), Tool.Group);
 	(*ToolObj)->TryGetStringField(TEXT("doc"), Tool.Doc);
 	(*ToolObj)->TryGetBoolField(TEXT("source"), Tool.bSource);
@@ -1982,6 +2084,8 @@ bool SJamGraphEditor::AplicarRespuestaFuncion(const FString& Res, bool bCargarCu
 	(*ToolObj)->TryGetStringField(TEXT("verbo"), Tool.Verb);
 	if (!(*ToolObj)->TryGetStringField(TEXT("label"), Tool.Label)) { Tool.Label = Tool.Verb; }
 	(*ToolObj)->TryGetStringField(TEXT("cat"), Tool.Cat);
+	(*ToolObj)->TryGetStringField(TEXT("seccion"), Tool.Section);
+	if (Tool.Section.IsEmpty()) { Tool.Section = Tool.Cat; }
 	(*ToolObj)->TryGetStringField(TEXT("grupo"), Tool.Group);
 	(*ToolObj)->TryGetStringField(TEXT("doc"), Tool.Doc);
 	(*ToolObj)->TryGetBoolField(TEXT("source"), Tool.bSource);
