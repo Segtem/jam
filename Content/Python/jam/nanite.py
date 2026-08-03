@@ -37,6 +37,64 @@ def _settings_enabled(settings) -> bool:
         return bool(getattr(settings, "enabled", False))
 
 
+def _read_settings(mesh):
+    """Lectura headless primero; el subsistema queda como compatibilidad para builds anteriores.
+
+    UE 5.8.1 expone ``nanite_settings`` en el StaticMesh incluso cuando
+    ``StaticMeshEditorSubsystem`` no existe en commandlet. Analizar no necesita un servicio de
+    edición: sólo transformar/reconstruir lo necesita.
+    """
+    try:
+        return mesh.get_editor_property("nanite_settings")
+    except Exception:  # noqa: BLE001 — fallback de compatibilidad con la reflexión del motor
+        subsystem = unreal.get_editor_subsystem(unreal.StaticMeshEditorSubsystem)
+        if subsystem is None:
+            raise RuntimeError(
+                "StaticMeshEditorSubsystem no está disponible y el asset no expone nanite_settings")
+        return subsystem.get_nanite_settings(mesh)
+
+
+def analizar(asset, *, lod: int = 0) -> dict:
+    """Lee la representación Nanite sin modificar el StaticMesh.
+
+    Devuelve datos planos para que el juicio quede en :mod:`jam.nanite_core`. Los tres accessors de
+    conteo son públicos en UE 5.8.1; cualquier ausencia o excepción se informa, no se reemplaza por
+    cero porque eso confundiría «no pude medir» con «medí una representación vacía».
+    """
+    mesh = library.cargar_malla(asset) if isinstance(asset, str) else asset
+    if mesh is None:
+        return {"error": (
+            f"«{asset}» no es un StaticMesh (el análisis Nanite necesita una malla estática).")}
+    try:
+        lod = int(lod)
+        settings = _read_settings(mesh)
+        from . import nanite_core
+        return nanite_core.medida(
+            asset=mesh.get_path_name(),
+            enabled=_settings_enabled(settings),
+            vertices=mesh.get_num_nanite_vertices(),
+            triangles=mesh.get_num_nanite_triangles(),
+            uv_channels=mesh.get_num_tex_coords(lod),
+            lods=mesh.get_num_lods(),
+            lod=lod,
+        )
+    except Exception as exc:  # noqa: BLE001 — frontera explícita de la API del motor
+        return {"error": f"no pude medir Nanite: {type(exc).__name__}: {exc}"}
+
+
+def validar(asset, *, lod: int = 0) -> dict:
+    """Analiza y agrega un veredicto estructural, sin tocar el asset."""
+    datos = analizar(asset, lod=lod)
+    if "error" in datos:
+        return datos
+    from . import nanite_core
+    return {
+        **datos,
+        "valido": nanite_core.es_valido(datos),
+        "diagnosticos": nanite_core.diagnosticar(datos),
+    }
+
+
 def convertir(asset, *, carpeta: str = CARPETA) -> dict:
     """Devuelve ``{mesh, ruta, already}`` o ``{error}``.
 

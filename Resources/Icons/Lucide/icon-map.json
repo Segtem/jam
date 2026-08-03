@@ -108,6 +108,8 @@
   "mesh_vertex_gradient": "jam-mesh-vertex-gradient",
   "move": "jam-move",
   "nanite": "jam-nanite",
+  "nanite_analyze": "jam-nanite-analyze",
+  "nanite_validate": "jam-nanite-validate",
   "normalize": "jam-normalize",
   "number": "jam-number",
   "output": "jam-function-output",

@@ -282,6 +282,19 @@
       "area": "01-Graph",
       "carpeta": "01-Graph",
       "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-02"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
       "fecha_en_nombre": "2026-08-03",
       "frontmatter_completo": true,
       "nombre": "2026-08-03-INFORME-Ribbon-Jerarquico-Familias-v1.0",
@@ -1076,6 +1089,11 @@
      {
       "destino": "2026-08-03-ROADMAP-Catalogo-Matematico-Ampliado-v1.0",
       "origen": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "origen": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
       "resuelve": true
      },
      {
@@ -2109,6 +2127,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
       "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "origen": "README",
       "resuelve": true
@@ -2638,6 +2661,19 @@
       "sigue_convencion": true,
       "tipo_declarado": "PLAN",
       "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
       "updated": "2026-08-02"
      },
      {
@@ -3438,6 +3474,11 @@
      {
       "destino": "2026-08-03-ROADMAP-Catalogo-Matematico-Ampliado-v1.0",
       "origen": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "origen": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
       "resuelve": true
      },
      {
@@ -4471,6 +4512,11 @@
       "resuelve": false
      },
      {
+      "destino": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
       "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "origen": "README",
       "resuelve": true
@@ -5000,6 +5046,19 @@
       "sigue_convencion": true,
       "tipo_declarado": "PLAN",
       "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
       "updated": "2026-08-02"
      },
      {
@@ -5800,6 +5859,11 @@
      {
       "destino": "2026-08-03-ROADMAP-Catalogo-Matematico-Ampliado-v1.0",
       "origen": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "origen": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
       "resuelve": true
      },
      {
@@ -6833,6 +6897,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
       "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "origen": "README",
       "resuelve": true
@@ -7362,6 +7431,19 @@
       "sigue_convencion": true,
       "tipo_declarado": "PLAN",
       "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
       "updated": "2026-08-02"
      },
      {
@@ -8165,6 +8247,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "origen": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "origen": "2026-08-03-ROADMAP-Catalogo-Matematico-Ampliado-v1.0",
       "resuelve": true
@@ -9195,6 +9282,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
       "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "origen": "README",
       "resuelve": true
@@ -9724,6 +9816,19 @@
       "sigue_convencion": true,
       "tipo_declarado": "PLAN",
       "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
       "updated": "2026-08-02"
      },
      {
@@ -10527,6 +10632,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "origen": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "origen": "2026-08-03-ROADMAP-Catalogo-Matematico-Ampliado-v1.0",
       "resuelve": true
@@ -11557,6 +11667,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
       "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "origen": "README",
       "resuelve": true
@@ -12086,6 +12201,19 @@
       "sigue_convencion": true,
       "tipo_declarado": "PLAN",
       "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
       "updated": "2026-08-02"
      },
      {
@@ -12886,6 +13014,11 @@
      {
       "destino": "2026-08-03-ROADMAP-Catalogo-Matematico-Ampliado-v1.0",
       "origen": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "origen": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
       "resuelve": true
      },
      {
@@ -13924,6 +14057,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
       "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "origen": "README",
       "resuelve": true
@@ -14453,6 +14591,19 @@
       "sigue_convencion": true,
       "tipo_declarado": "PLAN",
       "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
       "updated": "2026-08-02"
      },
      {
@@ -15253,6 +15404,11 @@
      {
       "destino": "2026-08-03-ROADMAP-Catalogo-Matematico-Ampliado-v1.0",
       "origen": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "origen": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
       "resuelve": true
      },
      {
@@ -16286,6 +16442,11 @@
       "resuelve": false
      },
      {
+      "destino": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
       "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "origen": "README",
       "resuelve": true
@@ -16815,6 +16976,19 @@
       "sigue_convencion": true,
       "tipo_declarado": "PLAN",
       "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
       "updated": "2026-08-02"
      },
      {
@@ -17631,6 +17805,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "origen": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "origen": "2026-08-03-ROADMAP-Catalogo-Matematico-Ampliado-v1.0",
       "resuelve": true
@@ -18661,6 +18840,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
       "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "origen": "README",
       "resuelve": true
@@ -19190,6 +19374,19 @@
       "sigue_convencion": true,
       "tipo_declarado": "PLAN",
       "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
       "updated": "2026-08-02"
      },
      {
@@ -19993,6 +20190,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "origen": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "origen": "2026-08-03-ROADMAP-Catalogo-Matematico-Ampliado-v1.0",
       "resuelve": true
@@ -21023,6 +21225,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
       "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "origen": "README",
       "resuelve": true
@@ -21552,6 +21759,19 @@
       "sigue_convencion": true,
       "tipo_declarado": "PLAN",
       "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
       "updated": "2026-08-02"
      },
      {
@@ -22368,6 +22588,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "origen": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "origen": "2026-08-03-ROADMAP-Catalogo-Matematico-Ampliado-v1.0",
       "resuelve": true
@@ -23398,6 +23623,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
       "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "origen": "README",
       "resuelve": true
@@ -23927,6 +24157,19 @@
       "sigue_convencion": true,
       "tipo_declarado": "PLAN",
       "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-02"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-02",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
       "updated": "2026-08-02"
      },
      {
@@ -24730,6 +24973,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0",
+      "origen": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "origen": "2026-08-03-ROADMAP-Catalogo-Matematico-Ampliado-v1.0",
       "resuelve": true
@@ -25760,6 +26008,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
       "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "origen": "README",
       "resuelve": true
@@ -26050,7 +26303,7 @@
    "catalogo": "99372ef74c544a44c24bbbe91d0dd050320a7a0e37d88ea94e6cf2d0de34f79c",
    "configuracion": "407a21668fb6d1cc90b20875fa7e2a1044832d4f2e47f759f46e63edcb27e073",
    "emisor": "197be60d28e63e4f20f9e663ea9910ae265daf1b64580a5f5e8281be5c9d0307",
-   "referencia": "5b2c38562fd7ed6906e57a83efc910244b971714d24f2521bce99f58b0048720"
+   "referencia": "8ba9d3519a860979ae3b6aca7ed2108f2833aaadeebd024c221de92c1eef7839"
   },
   "raiz_fuentes": ".."
  },

@@ -627,6 +627,28 @@ def t_nanite(asset) -> str:
             "La malla fuente quedó intacta; Bake fija la copia y Discard la elimina.")
 
 
+def t_nanite_analyze(asset, *, lod=0) -> str:
+    """Mide Nanite sin modificar el asset y lo deja pasar por su salida A."""
+    from . import nanite, nanite_core
+    r = nanite.analizar(asset, lod=int(lod))
+    if "error" in r:
+        raise RuntimeError(r["error"])
+    _RUNTIME_ASSET_OUTPUTS["nanite_analyze"] = r["asset"]
+    return nanite_core.texto_analisis(r)
+
+
+def t_nanite_validate(asset, *, lod=0) -> str:
+    """Exige que el asset tenga una representación Nanite construida y lo deja pasar por A."""
+    from . import nanite, nanite_core
+    r = nanite.validar(asset, lod=int(lod))
+    if "error" in r:
+        raise RuntimeError(r["error"])
+    if not r["valido"]:
+        raise RuntimeError(nanite_core.texto_validacion(r))
+    _RUNTIME_ASSET_OUTPUTS["nanite_validate"] = r["asset"]
+    return nanite_core.texto_validacion(r)
+
+
 def _mesh_output(verbo: str, result: dict, label: str) -> str:
     if "error" in result:
         raise RuntimeError(result["error"])
@@ -1430,8 +1452,10 @@ _ANCLAS = _anclas()
 # Dash Bar. Es dato: mover una herramienta de categoría es cambiar este campo, sin tocar C++.
 REGISTRO = {
     "asset":        {"fn": t_asset,   "cat": "Content", "params": {"name": ""},
+                     "read_only": True,
                      "doc": "elige el asset activo (Content); las demás herramientas lo heredan"},
     "pick":         {"fn": t_pick,    "cat": "Content", "params": {},
+                     "read_only": True,
                      "doc": "usa la malla SELECCIONADA en el Content Browser de Unreal como asset activo"},
     "pivot":        {"fn": t_pivot,   "cat": "Edit",    "params": {"anchor": ""},
                      "opciones": {"anchor": [""] + list(_ANCLAS)},
@@ -1493,6 +1517,14 @@ REGISTRO = {
     "nanite":       {"fn": t_nanite, "cat": "Create", "params": {},
                      "doc": "convierte un StaticMesh a Nanite sin tocar el original; "
                             "Run crea preview, Bake fija la copia y Discard la elimina"},
+    "nanite_analyze": {"fn": t_nanite_analyze, "cat": "Create", "params": {"lod": 0},
+                       "read_only": True,
+                       "doc": "lee sin modificar: estado Nanite, triángulos, vértices, UV y LOD; "
+                              "deja pasar el mismo asset A"},
+    "nanite_validate": {"fn": t_nanite_validate, "cat": "Create", "params": {"lod": 0},
+                        "read_only": True,
+                        "doc": "exige una representación Nanite habilitada y no vacía; "
+                               "no juzga materiales ni calidad visual y deja pasar A"},
     # Mesh vive sólo en Graph: por sus cables fluye un DynamicMesh transitorio `M`. El tab no aparece
     # en Dash porque ejecutar una primitiva aislada allí no tiene un consumidor ni un asset que ver.
     "curve_bezier": {"fn": t_curve_bezier, "cat": "Mesh", "graph_only": True,
@@ -1806,7 +1838,8 @@ REGISTRO = {
 # Verbos que NO crean nada COLOCABLE: son selección, helpers o escritores de Content y por ahora no
 # pasan por el Preview de actores. PCG ya no pertenece acá: su PCGVolume y su PCGGraph temporal
 # participan juntos de Run/Bake/Discard.
-SIN_SPAWN = {"asset", "pick", "gizmo", "ghost", "pivot", "pivot_set", "normalize", "fracture"}
+SIN_SPAWN = {"asset", "pick", "gizmo", "ghost", "pivot", "pivot_set", "normalize", "fracture",
+             "nanite_analyze", "nanite_validate"}
 
 # Orden de las categorías en la barra (como Dash). Las vacías no se muestran.
 # Las seis primeras son verbos de herramienta; las que siguen llegan de las ops de Flow que ahora

@@ -40,7 +40,10 @@ GRUPOS: dict[str, list[tuple[str, list[str]]]] = {
     "Content": [("Assets", ["asset", "pick"])],
     "Place": [("Colocar", ["place", "drop", "snap"])],
     "Scatter": [("Repartir", ["scatter", "spline", "pcg"])],
-    "Create": [("Crear", ["create_spline", "replace", "fracture", "nanite"])],
+    "Create": [
+        ("Crear", ["create_spline", "replace", "fracture"]),
+        ("Nanite", ["nanite", "nanite_analyze", "nanite_validate"]),
+    ],
     "Edit": [
         ("Pivote", ["pivot", "pivot_set", "normalize"]),
         ("Ayudas", ["ghost", "gizmo"]),

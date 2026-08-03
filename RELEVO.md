@@ -58,6 +58,14 @@ ribbon principal dejó de ser una tira de veinte categorías: ahora son seis fam
 con una segunda fila de categorías. Son **552 tests**, build 5.8.1 y sonda embebida verdes; falta el
 juicio visual de la nueva organización y los cinco nodos.
 
+Después se abrió el roadmap de nodos nativos de UE 5.8.1. La primera entrega agrega
+**Nanite Analyze** y **Nanite Validate** como lecturas A → A: conteos públicos de triángulos,
+vértices, UV y LOD, juicio puro sin `unreal`, iconos propios y Run sin Preview. La sonda real
+discriminó una Sphere sin Nanite y `CasaKit/casa_kit` con 416.179 triángulos y 1.202.673 vértices.
+También encontró que `StaticMeshEditorSubsystem` es `None` en commandlet: leer usa ahora el asset;
+transformar conserva el subsistema. El plan completo vive en
+[[2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0]].
+
 **Leé primero** `Vault-kb/00-Proceso/2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0.md`: son
 diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 
@@ -65,8 +73,9 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 
 | Qué | Comando | Resultado |
 |---|---|---|
-| Cerebro de Jam | `cd Content/Python/tests && PYTHONPATH=$PWD/.. python -m unittest discover -s . -p "test_*.py" -q` | **552 OK**, 0.3 s |
+| Cerebro de Jam | `cd Content/Python/tests && PYTHONPATH=$PWD/.. python -m unittest discover -s . -p "test_*.py" -q` | **563 OK**, 0.3 s |
 | Math en UE 5.8.1 | `tools/experiments/verifica_math_graph.py` en `UnrealEditor-Cmd` | **9 verbos · Run sin Preview · Inspector=40/2 · dominios rechazados · TODO VERDE** |
+| Nanite Analyze/Validate | `tools/experiments/verifica_nanite_diagnostics_58.py` en `UnrealEditor-Cmd` | **apagado rechazado + 416.179 tris/1.202.673 verts validados · Run sin Preview · TODO VERDE** |
 | Vault (modo sombra) | `python tools/vault.py` | **57 docs · las dos implementaciones coinciden** |
 | Motor | sonda headless + gestos reales de función/ventana | **ABM + Compile de cuerpo + ventana Wayland interactiva · TODO VERDE** |
 | Nanite→Fracture | `tools/experiments/verifica_nanite_fracture_58.py` en editor GUI | **2/2 materiales distintos + GC Nanite · TODO VERDE; cierre 139** |
@@ -107,6 +116,7 @@ Lo que **nadie ejerció con las manos** de este turno:
 | Selector de tipos completo | Brian | ⏳ falta desplegar la lista y confirmar la presentación real |
 | Maths: Sumar/Restar/Multiplicar/Dividir, pines y resultado | Brian | ✅ función/instancia + Run + Inspector + persistencia; sin Preview vacío |
 | Maths: Negar/Absoluto/Módulo/Potencia/Raíz | Brian | ⏳ tests/sonda/build verdes; falta gesto en Datos → Maths |
+| Nanite Analyze/Validate, cable A → A y Run sin Preview | Brian | ⏳ tests + commandlet 5.8.1 verdes; falta gesto en Create → Nanite |
 | Ribbon jerárquico por familias | Brian | ⏳ abrió/cerró sin crash; falta juzgar orden, densidad y navegación |
 | Resto del ABM, `Ctrl+G` + dibujo/cableado de pines múltiples | Brian | ◐ Nueva/Editar/Guardar/Renombrar/Eliminar verdes; faltan `Ctrl+G` y firmas no numéricas |
 | Aspecto de una GC Nanite fracturada y rotura en PIE | Brian | ⏳ metadata/materiales verdes; falta viewport y simulación |
@@ -149,6 +159,12 @@ Después, sin urgencia: subir `~/Dev/oracle/estudio/` a NotebookLM. Empezá por 
 de pedir manos sin que nadie lo note.)*
 
 ## Lo próximo
+
+**Prioridad nueva: continuar
+[[2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0|los nodos de UE 5.8.1]].** Confirmar primero
+Nanite Analyze/Validate en Slate. Después avanzar sobre Geometry Script con Simplify por conteo y
+tolerancia, Remesh uniforme/adaptativo y limpieza de material IDs; son APIs públicas y una base más
+estable que PVE o Mesh Terrain.
 
 **1. Continuar el
 [[2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0|plan de revisión integral]].** Las fases 0 y 1

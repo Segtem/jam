@@ -726,10 +726,20 @@ def ejecutar_dsl(linea: str, widget=None) -> str:
     return f"verbo desconocido: «{verbo}». «help» lista los verbos."
 
 
-def _solo_valores(g) -> bool:
-    """Un grafo numérico/textual calcula datos, pero no posee ni reemplaza Preview de escena."""
+def _sin_efectos(g) -> bool:
+    """El grafo sólo calcula/lee: no merece abrir ni reemplazar un Preview vacío.
+
+    La marca es opt-in porque ``SIN_SPAWN`` no alcanza: Fracture no coloca actores pero sí escribe
+    Content, y Normalize tampoco spawnea aunque modifica el asset. ``read_only`` declara una
+    propiedad más fuerte y revisable por verbo.
+    """
+    from . import tools
     from .graph import VALOR_KINDS
-    return bool(g.nodes) and all(nodo.get("verb") in VALOR_KINDS for nodo in g.nodes.values())
+    return bool(g.nodes) and all(
+        nodo.get("verb") in VALOR_KINDS
+        or tools.REGISTRO.get(nodo.get("verb"), {}).get("read_only", False)
+        for nodo in g.nodes.values()
+    )
 
 
 def ejecutar_grafo(g_json: str, widget=None) -> str:
@@ -747,8 +757,11 @@ def ejecutar_grafo(g_json: str, widget=None) -> str:
             raise RuntimeError(texto)
         return texto
 
-    if _solo_valores(g):
-        return correr(widget) + f"\n\nRUN ✓ — {len(g.nodes)} valor(es), sin efectos en la escena"
+    if _sin_efectos(g):
+        try:
+            return correr(widget) + f"\n\nRUN ✓ — {len(g.nodes)} nodo(s), sin efectos en la escena"
+        except Exception as exc:  # noqa: BLE001 — error observable, sin transacción que revertir
+            return f"[error] RUN sin efectos ✗ — {exc}"
     return _preview(correr, owner="graph")
 
 
@@ -884,9 +897,13 @@ def ejecutar_grafo_json(g_json: str, widget=None, *, owner: str = "graph") -> st
             raise RuntimeError(texto)
         return texto
 
-    if _solo_valores(g):
-        reporte = correr(widget) + f"\n\nRUN ✓ — {len(g.nodes)} valor(es), sin efectos en la escena"
-        return json.dumps({"ok": True, "preview": False, "report": reporte, "nodes": caja},
+    if _sin_efectos(g):
+        try:
+            reporte = correr(widget) + f"\n\nRUN ✓ — {len(g.nodes)} nodo(s), sin efectos en la escena"
+        except Exception as exc:  # noqa: BLE001 — el veredicto ya quedó asociado a cada nodo
+            reporte = f"[error] RUN sin efectos ✗ — {exc}"
+        ok = not any(resultado.get("estado") == "error" for resultado in caja.values())
+        return json.dumps({"ok": ok, "preview": False, "report": reporte, "nodes": caja},
                           ensure_ascii=True)
 
     reporte = _preview(correr, owner=owner)
