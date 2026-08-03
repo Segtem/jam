@@ -222,3 +222,8 @@ fuentes/sumideros sintéticos tipados. Así reutiliza las reglas normales de DAG
 tipos sin inventar que una función tenga valores concretos. Run explica que la definición no se
 ejecuta sola: hay que guardar, insertar su ficha de Biblioteca y conectar valores. El cuerpo real
 `Num1: N, Num2: N → Sumar → salida: N` dio `COMPILE ✓` con cuatro nodos.
+
+Brian confirmó después el flujo entero: **Guardar y volver al grafo**, insertar la definición desde
+Biblioteca, conectar valores, ejecutar, inspeccionar el resultado y persistir tras cerrar/reabrir.
+Renombrar y Eliminar también funcionaron correctamente. Permanecen abiertos `Ctrl+G` sobre una
+selección real, el cableado de una firma de varios pines no numéricos y el índice global de usos.

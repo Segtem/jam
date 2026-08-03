@@ -224,10 +224,17 @@ humano. Un test que lee el C++ ata esta división al spec de Python. La sonda en
 una primera prueba de la función interna pasó, pero la API real siguió abriendo Preview; al mover el
 test al borde público reprodujo el rojo y luego validó la corrección.
 
-Queda abierta una sola frontera para esta entrega: guardar, reabrir y ejecutar la cadena con gestos
-en el Graph del editor, y confirmar el resultado del inspector sin que aparezca un Preview vacío. La
-captura real ya confirmó `resultado (Número)` como rótulo único. Hasta el gesto de ejecución completo
-no se marca completa la Fase 1 ni se avanza sobre vectores o matrices.
+## Verificación manual de la primera entrega — 2026-08-02
+
+Brian confirmó el camino real completo en Slate: creó la función de suma con dos entradas, guardó y
+volvió al grafo llamador, insertó su instancia desde Biblioteca, conectó valores, ejecutó y obtuvo el
+resultado correcto en Inspector sin abrir un Preview vacío. Guardar, cerrar y reabrir conservó el
+grafo. También confirmó Renombrar y Eliminar en el ABM.
+
+Con esto queda cerrada la **primera entrega** de la base escalar —Sumar, Restar, Multiplicar y
+Dividir— en tests, sonda embebida y gesto humano. La Fase 1 completa todavía requiere los grupos
+Signo, Resto/Potencia, Rango, Mezcla, Redondeo, Ángulos y Comparación enumerados arriba; no se avanza
+a vectores ni matrices antes de completar esa superficie escalar.
 
 ## Oracle y frontera
 

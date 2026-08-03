@@ -99,8 +99,8 @@ Lo que **nadie ejerció con las manos** de este turno:
 |---|---|---|
 | Apertura/cierre de Graph y entrada global | Brian | ✅ ventana raíz resincronizada; menú abre Graph; captor sí→no al cerrar |
 | Selector de tipos completo | Brian | ⏳ falta desplegar la lista y confirmar la presentación real |
-| Maths: Sumar/Restar/Multiplicar/Dividir, pines y resultado | Brian | ⏳ 547 tests/sonda/build verdes; falta confirmar Run puro sin Preview en Slate |
-| Resto del ABM, `Ctrl+G` + dibujo/cableado de pines múltiples | Brian | ⏳ `+ Nueva` confirmado; faltan editar/renombrar/borrar/cablear |
+| Maths: Sumar/Restar/Multiplicar/Dividir, pines y resultado | Brian | ✅ función/instancia + Run + Inspector + persistencia; sin Preview vacío |
+| Resto del ABM, `Ctrl+G` + dibujo/cableado de pines múltiples | Brian | ◐ Nueva/Editar/Guardar/Renombrar/Eliminar verdes; faltan `Ctrl+G` y firmas no numéricas |
 | Aspecto de una GC Nanite fracturada y rotura en PIE | Brian | ⏳ metadata/materiales verdes; falta viewport y simulación |
 | El paquete de estudio subido a NotebookLM | Brian | ⏳ generado, sin abrir |
 | Que el informe del modo sombra de `vault.py` se lea bien | Brian | ⏳ |
@@ -149,10 +149,11 @@ UE 5.8.1. La primera matriz automatizable está en
 [[2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0|la certificación 5.8.1]]; quedan las fronteras
 manuales y GUI que enumera el informe.
 
-**2. Cerrar el gesto real de la primera entrega de
-[[2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0|Math]]:** guardar/reabrir una cadena con
-Sumar/Restar/Multiplicar/Dividir, ejecutar e inspeccionar el escalar. Después completar los verbos
-escalares de Fase 1; vectores y matrices esperan esa base.
+**2. Completar los verbos escalares de la Fase 1 de
+[[2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0|Math]].** La primera entrega
+Sumar/Restar/Multiplicar/Dividir ya quedó verde también con gestos: función, Biblioteca, Run,
+Inspector, persistencia y ABM. Siguen Signo, Resto/Potencia, Rango, Mezcla, Redondeo, Ángulos y
+Comparación; vectores y matrices esperan esa base.
 
 **3. Después de certificar la base, Fase 7 del Graph — bypass (`D`) y comentarios (`C`).**
 
