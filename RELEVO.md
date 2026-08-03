@@ -3,7 +3,7 @@ turno: 2026-08-01 · codex → claude-code
 saliente: codex
 entrante: claude-code
 desde: 2026-08-01
-verde_editor: 8a3011b
+verde_editor: 61b15c7
 verde_editor_fecha: 2026-08-03
 ---
 
@@ -84,6 +84,11 @@ quedan naranjas con su causa pero dejan pasar la misma M. La sonda pública dio 
 grilla abierta naranja e identidad de entrada/salida. Son **581 tests** y el inventario 5.8.1 sigue
 verde con 102 símbolos y 81 métodos.
 
+La quinta entrega agrega **Copiar Static Mesh** y **Copiar Skeletal Mesh** como A → M, con selección
+de LOD y opciones de Build Settings. Ambas conservan la lista de materiales que corresponde a los
+IDs de la copia; `mesh_from_asset` queda como alias visible de compatibilidad. La sonda real midió
+Sphere 266 vértices/1 material y Quinn 43.761/2. Son **586 tests** y 103 símbolos/84 métodos reales.
+
 **Leé primero** `Vault-kb/00-Proceso/2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0.md`: son
 diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 
@@ -91,24 +96,25 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 
 | Qué | Comando | Resultado |
 |---|---|---|
-| Cerebro de Jam | `cd Content/Python/tests && PYTHONPATH=$PWD/.. python -m unittest discover -s . -p "test_*.py" -q` | **581 OK**, 0.3 s |
+| Cerebro de Jam | `cd Content/Python/tests && PYTHONPATH=$PWD/.. python -m unittest discover -s . -p "test_*.py" -q` | **586 OK**, 0.3 s |
 | Math en UE 5.8.1 | `tools/experiments/verifica_math_graph.py` en `UnrealEditor-Cmd` | **9 verbos · Run sin Preview · Inspector=40/2 · dominios rechazados · TODO VERDE** |
 | Nanite Analyze/Validate | `tools/experiments/verifica_nanite_diagnostics_58.py` en `UnrealEditor-Cmd` | **apagado rechazado + 416.179 tris/1.202.673 verts validados · Run sin Preview · TODO VERDE** |
 | Simplify M → M | `tools/experiments/verifica_mesh_simplify_58.py` en `UnrealEditor-Cmd` | **Count 1922→202 · Tolerance 1922→201 · Edge 1922→332 vértices · TODO VERDE** |
 | Material IDs M → M | `tools/experiments/verifica_mesh_material_ids_58.py` en `UnrealEditor-Cmd` | **Merge {0,1}/2 slots → Remap {0}/2 → Clean {0}/1 · TODO VERDE** |
 | Validar malla M → M | `tools/experiments/verifica_mesh_validate_58.py` en `UnrealEditor-Cmd` | **esfera cerrada verde · grilla abierta naranja · identidad M · TODO VERDE** |
+| Copiar Static/Skeletal A → M | `tools/experiments/verifica_mesh_copy_58.py` en `UnrealEditor-Cmd` | **Sphere 266 verts/1 material · Quinn 43.761/2 · alias compatible · TODO VERDE** |
 | Uniform Remesh | `tools/experiments/investiga_remesh_determinismo_58.py` × 2 procesos | **16/16 mismo hash · 486 verts/968 tris; sigue experimental por contrato de Epic** |
 | Vault (modo sombra) | `python tools/vault.py` | **58 docs · las dos implementaciones coinciden** |
 | Motor | sonda headless + gestos reales de función/ventana | **ABM + Compile de cuerpo + ventana Wayland interactiva · TODO VERDE** |
 | Nanite→Fracture | `tools/experiments/verifica_nanite_fracture_58.py` en editor GUI | **2/2 materiales distintos + GC Nanite · TODO VERDE; cierre 139** |
-| UE 5.8.1 | APIs + ejemplos + material/UV + PCG real | **102 símbolos + 81 métodos · 8/8 ejemplos · material/UV verde · 287 HISM** |
+| UE 5.8.1 | APIs + ejemplos + material/UV + PCG real | **103 símbolos + 84 métodos · 8/8 ejemplos · material/UV verde · 287 HISM** |
 | Oracle en UE 5.8.1 | `tools/experiments/verifica_oracle_shadow.py` con editor completo | **placement + snap funcional verde; cierre 139** |
 | oracle sobre sí mismo | `cd vendor/oracle && python tools/aceptacion.py` | **27 rojos · 12 verdes · 0 huecos** |
 | oracle sobre Jam | `python vendor/oracle/tools/diferencial.py --proyecto medidas --confiar-escalares` | **419 acuerdos · 2558 veredictos estables** |
 | » mutación de medidas | `python vendor/oracle/tools/mutar.py --proyecto medidas --confiar-escalares` | **163/163 mutantes muertos** |
 | » tests de oracle | `cd vendor/oracle && python -m unittest discover -s tests -t . -q` | **339 OK** |
 
-El campo `verde_editor` apunta al checkpoint `8a3011b`, verificado en UE 5.8.1 con las sondas,
+El campo `verde_editor` apunta al checkpoint `61b15c7`, verificado en UE 5.8.1 con las sondas,
 Graph interactivo y el ribbon jerárquico cargado sin crash. `VIVO` distingue la
 suite de `init_unreal.py` y `jam/`, por lo que cambiar sólo tests ya no invalida falsamente esa
 evidencia.
@@ -139,9 +145,10 @@ Lo que **nadie ejerció con las manos** de este turno:
 | Maths: Sumar/Restar/Multiplicar/Dividir, pines y resultado | Brian | ✅ función/instancia + Run + Inspector + persistencia; sin Preview vacío |
 | Maths: Negar/Absoluto/Módulo/Potencia/Raíz | Brian | ⏳ tests/sonda/build verdes; falta gesto en Datos → Maths |
 | Nanite Analyze/Validate, cable A → A y Run sin Preview | Brian | ⏳ tests + commandlet 5.8.1 verdes; falta gesto en Create → Nanite |
-| Simplify Count/Tolerance/Edge, cables M → M | Brian | ⏳ 581 tests + Compile/Run/Inspector 5.8.1 verdes; falta gesto en Mesh → Optimizar |
-| Reasignar/Limpiar Material IDs, cables M → M | Brian | ⏳ 581 tests + Graph 5.8.1 verde; falta gesto en Mesh → Materiales |
-| Validar malla, requisitos y cable M → M | Brian | ⏳ 581 tests + Graph 5.8.1 verde; falta gesto en Mesh → Hornear |
+| Simplify Count/Tolerance/Edge, cables M → M | Brian | ⏳ 586 tests + Compile/Run/Inspector 5.8.1 verdes; falta gesto en Mesh → Optimizar |
+| Reasignar/Limpiar Material IDs, cables M → M | Brian | ⏳ 586 tests + Graph 5.8.1 verde; falta gesto en Mesh → Materiales |
+| Validar malla, requisitos y cable M → M | Brian | ⏳ 586 tests + Graph 5.8.1 verde; falta gesto en Mesh → Hornear |
+| Copiar Static/Skeletal, LOD y cables A → M | Brian | ⏳ 586 tests + Graph 5.8.1 verde; falta gesto en Mesh → Hornear |
 | Ribbon jerárquico por familias | Brian | ⏳ abrió/cerró sin crash; falta juzgar orden, densidad y navegación |
 | Resto del ABM, `Ctrl+G` + dibujo/cableado de pines múltiples | Brian | ◐ Nueva/Editar/Guardar/Renombrar/Eliminar verdes; faltan `Ctrl+G` y firmas no numéricas |
 | Aspecto de una GC Nanite fracturada y rotura en PIE | Brian | ⏳ metadata/materiales verdes; falta viewport y simulación |
@@ -188,7 +195,8 @@ de pedir manos sin que nadie lo note.)*
 **Prioridad nueva: continuar
 [[2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0|los nodos de UE 5.8.1]].** Confirmar primero
 Nanite Analyze/Validate y los tres Simplify en Slate. Después avanzar sobre Geometry Script con
-copias de Static/Skeletal Mesh; validación y limpieza/remapeo de Material IDs ya quedaron verdes. Remesh uniforme/adaptativo queda
+ruido Perlin y otros operadores deterministas; copia Static/Skeletal, validación y Material IDs ya
+quedaron verdes. Remesh uniforme/adaptativo queda
 detrás de una categoría experimental o un oráculo por tolerancia: Epic no promete determinismo.
 
 **1. Continuar el
