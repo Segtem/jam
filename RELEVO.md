@@ -3,8 +3,8 @@ turno: 2026-08-01 · codex → claude-code
 saliente: codex
 entrante: claude-code
 desde: 2026-08-01
-verde_editor: 3e5b42f
-verde_editor_fecha: 2026-08-02
+verde_editor: b8030a5
+verde_editor_fecha: 2026-08-03
 ---
 
 # Testigo
@@ -66,6 +66,13 @@ También encontró que `StaticMeshEditorSubsystem` es `None` en commandlet: leer
 transformar conserva el subsistema. El plan completo vive en
 [[2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0]].
 
+La segunda entrega de ese roadmap agrega **Simplificar por triángulos, por tolerancia y por arista**
+como operadores M → M no destructivos en Mesh → Optimizar. El contrato puro fija el cambio sutil de
+5.8: `attributes` usa `ATTRIBUTE_AWARE_V2`; el enum histórico sin V2 ahora sólo considera normales.
+La sonda pública Compile/Run/Inspector redujo una esfera de 1.922 vértices a 202, 201 y 332,
+respectivamente. Uniform Remesh repitió el mismo hash en 16 corridas y dos procesos, pero no se
+registró como estable porque Epic declara su resultado potencialmente no determinista.
+
 **Leé primero** `Vault-kb/00-Proceso/2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0.md`: son
 diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 
@@ -73,21 +80,23 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 
 | Qué | Comando | Resultado |
 |---|---|---|
-| Cerebro de Jam | `cd Content/Python/tests && PYTHONPATH=$PWD/.. python -m unittest discover -s . -p "test_*.py" -q` | **563 OK**, 0.3 s |
+| Cerebro de Jam | `cd Content/Python/tests && PYTHONPATH=$PWD/.. python -m unittest discover -s . -p "test_*.py" -q` | **569 OK**, 0.3 s |
 | Math en UE 5.8.1 | `tools/experiments/verifica_math_graph.py` en `UnrealEditor-Cmd` | **9 verbos · Run sin Preview · Inspector=40/2 · dominios rechazados · TODO VERDE** |
 | Nanite Analyze/Validate | `tools/experiments/verifica_nanite_diagnostics_58.py` en `UnrealEditor-Cmd` | **apagado rechazado + 416.179 tris/1.202.673 verts validados · Run sin Preview · TODO VERDE** |
-| Vault (modo sombra) | `python tools/vault.py` | **57 docs · las dos implementaciones coinciden** |
+| Simplify M → M | `tools/experiments/verifica_mesh_simplify_58.py` en `UnrealEditor-Cmd` | **Count 1922→202 · Tolerance 1922→201 · Edge 1922→332 vértices · TODO VERDE** |
+| Uniform Remesh | `tools/experiments/investiga_remesh_determinismo_58.py` × 2 procesos | **16/16 mismo hash · 486 verts/968 tris; sigue experimental por contrato de Epic** |
+| Vault (modo sombra) | `python tools/vault.py` | **58 docs · las dos implementaciones coinciden** |
 | Motor | sonda headless + gestos reales de función/ventana | **ABM + Compile de cuerpo + ventana Wayland interactiva · TODO VERDE** |
 | Nanite→Fracture | `tools/experiments/verifica_nanite_fracture_58.py` en editor GUI | **2/2 materiales distintos + GC Nanite · TODO VERDE; cierre 139** |
-| UE 5.8.1 | APIs + ejemplos + material/UV + PCG real | **98 símbolos + 75 métodos · 8/8 ejemplos · material/UV verde · 287 HISM** |
+| UE 5.8.1 | APIs + ejemplos + material/UV + PCG real | **101 símbolos + 78 métodos · 8/8 ejemplos · material/UV verde · 287 HISM** |
 | Oracle en UE 5.8.1 | `tools/experiments/verifica_oracle_shadow.py` con editor completo | **placement + snap funcional verde; cierre 139** |
 | oracle sobre sí mismo | `cd vendor/oracle && python tools/aceptacion.py` | **27 rojos · 12 verdes · 0 huecos** |
 | oracle sobre Jam | `python vendor/oracle/tools/diferencial.py --proyecto medidas --confiar-escalares` | **419 acuerdos · 2558 veredictos estables** |
 | » mutación de medidas | `python vendor/oracle/tools/mutar.py --proyecto medidas --confiar-escalares` | **163/163 mutantes muertos** |
 | » tests de oracle | `cd vendor/oracle && python -m unittest discover -s tests -t . -q` | **339 OK** |
 
-El campo `verde_editor` apunta al checkpoint `3e5b42f`, compilado y verificado en UE 5.8.1 con las
-sondas, Graph interactivo y el ribbon jerárquico cargado sin crash. `VIVO` distingue la
+El campo `verde_editor` apunta al checkpoint `b8030a5`, verificado en UE 5.8.1 con las sondas,
+Graph interactivo y el ribbon jerárquico cargado sin crash. `VIVO` distingue la
 suite de `init_unreal.py` y `jam/`, por lo que cambiar sólo tests ya no invalida falsamente esa
 evidencia.
 
@@ -117,6 +126,7 @@ Lo que **nadie ejerció con las manos** de este turno:
 | Maths: Sumar/Restar/Multiplicar/Dividir, pines y resultado | Brian | ✅ función/instancia + Run + Inspector + persistencia; sin Preview vacío |
 | Maths: Negar/Absoluto/Módulo/Potencia/Raíz | Brian | ⏳ tests/sonda/build verdes; falta gesto en Datos → Maths |
 | Nanite Analyze/Validate, cable A → A y Run sin Preview | Brian | ⏳ tests + commandlet 5.8.1 verdes; falta gesto en Create → Nanite |
+| Simplify Count/Tolerance/Edge, cables M → M | Brian | ⏳ 569 tests + Compile/Run/Inspector 5.8.1 verdes; falta gesto en Mesh → Optimizar |
 | Ribbon jerárquico por familias | Brian | ⏳ abrió/cerró sin crash; falta juzgar orden, densidad y navegación |
 | Resto del ABM, `Ctrl+G` + dibujo/cableado de pines múltiples | Brian | ◐ Nueva/Editar/Guardar/Renombrar/Eliminar verdes; faltan `Ctrl+G` y firmas no numéricas |
 | Aspecto de una GC Nanite fracturada y rotura en PIE | Brian | ⏳ metadata/materiales verdes; falta viewport y simulación |
@@ -162,9 +172,9 @@ de pedir manos sin que nadie lo note.)*
 
 **Prioridad nueva: continuar
 [[2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0|los nodos de UE 5.8.1]].** Confirmar primero
-Nanite Analyze/Validate en Slate. Después avanzar sobre Geometry Script con Simplify por conteo y
-tolerancia, Remesh uniforme/adaptativo y limpieza de material IDs; son APIs públicas y una base más
-estable que PVE o Mesh Terrain.
+Nanite Analyze/Validate y los tres Simplify en Slate. Después avanzar sobre Geometry Script con
+limpieza/remapeo de material IDs y validación/copia de mallas. Remesh uniforme/adaptativo queda
+detrás de una categoría experimental o un oráculo por tolerancia: Epic no promete determinismo.
 
 **1. Continuar el
 [[2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0|plan de revisión integral]].** Las fases 0 y 1

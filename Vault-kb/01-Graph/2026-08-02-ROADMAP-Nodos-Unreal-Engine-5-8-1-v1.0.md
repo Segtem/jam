@@ -76,6 +76,39 @@ conteos; necesitan sensores separados. La conservación de materiales y del flag
 se mantiene bajo la evidencia de
 [[2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0]].
 
+#### Segunda evidencia: Simplify
+
+`mesh_simplify_count`, `mesh_simplify_tolerance` y `mesh_simplify_edge_length` quedaron
+implementados como operadores no destructivos M → M dentro del grupo **Mesh → Optimizar**. Los tres
+clonan la entrada, compactan la salida y comparten un contrato puro para método, costuras y peso de
+regularización. El default `attributes` elige explícitamente `ATTRIBUTE_AWARE_V2`: en 5.8 el miembro
+histórico `ATTRIBUTE_AWARE` pasó a significar sólo normales, aunque su nombre Python no lo diga.
+
+La sonda `tools/experiments/verifica_mesh_simplify_58.py` recorrió spec, Compile, Run e Inspector
+públicos dentro de UE 5.8.1. Sobre la misma esfera de 1.922 vértices midió:
+
+- objetivo de 400 triángulos: **202 vértices**;
+- tolerancia geométrica de 5 cm: **201 vértices**;
+- arista objetivo de 20 cm: **332 vértices**.
+
+Marcador: `JAM_MESH_SIMPLIFY_58 TODO VERDE`. La comprobación global quedó en **101 símbolos y 78
+métodos reales**, todos existentes. El test discriminante reemplazó temporalmente V2 por la variante
+sólo-normales y quedó rojo. Falta el gesto visual de insertar y correr las tres fichas en Slate.
+
+**Lo que no ven:** silueta percibida, calidad de UV/tangentes, triángulos degenerados, costo de
+render ni calidad de LOD. `edge_length` tampoco promete una remalla uniforme: la propia API permite
+aristas mayores que el objetivo.
+
+#### Puerta de Remesh
+
+`ApplyUniformRemesh` sigue fuera del registro estable. El header público de Epic advierte que sus
+resultados pueden ser no deterministas y cambiar entre versiones. La sonda
+`tools/experiments/investiga_remesh_determinismo_58.py` obtuvo el mismo SHA-256 de posiciones y
+topología en **16 corridas repartidas entre dos procesos** (486 vértices, 968 triángulos), pero eso
+sólo demuestra repetibilidad para esta entrada y esta build; no anula el contrato advertido por el
+motor. Antes de exponer `mesh_remesh_uniform/adaptive`, Jam necesita una categoría experimental o
+un oráculo por tolerancia que no dependa de igualdad exacta.
+
 ### 2. PCG 5.8
 
 - `pcg_editor_cameras`, `pcg_apply_spline`, `pcg_teleport`.

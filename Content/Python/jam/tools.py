@@ -1275,6 +1275,42 @@ def t_mesh_normals(mesh_input, *, angle_weighted=True, area_weighted=True) -> st
     return _mesh_output("mesh_normals", result, "NORMALS M")
 
 
+def t_mesh_simplify_count(mesh_input, *, target_triangles=5000, method="attributes",
+                          preserve_seams=True, regularize=0.000001) -> str:
+    from . import mesh
+    return _mesh_output(
+        "mesh_simplify_count",
+        mesh.simplify_count(
+            mesh_input, target_triangles=target_triangles, method=str(method),
+            preserve_seams=bool(preserve_seams), regularize=regularize),
+        "SIMPLIFICAR POR TRIÁNGULOS M",
+    )
+
+
+def t_mesh_simplify_tolerance(mesh_input, *, tolerance_cm=1.0, method="attributes",
+                              preserve_seams=True, regularize=0.000001) -> str:
+    from . import mesh
+    return _mesh_output(
+        "mesh_simplify_tolerance",
+        mesh.simplify_tolerance(
+            mesh_input, tolerance_cm=tolerance_cm, method=str(method),
+            preserve_seams=bool(preserve_seams), regularize=regularize),
+        "SIMPLIFICAR POR TOLERANCIA M",
+    )
+
+
+def t_mesh_simplify_edge_length(mesh_input, *, edge_length_cm=5.0, method="attributes",
+                                preserve_seams=True, regularize=0.000001) -> str:
+    from . import mesh
+    return _mesh_output(
+        "mesh_simplify_edge_length",
+        mesh.simplify_edge_length(
+            mesh_input, edge_length_cm=edge_length_cm, method=str(method),
+            preserve_seams=bool(preserve_seams), regularize=regularize),
+        "SIMPLIFICAR POR ARISTA M",
+    )
+
+
 def t_debug(entrada, *, tamano=30.0, grosor=1.2, escalar_con_dato=True,
             cada=1, solo_direccion=False) -> str:
     """AYUDANTE universal: dibuja lo que llegue por el cable, sea del tipo que sea."""
@@ -1764,6 +1800,39 @@ REGISTRO = {
     "mesh_normals": {"fn": t_mesh_normals, "cat": "Mesh", "graph_only": True,
                      "params": {"angle_weighted": True, "area_weighted": True},
                      "doc": "recalcula normales conservando los atributos de la malla M"},
+    "mesh_simplify_count": {
+        "fn": t_mesh_simplify_count, "label": "Simplificar por triángulos",
+        "cat": "Mesh", "graph_only": True,
+        "params": {"target_triangles": 5000, "method": "attributes",
+                   "preserve_seams": True, "regularize": 0.000001},
+        "opciones": {"method": ["attributes", "normals", "volume", "standard"]},
+        "etiquetas_params": {"target_triangles": "triángulos objetivo",
+                              "method": "métrica", "preserve_seams": "preservar costuras",
+                              "regularize": "regularizar"},
+        "doc": "reduce M hasta una cantidad de triángulos; por defecto conserva atributos y costuras sin modificar la entrada",
+    },
+    "mesh_simplify_tolerance": {
+        "fn": t_mesh_simplify_tolerance, "label": "Simplificar por tolerancia",
+        "cat": "Mesh", "graph_only": True,
+        "params": {"tolerance_cm": 1.0, "method": "attributes",
+                   "preserve_seams": True, "regularize": 0.000001},
+        "opciones": {"method": ["attributes", "normals", "volume", "standard"]},
+        "etiquetas_params": {"tolerance_cm": "desviación máxima (cm)",
+                              "method": "métrica", "preserve_seams": "preservar costuras",
+                              "regularize": "regularizar"},
+        "doc": "reduce M hasta que otro colapso superaría la desviación máxima en cm; conserva la entrada",
+    },
+    "mesh_simplify_edge_length": {
+        "fn": t_mesh_simplify_edge_length, "label": "Simplificar por arista",
+        "cat": "Mesh", "graph_only": True,
+        "params": {"edge_length_cm": 5.0, "method": "attributes",
+                   "preserve_seams": True, "regularize": 0.000001},
+        "opciones": {"method": ["attributes", "normals", "volume", "standard"]},
+        "etiquetas_params": {"edge_length_cm": "largo objetivo (cm)",
+                              "method": "métrica", "preserve_seams": "preservar costuras",
+                              "regularize": "regularizar"},
+        "doc": "reduce M por largo de arista con error geométrico; es un objetivo, no una remalla uniforme",
+    },
     "debug": {"fn": t_debug, "cat": "Debug", "graph_only": True,
               "params": {"tamano": 30.0, "grosor": 1.2, "escalar_con_dato": True,
                          "cada": 1, "solo_direccion": False},
@@ -1872,7 +1941,8 @@ GRAPH_NO_ASSET = {"asset", "pick", "create_spline", "pivot_set", "instance",
                   "asset_set", "choose_asset", "curve_branches", "mesh_leaf",
                   "copy_asset_selection", "hism_output",
                   "mesh_color", "mesh_uv_scale", "mesh_material", "mesh_bark", "points_to_frames", "debug",
-                  "mesh_normals", "mesh_to_static",
+                  "mesh_normals", "mesh_simplify_count", "mesh_simplify_tolerance",
+                  "mesh_simplify_edge_length", "mesh_to_static",
                   # UVs procedurales y todo el frente de shader: ninguno necesita un asset de
                   # entrada — trabajan sobre la malla que les llega o sobre el grafo de material.
                   # Sin estar acá, `validar` los rechaza con «requiere asset explícito» y NO se
@@ -1893,6 +1963,8 @@ GRAPH_IN_NAMES = {"points_to_frames": "P", "debug": "*", "curve_child": "S", "cu
                   "hism_output": "AF", "mesh_transform": "M", "mesh_color": "M",
                   "mesh_uv_scale": "M", "mesh_material": "M", "mesh_bark": "M",
                   "mesh_vertex_gradient": "M", "mesh_merge": "M", "mesh_normals": "M",
+                  "mesh_simplify_count": "M", "mesh_simplify_tolerance": "M",
+                  "mesh_simplify_edge_length": "M",
                   "mesh_uv_box": "M", "mesh_uv_unwrap": "M", "mesh_uv_pack": "M",
                   # Entrada OPCIONAL: sin cable reparte en un área; con puntos, alrededor de cada uno.
                   "scatter": "P",
@@ -1923,6 +1995,8 @@ GRAPH_OUT_NAMES = {"points_to_frames": "F", "debug": "M", "asset": "A", "pick": 
                    "hism_output": "H", "mesh_transform": "M", "mesh_color": "M",
                    "mesh_uv_scale": "M", "mesh_material": "M", "mesh_bark": "M",
                    "mesh_vertex_gradient": "M", "mesh_merge": "M", "mesh_normals": "M",
+                   "mesh_simplify_count": "M", "mesh_simplify_tolerance": "M",
+                   "mesh_simplify_edge_length": "M",
                   "mesh_uv_box": "M", "mesh_uv_unwrap": "M", "mesh_uv_pack": "M",
                   # Entrada OPCIONAL: sin cable reparte en un área; con puntos, alrededor de cada uno.
                   "scatter": "P",
@@ -2113,6 +2187,7 @@ def spec_json(*, include_graph_only: bool = False) -> str:
         opciones = info.get("opciones", {})
         salida.append({
             "verbo": nombre,
+            "label": info.get("label", nombre),
             "cat": info.get("cat", "Place"),
             "doc": info["doc"],
             "source": info["source"],
@@ -2123,7 +2198,9 @@ def spec_json(*, include_graph_only: bool = False) -> str:
             "asset_row": info["asset_row"],
             "out_name": info["out_name"],
             # `opciones` → la UI dibuja una LISTA en vez de un campo de texto (anclas, modos…)
-            "params": [{"nombre": k, "default": str(v), "tipo": tipo(v),
+            "params": [{"nombre": k,
+                        "label": info.get("etiquetas_params", {}).get(k, k),
+                        "default": str(v), "tipo": tipo(v),
                         "data_type": info.get("data_params", {}).get(k, ""),
                         "opciones": opciones.get(k, [])}
                        for k, v in info["params"].items()],

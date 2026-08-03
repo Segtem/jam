@@ -1767,6 +1767,77 @@ def normals(source, *, angle_weighted: bool = True, area_weighted: bool = True) 
     return {"mesh": result, "info": _info(result)}
 
 
+def _simplify_options(method: str, preserve_seams: bool, regularize: float):
+    """Cruza el contrato puro a las opciones reales de Geometry Script 5.8.1."""
+    from . import mesh_simplify_core as core
+
+    contract = core.options(
+        method=method, preserve_seams=preserve_seams, regularize=regularize)
+    result = unreal.GeometryScriptSimplifyMeshOptions()
+    result.set_editor_property(
+        "method", getattr(unreal.GeometryScriptRemoveMeshSimplificationType,
+                          contract.method_member))
+    # Preservar significa prohibir las tres formas en que el simplificador puede atravesar o
+    # reacomodar una costura. El algoritmo V2 conserva además UVs, color, tangentes y normales.
+    allow_seam_changes = not contract.preserve_seams
+    result.set_editor_property("allow_seam_collapse", allow_seam_changes)
+    result.set_editor_property("allow_seam_smoothing", allow_seam_changes)
+    result.set_editor_property("allow_seam_splits", allow_seam_changes)
+    result.set_editor_property("regularize_weight", contract.regularize)
+    result.set_editor_property("auto_compact", True)
+    return result
+
+
+def simplify_count(source, *, target_triangles: int = 5000, method: str = "attributes",
+                   preserve_seams: bool = True, regularize: float = 0.000001) -> dict:
+    """Reduce M hasta una cantidad objetivo de triángulos, sin modificar la entrada."""
+    from . import mesh_simplify_core as core
+
+    try:
+        target = core.triangle_target(target_triangles)
+        options = _simplify_options(method, preserve_seams, regularize)
+        result = _clone(source)
+    except (TypeError, ValueError) as exc:
+        return {"error": str(exc)}
+    unreal.GeometryScript_MeshSimplification.apply_simplify_to_triangle_count(
+        result, target, options)
+    return {"mesh": result, "info": f"objetivo {target} tris · {_info(result)}"}
+
+
+def simplify_tolerance(source, *, tolerance_cm: float = 1.0, method: str = "attributes",
+                       preserve_seams: bool = True, regularize: float = 0.000001) -> dict:
+    """Reduce M sin exceder una desviación geométrica en centímetros."""
+    from . import mesh_simplify_core as core
+
+    try:
+        tolerance = core.distance(tolerance_cm, "tolerance_cm")
+        options = _simplify_options(method, preserve_seams, regularize)
+        result = _clone(source)
+    except (TypeError, ValueError) as exc:
+        return {"error": str(exc)}
+    unreal.GeometryScript_MeshSimplification.apply_simplify_to_tolerance(
+        result, tolerance, options)
+    return {"mesh": result, "info": f"tolerancia {tolerance:g} cm · {_info(result)}"}
+
+
+def simplify_edge_length(source, *, edge_length_cm: float = 5.0,
+                         method: str = "attributes", preserve_seams: bool = True,
+                         regularize: float = 0.000001) -> dict:
+    """Colapsa aristas según un largo objetivo; no promete una teselación uniforme."""
+    from . import mesh_simplify_core as core
+
+    try:
+        length = core.distance(edge_length_cm, "edge_length_cm")
+        options = _simplify_options(method, preserve_seams, regularize)
+        result = _clone(source)
+    except (TypeError, ValueError) as exc:
+        return {"error": str(exc)}
+    unreal.GeometryScript_MeshSimplification.apply_simplify_to_edge_length(
+        result, length, options)
+    return {"mesh": result,
+            "info": f"arista objetivo {length:g} cm (no uniforme) · {_info(result)}"}
+
+
 def to_static(source, *, name: str = "GeneratedMesh", folder: str = CARPETA,
               collision: bool = True, recompute_tangents: bool = True,
               show_vertex_colors: bool = True) -> dict:
