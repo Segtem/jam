@@ -235,7 +235,7 @@ def _resolver_asset_runtime(nombre: str) -> str | None:
     if not pedido:
         return None
     if "/" in pedido or "." in pedido:
-        obj = library.cargar_placeable(pedido)
+        obj = library.cargar_asset_grafo(pedido)
         return obj.get_path_name() if obj is not None else None
     hits = library.buscar(pedido, limit=0)
     exactos = [hit for hit in hits if hit["nombre"].lower() == pedido.lower()]
@@ -454,7 +454,7 @@ def compilar(g: JamGraph, *, registro: dict | None = None, resolver_asset=None,
                     asset = None
                     error(nid, f"no pude resolver asset: {type(exc).__name__}: {exc}")
                 if not asset:
-                    error(nid, f"asset no encontrado o no colocable: «{pedido}»")
+                    error(nid, f"asset no encontrado o no compatible con Graph: «{pedido}»")
 
             input_assets[nid] = asset
             # Un productor A puede nacer desde otro tipo de dato (mesh_to_static: M → A), de modo que

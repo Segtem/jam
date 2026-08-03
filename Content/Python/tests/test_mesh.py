@@ -1317,24 +1317,47 @@ class MeshTests(unittest.TestCase):
         source = _StaticMesh()
         calls = []
 
+        class _Struct:
+            def __init__(self):
+                self.values = {}
+
+            def set_editor_property(self, name, value):
+                self.values[name] = value
+
+        class _LODType:
+            MAX_AVAILABLE = "MAX_AVAILABLE"
+
         class _AssetUtils:
             @staticmethod
-            def copy_mesh_from_static_mesh(asset, target, options, lod):
+            def copy_mesh_from_static_mesh_v2(asset, target, options, lod,
+                                              use_section_materials=True):
                 calls.append((asset, target, options, lod))
                 return target, "SUCCESS"
+
+            @staticmethod
+            def get_section_material_list_from_static_mesh(asset, lod):
+                return ["Mat"], [0], ["Slot"], "SUCCESS"
 
         with mock.patch.object(unreal, "StaticMesh", _StaticMesh, create=True), \
                 mock.patch.object(unreal, "DynamicMesh", _DynamicMesh, create=True), \
                 mock.patch.object(unreal, "GeometryScript_AssetUtils", _AssetUtils, create=True), \
-                mock.patch.object(unreal, "GeometryScriptCopyMeshFromAssetOptions", object, create=True), \
-                mock.patch.object(unreal, "GeometryScriptMeshReadLOD", object, create=True), \
+                mock.patch.object(unreal, "GeometryScriptCopyMeshFromAssetOptions", _Struct,
+                                  create=True), \
+                mock.patch.object(unreal, "GeometryScriptMeshReadLOD", _Struct, create=True), \
+                mock.patch.object(unreal, "GeometryScriptLODType", _LODType, create=True), \
                 mock.patch.object(mesh, "_info", return_value="Triangles count 2"):
-            result = mesh.from_asset(source)
+            try:
+                result = mesh.from_asset(source)
+                materials = mesh._materials(result["mesh"])
+            finally:
+                if "result" in locals() and result.get("mesh") is not None:
+                    mesh._MESH_MATERIALS.pop(id(result["mesh"]), None)
 
         self.assertNotIn("error", result)
         self.assertIs(calls[0][0], source)
         self.assertIs(result["mesh"], calls[0][1])
         self.assertIn("Leaf", result["info"])
+        self.assertEqual(materials, ("Mat",))
 
     def test_along_curve_appends_one_oriented_copy_per_frame(self):
         path = curve.CurvePath(((0.0, 0.0, 0.0), (0.0, 0.0, 100.0)))

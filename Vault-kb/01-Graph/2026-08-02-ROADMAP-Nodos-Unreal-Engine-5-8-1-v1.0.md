@@ -154,6 +154,31 @@ la suite completa quedó en **581 tests**.
 UV, manifoldness interior, escala, silueta, calidad visual, costo de render ni intención artística.
 Esos hechos requieren sensores separados; el nodo no los infiere de conteos generales.
 
+#### Quinta evidencia: copiar Static y Skeletal Mesh
+
+`mesh_copy_static` y `mesh_copy_skeletal` quedaron implementados como conversores A → M en
+**Mesh → Hornear**. Ambos exponen tipo/índice de LOD y las opciones públicas de Build Settings,
+tangentes y Build Scale. La ruta Static usa `CopyMeshFromStaticMeshV2` con materials por section;
+la Skeletal usa `CopyMeshFromSkeletalMesh` y la lista de materiales específica del LOD. En ambos
+casos esa lista entra al sidecar de M y puede llegar luego a `mesh_to_static`.
+
+El viejo id `mesh_from_asset` sigue registrado como alias de la nueva copia Static, dentro de un
+grupo **Compatibilidad**: los presets guardados no cambian de significado, pero las altas nuevas
+muestran nombres explícitos. También se amplió la resolución de rutas A para admitir Skeletal Mesh;
+cada consumidor todavía valida la clase concreta que sabe procesar.
+
+La sonda `tools/experiments/verifica_mesh_copy_58.py` recorrió spec, Compile, Run y Discard públicos
+en UE 5.8.1. Copió `/Engine/EngineMeshes/Sphere` con **266 vértices y 1 material**, y
+`SKM_Quinn_Simple` con **43.761 vértices y 2 materiales**; además exigió UV/material válido en la
+copia Static y comprobó que el alias histórico conserve el mismo sidecar. Marcador:
+`JAM_MESH_COPY_58 TODO VERDE`. La puerta global quedó en **103 símbolos y 84 métodos**, todos
+existentes. La suite suma **586 tests**; el mutante que habilitaba `hi_res` para Skeletal quedó rojo.
+
+**Lo que no ve:** fidelidad visual entre el asset y M, morph targets, compatibilidad del skeleton,
+animaciones, deformación de skin, integridad de pesos/huesos ni equivalencia entre LODs. La copia
+nativa de Quinn advierte que deja vértices sin triángulos; Jam lo conserva en vez de compactar a
+ciegas y `mesh_validate` puede hacerlo observable como IDs no densos.
+
 ### 2. PCG 5.8
 
 - `pcg_editor_cameras`, `pcg_apply_spline`, `pcg_teleport`.

@@ -103,6 +103,21 @@ def cargar_malla(ruta: str) -> unreal.StaticMesh | None:
     return obj if isinstance(obj, unreal.StaticMesh) else None
 
 
+def cargar_asset_grafo(ruta: str):
+    """Carga una clase admitida por el protocolo A del Graph.
+
+    No promete que todo consumidor acepte las tres clases: cada verbo conserva su defensa concreta.
+    Esta frontera sólo permite resolver y cablear Static Mesh, Skeletal Mesh y Geometry Collection.
+    """
+    obj = unreal.load_asset(ruta)
+    supported = tuple(
+        item for item in (getattr(unreal, "StaticMesh", None),
+                          getattr(unreal, "SkeletalMesh", None),
+                          getattr(unreal, "GeometryCollection", None))
+        if isinstance(item, type))
+    return obj if supported and isinstance(obj, supported) else None
+
+
 def es_geometry_collection(obj) -> bool:
     """¿Es una Geometry Collection (el asset destructible de Chaos)?"""
     return isinstance(obj, unreal.GeometryCollection)

@@ -54,6 +54,16 @@ def _static_mesh(value):
     return None
 
 
+def _skeletal_mesh(value):
+    skeletal_type = getattr(unreal, "SkeletalMesh", None)
+    if skeletal_type is not None and isinstance(value, skeletal_type):
+        return value
+    if isinstance(value, str) and value.strip():
+        loaded = unreal.load_asset(value.strip())
+        return loaded if skeletal_type is not None and isinstance(loaded, skeletal_type) else None
+    return None
+
+
 def _info(value) -> str:
     try:
         return str(unreal.GeometryScript_MeshQueries.get_mesh_info_string(value)).splitlines()[0]
@@ -136,19 +146,82 @@ def _rotate_about(vector, axis, degrees):
     ))
 
 
-def _copy_static_mesh(source):
+def _copy_options(*, lod_type: str, lod_index: int, apply_build_settings: bool,
+                  request_tangents: bool, use_build_scale: bool, skeletal: bool):
+    from . import mesh_copy_core as core
+
+    contract = core.options(
+        lod_type=lod_type, lod_index=lod_index,
+        apply_build_settings=apply_build_settings, request_tangents=request_tangents,
+        use_build_scale=use_build_scale, skeletal=skeletal)
+    options = unreal.GeometryScriptCopyMeshFromAssetOptions()
+    options.set_editor_property("apply_build_settings", contract.apply_build_settings)
+    options.set_editor_property("request_tangents", contract.request_tangents)
+    options.set_editor_property("use_build_scale", contract.use_build_scale)
+    lod = unreal.GeometryScriptMeshReadLOD()
+    lod.set_editor_property(
+        "lod_type", getattr(unreal.GeometryScriptLODType, contract.lod_member))
+    lod.set_editor_property("lod_index", contract.lod_index)
+    return options, lod
+
+
+def _copy_outcome(copied, fallback, asset):
+    result = (copied[0] or fallback) if isinstance(copied, tuple) else (copied or fallback)
+    outcome = copied[-1] if isinstance(copied, tuple) and len(copied) > 1 else None
+    if outcome is not None and "FAIL" in str(outcome).upper():
+        raise RuntimeError(f"Geometry Script no pudo leer {asset.get_name()}: {outcome}")
+    return result
+
+
+def _material_list(returned, asset):
+    if not isinstance(returned, tuple) or not returned:
+        return ()
+    outcome = returned[-1]
+    if "FAIL" in str(outcome).upper():
+        raise RuntimeError(f"Geometry Script no pudo leer materiales de {asset.get_name()}: {outcome}")
+    return tuple(returned[0])
+
+
+def _copy_static_mesh(source, *, lod_type: str = "max_available", lod_index: int = 0,
+                      apply_build_settings: bool = True, request_tangents: bool = True,
+                      use_build_scale: bool = True):
     asset = _static_mesh(source)
     if asset is None:
         raise TypeError("la entrada no es un StaticMesh A válido")
+    options, lod = _copy_options(
+        lod_type=lod_type, lod_index=lod_index, apply_build_settings=apply_build_settings,
+        request_tangents=request_tangents, use_build_scale=use_build_scale, skeletal=False)
     result = _new_mesh()
-    copied = unreal.GeometryScript_AssetUtils.copy_mesh_from_static_mesh(
-        asset, result, unreal.GeometryScriptCopyMeshFromAssetOptions(),
-        unreal.GeometryScriptMeshReadLOD())
-    if isinstance(copied, tuple):
-        result = copied[0] or result
-        outcome = copied[1] if len(copied) > 1 else None
-        if outcome is not None and "FAIL" in str(outcome).upper():
-            raise RuntimeError(f"Geometry Script no pudo leer {asset.get_name()}: {outcome}")
+    result = _copy_outcome(
+        unreal.GeometryScript_AssetUtils.copy_mesh_from_static_mesh_v2(
+            asset, result, options, lod, use_section_materials=True),
+        result, asset)
+    materials = _material_list(
+        unreal.GeometryScript_AssetUtils.get_section_material_list_from_static_mesh(asset, lod),
+        asset)
+    if materials:
+        _MESH_MATERIALS[id(result)] = materials
+    return result, asset
+
+
+def _copy_skeletal_mesh(source, *, lod_type: str = "max_available", lod_index: int = 0,
+                        apply_build_settings: bool = True, request_tangents: bool = True,
+                        use_build_scale: bool = True):
+    asset = _skeletal_mesh(source)
+    if asset is None:
+        raise TypeError("la entrada no es un SkeletalMesh A válido")
+    options, lod = _copy_options(
+        lod_type=lod_type, lod_index=lod_index, apply_build_settings=apply_build_settings,
+        request_tangents=request_tangents, use_build_scale=use_build_scale, skeletal=True)
+    result = _new_mesh()
+    result = _copy_outcome(
+        unreal.GeometryScript_AssetUtils.copy_mesh_from_skeletal_mesh(
+            asset, result, options, lod), result, asset)
+    materials = _material_list(
+        unreal.GeometryScript_AssetUtils.get_lod_material_list_from_skeletal_mesh(asset, lod),
+        asset)
+    if materials:
+        _MESH_MATERIALS[id(result)] = materials
     return result, asset
 
 
@@ -450,13 +523,39 @@ def sphere(*, radius: float = 100.0, latitude_steps: int = 8,
     return {"mesh": result, "info": _info(result)}
 
 
-def from_asset(source) -> dict:
-    """Convierte la geometría del mejor LOD disponible de StaticMesh A a DynamicMesh M."""
+def copy_static(source, *, lod_type: str = "max_available", lod_index: int = 0,
+                apply_build_settings: bool = True, request_tangents: bool = True,
+                use_build_scale: bool = True) -> dict:
+    """Copia un LOD de StaticMesh A a M y conserva materiales ordenados por section."""
     try:
-        result, asset = _copy_static_mesh(source)
-    except (TypeError, RuntimeError) as exc:
+        result, asset = _copy_static_mesh(
+            source, lod_type=lod_type, lod_index=lod_index,
+            apply_build_settings=apply_build_settings, request_tangents=request_tangents,
+            use_build_scale=use_build_scale)
+    except (TypeError, ValueError, RuntimeError) as exc:
         return {"error": str(exc)}
-    return {"mesh": result, "info": f"{_info(result)} · from {asset.get_name()}"}
+    return {"mesh": result, "info": (f"{_info(result)} · Static {asset.get_name()} · "
+                                      f"{len(_materials(result))} materiales")}
+
+
+def copy_skeletal(source, *, lod_type: str = "max_available", lod_index: int = 0,
+                  apply_build_settings: bool = True, request_tangents: bool = True,
+                  use_build_scale: bool = True) -> dict:
+    """Copia un LOD de SkeletalMesh A a M y conserva su lista de materiales."""
+    try:
+        result, asset = _copy_skeletal_mesh(
+            source, lod_type=lod_type, lod_index=lod_index,
+            apply_build_settings=apply_build_settings, request_tangents=request_tangents,
+            use_build_scale=use_build_scale)
+    except (TypeError, ValueError, RuntimeError) as exc:
+        return {"error": str(exc)}
+    return {"mesh": result, "info": (f"{_info(result)} · Skeletal {asset.get_name()} · "
+                                      f"{len(_materials(result))} materiales")}
+
+
+def from_asset(source) -> dict:
+    """Alias histórico de ``copy_static`` para no romper presets guardados."""
+    return copy_static(source)
 
 
 # ---- procedencia: qué rama produjo cada triángulo ----------------------------------------------

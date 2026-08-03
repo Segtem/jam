@@ -38,6 +38,10 @@ class ExtractorTests(unittest.TestCase):
         self.assertGreater(len(encontrado), 30)
         self.assertIn(("GeometryScript_UVs", "scale_mesh_u_vs"), encontrado)
         self.assertIn(("GeometryScript_MeshEdits", "append_mesh"), encontrado)
+        for method in (
+                "copy_mesh_from_static_mesh_v2", "get_section_material_list_from_static_mesh",
+                "copy_mesh_from_skeletal_mesh", "get_lod_material_list_from_skeletal_mesh"):
+            self.assertIn(("GeometryScript_AssetUtils", method), encontrado)
         lugares = encontrado[("GeometryScript_UVs", "scale_mesh_u_vs")]
         self.assertTrue(all(":" in lugar for lugar in lugares), lugares)
         self.assertTrue(any(lugar.startswith("mesh.py:") for lugar in lugares), lugares)

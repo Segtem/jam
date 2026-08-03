@@ -111,6 +111,8 @@
   "mesh_uv_scale": "jam-mesh-uv",
   "mesh_uv_unwrap": "jam-mesh-uv-unwrap",
   "mesh_validate": "jam-mesh-validate",
+  "mesh_copy_static": "jam-mesh-copy-static",
+  "mesh_copy_skeletal": "jam-mesh-copy-skeletal",
   "mesh_vertex_gradient": "jam-mesh-vertex-gradient",
   "move": "jam-move",
   "nanite": "jam-nanite",

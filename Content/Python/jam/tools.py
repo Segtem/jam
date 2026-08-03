@@ -882,6 +882,32 @@ def t_mesh_from_asset(asset_input) -> str:
     return _mesh_output("mesh_from_asset", mesh.from_asset(asset_input), "FROM ASSET M")
 
 
+def t_mesh_copy_static(asset_input, *, lod_type="max_available", lod_index=0,
+                       apply_build_settings=True, request_tangents=True,
+                       use_build_scale=True) -> str:
+    from . import mesh
+    return _mesh_output(
+        "mesh_copy_static",
+        mesh.copy_static(
+            asset_input, lod_type=lod_type, lod_index=int(lod_index),
+            apply_build_settings=bool(apply_build_settings),
+            request_tangents=bool(request_tangents), use_build_scale=bool(use_build_scale)),
+        "COPIAR STATIC M")
+
+
+def t_mesh_copy_skeletal(asset_input, *, lod_type="max_available", lod_index=0,
+                         apply_build_settings=True, request_tangents=True,
+                         use_build_scale=True) -> str:
+    from . import mesh
+    return _mesh_output(
+        "mesh_copy_skeletal",
+        mesh.copy_skeletal(
+            asset_input, lod_type=lod_type, lod_index=int(lod_index),
+            apply_build_settings=bool(apply_build_settings),
+            request_tangents=bool(request_tangents), use_build_scale=bool(use_build_scale)),
+        "COPIAR SKELETAL M")
+
+
 def t_mesh_pipe(curve_input, *, radius_start=30.0, radius_end=5.0, sides=10, samples=16,
                 capped=True, profile_rotation=0.0, miter_limit=4.0,
                 radius_from_parent=0.0, pivot_uvs=False) -> str:
@@ -1687,9 +1713,36 @@ REGISTRO = {
     "mesh_sphere":  {"fn": t_mesh_sphere, "cat": "Mesh", "graph_only": True,
                      "params": {"radius": 100.0, "latitude_steps": 8, "longitude_steps": 12},
                      "doc": "crea una esfera procedural de baja o alta resolución; fuente M"},
-    "mesh_from_asset": {"fn": t_mesh_from_asset, "cat": "Mesh", "graph_only": True,
+    "mesh_from_asset": {"fn": t_mesh_from_asset, "label": "Desde asset (compatibilidad)",
+                        "cat": "Mesh", "graph_only": True,
                         "params": {},
-                        "doc": "convierte la geometría de un StaticMesh A en una malla transitoria M"},
+                        "doc": "alias histórico de Copiar Static Mesh; conserva presets anteriores"},
+    "mesh_copy_static": {
+        "fn": t_mesh_copy_static, "label": "Copiar Static Mesh", "cat": "Mesh",
+        "graph_only": True,
+        "params": {"lod_type": "max_available", "lod_index": 0,
+                   "apply_build_settings": True, "request_tangents": True,
+                   "use_build_scale": True},
+        "opciones": {"lod_type": ["max_available", "hi_res", "source", "render"]},
+        "etiquetas_params": {"lod_type": "tipo de LOD", "lod_index": "índice de LOD",
+                              "apply_build_settings": "aplicar Build Settings",
+                              "request_tangents": "copiar tangentes",
+                              "use_build_scale": "aplicar Build Scale"},
+        "doc": "copia un LOD de Static Mesh A a M y conserva Material IDs y materiales por section",
+    },
+    "mesh_copy_skeletal": {
+        "fn": t_mesh_copy_skeletal, "label": "Copiar Skeletal Mesh", "cat": "Mesh",
+        "graph_only": True,
+        "params": {"lod_type": "max_available", "lod_index": 0,
+                   "apply_build_settings": True, "request_tangents": True,
+                   "use_build_scale": True},
+        "opciones": {"lod_type": ["max_available", "source", "render"]},
+        "etiquetas_params": {"lod_type": "tipo de LOD", "lod_index": "índice de LOD",
+                              "apply_build_settings": "aplicar Build Settings",
+                              "request_tangents": "copiar tangentes",
+                              "use_build_scale": "aplicar Build Scale"},
+        "doc": "copia geometría y materiales de un LOD de Skeletal Mesh A a M; los atributos internos dependen de la copia nativa",
+    },
     "mesh_pipe":    {"fn": t_mesh_pipe, "cat": "Mesh", "graph_only": True,
                      "params": {"radius_start": 30.0, "radius_end": 5.0,
                                 "sides": 10, "samples": 16, "capped": True,
@@ -2014,7 +2067,8 @@ GRAPH_NO_ASSET = {"asset", "pick", "create_spline", "pivot_set", "instance",
 GRAPH_IN_NAMES = {"points_to_frames": "P", "debug": "*", "curve_child": "S", "curve_noise": "S", "curve_frames": "S", "distribute_frames": "F",
                   "transform_frames": "F", "branch_from_frames": "F", "curve_branches": "S",
                   "asset_set": "A", "choose_asset": "F",
-                  "mesh_from_asset": "A", "mesh_pipe": "S", "mesh_pipe_profile": "S",
+                  "mesh_from_asset": "A", "mesh_copy_static": "A",
+                  "mesh_copy_skeletal": "A", "mesh_pipe": "S", "mesh_pipe_profile": "S",
                   "mesh_revolve": "S",
                   "mesh_along_curve": "S", "copy_mesh_to_frames": "F", "mesh_leaf": "S",
                   "copy_asset_selection": "AF",
@@ -2048,7 +2102,8 @@ GRAPH_OUT_NAMES = {"points_to_frames": "F", "debug": "M", "asset": "A", "pick": 
                    "mesh_box": "M", "mesh_capsule": "M", "mesh_torus": "M",
                    "mesh_disc": "M", "mesh_round_rect": "M", "mesh_stairs": "M",
                    "mesh_stairs_curved": "M", "mesh_sphere_box": "M", "mesh_revolve": "M",
-                   "mesh_from_asset": "M", "mesh_pipe": "M", "mesh_pipe_profile": "M",
+                   "mesh_from_asset": "M", "mesh_copy_static": "M",
+                   "mesh_copy_skeletal": "M", "mesh_pipe": "M", "mesh_pipe_profile": "M",
                    "mesh_along_curve": "M",
                    "copy_mesh_to_frames": "M", "mesh_leaf": "M",
                    "copy_asset_selection": "M",
