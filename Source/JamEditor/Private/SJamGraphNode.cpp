@@ -525,6 +525,12 @@ int32 SJamGraphNode::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGe
 	const float BodyH = FMath::Max(0.0f, (float)Size.Y - TitleH - 1.0f);
 	const float BodyY = TitleH;
 
+	// El RELLENO de un brush sale del `InTint` de MakeBox, NO de `Brush.TintColor`:
+	// `FSlateBoxPayload::SetBrush` copia margen/UV/tiling/recurso y nunca mira el tint del brush. El
+	// BORDE sí se lee del brush. Omitir el tint pintaba TODOS estos rellenos de blanco opaco: la
+	// sombra y el lavanda de la selección no se dibujaron nunca, y el cuerpo salía blanco en vez del
+	// gris de `BodyBrush`. Por eso cada relleno pasa su tint explícito.
+	//
 	// Selección/hover lavanda alrededor del componente, equivalente al rectángulo violeta de GH. El
 	// foco propio o de uno de sus controles mantiene visible qué nodo recibirá la tecla Supr.
 	if (IsHovered() || bDragging || HasKeyboardFocus() || HasFocusedDescendants()
@@ -534,18 +540,21 @@ int32 SJamGraphNode::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGe
 			AllottedGeometry.ToPaintGeometry(
 				FVector2D(Size.X - 6.0f, BodyH + 6.0f),
 				FSlateLayoutTransform(FVector2D(3.0f, BodyY - 3.0f))),
-			&SelectionBrush);
+			&SelectionBrush, ESlateDrawEffect::None,
+			SelectionBrush.TintColor.GetSpecifiedColor());
 	}
 
 	// Sombra corta inferior: el relieve discreto visible en los componentes clásicos.
 	FSlateDrawElement::MakeBox(OutDrawElements, LayerId + 1,
 		AllottedGeometry.ToPaintGeometry(
 			FVector2D(BodyW, BodyH), FSlateLayoutTransform(FVector2D(8.0f, BodyY + 2.0f))),
-		&ShadowBrush);
+		&ShadowBrush, ESlateDrawEffect::None,
+		ShadowBrush.TintColor.GetSpecifiedColor());
 
 	const FPaintGeometry PG = AllottedGeometry.ToPaintGeometry(
 		FVector2D(BodyW, BodyH), FSlateLayoutTransform(FVector2D(7.0f, BodyY)));
-	FSlateDrawElement::MakeBox(OutDrawElements, LayerId + 2, PG, &BodyBrush);
+	FSlateDrawElement::MakeBox(OutDrawElements, LayerId + 2, PG, &BodyBrush,
+		ESlateDrawEffect::None, BodyBrush.TintColor.GetSpecifiedColor());
 
 	// Bevel suave estilo GH: luz arriba y una sombra corta abajo, insetadas para respetar las esquinas.
 	const float R = 5.0f;
@@ -580,7 +589,8 @@ int32 SJamGraphNode::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGe
 		FSlateDrawElement::MakeBox(OutDrawElements, LayerId + 4,
 			AllottedGeometry.ToPaintGeometry(
 				FVector2D(LabelW, LabelH), FSlateLayoutTransform(FVector2D(LabelX, 1.0f))),
-			&TitleBrush);
+			&TitleBrush, ESlateDrawEffect::None,
+			TitleBrush.TintColor.GetSpecifiedColor());
 
 		const float Cx = Size.X * 0.5f;
 		TArray<FVector2D> Pointer;
