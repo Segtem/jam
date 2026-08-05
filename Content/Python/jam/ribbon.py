@@ -69,6 +69,7 @@ GRUPOS: dict[str, list[tuple[str, list[str]]]] = {
         ("Aritmética", ["math_add", "math_subtract", "math_multiply", "math_divide"]),
         ("Signo", ["math_negate", "math_absolute"]),
         ("Resto y potencia", ["math_modulo", "math_power", "math_sqrt"]),
+        ("Comparar", ["compare_greater", "compare_less", "compare_equal"]),
         ("Avanzado", ["math"]),
     ],
     "Source": [("Fuente", ["source_surface"])],

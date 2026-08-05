@@ -317,5 +317,60 @@ class SlateMathContratoTests(unittest.TestCase):
         self.assertIn('ExecuteIfBound(OutputPinName)', nodo)
 
 
+class ComparacionesTests(unittest.TestCase):
+    """Las comparaciones son los ÚNICOS nodos que producen un booleano.
+
+    Antes de ellas ningún verbo tenía `out_name == "B"`, así que un condicional no tenía a qué
+    cablearse: era un checkbox eligiendo rama. Son la pieza que le da sentido al `select`.
+    """
+
+    def valor(self, verbo: str, **params):
+        g = JamGraph()
+        g.add(verbo, {k: str(v) for k, v in params.items()}, nid="c")
+        return g.valores()
+
+    def test_greater_and_less_are_strict(self):
+        self.assertIs(self.valor("compare_greater", a=3, b=2)["c"], True)
+        self.assertIs(self.valor("compare_greater", a=2, b=2)["c"], False)
+        self.assertIs(self.valor("compare_less", a=2, b=3)["c"], True)
+        self.assertIs(self.valor("compare_less", a=2, b=2)["c"], False)
+
+    def test_the_result_is_a_real_bool_and_not_a_number(self):
+        """El camino genérico de `evaluar` pasa todo por `_numero`, que aplastaría el booleano a
+        1.0/0.0 — y dejaría de ser un booleano para el resto del sistema. Lo decide `out_name`."""
+        v = self.valor("compare_greater", a=3, b=2)["c"]
+        self.assertIsInstance(v, bool)
+        self.assertNotIsInstance(v, float)
+
+    def test_equality_on_floats_needs_a_tolerance(self):
+        """`0.1 + 0.2 == 0.3` es falso en cualquier lenguaje con flotantes, y en un grafo eso se ve
+        como «el condicional no funciona»."""
+        self.assertIs(self.valor("compare_equal", a=0.1 + 0.2, b=0.3)["c"], True)
+        self.assertIs(self.valor("compare_equal", a=0.1 + 0.2, b=0.3, tolerancia=0)["c"], False)
+        self.assertIs(self.valor("compare_equal", a=1.0, b=2.0)["c"], False)
+
+    def test_a_negative_tolerance_is_an_error_and_not_always_false(self):
+        g = JamGraph()
+        g.add("compare_equal", {"a": "1", "b": "1", "tolerancia": "-1"}, nid="c")
+        with self.assertRaises(GraphValidationError):
+            compilar(g, registro=REGISTRY)
+
+    def test_they_declare_the_boolean_type_so_a_cable_can_be_checked(self):
+        """Sin `out_name = B` el cable a un pin booleano no se podría validar en Compile."""
+        for verbo in ("compare_greater", "compare_less", "compare_equal"):
+            self.assertEqual(math_core.tipo_salida(verbo), "B", verbo)
+
+    def test_a_boolean_never_leaks_into_a_numeric_expression(self):
+        """`math` excluye los booleanos de su tabla de variables a propósito: sumarle 1 a «es mayor»
+        sería un sinsentido que además pasaría desapercibido."""
+        g = JamGraph()
+        g.add("compare_greater", {"a": "3", "b": "2", "name": "esMayor"}, nid="cmp")
+        g.add("math", {"name": "m", "expr": "esMayor"}, nid="m")
+        tabla = g.valores()
+        self.assertIs(tabla["cmp"], True)
+        # La expresión no resuelve porque `esMayor` no es una variable numérica visible.
+        self.assertNotIn("m", tabla)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -57,6 +57,18 @@ def _raiz_cuadrada(radicando: float) -> float:
 
 
 # Registro público. El orden sólo es de declaración; ``ribbon.py`` decide el orden visual.
+def _casi_igual(a: float, b: float, tolerancia: float) -> bool:
+    """Igualdad de flotantes con tolerancia EXPLÍCITA y visible en el nodo.
+
+    `0.1 + 0.2 == 0.3` es falso en cualquier lenguaje con flotantes, y en un grafo eso se ve como
+    «el condicional no funciona». La tolerancia es un parámetro y no una constante escondida para
+    que quien compara distancias en centímetros pueda subirla sin tocar código.
+    """
+    if tolerancia < 0.0:
+        raise ValueError("la tolerancia no puede ser negativa")
+    return abs(a - b) <= tolerancia
+
+
 VALORES: dict[str, dict] = {
     "number": {
         "label": "Número", "cat": "Params", "source": True, "out_name": "N",
@@ -150,6 +162,36 @@ VALORES: dict[str, dict] = {
         "operacion": _raiz_cuadrada,
         "doc": "raíz cuadrada real; un radicando negativo es error",
     },
+    # ---- comparaciones: las ÚNICAS que producen un booleano ----
+    # Hasta acá ningún nodo producía `B`, así que un condicional no tenía a qué cablearse: era un
+    # checkbox eligiendo rama, apenas mejor que recablear a mano. Estas son las que le dan sentido.
+    "compare_greater": {
+        "label": "Mayor que", "cat": "Maths", "source": True, "out_name": "B",
+        "params": {"a": 0.0, "b": 0.0}, "tipos": {"a": "N", "b": "N"},
+        "etiquetas_params": {"a": "a (Número)", "b": "b (Número)"},
+        "out_label": "a > b",
+        "operacion": lambda a, b: a > b,
+        "doc": "verdadero cuando a es estrictamente mayor que b",
+    },
+    "compare_less": {
+        "label": "Menor que", "cat": "Maths", "source": True, "out_name": "B",
+        "params": {"a": 0.0, "b": 0.0}, "tipos": {"a": "N", "b": "N"},
+        "etiquetas_params": {"a": "a (Número)", "b": "b (Número)"},
+        "out_label": "a < b",
+        "operacion": lambda a, b: a < b,
+        "doc": "verdadero cuando a es estrictamente menor que b",
+    },
+    "compare_equal": {
+        "label": "Igual a", "cat": "Maths", "source": True, "out_name": "B",
+        "params": {"a": 0.0, "b": 0.0, "tolerancia": 1e-06},
+        "tipos": {"a": "N", "b": "N", "tolerancia": "N"},
+        "etiquetas_params": {
+            "a": "a (Número)", "b": "b (Número)", "tolerancia": "tolerancia (Número)"},
+        "out_label": "a = b",
+        "operacion": _casi_igual,
+        "doc": "verdadero cuando a y b difieren menos que la tolerancia; comparar flotantes con «==» "
+               "da falso por un error de redondeo que nadie ve",
+    },
     # Compatibilidad: sigue siendo el nodo de texto libre, ahora presentado como opción avanzada.
     "math": {
         "label": "Expresión", "cat": "Maths", "source": True, "out_name": "N",
@@ -224,6 +266,11 @@ def evaluar(verbo: str, params: dict, tabla: dict, eval_expr: Callable) -> objec
         raise
     except (ArithmeticError, ValueError) as exc:
         raise ValorError("resultado", str(exc)) from exc
+    if meta.get("out_name") == "B":
+        # Un booleano NO pasa por `_numero`: lo aplastaría a 1.0/0.0 y dejaría de ser un booleano
+        # para el resto del sistema. Lo decide `out_name` y no una lista de verbos, así una
+        # comparación nueva no necesita acordarse de tocar esto.
+        return bool(resultado)
     return _numero(resultado, "resultado", tabla, eval_expr)
 
 
