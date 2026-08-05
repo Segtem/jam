@@ -81,6 +81,7 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 	OnDragEndDelegate = InArgs._OnDragEnd;
 	OnParamChangedDelegate = InArgs._OnParamChanged;
 	OnBypassChangedDelegate = InArgs._OnBypassChanged;
+	OnThumbnailOpenDelegate = InArgs._OnThumbnailOpen;
 	bCanBypass = InArgs._CanBypass;
 	IsSelectedAttr = InArgs._IsSelected;
 	RebuildBodyBrush();
@@ -556,6 +557,43 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 	];
 }
 
+FSlateRect SJamGraphNode::ThumbnailRect(const FVector2D& LocalSize) const
+{
+	if (ThumbnailBrush == nullptr)
+	{
+		return FSlateRect(0.0f, 0.0f, 0.0f, 0.0f);
+	}
+	const float BodyH = FMath::Max(0.0f, (float)LocalSize.Y - TitleH - 1.0f);
+	const float BodyY = TitleH;
+	const float FreeLeft = PinColW + ParamColW;
+	const float FreeRight = (float)LocalSize.X - PinColW;
+	const float Cx = (FreeLeft + FreeRight) * 0.5f;
+	// Se estira a lo que entre: los nodos de Jam no miden todos igual y un tamaño fijo se saldría
+	// del cuerpo en los más chatos.
+	const float Lado = FMath::Min(FreeRight - FreeLeft - 6.0f, BodyH - 8.0f);
+	if (Lado < 12.0f)
+	{
+		return FSlateRect(0.0f, 0.0f, 0.0f, 0.0f);
+	}
+	const float X = Cx - Lado * 0.5f;
+	const float Y = BodyY + BodyH * 0.5f - Lado * 0.5f;
+	return FSlateRect(X, Y, X + Lado, Y + Lado);
+}
+
+FReply SJamGraphNode::OnMouseButtonDoubleClick(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+{
+	// Doble clic SOBRE LA MINIATURA abre el visor grande; en el resto del nodo no hace nada y el
+	// gesto sigue siendo el de siempre (arrastrar desde cualquier zona libre).
+	const FSlateRect Rect = ThumbnailRect(MyGeometry.GetLocalSize());
+	const FVector2D Local = MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition());
+	if (Rect.GetArea() > 0.0f && Rect.ContainsPoint(Local))
+	{
+		OnThumbnailOpenDelegate.ExecuteIfBound();
+		return FReply::Handled();
+	}
+	return FReply::Unhandled();
+}
+
 void SJamGraphNode::SetBypassed(bool bEnabled)
 {
 	// Se ignora en un verbo que no lo admite: cargar un `.jamgraph` con el flag mal puesto no debe
@@ -705,18 +743,14 @@ int32 SJamGraphNode::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGe
 		// deja de mostrar un glifo genérico y muestra su resultado. Ocupa la misma zona libre que el
 		// icono —no cambia la geometría del nodo— y se estira a lo que entre: los nodos de Jam no
 		// miden todos igual, así que un tamaño fijo se saldría del cuerpo en los más chatos.
-		if (ThumbnailBrush != nullptr)
+		if (const FSlateRect Thumb = ThumbnailRect(Size); Thumb.GetArea() > 0.0f)
 		{
-			const float Lado = FMath::Min(FreeRight - FreeLeft - 6.0f, BodyH - 8.0f);
-			if (Lado >= 12.0f)
-			{
-				const FVector2D ThumbSize(Lado, Lado);
-				const FVector2D ThumbAt(Cx - Lado * 0.5f, BodyY + BodyH * 0.5f - Lado * 0.5f);
-				FSlateDrawElement::MakeBox(OutDrawElements, LayerId + 5,
-					AllottedGeometry.ToPaintGeometry(ThumbSize, FSlateLayoutTransform(ThumbAt)),
-					ThumbnailBrush, ESlateDrawEffect::None,
-					InWidgetStyle.GetColorAndOpacityTint());
-			}
+			FSlateDrawElement::MakeBox(OutDrawElements, LayerId + 5,
+				AllottedGeometry.ToPaintGeometry(
+					FVector2D(Thumb.GetSize().X, Thumb.GetSize().Y),
+					FSlateLayoutTransform(FVector2D(Thumb.Left, Thumb.Top))),
+				ThumbnailBrush, ESlateDrawEffect::None,
+				InWidgetStyle.GetColorAndOpacityTint());
 		}
 		else if (IconBrush.IsValid())
 		{

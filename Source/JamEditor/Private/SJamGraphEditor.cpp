@@ -1150,6 +1150,89 @@ void SJamGraphEditor::RefrescarMiniaturas()
 	}
 }
 
+void SJamGraphEditor::AbrirVisorFullRes(const FString& NodeId)
+{
+	if (!OnPreview2D.IsBound() || NodeId.IsEmpty())
+	{
+		return;
+	}
+	// Una sola ventana: abrir el visor de otro nodo reemplaza la anterior en vez de ir dejando
+	// ventanas por la pantalla.
+	if (const TSharedPtr<SWindow> Vieja = VisorFullVentana.Pin())
+	{
+		// Desatar su handler ANTES de pedir el cierre: `RequestDestroyWindow` es diferido, así que
+		// el `OnWindowClosed` de la vieja correría DESPUÉS de que creemos el brush nuevo y se lo
+		// soltaría — la ventana nueva abriría en blanco, y de forma intermitente.
+		Vieja->SetOnWindowClosed(FOnWindowClosed());
+		Vieja->RequestDestroyWindow();
+	}
+
+	// Sufijo propio: el PNG grande no puede pisar ni al del panel (`{id}.png`) ni a la miniatura
+	// (`{id}_thumb.png`) — Slate cachea la textura por nombre de archivo y se mostrarían entre sí.
+	const FString Res = OnPreview2D.Execute(NodeId, VisorFullLado, Preview2DCanal, TEXT("_full"));
+	TSharedPtr<FJsonObject> Root;
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Res);
+	bool bOk = false;
+	FString Ruta, Detalle, Error;
+	if (FJsonSerializer::Deserialize(Reader, Root) && Root.IsValid())
+	{
+		Root->TryGetBoolField(TEXT("ok"), bOk);
+		Root->TryGetStringField(TEXT("ruta"), Ruta);
+		Root->TryGetStringField(TEXT("detalle"), Detalle);
+		Root->TryGetStringField(TEXT("error"), Error);
+	}
+	if (!bOk || Ruta.IsEmpty() || !FPaths::FileExists(Ruta))
+	{
+		if (Output.IsValid())
+		{
+			Output->SetText(FText::FromString(Error.IsEmpty()
+				? FString::Printf(TEXT("no pude dibujar «%s» en grande."), *NodeId) : Error));
+		}
+		return;
+	}
+
+	SoltarVisorFullRes();
+	VisorFullBrush = MakeShared<FSlateDynamicImageBrush>(
+		FName(*Ruta), FVector2D(VisorFullLado, VisorFullLado));
+
+	TSharedRef<SWindow> Ventana = SNew(SWindow)
+		.Title(FText::FromString(FString::Printf(TEXT("Jam · %s"), *NodeId)))
+		.ClientSize(FVector2D(VisorFullLado + 24, VisorFullLado + 72))
+		.SupportsMaximize(false)
+		[
+			SNew(SVerticalBox)
+			+ SVerticalBox::Slot().FillHeight(1.0f).Padding(12.0f, 12.0f, 12.0f, 4.0f)
+			[
+				SNew(SImage).Image(VisorFullBrush.Get())
+			]
+			+ SVerticalBox::Slot().AutoHeight().Padding(12.0f, 0.0f, 12.0f, 12.0f)
+			[
+				SNew(STextBlock).AutoWrapText(true).Text(FText::FromString(Detalle))
+			]
+		];
+	// Al cerrarla se suelta la textura: si no, el próximo dibujo del mismo nodo mostraría ésta,
+	// porque Slate la tiene cacheada bajo la misma ruta.
+	Ventana->SetOnWindowClosed(FOnWindowClosed::CreateLambda(
+		[this](const TSharedRef<SWindow>&) { SoltarVisorFullRes(); }));
+	// NO modal: el punto es dejarla al lado mientras se sigue tocando el grafo.
+	FSlateApplication::Get().AddWindow(Ventana);
+	VisorFullVentana = Ventana;
+}
+
+void SJamGraphEditor::SoltarVisorFullRes()
+{
+	if (!VisorFullBrush.IsValid())
+	{
+		return;
+	}
+	if (FSlateApplication::IsInitialized() && FSlateApplication::Get().GetRenderer() != nullptr)
+	{
+		FSlateApplication::Get().GetRenderer()->ReleaseDynamicResource(*VisorFullBrush);
+	}
+	VisorFullBrush->ReleaseResource();
+	VisorFullBrush.Reset();
+}
+
 void SJamGraphEditor::RefreshPreview2D()
 {
 	auto Decir = [this](const FText& Texto)
@@ -1164,7 +1247,7 @@ void SJamGraphEditor::RefreshPreview2D()
 		return;
 	}
 
-	const FString Res = OnPreview2D.Execute(InspectNodeId, Preview2DLado, Preview2DCanal);
+	const FString Res = OnPreview2D.Execute(InspectNodeId, Preview2DLado, Preview2DCanal, FString());
 	TSharedPtr<FJsonObject> Root;
 	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Res);
 	if (!FJsonSerializer::Deserialize(Reader, Root) || !Root.IsValid())
@@ -1995,6 +2078,7 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At,
 		.OnDragEnd_Lambda([this]() { Marcar(); })
 		.OnParamChanged_Lambda([this]() { Marcar(); })
 		.OnBypassChanged_Lambda([this]() { Marcar(); })
+		.OnThumbnailOpen_Lambda([this, Id]() { AbrirVisorFullRes(Id); })
 		.OnDeleteSelection_Lambda([this, Id]()
 		{
 			// `Supr` sobre un nodo de un grupo borra el grupo; sobre uno suelto, ese nodo.

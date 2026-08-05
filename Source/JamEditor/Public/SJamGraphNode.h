@@ -114,6 +114,9 @@ public:
 		/** Se prendió/apagó el bypass. A diferencia del flag de debug —que es de VISTA— apagar un
 		 *  nodo cambia lo que el grafo hace, así que es un paso del historial. */
 		SLATE_EVENT(FSimpleDelegate, OnBypassChanged)
+		/** Doble clic en la MINIATURA: abrir el visor a resolución grande. Doble clic y no clic
+		 *  simple para no robarle el arrastre al centro del nodo, que es zona de agarre. */
+		SLATE_EVENT(FSimpleDelegate, OnThumbnailOpen)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);
@@ -162,6 +165,7 @@ public:
 	// El foco es también su selección persistente: Supr ejecuta el mismo borrado seguro que la ×.
 	virtual bool SupportsKeyboardFocus() const override { return true; }
 	virtual FReply OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent) override;
+	virtual FReply OnMouseButtonDoubleClick(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual FReply OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual FReply OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual FReply OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
@@ -213,6 +217,7 @@ private:
 	FSimpleDelegate OnDragEndDelegate;
 	FSimpleDelegate OnParamChangedDelegate;
 	FSimpleDelegate OnBypassChangedDelegate;
+	FSimpleDelegate OnThumbnailOpenDelegate;
 	/** El arrastre movió el nodo de verdad (y no fue un clic con el pulso). */
 	bool bMovioAlgo = false;
 	/** Lo lee `OnPaint` para pintar el halo; la fuente es el `TSet` del editor. */
@@ -233,6 +238,10 @@ public:
 	 *  El brush es del EDITOR, no del nodo: el nodo sólo lo dibuja (ver `SoltarMiniaturas`, que es
 	 *  quien tiene que soltar la textura antes de recrearla — Slate cachea por nombre de archivo). */
 	void SetThumbnail(const FSlateBrush* InBrush) { ThumbnailBrush = InBrush; }
+	/** Rectángulo LOCAL de la miniatura, o un rect vacío si no hay. ÚNICA fuente de esa geometría:
+	 *  la usan tanto `OnPaint` para dibujarla como el doble clic para saber si le pegaste. Con dos
+	 *  copias, mover una dejaría el área clickeable corrida respecto de lo que se ve. */
+	FSlateRect ThumbnailRect(const FVector2D& LocalSize) const;
 
 	bool IsBypassed() const { return bBypassed; }
 	void SetBypassed(bool bEnabled);

@@ -127,6 +127,15 @@ Dos decisiones de costo:
 - Van a **64 px**. Para una máscara de material cada píxel es una evaluación del IR en CPU: a 320
   serían 102.400 por nodo, a 64 son 4.096.
 
+**Doble clic en la miniatura abre el visor a 768 px** en una ventana emergente **no modal**, para
+dejarla al lado mientras se sigue tocando el grafo. Doble clic y no clic simple: el centro del nodo
+es zona de agarre y un clic simple le robaría el arrastre.
+
+Los tres dibujos del mismo nodo conviven en la misma carpeta con sufijos distintos —`{id}.png` el
+panel, `{id}_thumb.png` la miniatura, `{id}_full.png` el popup— porque Slate cachea la textura por
+nombre de archivo: con el mismo nombre, uno mostraría al otro. Hay un test que exige que las tres
+rutas sean distintas.
+
 Falta un panel en el Graph que:
 1. tome el nodo con el flag de debug prendido,
 2. llame a `preview_2d`,

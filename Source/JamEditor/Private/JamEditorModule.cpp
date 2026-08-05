@@ -564,11 +564,12 @@ FString FJamEditorModule::InspectGraphNode(const FString& NodeId, const FString&
 	return ExecPythonCapture(Stmt);
 }
 
-FString FJamEditorModule::PreviewGraphNode2D(const FString& NodeId, int32 Lado, int32 Canal)
+FString FJamEditorModule::PreviewGraphNode2D(const FString& NodeId, int32 Lado, int32 Canal,
+	const FString& Sufijo)
 {
 	const FString Stmt = FString::Printf(
-		TEXT("import jam.api as _a; print(_a.preview_2d(%s, %d, %d, %d))"),
-		*ToPyStr(NodeId), Lado, Lado, Canal);
+		TEXT("import jam.api as _a; print(_a.preview_2d(%s, %d, %d, %d, %s))"),
+		*ToPyStr(NodeId), Lado, Lado, Canal, *ToPyStr(Sufijo));
 	return ExecPythonCapture(Stmt);
 }
 

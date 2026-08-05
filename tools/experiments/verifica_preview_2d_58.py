@@ -59,10 +59,20 @@ try:
     exigir(thumbs["caja"] != ruta,
            f"la miniatura y el dibujo del panel escriben el MISMO archivo: {ruta}")
 
+    # El PNG del popup a resolución grande: tercer sufijo, tercer archivo. Los tres conviven en la
+    # misma carpeta y Slate cachea por nombre — si dos coincidieran, uno mostraría al otro.
+    full = json.loads(api.preview_2d("caja", 256, 256, 0, sufijo="_full"))
+    exigir(full.get("ok"), f"el visor grande falló: {full}")
+    exigir(os.path.isfile(full["ruta"]), f"el PNG grande no está: {full['ruta']}")
+    rutas = {ruta: nombre for nombre, ruta in
+             (("panel", ruta), ("miniatura", thumbs["caja"]), ("popup", full["ruta"]))}
+    exigir(len(rutas) == 3,
+           f"dos de los tres dibujos escriben el MISMO archivo: {sorted(rutas)}")
+
     unreal.log(
         "JAM_PREVIEW_2D_58 TODO VERDE — "
         f"tipo={res['tipo']} · detalle={res['detalle']} · "
-        f"bytes={os.path.getsize(ruta)} · miniaturas={len(thumbs)} · sin_datos=«{sin_datos['error'][:50]}»")
+        f"bytes={os.path.getsize(ruta)} · miniaturas={len(thumbs)} · rutas_distintas={len(rutas)} · sin_datos=«{sin_datos['error'][:50]}»")
 except Exception as exc:  # noqa: BLE001
     unreal.log_error(f"JAM_PREVIEW_2D_58 ROJO — {type(exc).__name__}: {exc}")
 finally:

@@ -130,7 +130,8 @@ private:
 		const FString& Sort, bool bDescending);
 	/** Visor 2D del MISMO nodo que mira el inspector: PNG en `Saved/JamPreview2D/` y
 	 *  `{ok, ruta, tipo, detalle}`. Dibuja lo que no se ve en el viewport (UVs, máscaras). */
-	FString PreviewGraphNode2D(const FString& NodeId, int32 Lado, int32 Canal);
+	FString PreviewGraphNode2D(const FString& NodeId, int32 Lado, int32 Canal,
+		const FString& Sufijo);
 	/** Miniaturas de todos los nodos dibujables del último Run, en UN viaje: `{ok, thumbs:{id:ruta}}`.
 	 *  El argumento va sin usar — el delegado reusa `FOnRunGraph` para no declarar una firma nueva
 	 *  de un solo uso; los datos salen de la última corrida que ya vive en Python. */

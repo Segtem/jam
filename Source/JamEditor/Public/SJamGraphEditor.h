@@ -27,8 +27,8 @@ DECLARE_DELEGATE_RetVal_FourParams(FString, FOnInspect, const FString& /*node*/,
 /** Visor 2D: (node_id, lado en px, canal de UV) → JSON `{ok, ruta, tipo, detalle}` o `{ok:false,
  *  error}`. Dibuja lo que NO se ve en el viewport: el desplegado de UVs de una malla y la máscara
  *  que calcula un grafo de material. El PNG lo escribe Python en `Saved/JamPreview2D/`. */
-DECLARE_DELEGATE_RetVal_ThreeParams(FString, FOnPreview2D,
-	const FString& /*node*/, int32 /*lado*/, int32 /*canal*/);
+DECLARE_DELEGATE_RetVal_FourParams(FString, FOnPreview2D,
+	const FString& /*node*/, int32 /*lado*/, int32 /*canal*/, const FString& /*sufijo*/);
 /** Colapsar selección: (nombre humano, grafo completo, ids elegidos) → {ok,graph,tool,report}. */
 DECLARE_DELEGATE_RetVal_ThreeParams(FString, FOnCollapseFunction,
 	const FString& /*nombre*/, const FString& /*graph*/, const FString& /*selected*/);
@@ -270,6 +270,10 @@ private:
 	 *  archivo y la ruta por nodo es estable, así que sin esto el segundo Run mostraría la miniatura
 	 *  del primero. Es la misma trampa que `SoltarPreview2D`, multiplicada por N nodos. */
 	void SoltarMiniaturas();
+	/** Ventana emergente con el dibujo a resolución grande, para mirarlo en detalle. NO modal: se
+	 *  deja abierta al lado mientras se sigue tocando el grafo, que es para lo que sirve. */
+	void AbrirVisorFullRes(const FString& NodeId);
+	void SoltarVisorFullRes();
 	void LoadBundledExample(const FString& Filename, const FText& LoadedMessage);
 	/** Galería: reemplaza el grafo por UNO DE CADA nodo en grilla (para sacarle un screenshot). */
 	void InsertAllNodes();
@@ -402,6 +406,11 @@ private:
 	 *  caché de Slate. */
 	TMap<FString, TSharedPtr<struct FSlateDynamicImageBrush>> Miniaturas;
 	static constexpr int32 MiniaturaLado = 64;
+	/** Resolución del popup. Para una máscara de material cada píxel es una evaluación del IR en
+	 *  CPU, así que 768² ya son ~590k: es el techo razonable para que abrirlo no cuelgue el editor. */
+	static constexpr int32 VisorFullLado = 768;
+	TSharedPtr<struct FSlateDynamicImageBrush> VisorFullBrush;
+	TWeakPtr<class SWindow> VisorFullVentana;
 	FOnLayout OnLayout;
 	FOnCollapseFunction OnCollapseFunction;
 	FOnFunctionManage OnFunctionManage;
