@@ -1334,6 +1334,16 @@ def t_mesh_normals(mesh_input, *, angle_weighted=True, area_weighted=True) -> st
     return _mesh_output("mesh_normals", result, "NORMALS M")
 
 
+def t_mesh_weld(mesh_input, *, tolerance_cm=0.01, only_unique_pairs=True) -> str:
+    from . import mesh
+    return _mesh_output(
+        "mesh_weld",
+        mesh.weld(
+            mesh_input, tolerance_cm=tolerance_cm, only_unique_pairs=bool(only_unique_pairs)),
+        "SOLDAR BORDES M",
+    )
+
+
 def t_mesh_simplify_count(mesh_input, *, target_triangles=5000, method="attributes",
                           preserve_seams=True, regularize=0.000001) -> str:
     from . import mesh
@@ -1909,6 +1919,15 @@ REGISTRO = {
     "mesh_normals": {"fn": t_mesh_normals, "cat": "Mesh", "graph_only": True,
                      "params": {"angle_weighted": True, "area_weighted": True},
                      "doc": "recalcula normales conservando los atributos de la malla M"},
+    "mesh_weld": {
+        "fn": t_mesh_weld, "label": "Soldar bordes",
+        "cat": "Mesh", "graph_only": True,
+        "params": {"tolerance_cm": 0.01, "only_unique_pairs": True},
+        "etiquetas_params": {"tolerance_cm": "tolerancia (cm)",
+                              "only_unique_pairs": "sólo pares únicos"},
+        "doc": "suelda bordes abiertos coincidentes de M para cerrar grietas entre piezas; "
+               "no garantiza cerrar la malla del todo — piezas separadas por diseño quedan intactas",
+    },
     "mesh_simplify_count": {
         "fn": t_mesh_simplify_count, "label": "Simplificar por triángulos",
         "cat": "Mesh", "graph_only": True,
@@ -2052,7 +2071,7 @@ GRAPH_NO_ASSET = {"asset", "pick", "create_spline", "pivot_set", "instance",
                   "mesh_color", "mesh_uv_scale", "mesh_material", "mesh_bark", "points_to_frames", "debug",
                   "mesh_remap_materials", "mesh_clean_material_ids",
                   "mesh_validate",
-                  "mesh_normals", "mesh_simplify_count", "mesh_simplify_tolerance",
+                  "mesh_normals", "mesh_weld", "mesh_simplify_count", "mesh_simplify_tolerance",
                   "mesh_simplify_edge_length", "mesh_to_static",
                   # UVs procedurales y todo el frente de shader: ninguno necesita un asset de
                   # entrada — trabajan sobre la malla que les llega o sobre el grafo de material.
@@ -2077,6 +2096,7 @@ GRAPH_IN_NAMES = {"points_to_frames": "P", "debug": "*", "curve_child": "S", "cu
                   "mesh_remap_materials": "M", "mesh_clean_material_ids": "M",
                   "mesh_validate": "M",
                   "mesh_vertex_gradient": "M", "mesh_merge": "M", "mesh_normals": "M",
+                  "mesh_weld": "M",
                   "mesh_simplify_count": "M", "mesh_simplify_tolerance": "M",
                   "mesh_simplify_edge_length": "M",
                   "mesh_uv_box": "M", "mesh_uv_unwrap": "M", "mesh_uv_pack": "M",
@@ -2112,6 +2132,7 @@ GRAPH_OUT_NAMES = {"points_to_frames": "F", "debug": "M", "asset": "A", "pick": 
                    "mesh_remap_materials": "M", "mesh_clean_material_ids": "M",
                    "mesh_validate": "M",
                    "mesh_vertex_gradient": "M", "mesh_merge": "M", "mesh_normals": "M",
+                  "mesh_weld": "M",
                    "mesh_simplify_count": "M", "mesh_simplify_tolerance": "M",
                    "mesh_simplify_edge_length": "M",
                   "mesh_uv_box": "M", "mesh_uv_unwrap": "M", "mesh_uv_pack": "M",

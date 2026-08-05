@@ -90,6 +90,7 @@
   "mesh_merge": "jam-mesh-merge",
   "mesh_normals": "jam-mesh-normals",
   "mesh_remap_materials": "jam-mesh-remap-materials",
+  "mesh_weld": "jam-mesh-weld",
   "mesh_simplify_count": "jam-mesh-simplify-count",
   "mesh_simplify_edge_length": "jam-mesh-simplify-edge-length",
   "mesh_simplify_tolerance": "jam-mesh-simplify-tolerance",

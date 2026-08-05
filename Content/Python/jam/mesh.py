@@ -65,8 +65,29 @@ def _skeletal_mesh(value):
 
 
 def _info(value) -> str:
+    """Resumen legible de una malla: lo que hace falta para juzgarla, no el volcado del motor.
+
+    `GetTriangleCount` no existe en Geometry Script 5.8 —está comentado en el propio header del
+    motor—; la alternativa limpia es `GetNumTriangleIDs`, que coincide con el conteo real en una
+    malla compacta (todo lo que produce Jam lo es: copia, simplify y merge dejan `auto_compact` o
+    `append_mesh` sin huecos). Antes esto mostraba la primera línea del volcado de debug de
+    `GetMeshInfoString` —pensado para depurar el motor, no para leer en un Inspector— que sólo
+    trae vértices. El número de triángulos, que es la unidad en la que se piden los objetivos de
+    Simplify, nunca llegaba a mostrarse: se podía correr `mesh_simplify_count` sin ver jamás si el
+    objetivo se había cumplido.
+
+    `piezas` viene de `GetNumConnectedComponents`: cuando es más de una, es la señal de que un
+    Simplify puede quedarse muy por debajo del objetivo sin que sea un error — cada pieza aislada
+    tiene su propio piso mínimo de triángulos, y el colapso de aristas no toca un borde abierto.
+    """
     try:
-        return str(unreal.GeometryScript_MeshQueries.get_mesh_info_string(value)).splitlines()[0]
+        vertices = unreal.GeometryScript_MeshQueries.get_vertex_count(value)
+        triangulos = unreal.GeometryScript_MeshQueries.get_num_triangle_i_ds(value)
+        cerrada = unreal.GeometryScript_MeshQueries.get_is_closed_mesh(value)
+        piezas = unreal.GeometryScript_MeshQueries.get_num_connected_components(value)
+        estado = "cerrada" if cerrada else "abierta"
+        detalle_piezas = "" if piezas == 1 else f" · {piezas} piezas"
+        return f"{triangulos} triángulos · {vertices} vértices · {estado}{detalle_piezas}"
     except Exception:  # noqa: BLE001
         return "DynamicMesh"
 
@@ -1966,6 +1987,33 @@ def comparar(source, referencia, *, franjas: int = 8, tolerancia_perfil: float =
     resultado["generada"] = izquierda["medida"]
     resultado["referencia"] = derecha["medida"]
     return resultado
+
+
+def weld(source, *, tolerance_cm: float = 0.01, only_unique_pairs: bool = True) -> dict:
+    """Suelda bordes abiertos coincidentes de M para cerrar «grietas» entre piezas.
+
+    Nace del caso `casa_madera`: un asset de kit con 17932 piezas —una por triángulo, cero
+    vértices compartidos— donde Simplify se quedaba muy por debajo del objetivo porque un colapso
+    de aristas no toca un borde abierto. Soldar no garantiza cerrar la malla del todo —piezas
+    genuinamente separadas por diseño quedan intactas, a propósito— pero le da al simplificador
+    márgen real donde antes no tenía ninguno.
+
+    El default de Geometry Script (``1e-6``, prácticamente cero) no perdona el error de punto
+    flotante típico de piezas colocadas a mano; `0,01 cm` (0,1 mm) suelda lo casi-coincidente sin
+    arriesgar fusionar geometría que de verdad está separada.
+    """
+    from . import mesh_simplify_core as core
+
+    try:
+        tolerance = core.distance(tolerance_cm, "tolerance_cm")
+        result = _clone(source)
+    except (TypeError, ValueError) as exc:
+        return {"error": str(exc)}
+    options = unreal.GeometryScriptWeldEdgesOptions()
+    options.set_editor_property("tolerance", tolerance)
+    options.set_editor_property("only_unique_pairs", bool(only_unique_pairs))
+    unreal.GeometryScript_MeshRepair.weld_mesh_edges(result, options)
+    return {"mesh": result, "info": _info(result)}
 
 
 def normals(source, *, angle_weighted: bool = True, area_weighted: bool = True) -> dict:

@@ -65,6 +65,53 @@ class _Patches:
         return self._stack.__exit__(*exc_info)
 
 
+class InfoTests(unittest.TestCase):
+    """`_info()` es lo único que Slate muestra de una malla. Antes mostraba la primera línea del
+    volcado de debug del motor —sólo vértices— y `mesh_simplify_count` podía correr sin que se
+    viera nunca si el objetivo, expresado en triángulos, se había cumplido."""
+
+    def _consulta(self, *, vertices, triangulos, cerrada, piezas):
+        class _Queries:
+            @staticmethod
+            def get_vertex_count(_target):
+                return vertices
+
+            @staticmethod
+            def get_num_triangle_i_ds(_target):
+                return triangulos
+
+            @staticmethod
+            def get_is_closed_mesh(_target):
+                return cerrada
+
+            @staticmethod
+            def get_num_connected_components(_target):
+                return piezas
+
+        return _Queries
+
+    def test_una_malla_cerrada_de_una_pieza_no_menciona_piezas(self):
+        consulta = self._consulta(vertices=502, triangulos=1000, cerrada=True, piezas=1)
+        with mock.patch.object(unreal, "GeometryScript_MeshQueries", consulta, create=True):
+            self.assertEqual(mesh._info(object()), "1000 triángulos · 502 vértices · cerrada")
+
+    def test_una_malla_abierta_de_varias_piezas_lo_dice_todo(self):
+        consulta = self._consulta(vertices=224956, triangulos=17932, cerrada=False, piezas=53)
+        with mock.patch.object(unreal, "GeometryScript_MeshQueries", consulta, create=True):
+            self.assertEqual(
+                mesh._info(object()),
+                "17932 triángulos · 224956 vértices · abierta · 53 piezas")
+
+    def test_una_consulta_que_falla_no_rompe_el_nodo(self):
+        class _QueriesRotas:
+            @staticmethod
+            def get_vertex_count(_target):
+                raise RuntimeError("motor no disponible")
+
+        with mock.patch.object(unreal, "GeometryScript_MeshQueries", _QueriesRotas, create=True):
+            self.assertEqual(mesh._info(object()), "DynamicMesh")
+
+
 class MeshTests(unittest.TestCase):
     def test_bezier_curve_has_stable_endpoints_and_bend(self):
         result = curve.bezier(
@@ -964,8 +1011,20 @@ class MeshTests(unittest.TestCase):
 
         class _Queries:
             @staticmethod
-            def get_mesh_info_string(_target):
-                return "Vertices count 34\nTriangles count 64"
+            def get_vertex_count(_target):
+                return 34
+
+            @staticmethod
+            def get_num_triangle_i_ds(_target):
+                return 64
+
+            @staticmethod
+            def get_is_closed_mesh(_target):
+                return True
+
+            @staticmethod
+            def get_num_connected_components(_target):
+                return 1
 
         origin = types.SimpleNamespace(BASE="base")
         with mock.patch.object(unreal, "DynamicMesh", _DynamicMesh, create=True), \
@@ -979,7 +1038,7 @@ class MeshTests(unittest.TestCase):
         self.assertNotIn("error", result)
         self.assertEqual(calls[0][3]["radius"], 80.0)
         self.assertEqual(calls[0][3]["radial_steps"], 20)
-        self.assertEqual(result["info"], "Vertices count 34")
+        self.assertEqual(result["info"], "64 triángulos · 34 vértices · cerrada")
         self.assertIn("error", mesh.cylinder(radius=0))
 
     def test_transform_maps_pitch_yaw_and_roll_by_name(self):
