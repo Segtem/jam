@@ -274,6 +274,40 @@ def evaluar(verbo: str, params: dict, tabla: dict, eval_expr: Callable) -> objec
     return _numero(resultado, "resultado", tabla, eval_expr)
 
 
+def _por_que_no_resolvio(nodo: dict, campo_verbo: str, tabla: dict) -> str:
+    """Por qué un nodo de valor quedó sin resolver, con el nombre exacto y qué SÍ existe.
+
+    «valor o expresión sin resolver» era verdad pero inservible: el caso abrumadoramente común es
+    un nombre de variable mal escrito, y el mensaje no decía cuál ni contra qué. Escribir variables
+    a mano sin autocompletado hace que el typo sea LA falla típica, así que el diagnóstico tiene que
+    resolverla sin salir del nodo.
+    """
+    import re
+
+    generico = "valor o expresión sin resolver"
+    if nodo.get(campo_verbo) != "math":
+        # Los demás nodos de valor sólo quedan pendientes por un cable que no llegó (o un ciclo).
+        return generico + " (¿un cable de entrada sin resolver, o un ciclo?)"
+
+    expr = str(nodo.get("params", {}).get("expr", ""))
+    # Nombres que la expresión menciona y que la tabla no tiene. Se descartan las funciones que el
+    # evaluador provee, o `sqrt(x)` se reportaría como «variable desconocida».
+    conocidas = {"sin", "cos", "tan", "sqrt", "abs", "min", "max", "clamp", "lerp", "remap",
+                 "rand", "floor", "ceil", "round", "pi", "e"}
+    citados = [m for m in re.findall(r"[A-Za-z_][A-Za-z_0-9]*", expr) if m not in conocidas]
+    faltan = sorted({m for m in citados if m not in tabla})
+    if not faltan:
+        return generico
+    # Sólo las NUMÉRICAS: un booleano no es usable en una expresión (ver `evaluar`), así que
+    # ofrecerlo como alternativa mandaría a quien lee a un segundo error.
+    disponibles = sorted(k for k, v in tabla.items()
+                         if isinstance(v, (int, float)) and not isinstance(v, bool))
+    hay = ", ".join(f"«{d}»" for d in disponibles) if disponibles else "ninguna todavía"
+    nombres = ", ".join(f"«{f}»" for f in faltan)
+    return (f"la expresión usa {nombres}, que no {'son' if len(faltan) > 1 else 'es'} una variable; "
+            f"disponibles: {hay}")
+
+
 def resolver(nodos: dict, enlaces: list[tuple[str, str, str, str]], *, campo_verbo: str,
              eval_expr: Callable) -> tuple[dict, dict, dict[str, list[str]]]:
     """Resuelve el sub-DAG de valores de Graph o Flow.
@@ -333,5 +367,5 @@ def resolver(nodos: dict, enlaces: list[tuple[str, str, str, str]], *, campo_ver
 
     for nid in valor_nodos:
         if nid not in por_nodo and nid not in errores:
-            errores[nid] = ["valor o expresión sin resolver"]
+            errores[nid] = [_por_que_no_resolvio(valor_nodos[nid], campo_verbo, tabla)]
     return tabla, por_nodo, errores

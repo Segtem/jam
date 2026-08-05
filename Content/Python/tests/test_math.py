@@ -372,5 +372,50 @@ class ComparacionesTests(unittest.TestCase):
         self.assertNotIn("m", tabla)
 
 
+class DiagnosticoDeVariablesTests(unittest.TestCase):
+    """Escribir variables a mano sin autocompletado hace que el TYPO sea la falla típica.
+
+    `valor o expresión sin resolver` era verdad pero inservible: no decía cuál nombre estaba mal ni
+    contra qué comparar. El diagnóstico tiene que resolver el typo sin salir del nodo.
+    """
+
+    def error_de(self, expr: str, variables: dict | None = None) -> str:
+        g = JamGraph()
+        for i, (nombre, valor) in enumerate((variables or {}).items()):
+            g.add("number", {"name": nombre, "value": str(valor)}, nid=f"v{i}")
+        g.add("math", {"name": "r", "expr": expr}, nid="m")
+        return graph_module.validar(g)["m"][0]
+
+    def test_it_names_the_variable_that_does_not_exist(self):
+        msg = self.error_de("radioo * 2", {"radio": 50})
+        self.assertIn("«radioo»", msg)
+
+    def test_it_lists_what_is_available_so_the_typo_is_obvious(self):
+        msg = self.error_de("radioo * 2", {"radio": 50, "alto": 10})
+        self.assertIn("«radio»", msg)
+        self.assertIn("«alto»", msg)
+
+    def test_a_function_is_not_reported_as_a_missing_variable(self):
+        """`sqrt(x)` menciona `sqrt`, que el evaluador provee: reportarlo mandaría a buscar una
+        variable que no tiene que existir."""
+        msg = self.error_de("sqrt(nada)")
+        self.assertNotIn("«sqrt»", msg)
+        self.assertIn("«nada»", msg)
+
+    def test_with_no_variables_it_says_so_instead_of_an_empty_list(self):
+        self.assertIn("ninguna todavía", self.error_de("nada + 1"))
+
+    def test_a_boolean_is_not_offered_as_an_alternative(self):
+        """Un booleano no es usable en una expresión numérica (ver `evaluar`), así que ofrecerlo
+        mandaría a quien lee directo a un segundo error."""
+        g = JamGraph()
+        g.add("compare_greater", {"a": "3", "b": "2", "name": "esMayor"}, nid="cmp")
+        g.add("number", {"name": "radio", "value": "50"}, nid="n")
+        g.add("math", {"name": "r", "expr": "nada + 1"}, nid="m")
+        msg = graph_module.validar(g)["m"][0]
+        self.assertIn("«radio»", msg)
+        self.assertNotIn("esMayor", msg)
+
+
 if __name__ == "__main__":
     unittest.main()
