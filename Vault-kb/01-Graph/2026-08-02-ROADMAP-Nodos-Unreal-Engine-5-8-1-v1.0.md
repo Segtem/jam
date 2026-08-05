@@ -218,8 +218,18 @@ colgar headless. Tener una clase o compilar el plugin no cuenta como funcionamie
 - `terrain_create`, `terrain_from_mesh`, `terrain_layer`, `terrain_boolean`.
 - `terrain_material`, `terrain_section`, `terrain_bake_section`, `terrain_to_pcg`.
 
-Mesh Terrain es experimental, está deshabilitado en BotOO y gran parte de su editor vive en APIs
-privadas. La primera integración sólo consultará y horneará secciones en un host aislado.
+Mesh Terrain es experimental y gran parte de su editor vive en APIs privadas.
+
+> [!info] Estado al 2026-08-05 — **diferido por decisión de producto**
+> El plugin **ya está habilitado** (`Jam.uplugin`) y verificado: `MeshPartitionDefinition` resuelve
+> en Python y `jam/terrain.py` lee `Material` y `ModifierTypePriorities`
+> (`JAM_TERRAIN_DEFINICION_58 TODO VERDE`). **No hay verbo registrado**, y es a propósito: el plugin
+> **no expone factory** (`MeshPartitionDefinitionFactory=NO`), así que Python no puede crear una
+> definición, y BotOO tiene **0**. Un verbo no tendría a qué apuntar.
+>
+> Se retoma cuando aparezca una aplicación real; el paso siguiente es que un humano cree una
+> definición desde el editor. De la lista de arriba, todo lo que **crea** (`terrain_create`,
+> `terrain_from_mesh`, `terrain_boolean`) está fuera de alcance en 5.8.1 por la falta de factory.
 
 ### 6. Mundo y producción
 
