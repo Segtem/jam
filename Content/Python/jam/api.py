@@ -501,7 +501,13 @@ def acomodar(nodos_json: str, accion: str) -> str:
     """Alinear/distribuir la selección del canvas. JSON `{ok, pos: {id: [x, y]}}`.
 
     `nodos_json` es `[{"id","x","y","w","h"}]` en coordenadas de MODELO. `accion` es uno de
-    `izquierda/derecha/arriba/abajo/centro-x/centro-y` (alinear) o `dist-x`/`dist-y` (distribuir).
+    `izquierda/derecha/arriba/abajo/centro-x/centro-y` (alinear), `dist-x`/`dist-y` (distribuir)
+    o `auto` (acomodar el grafo por capas).
+
+    `auto` es el único que necesita saber CÓMO están cableados los nodos, no sólo dónde están, así
+    que para él `nodos_json` toma la forma `{"nodos": [...], "edges": [[origen, destino], ...]}`.
+    Se acepta cualquiera de las dos formas en vez de agregar una función aparte: es el mismo gesto
+    para el usuario —«acomodame esto»— y el mismo camino de vuelta, aplicar posiciones.
 
     Las cuentas viven en `jam.layout`, puro y testeado, y no en Slate: son las mismas con cualquier
     pan, zoom y DPI, y así se pueden verificar sin abrir el editor.
@@ -511,8 +517,15 @@ def acomodar(nodos_json: str, accion: str) -> str:
     from . import layout
 
     try:
-        nodos = json.loads(nodos_json) or []
-        if str(accion) in ("dist-x", "dist-y"):
+        crudo = json.loads(nodos_json)
+        if isinstance(crudo, dict):
+            nodos = crudo.get("nodos") or []
+            aristas = [(e[0], e[1]) for e in (crudo.get("edges") or []) if len(e) >= 2]
+        else:
+            nodos, aristas = (crudo or []), []
+        if str(accion) == "auto":
+            pos = layout.auto(nodos, aristas)
+        elif str(accion) in ("dist-x", "dist-y"):
             pos = layout.distribuir(nodos, str(accion)[-1])
         else:
             pos = layout.alinear(nodos, str(accion))

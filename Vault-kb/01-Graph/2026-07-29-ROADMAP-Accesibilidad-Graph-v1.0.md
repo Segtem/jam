@@ -334,8 +334,15 @@ Ordenadas por lo que rinden, no por lo que cuestan:
    [[2026-07-29-INFORME-Seleccion-Multiple-Alineacion-Nodos-v2.0\|Selección múltiple y alineación]].
 4. **Reroute** — doble clic sobre un cable inserta un punto de paso. Grafo largo = cables que cruzan
    todo.
-5. **Auto-layout** — ordenar el grafo por capas topológicas. `graph.topo_order()` ya existe: el layout
-   es *puro*, se calcula en Python y el C++ sólo aplica posiciones.
+5. ✅ **Auto-layout** (`L`) — ordenar el grafo por capas topológicas. `graph.topo_order()` ya existe: el
+   layout es *puro*, se calcula en Python y el C++ sólo aplica posiciones.
+   **Hecho el 2026-08-05** como `jam.layout.auto`. Reusa entero el puente que ya tenían alinear y
+   distribuir (`OnLayout` → `api.acomodar` → aplicar posiciones); lo único nuevo es que `auto`
+   necesita las ARISTAS además de los rectángulos, así que su payload es
+   `{"nodos": [...], "edges": [...]}` en vez de la lista pelada. La capa sale del camino MÁS LARGO
+   desde una fuente —con el más corto un nodo puede quedar a la izquierda de algo que lo alimenta,
+   que es justo el cable para atrás que se quiere eliminar— y el orden dentro de la capa por
+   baricentro, dos pasadas. Sin selección acomoda el grafo entero.
 6. **Snap a la grilla** — la grilla ya se dibuja (paso 24); falta que los nodos la usen.
 
 ---
@@ -362,6 +369,7 @@ Elegidos para no pelearse con lo que Brian ya tiene en el dedo de Blueprint y de
 | `Tab` | siguiente nodo (orden topológico) | 6 |
 | `C` | comentario sobre la selección | 7 |
 | `D` | bypass del nodo | 7 |
+| `L` | acomodar el grafo (auto-layout) | 7 |
 | `Q`/`W`/`E`/`R` | alinear | 7 |
 
 **Conflicto conocido:** `Supr` y `Ctrl+A` mientras un campo de texto tiene el foco pertenecen al

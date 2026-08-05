@@ -2871,22 +2871,56 @@ TArray<FString> SJamGraphEditor::NodeIdsTouchingRect(const FVector2D& Min, const
 
 void SJamGraphEditor::AcomodarSeleccion(const FString& Accion)
 {
-	if (SelectedNodeIds.Num() < 2 || !OnLayout.IsBound())
+	if (!OnLayout.IsBound())
 	{
 		return;
 	}
+	// `auto` acomoda el GRAFO ENTERO cuando no hay nada elegido: es el gesto de «ordename esto»,
+	// y pedir que selecciones todo antes sería un paso de más. Alinear y distribuir siguen
+	// necesitando 2+ elegidos — no hay a qué alinear un grafo entero.
+	const bool bAuto = Accion == TEXT("auto");
+	const bool bTodo = bAuto && SelectedNodeIds.Num() < 2;
+	if (!bTodo && SelectedNodeIds.Num() < 2)
+	{
+		return;
+	}
+	auto Entra = [this, bTodo](const FString& Id)
+	{
+		return bTodo || SelectedNodeIds.Contains(Id);
+	};
+
 	// Rectángulos en coordenadas de MODELO: lo que `jam.layout` sabe leer. El ancho es fijo; el
 	// alto NO (depende de cuántos params tiene el verbo), y es justo el que hace que alinear
 	// «abajo» sea distinto de alinear por `y`.
 	TArray<FString> Filas;
 	for (const FGNode& N : Nodes)
 	{
-		if (!SelectedNodeIds.Contains(N.Id)) { continue; }
+		if (!Entra(N.Id)) { continue; }
 		Filas.Add(FString::Printf(
 			TEXT("{\"id\":\"%s\",\"x\":%.3f,\"y\":%.3f,\"w\":%.3f,\"h\":%.3f}"),
 			*N.Id, N.Pos.X, N.Pos.Y, NodeWidth, N.Height));
 	}
-	const FString Json = FString::Printf(TEXT("[%s]"), *FString::Join(Filas, TEXT(",")));
+	if (Filas.Num() == 0)
+	{
+		return;
+	}
+	FString Json = FString::Printf(TEXT("[%s]"), *FString::Join(Filas, TEXT(",")));
+	if (bAuto)
+	{
+		// `auto` es el único que necesita saber cómo están CABLEADOS los nodos, no sólo dónde
+		// están: las capas salen del grafo, no de las posiciones. Van todos los cables con las dos
+		// puntas adentro, sin importar por qué pin entran — para el orden topológico da igual.
+		TArray<FString> Cables;
+		for (const FGEdge& E : Edges)
+		{
+			if (Entra(E.From) && Entra(E.To))
+			{
+				Cables.Add(FString::Printf(TEXT("[\"%s\",\"%s\"]"), *E.From, *E.To));
+			}
+		}
+		Json = FString::Printf(TEXT("{\"nodos\":%s,\"edges\":[%s]}"),
+			*Json, *FString::Join(Cables, TEXT(",")));
+	}
 
 	const FString Res = OnLayout.Execute(Json, Accion);
 	TSharedPtr<FJsonObject> Obj;
@@ -3636,6 +3670,11 @@ FReply SJamGraphEditor::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& 
 		AlternarBypassDeLaSeleccion();
 		return FReply::Handled();
 	}
+	if (Tecla == EKeys::L && !InKeyEvent.IsControlDown())
+	{
+		AcomodarSeleccion(TEXT("auto"));
+		return FReply::Handled();
+	}
 	if (Tecla == EKeys::Home)
 	{
 		Encuadrar(/*bSoloSeleccion*/ false);
@@ -3812,6 +3851,15 @@ void SJamGraphEditor::FillEditMenu(FMenuBuilder& MB)
 	// Alinear y distribuir: las posiciones las decide `jam.layout` (puro y testeado). Requieren 2+
 	// nodos elegidos; con menos, la acción no hace nada porque no hay contra qué alinear.
 	MB.BeginSection(TEXT("Acomodar"), LOCTEXT("SectionAlign", "Alinear y distribuir"));
+	// Auto-layout no pide 2+ elegidos: sin selección acomoda el grafo entero, que es el caso
+	// habitual («ordename esto»).
+	MB.AddMenuEntry(LOCTEXT("AutoLayout", "Acomodar el grafo\tL"),
+		LOCTEXT("AutoLayoutTip",
+			"Ordena por capas de izquierda a derecha: cada nodo a la derecha de lo que lo alimenta. "
+			"Sin selección acomoda todo; con selección, sólo esa parte"),
+		FSlateIcon(), FUIAction(FExecuteAction::CreateLambda(
+			[this]() { AcomodarSeleccion(TEXT("auto")); })));
+	MB.AddMenuSeparator();
 	auto Entrada = [&MB, this](const TCHAR* Etiqueta, const TCHAR* Tip, const TCHAR* Accion)
 	{
 		const FString A(Accion);

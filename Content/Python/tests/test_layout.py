@@ -214,6 +214,67 @@ class ReglaDeContencionCompartidaEnElCppTests(unittest.TestCase):
             "NodeIdsTouchingRect debería aparecer en su definición, en el marquee y en BeginCommentDrag")
 
 
+class AutoLayoutTests(unittest.TestCase):
+    """Acomodar por capas: el flujo se lee de izquierda a derecha, sin cables para atrás."""
+
+    def cadena(self):
+        return [nodo("a", 0, 0), nodo("b", 500, 300), nodo("c", 10, 900)]
+
+    def test_a_chain_becomes_three_columns_in_order(self):
+        pos = layout.auto(self.cadena(), [("a", "b"), ("b", "c")])
+        self.assertLess(pos["a"][0], pos["b"][0])
+        self.assertLess(pos["b"][0], pos["c"][0])
+
+    def test_no_cable_ever_points_backwards(self):
+        """La propiedad que justifica el feature: si un nodo quedara a la izquierda de algo que lo
+        alimenta, el cable iría para atrás y acomodar no habría servido de nada."""
+        nodos = [nodo(i, 0, 0) for i in "abcde"]
+        aristas = [("a", "c"), ("b", "c"), ("c", "d"), ("a", "d"), ("d", "e")]
+        pos = layout.auto(nodos, aristas)
+        for origen, destino in aristas:
+            self.assertLess(pos[origen][0], pos[destino][0],
+                            f"el cable {origen}→{destino} apunta para atrás")
+
+    def test_the_longest_path_decides_the_column_not_the_shortest(self):
+        """`a` alimenta a `b` y a `c`, y `b` también alimenta a `c`. Con el camino más CORTO, `c`
+        quedaría en la misma columna que `b` y su cable iría en vertical o para atrás."""
+        pos = layout.auto([nodo("a", 0, 0), nodo("b", 0, 0), nodo("c", 0, 0)],
+                          [("a", "b"), ("a", "c"), ("b", "c")])
+        self.assertLess(pos["a"][0], pos["b"][0])
+        self.assertLess(pos["b"][0], pos["c"][0])
+
+    def test_nodes_in_one_column_do_not_overlap_even_with_different_heights(self):
+        """Los nodos de Jam no miden todos igual: espaciar por una altura fija los encimaría."""
+        nodos = [nodo("raiz", 0, 0), nodo("x", 0, 0, h=200), nodo("y", 0, 0, h=40)]
+        pos = layout.auto(nodos, [("raiz", "x"), ("raiz", "y")])
+        alto = {"x": 200, "y": 40}
+        arriba, abajo = sorted(["x", "y"], key=lambda k: pos[k][1])
+        self.assertGreaterEqual(pos[abajo][1], pos[arriba][1] + alto[arriba],
+                                "dos nodos de la misma columna se encimaron")
+
+    def test_the_graph_stays_where_it_was(self):
+        """Acomodar no puede mandar el grafo a mil unidades de donde lo estabas mirando."""
+        nodos = [nodo("a", 700, 400), nodo("b", 900, 400)]
+        pos = layout.auto(nodos, [("a", "b")])
+        x0, y0, _x1, _y1 = layout.marco_de(nodos)
+        self.assertEqual(min(p[0] for p in pos.values()), x0)
+        self.assertEqual(min(p[1] for p in pos.values()), y0)
+
+    def test_an_edge_with_one_end_outside_the_selection_is_ignored(self):
+        """Al acomodar una selección, un cable que sale hacia afuera no dice nada del orden interno."""
+        pos = layout.auto([nodo("a", 0, 0), nodo("b", 0, 0)], [("a", "b"), ("b", "afuera")])
+        self.assertEqual(set(pos), {"a", "b"})
+
+    def test_a_cycle_does_not_raise(self):
+        """El Compile ya rechaza los ciclos, pero acomodar es un gesto de edición y tiene que
+        sobrevivir a un grafo a medio cablear."""
+        pos = layout.auto([nodo("a", 0, 0), nodo("b", 0, 0)], [("a", "b"), ("b", "a")])
+        self.assertEqual(set(pos), {"a", "b"})
+
+    def test_no_nodes_is_not_a_crash(self):
+        self.assertEqual(layout.auto([], [("a", "b")]), {})
+
+
 class MarcoTests(unittest.TestCase):
     def test_the_aabb_covers_every_node(self):
         nodos = [nodo("a", 10, 20, w=100, h=50), nodo("b", 300, -40, w=100, h=50)]

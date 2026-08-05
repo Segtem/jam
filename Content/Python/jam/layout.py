@@ -121,3 +121,105 @@ def marco_de(nodos: list[dict]) -> tuple[float, float, float, float]:
             min(_rect(n)[1] for n in nodos),
             max(_rect(n)[0] + _rect(n)[2] for n in nodos),
             max(_rect(n)[1] + _rect(n)[3] for n in nodos))
+
+
+#: Huecos del auto-layout, en unidades de MODELO. El horizontal es generoso porque entre columna y
+#: columna es donde viajan los cables: apretarlas hace que los splines se superpongan a los nodos.
+HUECO_X = 90.0
+HUECO_Y = 34.0
+
+
+def auto(nodos: list[dict], aristas: list[tuple[str, str]]) -> dict[str, tuple[float, float]]:
+    """Acomoda el grafo entero por capas topológicas: `{id: (x, y)}`.
+
+    Es el *layout por capas* de Graphviz/Blueprint llevado a lo mínimo que rinde: **el flujo se lee
+    de izquierda a derecha**, cada nodo a la derecha de todo lo que lo alimenta. Un grafo que creció
+    a los saltos deja de tener cables que van para atrás.
+
+    Tres pasos, y el del medio es el que hace que sirva:
+
+    1. **Capa** = camino más largo desde una fuente. Con el más largo (y no el más corto) un nodo
+       nunca queda a la izquierda de algo que lo alimenta, que es justo el cable para atrás que se
+       quiere eliminar.
+    2. **Orden dentro de la capa** = baricentro de sus predecesores, dos pasadas. Sin esto las capas
+       salen bien pero los cables se cruzan entre ellas; es la heurística de Sugiyama, y dos pasadas
+       ya sacan la mayoría de los cruces sin volverse impredecible.
+    3. **Coordenadas** con el alto REAL de cada nodo. Los nodos de Jam no miden todos igual —depende
+       de cuántos params tiene el verbo— y espaciar por una altura fija los encimaría.
+
+    El resultado se ancla en la esquina superior izquierda de lo que había: acomodar no puede
+    mandar el grafo a mil unidades de donde lo estabas mirando.
+
+    Un CICLO no revienta: los nodos que no se pueden ordenar caen a la última capa. El Compile de
+    Jam ya rechaza los ciclos, pero acomodar es un gesto de edición y tiene que sobrevivir a un
+    grafo a medio cablear.
+    """
+    if not nodos:
+        return {}
+
+    por_id = {str(n["id"]): n for n in nodos}
+    # Sólo las aristas con las DOS puntas adentro: al acomodar una selección, un cable que sale
+    # hacia afuera no dice nada sobre el orden interno.
+    pares = [(str(a), str(b)) for a, b in aristas
+             if str(a) in por_id and str(b) in por_id and str(a) != str(b)]
+
+    preds: dict[str, list[str]] = {k: [] for k in por_id}
+    sucs: dict[str, list[str]] = {k: [] for k in por_id}
+    for a, b in pares:
+        if b not in sucs[a]:
+            sucs[a].append(b)
+        if a not in preds[b]:
+            preds[b].append(a)
+
+    # ---- 1. capa por camino más largo (Kahn; lo que quede sin resolver es un ciclo) ----
+    grado = {k: len(preds[k]) for k in por_id}
+    capa = {k: 0 for k in por_id}
+    listos = [k for k in por_id if grado[k] == 0]
+    vistos = 0
+    while listos:
+        k = listos.pop(0)
+        vistos += 1
+        for s in sucs[k]:
+            capa[s] = max(capa[s], capa[k] + 1)
+            grado[s] -= 1
+            if grado[s] == 0:
+                listos.append(s)
+    if vistos < len(por_id):
+        # Ciclo: los no resueltos van al fondo, todos juntos, en vez de tirar una excepción en
+        # medio de un gesto de edición.
+        fondo = max(capa.values(), default=0) + 1
+        for k in por_id:
+            if grado[k] > 0:
+                capa[k] = fondo
+
+    columnas: dict[int, list[str]] = {}
+    for k in sorted(por_id, key=lambda i: (capa[i], float(por_id[i].get("y", 0.0)), i)):
+        columnas.setdefault(capa[k], []).append(k)
+
+    # ---- 2. baricentro: dos pasadas para descruzar ----
+    for _ in range(2):
+        for c in sorted(columnas)[1:]:
+            fila = {k: i for i, k in enumerate(columnas[c - 1])}
+            def bary(k: str) -> float:
+                previos = [fila[p] for p in preds[k] if p in fila]
+                return sum(previos) / len(previos) if previos else float(columnas[c].index(k))
+            columnas[c].sort(key=lambda k: (bary(k), k))
+
+    # ---- 3. coordenadas, con el alto real de cada nodo ----
+    x0, y0, _x1, _y1 = marco_de(nodos)
+    pos: dict[str, tuple[float, float]] = {}
+    x = x0
+    for c in sorted(columnas):
+        ids = columnas[c]
+        ancho = max((_rect(por_id[k])[2] for k in ids), default=0.0)
+        # Cada columna centrada contra la más alta: un grafo con una columna de 1 nodo y otra de 8
+        # se lee mucho peor con todo pegado arriba.
+        alto = sum(_rect(por_id[k])[3] for k in ids) + HUECO_Y * max(0, len(ids) - 1)
+        altos = [sum(_rect(por_id[i])[3] for i in columnas[o]) + HUECO_Y * max(0, len(columnas[o]) - 1)
+                 for o in columnas]
+        y = y0 + (max(altos, default=0.0) - alto) * 0.5
+        for k in ids:
+            pos[k] = (x, y)
+            y += _rect(por_id[k])[3] + HUECO_Y
+        x += ancho + HUECO_X
+    return pos
