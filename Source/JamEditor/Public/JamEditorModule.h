@@ -97,6 +97,11 @@ public:
 
 private:
 	void RegisterMenus();
+	/** Libera lo que retiene UObjects (miniaturas) ANTES de que el motor tire abajo sus
+	 * subsistemas de editor. Atada a `FEditorDelegates::OnEditorPreExit` — ver la definición
+	 * para el porqué exacto del assert que esto evita. Idempotente: puede llamarse de nuevo
+	 * desde `ShutdownModule()` sin efecto si ya corrió. */
+	void ReleaseThumbnailResources();
 
 	// ---- los tres paneles son NOMAD TABS, no ventanas sueltas ----
 	// Una `SWindow` no se puede acoplar: el docking de Unreal sólo conoce tabs. Como tabs, los
@@ -112,6 +117,9 @@ private:
 	void OnDashClosed(TSharedRef<SDockTab> Tab);
 	void OpenGraph();
 	void OnGraphClosed(TSharedRef<SDockTab> Tab);
+	/** Veto de cierre del panel Graph: si hay cambios sin guardar, pregunta antes. Devolver false
+	 *  cancela el cierre y `OnGraphClosed` no llega a correr. */
+	bool PuedeCerrarGraph();
 	void OpenWebUI();
 	/** Corre un JamGraph (JSON) vía Python (jam.panel.ejecutar_grafo) y devuelve el reporte. */
 	FString RunGraphJson(const FString& Json);

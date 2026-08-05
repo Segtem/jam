@@ -1,5 +1,6 @@
 #include "SJamGraphEditor.h"
 #include "SJamGraphNode.h"
+#include "SJamGraphComment.h"
 
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/SCanvas.h"
@@ -320,34 +321,33 @@ private:
 	FOnVerbClicked OnClicked;
 };
 
-// Capa de fondo del canvas (como el de Grasshopper): pinta el color de fondo, una GRILLA fina
-// alineada al pan/zoom, y los WIRES (splines) — todo detrás de los nodos.
-class SJamWireLayer : public SLeafWidget
+// Fondo del canvas (como el de Grasshopper): color de fondo + una GRILLA fina alineada al pan/zoom.
+// Es la capa MÁS de atrás de todas — las cajas de comentario pintan (y tiñen) por encima de ella,
+// igual que en Blueprint, donde el color de una comment box tapa la grilla dentro de su área.
+class SJamGridLayer : public SLeafWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SJamWireLayer) {}
+	SLATE_BEGIN_ARGS(SJamGridLayer) {}
 	SLATE_END_ARGS()
 
-	void Construct(const FArguments&,
-		TFunction<TArray<SJamGraphEditor::FJamWire>()> InGetter,
-		TFunction<void(FVector2D&, float&)> InXform,
-		TFunction<bool(FVector2D&, FVector2D&, FLinearColor&)> InPending)
+	void Construct(const FArguments&, TFunction<void(FVector2D&, float&)> InXform)
 	{
-		Getter = MoveTemp(InGetter);
 		XformGetter = MoveTemp(InXform);
-		PendingGetter = MoveTemp(InPending);
+		// Sólo pinta: si fuera hit-testeable, al llenar TODO el canvas se robaría los clics de
+		// cualquier cosa apilada encima de ella en el SOverlay (mismo trato que SJamMarqueeLayer).
+		SetVisibility(EVisibility::HitTestInvisible);
 	}
 
 	virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
 		const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId,
 		const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override
 	{
-		const FSlateBrush* White = FAppStyle::GetBrush("WhiteBrush");
 		const FVector2D Size = AllottedGeometry.GetLocalSize();
 
 		// Fondo del canvas: gris claro clásico de Grasshopper/Rhino 7.
 		FSlateDrawElement::MakeBox(OutDrawElements, LayerId, AllottedGeometry.ToPaintGeometry(),
-			White, ESlateDrawEffect::None, FLinearColor(0.827f, 0.835f, 0.812f, 1.0f));
+			FAppStyle::GetBrush("WhiteBrush"), ESlateDrawEffect::None,
+			FLinearColor(0.827f, 0.835f, 0.812f, 1.0f));
 
 		// Grilla: líneas cada 24 u de modelo, mayores cada 4. Alineada al pan/zoom (se mueve y escala
 		// con el lienzo, como GH). Se saltea si el paso en pantalla es muy chico (zoom out).
@@ -378,10 +378,43 @@ public:
 				Line(FVector2D(0.0f, y), FVector2D(Size.X, y), (k % 4 == 0) ? Major : Minor);
 			}
 		}
+		return LayerId + 1;
+	}
 
-		// Wires (splines) entre nodos, sobre la grilla. Cada uno con su COLOR por tipo de dato (como
-		// Blueprint/Substance): el color dice QUÉ fluye. Un halo claro debajo levanta el contraste sobre
-		// el lienzo gris y ayuda a seguir el cable donde se cruzan.
+	virtual FVector2D ComputeDesiredSize(float) const override { return FVector2D::ZeroVector; }
+
+private:
+	TFunction<void(FVector2D&, float&)> XformGetter;
+};
+
+// Capa de WIRES (splines): en una capa PROPIA, por ENCIMA de las cajas de comentario — así una caja
+// con el fondo bien tintado no tapa ni atenúa los cables que pasan por (o nacen/mueren dentro de) su
+// área. Sigue yendo por debajo de los nodos: el pin es la punta visible del cable, no el cable el que
+// tapa al nodo.
+class SJamWireLayer : public SLeafWidget
+{
+public:
+	SLATE_BEGIN_ARGS(SJamWireLayer) {}
+	SLATE_END_ARGS()
+
+	void Construct(const FArguments&,
+		TFunction<TArray<SJamGraphEditor::FJamWire>()> InGetter,
+		TFunction<bool(FVector2D&, FVector2D&, FLinearColor&)> InPending)
+	{
+		Getter = MoveTemp(InGetter);
+		PendingGetter = MoveTemp(InPending);
+		// Sólo pinta: ahora va POR ENCIMA de las cajas de comentario (para que no atenúen los cables),
+		// y si fuera hit-testeable se robaría el clic de cualquier caja que tenga debajo — el hit-test
+		// de Slate no sigue bajando a hermanos tapados, sólo burbujea hacia arriba en el árbol.
+		SetVisibility(EVisibility::HitTestInvisible);
+	}
+
+	virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
+		const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId,
+		const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override
+	{
+		// Cada wire con su COLOR por tipo de dato (como Blueprint/Substance): el color dice QUÉ
+		// fluye. Un halo claro debajo levanta el contraste y ayuda a seguir el cable donde se cruzan.
 		const FSlateBrush* Dot = FAppStyle::GetBrush("WhiteBrush");
 		if (Getter)
 		{
@@ -391,15 +424,15 @@ public:
 				const float dx = FMath::Max(50.0f, FMath::Abs(W.B.X - W.A.X) * 0.6f);
 				const FVector2D T1(dx, 0.0f), T2(dx, 0.0f);
 				// halo claro (más grueso, translúcido) + cable de color encima.
-				FSlateDrawElement::MakeSpline(OutDrawElements, LayerId + 2, PG,
+				FSlateDrawElement::MakeSpline(OutDrawElements, LayerId, PG,
 					W.A, T1, W.B, T2, 5.0f, ESlateDrawEffect::None,
 					FLinearColor(1.0f, 1.0f, 1.0f, 0.55f));
-				FSlateDrawElement::MakeSpline(OutDrawElements, LayerId + 3, PG,
+				FSlateDrawElement::MakeSpline(OutDrawElements, LayerId + 1, PG,
 					W.A, T1, W.B, T2, 2.6f, ESlateDrawEffect::None, W.Color);
 				// punto en cada punta: ancla la conexión visualmente (como los pines de Blueprint).
 				for (const FVector2D& P : {W.A, W.B})
 				{
-					FSlateDrawElement::MakeBox(OutDrawElements, LayerId + 4,
+					FSlateDrawElement::MakeBox(OutDrawElements, LayerId + 2,
 						AllottedGeometry.ToPaintGeometry(FVector2D(6.0f, 6.0f),
 							FSlateLayoutTransform(P - FVector2D(3.0f, 3.0f))),
 						Dot, ESlateDrawEffect::None, W.Color);
@@ -413,22 +446,21 @@ public:
 		if (PendingGetter && PendingGetter(PF, PT, PC))
 		{
 			const float dx = FMath::Max(50.0f, FMath::Abs(PT.X - PF.X) * 0.6f);
-			FSlateDrawElement::MakeSpline(OutDrawElements, LayerId + 5, AllottedGeometry.ToPaintGeometry(),
+			FSlateDrawElement::MakeSpline(OutDrawElements, LayerId + 3, AllottedGeometry.ToPaintGeometry(),
 				PF, FVector2D(dx, 0.0f), PT, FVector2D(dx, 0.0f), 2.4f, ESlateDrawEffect::None,
 				FLinearColor(PC.R, PC.G, PC.B, 0.7f));
-			FSlateDrawElement::MakeBox(OutDrawElements, LayerId + 6,
+			FSlateDrawElement::MakeBox(OutDrawElements, LayerId + 4,
 				AllottedGeometry.ToPaintGeometry(FVector2D(7.0f, 7.0f),
 					FSlateLayoutTransform(PF - FVector2D(3.5f, 3.5f))),
 				Dot, ESlateDrawEffect::None, PC);
 		}
-		return LayerId + 6;
+		return LayerId + 4;
 	}
 
 	virtual FVector2D ComputeDesiredSize(float) const override { return FVector2D::ZeroVector; }
 
 private:
 	TFunction<TArray<SJamGraphEditor::FJamWire>()> Getter;
-	TFunction<void(FVector2D&, float&)> XformGetter;
 	TFunction<bool(FVector2D&, FVector2D&, FLinearColor&)> PendingGetter;
 };
 
@@ -679,13 +711,26 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 			.Clipping(EWidgetClipping::ClipToBounds)
 			[
 				SNew(SOverlay)
+				// La capa MÁS de atrás: fondo gris + grilla. Las cajas de comentario tiñen por
+				// encima de ella dentro de su área, igual que la comment box de Blueprint.
+				+ SOverlay::Slot()
+				[
+					SNew(SJamGridLayer, TFunction<void(FVector2D&, float&)>(
+						[this](FVector2D& P, float& Z) { P = PanOffset; Z = Zoom; }))
+				]
+				// Cajas de comentario/grupo: por encima de la grilla (para poder teñirla), por
+				// debajo de los WIRES (para no atenuar un cable que pasa por, o nace/muere dentro
+				// de, su área) y de los nodos (un nodo adentro se sigue clickeando/arrastrando
+				// normal — el cuerpo de la caja sólo captura clics en el área libre, como Blueprint).
+				+ SOverlay::Slot()
+				[
+					SAssignNew(CommentCanvas, SCanvas)
+				]
 				+ SOverlay::Slot()
 				[
 					SAssignNew(WireLayer, SJamWireLayer,
 						TFunction<TArray<FJamWire>()>(
 							[this]() { return GetWireEndpoints(); }),
-						TFunction<void(FVector2D&, float&)>(
-							[this](FVector2D& P, float& Z) { P = PanOffset; Z = Zoom; }),
 						TFunction<bool(FVector2D&, FVector2D&, FLinearColor&)>(
 							[this](FVector2D& F, FVector2D& T, FLinearColor& C) { return GetPendingWire(F, T, C); }))
 				]
@@ -1769,6 +1814,191 @@ void SJamGraphEditor::DeleteNode(const FString& Id)
 	Marcar();
 }
 
+// ---- cajas de comentario/grupo (Fase 7.1) ----
+
+SJamGraphEditor::FGComment* SJamGraphEditor::FindComment(const FString& Id)
+{
+	return Comments.FindByPredicate([&Id](const FGComment& C) { return C.Id == Id; });
+}
+
+FString SJamGraphEditor::AddComment(const FVector2D& Pos, const FVector2D& Size, const FString& Title,
+	const FString& PreferredId, const FLinearColor& Color)
+{
+	if (!CommentCanvas.IsValid())
+	{
+		return FString();
+	}
+
+	FGComment Comment;
+	const bool bIdLibre = !PreferredId.IsEmpty()
+		&& !Comments.ContainsByPredicate([&PreferredId](const FGComment& X) { return X.Id == PreferredId; });
+	if (bIdLibre)
+	{
+		Comment.Id = PreferredId;
+		// Mismo trato que AddNode: el contador no puede volver a emitir un número ya usado por el
+		// archivo que se está cargando.
+		if (PreferredId.StartsWith(TEXT("c")))
+		{
+			const int32 K = FCString::Atoi(*PreferredId.Mid(1));
+			if (K >= NextCommentId) { NextCommentId = K + 1; }
+		}
+	}
+	else
+	{
+		Comment.Id = FString::Printf(TEXT("c%d"), NextCommentId++);
+	}
+	Comment.Pos = Pos;
+	Comment.Size = Size;
+	Comment.Title = Title;
+	Comment.Color = Color;
+
+	const FString Id = Comment.Id;
+	TSharedRef<SJamGraphComment> Widget = SNew(SJamGraphComment)
+		.Title(Title)
+		.Color(Color)
+		.IsSelected_Lambda([this, Id]() { return SelectedCommentIds.Contains(Id); })
+		.OnClicked_Lambda([this, Id](bool bShift, bool bCtrl) { ClickComment(Id, bShift, bCtrl); })
+		.OnDragBegin_Lambda([this, Id]() { BeginCommentDrag(Id); })
+		.OnDragDelta_Lambda([this, Id](const FVector2D& D) { DragComment(Id, D); })
+		.OnDragEnd_Lambda([this]() { Marcar(); })
+		.OnResizeDelta_Lambda([this, Id](const FVector2D& D) { ResizeComment(Id, D); })
+		.OnResizeEnd_Lambda([this]() { Marcar(); })
+		.OnDeleteSelection_Lambda([this, Id]()
+		{
+			// `Supr` sobre una caja de un grupo elegido borra el grupo; sobre una suelta, esa caja.
+			if (SelectedCommentIds.Contains(Id)) { DeleteSelection(); } else { DeleteComment(Id); }
+		})
+		.OnTitleChanged_Lambda([this]() { Marcar(); })
+		.OnColorChanged_Lambda([this]() { Marcar(); });
+
+	Comment.Widget = Widget;
+
+	CommentCanvas->AddSlot()
+		.Position(TAttribute<FVector2D>::CreateLambda([this, Id]()
+		{
+			const FGComment* C = Comments.FindByPredicate([&Id](const FGComment& X) { return X.Id == Id; });
+			return C ? C->Pos + PanOffset : FVector2D::ZeroVector;   // el modelo no se mueve: se mueve la vista
+		}))
+		.Size(TAttribute<FVector2D>::CreateLambda([this, Id]()
+		{
+			const FGComment* C = Comments.FindByPredicate([&Id](const FGComment& X) { return X.Id == Id; });
+			return C ? C->Size : FVector2D(240.0f, 160.0f);
+		}))
+		[
+			Widget
+		];
+
+	Comments.Add(Comment);
+	Marcar();
+	return Id;
+}
+
+void SJamGraphEditor::DeleteComment(const FString& Id)
+{
+	FGComment* C = FindComment(Id);
+	if (C == nullptr)
+	{
+		return;
+	}
+	if (C->Widget.IsValid() && CommentCanvas.IsValid())
+	{
+		CommentCanvas->RemoveSlot(C->Widget.ToSharedRef());
+	}
+	Comments.RemoveAll([&Id](const FGComment& X) { return X.Id == Id; });
+	SelectedCommentIds.Remove(Id);
+	Marcar();
+}
+
+void SJamGraphEditor::ClickComment(const FString& Id, bool bShift, bool bCtrl)
+{
+	// Mismo trato que ClickNode, sobre su propio set: independiente de SelectedNodeIds a propósito
+	// (ver el comentario de SelectedCommentIds en el header).
+	if (bCtrl)
+	{
+		if (SelectedCommentIds.Contains(Id)) { SelectedCommentIds.Remove(Id); }
+		else { SelectedCommentIds.Add(Id); }
+		return;
+	}
+	if (bShift)
+	{
+		SelectedCommentIds.Add(Id);
+		return;
+	}
+	if (!SelectedCommentIds.Contains(Id))
+	{
+		SelectedCommentIds.Reset();
+		SelectedCommentIds.Add(Id);
+	}
+}
+
+void SJamGraphEditor::CreateCommentFromSelection()
+{
+	if (SelectedNodeIds.Num() == 0)
+	{
+		return;
+	}
+	// Mismo cálculo de bounding box que Encuadrar(bSoloSeleccion=true), sin la parte de fit-to-viewport.
+	FVector2D Min(TNumericLimits<float>::Max(), TNumericLimits<float>::Max());
+	FVector2D Max(TNumericLimits<float>::Lowest(), TNumericLimits<float>::Lowest());
+	int32 Contados = 0;
+	for (const FGNode& N : Nodes)
+	{
+		if (!SelectedNodeIds.Contains(N.Id)) { continue; }
+		Min.X = FMath::Min(Min.X, N.Pos.X);
+		Min.Y = FMath::Min(Min.Y, N.Pos.Y);
+		Max.X = FMath::Max(Max.X, N.Pos.X + NodeWidth);
+		Max.Y = FMath::Max(Max.Y, N.Pos.Y + N.Height);
+		++Contados;
+	}
+	if (Contados == 0)
+	{
+		return;
+	}
+	// Margen generoso + la franja de título: sin eso el borde de la caja tapa el nodo de más arriba.
+	const float Margen = 60.0f;
+	const float FranjaTitulo = 28.0f;
+	const FVector2D Pos = Min - FVector2D(Margen, Margen + FranjaTitulo);
+	const FVector2D Size = (Max - Min) + FVector2D(Margen * 2.0f, Margen * 2.0f + FranjaTitulo);
+	const FString Id = AddComment(Pos, Size, LOCTEXT("NuevoComentario", "Comentario").ToString());
+	if (!Id.IsEmpty())
+	{
+		SelectedCommentIds.Reset();
+		SelectedCommentIds.Add(Id);
+	}
+}
+
+void SJamGraphEditor::BeginCommentDrag(const FString& Id)
+{
+	// Se congela ACÁ, al empezar el gesto — nunca se persiste (ver FGComment en el header).
+	CommentDragNodeIds.Reset();
+	if (const FGComment* C = FindComment(Id))
+	{
+		CommentDragNodeIds = NodeIdsTouchingRect(C->Pos, C->Pos + C->Size);
+	}
+}
+
+void SJamGraphEditor::DragComment(const FString& Id, const FVector2D& DeltaModelo)
+{
+	if (FGComment* C = FindComment(Id)) { C->Pos += DeltaModelo; }
+	for (const FString& NodeId : CommentDragNodeIds)
+	{
+		if (FGNode* N = FindNode(NodeId)) { N->Pos += DeltaModelo; }
+	}
+}
+
+void SJamGraphEditor::ResizeComment(const FString& Id, const FVector2D& DeltaModelo)
+{
+	FGComment* C = FindComment(Id);
+	if (C == nullptr)
+	{
+		return;
+	}
+	// Mínimo para que no se invierta ni desaparezca arrastrando el handle hacia el título.
+	const FVector2D MinSize(80.0f, 60.0f);
+	C->Size.X = FMath::Max(C->Size.X + DeltaModelo.X, MinSize.X);
+	C->Size.Y = FMath::Max(C->Size.Y + DeltaModelo.Y, MinSize.Y);
+}
+
 // ---- historial ----
 
 void SJamGraphEditor::Marcar()
@@ -1923,15 +2153,15 @@ void SJamGraphEditor::RestaurarCanvas(const FString& Json)
 
 void SJamGraphEditor::Copiar(bool bCortar)
 {
-	if (SelectedNodeIds.Num() == 0)
+	if (SelectedNodeIds.Num() == 0 && SelectedCommentIds.Num() == 0)
 	{
 		return;
 	}
 	// Al portapapeles DEL SISTEMA y no a un buffer interno: así se pega entre dos ventanas de Graph,
 	// y el fragmento se puede pegar en un chat o en el vault — es el mismo JSON de un .jamgraph.
-	const FString Recorte = BuildJson(&SelectedNodeIds);
+	const FString Recorte = BuildJson(&SelectedNodeIds, &SelectedCommentIds);
 	FPlatformApplicationMisc::ClipboardCopy(*Recorte);
-	const int32 Cuantos = SelectedNodeIds.Num();
+	const int32 Cuantos = SelectedNodeIds.Num() + SelectedCommentIds.Num();
 	if (bCortar)
 	{
 		DeleteSelection();
@@ -1939,7 +2169,7 @@ void SJamGraphEditor::Copiar(bool bCortar)
 	if (Output.IsValid())
 	{
 		Output->SetText(FText::FromString(FString::Printf(
-			TEXT("%s: %d nodo%s"), bCortar ? TEXT("cortado") : TEXT("copiado"),
+			TEXT("%s: %d elemento%s"), bCortar ? TEXT("cortado") : TEXT("copiado"),
 			Cuantos, Cuantos == 1 ? TEXT("") : TEXT("s"))));
 	}
 }
@@ -1953,12 +2183,12 @@ void SJamGraphEditor::Pegar()
 
 void SJamGraphEditor::Duplicar()
 {
-	if (SelectedNodeIds.Num() == 0)
+	if (SelectedNodeIds.Num() == 0 && SelectedCommentIds.Num() == 0)
 	{
 		return;
 	}
 	// Sin tocar el portapapeles: duplicar no puede pisar lo que tenías copiado.
-	if (PegarJson(BuildJson(&SelectedNodeIds), /*bDesplazar*/ true)) { Marcar(); }
+	if (PegarJson(BuildJson(&SelectedNodeIds, &SelectedCommentIds), /*bDesplazar*/ true)) { Marcar(); }
 }
 
 void SJamGraphEditor::ColapsarSeleccion()
@@ -2050,9 +2280,34 @@ void SJamGraphEditor::ColapsarSeleccion()
 	FString GraphJson;
 	const TSharedRef<TJsonWriter<>> GraphWriter = TJsonWriterFactory<>::Create(&GraphJson);
 	FJsonSerializer::Serialize(GraphObj->ToSharedRef(), GraphWriter);
-	if (LoadGraphJson(GraphJson) && Output.IsValid())
+
+	// `ColapsarSeleccion` reconstruye el grafo padre en PYTHON (jam.funcion), que no sabe nada de
+	// cajas de comentario: sin este parche, cualquier caja desaparecería en silencio en cada Ctrl+G.
+	// Se saca una foto ANTES de `LoadGraphJson` (que vacía todo vía NewGraph) y se reinyecta después,
+	// bajo el mismo TGuardValue que ya usa `LoadGraphJson` para que todo sea UN solo paso de undo.
+	const TArray<FGComment> ComentariosDeAntes = Comments;
+	bool bCargado = false;
 	{
-		Output->SetText(FText::FromString(Report));
+		TGuardValue<bool> Callado(bSinHistorial, true);
+		bCargado = LoadGraphJson(GraphJson);
+		if (bCargado)
+		{
+			// La caja es organizativa, no dueña de nada: no hace falta filtrar las que encerraban
+			// nodos ahora colapsados, sigue existiendo conteniendo (o no) la nueva instancia de función.
+			for (const FGComment& C : ComentariosDeAntes)
+			{
+				AddComment(C.Pos, C.Size, C.Widget.IsValid() ? C.Widget->GetTitle() : C.Title, C.Id,
+					C.Widget.IsValid() ? C.Widget->GetColor() : C.Color);
+			}
+		}
+	}
+	if (bCargado)
+	{
+		Marcar();
+		if (Output.IsValid())
+		{
+			Output->SetText(FText::FromString(Report));
+		}
 	}
 }
 
@@ -2316,15 +2571,6 @@ bool SJamGraphEditor::PegarJson(const FString& Json, bool bDesplazar)
 			if (NO->TryGetBoolField(TEXT("debug"), bDebug)) { Node->Widget->SetDebugEnabled(bDebug); }
 		}
 	}
-	if (Pegados.Num() == 0)
-	{
-		if (Output.IsValid())
-		{
-			Output->SetText(LOCTEXT("PasteNothing", "no había nada pegable en el portapapeles."));
-		}
-		return false;
-	}
-
 	const TArray<TSharedPtr<FJsonValue>>* EdgesArr = nullptr;
 	if (Root->TryGetArrayField(TEXT("edges"), EdgesArr) && EdgesArr != nullptr)
 	{
@@ -2356,11 +2602,60 @@ bool SJamGraphEditor::PegarJson(const FString& Json, bool bDesplazar)
 		}
 	}
 	RefreshCabledPins();
+
+	// Cajas de comentario/grupo: a diferencia de las aristas, NO hay ninguna referencia cruzada que
+	// remapear — la contención se recalcula al primer arrastre (`BeginCommentDrag`) y nunca se
+	// persiste, así que pegar una caja es más simple que pegar un nodo. Id NUEVO siempre: el del
+	// recorte casi seguro ya existe en este grafo.
+	TSet<FString> PegadosComentarios;
+	const TSharedPtr<FJsonObject>* CommentsObj = nullptr;
+	if (Root->TryGetObjectField(TEXT("comments"), CommentsObj) && CommentsObj != nullptr)
+	{
+		for (const TPair<FString, TSharedPtr<FJsonValue>> KV : (*CommentsObj)->Values)
+		{
+			const TSharedPtr<FJsonObject> CO = KV.Value.IsValid() ? KV.Value->AsObject() : nullptr;
+			double X = 0.0, Y = 0.0, W = 0.0, H = 0.0;
+			FString Title;
+			if (!CO.IsValid()
+				|| !CO->TryGetNumberField(TEXT("x"), X) || !CO->TryGetNumberField(TEXT("y"), Y)
+				|| !CO->TryGetNumberField(TEXT("w"), W) || !CO->TryGetNumberField(TEXT("h"), H))
+			{
+				continue;   // caja ilegible: se saltea, no aborta el resto del pegado
+			}
+			CO->TryGetStringField(TEXT("title"), Title);
+			FLinearColor Color(0.65f, 0.60f, 0.50f, 1.0f);
+			const TArray<TSharedPtr<FJsonValue>>* ColorArr = nullptr;
+			double R = 0.0, G = 0.0, B = 0.0;
+			if (CO->TryGetArrayField(TEXT("color"), ColorArr) && ColorArr != nullptr && ColorArr->Num() == 3
+				&& (*ColorArr)[0]->TryGetNumber(R) && (*ColorArr)[1]->TryGetNumber(G) && (*ColorArr)[2]->TryGetNumber(B))
+			{
+				Color = FLinearColor(R, G, B);
+			}
+			const FVector2D At(static_cast<float>(X) + Corrimiento.X, static_cast<float>(Y) + Corrimiento.Y);
+			const FString NewId = AddComment(At, FVector2D(W, H), Title, FString(), Color);
+			if (!NewId.IsEmpty())
+			{
+				PegadosComentarios.Add(NewId);
+			}
+		}
+	}
+
+	if (Pegados.Num() == 0 && PegadosComentarios.Num() == 0)
+	{
+		if (Output.IsValid())
+		{
+			Output->SetText(LOCTEXT("PasteNothing", "no había nada pegable en el portapapeles."));
+		}
+		return false;
+	}
+
 	// Lo pegado queda elegido: es lo que uno quiere mover o volver a pegar enseguida.
 	SelectedNodeIds = Pegados;
+	SelectedCommentIds = PegadosComentarios;
 	if (Output.IsValid())
 	{
-		Output->SetText(FText::FromString(FString::Printf(TEXT("pegado: %d nodos"), Pegados.Num())));
+		Output->SetText(FText::FromString(FString::Printf(TEXT("pegado: %d nodos, %d comentarios"),
+			Pegados.Num(), PegadosComentarios.Num())));
 	}
 	return true;
 }
@@ -2436,6 +2731,7 @@ void SJamGraphEditor::ClickNode(const FString& Id, bool bShift, bool bCtrl)
 void SJamGraphEditor::ClearSelection()
 {
 	SelectedNodeIds.Reset();
+	SelectedCommentIds.Reset();
 }
 
 void SJamGraphEditor::SelectAll()
@@ -2449,9 +2745,11 @@ void SJamGraphEditor::SelectAll()
 
 void SJamGraphEditor::DeleteSelection()
 {
-	// Copia: `DeleteNode` toca `SelectedNodeIds`, y recorrer un TSet mientras se modifica es UB.
+	// Copia: `DeleteNode`/`DeleteComment` tocan estos sets, y recorrer un TSet mientras se modifica
+	// es UB.
 	TArray<FString> Ids = SelectedNodeIds.Array();
-	if (Ids.Num() == 0)
+	TArray<FString> CommentIds = SelectedCommentIds.Array();
+	if (Ids.Num() == 0 && CommentIds.Num() == 0)
 	{
 		return;
 	}
@@ -2462,8 +2760,14 @@ void SJamGraphEditor::DeleteSelection()
 		{
 			DeleteNode(Id);
 		}
+		// Borrar la caja NO borra lo que contiene: es organizativa, no dueña de nada.
+		for (const FString& Id : CommentIds)
+		{
+			DeleteComment(Id);
+		}
 	}
 	SelectedNodeIds.Reset();
+	SelectedCommentIds.Reset();
 	Marcar();
 }
 
@@ -2484,6 +2788,26 @@ bool SJamGraphEditor::GetMarquee(FVector2D& OutA, FVector2D& OutB) const
 	OutA = MarqueeA;
 	OutB = MarqueeB;
 	return true;
+}
+
+TArray<FString> SJamGraphEditor::NodeIdsTouchingRect(const FVector2D& Min, const FVector2D& Max) const
+{
+	// Cruzar alcanza: si el rectángulo TOCA el nodo, entra. Desigualdad ESTRICTA — la MISMA regla
+	// que `jam.layout.en_marco`, y la ÚNICA copia de esta fórmula en todo el archivo (la comparte el
+	// marquee y el arrastre del cuerpo de una caja de comentario).
+	TArray<FString> Out;
+	if (Min.X < Max.X && Min.Y < Max.Y)
+	{
+		for (const FGNode& N : Nodes)
+		{
+			if (N.Pos.X < Max.X && N.Pos.X + NodeWidth > Min.X
+				&& N.Pos.Y < Max.Y && N.Pos.Y + N.Height > Min.Y)
+			{
+				Out.Add(N.Id);
+			}
+		}
+	}
+	return Out;
 }
 
 void SJamGraphEditor::AcomodarSeleccion(const FString& Accion)
@@ -2870,7 +3194,7 @@ bool SJamGraphEditor::GetPendingWire(FVector2D& OutFrom, FVector2D& OutTo, FLine
 	return true;
 }
 
-FString SJamGraphEditor::BuildJson(const TSet<FString>* Solo) const
+FString SJamGraphEditor::BuildJson(const TSet<FString>* Solo, const TSet<FString>* SoloComentarios) const
 {
 	TSharedRef<FJsonObject> Root = MakeShared<FJsonObject>();
 	Root->SetNumberField(TEXT("schema_version"), 1);
@@ -2920,6 +3244,31 @@ FString SJamGraphEditor::BuildJson(const TSet<FString>* Solo) const
 		EdgesArr.Add(MakeShared<FJsonValueArray>(Quad));
 	}
 	Root->SetArrayField(TEXT("edges"), EdgesArr);
+
+	// Cajas de comentario/grupo (Fase 7.1): mismo shape que "nodes", campo opcional — un .jamgraph
+	// viejo sin esta clave carga igual (ver LoadGraphJson).
+	TSharedRef<FJsonObject> CommentsObj = MakeShared<FJsonObject>();
+	for (const FGComment& C : Comments)
+	{
+		if (SoloComentarios != nullptr && !SoloComentarios->Contains(C.Id))
+		{
+			continue;
+		}
+		const FLinearColor Col = C.Widget.IsValid() ? C.Widget->GetColor() : C.Color;
+		TSharedRef<FJsonObject> J = MakeShared<FJsonObject>();
+		J->SetStringField(TEXT("title"), C.Widget.IsValid() ? C.Widget->GetTitle() : C.Title);
+		J->SetNumberField(TEXT("x"), C.Pos.X);
+		J->SetNumberField(TEXT("y"), C.Pos.Y);
+		J->SetNumberField(TEXT("w"), C.Size.X);
+		J->SetNumberField(TEXT("h"), C.Size.Y);
+		TArray<TSharedPtr<FJsonValue>> ColorArr;
+		ColorArr.Add(MakeShared<FJsonValueNumber>(Col.R));
+		ColorArr.Add(MakeShared<FJsonValueNumber>(Col.G));
+		ColorArr.Add(MakeShared<FJsonValueNumber>(Col.B));
+		J->SetArrayField(TEXT("color"), ColorArr);
+		CommentsObj->SetObjectField(C.Id, J);
+	}
+	Root->SetObjectField(TEXT("comments"), CommentsObj);
 
 	FString Json;
 	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&Json);
@@ -3100,6 +3449,13 @@ void SJamGraphEditor::ApplyZoom()
 		Canvas->SetRenderTransformPivot(FVector2D::ZeroVector);
 		Canvas->SetRenderTransform(FSlateRenderTransform(FScale2D(Zoom, Zoom)));
 	}
+	if (CommentCanvas.IsValid())
+	{
+		// Mismo transform que Canvas: cada slot de comentario sólo maneja Pos + PanOffset, sin
+		// multiplicar por zoom a mano, igual que los nodos.
+		CommentCanvas->SetRenderTransformPivot(FVector2D::ZeroVector);
+		CommentCanvas->SetRenderTransform(FSlateRenderTransform(FScale2D(Zoom, Zoom)));
+	}
 }
 
 FReply SJamGraphEditor::OnMouseWheel(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
@@ -3205,6 +3561,11 @@ FReply SJamGraphEditor::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& 
 		Encuadrar(/*bSoloSeleccion*/ true);
 		return FReply::Handled();
 	}
+	if (Tecla == EKeys::C && !InKeyEvent.IsControlDown())
+	{
+		CreateCommentFromSelection();
+		return FReply::Handled();
+	}
 	if (Tecla == EKeys::Home)
 	{
 		Encuadrar(/*bSoloSeleccion*/ false);
@@ -3220,7 +3581,7 @@ FReply SJamGraphEditor::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& 
 		ClearSelection();
 		return FReply::Handled();
 	}
-	if (Tecla == EKeys::Delete && SelectedNodeIds.Num() > 0)
+	if (Tecla == EKeys::Delete && (SelectedNodeIds.Num() > 0 || SelectedCommentIds.Num() > 0))
 	{
 		DeleteSelection();
 		return FReply::Handled();
@@ -3281,16 +3642,9 @@ FReply SJamGraphEditor::OnMouseButtonUp(const FGeometry& MyGeometry, const FPoin
 		SelectedNodeIds = MarqueeBase;
 		// Área cero (un clic sin arrastrar) no toca nada: por eso el clic en el fondo LIMPIA en vez
 		// de agarrar lo que hubiera abajo del cursor.
-		if (Min.X < Max.X && Min.Y < Max.Y)
+		for (const FString& Id : NodeIdsTouchingRect(Min, Max))
 		{
-			for (const FGNode& N : Nodes)
-			{
-				if (N.Pos.X < Max.X && N.Pos.X + NodeWidth > Min.X
-					&& N.Pos.Y < Max.Y && N.Pos.Y + N.Height > Min.Y)
-				{
-					SelectedNodeIds.Add(N.Id);
-				}
-			}
+			SelectedNodeIds.Add(Id);
 		}
 		MarqueeBase.Reset();
 		return FReply::Handled().ReleaseMouseCapture();
@@ -3309,10 +3663,12 @@ void SJamGraphEditor::FillFileMenu(FMenuBuilder& MB)
 	// Los ejemplos vivían acá, como cinco «Abrir ejemplo: …». Están en el tab «Aprender», que es un
 	// lugar donde alguien que recién empieza los va a encontrar sin abrir un menú.
 	MB.AddMenuSeparator();
+	// Por lambda y no por `CreateSP(..., &SaveDiagram, bool)`: `SaveDiagram` devuelve si el archivo
+	// quedó escrito (lo necesita `ConfirmarCierre`) y `FExecuteAction` es void.
 	MB.AddMenuEntry(LOCTEXT("Save", "Guardar"), LOCTEXT("SaveTip", "Guardar en el archivo actual"), FSlateIcon(),
-		FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::SaveDiagram, false)));
+		FUIAction(FExecuteAction::CreateLambda([this]() { SaveDiagram(/*bForceDialog*/ false); })));
 	MB.AddMenuEntry(LOCTEXT("SaveAs", "Guardar como…"), LOCTEXT("SaveAsTip", "Elegir archivo"), FSlateIcon(),
-		FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::SaveDiagram, true)));
+		FUIAction(FExecuteAction::CreateLambda([this]() { SaveDiagram(/*bForceDialog*/ true); })));
 }
 
 void SJamGraphEditor::FillEditMenu(FMenuBuilder& MB)
@@ -3333,12 +3689,15 @@ void SJamGraphEditor::FillEditMenu(FMenuBuilder& MB)
 
 	MB.BeginSection(TEXT("Portapapeles"), LOCTEXT("SectionClip", "Portapapeles"));
 	{
-		// Todas piden 2+… no: piden AL MENOS UNO elegido. Pegar es la excepción, siempre se puede
-		// intentar (el portapapeles puede venir de otra ventana de Graph).
+		// Todas piden 2+… no: piden AL MENOS UNO elegido (nodo O caja). Pegar es la excepción, siempre
+		// se puede intentar (el portapapeles puede venir de otra ventana de Graph). Colapsar a función
+		// es sólo de NODOS: una caja no se colapsa, viaja con lo que contenga.
 		const FCanExecuteAction HayAlgo = FCanExecuteAction::CreateLambda(
+			[this]() { return SelectedNodeIds.Num() > 0 || SelectedCommentIds.Num() > 0; });
+		const FCanExecuteAction HayNodos = FCanExecuteAction::CreateLambda(
 			[this]() { return SelectedNodeIds.Num() > 0; });
 		MB.AddMenuEntry(LOCTEXT("Copy", "Copiar\tCtrl+C"),
-			LOCTEXT("CopyTip", "Copia los nodos elegidos como JSON al portapapeles del sistema"),
+			LOCTEXT("CopyTip", "Copia lo elegido como JSON al portapapeles del sistema"),
 			FSlateIcon(), FUIAction(FExecuteAction::CreateLambda(
 				[this]() { Copiar(false); }), HayAlgo));
 		MB.AddMenuEntry(LOCTEXT("Cut", "Cortar\tCtrl+X"), FText::GetEmpty(), FSlateIcon(),
@@ -3351,8 +3710,15 @@ void SJamGraphEditor::FillEditMenu(FMenuBuilder& MB)
 			FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::Duplicar), HayAlgo));
 		MB.AddMenuEntry(LOCTEXT("CollapseFunction", "Colapsar a función\tCtrl+G"),
 			LOCTEXT("CollapseFunctionTip", "Guarda lo elegido como función y lo reemplaza por una instancia"),
-			FSlateIcon(), FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::ColapsarSeleccion), HayAlgo));
+			FSlateIcon(), FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::ColapsarSeleccion), HayNodos));
 	}
+	MB.EndSection();
+
+	MB.BeginSection(TEXT("Comentarios"), LOCTEXT("SectionComments", "Comentarios"));
+	MB.AddMenuEntry(LOCTEXT("CreateComment", "Comentario\tC"),
+		LOCTEXT("CreateCommentTip", "Encierra los nodos elegidos en una caja de comentario/grupo"),
+		FSlateIcon(), FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::CreateCommentFromSelection),
+			FCanExecuteAction::CreateLambda([this]() { return SelectedNodeIds.Num() > 0; })));
 	MB.EndSection();
 
 	MB.BeginSection(TEXT("Seleccion"), LOCTEXT("SectionSelect", "Selección"));
@@ -3439,12 +3805,26 @@ void SJamGraphEditor::NewGraph()
 			}
 		}
 	}
+	if (CommentCanvas.IsValid())
+	{
+		for (const FGComment& C : Comments)
+		{
+			if (C.Widget.IsValid())
+			{
+				CommentCanvas->RemoveSlot(C.Widget.ToSharedRef());
+			}
+		}
+	}
 	Nodes.Reset();
 	Edges.Reset();
+	Comments.Reset();
 	SelectedNodeIds.Reset();
+	SelectedCommentIds.Reset();
+	CommentDragNodeIds.Reset();
 	PendingSource.Empty();
 	PendingSourcePin.Empty();
 	NextId = 1;
+	NextCommentId = 1;
 	// `New` inicia un DOCUMENTO nuevo. Conservar esta ruta hacía que el Save siguiente sobrescribiera
 	// silenciosamente el .jamgraph anterior.
 	CurrentPath.Empty();
@@ -3676,6 +4056,46 @@ bool SJamGraphEditor::LoadGraphJson(const FString& Json, bool bConservarEdicionF
 		}
 	}
 
+	// Cajas de comentario/grupo (Fase 7.1): campo OPCIONAL. Un .jamgraph viejo sin "comments", o si
+	// llegara mal formada, no rompe la carga — degrada en silencio, mismo trato que "debug" ausente.
+	struct FLoadedComment
+	{
+		FString FileId;
+		FString Title;
+		FVector2D Pos;
+		FVector2D Size;
+		FLinearColor Color = FLinearColor(0.65f, 0.60f, 0.50f, 1.0f);
+	};
+	TArray<FLoadedComment> LoadedComments;
+	const TSharedPtr<FJsonObject>* CommentsObj = nullptr;
+	if (Root->TryGetObjectField(TEXT("comments"), CommentsObj) && CommentsObj != nullptr)
+	{
+		for (const TPair<FString, TSharedPtr<FJsonValue>> KV : (*CommentsObj)->Values)
+		{
+			const TSharedPtr<FJsonObject> CO = KV.Value.IsValid() ? KV.Value->AsObject() : nullptr;
+			double X = 0.0, Y = 0.0, W = 0.0, H = 0.0;
+			FString Title;
+			if (!CO.IsValid()
+				|| !CO->TryGetNumberField(TEXT("x"), X) || !CO->TryGetNumberField(TEXT("y"), Y)
+				|| !CO->TryGetNumberField(TEXT("w"), W) || !CO->TryGetNumberField(TEXT("h"), H))
+			{
+				continue;   // caja mal formada: se ignora, no aborta la carga del resto del grafo
+			}
+			CO->TryGetStringField(TEXT("title"), Title);
+			FLoadedComment Loaded{KV.Key, Title, FVector2D(X, Y), FVector2D(W, H)};
+			// "color" es OPCIONAL: un .jamgraph de antes de este color por caja carga con el neutro
+			// de siempre — mismo trato que "debug" ausente en los nodos.
+			const TArray<TSharedPtr<FJsonValue>>* ColorArr = nullptr;
+			double R = 0.0, G = 0.0, B = 0.0;
+			if (CO->TryGetArrayField(TEXT("color"), ColorArr) && ColorArr != nullptr && ColorArr->Num() == 3
+				&& (*ColorArr)[0]->TryGetNumber(R) && (*ColorArr)[1]->TryGetNumber(G) && (*ColorArr)[2]->TryGetNumber(B))
+			{
+				Loaded.Color = FLinearColor(R, G, B);
+			}
+			LoadedComments.Add(Loaded);
+		}
+	}
+
 	// Fase 2: el modelo completo es válido; recién ahora reemplazar el documento visible.
 	// El silencio va en un BLOQUE propio: vaciar + crear N nodos + N wires es UN paso deshacible y no
 	// 2N+1, pero el `Marcar()` tiene que quedar afuera. Con `TGuardValue` y no con un bool a mano,
@@ -3713,6 +4133,10 @@ bool SJamGraphEditor::LoadGraphJson(const FString& Json, bool bConservarEdicionF
 			Edges.Add(FGEdge{IdMap[Loaded.From], Loaded.FromPin, IdMap[Loaded.To], Loaded.ToPin});
 		}
 		RefreshCabledPins();   // reflejar en los inputs los cables recién cargados
+		for (const FLoadedComment& Loaded : LoadedComments)
+		{
+			AddComment(Loaded.Pos, Loaded.Size, Loaded.Title, Loaded.FileId, Loaded.Color);
+		}
 	}
 	if (Output.IsValid())
 	{
@@ -3727,30 +4151,34 @@ bool SJamGraphEditor::LoadGraphJson(const FString& Json, bool bConservarEdicionF
 	return true;
 }
 
-void SJamGraphEditor::SaveDiagram(bool bForceDialog)
+bool SJamGraphEditor::SaveDiagram(bool bForceDialog)
 {
 	FString Path = CurrentPath;
 	if (Path.IsEmpty() || bForceDialog)
 	{
 		IDesktopPlatform* DP = FDesktopPlatformModule::Get();
-		if (DP == nullptr) { return; }
+		if (DP == nullptr) { return false; }
 		const FString Dir = FPaths::ProjectSavedDir() / TEXT("JamGraphs");
 		IFileManager::Get().MakeDirectory(*Dir, true);
 		TArray<FString> Files;
 		const bool bOk = DP->SaveFileDialog(nullptr, TEXT("Guardar diagrama Jam"), Dir,
 			TEXT("diagrama.jamgraph"), TEXT("Jam Graph (*.jamgraph)|*.jamgraph|JSON (*.json)|*.json"),
 			EFileDialogFlags::None, Files);
-		if (!bOk || Files.Num() == 0) { return; }
+		if (!bOk || Files.Num() == 0) { return false; }
 		Path = Files[0];
 	}
+	// El MISMO string que se escribe es el que queda de referencia: recalcular con otro `BuildJson()`
+	// abriría la puerta a que la foto y el archivo no digan exactamente lo mismo.
+	const FString Json = BuildJson();
 	const FString TempPath = Path + TEXT(".tmp");
 	IFileManager::Get().Delete(*TempPath, false, true, true);
-	const bool bWroteTemp = FFileHelper::SaveStringToFile(BuildJson(), *TempPath);
+	const bool bWroteTemp = FFileHelper::SaveStringToFile(Json, *TempPath);
 	const bool bPromoted = bWroteTemp
 		&& IFileManager::Get().Move(*Path, *TempPath, true, true, false, true);
 	if (bPromoted)
 	{
 		CurrentPath = Path;
+		GuardadoEn = Json;   // desde acá el documento está en sync con el disco
 		if (Output.IsValid())
 		{
 			Output->SetText(FText::FromString(FString::Printf(TEXT("guardado: %s"), *Path)));
@@ -3762,6 +4190,41 @@ void SJamGraphEditor::SaveDiagram(bool bForceDialog)
 			TEXT("ERROR: no se pudo guardar %s; el archivo anterior no se modificó."), *Path)));
 	}
 	IFileManager::Get().Delete(*TempPath, false, true, true);
+	return bPromoted;
+}
+
+bool SJamGraphEditor::HayCambiosSinGuardar() const
+{
+	// Un lienzo vacío que nunca se guardó no tiene nada que perder: preguntar ahí es puro ruido.
+	if (Nodes.Num() == 0 && Comments.Num() == 0 && CurrentPath.IsEmpty())
+	{
+		return false;
+	}
+	// `BuildJson` lee los valores VIVOS de los widgets, así que un parámetro tipeado y todavía no
+	// confirmado también cuenta como cambio — que es lo que uno esperaría al cerrar.
+	return BuildJson() != GuardadoEn;
+}
+
+bool SJamGraphEditor::ConfirmarCierre()
+{
+	if (!HayCambiosSinGuardar())
+	{
+		return true;
+	}
+	const FText Nombre = CurrentPath.IsEmpty()
+		? LOCTEXT("DiagramaSinTitulo", "sin título")
+		: FText::FromString(FPaths::GetCleanFilename(CurrentPath));
+	const EAppReturnType::Type Respuesta = FMessageDialog::Open(EAppMsgType::YesNoCancel,
+		FText::Format(LOCTEXT("CerrarConCambios",
+			"El diagrama «{0}» tiene cambios sin guardar.\n\n¿Guardarlos antes de cerrar el panel?"),
+			Nombre),
+		LOCTEXT("CerrarConCambiosTitulo", "Jam · Graph"));
+
+	if (Respuesta == EAppReturnType::Cancel) { return false; }   // seguir editando
+	if (Respuesta == EAppReturnType::No)     { return true; }    // cerrar y descartar
+	// Dijo que sí: si cancela el diálogo de archivo o el guardado falla, NO se cierra. Cerrar igual
+	// sería tirar justo lo que acaba de pedir conservar.
+	return SaveDiagram(/*bForceDialog*/ false);
 }
 
 void SJamGraphEditor::OpenDiagram()
@@ -3779,6 +4242,9 @@ void SJamGraphEditor::OpenDiagram()
 		if (LoadGraphJson(Json))
 		{
 			CurrentPath = Files[0];
+			// Recién abierto: lo que hay en pantalla ES lo que hay en disco. Se refotografía en vez
+			// de guardar `Json` tal cual porque el archivo pudo venir con otro formato/orden.
+			GuardadoEn = BuildJson();
 		}
 	}
 }

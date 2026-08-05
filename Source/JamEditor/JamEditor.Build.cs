@@ -28,6 +28,7 @@ public class JamEditor : ModuleRules
 			"DesktopPlatform",   // diálogos Abrir/Guardar diagrama
 			"ApplicationCore",       // portapapeles del sistema (copiar/pegar nodos)
 			"WorkspaceMenuStructure", // categoría de los paneles en Window ▸ Tools
+			"AppFramework",          // OpenColorPicker (color por caja de comentario/grupo)
 		});
 	}
 }

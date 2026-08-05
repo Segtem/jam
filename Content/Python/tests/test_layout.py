@@ -182,6 +182,38 @@ class ReglaDelMarqueeEnElCppTests(unittest.TestCase):
         self.assertIn("N.Height", self.condicion())
 
 
+class ReglaDeContencionCompartidaEnElCppTests(unittest.TestCase):
+    """La condición de contención (Fase 7.1, cajas de comentario/grupo) la usan tanto el marquee
+    como el arrastre del cuerpo de una caja: las dos llaman a `NodeIdsTouchingRect`, un único helper
+    en `SJamGraphEditor.cpp`. Si alguien copiara la condición a mano para el segundo caso en vez de
+    llamar al helper, habría DOS fórmulas que podrían divergir en silencio — y como
+    `ReglaDelMarqueeEnElCppTests.condicion()` sólo mira la PRIMERA ocurrencia que encuentra, no se
+    enteraría. Este test cuenta TODAS las ocurrencias.
+    """
+
+    def cpp(self) -> str:
+        from pathlib import Path
+
+        raiz = Path(__file__).resolve().parents[3]
+        return (raiz / "Source" / "JamEditor" / "Private" / "SJamGraphEditor.cpp").read_text(
+            encoding="utf-8")
+
+    def test_only_one_copy_of_the_containment_condition_exists(self):
+        import re
+
+        ocurrencias = re.findall(r"if \(N\.Pos\.X[^)]*?N\.Height[^)]*?\)", self.cpp(), re.S)
+        self.assertEqual(len(ocurrencias), 1,
+            "la condición de contención aparece más de una vez en el .cpp: "
+            "el marquee y el arrastre de comentarios tienen que compartir NodeIdsTouchingRect")
+
+    def test_the_marquee_and_the_comment_drag_both_call_the_shared_helper(self):
+        # Definición + el marquee (NodeIdsTouchingRect(Min, Max)) + BeginCommentDrag
+        # (NodeIdsTouchingRect(C->Pos, ...)): al menos 3 apariciones de la llamada.
+        ocurrencias = self.cpp().count("NodeIdsTouchingRect(")
+        self.assertGreaterEqual(ocurrencias, 3,
+            "NodeIdsTouchingRect debería aparecer en su definición, en el marquee y en BeginCommentDrag")
+
+
 class MarcoTests(unittest.TestCase):
     def test_the_aabb_covers_every_node(self):
         nodos = [nodo("a", 10, 20, w=100, h=50), nodo("b", 300, -40, w=100, h=50)]

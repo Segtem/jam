@@ -256,6 +256,11 @@ void FJamEditorModule::StartupModule()
 	UToolMenus::RegisterStartupCallback(
 		FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FJamEditorModule::RegisterMenus));
 	RegisterTabs();
+	// Ver ReleaseThumbnailResources() para el porqué exacto. Atado a OnEditorPreExit, no a
+	// ShutdownModule(): las dos corren dentro de FModuleManager::UnloadModulesAtShutdown(), muy
+	// tarde en FEngineLoop::Exit() — GEngine->PreExit() (que tira abajo los subsistemas del
+	// editor) ya corrió para entonces, así que moverlo de la una a la otra no cambiaba nada.
+	FEditorDelegates::OnEditorPreExit.AddRaw(this, &FJamEditorModule::ReleaseThumbnailResources);
 	// Se ejecuta cuando el layout persistido y KWin ya asignaron la ventana raíz. No se abre ningún
 	// panel ni se cambia ninguna clave del layout: sólo se resincroniza la geometría del hit-test.
 	FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([](float)
@@ -267,8 +272,31 @@ void FJamEditorModule::StartupModule()
 	UE_LOG(LogTemp, Display, TEXT("[JamEditor] módulo C++ cargado — paneles en Window ▸ Tools."));
 }
 
+void FJamEditorModule::ReleaseThumbnailResources()
+{
+	// `UAssetThumbnailPool::~FAssetThumbnailPool()` llama `UThumbnailManager::TryGet()` y lo
+	// pasa por `IsValid()`. Si `GEditor` y sus subsistemas de editor —el ThumbnailManager entre
+	// ellos— ya fueron destruidos, esa consulta toca un UObject con `InternalIndex == -1` (ya
+	// liberado) y el motor assertea: `Index >= 0` en `UObjectArray.h`, siempre al cerrar el
+	// editor. `GEngine->PreExit()` es quien tira abajo esos subsistemas, y corre ANTES de que
+	// cualquier módulo llegue a `ShutdownModule()` — ahí ya es tarde para las tres. Por eso esto
+	// se ata a `FEditorDelegates::OnEditorPreExit`, que dispara antes de `GEngine->PreExit()`,
+	// con el ThumbnailManager todavía vivo.
+	//
+	// Idempotente a propósito: `ShutdownModule()` la llama de nuevo como red de seguridad para
+	// el camino en el que el módulo se descarga SIN que el editor esté cerrando (hot-reload,
+	// deshabilitar el plugin) — ahí `OnEditorPreExit` nunca dispara y esto es lo único que libera
+	// las tres referencias.
+	ThumbnailsKeepAlive.Empty();
+	ActiveThumb.Reset();
+	ThumbnailPool.Reset();
+}
+
 void FJamEditorModule::ShutdownModule()
 {
+	ReleaseThumbnailResources();
+	FEditorDelegates::OnEditorPreExit.RemoveAll(this);
+
 	UToolMenus::UnRegisterStartupCallback(this);
 	UToolMenus::UnregisterOwner(this);
 	UnregisterTabs();
@@ -400,6 +428,10 @@ TSharedRef<SDockTab> FJamEditorModule::SpawnGraphTab(const FSpawnTabArgs& /*Args
 		[
 			Canvas
 		];
+	// Preguntar ANTES de cerrar: `SetCanCloseTab` puede vetar el cierre, `SetOnTabClosed` ya llega
+	// tarde (el tab se va igual, devuelva lo que devuelva).
+	Tab->SetCanCloseTab(SDockTab::FCanCloseTab::CreateRaw(
+		this, &FJamEditorModule::PuedeCerrarGraph));
 	Tab->SetOnTabClosed(SDockTab::FOnTabClosedCallback::CreateRaw(
 		this, &FJamEditorModule::OnGraphClosed));
 	GraphTab = Tab;
@@ -425,6 +457,15 @@ TSharedRef<SDockTab> FJamEditorModule::SpawnGraphTab(const FSpawnTabArgs& /*Args
 	// trabajo sin preguntar; ahora cerrar y reabrir es sólo esconder y mostrar.
 	Canvas->RestaurarCanvas(GraphEstadoGuardado);
 	return Tab;
+}
+
+bool FJamEditorModule::PuedeCerrarGraph()
+{
+	if (const TSharedPtr<SJamGraphEditor> Canvas = GraphWidget.Pin())
+	{
+		return Canvas->ConfirmarCierre();
+	}
+	return true;   // sin canvas vivo no hay nada que perder
 }
 
 void FJamEditorModule::OnGraphClosed(TSharedRef<SDockTab> /*Tab*/)

@@ -103,6 +103,14 @@ public:
 	FString EstadoDelCanvas() const;
 	void RestaurarCanvas(const FString& Json);
 
+	// ---- cerrar el panel sin perder el diagrama ----
+	/** ¿El diagrama tiene cambios que NO están en disco? Compara el JSON vivo contra la foto del
+	 *  último Guardar/Abrir, así que deshacer hasta el estado guardado vuelve a dar «limpio». */
+	bool HayCambiosSinGuardar() const;
+	/** Diálogo «¿guardar antes de cerrar?». Devuelve false si el cierre debe ABORTARSE: o el usuario
+	 *  eligió Cancelar, o dijo que sí guardar y el guardado no llegó a concretarse. */
+	bool ConfirmarCierre();
+
 private:
 	struct FGNode
 	{
@@ -128,6 +136,20 @@ private:
 		FString ToPin;     // «in» (stream) o el nombre de un parámetro
 	};
 
+	/** Una caja de comentario/grupo (Fase 7.1): la comment box de Blueprint, el network box de
+	 *  Houdini. NO tiene lista de nodos miembro — «qué contiene» se recalcula por contención
+	 *  espacial (ver `NodeIdsTouchingRect`) cada vez que se empieza a arrastrar el cuerpo, nunca se
+	 *  persiste. Es organizativa, no dueña de nada: borrar la caja no borra lo que encierra. */
+	struct FGComment
+	{
+		FString Id;
+		FVector2D Pos = FVector2D::ZeroVector;        // espacio MODELO, como FGNode::Pos
+		FVector2D Size = FVector2D(240.0f, 160.0f);
+		FString Title;
+		FLinearColor Color = FLinearColor(0.65f, 0.60f, 0.50f, 1.0f);
+		TSharedPtr<class SJamGraphComment> Widget;    // el widget es la fuente viva del título Y del color, igual que GetParamValues() en FGNode
+	};
+
 	/** Agrega un nodo; devuelve su Id (para reconstruir grafos al cargar un diagrama).
 	 *  `PreferredId` conserva el id que traía el archivo en vez de renumerar: sin eso, cada Deshacer
 	 *  reescribiría los ids del grafo (y el orden de un TMap de JSON ni siquiera es estable), así que
@@ -142,6 +164,23 @@ private:
 	virtual FReply OnDragOver(const FGeometry& MyGeometry, const FDragDropEvent& DragDropEvent) override;
 	virtual FReply OnDrop(const FGeometry& MyGeometry, const FDragDropEvent& DragDropEvent) override;
 	void DeleteNode(const FString& Id);
+
+	// ---- cajas de comentario/grupo (Fase 7.1) ----
+	/** Agrega una caja; devuelve su Id. `PreferredId` conserva el id del archivo, igual que `AddNode`. */
+	FString AddComment(const FVector2D& Pos, const FVector2D& Size, const FString& Title,
+		const FString& PreferredId = FString(),
+		const FLinearColor& Color = FLinearColor(0.65f, 0.60f, 0.50f, 1.0f));
+	void DeleteComment(const FString& Id);
+	FGComment* FindComment(const FString& Id);
+	/** Clic en el cuerpo de una caja. Misma regla que `ClickNode`, sobre `SelectedCommentIds`. */
+	void ClickComment(const FString& Id, bool bShift, bool bCtrl);
+	/** Atajo `C`: encierra la selección de nodos en una caja nueva (bounding box + margen). */
+	void CreateCommentFromSelection();
+	/** Congela qué nodos toca la caja AHORA — se llama al iniciar cada arrastre del cuerpo, nunca se
+	 *  persiste (ver `CommentDragNodeIds`). */
+	void BeginCommentDrag(const FString& Id);
+	void DragComment(const FString& Id, const FVector2D& DeltaModelo);
+	void ResizeComment(const FString& Id, const FVector2D& DeltaModelo);
 
 	// ---- selección: un ESTADO del editor, no el foco de teclado ----
 	// Mientras la selección fue «el nodo con foco» no había forma de mover, borrar, copiar ni
@@ -159,6 +198,10 @@ private:
 	void AcomodarSeleccion(const FString& Accion);
 	/** Rectángulo del marquee en coordenadas de MODELO; false si no hay uno en curso. */
 	bool GetMarquee(FVector2D& OutA, FVector2D& OutB) const;
+	/** Ids de nodo cuyo AABB toca `[Min,Max)` — cruce con desigualdad ESTRICTA. ÚNICA fuente de esta
+	 *  fórmula en todo el archivo: la usan tanto el marquee como el arrastre de una caja de
+	 *  comentario, para que las dos reglas no puedan divergir en silencio. */
+	TArray<FString> NodeIdsTouchingRect(const FVector2D& Min, const FVector2D& Max) const;
 
 	// ---- historial (Ctrl+Z / Ctrl+Shift+Z): el grafo YA sabe serializarse ----
 	// No hace falta un motor de comandos: un paso deshacible es el JSON del grafo entero. Un diagrama
@@ -183,8 +226,10 @@ private:
 	void NewGraph();
 	/** Valida y reconstruye el grafo desde JSON. Un fallo no modifica canvas, vista ni CurrentPath. */
 	bool LoadGraphJson(const FString& Json, bool bConservarEdicionFuncion = false);
-	/** Diálogos de archivo (DesktopPlatform): guardar/abrir un diagrama .jamgraph (JSON). */
-	void SaveDiagram(bool bForceDialog);
+	/** Diálogos de archivo (DesktopPlatform): guardar/abrir un diagrama .jamgraph (JSON).
+	 *  `SaveDiagram` devuelve si el archivo QUEDÓ escrito — cancelar el diálogo o fallar al escribir
+	 *  dan false, y de eso depende que cerrar el panel se aborte en vez de tirar el trabajo. */
+	bool SaveDiagram(bool bForceDialog);
 	void OpenDiagram();
 	/** Carga uno de los tutoriales del tab «Aprender». El catálogo es `Resources/Examples/examples.json`:
 	    cada ficha de ese tab llama acá con su archivo, así que sumar un tutorial no toca C++. */
@@ -226,8 +271,10 @@ private:
 	/** Aplica el envelope {report,nodes} de Compile o Run al output y a los estados de los nodos. */
 	void ApplyGraphResult(const FString& Result);
 	/** JSON del grafo. Con `Solo`, únicamente esos nodos y las aristas con LAS DOS puntas adentro —
-	 *  un cable a medias no es un grafo, y pegarlo dejaría una entrada conectada a la nada. */
-	FString BuildJson(const TSet<FString>* Solo = nullptr) const;
+	 *  un cable a medias no es un grafo, y pegarlo dejaría una entrada conectada a la nada.
+	 *  `SoloComentarios` filtra igual las cajas; por defecto (nullptr) van todas. */
+	FString BuildJson(const TSet<FString>* Solo = nullptr,
+		const TSet<FString>* SoloComentarios = nullptr) const;
 
 	// ---- portapapeles: es el mismo JSON, así que se pega entre ventanas y se lee a ojo ----
 	void Copiar(bool bCortar);
@@ -298,10 +345,17 @@ private:
 	TSharedPtr<SHorizontalBox> TabContentBox;   // fichas de la categoría activa
 	TArray<FGNode> Nodes;
 	TArray<FGEdge> Edges;                      // aristas con pin (origen.out → destino.pin)
+	TArray<FGComment> Comments;                // cajas de comentario/grupo (Fase 7.1)
 	FString PendingSource;                     // nodo de salida armado, esperando una entrada
 	FString PendingSourcePin;                  // pin de salida armado (por ahora «out»)
 	FString CurrentPath;                       // archivo del diagrama actual (para «Guardar» sin diálogo)
+	/** Foto del JSON tal como quedó en el último Guardar/Abrir — contra esto se decide si hay cambios
+	 *  sin guardar. Vacío = nunca se escribió ni se abrió nada, así que cualquier nodo cuenta como
+	 *  cambio. A propósito NO lo tocan `LoadGraphJson` ni `NewGraph`: los usan Deshacer/Rehacer y
+	 *  Ctrl+G, y marcar «guardado» ahí diría que el disco tiene algo que nunca se escribió. */
+	FString GuardadoEn;
 	int32 NextId = 1;
+	int32 NextCommentId = 1;                   // contador propio: «cN», namespace separado del de nodos
 
 	FOnRunGraph OnRunGraph;
 	FOnRunGraph OnCompileGraph;
@@ -337,6 +391,9 @@ private:
 	FSimpleDelegate OnOpenContent;
 	TAttribute<FString> ActiveAsset;
 	TSharedPtr<SCanvas> Canvas;
+	/** Canvas hermano para las cajas de comentario/grupo: mismo RenderTransform de zoom que `Canvas`
+	 *  (ver `ApplyZoom`), insertado ANTES en el SOverlay para pintarse detrás de los nodos. */
+	TSharedPtr<SCanvas> CommentCanvas;
 	TSharedPtr<SMultiLineEditableTextBox> Output;
 
 	// Buscador estilo Grasshopper (doble clic en el canvas).
@@ -356,6 +413,13 @@ private:
 	/** Nodos elegidos. Es LA fuente de la selección: el halo, el arrastre en grupo, `Supr`, alinear
 	 *  y (más adelante) copiar y colapsar a función leen todos de acá. */
 	TSet<FString> SelectedNodeIds;
+	/** Cajas de comentario elegidas. INDEPENDIENTE de `SelectedNodeIds` a propósito: un clic simple
+	 *  en un nodo o en una caja reemplaza sólo su propio set (así se puede tener nodos Y cajas
+	 *  elegidos a la vez con Shift, como en Blueprint). */
+	TSet<FString> SelectedCommentIds;
+	/** Ids de nodo que el arrastre EN CURSO del cuerpo de una caja mueve junto con ella. Recalculado
+	 *  en `BeginCommentDrag` al iniciar cada arrastre — nunca persistido en `FGComment`. */
+	TArray<FString> CommentDragNodeIds;
 	// Marquee (arrastre con el izquierdo sobre el fondo). Se guarda en coordenadas de MODELO para
 	// que el cuadro quede pegado al grafo y no a la pantalla.
 	bool bMarquee = false;
