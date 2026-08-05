@@ -558,6 +558,7 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 	OnInspect = InArgs._OnInspect;
 	OnPreview2D = InArgs._OnPreview2D;
 	OnPreview2DTodos = InArgs._OnPreview2DTodos;
+	OnGraphVariables = InArgs._OnGraphVariables;
 	OnLayout = InArgs._OnLayout;
 	OnCollapseFunction = InArgs._OnCollapseFunction;
 	OnFunctionManage = InArgs._OnFunctionManage;
@@ -1148,6 +1149,36 @@ void SJamGraphEditor::RefrescarMiniaturas()
 		N->Widget->SetThumbnail(Brush.Get());
 		Miniaturas.Add(KV.Key, Brush);
 	}
+}
+
+TArray<FString> SJamGraphEditor::VariablesDelGrafo() const
+{
+	TArray<FString> Nombres;
+	if (!OnGraphVariables.IsBound())
+	{
+		return Nombres;
+	}
+	// Se manda el grafo VIVO: `BuildJson` lee los valores de los widgets, así que renombrar una
+	// variable y desplegar el menú enseguida ya muestra el nombre nuevo.
+	const FString Res = OnGraphVariables.Execute(BuildJson());
+	TSharedPtr<FJsonObject> Root;
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Res);
+	bool bOk = false;
+	const TArray<TSharedPtr<FJsonValue>>* Arr = nullptr;
+	if (FJsonSerializer::Deserialize(Reader, Root) && Root.IsValid()
+		&& Root->TryGetBoolField(TEXT("ok"), bOk) && bOk
+		&& Root->TryGetArrayField(TEXT("variables"), Arr) && Arr != nullptr)
+	{
+		for (const TSharedPtr<FJsonValue>& V : *Arr)
+		{
+			FString Nombre;
+			if (V.IsValid() && V->TryGetString(Nombre) && !Nombre.IsEmpty())
+			{
+				Nombres.Add(Nombre);
+			}
+		}
+	}
+	return Nombres;
 }
 
 void SJamGraphEditor::AbrirVisorFullRes(const FString& NodeId)
@@ -2079,6 +2110,7 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At,
 		.OnParamChanged_Lambda([this]() { Marcar(); })
 		.OnBypassChanged_Lambda([this]() { Marcar(); })
 		.OnThumbnailOpen_Lambda([this, Id]() { AbrirVisorFullRes(Id); })
+		.OnPedirVariables_Lambda([this]() { return VariablesDelGrafo(); })
 		.OnDeleteSelection_Lambda([this, Id]()
 		{
 			// `Supr` sobre un nodo de un grupo borra el grupo; sobre uno suelto, ese nodo.

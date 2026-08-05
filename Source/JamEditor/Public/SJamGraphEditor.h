@@ -67,6 +67,8 @@ public:
 		SLATE_EVENT(FOnPreview2D, OnPreview2D)
 		/** Miniaturas de TODOS los nodos dibujables del último Run, en un solo viaje. */
 		SLATE_EVENT(FOnRunGraph, OnPreview2DTodos)
+		/** Variables del grafo para el desplegable de `math`: recibe el JSON, devuelve `{ok, variables}`. */
+		SLATE_EVENT(FOnRunGraph, OnGraphVariables)
 		/** Alinear/distribuir: lo resuelve `jam.layout`. */
 		SLATE_EVENT(FOnLayout, OnLayout)
 		SLATE_EVENT(FOnCollapseFunction, OnCollapseFunction)
@@ -274,6 +276,10 @@ private:
 	 *  deja abierta al lado mientras se sigue tocando el grafo, que es para lo que sirve. */
 	void AbrirVisorFullRes(const FString& NodeId);
 	void SoltarVisorFullRes();
+	/** Nombres de variable usables en una expresión, preguntándole al cerebro por el grafo VIVO.
+	 *  Los calcula `jam.api.variables` con el mismo código que después resuelve la expresión, así
+	 *  el desplegable no puede ofrecer algo que el evaluador vaya a rechazar. */
+	TArray<FString> VariablesDelGrafo() const;
 	void LoadBundledExample(const FString& Filename, const FText& LoadedMessage);
 	/** Galería: reemplaza el grafo por UNO DE CADA nodo en grilla (para sacarle un screenshot). */
 	void InsertAllNodes();
@@ -401,6 +407,7 @@ private:
 	FOnInspect OnInspect;
 	FOnPreview2D OnPreview2D;
 	FOnRunGraph OnPreview2DTodos;
+	FOnRunGraph OnGraphVariables;
 	/** Un brush por nodo con miniatura. Vive acá y no en el nodo porque soltar la textura es
 	 *  responsabilidad de quien la creó, y porque un nodo puede morir mientras su brush sigue en el
 	 *  caché de Slate. */

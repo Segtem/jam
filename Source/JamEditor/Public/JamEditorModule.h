@@ -136,6 +136,8 @@ private:
 	 *  El argumento va sin usar — el delegado reusa `FOnRunGraph` para no declarar una firma nueva
 	 *  de un solo uso; los datos salen de la última corrida que ya vive en Python. */
 	FString PreviewGraphThumbnails(const FString& Unused);
+	/** Variables del grafo para el desplegable de `math`: `{ok, variables:[...]}`. */
+	FString GraphVariables(const FString& Json);
 	/** Alinear/distribuir la selección del Graph: las cuentas las hace `jam.layout` (puro). */
 	FString LayoutGraphNodes(const FString& NodesJson, const FString& Action);
 	/** Fija o descarta únicamente el Preview propiedad de la ventana Graph. */

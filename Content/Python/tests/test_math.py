@@ -417,5 +417,69 @@ class DiagnosticoDeVariablesTests(unittest.TestCase):
         self.assertNotIn("esMayor", msg)
 
 
+class VariablesParaElDesplegableTests(unittest.TestCase):
+    """`api.variables` alimenta el desplegable del nodo `math`.
+
+    Sale de `JamGraph.valores()`, o sea del MISMO código que después resuelve la expresión: así el
+    desplegable no puede ofrecer un nombre que el evaluador vaya a rechazar. Una lista construida
+    aparte se desincronizaría el día que cambie qué cuenta como variable.
+    """
+
+    def nombres(self, g: JamGraph) -> list:
+        return json.loads(api.variables(g.to_json()))["variables"]
+
+    def test_it_lists_the_named_value_nodes(self):
+        g = JamGraph()
+        g.add("number", {"name": "radio", "value": "50"}, nid="n")
+        g.add("number", {"name": "alto", "value": "10"}, nid="n2")
+        self.assertEqual(self.nombres(g), ["alto", "radio"])
+
+    def test_a_node_that_is_not_a_variable_is_not_offered(self):
+        g = JamGraph()
+        g.add("number", {"name": "radio", "value": "50"}, nid="n")
+        g.add("mesh_box", {}, nid="caja")
+        self.assertEqual(self.nombres(g), ["radio"])
+
+    def test_a_boolean_is_not_offered(self):
+        """Un booleano no es usable en una expresión: ofrecerlo mandaría a quien lo elige directo a
+        un error. Es la misma regla que aplica el mensaje de «variable desconocida»."""
+        g = JamGraph()
+        g.add("compare_greater", {"a": "3", "b": "2"}, nid="cmp")
+        self.assertEqual(self.nombres(g), [])
+
+    def test_an_empty_graph_answers_ok_with_an_empty_list(self):
+        """El menú distingue «no hay variables» de «falló la consulta»: con `ok:false` mostraría un
+        error donde en realidad sólo falta agregar un `number`."""
+        res = json.loads(api.variables(JamGraph().to_json()))
+        self.assertTrue(res["ok"])
+        self.assertEqual(res["variables"], [])
+
+    def test_garbage_does_not_raise(self):
+        """Lo llama Slate al desplegar un menú: una excepción ahí se lleva puesto el gesto."""
+        res = json.loads(api.variables("no soy json"))
+        self.assertFalse(res["ok"])
+
+    def test_everything_offered_actually_resolves_in_an_expression(self):
+        """La propiedad que justifica derivarlo de `valores()`: cada nombre del desplegable tiene
+        que poder usarse tal cual en una expresión."""
+        def armar() -> JamGraph:
+            g = JamGraph()
+            g.add("number", {"name": "radio", "value": "50"}, nid="n")
+            g.add("math", {"name": "doble", "expr": "radio * 2"}, nid="m")
+            return g
+
+        ofrecidas = self.nombres(armar())
+        # `doble` es la salida de un `math`: también es una variable, y encadenar expresiones es
+        # justo para lo que sirve.
+        self.assertEqual(ofrecidas, ["doble", "radio"])
+        for nombre in ofrecidas:
+            with self.subTest(variable=nombre):
+                # El MISMO grafo más una sonda: reconstruirlo sin sus nodos probaría otra cosa.
+                sonda = armar()
+                sonda.add("math", {"name": "prueba", "expr": nombre}, nid="p")
+                self.assertNotIn("p", graph_module.validar(sonda),
+                                 f"«{nombre}» se ofrece pero no resuelve")
+
+
 if __name__ == "__main__":
     unittest.main()

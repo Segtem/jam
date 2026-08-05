@@ -82,6 +82,7 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 	OnParamChangedDelegate = InArgs._OnParamChanged;
 	OnBypassChangedDelegate = InArgs._OnBypassChanged;
 	OnThumbnailOpenDelegate = InArgs._OnThumbnailOpen;
+	OnPedirVariablesDelegate = InArgs._OnPedirVariables;
 	bCanBypass = InArgs._CanBypass;
 	IsSelectedAttr = InArgs._IsSelected;
 	RebuildBodyBrush();
@@ -344,6 +345,61 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 			Input = Field;
 			ParamGetters.Add(Key, [Field]() { return Field->GetText().ToString(); });
 			ParamSetters.Add(Key, [Field](const FString& V) { Field->SetText(FText::FromString(V)); });
+
+			// Desplegable de variables, sólo en `expr`. La lista se pide al DESPLEGAR y no al
+			// construir el nodo: los nombres cambian con cada tecla que se tipea en un `number`,
+			// así que una lista congelada al nacer el nodo mentiría casi siempre.
+			//
+			// Es un botón AL LADO y no un dropdown que reemplace el campo: `expr` acepta
+			// expresiones enteras (`radio * 2`), y cambiarlo por una lista cerrada sacaría eso.
+			if (Key == TEXT("expr"))
+			{
+				Input = SNew(SHorizontalBox)
+					+ SHorizontalBox::Slot().FillWidth(1.0f).VAlign(VAlign_Center)[ Field ]
+					+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+					[
+						SNew(SComboButton)
+						.ComboButtonStyle(&FAppStyle::Get().GetWidgetStyle<FComboButtonStyle>("SimpleComboButton"))
+						.HasDownArrow(true)
+						.ToolTipText(LOCTEXT("VariablesTip", "variables del grafo: elegir una la inserta"))
+						.OnGetMenuContent_Lambda([this, Field]()
+						{
+							FMenuBuilder MB(/*bCloseAfterSelection*/ true, nullptr);
+							TArray<FString> Nombres;
+							if (OnPedirVariablesDelegate.IsBound())
+							{
+								Nombres = OnPedirVariablesDelegate.Execute();
+							}
+							if (Nombres.Num() == 0)
+							{
+								// Un menú vacío no dice nada; esto dice qué hacer para llenarlo.
+								MB.AddMenuEntry(
+									LOCTEXT("SinVariables", "todavía no hay variables"),
+									LOCTEXT("SinVariablesTip",
+										"agregá un nodo «number» o «text» y ponele un nombre"),
+									FSlateIcon(), FUIAction(), NAME_None, EUserInterfaceActionType::Button);
+								return MB.MakeWidget();
+							}
+							for (const FString& Nombre : Nombres)
+							{
+								MB.AddMenuEntry(FText::FromString(Nombre), FText::GetEmpty(), FSlateIcon(),
+									FUIAction(FExecuteAction::CreateLambda([this, Field, Nombre]()
+									{
+										// Reemplaza lo que no aporta («0» es el default, y vacío no
+										// es nada); si ya hay una expresión, AGREGA en vez de
+										// pisarla — perder lo tipeado por elegir del menú sería
+										// exactamente lo contrario de una comodidad.
+										const FString Actual = Field->GetText().ToString().TrimStartAndEnd();
+										const bool bPisar = Actual.IsEmpty() || Actual == TEXT("0");
+										Field->SetText(FText::FromString(
+											bPisar ? Nombre : Actual + TEXT(" ") + Nombre));
+										OnParamChangedDelegate.ExecuteIfBound();
+									})));
+							}
+							return MB.MakeWidget();
+						})
+					];
+			}
 		}
 
 		// Si el pin de este parámetro tiene un CABLE, el input se deshabilita (grisea): el valor lo manda

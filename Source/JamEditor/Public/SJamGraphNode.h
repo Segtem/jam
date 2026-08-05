@@ -53,6 +53,9 @@ DECLARE_DELEGATE_OneParam(FOnPinClicked, const FString& /*pin*/);
 /** Clic en el CUERPO del nodo, con los modificadores: Shift agrega a la selección, Ctrl alterna.
  *  El nodo no sabe qué está seleccionado —eso es del editor—; sólo reporta el gesto. */
 DECLARE_DELEGATE_TwoParams(FOnNodeClicked, bool /*bShift*/, bool /*bCtrl*/);
+/** Nombres de variable usables en una expresión, para el desplegable del nodo `math`. Se piden al
+ *  DESPLEGAR y no al construir el nodo: cambian con cada tecla que se tipea en un `number`. */
+DECLARE_DELEGATE_RetVal(TArray<FString>, FOnPedirVariables);
 
 /**
  * Un componente del canvas «Grasshopper» de Jam: título flotante, cuerpo biselado, controles de
@@ -117,6 +120,8 @@ public:
 		/** Doble clic en la MINIATURA: abrir el visor a resolución grande. Doble clic y no clic
 		 *  simple para no robarle el arrastre al centro del nodo, que es zona de agarre. */
 		SLATE_EVENT(FSimpleDelegate, OnThumbnailOpen)
+		/** Qué variables hay en el grafo AHORA. Sólo lo usa el campo `expr`. */
+		SLATE_EVENT(FOnPedirVariables, OnPedirVariables)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);
@@ -218,6 +223,7 @@ private:
 	FSimpleDelegate OnParamChangedDelegate;
 	FSimpleDelegate OnBypassChangedDelegate;
 	FSimpleDelegate OnThumbnailOpenDelegate;
+	FOnPedirVariables OnPedirVariablesDelegate;
 	/** El arrastre movió el nodo de verdad (y no fue un clic con el pulso). */
 	bool bMovioAlgo = false;
 	/** Lo lee `OnPaint` para pintar el halo; la fuente es el `TSet` del editor. */

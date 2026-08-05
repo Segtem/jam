@@ -419,6 +419,7 @@ TSharedRef<SDockTab> FJamEditorModule::SpawnGraphTab(const FSpawnTabArgs& /*Args
 		.OnInspect_Raw(this, &FJamEditorModule::InspectGraphNode)
 		.OnPreview2D_Raw(this, &FJamEditorModule::PreviewGraphNode2D)
 		.OnPreview2DTodos_Raw(this, &FJamEditorModule::PreviewGraphThumbnails)
+		.OnGraphVariables_Raw(this, &FJamEditorModule::GraphVariables)
 		.OnLayout_Raw(this, &FJamEditorModule::LayoutGraphNodes)
 		.OnCollapseFunction_Raw(this, &FJamEditorModule::CollapseGraphFunction)
 		.OnFunctionManage_Raw(this, &FJamEditorModule::ManageGraphFunction)
@@ -578,6 +579,13 @@ FString FJamEditorModule::PreviewGraphThumbnails(const FString& /*Unused*/)
 	// Sin argumentos reales: las miniaturas salen de la última corrida que ya vive en Python.
 	const FString Stmt = FString::Printf(
 		TEXT("import jam.api as _a; print(_a.preview_2d_todos(%d, 0))"), 64);
+	return ExecPythonCapture(Stmt);
+}
+
+FString FJamEditorModule::GraphVariables(const FString& Json)
+{
+	const FString Stmt = FString::Printf(
+		TEXT("import jam.api as _a; print(_a.variables(%s))"), *ToPyStr(Json));
 	return ExecPythonCapture(Stmt);
 }
 

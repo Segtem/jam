@@ -533,6 +533,31 @@ def preview_2d_todos(lado: int = 64, canal: int = 0) -> str:
     return json.dumps({"ok": True, "thumbs": thumbs}, ensure_ascii=True)
 
 
+def variables(graph_json: str = "") -> str:
+    """Nombres de variable usables en una expresión: `{ok, variables: [...]}`.
+
+    Alimenta el desplegable del nodo `math`. Sale de `JamGraph.valores()`, o sea del MISMO código
+    que después resuelve la expresión: así el desplegable no puede ofrecer un nombre que el
+    evaluador vaya a rechazar. Una lista construida aparte se desincronizaría el día que cambie
+    qué cuenta como variable.
+
+    Sólo las NUMÉRICAS, por la misma razón que el mensaje de error no las sugiere: un booleano no
+    es usable en una expresión (`math` los excluye de su tabla), así que ofrecerlo mandaría a quien
+    lo elige directo a un error.
+    """
+    import json
+
+    from .graph import JamGraph
+
+    try:
+        tabla = JamGraph.from_json(graph_json).valores()
+    except Exception as exc:  # noqa: BLE001
+        return json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=True)
+    nombres = sorted(k for k, v in tabla.items()
+                     if isinstance(v, (int, float)) and not isinstance(v, bool))
+    return json.dumps({"ok": True, "variables": nombres}, ensure_ascii=True)
+
+
 def acomodar(nodos_json: str, accion: str) -> str:
     """Alinear/distribuir la selección del canvas. JSON `{ok, pos: {id: [x, y]}}`.
 
