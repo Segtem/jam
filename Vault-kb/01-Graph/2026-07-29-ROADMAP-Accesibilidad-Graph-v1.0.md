@@ -101,9 +101,19 @@ y no se podía saltear: **se hizo el 2026-07-29**, ver
   `{ok, ruta, tipo, ayuda}`.
 - `tests/test_preview2d.py` corre dentro de los **435 tests** de la suite, en verde.
 
-**Lo que falta es el consumidor.** Grep en `Source/`: **cero** referencias a `preview_2d`. O sea: Jam
-sabe dibujar la máscara y el desplegado de UVs, escribe el PNG en disco, y **nadie lo muestra**. Hoy
-el visor sólo es accesible llamando a la API a mano.
+**HECHO el 2026-08-05.** Faltaba el consumidor —grep en `Source/` daba **cero** referencias a
+`preview_2d`: Jam sabía dibujar y **nadie lo mostraba**—. Ahora el visor vive al lado del Inspector
+de datos y **comparte su selector de nodo**: un solo control de «qué nodo», dos vistas, la numérica
+y la visual. Se refresca desde `RefreshInspector()`, así que corre después de cada Run sin
+disparadores propios.
+
+> [!warning] La trampa que decidió el diseño
+> Slate cachea las texturas dinámicas **por nombre de archivo**
+> (`FSlateRHIResourceManager::GetDynamicTextureResourceByName`), y `api.preview_2d` escribe siempre
+> la MISMA ruta por nodo —a propósito, para poder abrir el PNG por fuera—. Sin soltar el recurso
+> antes de recrear el brush, **el segundo Run del mismo nodo mostraría la imagen del primero para
+> siempre**: el visor parecería andar en la demo y mentiría en el uso real. Lo resuelve
+> `SoltarPreview2D()` con `FSlateRenderer::ReleaseDynamicResource`.
 
 Falta un panel en el Graph que:
 1. tome el nodo con el flag de debug prendido,

@@ -14,6 +14,8 @@
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Input/SEditableTextBox.h"
 #include "Widgets/Input/SComboBox.h"
+#include "Widgets/Input/SSpinBox.h"
+#include "Brushes/SlateDynamicImageBrush.h"
 #include "Widgets/Views/SListView.h"
 #include "Widgets/Views/SHeaderRow.h"
 #include "Widgets/Layout/SExpandableArea.h"
@@ -554,6 +556,7 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 	OnDiscardPreview = InArgs._OnDiscardPreview;
 	OnSaveGraph = InArgs._OnSaveGraph;
 	OnInspect = InArgs._OnInspect;
+	OnPreview2D = InArgs._OnPreview2D;
 	OnLayout = InArgs._OnLayout;
 	OnCollapseFunction = InArgs._OnCollapseFunction;
 	OnFunctionManage = InArgs._OnFunctionManage;
@@ -974,24 +977,163 @@ TSharedRef<SWidget> SJamGraphEditor::BuildInspector()
 					.Text(LOCTEXT("InspectIdle", "corré el grafo y elegí un nodo"))
 				]
 			]
+			// Tabla y visor lado a lado: los números y el dibujo del MISMO nodo. Es la separación
+			// que tienen Houdini y Blender, y por eso comparten el selector de arriba.
 			+ SVerticalBox::Slot().AutoHeight()
 			[
-				SNew(SBox).HeightOverride(180.0f)
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot().FillWidth(1.0f)
 				[
-					SAssignNew(InspectList, SListView<TSharedPtr<FJamInspectRow>>)
-					.ListItemsSource(&InspectRows)
-					.SelectionMode(ESelectionMode::Single)
-					.HeaderRow(SAssignNew(InspectHeader, SHeaderRow))
-					.OnGenerateRow_Lambda([this](TSharedPtr<FJamInspectRow> Item,
-						const TSharedRef<STableViewBase>& Owner)
-					{
-						return SNew(SJamInspectRowWidget, Owner)
-							.Item(Item)
-							.Columns(&InspectColumns);
-					})
+					SNew(SBox).HeightOverride(180.0f)
+					[
+						SAssignNew(InspectList, SListView<TSharedPtr<FJamInspectRow>>)
+						.ListItemsSource(&InspectRows)
+						.SelectionMode(ESelectionMode::Single)
+						.HeaderRow(SAssignNew(InspectHeader, SHeaderRow))
+						.OnGenerateRow_Lambda([this](TSharedPtr<FJamInspectRow> Item,
+							const TSharedRef<STableViewBase>& Owner)
+						{
+							return SNew(SJamInspectRowWidget, Owner)
+								.Item(Item)
+								.Columns(&InspectColumns);
+						})
+					]
+				]
+				+ SHorizontalBox::Slot().AutoWidth().Padding(8.0f, 0.0f, 0.0f, 0.0f)
+				[
+					BuildPreview2D()
 				]
 			]
 		];
+}
+
+TSharedRef<SWidget> SJamGraphEditor::BuildPreview2D()
+{
+	return SNew(SVerticalBox)
+		+ SVerticalBox::Slot().AutoHeight()
+		[
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+			[
+				SNew(STextBlock).Text(LOCTEXT("Preview2DUV", "canal UV"))
+			]
+			+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(4.0f, 0.0f, 0.0f, 0.0f)
+			[
+				SNew(SBox).WidthOverride(52.0f)
+				[
+					SNew(SSpinBox<int32>)
+					.MinValue(0).MaxValue(7).MinDesiredWidth(40.0f)
+					.ToolTipText(LOCTEXT("Preview2DUVTip",
+						"Qué canal de UV desplegar. Una malla puede tener varios y el que importa no siempre es el 0"))
+					.Value_Lambda([this]() { return Preview2DCanal; })
+					.OnValueChanged_Lambda([this](int32 V) { Preview2DCanal = V; })
+					.OnValueCommitted_Lambda([this](int32 V, ETextCommit::Type)
+					{
+						Preview2DCanal = V;
+						RefreshPreview2D();
+					})
+				]
+			]
+		]
+		+ SVerticalBox::Slot().AutoHeight().Padding(0.0f, 4.0f, 0.0f, 0.0f)
+		[
+			SNew(SBox)
+			.WidthOverride(static_cast<float>(Preview2DLado))
+			.HeightOverride(static_cast<float>(Preview2DLado))
+			[
+				SAssignNew(Preview2DImagen, SImage)
+				// Sin brush no dibuja nada; el texto de abajo explica por qué.
+				.Visibility_Lambda([this]()
+				{
+					return Preview2DBrush.IsValid() ? EVisibility::Visible : EVisibility::Collapsed;
+				})
+			]
+		]
+		+ SVerticalBox::Slot().AutoHeight().Padding(0.0f, 4.0f, 0.0f, 0.0f)
+		[
+			SNew(SBox).WidthOverride(static_cast<float>(Preview2DLado))
+			[
+				SAssignNew(Preview2DEstado, STextBlock)
+				.AutoWrapText(true)
+				.Text(LOCTEXT("Preview2DIdle", "corré el grafo y elegí un nodo"))
+			]
+		];
+}
+
+void SJamGraphEditor::SoltarPreview2D()
+{
+	if (!Preview2DBrush.IsValid())
+	{
+		return;
+	}
+	// Slate cachea las texturas dinámicas POR NOMBRE DE ARCHIVO
+	// (`FSlateRHIResourceManager::GetDynamicTextureResourceByName`), y `api.preview_2d` escribe
+	// siempre la MISMA ruta por nodo —a propósito, para poder abrir el PNG por fuera—. Sin soltar
+	// el recurso, el segundo Run del mismo nodo mostraría la imagen del primero para siempre: el
+	// visor parecería andar en la demo y mentiría en el uso real.
+	if (FSlateApplication::IsInitialized() && FSlateApplication::Get().GetRenderer() != nullptr)
+	{
+		FSlateApplication::Get().GetRenderer()->ReleaseDynamicResource(*Preview2DBrush);
+	}
+	Preview2DBrush->ReleaseResource();
+	if (Preview2DImagen.IsValid())
+	{
+		Preview2DImagen->SetImage(nullptr);
+	}
+	Preview2DBrush.Reset();
+}
+
+void SJamGraphEditor::RefreshPreview2D()
+{
+	auto Decir = [this](const FText& Texto)
+	{
+		if (Preview2DEstado.IsValid()) { Preview2DEstado->SetText(Texto); }
+	};
+
+	SoltarPreview2D();
+	if (!OnPreview2D.IsBound() || InspectNodeId.IsEmpty())
+	{
+		Decir(LOCTEXT("Preview2DIdle", "corré el grafo y elegí un nodo"));
+		return;
+	}
+
+	const FString Res = OnPreview2D.Execute(InspectNodeId, Preview2DLado, Preview2DCanal);
+	TSharedPtr<FJsonObject> Root;
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Res);
+	if (!FJsonSerializer::Deserialize(Reader, Root) || !Root.IsValid())
+	{
+		Decir(FText::FromString(FString::Printf(TEXT("respuesta ilegible del visor: %s"), *Res)));
+		return;
+	}
+
+	bool bOk = false;
+	if (!Root->TryGetBoolField(TEXT("ok"), bOk) || !bOk)
+	{
+		// «No se puede dibujar esto» TAMBIÉN es información: el texto dice qué falta hacer
+		// (proyectar UVs, correr el grafo) en vez de dejar un cuadro vacío sin explicación.
+		FString Error;
+		Root->TryGetStringField(TEXT("error"), Error);
+		Decir(FText::FromString(Error.IsEmpty() ? TEXT("no hay nada que dibujar de este nodo.") : Error));
+		return;
+	}
+
+	FString Ruta, Detalle;
+	Root->TryGetStringField(TEXT("ruta"), Ruta);
+	Root->TryGetStringField(TEXT("detalle"), Detalle);
+	if (Ruta.IsEmpty() || !FPaths::FileExists(Ruta))
+	{
+		Decir(FText::FromString(FString::Printf(
+			TEXT("el visor dijo que escribió «%s», pero el archivo no está."), *Ruta)));
+		return;
+	}
+
+	Preview2DBrush = MakeShared<FSlateDynamicImageBrush>(
+		FName(*Ruta), FVector2D(Preview2DLado, Preview2DLado));
+	if (Preview2DImagen.IsValid())
+	{
+		Preview2DImagen->SetImage(Preview2DBrush.Get());
+	}
+	Decir(FText::FromString(Detalle));
 }
 
 void SJamGraphEditor::RefreshInspector()
@@ -1112,6 +1254,9 @@ void SJamGraphEditor::RefreshInspector()
 	if (InspectStatus.IsValid()) { InspectStatus->SetText(FText::FromString(Estado)); }
 	if (InspectPicker.IsValid()) { InspectPicker->RefreshOptions(); }
 	if (InspectList.IsValid()) { InspectList->RequestListRefresh(); }
+	// El visor es la otra vista del MISMO nodo: se refresca acá y no por su cuenta, así no hay dos
+	// caminos que puedan quedar mostrando nodos distintos.
+	RefreshPreview2D();
 }
 
 

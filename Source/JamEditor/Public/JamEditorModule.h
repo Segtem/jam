@@ -128,6 +128,9 @@ private:
 	/** Inspector: datos del último Run de un nodo, filtrados. Sin nodo devuelve la lista. */
 	FString InspectGraphNode(const FString& NodeId, const FString& Filter,
 		const FString& Sort, bool bDescending);
+	/** Visor 2D del MISMO nodo que mira el inspector: PNG en `Saved/JamPreview2D/` y
+	 *  `{ok, ruta, tipo, detalle}`. Dibuja lo que no se ve en el viewport (UVs, máscaras). */
+	FString PreviewGraphNode2D(const FString& NodeId, int32 Lado, int32 Canal);
 	/** Alinear/distribuir la selección del Graph: las cuentas las hace `jam.layout` (puro). */
 	FString LayoutGraphNodes(const FString& NodesJson, const FString& Action);
 	/** Fija o descarta únicamente el Preview propiedad de la ventana Graph. */

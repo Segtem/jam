@@ -24,6 +24,11 @@ DECLARE_DELEGATE_RetVal_TwoParams(FString, FOnLayout, const FString& /*nodos*/, 
 /** Inspector de datos: (node_id, filtro) → JSON {nodos, filas}. Node vacío = sólo la lista. */
 DECLARE_DELEGATE_RetVal_FourParams(FString, FOnInspect, const FString& /*node*/,
 	const FString& /*filtro*/, const FString& /*orden*/, bool /*descendente*/);
+/** Visor 2D: (node_id, lado en px, canal de UV) → JSON `{ok, ruta, tipo, detalle}` o `{ok:false,
+ *  error}`. Dibuja lo que NO se ve en el viewport: el desplegado de UVs de una malla y la máscara
+ *  que calcula un grafo de material. El PNG lo escribe Python en `Saved/JamPreview2D/`. */
+DECLARE_DELEGATE_RetVal_ThreeParams(FString, FOnPreview2D,
+	const FString& /*node*/, int32 /*lado*/, int32 /*canal*/);
 /** Colapsar selección: (nombre humano, grafo completo, ids elegidos) → {ok,graph,tool,report}. */
 DECLARE_DELEGATE_RetVal_ThreeParams(FString, FOnCollapseFunction,
 	const FString& /*nombre*/, const FString& /*graph*/, const FString& /*selected*/);
@@ -59,6 +64,7 @@ public:
 		SLATE_EVENT(FOnRunGraph, OnSaveGraph)
 		/** Datos del último Run para el inspector. */
 		SLATE_EVENT(FOnInspect, OnInspect)
+		SLATE_EVENT(FOnPreview2D, OnPreview2D)
 		/** Alinear/distribuir: lo resuelve `jam.layout`. */
 		SLATE_EVENT(FOnLayout, OnLayout)
 		SLATE_EVENT(FOnCollapseFunction, OnCollapseFunction)
@@ -242,6 +248,18 @@ private:
 	/** Relee del último Run: repuebla el selector de nodos y la tabla del nodo elegido. */
 	void RefreshInspector();
 	TSharedRef<class SWidget> BuildInspector();
+
+	// ---- visor 2D: la vista VISUAL del mismo dato que el inspector muestra en números ----
+	// Comparte con él el selector de nodo (`InspectNodeId`): un solo control de «qué nodo», dos
+	// vistas. Un segundo selector es lo que después se desincroniza.
+	TSharedRef<class SWidget> BuildPreview2D();
+	/** Repinta el visor con el nodo del inspector. Lo llama `RefreshInspector`, así que corre
+	 *  después de cada Run y al cambiar de nodo — sin disparadores propios. */
+	void RefreshPreview2D();
+	/** Suelta la textura del brush anterior. Slate cachea las texturas dinámicas POR NOMBRE de
+	 *  archivo, y `api.preview_2d` escribe siempre la misma ruta por nodo: sin esto, el segundo Run
+	 *  del mismo nodo seguiría mostrando la imagen del primero para siempre. */
+	void SoltarPreview2D();
 	void LoadBundledExample(const FString& Filename, const FText& LoadedMessage);
 	/** Galería: reemplaza el grafo por UNO DE CADA nodo en grilla (para sacarle un screenshot). */
 	void InsertAllNodes();
@@ -367,6 +385,7 @@ private:
 	FOnGraphPreviewAction OnDiscardPreview;
 	FOnRunGraph OnSaveGraph;
 	FOnInspect OnInspect;
+	FOnPreview2D OnPreview2D;
 	FOnLayout OnLayout;
 	FOnCollapseFunction OnCollapseFunction;
 	FOnFunctionManage OnFunctionManage;
@@ -391,6 +410,18 @@ private:
 	TSharedPtr<class STextBlock> InspectStatus;
 	/** Id del nodo elegido; vacío = ninguno todavía. */
 	FString InspectNodeId;
+
+	// ---- visor 2D ----
+	/** Brush con el PNG del último dibujo. Se conserva porque `SImage` lo referencia mientras vive;
+	 *  soltarlo es responsabilidad de `SoltarPreview2D` (ver el porqué del caché ahí). */
+	TSharedPtr<struct FSlateDynamicImageBrush> Preview2DBrush;
+	/** Texto bajo la imagen: el `detalle` cuando hay dibujo, o el `error` explicando por qué no lo
+	 *  hay. Nunca un panel en blanco: «no se puede dibujar esto» también es información. */
+	TSharedPtr<class STextBlock> Preview2DEstado;
+	TSharedPtr<class SImage> Preview2DImagen;
+	/** Canal de UV a desplegar. Una malla puede tener varios y el que importa no siempre es el 0. */
+	int32 Preview2DCanal = 0;
+	static constexpr int32 Preview2DLado = 320;
 
 	FSimpleDelegate OnOpenContent;
 	TAttribute<FString> ActiveAsset;

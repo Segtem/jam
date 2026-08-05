@@ -417,6 +417,7 @@ TSharedRef<SDockTab> FJamEditorModule::SpawnGraphTab(const FSpawnTabArgs& /*Args
 		.ActiveAsset_Lambda([this]() { return SelectedAssetName; })
 		.OnOpenContent_Raw(this, &FJamEditorModule::OpenContentWindow)
 		.OnInspect_Raw(this, &FJamEditorModule::InspectGraphNode)
+		.OnPreview2D_Raw(this, &FJamEditorModule::PreviewGraphNode2D)
 		.OnLayout_Raw(this, &FJamEditorModule::LayoutGraphNodes)
 		.OnCollapseFunction_Raw(this, &FJamEditorModule::CollapseGraphFunction)
 		.OnFunctionManage_Raw(this, &FJamEditorModule::ManageGraphFunction)
@@ -559,6 +560,14 @@ FString FJamEditorModule::InspectGraphNode(const FString& NodeId, const FString&
 		TEXT("import jam.api as _a; print(_a.inspect_json(%s, %s, 200, %s, %s))"),
 		*ToPyStr(NodeId), *ToPyStr(Filter), *ToPyStr(Sort),
 		bDescending ? TEXT("True") : TEXT("False"));
+	return ExecPythonCapture(Stmt);
+}
+
+FString FJamEditorModule::PreviewGraphNode2D(const FString& NodeId, int32 Lado, int32 Canal)
+{
+	const FString Stmt = FString::Printf(
+		TEXT("import jam.api as _a; print(_a.preview_2d(%s, %d, %d, %d))"),
+		*ToPyStr(NodeId), Lado, Lado, Canal);
 	return ExecPythonCapture(Stmt);
 }
 
