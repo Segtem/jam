@@ -213,3 +213,41 @@ class NombresDePinTests(unittest.TestCase):
         self.assertTrue(pares, "no se pudo leer la tabla de nombres")
         iguales = [t for t, n in pares if t == n]
         self.assertEqual(iguales, [], "estos «nombres» son el código de tipo otra vez")
+
+
+class VeredictoDelOraculoTests(unittest.TestCase):
+    """El estado de un nodo tampoco puede identificarse sólo por su color.
+
+    Es la misma regla que `NombresDePinTests`, aplicada al otro lugar donde el color decía algo
+    solo: hasta el 2026-08-05 el veredicto vivía ÚNICAMENTE en el color del cuerpo del nodo —y en
+    un tooltip que había que hoverear para leer—. Ahora cada estado trae su símbolo, los mismos
+    que `jam.graph` ya emite en el texto del reporte.
+    """
+
+    def glifos_del_cpp(self) -> dict:
+        import re
+
+        cpp = (RAIZ / "Source" / "JamEditor" / "Private" / "SJamGraphNode.cpp").read_text(
+            encoding="utf-8")
+        cuerpo = cpp.split("FString SJamGraphNode::StateGlyph")[1].split("\n}")[0]
+        return dict(re.findall(
+            r'ResultState == TEXT\("([^"]+)"\)\s*\)?\s*\{ return TEXT\("([^"]+)"\)', cuerpo))
+
+    def test_every_verdict_has_a_symbol(self):
+        """Los cuatro escalones que distingue `jam.graph._estado`. Si uno se queda sin símbolo,
+        vuelve a distinguirse sólo por color."""
+        glifos = self.glifos_del_cpp()
+        faltan = sorted({"ok", "aviso", "warn", "error"} - set(glifos))
+        self.assertEqual(faltan, [], "estados sin símbolo en StateGlyph")
+
+    def test_no_two_verdicts_share_a_symbol(self):
+        """Si dos compartieran glifo, el color volvería a ser el único canal para separarlos y no
+        habríamos ganado nada."""
+        glifos = self.glifos_del_cpp()
+        repetidos = sorted({g for g in glifos.values() if list(glifos.values()).count(g) > 1})
+        self.assertEqual(repetidos, [], "dos estados usan el mismo símbolo")
+
+    def test_the_symbols_are_not_empty(self):
+        glifos = self.glifos_del_cpp()
+        vacios = sorted(k for k, v in glifos.items() if not v.strip())
+        self.assertEqual(vacios, [], "estos estados tienen un símbolo vacío")

@@ -432,6 +432,32 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 	[
 		SNew(SOverlay)
 		+ SOverlay::Slot()[ MainContent ]
+		// Veredicto del oráculo, EN EL CANVAS y no sólo en el color: `✓ ⚠ ✗ !`. Es la regla de
+		// accesibilidad del proyecto —ningún estado se distingue sólo por color—; hasta acá el
+		// veredicto vivía en el color del cuerpo y en un tooltip que había que hoverear.
+		// Va a la izquierda porque la derecha ya la ocupan bypass, debug y la ×.
+		+ SOverlay::Slot()
+		.HAlign(HAlign_Left)
+		.VAlign(VAlign_Top)
+		.Padding(3.0f, 1.0f, 0.0f, 0.0f)
+		[
+			SNew(SBox).WidthOverride(16.0f).HeightOverride(16.0f)
+			[
+				SNew(STextBlock)
+				.Text_Lambda([this]() { return FText::FromString(StateGlyph()); })
+				.ToolTipText_Lambda([this]()
+				{
+					// El nombre del estado en palabras: el glifo dice CUÁL, esto dice QUÉ significa.
+					if (ResultState == TEXT("ok"))    { return LOCTEXT("VeredictoOk", "el oráculo dice OK"); }
+					if (ResultState == TEXT("aviso")) { return LOCTEXT("VeredictoAviso", "corrió, pero algo hay que mirar"); }
+					if (ResultState == TEXT("warn"))  { return LOCTEXT("VeredictoWarn", "el oráculo dice REVISAR: el resultado no sirve"); }
+					if (ResultState == TEXT("error")) { return LOCTEXT("VeredictoError", "reventó: no hay resultado"); }
+					return LOCTEXT("VeredictoNada", "todavía no corrió");
+				})
+				.Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
+				.ColorAndOpacity_Lambda([this]() { return FSlateColor(StateColor()); })
+			]
+		]
 		// Bypass: apaga el nodo sin sacarlo del grafo. Sólo aparece donde es LEGAL (mismo tipo de
 		// entrada y salida); en el resto ni se dibuja, porque una opción que no se puede usar
 		// confunde más que ayuda.
@@ -712,6 +738,18 @@ void SJamGraphNode::SetResult(const FString& State, const FString& Text)
 	SetToolTipText(Text.IsEmpty()
 		? FText::FromString(Verb)
 		: FText::FromString(FString::Printf(TEXT("%s\n%s"), *Verb, *Text)));
+}
+
+FString SJamGraphNode::StateGlyph() const
+{
+	// Un símbolo POR ESTADO, y los cuatro distintos entre sí: si dos compartieran glifo, el color
+	// volvería a ser el único canal para separarlos y no habríamos ganado nada.
+	// Son los mismos que `jam.graph` ya emite en el texto del reporte.
+	if (ResultState == TEXT("ok"))    { return TEXT("✓"); }
+	if (ResultState == TEXT("aviso")) { return TEXT("⚠"); }
+	if (ResultState == TEXT("warn"))  { return TEXT("✗"); }   // el oráculo dice REVISAR
+	if (ResultState == TEXT("error")) { return TEXT("!"); }   // reventó: no hay resultado
+	return FString();   // todavía no corrió: no hay veredicto que mostrar
 }
 
 FLinearColor SJamGraphNode::StateColor() const

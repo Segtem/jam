@@ -297,10 +297,14 @@ No es un extra: es la regla que ya rige el proyecto, extendida al resto del canv
 
 - **Teclado puro.** `Tab` recorre los nodos en orden topológico; las flechas mueven el seleccionado;
   `Enter` entra a editar el primer parámetro. Hoy, sin mouse, el Graph no se usa.
-- **El color nunca es el único canal.** Ya se cumple en los pines (cada uno dice su nombre, ver
-  `DataName`). Falta cerrarlo en el **estado del oráculo**: verde/naranja/rojo tienen que venir con
-  su símbolo — `✓` / `⚠` / `✗`, que `jam.graph` ya emite. Un test que recorra los estados y exija
-  que ninguno se distinga sólo por color.
+- ✅ **El color nunca es el único canal.** Se cumple en los pines (cada uno dice su nombre, ver
+  `DataName`) y, desde el **2026-08-05**, en el **estado del oráculo**: cada veredicto trae su
+  símbolo en el canvas — `✓` ok · `⚠` aviso · `✗` REVISAR · `!` reventó — con el nombre del estado
+  en palabras en el tooltip. Lo ata `VeredictoDelOraculoTests`, que lee `StateGlyph` del `.cpp` y
+  exige que los cuatro estados tengan símbolo y que no haya dos iguales.
+  Hasta entonces el veredicto vivía **sólo** en el color del cuerpo y en un tooltip que había que
+  hoverear — y peor: por el bug del tint de `MakeBox` ese color del cuerpo ni siquiera se dibujaba,
+  así que el veredicto se comunicaba por un borde de 1.4 px.
 - **Contraste.** El cuerpo del nodo es `0.80,0.80,0.78` con texto oscuro: está bien. Auditar el resto
   contra WCAG AA (4.5:1) — sobre todo el gris de un campo **deshabilitado por cable**, que es
   justamente el que hay que poder leer para saber qué valor está llegando.

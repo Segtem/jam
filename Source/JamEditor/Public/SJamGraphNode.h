@@ -152,6 +152,11 @@ public:
 	 * como tooltip del nodo.
 	 */
 	void SetResult(const FString& State, const FString& Text);
+	/** Símbolo del veredicto: `✓` ok · `⚠` aviso · `✗` REVISAR · `!` reventó. Vacío si todavía no
+	 *  corrió. Es la regla de accesibilidad del proyecto —ningún estado se distingue sólo por
+	 *  color— y hasta acá el veredicto vivía únicamente en el color del cuerpo y en un tooltip que
+	 *  había que hoverear para leer. */
+	FString StateGlyph() const;
 
 	// Arrastre/selección: si el click no lo toma un hijo interactivo, enfoca y arrastra el nodo.
 	// El foco es también su selección persistente: Supr ejecuta el mismo borrado seguro que la ×.
