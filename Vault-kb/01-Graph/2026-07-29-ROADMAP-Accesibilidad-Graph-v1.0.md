@@ -72,7 +72,7 @@ no se puede escribir el test, el ítem está mal planteado, no incompleto.
 | Duplicar | ✅ `Ctrl+D`, sin tocar el portapapeles | `Duplicar` |
 | Foco (`F`) / encuadre (`Inicio`) | ✅ **Fase 2, parte** | `Encuadrar` |
 | **Captura del grafo entero** | ❌ | — |
-| **Comentarios / grupos** | ❌ | — |
+| **Comentarios / grupos** | ✅ **Fase 7.1** — `C` sobre la selección, arrastre, resize, color por caja | `SJamGraphComment` |
 | **Funciones (subgrafo con firma)** | ✅ **Fase 5 completa** — `input`/`output`, `fn:<nombre>`, expansión inline, ribbon y `Ctrl+G` | `jam/funcion.py` + Slate |
 | Docking del panel | ✅ **Fase 3** — los tres paneles son nomad tabs | `RegisterTabs` |
 
@@ -317,9 +317,10 @@ No es un extra: es la regla que ya rige el proyecto, extendida al resto del canv
 
 Ordenadas por lo que rinden, no por lo que cuestan:
 
-1. **Comentarios / grupos** (`C` sobre la selección) — la caja de comentario de Blueprint, el
+1. ✅ **Comentarios / grupos** (`C` sobre la selección) — la caja de comentario de Blueprint, el
    *network box* de Houdini, el *scribble* de Grasshopper. En un grafo de 30 nodos es la diferencia
    entre leerlo y descifrarlo. Mover la caja mueve lo que contiene.
+   **Hecho el 2026-08-04** — ver `2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0`.
 2. **Bypass / disable por nodo** (`D`) — apagar un nodo sin borrarlo; el stream lo atraviesa. Es el
    *bypass flag* de Houdini y vale oro para aislar un problema. Encaja con el flag de debug que ya
    existe.

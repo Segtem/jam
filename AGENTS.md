@@ -133,6 +133,7 @@ redistribuir, nunca relicenciar CC0. Los repos van privados.
 | Mutar código y restaurar en el mismo segundo | CPython invalida el `.pyc` por (mtime, tamaño): `max` y `min` ocupan lo mismo, así que sigue corriendo el **bytecode mutado**. Limpiar `__pycache__` entre mutantes. |
 | Matar un proceso que escribe sobre fuentes | **`SIGTERM` no ejecuta el `finally`**. Una corrida cortada dejó un archivo mutado en el árbol; hace falta `atexit` + manejadores de señal, y mirar `git status` después. |
 | Editar `vendor/oracle/` a mano | Es un subtree: se separa del upstream en silencio. Se cambia arriba y se trae con `git subtree pull`. |
+| Un `TSharedPtr` a algo que retiene UObjects (`FAssetThumbnailPool`, `FAssetThumbnail`) como miembro del módulo | Assert al cerrar el editor: `Index >= 0` en `UObjectArray.h`. **`ShutdownModule()` NO alcanza** — se intentó y el crash volvió igual: `FEngineLoop::Exit()` corre `GEngine->PreExit()` (que destruye los subsistemas de `GEditor`) **antes** de `FModuleManager::UnloadModulesAtShutdown()`, así que destructor y `ShutdownModule()` son igual de tarde. Hay que soltarlos en `FEditorDelegates::OnEditorPreExit`, que dispara antes de `PreExit()`; dejar la liberación también en `ShutdownModule()`, idempotente, cubre hot-reload y deshabilitar el plugin, donde `OnEditorPreExit` nunca dispara. |
 
 ## Dónde está escrito lo demás
 
