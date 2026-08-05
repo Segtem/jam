@@ -65,6 +65,8 @@ public:
 		/** Datos del último Run para el inspector. */
 		SLATE_EVENT(FOnInspect, OnInspect)
 		SLATE_EVENT(FOnPreview2D, OnPreview2D)
+		/** Miniaturas de TODOS los nodos dibujables del último Run, en un solo viaje. */
+		SLATE_EVENT(FOnRunGraph, OnPreview2DTodos)
 		/** Alinear/distribuir: lo resuelve `jam.layout`. */
 		SLATE_EVENT(FOnLayout, OnLayout)
 		SLATE_EVENT(FOnCollapseFunction, OnCollapseFunction)
@@ -260,6 +262,14 @@ private:
 	 *  archivo, y `api.preview_2d` escribe siempre la misma ruta por nodo: sin esto, el segundo Run
 	 *  del mismo nodo seguiría mostrando la imagen del primero para siempre. */
 	void SoltarPreview2D();
+	/** Pide las miniaturas de todos los nodos dibujables y se las reparte, al estilo de Substance
+	 *  Designer. Un solo viaje a Python: con un grafo de 30 nodos, una llamada por nodo serían 30
+	 *  `ExecPythonCapture` por Run. */
+	void RefrescarMiniaturas();
+	/** Suelta las texturas de las miniaturas ANTES de recrearlas: Slate las cachea por nombre de
+	 *  archivo y la ruta por nodo es estable, así que sin esto el segundo Run mostraría la miniatura
+	 *  del primero. Es la misma trampa que `SoltarPreview2D`, multiplicada por N nodos. */
+	void SoltarMiniaturas();
 	void LoadBundledExample(const FString& Filename, const FText& LoadedMessage);
 	/** Galería: reemplaza el grafo por UNO DE CADA nodo en grilla (para sacarle un screenshot). */
 	void InsertAllNodes();
@@ -386,6 +396,12 @@ private:
 	FOnRunGraph OnSaveGraph;
 	FOnInspect OnInspect;
 	FOnPreview2D OnPreview2D;
+	FOnRunGraph OnPreview2DTodos;
+	/** Un brush por nodo con miniatura. Vive acá y no en el nodo porque soltar la textura es
+	 *  responsabilidad de quien la creó, y porque un nodo puede morir mientras su brush sigue en el
+	 *  caché de Slate. */
+	TMap<FString, TSharedPtr<struct FSlateDynamicImageBrush>> Miniaturas;
+	static constexpr int32 MiniaturaLado = 64;
 	FOnLayout OnLayout;
 	FOnCollapseFunction OnCollapseFunction;
 	FOnFunctionManage OnFunctionManage;

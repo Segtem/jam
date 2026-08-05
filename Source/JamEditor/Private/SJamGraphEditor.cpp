@@ -557,6 +557,7 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 	OnSaveGraph = InArgs._OnSaveGraph;
 	OnInspect = InArgs._OnInspect;
 	OnPreview2D = InArgs._OnPreview2D;
+	OnPreview2DTodos = InArgs._OnPreview2DTodos;
 	OnLayout = InArgs._OnLayout;
 	OnCollapseFunction = InArgs._OnCollapseFunction;
 	OnFunctionManage = InArgs._OnFunctionManage;
@@ -1081,6 +1082,72 @@ void SJamGraphEditor::SoltarPreview2D()
 		Preview2DImagen->SetImage(nullptr);
 	}
 	Preview2DBrush.Reset();
+}
+
+void SJamGraphEditor::SoltarMiniaturas()
+{
+	// Misma trampa que en `SoltarPreview2D`, por N: Slate cachea la textura por nombre de archivo y
+	// la ruta de cada miniatura es estable por nodo, así que sin soltarla el segundo Run seguiría
+	// mostrando la del primero.
+	const bool bHayRenderer = FSlateApplication::IsInitialized()
+		&& FSlateApplication::Get().GetRenderer() != nullptr;
+	for (const TPair<FString, TSharedPtr<FSlateDynamicImageBrush>>& KV : Miniaturas)
+	{
+		if (!KV.Value.IsValid()) { continue; }
+		if (FGNode* N = FindNode(KV.Key); N && N->Widget.IsValid())
+		{
+			N->Widget->SetThumbnail(nullptr);   // el nodo no puede quedar apuntando a un brush muerto
+		}
+		if (bHayRenderer)
+		{
+			FSlateApplication::Get().GetRenderer()->ReleaseDynamicResource(*KV.Value);
+		}
+		KV.Value->ReleaseResource();
+	}
+	Miniaturas.Reset();
+}
+
+void SJamGraphEditor::RefrescarMiniaturas()
+{
+	SoltarMiniaturas();
+	if (!OnPreview2DTodos.IsBound())
+	{
+		return;
+	}
+	// El delegado no recibe grafo: las miniaturas salen de la ÚLTIMA CORRIDA que ya vive en Python,
+	// no de reejecutar nada. Por eso aparecen después de Run y no de Compile — Compile no produce
+	// datos, valida.
+	const FString Res = OnPreview2DTodos.Execute(FString());
+	TSharedPtr<FJsonObject> Root;
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Res);
+	bool bOk = false;
+	const TSharedPtr<FJsonObject>* Thumbs = nullptr;
+	if (!FJsonSerializer::Deserialize(Reader, Root) || !Root.IsValid()
+		|| !Root->TryGetBoolField(TEXT("ok"), bOk) || !bOk
+		|| !Root->TryGetObjectField(TEXT("thumbs"), Thumbs) || Thumbs == nullptr)
+	{
+		return;   // sin miniaturas los nodos siguen mostrando su icono: no es un error que reportar
+	}
+
+	// Por VALOR y no por referencia: la clave del mapa de FJsonObject no es FString, así que un
+	// `const&` se ataría a un temporal (es como itera el resto del archivo).
+	for (const TPair<FString, TSharedPtr<FJsonValue>> KV : (*Thumbs)->Values)
+	{
+		FString Ruta;
+		if (!KV.Value.IsValid() || !KV.Value->TryGetString(Ruta) || !FPaths::FileExists(Ruta))
+		{
+			continue;
+		}
+		FGNode* N = FindNode(KV.Key);
+		if (N == nullptr || !N->Widget.IsValid())
+		{
+			continue;
+		}
+		TSharedPtr<FSlateDynamicImageBrush> Brush = MakeShared<FSlateDynamicImageBrush>(
+			FName(*Ruta), FVector2D(MiniaturaLado, MiniaturaLado));
+		N->Widget->SetThumbnail(Brush.Get());
+		Miniaturas.Add(KV.Key, Brush);
+	}
 }
 
 void SJamGraphEditor::RefreshPreview2D()
@@ -3546,6 +3613,8 @@ void SJamGraphEditor::RunGraph()
 	// El inspector mira la última corrida: sin esto habría que apretar «actualizar» a mano después
 	// de cada Run, y lo que muestra sería del Run ANTERIOR — el peor error posible en un inspector.
 	RefreshInspector();
+	// Y cada nodo muestra lo que produjo, como en Substance Designer.
+	RefrescarMiniaturas();
 }
 
 void SJamGraphEditor::BakePreview()
@@ -4085,6 +4154,8 @@ void SJamGraphEditor::NewGraph()
 			}
 		}
 	}
+	// Los nodos se van: sus miniaturas también, o quedarían brushes vivos apuntando a widgets muertos.
+	SoltarMiniaturas();
 	Nodes.Reset();
 	Edges.Reset();
 	Comments.Reset();

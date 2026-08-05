@@ -115,6 +115,18 @@ disparadores propios.
 > siempre**: el visor parecería andar en la demo y mentiría en el uso real. Lo resuelve
 > `SoltarPreview2D()` con `FSlateRenderer::ReleaseDynamicResource`.
 
+**Miniatura en el nodo, estilo Substance Designer (2026-08-05).** Además del panel, cada nodo
+dibujable muestra en el canvas lo que produjo: la miniatura **reemplaza al icono del verbo** en la
+zona libre del centro, sin tocar la geometría del nodo. Aparece después de **Run**, no de Compile —
+Compile valida, no produce datos, y las miniaturas salen de `graph.ultima_corrida()`.
+
+Dos decisiones de costo:
+
+- `api.preview_2d_todos()` las devuelve **todas en un viaje**. Una llamada por nodo desde Slate
+  serían N `ExecPythonCapture` por Run; con 30 nodos, 30 procesos de ida y vuelta.
+- Van a **64 px**. Para una máscara de material cada píxel es una evaluación del IR en CPU: a 320
+  serían 102.400 por nodo, a 64 son 4.096.
+
 Falta un panel en el Graph que:
 1. tome el nodo con el flag de debug prendido,
 2. llame a `preview_2d`,

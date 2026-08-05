@@ -427,7 +427,8 @@ def discard(owner: str = "") -> str:
     return panel._h_descartar(owner=owner or None)
 
 
-def preview_2d(node_id: str = "", ancho: int = 320, alto: int = 320, canal: int = 0) -> str:
+def preview_2d(node_id: str = "", ancho: int = 320, alto: int = 320, canal: int = 0,
+               sufijo: str = "") -> str:
     """Dibuja el dato del nodo como PNG y devuelve `{ok, ruta, tipo, ayuda}`.
 
     Es el visor 2D del panel. Sólo dibuja lo que NO se puede ver en el viewport —el desplegado de
@@ -457,7 +458,10 @@ def preview_2d(node_id: str = "", ancho: int = 320, alto: int = 320, canal: int 
     dato = corrida[node_id]
     carpeta = os.path.join(unreal.Paths.project_saved_dir(), "JamPreview2D")
     os.makedirs(carpeta, exist_ok=True)
-    ruta = os.path.join(carpeta, f"{node_id}.png")
+    # `sufijo` separa la MINIATURA del nodo (64 px) del dibujo grande del panel (320 px). Sin eso
+    # los dos escribirían el mismo archivo y, peor, compartirían el nombre con que Slate cachea la
+    # textura: el panel mostraría la miniatura pixelada o al revés.
+    ruta = os.path.join(carpeta, f"{node_id}{sufijo}.png")
 
     if isinstance(dato, shader.GrafoMaterial):
         salidas = [a.desde for a in dato.aristas if a.es_salida_del_material]
@@ -495,6 +499,38 @@ def preview_2d(node_id: str = "", ancho: int = 320, alto: int = 320, canal: int 
         f.write(preview2d.png(int(ancho), int(alto), pixeles))
     return json.dumps({"ok": True, "ruta": ruta, "tipo": tipo, "detalle": detalle},
                       ensure_ascii=True)
+
+
+def preview_2d_todos(lado: int = 64, canal: int = 0) -> str:
+    """Miniatura de CADA nodo dibujable de la última corrida: `{ok, thumbs: {node_id: ruta}}`.
+
+    Es lo que alimenta las miniaturas en el canvas, al estilo de Substance Designer: el nodo deja de
+    mostrar un icono genérico y muestra lo que produjo.
+
+    Existe como UNA función y no como N llamadas a `preview_2d` desde el C++ porque cada viaje a
+    Python desde Slate cuesta un `ExecPythonCapture`; con un grafo de 30 nodos serían 30 procesos de
+    ida y vuelta por cada Run. Acá el bucle corre adentro de Python y el C++ paga un solo viaje.
+
+    Los nodos que no se pueden dibujar se saltean en silencio: no tener miniatura es el estado
+    normal de la mayoría de los nodos (un asset, un número), no un error que haya que reportar.
+    """
+    import json
+
+    from . import graph
+
+    corrida = graph.ultima_corrida()
+    if not corrida:
+        return json.dumps({"ok": False, "error": "todavía no corriste el grafo."}, ensure_ascii=True)
+
+    thumbs = {}
+    for nid in corrida:
+        try:
+            res = json.loads(preview_2d(nid, int(lado), int(lado), int(canal), sufijo="_thumb"))
+        except Exception:  # noqa: BLE001
+            continue   # una miniatura que falla no puede tumbar a las demás
+        if res.get("ok") and res.get("ruta"):
+            thumbs[nid] = res["ruta"]
+    return json.dumps({"ok": True, "thumbs": thumbs}, ensure_ascii=True)
 
 
 def acomodar(nodos_json: str, accion: str) -> str:

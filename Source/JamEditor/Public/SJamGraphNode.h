@@ -202,6 +202,8 @@ private:
 		FLinearColor(0.43f, 0.24f, 0.70f, 0.90f), 2.0f);
 	/** Pictograma SVG central; es propiedad del nodo para que el puntero usado por Slate siga vivo. */
 	TSharedPtr<FSlateVectorImageBrush> IconBrush;
+	/** Prestado por el editor mientras dure; el nodo nunca lo destruye. */
+	const FSlateBrush* ThumbnailBrush = nullptr;
 	FOnNodeDragDelta OnDragDelta;
 	FOnPinClicked OnInputClickedDelegate;
 	FOnPinClicked OnOutputClickedDelegate;
@@ -226,6 +228,12 @@ public:
 	 *  *bypass flag* de Houdini. `SetBypassed` no hace nada si el verbo no lo admite, para que
 	 *  cargar un `.jamgraph` con el flag mal puesto no deje el canvas mintiendo sobre lo que Compile
 	 *  va a rechazar. */
+	/** Miniatura de lo que el nodo PRODUJO, al estilo de Substance Designer: reemplaza al icono del
+	 *  verbo en la zona central. Pasar `nullptr` la saca y vuelve el icono.
+	 *  El brush es del EDITOR, no del nodo: el nodo sólo lo dibuja (ver `SoltarMiniaturas`, que es
+	 *  quien tiene que soltar la textura antes de recrearla — Slate cachea por nombre de archivo). */
+	void SetThumbnail(const FSlateBrush* InBrush) { ThumbnailBrush = InBrush; }
+
 	bool IsBypassed() const { return bBypassed; }
 	void SetBypassed(bool bEnabled);
 	bool CanBypass() const { return bCanBypass; }

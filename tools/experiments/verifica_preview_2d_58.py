@@ -48,10 +48,21 @@ try:
     exigir(bool(sin_datos.get("error")),
            "sin texto de error el panel mostraría un cuadro en blanco sin explicación")
 
+    # Miniaturas de TODOS los nodos en un viaje (lo que alimenta el canvas estilo Substance).
+    todos = json.loads(api.preview_2d_todos(64, 0))
+    exigir(todos.get("ok"), f"preview_2d_todos falló: {todos}")
+    thumbs = todos.get("thumbs") or {}
+    exigir("caja" in thumbs, f"la malla debería tener miniatura: {sorted(thumbs)}")
+    exigir(os.path.isfile(thumbs["caja"]), f"la miniatura prometida no está: {thumbs['caja']}")
+    # La miniatura NO puede pisar el PNG grande del panel: comparten carpeta y nombre de nodo, y
+    # Slate cachea la textura por nombre de archivo — si fueran el mismo, una mostraría a la otra.
+    exigir(thumbs["caja"] != ruta,
+           f"la miniatura y el dibujo del panel escriben el MISMO archivo: {ruta}")
+
     unreal.log(
         "JAM_PREVIEW_2D_58 TODO VERDE — "
         f"tipo={res['tipo']} · detalle={res['detalle']} · "
-        f"bytes={os.path.getsize(ruta)} · sin_datos=«{sin_datos['error'][:60]}»")
+        f"bytes={os.path.getsize(ruta)} · miniaturas={len(thumbs)} · sin_datos=«{sin_datos['error'][:50]}»")
 except Exception as exc:  # noqa: BLE001
     unreal.log_error(f"JAM_PREVIEW_2D_58 ROJO — {type(exc).__name__}: {exc}")
 finally:

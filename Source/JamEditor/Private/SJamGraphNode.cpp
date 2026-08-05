@@ -701,7 +701,24 @@ int32 SJamGraphNode::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGe
 		const float FreeLeft = PinColW + ParamColW;
 		const float FreeRight = Size.X - PinColW;
 		const float Cx = (FreeLeft + FreeRight) * 0.5f;
-		if (IconBrush.IsValid())
+		// Miniatura de lo que el nodo PRODUJO, como en Substance Designer: cuando existe, el nodo
+		// deja de mostrar un glifo genérico y muestra su resultado. Ocupa la misma zona libre que el
+		// icono —no cambia la geometría del nodo— y se estira a lo que entre: los nodos de Jam no
+		// miden todos igual, así que un tamaño fijo se saldría del cuerpo en los más chatos.
+		if (ThumbnailBrush != nullptr)
+		{
+			const float Lado = FMath::Min(FreeRight - FreeLeft - 6.0f, BodyH - 8.0f);
+			if (Lado >= 12.0f)
+			{
+				const FVector2D ThumbSize(Lado, Lado);
+				const FVector2D ThumbAt(Cx - Lado * 0.5f, BodyY + BodyH * 0.5f - Lado * 0.5f);
+				FSlateDrawElement::MakeBox(OutDrawElements, LayerId + 5,
+					AllottedGeometry.ToPaintGeometry(ThumbSize, FSlateLayoutTransform(ThumbAt)),
+					ThumbnailBrush, ESlateDrawEffect::None,
+					InWidgetStyle.GetColorAndOpacityTint());
+			}
+		}
+		else if (IconBrush.IsValid())
 		{
 			const FVector2D IconSize(24.0f, 24.0f);
 			const FVector2D IconAt(Cx - IconSize.X * 0.5f,
