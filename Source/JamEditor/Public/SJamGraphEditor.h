@@ -194,6 +194,10 @@ private:
 	void DeleteSelection();
 	/** Mueve la selección entera el mismo delta (en unidades de modelo). */
 	void MoveSelection(const FVector2D& DeltaModelo);
+	/** `D`: apaga/prende los elegidos que ADMITAN bypass, en un solo paso de historial. Los que no
+	 *  lo admiten se saltean en silencio — el gesto es «apagá lo que se pueda de esto», no una
+	 *  operación que falla entera porque uno de doce nodos cambia de tipo. */
+	void AlternarBypassDeLaSeleccion();
 	/** Alinear/distribuir por `jam.layout`: «izquierda…centro-y», «dist-x», «dist-y». */
 	void AcomodarSeleccion(const FString& Accion);
 	/** Rectángulo del marquee en coordenadas de MODELO; false si no hay uno en curso. */

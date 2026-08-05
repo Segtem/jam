@@ -42,6 +42,28 @@ def ultima_corrida() -> dict[str, object]:
     return dict(_ULTIMA_CORRIDA)
 
 
+def puede_bypass(verb: str, registro: dict) -> bool:
+    """¿Este verbo se puede apagar dejando pasar el stream?
+
+    Sólo si **recibe y produce el mismo tipo**. Es la regla que hace que el bypass no pueda romper
+    el tipado: si `mesh_to_static` (M → A) se pudiera apagar, su salida pasaría a ser M y todo lo
+    que tenga cableado abajo esperaría un A que ya no llega. Antes que re-propagar tipos en Compile
+    —y tener que explicar por qué apagar un nodo rompió otro tres cables más allá— se prohíbe el
+    caso: un nodo A → A se apaga, uno M → A no.
+
+    Una FUENTE tampoco: no tiene entrada que dejar pasar, así que «apagarla» sería producir nada,
+    que es distinto de ser transparente. Para eso está borrarla.
+
+    Es el *bypass flag* de Houdini con la restricción explícita. De los 140 verbos del catálogo,
+    93 califican.
+    """
+    info = registro.get(verb)
+    if not info or info.get("source") or info.get("aridad", 1) == 0:
+        return False
+    entrada = info.get("in_name")
+    return bool(entrada) and entrada == info.get("out_name")
+
+
 class JamGraph:
     def __init__(self):
         self.nodes: dict[str, dict] = {}          # id → {verb, params, asset, x, y}
@@ -115,7 +137,10 @@ class JamGraph:
                        "asset": v.get("asset"), "x": float(v.get("x", 0.0)), "y": float(v.get("y", 0.0)),
                        # Flag de debug POR NODO, como el display flag de Houdini o la tecla D de
                        # PCG: se prende el nodo que ya está, sin agregar ni cablear nada.
-                       "debug": bool(v.get("debug", False))}
+                       "debug": bool(v.get("debug", False)),
+                       # Bypass: el nodo queda en el grafo pero no corre; el stream lo atraviesa.
+                       # Sólo válido si el verbo recibe y produce el mismo tipo (`puede_bypass`).
+                       "bypass": bool(v.get("bypass", False))}
                    for k, v in d.get("nodes", {}).items()}
         # aristas: [from, from_pin, to, to_pin] (por pin) o [from, to] (compat: out→in)
         for e in d.get("edges", []):
@@ -357,6 +382,17 @@ def compilar(g: JamGraph, *, registro: dict | None = None, resolver_asset=None,
         verb = nodo.get("verb", "")
         if verb in VALOR_KINDS or verb not in registro:
             continue
+        if nodo.get("bypass"):
+            # El flag lo pone la UI, que sólo lo ofrece donde corresponde; pero un `.jamgraph`
+            # editado a mano puede traerlo en cualquier nodo, y ahí el tipado se rompería sin que
+            # nada avise. Compile es el lugar donde eso se atrapa.
+            if not puede_bypass(verb, registro):
+                entrada = registro[verb].get("in_name") or "nada"
+                error(nid, f"no se puede bypassear «{verb}»: recibe {entrada} y produce "
+                           f"{registro[verb].get('out_name')}")
+            # Un nodo apagado no corre, así que sus params son irrelevantes: validarlos haría que
+            # apagar un nodo para esquivar su problema siguiera bloqueando el Run por ese problema.
+            continue
         defaults = registro[verb].get("params", {})
         crudos = {k: v for k, v in nodo.get("params", {}).items() if k != PIN_ASSET}
         for desconocido in sorted(set(crudos) - set(defaults)):
@@ -588,6 +624,19 @@ def ejecutar_detalle(g: JamGraph, plan: GraphPlan | None = None) -> tuple[str, d
                 entrada = valores_main
             elif valores_main:
                 entrada = valores_main[0]
+        # ---- bypass: el nodo está, pero no corre ----
+        # El stream lo atraviesa intacto. No es un caso especial de la salida: `salida` ya cae a
+        # `entrada` cuando el verbo no produce nada propio (ver más abajo); acá simplemente no se
+        # llama a la tool. Compile ya garantizó que el verbo recibe y produce el mismo tipo, así
+        # que dejar pasar la entrada no puede romperle el tipo a nadie aguas abajo.
+        if n.get("bypass"):
+            lineas.append(f"[{nid}·{verb}] bypass")
+            por_nodo[nid] = {"estado": "bypass", "texto": "bypass"}
+            runtime_outputs[nid] = entrada
+            if entrada is not None:
+                _ULTIMA_CORRIDA[nid] = entrada
+            continue
+
         # Los params ya están resueltos y tipados por Compile. `dsl.coaccionar` se conserva como última
         # frontera de compatibilidad con la firma histórica de las tools.
         kw, _desc = dsl.coaccionar(verb, {k: str(v) for k, v in plan.params.get(nid, {}).items()})

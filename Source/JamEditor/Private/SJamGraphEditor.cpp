@@ -53,6 +53,20 @@ static FString JamParamDataType(const FString& Name, const FString& Type)
 	return FString();
 }
 
+/** ¿Este verbo se puede apagar dejando pasar el stream?
+ *
+ *  ÚNICA copia en C++ de la regla; la fuente es `jam.graph.puede_bypass`, y las dos están atadas
+ *  por `BypassSoloConMismoTipoTests`, que LEE este archivo. Se duplica en vez de preguntarle a
+ *  Python porque decide si un nodo dibuja o no su botón: es una respuesta por nodo y por frame.
+ *
+ *  Sólo si recibe y produce el MISMO tipo. Un verbo M → A apagado sacaría una M por un pin que
+ *  promete A y rompería a todo lo que tenga cableado abajo. Una FUENTE tampoco: no tiene entrada
+ *  que dejar pasar. */
+static bool JamPuedeBypass(const FJamTool& T)
+{
+	return !T.bSource && T.Arity != 0 && !T.InName.IsEmpty() && T.InName == T.OutName;
+}
+
 /** Diálogo modal mínimo para nombres. Devuelve false al cancelar o cerrar la ventana. */
 static bool JamPedirNombre(const FText& Titulo, const FString& Inicial,
 	const TSharedRef<SWidget>& Owner, FString& OutNombre)
@@ -1747,6 +1761,7 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At,
 		.InputPins(NamedInputs)
 		.OutputPins(NamedOutputs)
 		.HasInput(bHasHeaderInput)
+		.CanBypass(JamPuedeBypass(*T))
 		.IsSelected_Lambda([this, Id]() { return SelectedNodeIds.Contains(Id); })
 		.OnDragDelta_Lambda([this, Id](const FVector2D& D)
 		{
@@ -1767,6 +1782,7 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At,
 		.OnClicked_Lambda([this, Id](bool bShift, bool bCtrl) { ClickNode(Id, bShift, bCtrl); })
 		.OnDragEnd_Lambda([this]() { Marcar(); })
 		.OnParamChanged_Lambda([this]() { Marcar(); })
+		.OnBypassChanged_Lambda([this]() { Marcar(); })
 		.OnDeleteSelection_Lambda([this, Id]()
 		{
 			// `Supr` sobre un nodo de un grupo borra el grupo; sobre uno suelto, ese nodo.
@@ -2569,6 +2585,8 @@ bool SJamGraphEditor::PegarJson(const FString& Json, bool bDesplazar)
 			Node->Widget->SetParamValues(Params);
 			bool bDebug = false;
 			if (NO->TryGetBoolField(TEXT("debug"), bDebug)) { Node->Widget->SetDebugEnabled(bDebug); }
+			bool bBypass = false;
+			if (NO->TryGetBoolField(TEXT("bypass"), bBypass)) { Node->Widget->SetBypassed(bBypass); }
 		}
 	}
 	const TArray<TSharedPtr<FJsonValue>>* EdgesArr = nullptr;
@@ -2769,6 +2787,47 @@ void SJamGraphEditor::DeleteSelection()
 	SelectedNodeIds.Reset();
 	SelectedCommentIds.Reset();
 	Marcar();
+}
+
+void SJamGraphEditor::AlternarBypassDeLaSeleccion()
+{
+	// Los que admiten bypass, nada más. Si TODOS los elegibles ya están apagados se prenden; si hay
+	// aunque sea uno prendido, se apagan todos — así el gesto sobre un grupo mixto tiene un
+	// resultado predecible en vez de invertir cada nodo por su cuenta.
+	TArray<SJamGraphNode*> Elegibles;
+	for (const FString& Id : SelectedNodeIds)
+	{
+		if (FGNode* N = FindNode(Id); N && N->Widget.IsValid() && N->Widget->CanBypass())
+		{
+			Elegibles.Add(N->Widget.Get());
+		}
+	}
+	if (Elegibles.Num() == 0)
+	{
+		if (Output.IsValid())
+		{
+			Output->SetText(LOCTEXT("BypassNoAplica",
+				"bypass: ninguno de los nodos elegidos lo admite (sólo los que reciben y producen el mismo tipo)."));
+		}
+		return;
+	}
+
+	bool bHayPrendido = false;
+	for (const SJamGraphNode* W : Elegibles)
+	{
+		bHayPrendido = bHayPrendido || !W->IsBypassed();
+	}
+	for (SJamGraphNode* W : Elegibles)
+	{
+		W->SetBypassed(bHayPrendido);
+	}
+	Marcar();   // apagar N nodos es UN paso, como borrarlos
+	if (Output.IsValid())
+	{
+		Output->SetText(FText::FromString(FString::Printf(
+			TEXT("%s %d nodo%s"), bHayPrendido ? TEXT("apagados:") : TEXT("prendidos:"),
+			Elegibles.Num(), Elegibles.Num() == 1 ? TEXT("") : TEXT("s"))));
+	}
 }
 
 void SJamGraphEditor::MoveSelection(const FVector2D& DeltaModelo)
@@ -3224,6 +3283,12 @@ FString SJamGraphEditor::BuildJson(const TSet<FString>* Solo, const TSet<FString
 		{
 			J->SetBoolField(TEXT("debug"), true);
 		}
+		// El bypass viaja igual: sólo cuando está prendido, para no ensuciar el JSON de un grafo
+		// donde nadie apagó nada (y para que un .jamgraph viejo siga siendo idéntico byte a byte).
+		if (N.Widget.IsValid() && N.Widget->IsBypassed())
+		{
+			J->SetBoolField(TEXT("bypass"), true);
+		}
 		NodesObj->SetObjectField(N.Id, J);
 	}
 	Root->SetObjectField(TEXT("nodes"), NodesObj);
@@ -3566,6 +3631,11 @@ FReply SJamGraphEditor::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& 
 		CreateCommentFromSelection();
 		return FReply::Handled();
 	}
+	if (Tecla == EKeys::D && !InKeyEvent.IsControlDown())
+	{
+		AlternarBypassDeLaSeleccion();
+		return FReply::Handled();
+	}
 	if (Tecla == EKeys::Home)
 	{
 		Encuadrar(/*bSoloSeleccion*/ false);
@@ -3730,6 +3800,13 @@ void SJamGraphEditor::FillEditMenu(FMenuBuilder& MB)
 	MB.AddMenuEntry(LOCTEXT("DeleteSel", "Borrar la selección\tSupr"),
 		LOCTEXT("DeleteSelTip", "Borra los nodos elegidos y sus cables"), FSlateIcon(),
 		FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::DeleteSelection)));
+	MB.AddMenuEntry(LOCTEXT("Bypass", "Apagar / prender\tD"),
+		LOCTEXT("BypassTip",
+			"El nodo sigue cableado pero no corre: el stream lo atraviesa. Sólo en los verbos que "
+			"reciben y producen el mismo tipo"),
+		FSlateIcon(), FUIAction(
+			FExecuteAction::CreateSP(this, &SJamGraphEditor::AlternarBypassDeLaSeleccion),
+			FCanExecuteAction::CreateLambda([this]() { return SelectedNodeIds.Num() > 0; })));
 	MB.EndSection();
 
 	// Alinear y distribuir: las posiciones las decide `jam.layout` (puro y testeado). Requieren 2+
@@ -3875,6 +3952,7 @@ bool SJamGraphEditor::LoadGraphJson(const FString& Json, bool bConservarEdicionF
 		FVector2D Pos;
 		TMap<FString, FString> Params;
 		bool bDebug = false;
+		bool bBypass = false;
 	};
 	struct FLoadedEdge
 	{
@@ -3920,6 +3998,8 @@ bool SJamGraphEditor::LoadGraphJson(const FString& Json, bool bConservarEdicionF
 		FLoadedNode Loaded{KV.Key, Verb, FVector2D(X, Y), {}};
 		// El flag de debug es OPCIONAL: un .jamgraph viejo sin el campo carga con el flag apagado.
 		NO->TryGetBoolField(TEXT("debug"), Loaded.bDebug);
+		// Opcional igual que `debug`: un .jamgraph anterior al bypass carga con el flag apagado.
+		NO->TryGetBoolField(TEXT("bypass"), Loaded.bBypass);
 		const TSharedPtr<FJsonObject>* ParamsObj = nullptr;
 		if (NO->HasField(TEXT("params"))
 			&& (!NO->TryGetObjectField(TEXT("params"), ParamsObj) || ParamsObj == nullptr))
@@ -4126,6 +4206,8 @@ bool SJamGraphEditor::LoadGraphJson(const FString& Json, bool bConservarEdicionF
 			{
 				Node->Widget->SetParamValues(Loaded.Params);
 				Node->Widget->SetDebugEnabled(Loaded.bDebug);
+				// `SetBypassed` ignora el flag si el verbo no lo admite (ver SJamGraphNode).
+				Node->Widget->SetBypassed(Loaded.bBypass);
 			}
 		}
 		for (const FLoadedEdge& Loaded : LoadedEdges)

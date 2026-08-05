@@ -321,9 +321,15 @@ Ordenadas por lo que rinden, no por lo que cuestan:
    *network box* de Houdini, el *scribble* de Grasshopper. En un grafo de 30 nodos es la diferencia
    entre leerlo y descifrarlo. Mover la caja mueve lo que contiene.
    **Hecho el 2026-08-04** — ver `2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0`.
-2. **Bypass / disable por nodo** (`D`) — apagar un nodo sin borrarlo; el stream lo atraviesa. Es el
+2. ✅ **Bypass / disable por nodo** (`D`) — apagar un nodo sin borrarlo; el stream lo atraviesa. Es el
    *bypass flag* de Houdini y vale oro para aislar un problema. Encaja con el flag de debug que ya
    existe.
+   **Hecho el 2026-08-05**, con una restricción que no estaba en este plan: sólo se puede apagar un
+   verbo que **recibe y produce el mismo tipo** (93 de los 140 del catálogo). Apagar un `M → A`
+   sacaría una M por un pin que promete A y rompería todo lo cableado abajo; antes que re-propagar
+   tipos en Compile —y tener que explicar por qué apagar un nodo rompió otro tres cables más
+   allá— se prohíbe el caso. La regla vive en `jam.graph.puede_bypass` y en `JamPuedeBypass` del
+   `.cpp`, atadas por un test que lee el `.cpp` y las compara verbo por verbo sobre el catálogo real.
 3. **Alinear y distribuir** — `Q`/`W`/`E`/`R` como en Blueprint. Detalle en
    [[2026-07-29-INFORME-Seleccion-Multiple-Alineacion-Nodos-v2.0\|Selección múltiple y alineación]].
 4. **Reroute** — doble clic sobre un cable inserta un punto de paso. Grafo largo = cables que cruzan

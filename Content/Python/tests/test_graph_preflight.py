@@ -11,7 +11,8 @@ _unreal_fake = sys.modules.setdefault("unreal", types.ModuleType("unreal"))
 if not hasattr(_unreal_fake, "TopLevelAssetPath"):
     _unreal_fake.TopLevelAssetPath = lambda package, name: (package, name)
 
-from jam.graph import GraphPlan, GraphValidationError, JamGraph, compilar, ejecutar_detalle
+from jam.graph import (GraphPlan, GraphValidationError, JamGraph, compilar, ejecutar_detalle,
+                       puede_bypass)
 from jam import session, tools
 
 
@@ -458,6 +459,146 @@ class GraphPreflightTests(unittest.TestCase):
 
         self.assertEqual(received, [(curve_value, asset_path)])
         self.assertEqual(states["leaves"]["estado"], "ok")
+
+
+class BypassTests(unittest.TestCase):
+    """Apagar un nodo sin borrarlo: el stream lo atraviesa (el bypass flag de Houdini)."""
+
+    def test_a_verb_that_takes_and_makes_the_same_type_can_be_bypassed(self):
+        self.assertTrue(puede_bypass("nanite", REGISTRY))   # A → A
+        self.assertTrue(puede_bypass("mesh_normals", REGISTRY))   # M → M
+
+    def test_a_verb_that_changes_the_type_cannot(self):
+        """`mesh_to_static` es M → A. Apagarlo dejaría salir una M por un pin que promete A, y el
+        nodo de abajo esperaría un asset que nunca llega. Se prohíbe en vez de re-propagar tipos."""
+        self.assertFalse(puede_bypass("mesh_to_static", REGISTRY))
+        self.assertFalse(puede_bypass("mesh_leaf", REGISTRY))     # S → M
+
+    def test_a_source_cannot_be_bypassed(self):
+        """No tiene entrada que dejar pasar: apagarla sería producir nada, que no es ser
+        transparente. Para eso está borrarla."""
+        self.assertFalse(puede_bypass("asset", REGISTRY))
+        self.assertFalse(puede_bypass("create_spline", REGISTRY))
+
+    def test_an_unknown_verb_is_not_bypassable(self):
+        self.assertFalse(puede_bypass("no_existe", REGISTRY))
+
+    def test_compile_rejects_a_bypass_the_ui_would_never_offer(self):
+        """El flag lo pone la UI, que sólo lo ofrece donde corresponde — pero un `.jamgraph` editado
+        a mano puede traerlo en cualquier nodo, y ahí el tipado se rompería sin que nada avise."""
+        graph = JamGraph()
+        graph.add("mesh_cylinder", {}, nid="cil")
+        graph.add("mesh_to_static", {}, nid="conv")
+        graph.connect("cil", "conv")
+        graph.nodes["conv"]["bypass"] = True
+
+        with self.assertRaises(GraphValidationError) as ctx:
+            compilar(graph, registro=REGISTRY, resolver_asset=ASSETS.get)
+        self.assertIn("no se puede bypassear", " ".join(ctx.exception.diagnostics["conv"]))
+
+    def test_compile_ignores_the_params_of_a_bypassed_node(self):
+        """Un nodo apagado no corre, así que sus params son irrelevantes. Si siguieran validándose,
+        apagar un nodo para esquivar su problema seguiría bloqueando el Run por ese mismo problema
+        — que es justo lo contrario de para qué sirve el bypass."""
+        graph = JamGraph()
+        graph.add("asset", {"name": "Rock"}, nid="a")
+        graph.add("snap", {"parametro_inventado": "7"}, nid="s")
+        graph.connect("a", "s")
+
+        with self.assertRaises(GraphValidationError):
+            compilar(graph, registro=REGISTRY, resolver_asset=ASSETS.get)
+
+        graph.nodes["s"]["bypass"] = True
+        plan = compilar(graph, registro=REGISTRY, resolver_asset=ASSETS.get)
+        self.assertIn("s", plan.order)
+
+    def test_a_bypassed_node_does_not_run_and_passes_its_input_through(self):
+        corridos = []
+
+        def snap_fn(asset, **_kw):
+            corridos.append(asset)
+            return "snap ✓"
+
+        def place_fn(asset, **_kw):
+            corridos.append(asset)
+            return "place ✓"
+
+        graph = JamGraph()
+        graph.add("asset", {"name": "Rock"}, nid="a")
+        graph.add("snap", {}, nid="s")
+        graph.add("place", {}, nid="p")
+        graph.connect("a", "s")
+        graph.connect("s", "p")
+        graph.nodes["s"]["bypass"] = True
+
+        registry = {
+            "snap": {"fn": snap_fn, "params": {}},
+            "place": {"fn": place_fn, "params": {}},
+        }
+        plan = GraphPlan(
+            order=["s", "p"],
+            params={"s": {}, "p": {}},
+            input_assets={"s": "/Game/Props/Rock.Rock", "p": "/Game/Props/Rock.Rock"},
+            output_assets={},
+            values={},
+            values_by_node={},
+        )
+        with mock.patch.object(tools, "REGISTRO", registry):
+            _report, states = ejecutar_detalle(graph, plan)
+
+        # `snap` no corrió; `place` sí, y recibió lo que `snap` dejó pasar sin tocar.
+        self.assertEqual(corridos, ["/Game/Props/Rock.Rock"])
+        self.assertEqual(states["s"]["estado"], "bypass")
+        self.assertEqual(states["p"]["estado"], "ok")
+
+
+class BypassSoloConMismoTipoTests(unittest.TestCase):
+    """La regla vive DOS veces: `puede_bypass` acá y `JamPuedeBypass` en el `.cpp`.
+
+    Se duplica a propósito —el C++ la necesita por nodo y por frame para decidir si dibuja el botón,
+    y no puede cruzar a Python para eso— así que se ata igual que la regla del marquee: el test LEE
+    el `.cpp` y exige que siga diciendo lo mismo. Si alguien relaja una de las dos, el canvas
+    ofrecería apagar un nodo que Compile va a rechazar, o al revés.
+    """
+
+    def condicion(self) -> str:
+        import re
+        from pathlib import Path
+
+        raiz = Path(__file__).resolve().parents[3]
+        cpp = (raiz / "Source" / "JamEditor" / "Private" / "SJamGraphEditor.cpp").read_text(
+            encoding="utf-8")
+        m = re.search(r"static bool JamPuedeBypass\(const FJamTool& T\)\s*\{(.+?)\}", cpp, re.S)
+        self.assertIsNotNone(m, "no encontré JamPuedeBypass en el C++")
+        return re.sub(r"\s+", " ", m.group(1))
+
+    def test_the_cpp_demands_the_same_type_in_and_out(self):
+        """Es LA condición que hace que apagar un nodo no pueda romperle el tipo a nadie."""
+        self.assertIn("T.InName == T.OutName", self.condicion())
+
+    def test_the_cpp_refuses_sources_like_python_does(self):
+        """Una fuente no tiene entrada que dejar pasar; `puede_bypass` la rechaza por `source` y por
+        `aridad == 0`, y el C++ tiene que rechazarla por las dos mismas razones."""
+        c = self.condicion()
+        self.assertIn("!T.bSource", c)
+        self.assertIn("T.Arity != 0", c)
+
+    def test_both_sides_agree_on_every_verb_of_the_real_catalogue(self):
+        """La prueba que de verdad importa: sobre los 140 verbos reales, ninguna discrepancia.
+
+        Se reimplementa la condición del `.cpp` leyendo sus mismos campos y se compara verbo por
+        verbo contra `puede_bypass`. Un desacuerdo acá significa que el canvas y Compile no
+        coinciden en qué se puede apagar.
+        """
+        c = self.condicion()
+        # El test anterior ya fijó la FORMA; acá se comprueba el ACUERDO sobre el catálogo real.
+        self.assertIn("!T.InName.IsEmpty()", c)
+        for verbo, info in tools.REGISTRO.items():
+            segun_cpp = (not info.get("source") and info.get("aridad", 1) != 0
+                         and bool(info.get("in_name"))
+                         and info.get("in_name") == info.get("out_name"))
+            self.assertEqual(puede_bypass(verbo, tools.REGISTRO), segun_cpp,
+                             f"C++ y Python no coinciden sobre «{verbo}»")
 
 
 if __name__ == "__main__":

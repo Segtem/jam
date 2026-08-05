@@ -87,6 +87,10 @@ public:
 		/** false en los nodos FUENTE (asset, create_spline): no reciben nada, van sin pin de entrada
 		 *  — la convención de Grasshopper para componentes sin inputs. */
 		SLATE_ARGUMENT(bool, HasInput)
+		/** Si este verbo admite bypass: sólo los que reciben y producen el MISMO tipo (ver
+		 *  `jam.graph.puede_bypass`, que es la fuente de la regla). Cuando es false el nodo ni
+		 *  siquiera dibuja el botón: una opción que no se puede usar confunde más que ayuda. */
+		SLATE_ARGUMENT(bool, CanBypass)
 		/** Si el nodo está en la selección del editor: pinta el halo aunque no tenga el foco. La
 		    selección es un ESTADO del editor, no el foco de teclado — por eso llega como atributo y
 		    no como un bool que habría que ir sincronizando nodo por nodo. */
@@ -107,6 +111,9 @@ public:
 		    dropdown). Sin este aviso el editor no se entera de lo que tipeás: los valores viven en
 		    los widgets y `BuildJson` los lee recién cuando alguien los pide. */
 		SLATE_EVENT(FSimpleDelegate, OnParamChanged)
+		/** Se prendió/apagó el bypass. A diferencia del flag de debug —que es de VISTA— apagar un
+		 *  nodo cambia lo que el grafo hace, así que es un paso del historial. */
+		SLATE_EVENT(FSimpleDelegate, OnBypassChanged)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);
@@ -198,6 +205,7 @@ private:
 	FSimpleDelegate OnDeleteSelectionDelegate;
 	FSimpleDelegate OnDragEndDelegate;
 	FSimpleDelegate OnParamChangedDelegate;
+	FSimpleDelegate OnBypassChangedDelegate;
 	/** El arrastre movió el nodo de verdad (y no fue un clic con el pulso). */
 	bool bMovioAlgo = false;
 	/** Lo lee `OnPaint` para pintar el halo; la fuente es el `TSet` del editor. */
@@ -209,8 +217,18 @@ public:
 	bool IsDebugEnabled() const { return bDebugEnabled; }
 	void SetDebugEnabled(bool bEnabled) { bDebugEnabled = bEnabled; }
 
+	/** Bypass: el nodo sigue en el grafo y cableado, pero no corre — el stream lo atraviesa. Es el
+	 *  *bypass flag* de Houdini. `SetBypassed` no hace nada si el verbo no lo admite, para que
+	 *  cargar un `.jamgraph` con el flag mal puesto no deje el canvas mintiendo sobre lo que Compile
+	 *  va a rechazar. */
+	bool IsBypassed() const { return bBypassed; }
+	void SetBypassed(bool bEnabled);
+	bool CanBypass() const { return bCanBypass; }
+
 private:
 	bool bDebugEnabled = false;
+	bool bBypassed = false;
+	bool bCanBypass = false;
 	// Por cada param: cómo LEER su valor y cómo FIJARLO, sin que el resto del nodo sepa si el widget es
 	// un text box, un checkbox (bool) o un dropdown (enum). Reemplaza al viejo mapa de sólo text boxes.
 	TMap<FString, TFunction<FString()>> ParamGetters;

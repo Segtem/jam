@@ -80,6 +80,8 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 	OnDeleteSelectionDelegate = InArgs._OnDeleteSelection;
 	OnDragEndDelegate = InArgs._OnDragEnd;
 	OnParamChangedDelegate = InArgs._OnParamChanged;
+	OnBypassChangedDelegate = InArgs._OnBypassChanged;
+	bCanBypass = InArgs._CanBypass;
 	IsSelectedAttr = InArgs._IsSelected;
 	RebuildBodyBrush();
 	if (!IconPath.IsEmpty())
@@ -430,6 +432,44 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 	[
 		SNew(SOverlay)
 		+ SOverlay::Slot()[ MainContent ]
+		// Bypass: apaga el nodo sin sacarlo del grafo. Sólo aparece donde es LEGAL (mismo tipo de
+		// entrada y salida); en el resto ni se dibuja, porque una opción que no se puede usar
+		// confunde más que ayuda.
+		+ SOverlay::Slot()
+		.HAlign(HAlign_Right)
+		.VAlign(VAlign_Top)
+		.Padding(0.0f, 1.0f, 42.0f, 0.0f)
+		[
+			SNew(SBox).WidthOverride(18.0f).HeightOverride(16.0f)
+			.Visibility(bCanBypass ? EVisibility::Visible : EVisibility::Collapsed)
+			[
+				SNew(SButton)
+				.ButtonStyle(&FAppStyle::Get(), "NoBorder")
+				.ToolTipText(LOCTEXT("BypassFlag",
+					"apagar este nodo (D): sigue cableado, pero no corre — el stream lo atraviesa"))
+				.ContentPadding(FMargin(0.0f))
+				.HAlign(HAlign_Center).VAlign(VAlign_Center)
+				.OnClicked_Lambda([this]()
+				{
+					SetBypassed(!bBypassed);
+					// A diferencia del debug, esto cambia lo que el grafo HACE: es un paso de undo.
+					OnBypassChangedDelegate.ExecuteIfBound();
+					return FReply::Handled();
+				})
+				[
+					SNew(STextBlock)
+					// La FORMA cambia, no sólo el color: es la regla de accesibilidad del roadmap
+					// —ningún estado se distingue únicamente por color— y acá sale gratis.
+					.Text_Lambda([this]() { return FText::FromString(bBypassed ? TEXT("⊘") : TEXT("⏻")); })
+					.Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
+					.ColorAndOpacity_Lambda([this]()
+					{
+						return bBypassed ? FSlateColor(FLinearColor(0.35f, 0.55f, 0.95f))
+						                 : FSlateColor(JamInk.CopyWithNewOpacity(0.45f));
+					})
+				]
+			]
+		]
 		// Flag de debug: se prende el nodo que YA está, sin agregar ni cablear nada. Es el display
 		// flag de Houdini / la tecla D de PCG, y no el nodo de debug aparte que había antes.
 		+ SOverlay::Slot()
@@ -490,6 +530,19 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 	];
 }
 
+void SJamGraphNode::SetBypassed(bool bEnabled)
+{
+	// Se ignora en un verbo que no lo admite: cargar un `.jamgraph` con el flag mal puesto no debe
+	// dejar el canvas mostrando un apagado que Compile va a rechazar igual.
+	const bool bNuevo = bEnabled && bCanBypass;
+	if (bNuevo == bBypassed)
+	{
+		return;
+	}
+	bBypassed = bNuevo;
+	RebuildBodyBrush();
+}
+
 void SJamGraphNode::RebuildBodyBrush()
 {
 	// En GH el cuerpo normal es gris; naranja y rojo comunican warning/error, no categorías. Jam mantiene
@@ -510,6 +563,15 @@ void SJamGraphNode::RebuildBodyBrush()
 	else if (ResultState == TEXT("error"))
 	{
 		Fill = FLinearColor(0.90f, 0.20f, 0.14f, 1.0f);
+	}
+	if (bBypassed)
+	{
+		// Apagado: el cuerpo se desatura y se aclara, como un componente deshabilitado. Pisa al
+		// veredicto a propósito — un nodo que no corrió no tiene veredicto que mostrar, y dejar el
+		// verde de la corrida anterior diría que hizo algo.
+		const float Gris = Fill.R * 0.30f + Fill.G * 0.59f + Fill.B * 0.11f;
+		Fill = FMath::Lerp(FLinearColor(Gris, Gris, Gris, 1.0f),
+			FLinearColor(0.88f, 0.88f, 0.87f, 1.0f), 0.55f);
 	}
 	BodyBrush = FSlateRoundedBoxBrush(Fill, 5.0f, StateColor(), 1.4f);
 }
@@ -654,6 +716,7 @@ void SJamGraphNode::SetResult(const FString& State, const FString& Text)
 
 FLinearColor SJamGraphNode::StateColor() const
 {
+	if (bBypassed)                    { return FLinearColor(0.35f, 0.55f, 0.95f, 1.0f); }   // azul: apagado
 	if (ResultState == TEXT("ok"))    { return FLinearColor(0.13f, 0.55f, 0.22f, 1.0f); }
 	if (ResultState == TEXT("aviso")) { return FLinearColor(0.80f, 0.68f, 0.10f, 1.0f); }
 	if (ResultState == TEXT("warn"))  { return FLinearColor(0.85f, 0.48f, 0.03f, 1.0f); }
