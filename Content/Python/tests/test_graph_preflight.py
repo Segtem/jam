@@ -601,5 +601,71 @@ class BypassSoloConMismoTipoTests(unittest.TestCase):
                              f"C++ y Python no coinciden sobre «{verbo}»")
 
 
+class SelectTests(unittest.TestCase):
+    """El condicional en dataflow: las dos ramas se calculan igual, el select elige cuál sigue.
+
+    Es el Dispatch de Grasshopper y no el Branch de Blueprint — Jam no tiene pines de ejecución, así
+    que poner un `select` NO ahorra el trabajo de la rama descartada.
+    """
+
+    def test_the_two_branches_and_the_output_are_the_same_type(self):
+        """La regla que hace que el select no pueda romper el tipado: un verbo por familia, así se
+        cumple por construcción y el error lo da el chequeo de cables de siempre."""
+        for verbo, tipo in (("select_mesh", "M"), ("select_asset", "A")):
+            info = tools.REGISTRO[verbo]
+            self.assertEqual(info["out_name"], tipo, verbo)
+            self.assertEqual(info["data_params"]["si"], tipo, verbo)
+            self.assertEqual(info["data_params"]["no"], tipo, verbo)
+            self.assertEqual(info["data_params"]["cond"], "B", verbo)
+
+    def test_it_has_no_main_input_because_si_and_no_have_meaning(self):
+        """Con entrada variádica las ramas entrarían por el mismo pin y se distinguirían por ORDEN
+        de cable — invisible y frágil justo donde el orden significa algo."""
+        for verbo in ("select_mesh", "select_asset"):
+            self.assertTrue(tools.REGISTRO[verbo]["source"], verbo)
+            self.assertEqual(tools.REGISTRO[verbo]["in_name"], "", verbo)
+
+    def test_it_follows_the_true_branch(self):
+        elegidos = []
+
+        def select_fn(_entrada, *, cond=None, si=None, no=None):
+            elegidos.append(si if cond else no)
+            tools._RUNTIME_DATA_OUTPUTS["select_mesh"] = si if cond else no
+            return "SELECT M ✓"
+
+        graph = JamGraph()
+        graph.add("select_mesh", {}, nid="sel")
+        plan = GraphPlan(order=["sel"], params={"sel": {}}, input_assets={},
+                         output_assets={}, values={}, values_by_node={})
+        registry = {"select_mesh": {"fn": select_fn, "params": {},
+                                    "data_params": {"cond": "B", "si": "M", "no": "M"}}}
+        try:
+            with mock.patch.object(tools, "REGISTRO", registry):
+                _r, estados = ejecutar_detalle(graph, plan)
+        finally:
+            tools._RUNTIME_DATA_OUTPUTS.clear()
+        self.assertEqual(estados["sel"]["estado"], "ok")
+
+    def test_a_condition_without_a_cable_is_an_error_and_not_silently_false(self):
+        """Sin cable, `cond` llega como None. Tratarlo como «falso» haría que el grafo eligiera
+        siempre la rama «no» sin que nada avise — el peor modo de fallar de un condicional."""
+        from jam.tools import t_select_mesh
+        with self.assertRaises(RuntimeError) as ctx:
+            t_select_mesh(None, cond=None, si="a", no="b")
+        self.assertIn("cond", str(ctx.exception))
+
+    def test_the_chosen_branch_must_actually_be_connected(self):
+        from jam.tools import t_select_mesh
+        with self.assertRaises(RuntimeError) as ctx:
+            t_select_mesh(None, cond=True, si=None, no="b")
+        self.assertIn("sí", str(ctx.exception))
+
+    def test_a_comparison_can_drive_it(self):
+        """La razón de ser de las comparaciones: son las únicas que producen el B que pide `cond`."""
+        from jam import math_core
+        self.assertEqual(math_core.tipo_salida("compare_greater"),
+                         tools.REGISTRO["select_mesh"]["data_params"]["cond"])
+
+
 if __name__ == "__main__":
     unittest.main()

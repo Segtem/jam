@@ -20,6 +20,7 @@ from __future__ import annotations
 # tab -> [(subgrupo, [verbos en orden])]
 GRUPOS: dict[str, list[tuple[str, list[str]]]] = {
     "Mesh": [
+        ("Elegir", ["select_mesh", "select_asset"]),
         ("Primitivas", ["mesh_box", "mesh_sphere", "mesh_sphere_box", "mesh_cylinder",
                         "mesh_cone", "mesh_capsule", "mesh_torus", "mesh_disc",
                         "mesh_quad", "mesh_round_rect", "mesh_grid", "mesh_triangle",

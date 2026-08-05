@@ -74,6 +74,8 @@
   "compare_greater": "jam-compare-greater",
   "compare_less": "jam-compare-less",
   "compare_equal": "jam-compare-equal",
+  "select_mesh": "jam-select-mesh",
+  "select_asset": "jam-select-asset",
   "math_subtract": "jam-math-subtract",
   "merge": "jam-merge-pts",
   "mesh_along_curve": "jam-along-curve",

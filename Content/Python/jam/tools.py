@@ -770,6 +770,31 @@ def t_branch_from_frames(frame_input, *, length_min=200.0, length_max=400.0,
     return f"BRANCH FROM F ✓ — {result['info']}"
 
 
+def _select(verbo: str, etiqueta: str, cond, si, no) -> str:
+    """Elige una de dos ramas según un booleano. El cuerpo compartido de todos los `select_*`.
+
+    Las DOS ramas ya se calcularon: esto es dataflow, no flujo de ejecución — corre todo lo que esté
+    cableado y acá sólo se elige cuál sigue viaje. Es el Dispatch de Grasshopper, no el Branch de
+    Blueprint, y la diferencia importa: poner un `select` no ahorra el trabajo de la rama descartada.
+    """
+    if cond is None:
+        raise RuntimeError("«cond» necesita un cable booleano (usá una comparación)")
+    elegido = si if cond else no
+    rama = "sí" if cond else "no"
+    if elegido is None:
+        raise RuntimeError(f"la rama «{rama}» no tiene nada conectado")
+    _RUNTIME_DATA_OUTPUTS[verbo] = elegido
+    return f"SELECT {etiqueta} ✓ — siguió por «{rama}»"
+
+
+def t_select_mesh(_input=None, *, cond=None, si=None, no=None) -> str:
+    return _select("select_mesh", "M", cond, si, no)
+
+
+def t_select_asset(_input=None, *, cond=None, si=None, no=None) -> str:
+    return _select("select_asset", "A", cond, si, no)
+
+
 def t_asset_set(asset_inputs) -> str:
     from . import variants
     result = variants.make_asset_set(asset_inputs)
@@ -1679,6 +1704,24 @@ REGISTRO = {
                            "data_params": {"profile": "N[]"},
                            "optional_data_params": ("profile",),
                            "doc": "crea una curva hija S por cada frame F. «relative_to_parent» mide el largo como fracción del padre en vez de centímetros; el perfil N[] opcional lo modula según dónde nace sobre el padre (silueta cónica)"},
+    # Condicional en dataflow: las dos ramas se evalúan igual, el select decide cuál sigue.
+    # Un `select` por tipo y no uno genérico porque la regla es que las dos ramas y la salida sean
+    # DEL MISMO TIPO — con un verbo por familia eso se cumple por construcción y el error de tipo
+    # lo da el chequeo de cables de siempre, sin inventar inferencia.
+    "select_mesh": {"fn": t_select_mesh, "cat": "Mesh", "graph_only": True,
+                    "params": {"cond": "", "si": "", "no": ""},
+                    "data_params": {"cond": "B", "si": "M", "no": "M"},
+                    "etiquetas_params": {"cond": "condición (bool)", "si": "sí (Malla)",
+                                         "no": "no (Malla)"},
+                    "doc": "elige entre dos mallas M según un booleano; las dos ramas se calculan "
+                           "igual (dataflow), el select sólo decide cuál sigue viaje"},
+    "select_asset": {"fn": t_select_asset, "cat": "Mesh", "graph_only": True,
+                     "params": {"cond": "", "si": "", "no": ""},
+                     "data_params": {"cond": "B", "si": "A", "no": "A"},
+                     "etiquetas_params": {"cond": "condición (bool)", "si": "sí (Asset)",
+                                          "no": "no (Asset)"},
+                     "doc": "elige entre dos assets A según un booleano; las dos ramas se calculan "
+                            "igual (dataflow), el select sólo decide cuál sigue viaje"},
     "asset_set": {"fn": t_asset_set, "cat": "Mesh", "graph_only": True,
                   "params": {}, "require_main_inputs": True,
                   "doc": "combina dos o más assets A como una colección ordenada A[] de variantes"},
@@ -2051,10 +2094,15 @@ GRAPH_SOURCES = {"asset", "pick", "create_spline", "gizmo", "ghost", "pivot", "p
                  "curve_bezier", "mesh_triangle", "mesh_quad", "mesh_grid", "mesh_cylinder",
                  "mesh_cone", "mesh_sphere", "graph_curve",
                  "mesh_box", "mesh_capsule", "mesh_torus", "mesh_disc",
-                 "mesh_round_rect", "mesh_stairs", "mesh_stairs_curved", "mesh_sphere_box"}
+                 "mesh_round_rect", "mesh_stairs", "mesh_stairs_curved", "mesh_sphere_box",
+                 # Los `select_*` no tienen entrada principal: las dos ramas y la
+                 # condición entran por pines de datos NOMBRADOS, porque «sí» y «no»
+                 # tienen significado y no se pueden distinguir por orden de cable.
+                 "select_mesh", "select_asset"}
 # Tools que realmente pueden ejecutarse sin un asset. `asset` y `pick` lo PRODUCEN; `create_spline` y
 # `pivot_set` trabajan sobre la escena/selección. Gizmo y Ghost sí necesitan uno para mostrar huella.
 GRAPH_NO_ASSET = {"asset", "pick", "create_spline", "pivot_set", "instance",
+                  "select_mesh", "select_asset",
                   # `scatter` genera PUNTOS: no toca ningún asset. Lo usaba sólo para
                   # medir huellas, y eso ahora pasa al colocar.
                   "scatter",
@@ -2106,7 +2154,8 @@ GRAPH_IN_NAMES = {"points_to_frames": "P", "debug": "*", "curve_child": "S", "cu
                   "material_node": "MT", "material_connect": "MT", "material_output": "MT",
                   "material_build": "MT", "material_function": "MT", "material_call": "MT",
                   "material_instance": "A", "instance": "P"}
-GRAPH_OUT_NAMES = {"points_to_frames": "F", "debug": "M", "asset": "A", "pick": "A", "create_spline": "S",
+GRAPH_OUT_NAMES = {"select_mesh": "M", "select_asset": "A",
+                   "points_to_frames": "F", "debug": "M", "asset": "A", "pick": "A", "create_spline": "S",
                    # `scatter` describe DÓNDE (puntos) y `instance` decide cuándo eso se vuelve
                    # escena. Es lo que le da un significado obvio a encadenar nodos de colocación.
                    "scatter": "P", "instance": "A",
