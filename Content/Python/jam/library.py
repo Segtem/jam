@@ -106,14 +106,22 @@ def cargar_malla(ruta: str) -> unreal.StaticMesh | None:
 def cargar_asset_grafo(ruta: str):
     """Carga una clase admitida por el protocolo A del Graph.
 
-    No promete que todo consumidor acepte las tres clases: cada verbo conserva su defensa concreta.
-    Esta frontera sólo permite resolver y cablear Static Mesh, Skeletal Mesh y Geometry Collection.
+    No promete que todo consumidor acepte las cuatro clases: cada verbo conserva su defensa
+    concreta. Esta frontera resuelve y cablea Static Mesh, Skeletal Mesh, Geometry Collection y
+    Mesh Partition Definition (Mesh Terrain).
+
+    ``MeshPartitionDefinition`` usa ``getattr(unreal, …, None)`` igual que las otras tres. El
+    plugin `MeshPartition` ya está habilitado en `Jam.uplugin` y se verificó que el símbolo
+    resuelve (``JAM_TERRAIN_DISCOVERY_58``), pero el `getattr` se queda: un plugin habilitado se
+    puede deshabilitar, y esto tiene que degradar sin romper en vez de tirar `AttributeError` al
+    importar.
     """
     obj = unreal.load_asset(ruta)
     supported = tuple(
         item for item in (getattr(unreal, "StaticMesh", None),
                           getattr(unreal, "SkeletalMesh", None),
-                          getattr(unreal, "GeometryCollection", None))
+                          getattr(unreal, "GeometryCollection", None),
+                          getattr(unreal, "MeshPartitionDefinition", None))
         if isinstance(item, type))
     return obj if supported and isinstance(obj, supported) else None
 

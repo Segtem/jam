@@ -20,6 +20,7 @@
 	"Plugins": [
 		{ "Name": "PythonScriptPlugin", "Enabled": true },
 		{ "Name": "EditorScriptingUtilities", "Enabled": true },
-		{ "Name": "GeometryScripting", "Enabled": true }
+		{ "Name": "GeometryScripting", "Enabled": true },
+		{ "Name": "MeshPartition", "Enabled": true }
 	]
 }
