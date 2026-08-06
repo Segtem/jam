@@ -875,26 +875,39 @@ int32 SJamGraphNode::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGe
 		const TSharedRef<FSlateFontMeasure> FM =
 			FSlateApplication::Get().GetRenderer()->GetFontMeasureService();
 		const FVector2D TS = FM->Measure(Title, Font);
-		// Reservar la esquina superior derecha para la × independiente.
-		const float LabelW = FMath::Min(BodyW - 42.0f, TS.X + 14.0f);
+		// Ya NO hay que reservar la esquina derecha: la cartela subió y los botones tienen su
+		// propia fila, así que un nombre largo puede usar casi todo el ancho.
+		const float LabelW = FMath::Min(BodyW - 10.0f, TS.X + 14.0f);
 		const float LabelH = TitleH - 4.0f;
 		const float LabelX = (Size.X - LabelW) * 0.5f;
+		// Negativo: la cartela flota POR ENCIMA del nodo. No entra en `NodeHeight`, así que ningún
+		// pin se movió y los cables siguen anclando donde estaban.
+		const float LabelY = 1.0f - TitleFloatUp;
 		FSlateDrawElement::MakeBox(OutDrawElements, LayerId + 4,
 			AllottedGeometry.ToPaintGeometry(
-				FVector2D(LabelW, LabelH), FSlateLayoutTransform(FVector2D(LabelX, 1.0f))),
+				FVector2D(LabelW, LabelH), FSlateLayoutTransform(FVector2D(LabelX, LabelY))),
 			&TitleBrush, ESlateDrawEffect::None,
 			TitleBrush.TintColor.GetSpecifiedColor());
 
 		const float Cx = Size.X * 0.5f;
+		// Guía de la cartela al cuerpo: sin ella el nombre quedaría flotando suelto y, con nodos
+		// cerca, no se sabría de cuál es.
+		TArray<FVector2D> Guia;
+		Guia.Add(FVector2D(Cx, LabelY + LabelH));
+		Guia.Add(FVector2D(Cx, TitleH - 5.0f));
+		FSlateDrawElement::MakeLines(OutDrawElements, LayerId + 4,
+			AllottedGeometry.ToPaintGeometry(), Guia, ESlateDrawEffect::None,
+			FLinearColor(0.12f, 0.12f, 0.12f, 0.55f), true, 1.2f);
+
 		TArray<FVector2D> Pointer;
-		Pointer.Add(FVector2D(Cx - 4.0f, LabelH));
-		Pointer.Add(FVector2D(Cx, LabelH + 4.0f));
-		Pointer.Add(FVector2D(Cx + 4.0f, LabelH));
+		Pointer.Add(FVector2D(Cx - 4.0f, TitleH - 5.0f));
+		Pointer.Add(FVector2D(Cx, TitleH - 1.0f));
+		Pointer.Add(FVector2D(Cx + 4.0f, TitleH - 5.0f));
 		FSlateDrawElement::MakeLines(OutDrawElements, LayerId + 4,
 			AllottedGeometry.ToPaintGeometry(), Pointer, ESlateDrawEffect::None,
 			FLinearColor(0.12f, 0.12f, 0.12f, 1.0f), false, 2.0f);
 
-		const FVector2D TopLeft(Cx - TS.X * 0.5f, 1.0f + (LabelH - TS.Y) * 0.5f);
+		const FVector2D TopLeft(Cx - TS.X * 0.5f, LabelY + (LabelH - TS.Y) * 0.5f);
 		FSlateDrawElement::MakeText(OutDrawElements, LayerId + 5,
 			AllottedGeometry.ToPaintGeometry(TS, FSlateLayoutTransform(TopLeft)), Title, Font,
 			ESlateDrawEffect::None, JamInk);

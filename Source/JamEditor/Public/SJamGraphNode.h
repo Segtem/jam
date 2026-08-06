@@ -144,6 +144,11 @@ public:
 	// Métrica FIJA del layout del nodo (filas de alto conocido) para que el editor calcule dónde cae
 	// cada pin y ancle los wires exactamente ahí — como los grips por parámetro de Grasshopper.
 	static constexpr float TitleH = 18.0f;   // cartela flotante con el nombre, estilo GH
+	/** Cuánto FLOTA la cartela por encima del nodo. La banda `y = 1..19` la comparten el nombre y
+	 *  los cuatro botones de vista (comprimir, bypass, debug, cerrar): con el nombre ahí, los
+	 *  botones quedaban tapados o compitiendo. Subida, cada uno tiene su fila.
+	 *  Se dibuja FUERA del alto del nodo, así que no cambia `NodeHeight` ni mueve ningún pin. */
+	static constexpr float TitleFloatUp = 28.0f;
 	static constexpr float PadTop = TitleH + 5.0f;
 	static constexpr float HeaderH = 26.0f;
 	static constexpr float RowH = 23.0f;
