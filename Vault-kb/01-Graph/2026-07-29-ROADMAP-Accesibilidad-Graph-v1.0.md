@@ -336,9 +336,12 @@ No es un extra: es la regla que ya rige el proyecto, extendida al resto del canv
   Hasta entonces el veredicto vivía **sólo** en el color del cuerpo y en un tooltip que había que
   hoverear — y peor: por el bug del tint de `MakeBox` ese color del cuerpo ni siquiera se dibujaba,
   así que el veredicto se comunicaba por un borde de 1.4 px.
-- **Contraste.** El cuerpo del nodo es `0.80,0.80,0.78` con texto oscuro: está bien. Auditar el resto
-  contra WCAG AA (4.5:1) — sobre todo el gris de un campo **deshabilitado por cable**, que es
-  justamente el que hay que poder leer para saber qué valor está llegando.
+- ✅ **Contraste.** Auditado contra WCAG AA (4.5:1) el **2026-08-05**. El campo deshabilitado por
+  cable —el que se sospechaba— pasa (5.04). Los que fallaban eran otros, y peores: **los dos estados
+  que avisan de un problema eran los MENOS legibles del nodo**, REVISAR con 4.44 y ERROR con 2.62.
+  Un rojo saturado no llega a AA con NINGUNA tinta (2.62 con la oscura, 2.66 con blanca), así que
+  hubo que aclararlo; el significado no se pierde porque lo llevan además el borde y el símbolo `!`.
+  Lo ata `ContrasteDelNodoTests`, que LEE los rellenos del `.cpp` y exige 4.5:1 contra `JamInk`.
 - **Tamaño.** El zoom llega a 2.5×; el ribbon y el panel no escalan con él. Respetar el
   *Application Scale* del editor.
 - **Tooltips como texto.** Ya está: el ribbon no muestra nombre bajo el icono, y el tooltip trae

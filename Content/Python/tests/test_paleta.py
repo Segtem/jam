@@ -215,6 +215,76 @@ class NombresDePinTests(unittest.TestCase):
         self.assertEqual(iguales, [], "estos «nombres» son el código de tipo otra vez")
 
 
+NODO_CPP = RAIZ / "Source" / "JamEditor" / "Private" / "SJamGraphNode.cpp"
+
+
+def _luminancia(c: tuple) -> float:
+    """Luminancia relativa WCAG. Slate guarda los colores en LINEAL, que es exactamente el espacio
+    en el que WCAG define la fórmula — no hace falta convertir nada."""
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
+
+
+def contraste(a: tuple, b: tuple) -> float:
+    la, lb = _luminancia(a), _luminancia(b)
+    alto, bajo = max(la, lb), min(la, lb)
+    return (alto + 0.05) / (bajo + 0.05)
+
+
+def _relleno_del_estado(estado: str) -> tuple:
+    """El color de relleno que `RebuildBodyBrush` le pone al cuerpo para ese veredicto."""
+    import re
+
+    cuerpo = NODO_CPP.read_text(encoding="utf-8").split(
+        "void SJamGraphNode::RebuildBodyBrush")[1].split("\n}")[0]
+    m = re.search(
+        r'ResultState == TEXT\("' + estado + r'"\).{0,400}?Fill = FLinearColor\('
+        r"([\d.]+)f, ([\d.]+)f, ([\d.]+)f", cuerpo, re.S)
+    assert m, f"no encontré el relleno del estado «{estado}» en el C++"
+    return tuple(float(x) for x in m.groups())
+
+
+class ContrasteDelNodoTests(unittest.TestCase):
+    """El texto del nodo tiene que LEERSE, no sólo estar.
+
+    Es la otra mitad de la regla de accesibilidad: los pines dicen su nombre y los estados traen su
+    símbolo, pero si el texto no contrasta con el fondo nada de eso sirve. WCAG AA pide 4.5:1 para
+    texto normal.
+
+    Los colores se LEEN del `.cpp` en vez de copiarse: una paleta duplicada se desincroniza callada,
+    y este test existe justamente para atajar un cambio de color que rompa la legibilidad.
+
+    El hallazgo que lo motivó: los dos estados que avisan de un problema —REVISAR y ERROR— eran los
+    MENOS legibles del nodo (4.44 y 2.62). Un rojo saturado no llega a AA con ninguna tinta: da 2.62
+    con la tinta oscura y 2.66 con blanca, así que había que aclararlo.
+    """
+
+    #: La tinta oscura con la que el nodo escribe todo (`JamInk` en el .cpp).
+    TINTA = (0.10, 0.10, 0.11)
+    MINIMO_AA = 4.5
+
+    def test_every_verdict_body_can_be_read(self):
+        for estado in ("aviso", "warn", "error"):
+            with self.subTest(estado=estado):
+                relleno = _relleno_del_estado(estado)
+                self.assertGreaterEqual(
+                    contraste(self.TINTA, relleno), self.MINIMO_AA,
+                    f"el cuerpo «{estado}» no llega a WCAG AA con la tinta del nodo")
+
+    def test_the_ink_matches_the_cpp(self):
+        """Si `JamInk` cambia, el resto de este test estaría midiendo contra un color que ya no se
+        usa — y pasaría en verde mientras el nodo se vuelve ilegible."""
+        import re
+
+        texto = NODO_CPP.read_text(encoding="utf-8")
+        m = re.search(r"const FLinearColor JamInk\(([\d.]+)f, ([\d.]+)f, ([\d.]+)f", texto)
+        self.assertIsNotNone(m, "no encontré JamInk en el C++")
+        self.assertEqual(tuple(float(x) for x in m.groups()), self.TINTA)
+
+    def test_the_neutral_body_can_be_read_too(self):
+        """El caso normal, que es el que más se mira."""
+        self.assertGreaterEqual(contraste(self.TINTA, (0.76, 0.77, 0.78)), self.MINIMO_AA)
+
+
 class VeredictoDelOraculoTests(unittest.TestCase):
     """El estado de un nodo tampoco puede identificarse sólo por su color.
 

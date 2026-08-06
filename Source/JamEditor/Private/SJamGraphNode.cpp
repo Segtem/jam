@@ -678,11 +678,16 @@ void SJamGraphNode::RebuildBodyBrush()
 	}
 	else if (ResultState == TEXT("warn"))
 	{
-		Fill = FLinearColor(1.0f, 0.56f, 0.08f, 1.0f);   // naranja GH
+		// Naranja GH, ACLARADO hasta pasar WCAG AA con la tinta oscura: el original daba 4.44 y el
+		// mínimo es 4.5. Justo los estados que avisan de un problema eran los menos legibles.
+		Fill = FLinearColor(1.0f, 0.64f, 0.24f, 1.0f);
 	}
 	else if (ResultState == TEXT("error"))
 	{
-		Fill = FLinearColor(0.90f, 0.20f, 0.14f, 1.0f);
+		// Un rojo saturado no llega a AA con NINGUNA tinta: el original daba 2.62 con la oscura y
+		// 2.66 con blanca. Tenía que aclararse. El significado no se pierde — lo llevan además el
+		// borde (`StateColor`) y el símbolo `!` del veredicto.
+		Fill = FLinearColor(1.0f, 0.58f, 0.54f, 1.0f);
 	}
 	if (bBypassed)
 	{
