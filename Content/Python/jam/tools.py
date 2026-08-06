@@ -787,6 +787,17 @@ def _select(verbo: str, etiqueta: str, cond, si, no) -> str:
     return f"SELECT {etiqueta} ✓ — siguió por «{rama}»"
 
 
+def t_reroute(entrada=None, **_kw) -> str:
+    """Punto de paso con forma de NODO: no toca el dato, sólo lo deja pasar.
+
+    No publica nada en `_RUNTIME_DATA_OUTPUTS` a propósito: el runner ya cae a `entrada` cuando un
+    verbo no produce salida propia (el mismo mecanismo del bypass), así que dejar pasar es
+    literalmente no hacer nada. Por eso los cinco `reroute_*` comparten esta función y sólo se
+    diferencian en los tipos que declaran.
+    """
+    return "REROUTE ✓"
+
+
 def t_select_mesh(_input=None, *, cond=None, si=None, no=None) -> str:
     return _select("select_mesh", "M", cond, si, no)
 
@@ -1708,6 +1719,18 @@ REGISTRO = {
     # Un `select` por tipo y no uno genérico porque la regla es que las dos ramas y la salida sean
     # DEL MISMO TIPO — con un verbo por familia eso se cumple por construcción y el error de tipo
     # lo da el chequeo de cables de siempre, sin inventar inferencia.
+    # Reroute con forma de nodo (estilo Blueprint): se selecciona, se mueve con el grupo y
+    # sobrevive a copiar/pegar, que es lo que las vías sobre el cable no hacen.
+    "reroute_mesh": {"fn": t_reroute, "cat": "Mesh", "graph_only": True, "params": {},
+                        "doc": "punto de paso para ordenar cables: deja pasar Malla sin tocarla"},
+    "reroute_asset": {"fn": t_reroute, "cat": "Mesh", "graph_only": True, "params": {},
+                        "doc": "punto de paso para ordenar cables: deja pasar Asset sin tocarla"},
+    "reroute_points": {"fn": t_reroute, "cat": "Mesh", "graph_only": True, "params": {},
+                        "doc": "punto de paso para ordenar cables: deja pasar Puntos sin tocarla"},
+    "reroute_curve": {"fn": t_reroute, "cat": "Mesh", "graph_only": True, "params": {},
+                        "doc": "punto de paso para ordenar cables: deja pasar Curva sin tocarla"},
+    "reroute_frames": {"fn": t_reroute, "cat": "Mesh", "graph_only": True, "params": {},
+                        "doc": "punto de paso para ordenar cables: deja pasar Frames sin tocarla"},
     "select_mesh": {"fn": t_select_mesh, "cat": "Mesh", "graph_only": True,
                     "params": {"cond": "", "si": "", "no": ""},
                     "data_params": {"cond": "B", "si": "M", "no": "M"},
@@ -2102,6 +2125,8 @@ GRAPH_SOURCES = {"asset", "pick", "create_spline", "gizmo", "ghost", "pivot", "p
 # Tools que realmente pueden ejecutarse sin un asset. `asset` y `pick` lo PRODUCEN; `create_spline` y
 # `pivot_set` trabajan sobre la escena/selección. Gizmo y Ghost sí necesitan uno para mostrar huella.
 GRAPH_NO_ASSET = {"asset", "pick", "create_spline", "pivot_set", "instance",
+                  # Un reroute no CONSUME un asset: lo deja pasar.
+                  "reroute_mesh", "reroute_asset", "reroute_points", "reroute_curve", "reroute_frames",
                   "select_mesh", "select_asset",
                   # `scatter` genera PUNTOS: no toca ningún asset. Lo usaba sólo para
                   # medir huellas, y eso ahora pasa al colocar.
@@ -2131,7 +2156,8 @@ GRAPH_NO_ASSET = {"asset", "pick", "create_spline", "pivot_set", "instance",
                   # Dos que estaban rotos desde que se agregaron y nadie podía correr en el canvas:
                   # transforman el dato que les llega y no tocan ningún asset.
                   "curve_noise", "mesh_vertex_gradient"}
-GRAPH_IN_NAMES = {"points_to_frames": "P", "debug": "*", "curve_child": "S", "curve_noise": "S", "curve_frames": "S", "distribute_frames": "F",
+GRAPH_IN_NAMES = {"reroute_mesh": "M", "reroute_asset": "A", "reroute_points": "P", "reroute_curve": "S", "reroute_frames": "F",
+                  "points_to_frames": "P", "debug": "*", "curve_child": "S", "curve_noise": "S", "curve_frames": "S", "distribute_frames": "F",
                   "transform_frames": "F", "branch_from_frames": "F", "curve_branches": "S",
                   "asset_set": "A", "choose_asset": "F",
                   "mesh_from_asset": "A", "mesh_copy_static": "A",
@@ -2154,7 +2180,8 @@ GRAPH_IN_NAMES = {"points_to_frames": "P", "debug": "*", "curve_child": "S", "cu
                   "material_node": "MT", "material_connect": "MT", "material_output": "MT",
                   "material_build": "MT", "material_function": "MT", "material_call": "MT",
                   "material_instance": "A", "instance": "P"}
-GRAPH_OUT_NAMES = {"select_mesh": "M", "select_asset": "A",
+GRAPH_OUT_NAMES = {"reroute_mesh": "M", "reroute_asset": "A", "reroute_points": "P", "reroute_curve": "S", "reroute_frames": "F",
+                   "select_mesh": "M", "select_asset": "A",
                    "points_to_frames": "F", "debug": "M", "asset": "A", "pick": "A", "create_spline": "S",
                    # `scatter` describe DÓNDE (puntos) y `instance` decide cuándo eso se vuelve
                    # escena. Es lo que le da un significado obvio a encadenar nodos de colocación.

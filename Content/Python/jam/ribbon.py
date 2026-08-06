@@ -21,6 +21,7 @@ from __future__ import annotations
 GRUPOS: dict[str, list[tuple[str, list[str]]]] = {
     "Mesh": [
         ("Elegir", ["select_mesh", "select_asset"]),
+        ("Cables", ["reroute_mesh", "reroute_asset", "reroute_points", "reroute_curve", "reroute_frames"]),
         ("Primitivas", ["mesh_box", "mesh_sphere", "mesh_sphere_box", "mesh_cylinder",
                         "mesh_cone", "mesh_capsule", "mesh_torus", "mesh_disc",
                         "mesh_quad", "mesh_round_rect", "mesh_grid", "mesh_triangle",

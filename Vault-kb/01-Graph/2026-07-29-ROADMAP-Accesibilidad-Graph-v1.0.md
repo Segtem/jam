@@ -382,6 +382,13 @@ Ordenadas por lo que rinden, no por lo que cuestan:
    - **El hit-test vive en `jam.layout`** (`cable_mas_cercano`), que reproduce la misma curva que se
      dibuja y devuelve el punto SOBRE ella — si la vía naciera en el cursor, el cable pegaría un
      salto al insertarla.
+
+   **Además, el reroute con forma de NODO** (estilo Blueprint), agregado el 2026-08-06:
+   `reroute_mesh/asset/points/curve/frames`. Convive con las vías y cubre lo que ellas no: un nodo
+   se **selecciona**, se mueve con el grupo, se alinea y **sobrevive a copiar/pegar**.
+   Es un verbo por tipo por la misma regla de siempre —recibe y produce lo mismo— y los cinco
+   comparten UNA función: el runner ya cae a `entrada` cuando un verbo no produce salida propia (el
+   mecanismo del bypass), así que dejar pasar es literalmente no hacer nada.
 5. ✅ **Auto-layout** (`L`) — ordenar el grafo por capas topológicas. `graph.topo_order()` ya existe: el
    layout es *puro*, se calcula en Python y el C++ sólo aplica posiciones.
    **Hecho el 2026-08-05** como `jam.layout.auto`. Reusa entero el puente que ya tenían alinear y

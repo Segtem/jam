@@ -667,5 +667,65 @@ class SelectTests(unittest.TestCase):
                          tools.REGISTRO["select_mesh"]["data_params"]["cond"])
 
 
+class RerouteTests(unittest.TestCase):
+    """Punto de paso con forma de NODO, estilo Blueprint.
+
+    Convive con las vías sobre el cable: la vía es más liviana, el nodo se selecciona, se mueve con
+    el grupo y sobrevive a copiar/pegar.
+    """
+
+    TIPOS = {"reroute_mesh": "M", "reroute_asset": "A", "reroute_points": "P",
+             "reroute_curve": "S", "reroute_frames": "F"}
+
+    def test_it_takes_and_returns_the_same_type(self):
+        """Es la regla que hace que un reroute no pueda romper el tipado: si entrara M y saliera A,
+        insertarlo en un cable cambiaría lo que llega abajo."""
+        for verbo, tipo in self.TIPOS.items():
+            info = tools.REGISTRO[verbo]
+            self.assertEqual(info["in_name"], tipo, verbo)
+            self.assertEqual(info["out_name"], tipo, verbo)
+
+    def test_it_is_not_a_source_because_it_has_something_to_pass_through(self):
+        for verbo in self.TIPOS:
+            self.assertFalse(tools.REGISTRO[verbo]["source"], verbo)
+            self.assertEqual(tools.REGISTRO[verbo]["aridad"], 1, verbo)
+
+    def test_it_has_no_parameters_to_get_wrong(self):
+        """Un punto de paso que se pudiera configurar dejaría de ser transparente."""
+        for verbo in self.TIPOS:
+            self.assertEqual(tools.REGISTRO[verbo]["params"], {}, verbo)
+
+    def test_it_passes_the_data_through_untouched(self):
+        """La propiedad entera del feature. Se apoya en que el runner cae a `entrada` cuando el
+        verbo no produce salida propia — el mismo mecanismo del bypass."""
+        recibido = []
+
+        def consumidor(entrada, **_kw):
+            recibido.append(entrada)
+            return "consumidor ✓"
+
+        graph = JamGraph()
+        graph.add("reroute_mesh", {}, nid="rr")
+        graph.add("place", {}, nid="fin")
+        graph.connect("rr", "fin")
+        plan = GraphPlan(order=["rr", "fin"], params={"rr": {}, "fin": {}},
+                         input_assets={"rr": "/Game/X.X"}, output_assets={},
+                         values={}, values_by_node={})
+        registry = {"reroute_mesh": {"fn": tools.t_reroute, "params": {}},
+                    "place": {"fn": consumidor, "params": {}}}
+        with mock.patch.object(tools, "REGISTRO", registry):
+            _r, estados = ejecutar_detalle(graph, plan)
+
+        self.assertEqual(estados["rr"]["estado"], "ok")
+        self.assertEqual(recibido, ["/Game/X.X"],
+                         "el reroute tenía que dejar pasar exactamente lo que entró")
+
+    def test_every_type_that_can_be_rerouted_can_also_be_bypassed(self):
+        """Las dos reglas son la misma —recibir y producir el mismo tipo— así que un reroute que no
+        admitiera bypass significaría que una de las dos se rompió."""
+        for verbo in self.TIPOS:
+            self.assertTrue(puede_bypass(verbo, tools.REGISTRO), verbo)
+
+
 if __name__ == "__main__":
     unittest.main()
