@@ -98,7 +98,16 @@ def firma(cuerpo: JamGraph) -> dict:
             if nombre in vistos:
                 raise FuncionError(f"hay dos `{verb}` llamados «{nombre}»: el pin sería ambiguo")
             vistos.add(nombre)
-            salida[clave].append({"name": nombre, "tipo": tipo})
+            pin = {"name": nombre, "tipo": tipo}
+            # Un `input` con VALOR POR DEFECTO es una perilla; sin él, un pin que hay que cablear.
+            # No hace falta un verbo nuevo: es la misma declaración con un dato más. Y como en Jam
+            # un parámetro YA es «campo + pin» (se grisea al cablearlo), una perilla sigue siendo
+            # cableable — que es justo lo que hace un HDA y no un `.sbsar`.
+            if verb == "input":
+                crudo = n.get("params", {}).get("default", "")
+                if str(crudo).strip() != "":
+                    pin["default"] = str(crudo)
+            salida[clave].append(pin)
     return salida
 
 
@@ -213,14 +222,37 @@ def herramientas(cuerpos: dict[str, JamGraph] | None = None) -> list[dict]:
 def herramienta(funcion_id: str, nombre: str, cuerpo: JamGraph) -> dict:
     """Spec de una llamada: verbo interno estable y etiqueta humana independiente."""
     f = firma(cuerpo)
+    # Las entradas CON default se publican como perillas de la ficha; las que no, como pines.
+    # Es la diferencia entre «esto lo tenés que conectar» y «esto lo podés ajustar» — la que hace
+    # que una herramienta sea usable sin entender el grafo de adentro.
+    perillas = [e for e in f["entradas"] if "default" in e]
+    pines = [e for e in f["entradas"] if "default" not in e]
     return {
         "verbo": PREFIJO + funcion_id, "label": nombre,
         "cat": "Funciones", "seccion": "Funciones", "grupo": "Biblioteca",
         "doc": f"función «{nombre}» — se expande inline antes de Compile",
-        "source": not f["entradas"], "aridad": 0 if not f["entradas"] else 1,
+        "source": not pines, "aridad": 0 if not pines else 1,
         "in_name": "", "out_name": "", "asset_pin": False, "asset_row": False,
-        "inputs": f["entradas"], "outputs": f["salidas"], "params": [],
+        "inputs": pines, "outputs": f["salidas"],
+        "params": [{"nombre": e["name"], "label": e["name"], "default": e["default"],
+                    "tipo": _tipo_de_control(e["tipo"], e["default"]),
+                    "data_type": e["tipo"], "letra": "", "opciones": []}
+                   for e in perillas],
     }
+
+
+def _tipo_de_control(tipo_pin: str, default: str) -> str:
+    """Qué control dibuja la ficha para esta perilla.
+
+    El tipo del PIN dice qué dato viaja por el cable; el control dice cómo se edita a mano. Un `B`
+    es un checkbox y un `N` un spinner aunque los dos se puedan cablear igual.
+    """
+    if tipo_pin == "B":
+        return "bool"
+    if tipo_pin in ("N", "N[]"):
+        # Entero si el default no tiene coma: `count=24` merece un spinner sin decimales.
+        return "float" if "." in str(default) else "int"
+    return "str"
 
 
 def _nombre_pin(preferido: str, base: str, usados: set[str]) -> str:
@@ -383,6 +415,9 @@ def expandir(g: JamGraph, biblioteca: dict[str, JamGraph], _pila: tuple[str, ...
     salidas: dict[tuple[str, str], tuple[str, str]] = {}
     # una función que devuelve su entrada tal cual: el pin de salida no tiene un nodo detrás
     pasa: dict[tuple[str, str], str] = {}
+    # cuerpo YA EXPANDIDO por instancia: lo necesita el pase de perillas, y tiene que ser el
+    # expandido porque es el que da los nombres de pin con los que se armó `entradas`.
+    cuerpos: dict[str, JamGraph] = {}
 
     for nid, n in g.nodes.items():
         if not es_instancia(n["verb"]):
@@ -398,6 +433,7 @@ def expandir(g: JamGraph, biblioteca: dict[str, JamGraph], _pila: tuple[str, ...
 
         instancias.add(nid)
         cuerpo = expandir(biblioteca[nombre], biblioteca, _pila + (nombre,))
+        cuerpos[nid] = cuerpo
         firma(cuerpo)  # valida nombres de pin antes de inlinear, para que el error diga la causa
 
         ren = {bid: f"{nid}__{bid}" for bid, bn in cuerpo.nodes.items()
@@ -452,6 +488,25 @@ def expandir(g: JamGraph, biblioteca: dict[str, JamGraph], _pila: tuple[str, ...
             if src:
                 for destino, dpin in entradas.get((b, bp), []):
                     nuevo.edges.append((src[0], src[1], destino, dpin))
+
+    # ---- perillas: el valor de la ficha baja a los params de adentro ----
+    # Una entrada CON default es una perilla. Si nadie la cableó, su valor —el que se tipeó en la
+    # ficha, o el default si no se tocó— se escribe como parámetro en cada nodo interno al que esa
+    # entrada alimenta. Es la misma regla que rige cualquier param de Jam: el cable manda sobre el
+    # campo. Acá simplemente no hay cable, así que manda el campo.
+    cableadas = {(b, bp) for _a, _ap, b, bp in g.edges}
+    for nid, cuerpo in cuerpos.items():
+        instancia_params = g.nodes[nid].get("params", {})
+        for entrada in firma(cuerpo)["entradas"]:
+            if "default" not in entrada:
+                continue   # es un pin: si no está cableado, eso lo diagnostica Compile
+            pin = entrada["name"]
+            if (nid, pin) in cableadas:
+                continue   # lo manda el cable
+            valor = instancia_params.get(pin, entrada["default"])
+            for destino, dpin in entradas.get((nid, pin), []):
+                if destino in nuevo.nodes:
+                    nuevo.nodes[destino].setdefault("params", {})[dpin] = str(valor)
 
     return nuevo
 

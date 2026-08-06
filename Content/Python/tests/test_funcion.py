@@ -21,6 +21,7 @@ if not hasattr(_unreal_fake, "TopLevelAssetPath"):
 
 from jam.funcion import (ETIQUETAS_TIPOS_PIN, TIPOS_PIN, FuncionError, colapsar, expandir,
                          firma, herramientas)
+from jam import funcion  # noqa: E402
 from jam.graph import JamGraph, compilar
 
 
@@ -634,6 +635,89 @@ class CableadoTests(unittest.TestCase):
 
         self.assertFalse(r["ok"])
         self.assertIn("se contiene a sí misma", r["report"])
+
+
+class PerillasExpuestasTests(unittest.TestCase):
+    """Un `input` CON valor por defecto es una perilla; sin él, un pin que hay que cablear.
+
+    Es la diferencia entre «esto lo tenés que conectar» y «esto lo podés ajustar», y es lo que hace
+    que una herramienta se pueda usar sin entender el grafo de adentro — lo que un `.sbsar` expone
+    como sliders y un HDA como parámetros promovidos.
+
+    No hace falta un verbo nuevo: es la misma declaración con un dato más.
+    """
+
+    def cuerpo(self):
+        c = JamGraph()
+        c.add("input", {"name": "assets", "type": "A[]"}, nid="pin")
+        c.add("input", {"name": "cantidad", "type": "N", "default": "24"}, nid="k1")
+        c.add("input", {"name": "fisica", "type": "B", "default": "True"}, nid="k2")
+        c.add("scatter", {}, nid="s")
+        c.add("output", {"name": "pts", "type": "P"}, nid="o")
+        c.connect("k1", "s", "count")
+        c.connect("s", "o")
+        return c
+
+    def test_an_input_without_default_stays_a_pin(self):
+        h = funcion.herramienta("f1", "Tool", self.cuerpo())
+        self.assertEqual([p["name"] for p in h["inputs"]], ["assets"])
+
+    def test_an_input_with_default_becomes_a_knob(self):
+        h = funcion.herramienta("f1", "Tool", self.cuerpo())
+        self.assertEqual([p["nombre"] for p in h["params"]], ["cantidad", "fisica"])
+
+    def test_the_control_matches_the_pin_type(self):
+        """El tipo del PIN dice qué viaja por el cable; el control, cómo se edita a mano. Un `B` es
+        un checkbox y un `N` un spinner, aunque los dos se puedan cablear igual."""
+        h = funcion.herramienta("f1", "Tool", self.cuerpo())
+        por_nombre = {p["nombre"]: p for p in h["params"]}
+        self.assertEqual(por_nombre["cantidad"]["tipo"], "int")
+        self.assertEqual(por_nombre["fisica"]["tipo"], "bool")
+        self.assertEqual(por_nombre["cantidad"]["data_type"], "N")
+
+    def test_a_decimal_default_gets_a_float_control(self):
+        c = JamGraph()
+        c.add("input", {"name": "radio", "type": "N", "default": "1.5"}, nid="k")
+        c.add("output", {"name": "o", "type": "P"}, nid="o")
+        h = funcion.herramienta("f", "T", c)
+        self.assertEqual(h["params"][0]["tipo"], "float")
+
+    def test_only_the_uncabled_pins_decide_if_it_is_a_source(self):
+        """Una herramienta cuyas entradas son TODAS perillas no necesita que le cables nada: es una
+        fuente. Contar las perillas como pines la haría pedir un cable que no existe."""
+        c = JamGraph()
+        c.add("input", {"name": "cantidad", "type": "N", "default": "24"}, nid="k")
+        c.add("output", {"name": "o", "type": "P"}, nid="o")
+        h = funcion.herramienta("f", "T", c)
+        self.assertTrue(h["source"])
+        self.assertEqual(h["aridad"], 0)
+
+    def test_the_knob_value_reaches_the_node_inside(self):
+        """Lo que hace que la perilla SIRVA: su valor baja como parámetro al nodo interno que
+        alimenta. Sin esto sería una perilla decorativa."""
+        biblio = {"f1": self.cuerpo()}
+        g = JamGraph()
+        g.add("fn:f1", {"cantidad": "99"}, nid="inst")
+        expandido = funcion.expandir(g, biblio)
+        self.assertEqual(expandido.nodes["inst__s"]["params"]["count"], "99")
+
+    def test_an_untouched_knob_uses_its_default(self):
+        biblio = {"f1": self.cuerpo()}
+        g = JamGraph()
+        g.add("fn:f1", {}, nid="inst")
+        expandido = funcion.expandir(g, biblio)
+        self.assertEqual(expandido.nodes["inst__s"]["params"]["count"], "24")
+
+    def test_a_cable_wins_over_the_knob(self):
+        """La misma regla que rige cualquier param de Jam: el cable manda sobre el campo. Si la
+        perilla pisara al cable, conectar algo no tendría efecto y no se vería por qué."""
+        biblio = {"f1": self.cuerpo()}
+        g = JamGraph()
+        g.add("number", {"name": "n", "value": "7"}, nid="n")
+        g.add("fn:f1", {"cantidad": "99"}, nid="inst")
+        g.connect("n", "inst", "cantidad")
+        expandido = funcion.expandir(g, biblio)
+        self.assertNotIn("count", expandido.nodes["inst__s"].get("params", {}))
 
 
 if __name__ == "__main__":
