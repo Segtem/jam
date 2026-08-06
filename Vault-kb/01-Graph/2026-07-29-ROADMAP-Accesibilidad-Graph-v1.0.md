@@ -398,7 +398,8 @@ Elegidos para no pelearse con lo que Brian ya tiene en el dedo de Blueprint y de
 | Tecla | Acción | Fase |
 |---|---|---|
 | `Ctrl+A` | seleccionar todo | 0 |
-| `Esc` | limpiar selección | 0 |
+| `Esc` | cancelar la conexión en curso; si no hay, limpiar selección | 0 |
+| clic derecho | cancelar la conexión en curso; si no hay, panear | 0 |
 | `Supr` | borrar selección | 0 |
 | `Ctrl+C` / `X` / `V` | copiar / cortar / pegar | 1 |
 | `Ctrl+D` · `Alt`+arrastre | duplicar | 1 |

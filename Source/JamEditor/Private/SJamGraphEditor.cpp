@@ -3399,6 +3399,27 @@ bool SJamGraphEditor::CanConnect(const FString& From, const FString& FromPin, co
 	return true;
 }
 
+bool SJamGraphEditor::CancelarConexion()
+{
+	if (PendingSource.IsEmpty())
+	{
+		return false;
+	}
+	PendingSource.Empty();
+	PendingSourcePin.Empty();
+	// Repintar YA: el cable-fantasma sólo se redibuja con el movimiento del mouse, así que sin esto
+	// quedaría colgado en pantalla hasta que el cursor se mueva.
+	if (WireLayer.IsValid())
+	{
+		WireLayer->Invalidate(EInvalidateWidgetReason::Paint);
+	}
+	if (Output.IsValid())
+	{
+		Output->SetText(LOCTEXT("ConexionCancelada", "conexión cancelada."));
+	}
+	return true;   // no es un paso del historial: no se llegó a cambiar el grafo
+}
+
 void SJamGraphEditor::OnPinClicked(const FString& Id, const FString& Pin, bool bOutput)
 {
 	// Convención de editores nodales: Alt+clic rompe las conexiones del pin. Una entrada elimina los
@@ -3911,6 +3932,13 @@ FReply SJamGraphEditor::OnMouseButtonDown(const FGeometry& MyGeometry, const FPo
 	if (MouseEvent.GetEffectingButton() == EKeys::RightMouseButton
 		|| MouseEvent.GetEffectingButton() == EKeys::MiddleMouseButton)
 	{
+		// El derecho cancela la conexión en curso en vez de panear — es la convención de todo editor
+		// nodal, y el pan sigue disponible con el del medio (o soltando el cable primero). El del
+		// medio NO cancela: es sólo pan, y cancelar con él sorprendería a mitad de un desplazamiento.
+		if (MouseEvent.GetEffectingButton() == EKeys::RightMouseButton && CancelarConexion())
+		{
+			return FReply::Handled();
+		}
 		bPanning = true;
 		return FReply::Handled().CaptureMouse(SharedThis(this));
 	}
@@ -4020,7 +4048,14 @@ FReply SJamGraphEditor::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& 
 	}
 	if (Tecla == EKeys::Escape)
 	{
-		ClearSelection();
+		// Un cable a medias se suelta ANTES que la selección: es un gesto EN CURSO, y lo que Esc
+		// cancela siempre es lo que está pasando ahora. Sin esto no había ninguna forma de
+		// arrepentirse de haber armado una conexión — el cable-fantasma seguía al cursor para
+		// siempre hasta acertarle a un pin válido.
+		if (!CancelarConexion())
+		{
+			ClearSelection();
+		}
 		return FReply::Handled();
 	}
 	if (Tecla == EKeys::Delete && (SelectedNodeIds.Num() > 0 || SelectedCommentIds.Num() > 0))

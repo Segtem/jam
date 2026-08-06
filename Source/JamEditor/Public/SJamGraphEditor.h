@@ -303,6 +303,9 @@ private:
 	/** El tab «Aprender»: fichas que CARGAN un tutorial en vez de crear un nodo. */
 	void RebuildLearnTab();
 	void OnPinClicked(const FString& Id, const FString& Pin, bool bOutput);
+	/** Suelta la conexión a medias (el cable-fantasma). Devuelve si había una: quien llama decide
+	 *  qué hacer cuando NO la había — `Esc` limpia la selección, el botón derecho panea. */
+	bool CancelarConexion();
 	/** Recomputa, por cada nodo, qué pines de parámetro tienen cable entrando y se lo dice a su widget
 	 *  (para que grisee esos inputs). Se llama tras cualquier cambio de aristas. */
 	void RefreshCabledPins();
