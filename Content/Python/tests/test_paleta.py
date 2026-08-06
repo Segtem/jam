@@ -352,6 +352,23 @@ class ContrasteDelNodoTests(unittest.TestCase):
                     contraste(color, (0.76, 0.77, 0.78)), self.MINIMO_AA,
                     f"el botón «{nombre}» prendido no se lee sobre el cuerpo del nodo")
 
+    def test_the_pin_type_labels_can_be_read(self):
+        """El nombre del tipo es LO QUE reemplaza al color como identificador de un pin.
+
+        Estaba en 2.28:1 — o sea que el texto puesto ahí para no depender del color era, él mismo,
+        el menos legible del nodo. Es el mismo error que los botones, en el peor lugar posible.
+        """
+        import re
+
+        texto = NODO_CPP.read_text(encoding="utf-8")
+        m = re.search(
+            r"InArgs\._InputLabel.{0,400}?ColorAndOpacity\(FSlateColor\(FLinearColor\("
+            r"([\d.]+)f, ([\d.]+)f, ([\d.]+)f", texto, re.S)
+        self.assertIsNotNone(m, "no encontré el color de la etiqueta de tipo en el .cpp")
+        color = tuple(float(x) for x in m.groups())
+        self.assertGreaterEqual(contraste(color, (0.76, 0.77, 0.78)), self.MINIMO_AA,
+                                "la etiqueta de tipo del pin no se lee sobre el cuerpo del nodo")
+
     def test_the_neutral_body_can_be_read_too(self):
         """El caso normal, que es el que más se mira."""
         self.assertGreaterEqual(contraste(self.TINTA, (0.76, 0.77, 0.78)), self.MINIMO_AA)

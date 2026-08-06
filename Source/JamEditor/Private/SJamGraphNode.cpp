@@ -188,9 +188,12 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 			+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
 			[
 				SNew(STextBlock)
+				// El NOMBRE del tipo, que es lo que hace que un pin no se identifique sólo por su
+				// color. Estaba en 0.30/0.31/0.33 = 2.28:1 sobre el cuerpo — o sea que el texto que
+				// reemplaza al color era el que no se leía. Ahora 4.58:1 (ver `ContrasteDelNodoTests`).
 				.Text(FText::FromString(InArgs._HasInput ? InArgs._InputLabel : FString()))
 				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 7))
-				.ColorAndOpacity(FSlateColor(FLinearColor(0.30f, 0.31f, 0.33f, 1.0f)))
+				.ColorAndOpacity(FSlateColor(FLinearColor(0.12f, 0.13f, 0.14f, 1.0f)))
 			]
 			+ SHorizontalBox::Slot().FillWidth(1.0f)[ SNew(SSpacer) ]
 			+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
@@ -198,7 +201,7 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 				SNew(STextBlock)
 				.Text(FText::FromString(InArgs._OutputLabel))
 				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 7))
-				.ColorAndOpacity(FSlateColor(FLinearColor(0.30f, 0.31f, 0.33f, 1.0f)))
+				.ColorAndOpacity(FSlateColor(FLinearColor(0.12f, 0.13f, 0.14f, 1.0f)))
 			])
 	];
 	RightCol->AddSlot().AutoHeight()
