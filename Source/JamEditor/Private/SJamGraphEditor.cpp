@@ -3206,8 +3206,11 @@ void SJamGraphEditor::AcomodarSeleccion(const FString& Accion)
 	// `auto` acomoda el GRAFO ENTERO cuando no hay nada elegido: es el gesto de «ordename esto»,
 	// y pedir que selecciones todo antes sería un paso de más. Alinear y distribuir siguen
 	// necesitando 2+ elegidos — no hay a qué alinear un grafo entero.
+	// `auto` y `snap` acomodan el GRAFO ENTERO cuando no hay nada elegido: son gestos de
+	// «ordename esto» y pedir que selecciones todo antes sería un paso de más.
 	const bool bAuto = Accion == TEXT("auto");
-	const bool bTodo = bAuto && SelectedNodeIds.Num() < 2;
+	const bool bTodoElGrafo = bAuto || Accion == TEXT("snap");
+	const bool bTodo = bTodoElGrafo && SelectedNodeIds.Num() < 2;
 	if (!bTodo && SelectedNodeIds.Num() < 2)
 	{
 		return;
@@ -4189,6 +4192,11 @@ void SJamGraphEditor::FillEditMenu(FMenuBuilder& MB)
 			"Sin selección acomoda todo; con selección, sólo esa parte"),
 		FSlateIcon(), FUIAction(FExecuteAction::CreateLambda(
 			[this]() { AcomodarSeleccion(TEXT("auto")); })));
+	MB.AddMenuEntry(LOCTEXT("SnapGrid", "Ajustar a la grilla"),
+		LOCTEXT("SnapGridTip",
+			"Lleva cada nodo al cruce de grilla más cercano. Sin selección ajusta todo el grafo"),
+		FSlateIcon(), FUIAction(FExecuteAction::CreateLambda(
+			[this]() { AcomodarSeleccion(TEXT("snap")); })));
 	MB.AddMenuSeparator();
 	auto Entrada = [&MB, this](const TCHAR* Etiqueta, const TCHAR* Tip, const TCHAR* Accion)
 	{

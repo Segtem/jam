@@ -563,7 +563,7 @@ def acomodar(nodos_json: str, accion: str) -> str:
 
     `nodos_json` es `[{"id","x","y","w","h"}]` en coordenadas de MODELO. `accion` es uno de
     `izquierda/derecha/arriba/abajo/centro-x/centro-y` (alinear), `dist-x`/`dist-y` (distribuir)
-    o `auto` (acomodar el grafo por capas).
+    `auto` (acomodar el grafo por capas) o `snap` (ajustar a la grilla).
 
     `auto` es el único que necesita saber CÓMO están cableados los nodos, no sólo dónde están, así
     que para él `nodos_json` toma la forma `{"nodos": [...], "edges": [[origen, destino], ...]}`.
@@ -586,6 +586,8 @@ def acomodar(nodos_json: str, accion: str) -> str:
             nodos, aristas = (crudo or []), []
         if str(accion) == "auto":
             pos = layout.auto(nodos, aristas)
+        elif str(accion) == "snap":
+            pos = layout.ajustar_a_grilla(nodos)
         elif str(accion) in ("dist-x", "dist-y"):
             pos = layout.distribuir(nodos, str(accion)[-1])
         else:

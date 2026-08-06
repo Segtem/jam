@@ -275,6 +275,50 @@ class AutoLayoutTests(unittest.TestCase):
         self.assertEqual(layout.auto([], [("a", "b")]), {})
 
 
+class AjustarAGrillaTests(unittest.TestCase):
+    def test_each_node_lands_on_the_nearest_crossing(self):
+        pos = layout.ajustar_a_grilla([nodo("a", 13, -5), nodo("b", 48, 100)])
+        self.assertEqual(pos["a"], (24.0, 0.0))
+        self.assertEqual(pos["b"], (48.0, 96.0))
+
+    def test_it_snaps_the_corner_and_not_the_centre(self):
+        """En Jam la altura depende de cuántos params tiene el verbo. Ajustando el CENTRO, dos nodos
+        de distinta altura quedarían con los bordes desalineados — justo lo que uno quiere arreglar."""
+        pos = layout.ajustar_a_grilla([nodo("bajo", 0, 0, h=40), nodo("alto", 0, 0, h=200)])
+        self.assertEqual(pos["bajo"][1], pos["alto"][1])
+
+    def test_snapping_twice_changes_nothing(self):
+        nodos = [nodo("a", 13, -5), nodo("b", 48, 100)]
+        una = layout.ajustar_a_grilla(nodos)
+        otra = layout.ajustar_a_grilla(
+            [{**n, "x": una[n["id"]][0], "y": una[n["id"]][1]} for n in nodos])
+        self.assertEqual(una, otra)
+
+    def test_a_step_of_zero_is_an_error_and_not_a_division_by_zero(self):
+        with self.assertRaises(ValueError):
+            layout.ajustar_a_grilla([nodo("a", 1, 1)], paso=0)
+
+
+class PasoDeLaGrillaEnElCppTests(unittest.TestCase):
+    """El paso vive dos veces: `layout.PASO_GRILLA` y la grilla que dibuja el `.cpp`.
+
+    Se ata como la regla del marquee. Ajustar a una grilla DISTINTA de la que se ve sería peor que
+    no ajustar nada: los nodos quedarían prolijamente alineados contra líneas invisibles.
+    """
+
+    def test_the_step_matches_the_grid_the_cpp_draws(self):
+        import re
+        from pathlib import Path
+
+        raiz = Path(__file__).resolve().parents[3]
+        cpp = (raiz / "Source" / "JamEditor" / "Private" / "SJamGraphEditor.cpp").read_text(
+            encoding="utf-8")
+        cuerpo = cpp.split("class SJamGridLayer")[1].split("\n};")[0]
+        pasos = {float(x) for x in re.findall(r"([\d.]+)f \* Zoom", cuerpo)}
+        self.assertEqual(pasos, {layout.PASO_GRILLA},
+                         "el paso del snap no es el de la grilla que se dibuja")
+
+
 class MarcoTests(unittest.TestCase):
     def test_the_aabb_covers_every_node(self):
         nodos = [nodo("a", 10, 20, w=100, h=50), nodo("b", 300, -40, w=100, h=50)]

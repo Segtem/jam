@@ -381,7 +381,13 @@ Ordenadas por lo que rinden, no por lo que cuestan:
    desde una fuente —con el más corto un nodo puede quedar a la izquierda de algo que lo alimenta,
    que es justo el cable para atrás que se quiere eliminar— y el orden dentro de la capa por
    baricentro, dos pasadas. Sin selección acomoda el grafo entero.
-6. **Snap a la grilla** — la grilla ya se dibuja (paso 24); falta que los nodos la usen.
+6. ✅ **Snap a la grilla** — la grilla ya se dibuja (paso 24); falta que los nodos la usen.
+   **Hecho el 2026-08-05** como `layout.ajustar_a_grilla`, una acción más del mismo puente que ya
+   usaban alinear, distribuir y el auto-layout: cero plomería nueva. Ajusta la ESQUINA y no el
+   centro —en Jam la altura depende de cuántos params tiene el verbo, y ajustar centros dejaría los
+   bordes desalineados, que es justo lo que uno quiere arreglar—. El paso vive dos veces (Python y
+   la grilla del `.cpp`) y los ata `PasoDeLaGrillaEnElCppTests`: ajustar a una grilla distinta de la
+   que se ve sería peor que no ajustar nada.
 
 ---
 

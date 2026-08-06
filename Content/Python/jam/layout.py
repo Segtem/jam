@@ -125,6 +125,11 @@ def marco_de(nodos: list[dict]) -> tuple[float, float, float, float]:
 
 #: Huecos del auto-layout, en unidades de MODELO. El horizontal es generoso porque entre columna y
 #: columna es donde viajan los cables: apretarlas hace que los splines se superpongan a los nodos.
+#: Paso de la grilla, en unidades de MODELO. Es el MISMO 24 que dibuja `SJamGridLayer` en el .cpp;
+#: los ata `PasoDeLaGrillaEnElCppTests`, porque ajustar a una grilla distinta de la que se ve sería
+#: peor que no ajustar nada.
+PASO_GRILLA = 24.0
+
 HUECO_X = 90.0
 HUECO_Y = 34.0
 
@@ -223,3 +228,23 @@ def auto(nodos: list[dict], aristas: list[tuple[str, str]]) -> dict[str, tuple[f
             y += _rect(por_id[k])[3] + HUECO_Y
         x += ancho + HUECO_X
     return pos
+
+
+def ajustar_a_grilla(nodos: list[dict], paso: float = PASO_GRILLA) -> dict[str, tuple[float, float]]:
+    """`{id: (x, y)}` con cada nodo llevado al cruce de grilla más cercano.
+
+    Ajusta la ESQUINA superior izquierda, que es el ancla con la que ya trabajan alinear, distribuir
+    y el auto-layout. Ajustar el centro haría que dos nodos de distinta altura —y en Jam la altura
+    depende de cuántos params tiene el verbo— terminaran con sus bordes desalineados, que es
+    justamente lo que uno quiere arreglar al ajustar a la grilla.
+
+    Es idempotente: ajustar dos veces da lo mismo. Y devuelve TODOS los nodos, también los que no se
+    movieron, para que el que aplica no tenga que adivinar cuáles cambiaron.
+    """
+    if paso <= 0.0:
+        raise ValueError("el paso de la grilla tiene que ser positivo")
+    salida: dict[str, tuple[float, float]] = {}
+    for n in nodos:
+        x, y, _w, _h = _rect(n)
+        salida[str(n["id"])] = (round(x / paso) * paso, round(y / paso) * paso)
+    return salida

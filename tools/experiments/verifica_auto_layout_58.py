@@ -49,10 +49,17 @@ try:
     suelto = json.loads(api.acomodar(json.dumps({"nodos": nodos, "edges": []}), "auto"))
     exigir(suelto.get("ok"), f"auto sin aristas falló: {suelto}")
 
+    # `snap` viaja por el MISMO puente y con la forma vieja del payload (no necesita aristas).
+    ajustado = json.loads(api.acomodar(json.dumps(nodos), "snap"))
+    exigir(ajustado.get("ok"), f"snap falló: {ajustado}")
+    for nid, (x, y) in ajustado["pos"].items():
+        exigir(x % 24 == 0 and y % 24 == 0,
+               f"«{nid}» quedó fuera de la grilla de 24: ({x}, {y})")
+
     unreal.log(
         "JAM_AUTO_LAYOUT_58 TODO VERDE — "
         f"auto={ {k: [round(v[0]), round(v[1])] for k, v in pos.items()} } · "
-        f"forma_vieja=ok · sin_aristas=ok")
+        f"forma_vieja=ok · sin_aristas=ok · snap={ {k: [int(v[0]), int(v[1])] for k, v in ajustado['pos'].items()} }")
 except Exception as exc:  # noqa: BLE001
     unreal.log_error(f"JAM_AUTO_LAYOUT_58 ROJO — {type(exc).__name__}: {exc}")
 finally:
