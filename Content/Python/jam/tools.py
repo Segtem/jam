@@ -2383,6 +2383,8 @@ def spec_json(*, include_graph_only: bool = False) -> str:
     Agregar una herramienta a REGISTRO la hace aparecer en su sección sin tocar C++."""
     import json
 
+    from .letras import letras_de_pines
+
     def tipo(v) -> str:
         # el TIPO viaja en el spec para que la UI use el control expresivo que corresponde
         # (checkbox para bool, spinner para números) en vez de un campo de texto para todo.
@@ -2399,6 +2401,9 @@ def spec_json(*, include_graph_only: bool = False) -> str:
         if info.get("graph_only") and not include_graph_only:
             continue
         opciones = info.get("opciones", {})
+        # Letra de cada pin para el modo compacto. Va en el spec —y no la calcula el C++— para que
+        # la regla viva UNA vez, en `jam.letras`, donde está testeada contra los 140 verbos.
+        letras = letras_de_pines(list(info["params"]))
         salida.append({
             "verbo": nombre,
             "label": info.get("label", nombre),
@@ -2416,6 +2421,7 @@ def spec_json(*, include_graph_only: bool = False) -> str:
                         "label": info.get("etiquetas_params", {}).get(k, k),
                         "default": str(v), "tipo": tipo(v),
                         "data_type": info.get("data_params", {}).get(k, ""),
+                        "letra": letras.get(k, "?"),
                         "opciones": opciones.get(k, [])}
                        for k, v in info["params"].items()],
         })

@@ -789,6 +789,7 @@ void FJamEditorModule::LoadSpec(bool bIncludeFlow)
 						P.Type = TEXT("str");
 					}
 					PO->TryGetStringField(TEXT("data_type"), P.DataType);
+					PO->TryGetStringField(TEXT("letra"), P.Letra);
 					const TArray<TSharedPtr<FJsonValue>>* Opts = nullptr;
 					if (PO->TryGetArrayField(TEXT("opciones"), Opts) && Opts)
 					{

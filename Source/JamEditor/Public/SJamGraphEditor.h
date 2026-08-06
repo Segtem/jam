@@ -130,6 +130,11 @@ private:
 		FString Verb;
 		FVector2D Pos = FVector2D::ZeroVector;
 		float Height = 34.0f;
+		/** Ancho REAL de este nodo: `NodeWidth`, o `NodeWidthCompacto` si está comprimido. Deja de
+		 *  ser una constante porque lo leen los cables, el marquee, el encuadre y el auto-layout —
+		 *  si alguno usara el valor fijo, un nodo comprimido tendría los cables colgando en el aire
+		 *  a 110 px de su borde. */
+		float Width = 184.0f;
 		/** Pines de entrada en ORDEN de fila (incluye «asset» si el verbo lo tiene): el índice acá es
 		 *  la fila donde se ancla el wire. */
 		TArray<FString> PinNames;
@@ -539,4 +544,11 @@ private:
 	TSharedPtr<class SWidget> WireLayer;
 
 	static constexpr float NodeWidth = 184.0f;   // pines(14) + params(104) + centro(~52) + pines(14)
+	/** Comprimido: pines(14) + letra(~22) + icono(24) + pines(14). Sin campos de valor ni etiquetas,
+	 *  como un componente colapsado de Grasshopper. El ALTO no cambia —sigue habiendo una fila por
+	 *  pin— así que el anclaje vertical de los cables queda intacto. */
+	static constexpr float NodeWidthCompacto = 82.0f;
+	static_assert(NodeWidthCompacto - 2 * 14.0f - 22.0f >= 28.0f,
+		"el centro comprimido tiene que dejar entrar el icono de 24 px con algo de aire: "
+		"NodeWidthCompacto - 2*PinColW - LetraColW");
 };

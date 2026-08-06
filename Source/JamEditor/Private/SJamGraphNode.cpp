@@ -4,6 +4,7 @@
 #include "Widgets/SNullWidget.h"
 #include "Widgets/SOverlay.h"
 #include "Widgets/Layout/SBox.h"
+#include "Widgets/Layout/SWidgetSwitcher.h"
 #include "Widgets/Layout/SSpacer.h"
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/Images/SImage.h"
@@ -83,6 +84,8 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 	OnBypassChangedDelegate = InArgs._OnBypassChanged;
 	OnThumbnailOpenDelegate = InArgs._OnThumbnailOpen;
 	OnPedirVariablesDelegate = InArgs._OnPedirVariables;
+	OnCompactoCambiadoDelegate = InArgs._OnCompactoCambiado;
+	bCompacto = InArgs._Compacto;
 	bCanBypass = InArgs._CanBypass;
 	IsSelectedAttr = InArgs._IsSelected;
 	RebuildBodyBrush();
@@ -479,10 +482,53 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 		];
 	}
 
+	// Columna COMPRIMIDA: una letra por fila, en el mismo lugar y con la misma altura que la fila
+	// de parámetro que reemplaza. Así los pines siguen alineados y los cables anclan igual.
+	TSharedRef<SVerticalBox> LetrasCol = SNew(SVerticalBox);
+	LetrasCol->AddSlot().AutoHeight()[ Spacer(PadTop) ];
+	LetrasCol->AddSlot().AutoHeight()[ Cell(HeaderH, SNew(SSpacer)) ];
+	auto FilaLetra = [&](const FString& Texto, const FString& Tip)
+	{
+		LetrasCol->AddSlot().AutoHeight()
+		[
+			Cell(RowH,
+				SNew(STextBlock)
+				.Text(FText::FromString(Texto))
+				.ToolTipText(FText::FromString(Tip))
+				.ColorAndOpacity(JamInk)
+				.Justification(ETextJustify::Center)
+				.Font(FCoreStyle::GetDefaultFontStyle("Bold", 8)))
+		];
+	};
+	for (const FJamNodeParam& P : InArgs._Params)
+	{
+		// El tooltip conserva el nombre COMPLETO: la letra ahorra espacio, no información.
+		FilaLetra(P.Letra.IsEmpty() ? P.Name.Left(1).ToUpper() : P.Letra,
+			P.Label.IsEmpty() ? P.Name : P.Label);
+	}
+	for (const FJamNodePin& P : InArgs._InputPins)
+	{
+		FilaLetra(P.Name.Left(1).ToUpper(), FString::Printf(TEXT("%s (%s)"), *P.Name, *P.TypeLabel));
+	}
+
+	// UN solo layout, y lo único que cambia es la columna del medio. Las columnas de NUBS quedan
+	// compartidas —un widget Slate no puede tener dos padres, y duplicar los pines habría dejado dos
+	// conjuntos que se desincronizan— así que comprimir no puede hacer que un pin deje de conectarse.
 	TSharedRef<SHorizontalBox> MainContent = SNew(SHorizontalBox)
 		+ SHorizontalBox::Slot().AutoWidth()[ SNew(SBox).WidthOverride(PinColW)[ LeftCol ] ]
-		+ SHorizontalBox::Slot().AutoWidth()[ SNew(SBox).WidthOverride(ParamColW)[ ParamCol ] ]
-		+ SHorizontalBox::Slot().FillWidth(1.0f)[ SNew(SSpacer) ]   // centro: nombre/icono (OnPaint)
+		+ SHorizontalBox::Slot().AutoWidth()
+		[
+			SNew(SBox)
+			.WidthOverride(TAttribute<FOptionalSize>::CreateLambda(
+				[this]() { return FOptionalSize(AnchoColumnaCentral()); }))
+			[
+				SNew(SWidgetSwitcher)
+				.WidgetIndex_Lambda([this]() { return bCompacto ? 1 : 0; })
+				+ SWidgetSwitcher::Slot()[ ParamCol ]
+				+ SWidgetSwitcher::Slot()[ LetrasCol ]
+			]
+		]
+		+ SHorizontalBox::Slot().FillWidth(1.0f)[ SNew(SSpacer) ]   // centro: icono (OnPaint)
 		+ SHorizontalBox::Slot().AutoWidth()[ SNew(SBox).WidthOverride(PinColW)[ RightCol ] ];
 
 	ChildSlot
@@ -513,6 +559,41 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 				})
 				.Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
 				.ColorAndOpacity_Lambda([this]() { return FSlateColor(StateColor()); })
+			]
+		]
+		// Comprimir: el nodo se reduce a una letra por pin y su icono. NO cambia el grafo, sólo
+		// cómo se lo ve — por eso es un botón de vista y no toca el historial de otra forma.
+		+ SOverlay::Slot()
+		.HAlign(HAlign_Right)
+		.VAlign(VAlign_Top)
+		.Padding(0.0f, 1.0f, 62.0f, 0.0f)
+		[
+			SNew(SBox).WidthOverride(18.0f).HeightOverride(16.0f)
+			[
+				SNew(SButton)
+				.ButtonStyle(&FAppStyle::Get(), "NoBorder")
+				.ToolTipText(LOCTEXT("CompactoFlag",
+					"comprimir el nodo: una letra por pin y el icono, sin campos"))
+				.ContentPadding(FMargin(0.0f))
+				.HAlign(HAlign_Center).VAlign(VAlign_Center)
+				.OnClicked_Lambda([this]()
+				{
+					SetCompacto(!bCompacto);
+					OnCompactoCambiadoDelegate.ExecuteIfBound();
+					return FReply::Handled();
+				})
+				[
+					SNew(STextBlock)
+					// Triángulos: cerrar/abrir. La FORMA cambia, no sólo el color — y los dos están
+					// en DroidSansFallback (ver `GlifosQueLaFuenteTieneTests`).
+					.Text_Lambda([this]() { return FText::FromString(bCompacto ? TEXT("▲") : TEXT("△")); })
+					.Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
+					.ColorAndOpacity_Lambda([this]()
+					{
+						return bCompacto ? FSlateColor(FLinearColor(0.30f, 0.62f, 0.42f))
+						                 : FSlateColor(JamInk.CopyWithNewOpacity(0.45f));
+					})
+				]
 			]
 		]
 		// Bypass: apaga el nodo sin sacarlo del grafo. Sólo aparece donde es LEGAL (mismo tipo de
@@ -629,7 +710,7 @@ FSlateRect SJamGraphNode::ThumbnailRect(const FVector2D& LocalSize) const
 	}
 	const float BodyH = FMath::Max(0.0f, (float)LocalSize.Y - TitleH - 1.0f);
 	const float BodyY = TitleH;
-	const float FreeLeft = PinColW + ParamColW;
+	const float FreeLeft = PinColW + AnchoColumnaCentral();
 	const float FreeRight = (float)LocalSize.X - PinColW;
 	const float Cx = (FreeLeft + FreeRight) * 0.5f;
 	// Se estira a lo que entre: los nodos de Jam no miden todos igual y un tamaño fijo se saldría
@@ -656,6 +737,18 @@ FReply SJamGraphNode::OnMouseButtonDoubleClick(const FGeometry& MyGeometry, cons
 		return FReply::Handled();
 	}
 	return FReply::Unhandled();
+}
+
+void SJamGraphNode::SetCompacto(bool bEnabled)
+{
+	if (bEnabled == bCompacto)
+	{
+		return;
+	}
+	bCompacto = bEnabled;
+	// El switcher y el ancho de la columna leen `bCompacto` por atributo, así que no hay que
+	// reconstruir nada: los campos de valor siguen VIVOS detrás, con lo que hubieras tipeado.
+	Invalidate(EInvalidateWidgetReason::LayoutAndVolatility);
 }
 
 void SJamGraphNode::SetBypassed(bool bEnabled)
@@ -805,7 +898,7 @@ int32 SJamGraphNode::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGe
 	// Pictograma central del verbo. Si falta el asset o el mapping, conserva el nombre vertical como
 	// fallback legible: un error al editar icon-map.json nunca deja un nodo anónimo.
 	{
-		const float FreeLeft = PinColW + ParamColW;
+		const float FreeLeft = PinColW + AnchoColumnaCentral();
 		const float FreeRight = Size.X - PinColW;
 		const float Cx = (FreeLeft + FreeRight) * 0.5f;
 		// Miniatura de lo que el nodo PRODUJO, como en Substance Designer: cuando existe, el nodo

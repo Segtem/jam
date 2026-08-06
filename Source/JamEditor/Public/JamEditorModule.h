@@ -33,6 +33,9 @@ struct FJamParam
 	FString Type;
 	/** Override del tipo de cable para parámetros que transportan datos ricos (ej. A[]). */
 	FString DataType;
+	/** Letra del pin para el modo COMPACTO (una o dos, ej. `X`, `SX`). La calcula `jam.letras` y
+	 *  viaja en el spec: la regla vive una sola vez, del lado que está testeado. */
+	FString Letra;
 	/** Si viene con valores, el param se dibuja como LISTA (anclas, modos…) y no como texto libre. */
 	TArray<TSharedPtr<FString>> Options;
 	/** Etiquetas humanas paralelas a Options. El valor persistido sigue siendo el de Options. */

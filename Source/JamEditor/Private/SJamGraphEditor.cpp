@@ -2110,6 +2110,15 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At,
 		.OnDragEnd_Lambda([this]() { Marcar(); })
 		.OnParamChanged_Lambda([this]() { Marcar(); })
 		.OnBypassChanged_Lambda([this]() { Marcar(); })
+		.OnCompactoCambiado_Lambda([this, Id]()
+		{
+			// El ancho es del EDITOR, no del widget: lo leen los cables, el marquee y el encuadre.
+			if (FGNode* N = FindNode(Id); N && N->Widget.IsValid())
+			{
+				N->Width = N->Widget->IsCompacto() ? NodeWidthCompacto : NodeWidth;
+			}
+			Marcar();
+		})
 		.OnThumbnailOpen_Lambda([this, Id]() { AbrirVisorFullRes(Id); })
 		.OnPedirVariables_Lambda([this]() { return VariablesDelGrafo(); })
 		.OnDeleteSelection_Lambda([this, Id]()
@@ -2130,7 +2139,11 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At,
 			const FGNode* N = Nodes.FindByPredicate([&Id](const FGNode& X) { return X.Id == Id; });
 			return N ? N->Pos + PanOffset : FVector2D::ZeroVector;   // el modelo no se mueve: se mueve la vista
 		}))
-		.Size(FVector2D(NodeWidth, Height))
+		.Size(TAttribute<FVector2D>::CreateLambda([this, Id]()
+		{
+			const FGNode* N = Nodes.FindByPredicate([&Id](const FGNode& X) { return X.Id == Id; });
+			return N ? FVector2D(N->Width, N->Height) : FVector2D(NodeWidth, 34.0f);
+		}))
 		[
 			Widget
 		];
@@ -2291,7 +2304,7 @@ void SJamGraphEditor::CreateCommentFromSelection()
 		if (!SelectedNodeIds.Contains(N.Id)) { continue; }
 		Min.X = FMath::Min(Min.X, N.Pos.X);
 		Min.Y = FMath::Min(Min.Y, N.Pos.Y);
-		Max.X = FMath::Max(Max.X, N.Pos.X + NodeWidth);
+		Max.X = FMath::Max(Max.X, N.Pos.X + N.Width);
 		Max.Y = FMath::Max(Max.Y, N.Pos.Y + N.Height);
 		++Contados;
 	}
@@ -2916,6 +2929,12 @@ bool SJamGraphEditor::PegarJson(const FString& Json, bool bDesplazar)
 			if (NO->TryGetBoolField(TEXT("debug"), bDebug)) { Node->Widget->SetDebugEnabled(bDebug); }
 			bool bBypass = false;
 			if (NO->TryGetBoolField(TEXT("bypass"), bBypass)) { Node->Widget->SetBypassed(bBypass); }
+			bool bComp = false;
+			if (NO->TryGetBoolField(TEXT("compact"), bComp))
+			{
+				Node->Widget->SetCompacto(bComp);
+				Node->Width = bComp ? NodeWidthCompacto : NodeWidth;
+			}
 		}
 	}
 	const TArray<TSharedPtr<FJsonValue>>* EdgesArr = nullptr;
@@ -3022,7 +3041,7 @@ void SJamGraphEditor::Encuadrar(bool bSoloSeleccion)
 		if (bRecorte && !SelectedNodeIds.Contains(N.Id)) { continue; }
 		Min.X = FMath::Min(Min.X, N.Pos.X);
 		Min.Y = FMath::Min(Min.Y, N.Pos.Y);
-		Max.X = FMath::Max(Max.X, N.Pos.X + NodeWidth);
+		Max.X = FMath::Max(Max.X, N.Pos.X + N.Width);
 		Max.Y = FMath::Max(Max.Y, N.Pos.Y + N.Height);
 		++Contados;
 	}
@@ -3188,7 +3207,7 @@ TArray<FString> SJamGraphEditor::NodeIdsTouchingRect(const FVector2D& Min, const
 	{
 		for (const FGNode& N : Nodes)
 		{
-			if (N.Pos.X < Max.X && N.Pos.X + NodeWidth > Min.X
+			if (N.Pos.X < Max.X && N.Pos.X + N.Width > Min.X
 				&& N.Pos.Y < Max.Y && N.Pos.Y + N.Height > Min.Y)
 			{
 				Out.Add(N.Id);
@@ -3230,7 +3249,7 @@ void SJamGraphEditor::AcomodarSeleccion(const FString& Accion)
 		if (!Entra(N.Id)) { continue; }
 		Filas.Add(FString::Printf(
 			TEXT("{\"id\":\"%s\",\"x\":%.3f,\"y\":%.3f,\"w\":%.3f,\"h\":%.3f}"),
-			*N.Id, N.Pos.X, N.Pos.Y, NodeWidth, N.Height));
+			*N.Id, N.Pos.X, N.Pos.Y, N.Width, N.Height));
 	}
 	if (Filas.Num() == 0)
 	{
@@ -3450,7 +3469,7 @@ bool SJamGraphEditor::AlternarViaEnCable(const FVector2D& EnCanvas)
 		const FGNode* NB = Nodes.FindByPredicate([&E](const FGNode& N) { return N.Id == E.To; });
 		if (NA == nullptr || NB == nullptr) { continue; }
 		TArray<FVector2D> Puntos;
-		Puntos.Add(FVector2D(NA->Pos.X + NodeWidth - Half,
+		Puntos.Add(FVector2D(NA->Pos.X + NA->Width - Half,
 			NA->Pos.Y + SJamGraphNode::PinLocalY(OutputPinIndex(E.From, E.FromPin))));
 		Puntos.Append(E.Vias);
 		Puntos.Add(FVector2D(NB->Pos.X + Half,
@@ -3710,7 +3729,7 @@ TArray<SJamGraphEditor::FJamWire> SJamGraphEditor::GetWireEndpoints() const
 			// encadenadas. La capa de cables no cambia — y de yapa dibuja su punto en cada vía,
 			// que es exactamente cómo se ve un reroute.
 			TArray<FVector2D> Puntos;
-			Puntos.Add((FVector2D(A->Pos.X + NodeWidth - Half, A->Pos.Y + AY) + PanOffset) * Zoom);
+			Puntos.Add((FVector2D(A->Pos.X + A->Width - Half, A->Pos.Y + AY) + PanOffset) * Zoom);
 			for (const FVector2D& Via : E.Vias)
 			{
 				Puntos.Add((Via + PanOffset) * Zoom);
@@ -3743,7 +3762,7 @@ bool SJamGraphEditor::GetPendingWire(FVector2D& OutFrom, FVector2D& OutTo, FLine
 	}
 	const float Half = SJamGraphNode::PinColW * 0.5f;
 	const float AY = SJamGraphNode::PinLocalY(OutputPinIndex(PendingSource, PendingSourcePin));
-	OutFrom = (FVector2D(A->Pos.X + NodeWidth - Half, A->Pos.Y + AY) + PanOffset) * Zoom;
+	OutFrom = (FVector2D(A->Pos.X + A->Width - Half, A->Pos.Y + AY) + PanOffset) * Zoom;
 	OutTo = LastMousePos;
 	OutColor = WireColorFor(PendingSource, PendingSourcePin);
 	return true;
@@ -3784,6 +3803,12 @@ FString SJamGraphEditor::BuildJson(const TSet<FString>* Solo, const TSet<FString
 		if (N.Widget.IsValid() && N.Widget->IsBypassed())
 		{
 			J->SetBoolField(TEXT("bypass"), true);
+		}
+		// Comprimido: es estado de VISTA, pero viaja igual — reabrir un diagrama y encontrarlo todo
+		// expandido sería perder el orden que uno le dio.
+		if (N.Widget.IsValid() && N.Widget->IsCompacto())
+		{
+			J->SetBoolField(TEXT("compact"), true);
 		}
 		NodesObj->SetObjectField(N.Id, J);
 	}
@@ -4549,6 +4574,7 @@ bool SJamGraphEditor::LoadGraphJson(const FString& Json, bool bConservarEdicionF
 		TMap<FString, FString> Params;
 		bool bDebug = false;
 		bool bBypass = false;
+		bool bCompacto = false;
 	};
 	struct FLoadedEdge
 	{
@@ -4596,6 +4622,7 @@ bool SJamGraphEditor::LoadGraphJson(const FString& Json, bool bConservarEdicionF
 		NO->TryGetBoolField(TEXT("debug"), Loaded.bDebug);
 		// Opcional igual que `debug`: un .jamgraph anterior al bypass carga con el flag apagado.
 		NO->TryGetBoolField(TEXT("bypass"), Loaded.bBypass);
+		NO->TryGetBoolField(TEXT("compact"), Loaded.bCompacto);
 		const TSharedPtr<FJsonObject>* ParamsObj = nullptr;
 		if (NO->HasField(TEXT("params"))
 			&& (!NO->TryGetObjectField(TEXT("params"), ParamsObj) || ParamsObj == nullptr))
@@ -4804,6 +4831,8 @@ bool SJamGraphEditor::LoadGraphJson(const FString& Json, bool bConservarEdicionF
 				Node->Widget->SetDebugEnabled(Loaded.bDebug);
 				// `SetBypassed` ignora el flag si el verbo no lo admite (ver SJamGraphNode).
 				Node->Widget->SetBypassed(Loaded.bBypass);
+				Node->Widget->SetCompacto(Loaded.bCompacto);
+				Node->Width = Loaded.bCompacto ? NodeWidthCompacto : NodeWidth;
 			}
 		}
 		for (const FLoadedEdge& Loaded : LoadedEdges)

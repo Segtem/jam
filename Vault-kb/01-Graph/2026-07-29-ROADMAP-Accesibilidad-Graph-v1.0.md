@@ -351,6 +351,28 @@ No es un extra: es la regla que ya rige el proyecto, extendida al resto del canv
 > `test_paleta.py`, que **lee `DataColor` del `.cpp`** para no copiar la paleta a mano. El test de
 > contraste se escribe igual y no se puede desincronizar.
 
+### Fase 7.2 — Vista comprimida del nodo (2026-08-06)
+
+El componente colapsado de Grasshopper: **una letra por pin y el icono al medio**, sin campos ni
+etiquetas. Un botón junto a bypass/debug lo alterna, y el estado viaja en el `.jamgraph` — reabrir
+un diagrama y encontrarlo todo expandido sería perder el orden que uno le dio.
+
+- **La letra sale de `jam.letras`**, pura y testeada contra los 140 verbos reales: ninguno puede
+  tener dos pines con la misma letra, porque comprimido la letra es lo ÚNICO que se ve. El sufijo de
+  eje gana sobre la inicial (`size_x` → `X`), y un segundo grupo de ejes usa inicial+eje (`SX`).
+  Viaja en el spec para que el C++ sólo la dibuje.
+- **El ancho pasó a ser POR NODO** (`FGNode::Width`). Era una constante que leen también los cables,
+  el marquee, el encuadre, el auto-layout y las cajas de comentario: dejar uno sin migrar habría
+  dejado los cables colgando a 110 px del borde de un nodo comprimido.
+- **El alto NO cambia**: sigue habiendo una fila por pin, así que `PinLocalY` y el anclaje vertical
+  de los cables quedaron intactos. Ése fue el hallazgo que hizo el cambio barato.
+- **Un solo layout**, con un `SWidgetSwitcher` sólo en la columna del medio. Las columnas de nubs
+  quedan compartidas: un widget Slate no puede tener dos padres, y duplicar los pines habría dejado
+  dos conjuntos desincronizados. Comprimir no puede hacer que un pin deje de conectarse, y los
+  campos siguen vivos detrás con lo que hubieras tipeado.
+
+---
+
 ### Fase 7 — Comodidades del canvas
 
 Ordenadas por lo que rinden, no por lo que cuestan:

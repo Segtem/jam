@@ -19,6 +19,8 @@ struct FJamNodeParam
 	TArray<FString> Options;  // dominio cerrado (enum) → dropdown en vez de texto libre
 	TArray<FString> OptionLabels; // presentación humana; Options conserva el valor serializado
 	FString DataType;         // tipo del cable esperado: N/N[]/T/B/A/A[]/AF/H/S/F/P/M
+	/** Letra del pin en modo compacto (`X`, `SX`…). Viene del spec, la calcula `jam.letras`. */
+	FString Letra;
 	FLinearColor PinColor = FLinearColor(0.28f, 0.30f, 0.34f, 1.0f);
 	/** Nombre del PIN, cuando no es el de la etiqueta. La fila `asset` de un verbo que recibe un
 	    asset por su entrada principal se llama «asset» —que es lo que hay que leer— pero SU PIN es
@@ -122,6 +124,10 @@ public:
 		SLATE_EVENT(FSimpleDelegate, OnThumbnailOpen)
 		/** Qué variables hay en el grafo AHORA. Sólo lo usa el campo `expr`. */
 		SLATE_EVENT(FOnPedirVariables, OnPedirVariables)
+		/** Nace comprimido (al cargar un diagrama que lo tenía así). */
+		SLATE_ARGUMENT(bool, Compacto)
+		/** Se comprimió o se expandió: el editor ajusta el ANCHO del nodo y registra el paso. */
+		SLATE_EVENT(FSimpleDelegate, OnCompactoCambiado)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);
@@ -144,6 +150,8 @@ public:
 	static constexpr float PadBottom = 6.0f;
 	static constexpr float PinColW = 14.0f;    // ancho de las columnas de pines (izq/der)
 	static constexpr float ParamColW = 104.0f; // ancho de la columna de params (nombre+valor)
+	/** Comprimido: sólo entra la LETRA del pin, sin etiqueta ni campo de valor. */
+	static constexpr float LetraColW = 22.0f;
 	/** Y local del pin: índice de parámetro (0..n-1) o -1 para el header (stream «in» / salida «out»). */
 	static float PinLocalY(int32 ParamIndex)
 	{
@@ -224,6 +232,7 @@ private:
 	FSimpleDelegate OnBypassChangedDelegate;
 	FSimpleDelegate OnThumbnailOpenDelegate;
 	FOnPedirVariables OnPedirVariablesDelegate;
+	FSimpleDelegate OnCompactoCambiadoDelegate;
 	/** El arrastre movió el nodo de verdad (y no fue un clic con el pulso). */
 	bool bMovioAlgo = false;
 	/** Lo lee `OnPaint` para pintar el halo; la fuente es el `TSet` del editor. */
@@ -248,6 +257,14 @@ public:
 	 *  la usan tanto `OnPaint` para dibujarla como el doble clic para saber si le pegaste. Con dos
 	 *  copias, mover una dejaría el área clickeable corrida respecto de lo que se ve. */
 	FSlateRect ThumbnailRect(const FVector2D& LocalSize) const;
+	/** Ancho de la columna del medio según el modo. Lo usan el icono y la miniatura para saber
+	 *  dónde empieza la zona libre: con el valor fijo, comprimido los dibujaría fuera del nodo. */
+	float AnchoColumnaCentral() const { return bCompacto ? LetraColW : ParamColW; }
+
+	/** Vista comprimida: una letra por pin y el icono al medio, sin campos ni etiquetas — el
+	 *  componente colapsado de Grasshopper. NO cambia el grafo, sólo cómo se lo ve. */
+	bool IsCompacto() const { return bCompacto; }
+	void SetCompacto(bool bEnabled);
 
 	bool IsBypassed() const { return bBypassed; }
 	void SetBypassed(bool bEnabled);
@@ -255,6 +272,7 @@ public:
 
 private:
 	bool bDebugEnabled = false;
+	bool bCompacto = false;
 	bool bBypassed = false;
 	bool bCanBypass = false;
 	// Por cada param: cómo LEER su valor y cómo FIJARLO, sin que el resto del nodo sepa si el widget es
