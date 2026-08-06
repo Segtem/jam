@@ -69,6 +69,8 @@ public:
 		SLATE_EVENT(FOnRunGraph, OnPreview2DTodos)
 		/** Variables del grafo para el desplegable de `math`: recibe el JSON, devuelve `{ok, variables}`. */
 		SLATE_EVENT(FOnRunGraph, OnGraphVariables)
+		/** Qué cable hay bajo un punto: lo calcula `jam.layout`, puro y testeado. */
+		SLATE_EVENT(FOnRunGraph, OnCableBajoPunto)
 		/** Alinear/distribuir: lo resuelve `jam.layout`. */
 		SLATE_EVENT(FOnLayout, OnLayout)
 		SLATE_EVENT(FOnCollapseFunction, OnCollapseFunction)
@@ -144,6 +146,11 @@ private:
 		FString FromPin;   // siempre «out» por ahora
 		FString To;
 		FString ToPin;     // «in» (stream) o el nombre de un parámetro
+		/** Puntos de paso (reroute), en espacio MODELO. Son PURAMENTE visuales: el grafo que se
+		 *  compila y se corre es exactamente el mismo con o sin ellos. Por eso no viajan dentro de
+		 *  la arista —una arista de 5 elementos la descarta en silencio `JamGraph.from_json`— sino
+		 *  en una clave propia del JSON (ver `BuildJson`). */
+		TArray<FVector2D> Vias;
 	};
 
 	/** Una caja de comentario/grupo (Fase 7.1): la comment box de Blueprint, el network box de
@@ -306,6 +313,13 @@ private:
 	/** Suelta la conexión a medias (el cable-fantasma). Devuelve si había una: quien llama decide
 	 *  qué hacer cuando NO la había — `Esc` limpia la selección, el botón derecho panea. */
 	bool CancelarConexion();
+
+	// ---- reroute: puntos de paso sobre un cable ----
+	/** Inserta un punto de paso donde se hizo doble clic, o SACA el que ya estaba ahí. Devuelve si
+	 *  tocó algo — quien llama decide qué hacer si no (abrir el buscador). */
+	bool AlternarViaEnCable(const FVector2D& EnCanvas);
+	/** Índice de (arista, vía) bajo un punto del canvas; false si no hay ninguna. */
+	bool ViaBajoElCursor(const FVector2D& EnCanvas, int32& OutArista, int32& OutVia) const;
 	/** Recomputa, por cada nodo, qué pines de parámetro tienen cable entrando y se lo dice a su widget
 	 *  (para que grisee esos inputs). Se llama tras cualquier cambio de aristas. */
 	void RefreshCabledPins();
@@ -411,6 +425,12 @@ private:
 	FOnPreview2D OnPreview2D;
 	FOnRunGraph OnPreview2DTodos;
 	FOnRunGraph OnGraphVariables;
+	/** Hit-test de cables: recibe los tramos, devuelve cuál está bajo el punto. Lo resuelve
+	 *  `jam.layout.cable_mas_cercano`, que reproduce la misma curva que se dibuja. */
+	FOnRunGraph OnCableBajoPunto;
+	/** Arrastre de un punto de paso: (arista, vía) o -1. No se persiste. */
+	int32 ArrastrandoAristaVia = -1;
+	int32 ArrastrandoVia = -1;
 	/** Un brush por nodo con miniatura. Vive acá y no en el nodo porque soltar la textura es
 	 *  responsabilidad de quien la creó, y porque un nodo puede morir mientras su brush sigue en el
 	 *  caché de Slate. */

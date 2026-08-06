@@ -138,6 +138,8 @@ private:
 	FString PreviewGraphThumbnails(const FString& Unused);
 	/** Variables del grafo para el desplegable de `math`: `{ok, variables:[...]}`. */
 	FString GraphVariables(const FString& Json);
+	/** Hit-test de cables para el reroute: lo resuelve `jam.layout.cable_mas_cercano`. */
+	FString CableBajoPunto(const FString& Payload);
 	/** Alinear/distribuir la selección del Graph: las cuentas las hace `jam.layout` (puro). */
 	FString LayoutGraphNodes(const FString& NodesJson, const FString& Action);
 	/** Fija o descarta únicamente el Preview propiedad de la ventana Graph. */

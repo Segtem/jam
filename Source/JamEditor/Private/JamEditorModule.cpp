@@ -420,6 +420,7 @@ TSharedRef<SDockTab> FJamEditorModule::SpawnGraphTab(const FSpawnTabArgs& /*Args
 		.OnPreview2D_Raw(this, &FJamEditorModule::PreviewGraphNode2D)
 		.OnPreview2DTodos_Raw(this, &FJamEditorModule::PreviewGraphThumbnails)
 		.OnGraphVariables_Raw(this, &FJamEditorModule::GraphVariables)
+		.OnCableBajoPunto_Raw(this, &FJamEditorModule::CableBajoPunto)
 		.OnLayout_Raw(this, &FJamEditorModule::LayoutGraphNodes)
 		.OnCollapseFunction_Raw(this, &FJamEditorModule::CollapseGraphFunction)
 		.OnFunctionManage_Raw(this, &FJamEditorModule::ManageGraphFunction)
@@ -586,6 +587,13 @@ FString FJamEditorModule::GraphVariables(const FString& Json)
 {
 	const FString Stmt = FString::Printf(
 		TEXT("import jam.api as _a; print(_a.variables(%s))"), *ToPyStr(Json));
+	return ExecPythonCapture(Stmt);
+}
+
+FString FJamEditorModule::CableBajoPunto(const FString& Payload)
+{
+	const FString Stmt = FString::Printf(
+		TEXT("import jam.api as _a; print(_a.cable_bajo_punto(%s))"), *ToPyStr(Payload));
 	return ExecPythonCapture(Stmt);
 }
 

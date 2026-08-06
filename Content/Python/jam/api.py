@@ -558,6 +558,30 @@ def variables(graph_json: str = "") -> str:
     return json.dumps({"ok": True, "variables": nombres}, ensure_ascii=True)
 
 
+def cable_bajo_punto(payload_json: str) -> str:
+    """Qué cable hay bajo un punto: `{cable, x, y, t, distancia}` o `{}` si no hay ninguno.
+
+    Alimenta el reroute: el `.cpp` manda `{x, y, cables:[{id, ax, ay, bx, by}]}` en coordenadas de
+    MODELO y recibe el tramo tocado más el punto SOBRE la curva donde insertar la vía.
+
+    Las cuentas viven en `jam.layout` —que reproduce la misma curva que se dibuja— y no en Slate,
+    por lo mismo que alinear y distribuir: así se pueden verificar sin abrir el editor.
+    """
+    import json
+
+    from . import layout
+
+    try:
+        d = json.loads(payload_json) or {}
+        m = layout.cable_mas_cercano(
+            float(d.get("x", 0.0)), float(d.get("y", 0.0)), d.get("cables") or [])
+    except (ValueError, TypeError, KeyError, json.JSONDecodeError):
+        return "{}"
+    # Un objeto vacío y no un error: «no había cable ahí» es el caso normal de un doble clic en el
+    # fondo, y el editor lo usa para decidir que abre el buscador.
+    return json.dumps(m or {}, ensure_ascii=True)
+
+
 def acomodar(nodos_json: str, accion: str) -> str:
     """Alinear/distribuir la selección del canvas. JSON `{ok, pos: {id: [x, y]}}`.
 

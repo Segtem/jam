@@ -559,6 +559,7 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 	OnPreview2D = InArgs._OnPreview2D;
 	OnPreview2DTodos = InArgs._OnPreview2DTodos;
 	OnGraphVariables = InArgs._OnGraphVariables;
+	OnCableBajoPunto = InArgs._OnCableBajoPunto;
 	OnLayout = InArgs._OnLayout;
 	OnCollapseFunction = InArgs._OnCollapseFunction;
 	OnFunctionManage = InArgs._OnFunctionManage;
@@ -3399,6 +3400,101 @@ bool SJamGraphEditor::CanConnect(const FString& From, const FString& FromPin, co
 	return true;
 }
 
+bool SJamGraphEditor::ViaBajoElCursor(const FVector2D& EnCanvas, int32& OutArista, int32& OutVia) const
+{
+	// El mismo radio de agarre que usa el hit-test del cable, para que sacar un punto y ponerlo
+	// respondan igual de generosos.
+	const float Agarre = 14.0f * Zoom;
+	for (int32 a = 0; a < Edges.Num(); ++a)
+	{
+		for (int32 v = 0; v < Edges[a].Vias.Num(); ++v)
+		{
+			const FVector2D EnPantalla = (Edges[a].Vias[v] + PanOffset) * Zoom;
+			if (FVector2D::Distance(EnPantalla, EnCanvas) <= Agarre)
+			{
+				OutArista = a;
+				OutVia = v;
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+bool SJamGraphEditor::AlternarViaEnCable(const FVector2D& EnCanvas)
+{
+	// Doble clic SOBRE un punto que ya está: lo saca. Es el mismo gesto que lo puso, que es lo que
+	// uno prueba primero para deshacerlo.
+	int32 Arista = -1, Via = -1;
+	if (ViaBajoElCursor(EnCanvas, Arista, Via))
+	{
+		Edges[Arista].Vias.RemoveAt(Via);
+		if (WireLayer.IsValid()) { WireLayer->Invalidate(EInvalidateWidgetReason::Paint); }
+		Marcar();
+		return true;
+	}
+	if (!OnCableBajoPunto.IsBound())
+	{
+		return false;
+	}
+
+	// Los tramos en coordenadas de MODELO, con «arista:segmento» como id. Se manda por tramo y no
+	// por arista para saber ENTRE QUÉ DOS puntos insertar cuando el cable ya tiene vías.
+	const FVector2D Modelo = LocalToModel(EnCanvas);
+	const float Half = SJamGraphNode::PinColW * 0.5f;
+	TArray<FString> Tramos;
+	for (int32 a = 0; a < Edges.Num(); ++a)
+	{
+		const FGEdge& E = Edges[a];
+		const FGNode* NA = Nodes.FindByPredicate([&E](const FGNode& N) { return N.Id == E.From; });
+		const FGNode* NB = Nodes.FindByPredicate([&E](const FGNode& N) { return N.Id == E.To; });
+		if (NA == nullptr || NB == nullptr) { continue; }
+		TArray<FVector2D> Puntos;
+		Puntos.Add(FVector2D(NA->Pos.X + NodeWidth - Half,
+			NA->Pos.Y + SJamGraphNode::PinLocalY(OutputPinIndex(E.From, E.FromPin))));
+		Puntos.Append(E.Vias);
+		Puntos.Add(FVector2D(NB->Pos.X + Half,
+			NB->Pos.Y + SJamGraphNode::PinLocalY(PinIndex(E.To, E.ToPin))));
+		for (int32 i = 0; i + 1 < Puntos.Num(); ++i)
+		{
+			Tramos.Add(FString::Printf(
+				TEXT("{\"id\":\"%d:%d\",\"ax\":%.3f,\"ay\":%.3f,\"bx\":%.3f,\"by\":%.3f}"),
+				a, i, Puntos[i].X, Puntos[i].Y, Puntos[i + 1].X, Puntos[i + 1].Y));
+		}
+	}
+	if (Tramos.Num() == 0)
+	{
+		return false;
+	}
+
+	const FString Json = FString::Printf(
+		TEXT("{\"x\":%.3f,\"y\":%.3f,\"cables\":[%s]}"),
+		Modelo.X, Modelo.Y, *FString::Join(Tramos, TEXT(",")));
+	TSharedPtr<FJsonObject> Root;
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(OnCableBajoPunto.Execute(Json));
+	FString Cable;
+	double PX = 0.0, PY = 0.0;
+	if (!FJsonSerializer::Deserialize(Reader, Root) || !Root.IsValid()
+		|| !Root->TryGetStringField(TEXT("cable"), Cable)
+		|| !Root->TryGetNumberField(TEXT("x"), PX) || !Root->TryGetNumberField(TEXT("y"), PY))
+	{
+		return false;   // no había cable bajo el cursor: que el doble clic siga su camino
+	}
+	FString AristaTxt, SegmentoTxt;
+	if (!Cable.Split(TEXT(":"), &AristaTxt, &SegmentoTxt)) { return false; }
+	const int32 IdxArista = FCString::Atoi(*AristaTxt);
+	const int32 IdxSegmento = FCString::Atoi(*SegmentoTxt);
+	if (!Edges.IsValidIndex(IdxArista)) { return false; }
+
+	// El punto llega SOBRE la curva (lo devuelve `jam.layout`), no donde se hizo clic: si naciera
+	// en el cursor, el cable pegaría un salto al insertarlo.
+	Edges[IdxArista].Vias.Insert(FVector2D(PX, PY),
+		FMath::Clamp(IdxSegmento, 0, Edges[IdxArista].Vias.Num()));
+	if (WireLayer.IsValid()) { WireLayer->Invalidate(EInvalidateWidgetReason::Paint); }
+	Marcar();
+	return true;
+}
+
 bool SJamGraphEditor::CancelarConexion()
 {
 	if (PendingSource.IsEmpty())
@@ -3610,11 +3706,25 @@ TArray<SJamGraphEditor::FJamWire> SJamGraphEditor::GetWireEndpoints() const
 			// índice de parámetro), como los grips por parámetro de Grasshopper.
 			const float AY = SJamGraphNode::PinLocalY(OutputPinIndex(E.From, E.FromPin));
 			const float BY = SJamGraphNode::PinLocalY(PinIndex(E.To, E.ToPin));
-			FJamWire W;
-			W.A = (FVector2D(A->Pos.X + NodeWidth - Half, A->Pos.Y + AY) + PanOffset) * Zoom;
-			W.B = (FVector2D(B->Pos.X + Half, B->Pos.Y + BY) + PanOffset) * Zoom;
-			W.Color = WireColorFor(E.From, E.FromPin);   // color = tipo del dato que SALE del origen
-			Out.Add(W);
+			// Un TRAMO por segmento: con puntos de paso, el cable pasa a ser varias curvas
+			// encadenadas. La capa de cables no cambia — y de yapa dibuja su punto en cada vía,
+			// que es exactamente cómo se ve un reroute.
+			TArray<FVector2D> Puntos;
+			Puntos.Add((FVector2D(A->Pos.X + NodeWidth - Half, A->Pos.Y + AY) + PanOffset) * Zoom);
+			for (const FVector2D& Via : E.Vias)
+			{
+				Puntos.Add((Via + PanOffset) * Zoom);
+			}
+			Puntos.Add((FVector2D(B->Pos.X + Half, B->Pos.Y + BY) + PanOffset) * Zoom);
+			const FLinearColor Color = WireColorFor(E.From, E.FromPin);   // tipo del dato que SALE
+			for (int32 i = 0; i + 1 < Puntos.Num(); ++i)
+			{
+				FJamWire W;
+				W.A = Puntos[i];
+				W.B = Puntos[i + 1];
+				W.Color = Color;
+				Out.Add(W);
+			}
 		}
 	}
 	return Out;
@@ -3695,6 +3805,35 @@ FString SJamGraphEditor::BuildJson(const TSet<FString>* Solo, const TSet<FString
 		EdgesArr.Add(MakeShared<FJsonValueArray>(Quad));
 	}
 	Root->SetArrayField(TEXT("edges"), EdgesArr);
+
+	// Puntos de paso: clave PROPIA y no dentro de la arista, porque `JamGraph.from_json` acepta
+	// aristas de 2 o 4 elementos y descartaría en silencio una de 5. Como clave, el índice de la
+	// arista dentro de "edges" — el mismo orden que se acaba de escribir.
+	TSharedRef<FJsonObject> ViasObj = MakeShared<FJsonObject>();
+	{
+		int32 Indice = 0;
+		for (const FGEdge& E : Edges)
+		{
+			if (Solo != nullptr && (!Solo->Contains(E.From) || !Solo->Contains(E.To)))
+			{
+				continue;   // no viajó la arista: tampoco sus vías
+			}
+			if (E.Vias.Num() > 0)
+			{
+				TArray<TSharedPtr<FJsonValue>> Puntos;
+				for (const FVector2D& V : E.Vias)
+				{
+					TArray<TSharedPtr<FJsonValue>> XY;
+					XY.Add(MakeShared<FJsonValueNumber>(V.X));
+					XY.Add(MakeShared<FJsonValueNumber>(V.Y));
+					Puntos.Add(MakeShared<FJsonValueArray>(XY));
+				}
+				ViasObj->SetArrayField(FString::FromInt(Indice), Puntos);
+			}
+			++Indice;
+		}
+	}
+	Root->SetObjectField(TEXT("reroutes"), ViasObj);
 
 	// Cajas de comentario/grupo (Fase 7.1): mismo shape que "nodes", campo opcional — un .jamgraph
 	// viejo sin esta clave carga igual (ver LoadGraphJson).
@@ -3889,6 +4028,12 @@ FReply SJamGraphEditor::OnMouseButtonDoubleClick(const FGeometry& MyGeometry, co
 		const FVector2D AtCanvas = WireLayer.IsValid()
 			? WireLayer->GetCachedGeometry().AbsoluteToLocal(MouseEvent.GetScreenSpacePosition())
 			: MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition());
+		// Primero el cable: doble clic sobre uno inserta (o saca) un punto de paso. Sólo si no
+		// había cable ahí se abre el buscador, que es el gesto del canvas VACÍO.
+		if (AlternarViaEnCable(AtCanvas))
+		{
+			return FReply::Handled();
+		}
 		OpenSearch(AtCanvas);
 		return FReply::Handled();
 	}
@@ -3956,6 +4101,14 @@ FReply SJamGraphEditor::OnMouseButtonDown(const FGeometry& MyGeometry, const FPo
 			const FGeometry& Lienzo = WireLayer->GetCachedGeometry();
 			const FVector2D Local = Lienzo.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition());
 			const FVector2D Tam = Lienzo.GetLocalSize();
+			// Un punto de paso bajo el cursor se arrastra ÉL, no abre un marquee: es lo único
+			// agarrable que vive en el fondo del canvas, así que va antes en la cadena.
+			if (ViaBajoElCursor(Local, ArrastrandoAristaVia, ArrastrandoVia))
+			{
+				return FReply::Handled()
+					.CaptureMouse(SharedThis(this))
+					.SetUserFocus(SharedThis(this), EFocusCause::Mouse);
+			}
 			// Sólo dentro del lienzo: un clic en el menú o en el ribbon no puede abrir un marquee.
 			if (Local.X >= 0.0f && Local.Y >= 0.0f && Local.X <= Tam.X && Local.Y <= Tam.Y)
 			{
@@ -4081,6 +4234,19 @@ FReply SJamGraphEditor::OnMouseMove(const FGeometry& MyGeometry, const FPointerE
 		// hay una conexión en curso: repintar la capa de wires para que el cable siga al mouse.
 		WireLayer->Invalidate(EInvalidateWidgetReason::Paint);
 	}
+	if (ArrastrandoAristaVia >= 0 && HasMouseCapture() && WireLayer.IsValid())
+	{
+		const FVector2D Local = WireLayer->GetCachedGeometry().AbsoluteToLocal(
+			MouseEvent.GetScreenSpacePosition());
+		if (Edges.IsValidIndex(ArrastrandoAristaVia)
+			&& Edges[ArrastrandoAristaVia].Vias.IsValidIndex(ArrastrandoVia))
+		{
+			// En vivo y sin Marcar(): un arrastre es UN paso, y se registra al soltar.
+			Edges[ArrastrandoAristaVia].Vias[ArrastrandoVia] = LocalToModel(Local);
+			WireLayer->Invalidate(EInvalidateWidgetReason::Paint);
+		}
+		return FReply::Handled();
+	}
 	if (bMarquee && HasMouseCapture() && WireLayer.IsValid())
 	{
 		MarqueeB = LocalToModel(
@@ -4106,6 +4272,13 @@ FReply SJamGraphEditor::OnMouseButtonUp(const FGeometry& MyGeometry, const FPoin
 		|| MouseEvent.GetEffectingButton() == EKeys::MiddleMouseButton))
 	{
 		bPanning = false;
+		return FReply::Handled().ReleaseMouseCapture();
+	}
+	if (ArrastrandoAristaVia >= 0 && MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
+	{
+		ArrastrandoAristaVia = -1;
+		ArrastrandoVia = -1;
+		Marcar();   // el arrastre entero es un paso, como el de un nodo
 		return FReply::Handled().ReleaseMouseCapture();
 	}
 	if (bMarquee && MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
@@ -4636,6 +4809,32 @@ bool SJamGraphEditor::LoadGraphJson(const FString& Json, bool bConservarEdicionF
 		for (const FLoadedEdge& Loaded : LoadedEdges)
 		{
 			Edges.Add(FGEdge{IdMap[Loaded.From], Loaded.FromPin, IdMap[Loaded.To], Loaded.ToPin});
+		}
+		// Puntos de paso: OPCIONALES, con el índice de la arista como clave. Un .jamgraph anterior
+		// al reroute no los trae, y una entrada mal formada se ignora — son decoración, no pueden
+		// impedir que el grafo cargue.
+		const TSharedPtr<FJsonObject>* ViasObj = nullptr;
+		if (Root->TryGetObjectField(TEXT("reroutes"), ViasObj) && ViasObj != nullptr)
+		{
+			for (const TPair<FString, TSharedPtr<FJsonValue>> KV : (*ViasObj)->Values)
+			{
+				const int32 Indice = FCString::Atoi(*KV.Key);
+				const TArray<TSharedPtr<FJsonValue>>* Puntos = nullptr;
+				if (!Edges.IsValidIndex(Indice) || !KV.Value.IsValid()
+					|| !KV.Value->TryGetArray(Puntos) || Puntos == nullptr)
+				{
+					continue;
+				}
+				for (const TSharedPtr<FJsonValue>& PV : *Puntos)
+				{
+					const TArray<TSharedPtr<FJsonValue>>* XY = nullptr;
+					if (PV.IsValid() && PV->TryGetArray(XY) && XY != nullptr && XY->Num() == 2)
+					{
+						Edges[Indice].Vias.Add(
+							FVector2D((*XY)[0]->AsNumber(), (*XY)[1]->AsNumber()));
+					}
+				}
+			}
 		}
 		RefreshCabledPins();   // reflejar en los inputs los cables recién cargados
 		for (const FLoadedComment& Loaded : LoadedComments)

@@ -370,8 +370,18 @@ Ordenadas por lo que rinden, no por lo que cuestan:
    `.cpp`, atadas por un test que lee el `.cpp` y las compara verbo por verbo sobre el catálogo real.
 3. **Alinear y distribuir** — `Q`/`W`/`E`/`R` como en Blueprint. Detalle en
    [[2026-07-29-INFORME-Seleccion-Multiple-Alineacion-Nodos-v2.0\|Selección múltiple y alineación]].
-4. **Reroute** — doble clic sobre un cable inserta un punto de paso. Grafo largo = cables que cruzan
-   todo.
+4. ✅ **Reroute** — doble clic sobre un cable inserta un punto de paso. Grafo largo = cables que
+   cruzan todo. **Hecho el 2026-08-06.** Doble clic sobre el punto lo saca; se arrastra como
+   cualquier cosa del canvas y el arrastre entero es un paso de historial.
+
+   Tres decisiones que lo hicieron barato:
+   - **`GetWireEndpoints` emite un TRAMO por segmento**, así que la capa de cables no cambió nada —
+     y de yapa dibuja su punto en cada vía, que es exactamente cómo se ve un reroute.
+   - **Las vías van en una clave propia del JSON (`reroutes`), no dentro de la arista**:
+     `JamGraph.from_json` acepta aristas de 2 o 4 elementos y **descartaría en silencio** una de 5.
+   - **El hit-test vive en `jam.layout`** (`cable_mas_cercano`), que reproduce la misma curva que se
+     dibuja y devuelve el punto SOBRE ella — si la vía naciera en el cursor, el cable pegaría un
+     salto al insertarla.
 5. ✅ **Auto-layout** (`L`) — ordenar el grafo por capas topológicas. `graph.topo_order()` ya existe: el
    layout es *puro*, se calcula en Python y el C++ sólo aplica posiciones.
    **Hecho el 2026-08-05** como `jam.layout.auto`. Reusa entero el puente que ya tenían alinear y
