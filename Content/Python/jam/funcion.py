@@ -186,6 +186,10 @@ def herramientas(cuerpos: dict[str, JamGraph] | None = None) -> list[dict]:
              {"nombre": "type", "default": "*", "tipo": "str", "data_type": "T",
               "opciones": TIPOS_PIN,
               "etiquetas_opciones": [ETIQUETAS_TIPOS_PIN[t] for t in TIPOS_PIN]},
+             # Lo que convierte esta entrada en PERILLA. Vacío = pin que hay que cablear; con un
+             # valor = control editable en la ficha de la herramienta (y cableable igual).
+             {"nombre": "default", "label": "valor por defecto (vacío = pin)", "default": "",
+              "tipo": "str", "data_type": "T", "opciones": []},
          ]},
         {"verbo": "output", "cat": "Funciones", "seccion": "Funciones", "grupo": "Firma",
          "doc": "salida nombrada del cuerpo de una función", "source": False, "aridad": 1,

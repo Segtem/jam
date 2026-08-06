@@ -720,5 +720,22 @@ class PerillasExpuestasTests(unittest.TestCase):
         self.assertNotIn("count", expandido.nodes["inst__s"].get("params", {}))
 
 
+    def test_the_input_card_has_a_field_to_declare_the_default(self):
+        """Sin este campo la perilla existiría en el modelo y sería INALCANZABLE desde el editor:
+        no habría forma de declararla sin editar el JSON a mano."""
+        ficha = [h for h in funcion.herramientas({}) if h["verbo"] == "input"][0]
+        params = {p["nombre"] for p in ficha["params"]}
+        self.assertIn("default", params)
+
+    def test_an_empty_default_field_still_means_a_pin(self):
+        """El campo nace vacío, así que una función existente no se convierte en perillas sola."""
+        c = JamGraph()
+        c.add("input", {"name": "e", "type": "P", "default": ""}, nid="i")
+        c.add("output", {"name": "o", "type": "P"}, nid="o")
+        h = funcion.herramienta("f", "T", c)
+        self.assertEqual([p["name"] for p in h["inputs"]], ["e"])
+        self.assertEqual(h["params"], [])
+
+
 if __name__ == "__main__":
     unittest.main()
