@@ -198,6 +198,24 @@ humano. `Python Data Processor` queda como escape interno controlado, no como no
   `vegetation_foliage`, `vegetation_mesh`, `vegetation_skeleton_extract`,
   `vegetation_trunk_material` y `vegetation_export`.
 
+> [!warning] Sondeado el 2026-08-06 — **PVE no se puede automatizar desde Python en 5.8.1**
+> Leído del propio plugin (`Engine/Plugins/Experimental/ProceduralVegetationEditor`):
+> **93 `UCLASS(BlueprintType)` y CERO `UFUNCTION(BlueprintCallable)`.** El plugin entero tiene 6
+> `UFUNCTION`, y cinco son botones `CallInEditor` del panel de detalles («Clear Removals», «Clear
+> Transformations», dos marcados `DevelopmentOnly`). Ninguna genera vegetación.
+>
+> O sea: Python **ve** los tipos —son reflejados— pero **no hay ninguna función que llamar**. No es
+> que falte una factory como en Mesh Terrain: no hay superficie de API en absoluto.
+>
+> Además `UProceduralVegetationPreset` está marcado `[DEPRECATED]` en el motor, y el plugin depende
+> de **Dataflow**, que según la tabla de trampas de `AGENTS.md` **cuelga headless**.
+>
+> **Decisión: no se integra a Jam.** PVE se usa a mano desde su editor GUI y Jam consume las mallas
+> que salgan como cualquier otro asset — cosa que **ya funciona hoy**, sin escribir una línea. Los
+> verbos `vegetation_*` de la lista de abajo quedan fuera de alcance mientras esto no cambie.
+>
+> Lo que la lista sí conserva su sentido: PVE como **fuente de assets**, no como algo que Jam maneje.
+
 PVE sigue experimental y será dependencia opcional. El código local de 5.8.1 ya marca
 `PVPresetLoaderSettings` como deprecado: los presets de Jam guardarán intención/perfil, nunca el
 nombre de esa clase interna. PVE no reemplaza TreeGen; entra primero como otra fuente de assets.
