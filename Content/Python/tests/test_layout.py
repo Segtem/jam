@@ -319,6 +319,69 @@ class PasoDeLaGrillaEnElCppTests(unittest.TestCase):
                          "el paso del snap no es el de la grilla que se dibuja")
 
 
+class AgarrarUnCableTests(unittest.TestCase):
+    """Qué cable hay bajo el cursor: lo que necesita el reroute para saber dónde insertar el punto.
+
+    Reproduce la MISMA curva que dibuja `SJamWireLayer` —un Hermite con tangentes horizontales— en
+    vez de la recta entre las puntas. Con la recta, agarrar un cable por la panza fallaría justo
+    donde se lo está viendo.
+    """
+
+    def cable(self, ax, ay, bx, by, i="e1"):
+        return [{"id": i, "ax": ax, "ay": ay, "bx": bx, "by": by}]
+
+    def test_a_point_on_the_wire_grabs_it(self):
+        m = layout.cable_mas_cercano(100, 0, self.cable(0, 0, 200, 0))
+        self.assertIsNotNone(m)
+        self.assertEqual(m["cable"], "e1")
+
+    def test_a_point_far_away_grabs_nothing(self):
+        self.assertIsNone(layout.cable_mas_cercano(100, 500, self.cable(0, 0, 200, 0)))
+
+    def test_the_returned_point_is_on_the_curve_and_not_where_you_clicked(self):
+        """El punto de paso tiene que nacer PEGADO al cable: si naciera donde hiciste clic, el cable
+        pegaría un salto al insertarlo."""
+        m = layout.cable_mas_cercano(100, 6, self.cable(0, 0, 200, 0))
+        self.assertIsNotNone(m)
+        self.assertAlmostEqual(m["y"], 0.0, places=6)
+
+    def apartamiento(self, ax, ay, bx, by) -> float:
+        """Cuánto se aparta la curva de la recta entre sus puntas, en x."""
+        return max(
+            abs(layout._punto_del_cable(ax, ay, bx, by, i / 40)[0]
+                - (ax + (bx - ax) * (i / 40)))
+            for i in range(41))
+
+    def test_a_backwards_wire_bulges_far_off_the_straight_line(self):
+        """Acá es donde muestrear la curva se paga: en un cable que va HACIA ATRÁS (el destino a la
+        izquierda del origen) la panza se aparta mucho más que el radio de agarre, así que un
+        hit-test contra la recta fallaría justo donde se ve el cable.
+
+        Y es el caso que importa: los cables hacia atrás son los de un grafo desordenado, que es
+        exactamente cuando uno quiere insertar un punto de paso.
+        """
+        self.assertGreater(self.apartamiento(0, 0, -150, 120), layout.AGARRE_CABLE)
+
+    def test_a_forward_wire_barely_bulges(self):
+        """Documentado a propósito: hacia adelante la curva casi no se aparta. Muestrear no es lo
+        que salva ese caso —una recta alcanzaría— y conviene que quede escrito para que nadie
+        justifique el muestreo con el caso equivocado."""
+        self.assertLess(self.apartamiento(0, 0, 200, 0), layout.AGARRE_CABLE)
+
+    def test_with_two_wires_the_closest_one_wins(self):
+        """El que gana tiene que ser el que se ve arriba, no el primero de la lista."""
+        cables = self.cable(0, 0, 200, 0, "lejos") + self.cable(0, 40, 200, 40, "cerca")
+        m = layout.cable_mas_cercano(100, 38, cables)
+        self.assertEqual(m["cable"], "cerca")
+
+    def test_no_wires_is_not_a_crash(self):
+        self.assertIsNone(layout.cable_mas_cercano(0, 0, []))
+
+    def test_a_grab_radius_of_zero_is_an_error(self):
+        with self.assertRaises(ValueError):
+            layout.cable_mas_cercano(0, 0, self.cable(0, 0, 1, 1), agarre=0)
+
+
 class MarcoTests(unittest.TestCase):
     def test_the_aabb_covers_every_node(self):
         nodos = [nodo("a", 10, 20, w=100, h=50), nodo("b", 300, -40, w=100, h=50)]

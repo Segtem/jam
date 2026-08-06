@@ -248,3 +248,54 @@ def ajustar_a_grilla(nodos: list[dict], paso: float = PASO_GRILLA) -> dict[str, 
         x, y, _w, _h = _rect(n)
         salida[str(n["id"])] = (round(x / paso) * paso, round(y / paso) * paso)
     return salida
+
+
+#: Radio de agarre de un cable, en unidades de MODELO. Generoso a propósito: un cable dibujado mide
+#: 2,6 px de grueso y pedir precisión de píxel para agarrarlo lo volvería inusable.
+AGARRE_CABLE = 14.0
+
+
+def _punto_del_cable(ax: float, ay: float, bx: float, by: float, t: float) -> tuple[float, float]:
+    """Un punto del cable en `t ∈ [0,1]`.
+
+    Es la MISMA curva que dibuja `SJamWireLayer`: un Hermite cúbico con tangentes horizontales de
+    largo `max(50, |bx-ax| * 0.6)`. Reproducirla importa — si el hit-test usara la recta entre las
+    puntas, agarrar un cable por la panza fallaría justo donde se lo ve.
+    """
+    dx = max(50.0, abs(bx - ax) * 0.6)
+    t2, t3 = t * t, t * t * t
+    h00 = 2 * t3 - 3 * t2 + 1
+    h10 = t3 - 2 * t2 + t
+    h01 = -2 * t3 + 3 * t2
+    h11 = t3 - t2
+    return (h00 * ax + h10 * dx + h01 * bx + h11 * dx,
+            h00 * ay + h01 * by)
+
+
+def cable_mas_cercano(x: float, y: float, cables: list[dict], *,
+                      agarre: float = AGARRE_CABLE, muestras: int = 32) -> dict | None:
+    """El cable bajo el punto `(x, y)`, o `None` si no hay ninguno cerca.
+
+    Devuelve `{"cable", "x", "y", "t", "distancia"}` — el punto devuelto está SOBRE la curva, no
+    donde se hizo clic, para que un punto de paso nazca pegado al cable y no saltando.
+
+    Un cable es `{"id", "ax", "ay", "bx", "by"}` en coordenadas de MODELO. Se muestrea la curva
+    porque la distancia exacta de un punto a un cúbico no tiene forma cerrada simple, y para agarrar
+    un cable con el mouse 32 muestras sobran: el error máximo queda muy por debajo del radio de
+    agarre.
+
+    Con varios cables encimados gana el MÁS CERCANO, que es el que se ve arriba.
+    """
+    if agarre <= 0.0:
+        raise ValueError("el radio de agarre tiene que ser positivo")
+    mejor = None
+    for c in cables:
+        ax, ay = float(c["ax"]), float(c["ay"])
+        bx, by = float(c["bx"]), float(c["by"])
+        for i in range(muestras + 1):
+            t = i / muestras
+            px, py = _punto_del_cable(ax, ay, bx, by, t)
+            d = ((px - x) ** 2 + (py - y) ** 2) ** 0.5
+            if d <= agarre and (mejor is None or d < mejor["distancia"]):
+                mejor = {"cable": str(c["id"]), "x": px, "y": py, "t": t, "distancia": d}
+    return mejor
