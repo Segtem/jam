@@ -323,6 +323,13 @@ private:
 	/** Inserta un punto de paso donde se hizo doble clic, o SACA el que ya estaba ahí. Devuelve si
 	 *  tocó algo — quien llama decide qué hacer si no (abrir el buscador). */
 	bool AlternarViaEnCable(const FVector2D& EnCanvas);
+	/** Qué cable hay bajo un punto del canvas: arista, segmento y el punto SOBRE la curva. Lo
+	 *  resuelve `jam.layout`; lo comparten la vía y el nodo reroute. */
+	bool CableBajoPunto(const FVector2D& EnCanvas, int32& OutArista, int32& OutSegmento,
+		FVector2D& OutPuntoModelo) const;
+	/** Ctrl+doble clic: parte el cable e inserta un NODO reroute del tipo que lleva ese cable. El
+	 *  verbo se busca en el registro, no en una tabla escrita a mano. */
+	bool InsertarRerouteEnCable(const FVector2D& EnCanvas);
 	/** Índice de (arista, vía) bajo un punto del canvas; false si no hay ninguna. */
 	bool ViaBajoElCursor(const FVector2D& EnCanvas, int32& OutArista, int32& OutVia) const;
 	/** Recomputa, por cada nodo, qué pines de parámetro tienen cable entrando y se lo dice a su widget

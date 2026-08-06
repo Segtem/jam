@@ -3440,25 +3440,15 @@ bool SJamGraphEditor::ViaBajoElCursor(const FVector2D& EnCanvas, int32& OutArist
 	return false;
 }
 
-bool SJamGraphEditor::AlternarViaEnCable(const FVector2D& EnCanvas)
+bool SJamGraphEditor::CableBajoPunto(const FVector2D& EnCanvas, int32& OutArista,
+	int32& OutSegmento, FVector2D& OutPuntoModelo) const
 {
-	// Doble clic SOBRE un punto que ya está: lo saca. Es el mismo gesto que lo puso, que es lo que
-	// uno prueba primero para deshacerlo.
-	int32 Arista = -1, Via = -1;
-	if (ViaBajoElCursor(EnCanvas, Arista, Via))
-	{
-		Edges[Arista].Vias.RemoveAt(Via);
-		if (WireLayer.IsValid()) { WireLayer->Invalidate(EInvalidateWidgetReason::Paint); }
-		Marcar();
-		return true;
-	}
 	if (!OnCableBajoPunto.IsBound())
 	{
 		return false;
 	}
-
 	// Los tramos en coordenadas de MODELO, con «arista:segmento» como id. Se manda por tramo y no
-	// por arista para saber ENTRE QUÉ DOS puntos insertar cuando el cable ya tiene vías.
+	// por arista para saber ENTRE QUÉ DOS puntos cae el clic cuando el cable ya tiene vías.
 	const FVector2D Modelo = LocalToModel(EnCanvas);
 	const float Half = SJamGraphNode::PinColW * 0.5f;
 	TArray<FString> Tramos;
@@ -3497,18 +3487,92 @@ bool SJamGraphEditor::AlternarViaEnCable(const FVector2D& EnCanvas)
 		|| !Root->TryGetStringField(TEXT("cable"), Cable)
 		|| !Root->TryGetNumberField(TEXT("x"), PX) || !Root->TryGetNumberField(TEXT("y"), PY))
 	{
-		return false;   // no había cable bajo el cursor: que el doble clic siga su camino
+		return false;   // no había cable bajo el cursor
 	}
 	FString AristaTxt, SegmentoTxt;
 	if (!Cable.Split(TEXT(":"), &AristaTxt, &SegmentoTxt)) { return false; }
-	const int32 IdxArista = FCString::Atoi(*AristaTxt);
-	const int32 IdxSegmento = FCString::Atoi(*SegmentoTxt);
-	if (!Edges.IsValidIndex(IdxArista)) { return false; }
+	OutArista = FCString::Atoi(*AristaTxt);
+	OutSegmento = FCString::Atoi(*SegmentoTxt);
+	// El punto llega SOBRE la curva (lo devuelve `jam.layout`), no donde se hizo clic.
+	OutPuntoModelo = FVector2D(PX, PY);
+	return Edges.IsValidIndex(OutArista);
+}
 
-	// El punto llega SOBRE la curva (lo devuelve `jam.layout`), no donde se hizo clic: si naciera
-	// en el cursor, el cable pegaría un salto al insertarlo.
-	Edges[IdxArista].Vias.Insert(FVector2D(PX, PY),
-		FMath::Clamp(IdxSegmento, 0, Edges[IdxArista].Vias.Num()));
+bool SJamGraphEditor::AlternarViaEnCable(const FVector2D& EnCanvas)
+{
+	// Doble clic SOBRE un punto que ya está: lo saca. Es el mismo gesto que lo puso, que es lo que
+	// uno prueba primero para deshacerlo.
+	int32 Arista = -1, Via = -1;
+	if (ViaBajoElCursor(EnCanvas, Arista, Via))
+	{
+		Edges[Arista].Vias.RemoveAt(Via);
+		if (WireLayer.IsValid()) { WireLayer->Invalidate(EInvalidateWidgetReason::Paint); }
+		Marcar();
+		return true;
+	}
+	int32 Segmento = -1;
+	FVector2D Punto = FVector2D::ZeroVector;
+	if (!CableBajoPunto(EnCanvas, Arista, Segmento, Punto))
+	{
+		return false;   // que el doble clic siga su camino y abra el buscador
+	}
+	Edges[Arista].Vias.Insert(Punto, FMath::Clamp(Segmento, 0, Edges[Arista].Vias.Num()));
+	if (WireLayer.IsValid()) { WireLayer->Invalidate(EInvalidateWidgetReason::Paint); }
+	Marcar();
+	return true;
+}
+
+bool SJamGraphEditor::InsertarRerouteEnCable(const FVector2D& EnCanvas)
+{
+	int32 Arista = -1, Segmento = -1;
+	FVector2D Punto = FVector2D::ZeroVector;
+	if (!CableBajoPunto(EnCanvas, Arista, Segmento, Punto))
+	{
+		return false;
+	}
+	const FGEdge Original = Edges[Arista];
+
+	// El verbo sale del REGISTRO y no de una tabla a mano: se busca el `reroute_*` cuya entrada sea
+	// del tipo que lleva este cable. Sumar `reroute_points` mañana lo hace funcionar solo.
+	const FString Tipo = OutputDataTypeFor(Original.From, Original.FromPin);
+	const FJamTool* Verbo = Tools.FindByPredicate([&Tipo](const FJamTool& T)
+	{
+		return T.Verb.StartsWith(TEXT("reroute_")) && T.InName == Tipo;
+	});
+	if (Verbo == nullptr)
+	{
+		if (Output.IsValid())
+		{
+			Output->SetText(FText::FromString(FString::Printf(
+				TEXT("no hay un reroute para cables de tipo %s."), *DataName(Tipo))));
+		}
+		return false;
+	}
+
+	// Centrado en el punto del cable: nace donde estaba el cable, no corrido media pantalla.
+	const FVector2D At = Punto - FVector2D(NodeWidth * 0.5f, SJamGraphNode::PinLocalY(-1));
+	FString NuevoId;
+	{
+		// Crear el nodo y recablear son UN paso: deshacerlo tiene que devolver el cable entero,
+		// no dejar un reroute suelto con el cable ya cortado.
+		TGuardValue<bool> Callado(bSinHistorial, true);
+		NuevoId = AddNode(Verbo->Verb, &At);
+		if (!NuevoId.IsEmpty())
+		{
+			Edges.RemoveAt(Arista);
+			Edges.Add(FGEdge{Original.From, Original.FromPin, NuevoId, TEXT("in")});
+			// Las vías que tenía el cable se quedan en el tramo de ABAJO: el reroute ya cumple el
+			// papel de las de arriba, y conservarlas todas dejaría el cable con dos codos seguidos.
+			FGEdge Segunda{NuevoId, TEXT("out"), Original.To, Original.ToPin};
+			Segunda.Vias = Original.Vias;
+			Edges.Add(Segunda);
+			RefreshCabledPins();
+		}
+	}
+	if (NuevoId.IsEmpty())
+	{
+		return false;
+	}
 	if (WireLayer.IsValid()) { WireLayer->Invalidate(EInvalidateWidgetReason::Paint); }
 	Marcar();
 	return true;
@@ -4053,9 +4117,17 @@ FReply SJamGraphEditor::OnMouseButtonDoubleClick(const FGeometry& MyGeometry, co
 		const FVector2D AtCanvas = WireLayer.IsValid()
 			? WireLayer->GetCachedGeometry().AbsoluteToLocal(MouseEvent.GetScreenSpacePosition())
 			: MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition());
-		// Primero el cable: doble clic sobre uno inserta (o saca) un punto de paso. Sólo si no
-		// había cable ahí se abre el buscador, que es el gesto del canvas VACÍO.
-		if (AlternarViaEnCable(AtCanvas))
+		// Primero el cable. Con Ctrl, un NODO reroute (se selecciona, se mueve con el grupo,
+		// sobrevive a copiar/pegar); sin Ctrl, una vía, que es más liviana. Sólo si no había cable
+		// ahí se abre el buscador, que es el gesto del canvas VACÍO.
+		if (MouseEvent.IsControlDown())
+		{
+			if (InsertarRerouteEnCable(AtCanvas))
+			{
+				return FReply::Handled();
+			}
+		}
+		else if (AlternarViaEnCable(AtCanvas))
 		{
 			return FReply::Handled();
 		}
