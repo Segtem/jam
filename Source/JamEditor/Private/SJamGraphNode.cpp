@@ -543,7 +543,15 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 					SNew(STextBlock)
 					// La FORMA cambia, no sólo el color: es la regla de accesibilidad del roadmap
 					// —ningún estado se distingue únicamente por color— y acá sale gratis.
-					.Text_Lambda([this]() { return FText::FromString(bBypassed ? TEXT("⊘") : TEXT("⏻")); })
+					//
+					// CUADRADOS y no círculos: el botón de al lado (debug) usa ◉/○, y dos pares de
+					// círculos serían dos botones idénticos a un metro de distancia. Lleno = el
+					// flag está PRENDIDO, igual que en debug.
+					//
+					// Los glifos salen de DroidSansFallback, que es la fuente de respaldo que Slate
+					// sí tiene en la cadena. El par anterior (⏻/⊘) no lo cubría NINGUNA fuente del
+					// motor y se dibujaba como el rombo con «?» de LastResort.
+					.Text_Lambda([this]() { return FText::FromString(bBypassed ? TEXT("■") : TEXT("□")); })
 					.Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
 					.ColorAndOpacity_Lambda([this]()
 					{
@@ -858,7 +866,9 @@ FString SJamGraphNode::StateGlyph() const
 	// volvería a ser el único canal para separarlos y no habríamos ganado nada.
 	// Son los mismos que `jam.graph` ya emite en el texto del reporte.
 	if (ResultState == TEXT("ok"))    { return TEXT("✓"); }
-	if (ResultState == TEXT("aviso")) { return TEXT("⚠"); }
+	// Triángulo y no ⚠: el de advertencia sólo lo cubre la fuente de EMOJI, así que salía a color
+	// o como rombo vacío. Éste está en DroidSansFallback, que es la que Slate tiene en la cadena.
+	if (ResultState == TEXT("aviso")) { return TEXT("▲"); }
 	if (ResultState == TEXT("warn"))  { return TEXT("✗"); }   // el oráculo dice REVISAR
 	if (ResultState == TEXT("error")) { return TEXT("!"); }   // reventó: no hay resultado
 	return FString();   // todavía no corrió: no hay veredicto que mostrar

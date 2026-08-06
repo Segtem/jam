@@ -243,6 +243,49 @@ def _relleno_del_estado(estado: str) -> tuple:
     return tuple(float(x) for x in m.groups())
 
 
+class GlifosQueLaFuenteTieneTests(unittest.TestCase):
+    """Un glifo que ninguna fuente cubre se dibuja como un rombo con «?».
+
+    Pasó de verdad: el botón de bypass usaba `⏻` (U+23FB) y **ninguna** fuente del motor lo tiene,
+    ni siquiera las de respaldo. El botón funcionaba y no se entendía qué era.
+
+    Roboto —la fuente base de Slate— no trae NINGUNO de estos símbolos; los que se ven salen de
+    `DroidSansFallback`, que es la de respaldo que Slate tiene en la cadena. Por eso la lista de
+    permitidos es «lo que cubre DroidSansFallback», verificado a mano contra el .ttf del motor.
+
+    El test no lee el .ttf: la ruta del motor no existe en cualquier máquina y la suite tiene que
+    correr headless en cualquier lado. Lo que hace es obligar a que agregar un glifo nuevo sea una
+    decisión CONSCIENTE — si no está en la lista, hay que verificarlo y sumarlo acá.
+    """
+
+    #: Verificados contra `Engine/Content/Slate/Fonts/DroidSansFallback.ttf` (UE 5.8.1).
+    PERMITIDOS = set("○◉■□▲△●◯⊗⊙✓✗✕‼◐")
+
+    def glifos_del_nodo(self) -> set:
+        import re
+
+        texto = NODO_CPP.read_text(encoding="utf-8")
+        usados = set()
+        for literal in re.findall(r'TEXT\("([^"]*)"\)', texto):
+            # Desde U+2190 (flechas) para arriba: los bloques de SÍMBOLOS. Debajo de ahí está la
+            # puntuación general —la raya «—», las comillas angulares— que es tipografía de los
+            # textos en castellano, está en Roboto y no es el problema.
+            usados |= {c for c in literal if 0x2190 <= ord(c) <= 0x2BFF}
+        return usados
+
+    def test_every_symbol_the_node_draws_has_a_font(self):
+        fuera = sorted(self.glifos_del_nodo() - self.PERMITIDOS)
+        self.assertEqual(
+            fuera, [],
+            "estos símbolos no están verificados contra DroidSansFallback y pueden salir como «?»: "
+            + " ".join(f"{c} (U+{ord(c):04X})" for c in fuera))
+
+    def test_the_allowlist_is_not_empty(self):
+        """Si el regex dejara de encontrar literales, el test anterior pasaría sin mirar nada."""
+        self.assertGreater(len(self.glifos_del_nodo()), 3,
+                           "no se encontraron los glifos del nodo: ¿cambió la forma de los literales?")
+
+
 class ContrasteDelNodoTests(unittest.TestCase):
     """El texto del nodo tiene que LEERSE, no sólo estar.
 
