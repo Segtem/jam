@@ -323,6 +323,35 @@ class ContrasteDelNodoTests(unittest.TestCase):
         self.assertIsNotNone(m, "no encontré JamInk en el C++")
         self.assertEqual(tuple(float(x) for x in m.groups()), self.TINTA)
 
+    def colores_de_los_botones(self) -> dict:
+        """Los colores «prendido» de los tres botones de vista, leídos del `.cpp`."""
+        import re
+
+        texto = NODO_CPP.read_text(encoding="utf-8")
+        salida = {}
+        for bandera, nombre in (("bCompacto", "comprimir"), ("bBypassed", "bypass"),
+                                ("bDebugEnabled", "debug")):
+            m = re.search(
+                r"return " + bandera + r" \? FSlateColor\(FLinearColor\("
+                r"([\d.]+)f, ([\d.]+)f, ([\d.]+)f", texto)
+            if m:
+                salida[nombre] = tuple(float(x) for x in m.groups())
+        return salida
+
+    def test_the_view_buttons_can_be_read_on_the_node(self):
+        """Los tres botones de arriba a la derecha se dibujan sobre el cuerpo del nodo.
+
+        Fallaron en producción: verde 1.39:1, azul 1.40:1, naranja 1.15:1 — o sea invisibles, que
+        fue exactamente el reporte. Eran tonos CLAROS sobre un cuerpo claro.
+        """
+        colores = self.colores_de_los_botones()
+        self.assertEqual(len(colores), 3, "no pude leer los tres botones del .cpp")
+        for nombre, color in colores.items():
+            with self.subTest(boton=nombre):
+                self.assertGreaterEqual(
+                    contraste(color, (0.76, 0.77, 0.78)), self.MINIMO_AA,
+                    f"el botón «{nombre}» prendido no se lee sobre el cuerpo del nodo")
+
     def test_the_neutral_body_can_be_read_too(self):
         """El caso normal, que es el que más se mira."""
         self.assertGreaterEqual(contraste(self.TINTA, (0.76, 0.77, 0.78)), self.MINIMO_AA)

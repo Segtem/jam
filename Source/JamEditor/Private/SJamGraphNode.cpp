@@ -557,18 +557,23 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 					if (ResultState == TEXT("error")) { return LOCTEXT("VeredictoError", "reventó: no hay resultado"); }
 					return LOCTEXT("VeredictoNada", "todavía no corrió");
 				})
-				.Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
+				.Font(FCoreStyle::GetDefaultFontStyle("Bold", 12))
 				.ColorAndOpacity_Lambda([this]() { return FSlateColor(StateColor()); })
 			]
 		]
+		// Los tres botones de vista comparten criterio de color: PRENDIDO su tono, APAGADO la
+		// tinta del nodo — y los dos a opacidad plena. Antes el apagado iba al 45% y el prendido
+		// usaba tonos claros; medidos contra el cuerpo daban entre 1.15:1 y 1.40:1, o sea
+		// invisibles. Los tonos de ahora son oscuros y pasan WCAG AA (ver `ContrasteDelNodoTests`).
+		// Desvanecer el apagado no hacía falta: la forma ya es hueca contra llena.
 		// Comprimir: el nodo se reduce a una letra por pin y su icono. NO cambia el grafo, sólo
 		// cómo se lo ve — por eso es un botón de vista y no toca el historial de otra forma.
 		+ SOverlay::Slot()
 		.HAlign(HAlign_Right)
 		.VAlign(VAlign_Top)
-		.Padding(0.0f, 1.0f, 62.0f, 0.0f)
+		.Padding(0.0f, 1.0f, 68.0f, 0.0f)
 		[
-			SNew(SBox).WidthOverride(18.0f).HeightOverride(16.0f)
+			SNew(SBox).WidthOverride(20.0f).HeightOverride(18.0f)
 			[
 				SNew(SButton)
 				.ButtonStyle(&FAppStyle::Get(), "NoBorder")
@@ -587,11 +592,11 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 					// Triángulos: cerrar/abrir. La FORMA cambia, no sólo el color — y los dos están
 					// en DroidSansFallback (ver `GlifosQueLaFuenteTieneTests`).
 					.Text_Lambda([this]() { return FText::FromString(bCompacto ? TEXT("▲") : TEXT("△")); })
-					.Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
+					.Font(FCoreStyle::GetDefaultFontStyle("Bold", 12))
 					.ColorAndOpacity_Lambda([this]()
 					{
-						return bCompacto ? FSlateColor(FLinearColor(0.30f, 0.62f, 0.42f))
-						                 : FSlateColor(JamInk.CopyWithNewOpacity(0.45f));
+						return bCompacto ? FSlateColor(FLinearColor(0.03f, 0.16f, 0.07f))
+						                 : FSlateColor(JamInk);
 					})
 				]
 			]
@@ -602,9 +607,9 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 		+ SOverlay::Slot()
 		.HAlign(HAlign_Right)
 		.VAlign(VAlign_Top)
-		.Padding(0.0f, 1.0f, 42.0f, 0.0f)
+		.Padding(0.0f, 1.0f, 46.0f, 0.0f)
 		[
-			SNew(SBox).WidthOverride(18.0f).HeightOverride(16.0f)
+			SNew(SBox).WidthOverride(20.0f).HeightOverride(18.0f)
 			.Visibility(bCanBypass ? EVisibility::Visible : EVisibility::Collapsed)
 			[
 				SNew(SButton)
@@ -633,11 +638,11 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 					// sí tiene en la cadena. El par anterior (⏻/⊘) no lo cubría NINGUNA fuente del
 					// motor y se dibujaba como el rombo con «?» de LastResort.
 					.Text_Lambda([this]() { return FText::FromString(bBypassed ? TEXT("■") : TEXT("□")); })
-					.Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
+					.Font(FCoreStyle::GetDefaultFontStyle("Bold", 12))
 					.ColorAndOpacity_Lambda([this]()
 					{
-						return bBypassed ? FSlateColor(FLinearColor(0.35f, 0.55f, 0.95f))
-						                 : FSlateColor(JamInk.CopyWithNewOpacity(0.45f));
+						return bBypassed ? FSlateColor(FLinearColor(0.04f, 0.10f, 0.34f))
+						                 : FSlateColor(JamInk);
 					})
 				]
 			]
@@ -647,9 +652,9 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 		+ SOverlay::Slot()
 		.HAlign(HAlign_Right)
 		.VAlign(VAlign_Top)
-		.Padding(0.0f, 1.0f, 22.0f, 0.0f)
+		.Padding(0.0f, 1.0f, 24.0f, 0.0f)
 		[
-			SNew(SBox).WidthOverride(18.0f).HeightOverride(16.0f)
+			SNew(SBox).WidthOverride(20.0f).HeightOverride(18.0f)
 			[
 				SNew(SButton)
 				.ButtonStyle(&FAppStyle::Get(), "NoBorder")
@@ -665,11 +670,11 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 				[
 					SNew(STextBlock)
 					.Text_Lambda([this]() { return FText::FromString(bDebugEnabled ? TEXT("◉") : TEXT("○")); })
-					.Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
+					.Font(FCoreStyle::GetDefaultFontStyle("Bold", 12))
 					.ColorAndOpacity_Lambda([this]()
 					{
-						return bDebugEnabled ? FSlateColor(FLinearColor(1.0f, 0.62f, 0.11f))
-						                     : FSlateColor(JamInk.CopyWithNewOpacity(0.45f));
+						return bDebugEnabled ? FSlateColor(FLinearColor(0.22f, 0.10f, 0.01f))
+						                     : FSlateColor(JamInk);
 					})
 				]
 			]
@@ -679,7 +684,7 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 		.VAlign(VAlign_Top)
 		.Padding(0.0f, 1.0f, 2.0f, 0.0f)
 		[
-			SNew(SBox).WidthOverride(18.0f).HeightOverride(16.0f)
+			SNew(SBox).WidthOverride(20.0f).HeightOverride(18.0f)
 			[
 				SNew(SButton)
 				.ButtonStyle(&FAppStyle::Get(), "NoBorder")
