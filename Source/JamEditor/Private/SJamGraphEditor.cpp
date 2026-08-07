@@ -55,6 +55,42 @@ static FString JamParamDataType(const FString& Name, const FString& Type)
 	return FString();
 }
 
+/** Lee los params de una ficha JSON a un `FJamTool`.
+ *
+ *  Existe porque había TRES lectores de ficha escritos a mano —`LoadSpec`, `AplicarRespuestaFuncion`
+ *  y `ColapsarSeleccion`— y sólo el primero leía `params`. Consecuencia: una función instalada en
+ *  vivo perdía sus perillas y aparecía con los pines pelados; recién reaparecían al reiniciar, que
+ *  es el peor síntoma posible (funciona a veces). */
+static void JamLeerParamsDeFicha(const TSharedPtr<FJsonObject>& Ficha, TArray<FJamParam>& Destino)
+{
+	const TArray<TSharedPtr<FJsonValue>>* Ps = nullptr;
+	if (!Ficha.IsValid() || !Ficha->TryGetArrayField(TEXT("params"), Ps) || Ps == nullptr)
+	{
+		return;
+	}
+	for (const TSharedPtr<FJsonValue>& PV : *Ps)
+	{
+		const TSharedPtr<FJsonObject> PO = PV.IsValid() ? PV->AsObject() : nullptr;
+		if (!PO.IsValid()) { continue; }
+		FJamParam P;
+		if (!PO->TryGetStringField(TEXT("nombre"), P.Name)) { continue; }
+		if (!PO->TryGetStringField(TEXT("label"), P.Label)) { P.Label = P.Name; }
+		PO->TryGetStringField(TEXT("default"), P.Default);
+		if (!PO->TryGetStringField(TEXT("tipo"), P.Type)) { P.Type = TEXT("str"); }
+		PO->TryGetStringField(TEXT("data_type"), P.DataType);
+		PO->TryGetStringField(TEXT("letra"), P.Letra);
+		const TArray<TSharedPtr<FJsonValue>>* Opts = nullptr;
+		if (PO->TryGetArrayField(TEXT("opciones"), Opts) && Opts != nullptr)
+		{
+			for (const TSharedPtr<FJsonValue>& OV : *Opts)
+			{
+				P.Options.Add(MakeShared<FString>(OV->AsString()));
+			}
+		}
+		Destino.Add(MoveTemp(P));
+	}
+}
+
 /** ¿Este verbo se puede apagar dejando pasar el stream?
  *
  *  ÚNICA copia en C++ de la regla; la fuente es `jam.graph.puede_bypass`, y las dos están atadas
@@ -439,10 +475,18 @@ public:
 			{
 				const float dx = FMath::Max(50.0f, FMath::Abs(W.B.X - W.A.X) * 0.6f);
 				const FVector2D T1(dx, 0.0f), T2(dx, 0.0f);
-				// halo claro (más grueso, translúcido) + cable de color encima.
+				// Halo OSCURO, no claro. El original era blanco al 55% «para levantar el contraste
+				// sobre el lienzo gris», pero el lienzo es CLARO: un halo blanco lo aclaraba todavía
+				// más y los 14 colores de cable quedaban entre 1.14:1 y 2.64:1 contra el fondo —
+				// ninguno llegaba al mínimo de 3:1 que pide un elemento gráfico.
+				//
+				// Los colores de cable no se pueden oscurecer: están atados a los iconos por
+				// `test_paleta`. El halo sí, y alcanza — le da a CUALQUIER cable un contorno que se
+				// lee, sin tocar la paleta. Apenas más ancho que el cable: es un contorno, no una
+				// línea negra que se coma el color.
 				FSlateDrawElement::MakeSpline(OutDrawElements, LayerId, PG,
-					W.A, T1, W.B, T2, 5.0f, ESlateDrawEffect::None,
-					FLinearColor(1.0f, 1.0f, 1.0f, 0.55f));
+					W.A, T1, W.B, T2, 4.6f, ESlateDrawEffect::None,
+					FLinearColor(0.10f, 0.10f, 0.11f, 0.85f));
 				FSlateDrawElement::MakeSpline(OutDrawElements, LayerId + 1, PG,
 					W.A, T1, W.B, T2, 2.6f, ESlateDrawEffect::None, W.Color);
 				// punto en cada punta: ancla la conexión visualmente (como los pines de Blueprint).
@@ -2620,6 +2664,7 @@ void SJamGraphEditor::ColapsarSeleccion()
 	};
 	LeerPines(TEXT("inputs"), Tool.InputPins);
 	LeerPines(TEXT("outputs"), Tool.OutputPins);
+	JamLeerParamsDeFicha(*ToolObj, Tool.Params);   // las perillas de la función
 	if (Tool.Verb.IsEmpty())
 	{
 		if (Output.IsValid()) { Output->SetText(LOCTEXT("CollapseBadTool", "FUNCIÓN ✗ — spec sin verbo")); }
@@ -2719,6 +2764,7 @@ bool SJamGraphEditor::AplicarRespuestaFuncion(const FString& Res, bool bCargarCu
 	};
 	LeerPines(TEXT("inputs"), Tool.InputPins);
 	LeerPines(TEXT("outputs"), Tool.OutputPins);
+	JamLeerParamsDeFicha(*ToolObj, Tool.Params);   // las perillas de la función
 	if (Tool.Verb.IsEmpty()) { return false; }
 
 	const FString Verb = Tool.Verb;

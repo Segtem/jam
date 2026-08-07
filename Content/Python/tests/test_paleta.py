@@ -334,6 +334,54 @@ class EtiquetasQueEntranTests(unittest.TestCase):
         self.assertEqual(largas, [], "etiquetas que no dejan lugar al campo:\n  " + "\n  ".join(largas))
 
 
+class ContrasteDelCableTests(unittest.TestCase):
+    """Un cable tiene que verse contra el lienzo.
+
+    Los 14 colores de tipo dan entre 1.14:1 y 2.64:1 contra el fondo del canvas — ninguno llega al
+    3:1 que pide un elemento gráfico. Y NO se pueden oscurecer: están atados a los iconos por
+    `IconosTests.test_jam_icons_use_the_type_palette`, así que tocarlos obligaría a rehacer la
+    paleta entera.
+
+    Lo que sí resuelve es el HALO que va debajo. Era blanco al 55% «para levantar el contraste sobre
+    el lienzo gris», pero el lienzo es CLARO: lo aclaraba más. Oscuro, le da a cualquier cable un
+    contorno legible sin tocar un solo color de tipo.
+    """
+
+    MINIMO_GRAFICO = 3.0
+
+    def _del_cpp(self, patron: str) -> tuple:
+        import re
+
+        cpp = DATA_COLOR.read_text(encoding="utf-8")
+        m = re.search(patron, cpp, re.S)
+        self.assertIsNotNone(m, f"no encontré en el .cpp: {patron}")
+        return tuple(float(x) for x in m.groups())
+
+    def fondo(self) -> tuple:
+        """El gris del lienzo, leído de `SJamGridLayer`."""
+        return self._del_cpp(
+            r"Fondo del canvas.{0,400}?FLinearColor\(([\d.]+)f, ([\d.]+)f, ([\d.]+)f")
+
+    def halo(self) -> tuple:
+        """Color y alfa del halo que va debajo del cable."""
+        return self._del_cpp(
+            r"Halo OSCURO.{0,900}?FLinearColor\(([\d.]+)f, ([\d.]+)f, ([\d.]+)f, ([\d.]+)f")
+
+    def test_the_halo_is_dark_enough_to_outline_any_wire(self):
+        r, g, b, a = self.halo()
+        fondo = self.fondo()
+        # El halo es translúcido: lo que se ve es su mezcla con el lienzo.
+        mezcla = tuple(a * c + (1 - a) * f for c, f in zip((r, g, b), fondo))
+        self.assertGreaterEqual(contraste(mezcla, fondo), self.MINIMO_GRAFICO,
+                                "el halo no le da contorno legible a un cable")
+
+    def test_the_halo_is_darker_than_the_canvas(self):
+        """La regla en una línea: sobre un lienzo CLARO el contorno va oscuro. Un halo más claro que
+        el fondo —como el blanco original— no puede separar nada de él."""
+        r, g, b, _a = self.halo()
+        self.assertLess(_luminancia((r, g, b)), _luminancia(self.fondo()))
+
+
 class ContrasteDelNodoTests(unittest.TestCase):
     """El texto del nodo tiene que LEERSE, no sólo estar.
 
