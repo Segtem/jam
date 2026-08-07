@@ -310,3 +310,22 @@ def _hash_int(n):
     n = (n ^ (n >> 16)) * 0x45d9f3b & 0xFFFFFFFF
     n = (n ^ (n >> 16)) * 0x45d9f3b & 0xFFFFFFFF
     return n ^ (n >> 16)
+
+
+def repartir_o_apilar(samples, radios, *, apilar: bool):
+    """Qué puntos sobreviven: los que no se pisan (repartir), o TODOS (apilar).
+
+    El dedup por huella descarta lo que se solaparía en XY, y para un reparto plano eso es lo
+    correcto: dos piezas cruzadas se ven mal y nadie las quiso ahí. Con física es exactamente al
+    revés — solaparse es la CONDICIÓN para que algo se apile, y la caída resuelve el cruce
+    verticalmente, que es como lo resuelve el mundo.
+
+    Tenerlo escrito acá y no como un `if` adentro de la tool no es prolijidad: es la única regla del
+    pincel que decide si el resultado es una capa o una pila, y en la primera corrida real borró 16
+    de 24 piezas justo cuando se había bajado el spacing para amontonarlas.
+
+    Devuelve (aceptados, rechazados), igual que `dedup_por_radio`.
+    """
+    if apilar:
+        return list(samples), []
+    return dedup_por_radio(samples, radios, 1.0)

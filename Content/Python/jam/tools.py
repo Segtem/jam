@@ -282,7 +282,7 @@ def _place_en_puntos(asset, puntos, *, anchor, sink, align, scale_min, scale_max
     radios = [ue.radio_de_malla(m) * max(scale_min, scale_max) for m in mallas]
     radio_por = [radios[p.seed % len(mallas)] for p in puntos]
     from . import scatter_core as sc
-    vivos, pisados = sc.dedup_por_radio(list(puntos), radio_por, 1.0)
+    vivos, pisados = sc.repartir_o_apilar(list(puntos), radio_por, apilar=physics)
 
     actores = scatter.instanciar_puntos(
         vivos, mallas, scale_min=scale_min, scale_max=scale_max, sink=sink,

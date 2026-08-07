@@ -77,3 +77,55 @@ class ContratoDelVerboTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RepartirOApilarTests(unittest.TestCase):
+    """La regla que decide si el pincel deja una CAPA o una PILA.
+
+    Salió de una corrida real: se bajó el `spacing` a 40 cm para que las piezas se amontonaran, y
+    el dedup por huella borró 16 de 24 — justo las que iban a amontonarse. El resultado fue una
+    capa suelta y plana, con la física prendida y sin nada que hacer.
+    """
+
+    @staticmethod
+    def _encimados(n=5):
+        """n puntos casi en el mismo lugar: se pisan todos contra todos."""
+        from jam.geometry import Vec3
+        from jam.scatter_core import Sample
+        return [Sample(Vec3(float(i) * 5.0, 0.0, 0.0), Vec3(0.0, 0.0, 1.0), 0.0, i, (0.0, 0.0))
+                for i in range(n)]
+
+    def test_stacking_keeps_every_point_because_overlap_is_the_point(self):
+        from jam import scatter_core as sc
+        puntos = self._encimados()
+        vivos, pisados = sc.repartir_o_apilar(puntos, [50.0] * len(puntos), apilar=True)
+        self.assertEqual(len(vivos), len(puntos),
+                         "con física no se descarta nada: solaparse es lo que hace la pila")
+        self.assertEqual(pisados, [])
+
+    def test_spreading_still_removes_what_would_cross(self):
+        """El filtro no desaparece: sin física, dos piezas cruzadas siguen siendo un defecto."""
+        from jam import scatter_core as sc
+        puntos = self._encimados()
+        vivos, pisados = sc.repartir_o_apilar(puntos, [50.0] * len(puntos), apilar=False)
+        self.assertEqual(len(vivos), 1, f"tendría que quedar una sola: {len(vivos)}")
+        self.assertEqual(len(pisados), len(puntos) - 1)
+
+    def test_it_delegates_to_the_existing_dedup_instead_of_a_second_copy(self):
+        import inspect
+
+        from jam import scatter_core as sc
+        self.assertIn("dedup_por_radio(", inspect.getsource(sc.repartir_o_apilar))
+
+    def test_place_asks_this_rule_instead_of_deduping_unconditionally(self):
+        """`_place_en_puntos` dedupeaba siempre; con física eso le sacaba el efecto al pincel."""
+        import inspect
+        import pathlib
+        fuente = (pathlib.Path(__file__).resolve().parents[1] / "jam" / "tools.py").read_text(
+            encoding="utf-8")
+        cuerpo = fuente[fuente.index("def _place_en_puntos("):]
+        cuerpo = cuerpo[:cuerpo.index("\ndef ", 1)]
+        self.assertIn("repartir_o_apilar(", cuerpo)
+        self.assertIn("apilar=physics", cuerpo)
+        self.assertNotIn("dedup_por_radio(", cuerpo,
+                         "volvió a dedupear sin preguntar si hay física")
