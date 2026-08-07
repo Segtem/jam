@@ -79,7 +79,10 @@ cd Content/Python/tests && PYTHONPATH=$PWD/.. python -m unittest discover -s . -
 # vault de documentación (nombres, frontmatter, wikilinks)
 python tools/vault.py            #  --indice reescribe Vault-kb/README.md
 
-# compilar el C++ del editor  (~16-19 s incremental)
+# compilar el C++ del editor Y COMPROBAR que el binario quedó al día
+python tools/build.py            # --solo-ver para verificar sin compilar
+
+# lo mismo a mano (~16-19 s incremental)
 # -NoUBA: Unreal Build Accelerator se confunde con el symlink Plugins/Jam -> ~/Dev/jam
 # (ASSERT: cross-process rename-while-open). Sin esa flag el build falla siempre.
 ENG=~/Dev/engines/UnrealEngine_5.8
@@ -133,7 +136,7 @@ redistribuir, nunca relicenciar CC0. Los repos van privados.
 | Mutar código y restaurar en el mismo segundo | CPython invalida el `.pyc` por (mtime, tamaño): `max` y `min` ocupan lo mismo, así que sigue corriendo el **bytecode mutado**. Limpiar `__pycache__` entre mutantes. |
 | Matar un proceso que escribe sobre fuentes | **`SIGTERM` no ejecuta el `finally`**. Una corrida cortada dejó un archivo mutado en el árbol; hace falta `atexit` + manejadores de señal, y mirar `git status` después. |
 | Editar `vendor/oracle/` a mano | Es un subtree: se separa del upstream en silencio. Se cambia arriba y se trae con `git subtree pull`. |
-| Dar por compilado un cambio porque el build dijo `Result: Succeeded` | **`Succeeded` también lo imprime un build que no hizo nada.** Pasó: se reportó un fix de UI sobre un binario 35 minutos más viejo que la fuente, y el usuario vio el comportamiento anterior. Verificar el TIMESTAMP: `stat -c '%Y' Binaries/Linux/libUnrealEditor-JamEditor.so` tiene que ser mayor que el de los `.cpp` tocados. Un build que sí trabajó imprime `[n/m] Compile …` y `[n/m] Link …`; filtrar la salida sólo por `error:|Result:` esconde justamente eso. |
+| Dar por compilado un cambio porque el build dijo `Result: Succeeded` | **`Succeeded` también lo imprime un build que no hizo nada.** Pasó: se reportó un fix de UI sobre un binario 35 minutos más viejo que la fuente, y el usuario vio el comportamiento anterior. Usar `python tools/build.py`, que compila y **verifica el timestamp** del binario base contra los fuentes. También detecta el caso del editor abierto, donde UBT linkea un `…-0001.so` de hot reload y el base queda viejo. Un build que sí trabajó imprime `[n/m] Compile …` y `[n/m] Link …`; filtrar la salida sólo por `error:|Result:` esconde justamente eso. |
 | Un `TSharedPtr` a algo que retiene UObjects (`FAssetThumbnailPool`, `FAssetThumbnail`) como miembro del módulo | Assert al cerrar el editor: `Index >= 0` en `UObjectArray.h`. **`ShutdownModule()` NO alcanza** — se intentó y el crash volvió igual: `FEngineLoop::Exit()` corre `GEngine->PreExit()` (que destruye los subsistemas de `GEditor`) **antes** de `FModuleManager::UnloadModulesAtShutdown()`, así que destructor y `ShutdownModule()` son igual de tarde. Hay que soltarlos en `FEditorDelegates::OnEditorPreExit`, que dispara antes de `PreExit()`; dejar la liberación también en `ShutdownModule()`, idempotente, cubre hot-reload y deshabilitar el plugin, donde `OnEditorPreExit` nunca dispara. |
 
 ## Dónde está escrito lo demás
