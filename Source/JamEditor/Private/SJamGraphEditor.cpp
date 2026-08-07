@@ -1828,6 +1828,23 @@ void SJamGraphEditor::RebuildTabContent()
 							]
 							+ SHorizontalBox::Slot().AutoWidth().Padding(1.0f)
 							[
+								SNew(SButton).Text(LOCTEXT("PublishFunctionShort", "Dash"))
+								.ToolTipText(LOCTEXT("PublishFunctionTip",
+									"Publica la herramienta en la Dash (o la saca). No toca el cuerpo: "
+									"los grafos que ya la usan siguen andando igual"))
+								.OnClicked_Lambda([this, Verb]()
+								{ PublicarFuncion(Verb, true); return FReply::Handled(); })
+							]
+							+ SHorizontalBox::Slot().AutoWidth().Padding(1.0f)
+							[
+								SNew(SButton).Text(LOCTEXT("ExportFunctionShort", "Exportar"))
+								.ToolTipText(LOCTEXT("ExportFunctionTip",
+									"Guarda la herramienta como archivo .jamtool para pasarla a otro proyecto"))
+								.OnClicked_Lambda([this, Verb, Nombre]()
+								{ ExportarFuncion(Verb, Nombre); return FReply::Handled(); })
+							]
+							+ SHorizontalBox::Slot().AutoWidth().Padding(1.0f)
+							[
 								SNew(SButton).Text(LOCTEXT("DeleteFunctionShort", "Eliminar"))
 								.OnClicked_Lambda([this, Verb, Nombre]()
 								{ EliminarFuncion(Verb, Nombre); return FReply::Handled(); })
@@ -2858,6 +2875,49 @@ void SJamGraphEditor::VolverDeFuncion(bool bCambiosGuardados)
 				TEXT("Cambios sin guardar descartados — «%s» · de vuelta en el grafo"), *Nombre);
 		Output->SetText(FText::FromString(Mensaje));
 	}
+}
+
+void SJamGraphEditor::PublicarFuncion(const FString& Verb, bool bPublicar)
+{
+	if (!OnFunctionManage.IsBound()) { return; }
+	const FString Res = OnFunctionManage.Execute(
+		TEXT("publish"), Verb, bPublicar ? TEXT("true") : TEXT("false"));
+	// El cuerpo no cambió, así que no hace falta recargar el canvas: sólo el reporte y el ribbon.
+	TSharedPtr<FJsonObject> Root;
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Res);
+	FString Report = Res;
+	if (FJsonSerializer::Deserialize(Reader, Root) && Root.IsValid())
+	{
+		Root->TryGetStringField(TEXT("report"), Report);
+	}
+	if (Output.IsValid()) { Output->SetText(FText::FromString(Report)); }
+}
+
+void SJamGraphEditor::ExportarFuncion(const FString& Verb, const FString& NombreActual)
+{
+	IDesktopPlatform* DP = FDesktopPlatformModule::Get();
+	if (DP == nullptr || !OnFunctionManage.IsBound()) { return; }
+	const FString Dir = FPaths::ProjectSavedDir() / TEXT("JamTools");
+	IFileManager::Get().MakeDirectory(*Dir, true);
+	TArray<FString> Files;
+	const bool bOk = DP->SaveFileDialog(nullptr, TEXT("Exportar herramienta de Jam"), Dir,
+		NombreActual + TEXT(".jamtool"), TEXT("Herramienta de Jam (*.jamtool)|*.jamtool"),
+		EFileDialogFlags::None, Files);
+	if (!bOk || Files.Num() == 0) { return; }
+
+	// La ruta viaja como payload: `function_manage` ya es el único puente de ABM de definiciones.
+	const FString Res = OnFunctionManage.Execute(TEXT("export"), Verb, Files[0]);
+	TSharedPtr<FJsonObject> Root;
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Res);
+	FString Report = Res;
+	if (FJsonSerializer::Deserialize(Reader, Root) && Root.IsValid())
+	{
+		if (!Root->TryGetStringField(TEXT("report"), Report))
+		{
+			Root->TryGetStringField(TEXT("error"), Report);
+		}
+	}
+	if (Output.IsValid()) { Output->SetText(FText::FromString(Report)); }
 }
 
 void SJamGraphEditor::RenombrarFuncion(const FString& Verb, const FString& NombreActual)

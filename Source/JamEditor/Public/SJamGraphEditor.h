@@ -362,6 +362,10 @@ private:
 	void VolverDeFuncion(bool bCambiosGuardados);
 	void RenombrarFuncion(const FString& Verb, const FString& NombreActual);
 	void EliminarFuncion(const FString& Verb, const FString& NombreActual);
+	/** Publica/despublica: cambia si la herramienta aparece en la Dash, sin tocar su cuerpo. */
+	void PublicarFuncion(const FString& Verb, bool bPublicar);
+	/** Escribe la herramienta como `.jamtool` portable (JSON, transparente — no compilado). */
+	void ExportarFuncion(const FString& Verb, const FString& NombreActual);
 	bool AplicarRespuestaFuncion(const FString& Res, bool bCargarCuerpo);
 	/** Inserta un fragmento JSON en el grafo actual con ids NUEVOS, corrido para que no tape al
 	 *  original, y deja lo pegado seleccionado. Ignora en silencio lo que no sea un fragmento

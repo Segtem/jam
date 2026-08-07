@@ -38,6 +38,8 @@
 #include "Dom/JsonValue.h"
 #include "HAL/PlatformProcess.h"
 #include "LevelEditorViewport.h"
+#include "DesktopPlatformModule.h"   // diálogo de archivo para importar .jamtool
+#include "IDesktopPlatform.h"
 #include "Editor.h"
 #include "Engine/World.h"
 #include "CollisionQueryParams.h"
@@ -583,6 +585,38 @@ FString FJamEditorModule::PreviewGraphThumbnails(const FString& /*Unused*/)
 	return ExecPythonCapture(Stmt);
 }
 
+void FJamEditorModule::ImportarHerramienta()
+{
+	IDesktopPlatform* DP = FDesktopPlatformModule::Get();
+	if (DP == nullptr) { return; }
+	const FString Dir = FPaths::ProjectSavedDir() / TEXT("JamTools");
+	TArray<FString> Files;
+	const bool bOk = DP->OpenFileDialog(nullptr, TEXT("Importar herramienta de Jam"), Dir, TEXT(""),
+		TEXT("Herramienta de Jam (*.jamtool)|*.jamtool"), EFileDialogFlags::None, Files);
+	if (!bOk || Files.Num() == 0) { return; }
+
+	const FString Stmt = FString::Printf(
+		TEXT("import jam.api as _a; print(_a.tool_import(%s))"), *ToPyStr(Files[0]));
+	const FString Res = ExecPythonCapture(Stmt);
+
+	// Recargar el spec: la herramienta recién importada tiene que aparecer YA en la barra, o
+	// parecería que la importación no hizo nada.
+	LoadSpec();
+	RebuildDashTabContent();
+
+	TSharedPtr<FJsonObject> Root;
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Res);
+	FString Report = Res;
+	if (FJsonSerializer::Deserialize(Reader, Root) && Root.IsValid())
+	{
+		if (!Root->TryGetStringField(TEXT("report"), Report))
+		{
+			Root->TryGetStringField(TEXT("error"), Report);
+		}
+	}
+	UE_LOG(LogTemp, Display, TEXT("[Jam] %s"), *Report);
+}
+
 FString FJamEditorModule::GraphVariables(const FString& Json)
 {
 	const FString Stmt = FString::Printf(
@@ -1053,6 +1087,16 @@ TSharedRef<SWidget> FJamEditorModule::BuildDashContent()
 				SNew(SComboButton)
 				.ButtonContent()[ SNew(STextBlock).Text(LOCTEXT("Presets", "★ Presets")) ]
 				.OnGetMenuContent_Raw(this, &FJamEditorModule::MakePresetMenu)
+			]
+			// El otro extremo del ciclo: el Graph exporta, la Dash importa. Va acá y no en el
+			// Graph porque quien recibe una herramienta ajena quiere USARLA, no abrirle el cuerpo.
+			+ SHorizontalBox::Slot().AutoWidth().Padding(4.0f, 0.0f, 0.0f, 0.0f)
+			[
+				SNew(SButton)
+				.Text(LOCTEXT("ImportTool", "\u2193 Importar herramienta"))
+				.ToolTipText(LOCTEXT("ImportToolTip",
+					"Trae un archivo .jamtool a la biblioteca de este proyecto"))
+				.OnClicked_Lambda([this]() { ImportarHerramienta(); return FReply::Handled(); })
 			]
 			+ SHorizontalBox::Slot().AutoWidth()
 			[

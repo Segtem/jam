@@ -141,6 +141,8 @@ private:
 	FString PreviewGraphThumbnails(const FString& Unused);
 	/** Variables del grafo para el desplegable de `math`: `{ok, variables:[...]}`. */
 	FString GraphVariables(const FString& Json);
+	/** Trae una herramienta `.jamtool` a la biblioteca local y refresca la Dash. */
+	void ImportarHerramienta();
 	/** Hit-test de cables para el reroute: lo resuelve `jam.layout.cable_mas_cercano`. */
 	FString CableBajoPunto(const FString& Payload);
 	/** Alinear/distribuir la selección del Graph: las cuentas las hace `jam.layout` (puro). */

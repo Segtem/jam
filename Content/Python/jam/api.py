@@ -454,6 +454,9 @@ def function_manage(action: str, funcion_id: str = "", payload: str = "",
                     mensaje for mensajes in diagnosticos.values() for mensaje in mensajes)
                 raise funcion.FuncionError(detalle)
             nombre = d["nombre"]
+        elif action == "export":
+            return tool_export(identidad, payload)
+
         elif action == "publish":
             # Publicar/despublicar: sólo cambia si la herramienta aparece en la Dash. El cuerpo no
             # se toca, así que los grafos que ya la usan siguen andando igual.
