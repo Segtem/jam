@@ -252,6 +252,7 @@ def t_place(asset, *, points=None, x=0.0, y=0.0, z=0.0, view=True, surface=True,
     # única diferencia es cuántos «acá» hay.
     if points:
         return _place_en_puntos(asset, points, anchor=anchor, sink=sink, align=align,
+                                physics=bool(physics),
                                 scale_min=float(scale_min), scale_max=float(scale_max))
 
     actor = place.colocar(asset, (x, y, z - sink), (0.0, 0.0, yaw), (scale, scale, scale),
@@ -261,7 +262,7 @@ def t_place(asset, *, points=None, x=0.0, y=0.0, z=0.0, view=True, surface=True,
     return _veredicto_entorno(actor)
 
 
-def _place_en_puntos(asset, puntos, *, anchor, sink, align, scale_min, scale_max) -> str:
+def _place_en_puntos(asset, puntos, *, anchor, sink, align, scale_min, scale_max, physics=False) -> str:
     """Coloca el asset en cada punto, con el dedup por HUELLA REAL y el oráculo doble.
 
     El dedup vive acá y no en `scatter` a propósito: para saber si dos piezas se pisan hay que
@@ -288,6 +289,13 @@ def _place_en_puntos(asset, puntos, *, anchor, sink, align, scale_min, scale_max
         anchor=anchor, align=align, etiqueta="Jam_place")
     ue.seleccionar(actores)
 
+    # El paso que convierte «sembrar» en PINTAR: la tanda se asienta contra el mundo y contra sí
+    # misma, así que las piezas se apilan en vez de quedar todas clavadas en la misma cota.
+    asentado = ""
+    if physics and actores:
+        from . import physics as fisica, physics_core
+        asentado = "\n" + physics_core.resumen(fisica.asentar_actores(actores))
+
     xs = [p.pos.x for p in vivos] or [0.0]
     ys = [p.pos.y for p in vivos] or [0.0]
     centro = ((min(xs) + max(xs)) / 2.0, (min(ys) + max(ys)) / 2.0)
@@ -295,7 +303,7 @@ def _place_en_puntos(asset, puntos, *, anchor, sink, align, scale_min, scale_max
     existentes = ue.vecinos_en_zona(centro, semi, ignorar=actores)
     oraculo = ue.scatter_texto(actores, centro, semi, len(actores), existentes=existentes)
     extra = f" · {len(pisados)} evitados por huella" if pisados else ""
-    return (f"PLACE \u2713 \u2014 {len(actores)} en {len(puntos)} punto(s){extra}\n{oraculo}")
+    return (f"PLACE \u2713 \u2014 {len(actores)} en {len(puntos)} punto(s){extra}{asentado}\n{oraculo}")
 
 
 def _veredicto_entorno(actor) -> str:
@@ -1672,7 +1680,8 @@ REGISTRO = {
                      "optional_data_params": ("points",),
                      "opciones": {"anchor": list(_ANCLAS)},
                      "doc": "pone el asset en el mundo: en sus coordenadas, o UNO POR PUNTO si le cableás "
-                            "un scatter al pin `points`. Es el único nodo que coloca. Verifica el entorno"},
+                            "un scatter al pin `points`. Es el único nodo que coloca. Con `physics` la "
+                            "tanda se asienta y se APILA (physics paint). Verifica el entorno"},
     "scatter":      {"fn": t_scatter, "cat": "Scatter",
                      "params": {"count": 24, "area": 800.0, "x": 0.0, "y": 0.0,
                                 "pattern": "poisson", "spacing": 0.0,

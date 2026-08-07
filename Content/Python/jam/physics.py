@@ -55,3 +55,31 @@ def soltar(actor, soportes=None, *, tol=oracle_placement._TOL_CM):
     caida = base - z_top
     actor.set_actor_location(unreal.Vector(loc.x, loc.y, loc.z - caida), False, True)
     return {"cayo": True, "z_apoyo": round(z_top, 1), "soporte": label, "caida": round(caida, 1)}
+
+
+def asentar_actores(actores, soportes=None, *, tol=oracle_placement._TOL_CM) -> list[dict]:
+    """Asienta una TANDA de actores: cada uno cae sobre lo que ya estaba **y sobre sus hermanos**.
+
+    No es `soltar` en un bucle, por dos razones. Una es correcta: en un bucle cada actor caería
+    contra la foto original del nivel y los N terminarían atravesados en el mismo pozo, en vez de
+    apilarse — que es justo lo que uno espera al pintar. La otra es de costo: `soltar` sin
+    `soportes` recorre TODOS los actores del nivel, así que llamarlo N veces escanea el nivel N
+    veces. Acá se escanea una sola.
+
+    El orden y la matemática viven en `physics_core`, puro y testeable sin motor; acá sólo se
+    traduce actor ↔ pieza y se mueven las cosas.
+    """
+    from . import physics_core
+
+    if not actores:
+        return []
+    if soportes is None:
+        propios = set(actores)
+        soportes = [a for a in soportes_del_nivel() if a not in propios]
+
+    resultados = physics_core.asentar_tanda(ue.piezas(actores), ue.piezas(soportes), tol=tol)
+    for actor, r in zip(actores, resultados):
+        if r["apoyada"] and r["caida"]:
+            loc = actor.get_actor_location()
+            actor.set_actor_location(unreal.Vector(loc.x, loc.y, loc.z - r["caida"]), False, True)
+    return resultados

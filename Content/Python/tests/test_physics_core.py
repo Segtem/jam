@@ -1,0 +1,167 @@
+"""Asentar en TANDA — el núcleo del *physics paint*.
+
+Lo que se fija acá es la diferencia entre sembrar y pintar: soltar N piezas a la vez no es soltar
+una N veces. Si cada una cae contra la foto original del nivel, las N terminan a la misma cota,
+atravesadas; si cada una es piso de la siguiente, se apilan.
+
+Y el orden de caída no puede ser el de la lista, porque un grafo tiene que dar lo mismo cada vez
+que corre.
+"""
+
+from __future__ import annotations
+
+import inspect
+import pathlib
+import sys
+import types
+import unittest
+
+# `physics_core` es puro, pero el último bloque mira `tools.py`, que sí importa el motor.
+_unreal = sys.modules.setdefault("unreal", types.ModuleType("unreal"))
+if not hasattr(_unreal, "TopLevelAssetPath"):
+    _unreal.TopLevelAssetPath = lambda package, name: (package, name)
+
+from jam import geometry, physics_core  # noqa: E402
+
+RAIZ = pathlib.Path(__file__).resolve().parents[1] / "jam"
+
+
+def caja(nombre, x, y, z, *, semi=50.0, alto=50.0):
+    """Pieza cúbica centrada en (x, y, z). `z` es el CENTRO, así que su base es z - alto."""
+    a = geometry.AABB(geometry.Vec3(x, y, z), geometry.Vec3(semi, semi, alto))
+    return geometry.Pieza(nombre, a, geometry.Vec3(x, y, z - alto), 0.0)
+
+
+PISO = caja("Piso", 0.0, 0.0, -10.0, semi=5000.0, alto=10.0)   # top = 0
+
+
+class ApilarTests(unittest.TestCase):
+    def test_a_batch_stacks_on_itself_instead_of_landing_at_the_same_height(self):
+        """Tres cajas sobre el mismo XY: la primera al piso, las otras dos encima.
+
+        Es LA diferencia con llamar `soltar` en un bucle. Con la foto original del nivel las tres
+        darían base 0 y quedarían las tres dentro de la misma.
+        """
+        piezas = [caja("a", 0, 0, 400), caja("b", 0, 0, 900), caja("c", 0, 0, 1500)]
+        r = physics_core.asentar_tanda(piezas, [PISO])
+
+        bases = [physics_core.base_de(x["pieza"].aabb) for x in r]
+        self.assertEqual(bases, [0.0, 100.0, 200.0],
+                         f"no se apilaron, quedaron en {bases}")
+        self.assertTrue(all(x["apoyada"] for x in r))
+        self.assertEqual(r[0]["soporte"], "Piso")
+        self.assertEqual([x["soporte"] for x in r[1:]], ["a", "b"],
+                         "cada una tiene que apoyarse en la anterior de la tanda")
+
+    def test_the_result_does_not_depend_on_the_order_of_the_input(self):
+        """Reproducibilidad: los mismos puntos en otro orden dan la MISMA pila.
+
+        Es la razón de ordenar por base y no recorrer la lista: un grafo que da distinto según en
+        qué orden salieron los puntos del scatter no se puede volver a correr.
+        """
+        piezas = [caja("a", 0, 0, 400), caja("b", 0, 0, 900), caja("c", 0, 0, 1500)]
+        directo = {x["pieza"].nombre: physics_core.base_de(x["pieza"].aabb)
+                   for x in physics_core.asentar_tanda(piezas, [PISO])}
+        for perm in ([2, 0, 1], [1, 2, 0], [2, 1, 0]):
+            revuelto = physics_core.asentar_tanda([piezas[i] for i in perm], [PISO])
+            self.assertEqual(
+                {x["pieza"].nombre: physics_core.base_de(x["pieza"].aabb) for x in revuelto},
+                directo, f"la permutación {perm} dio otra pila")
+
+    def test_pieces_far_apart_in_xy_do_not_stack(self):
+        """Apilar es sólo cuando se pisan en XY: dos rocas a 10 m van las dos al piso."""
+        piezas = [caja("a", 0, 0, 400), caja("b", 1000, 0, 900)]
+        r = physics_core.asentar_tanda(piezas, [PISO])
+        self.assertEqual([x["soporte"] for x in r], ["Piso", "Piso"])
+
+    def test_settling_is_returned_in_input_order(self):
+        """Se cae de abajo hacia arriba, pero se DEVUELVE en el orden de entrada: quien llama
+        emparejó esa lista con sus actores y un reordenamiento silencioso movería los equivocados."""
+        piezas = [caja("alta", 0, 0, 1500), caja("baja", 0, 0, 400)]
+        r = physics_core.asentar_tanda(piezas, [PISO])
+        self.assertEqual([x["pieza"].nombre for x in r], ["alta", "baja"])
+        self.assertEqual(r[1]["soporte"], "Piso")
+        self.assertEqual(r[0]["soporte"], "baja")
+
+
+class SinPisoTests(unittest.TestCase):
+    def test_a_piece_with_nothing_below_stays_put_and_is_reported(self):
+        """Sin soporte no se inventa un piso: queda donde estaba y se dice. Bajarla a z=0 «porque
+        el suelo suele estar ahí» es exactamente cómo algo aparece enterrado sin que nadie sepa."""
+        sola = caja("huerfana", 0, 0, 700)
+        r = physics_core.asentar_tanda([sola], [])
+        self.assertFalse(r[0]["apoyada"])
+        self.assertEqual(r[0]["caida"], 0.0)
+        self.assertEqual(physics_core.base_de(r[0]["pieza"].aabb), 650.0)
+
+    def test_a_piece_without_floor_is_still_a_support_for_what_falls_on_it(self):
+        """Está ahí igual: lo que caiga encima tiene que apoyarse, no atravesarla."""
+        piezas = [caja("flotante", 0, 0, 700), caja("encima", 0, 0, 2000)]
+        r = physics_core.asentar_tanda(piezas, [])
+        self.assertFalse(r[0]["apoyada"])
+        self.assertEqual(r[1]["soporte"], "flotante",
+                         "la de arriba atravesó a la que no tenía piso")
+        self.assertEqual(physics_core.base_de(r[1]["pieza"].aabb), 750.0)
+
+
+class DesenterrarTests(unittest.TestCase):
+    def test_a_buried_piece_comes_up(self):
+        """`caida` negativa = subió. Es el mismo signo que usa `physics.soltar`, y es lo que saca
+        del piso a una pieza que el scatter dejó clavada."""
+        piezas = [caja("clavada", 0, 0, 20)]   # base -30, bajo el piso (top 0)
+        r = physics_core.asentar_tanda(piezas, [PISO])
+        self.assertLess(r[0]["caida"], 0.0)
+        self.assertEqual(physics_core.base_de(r[0]["pieza"].aabb), 0.0)
+
+
+class ResumenTests(unittest.TestCase):
+    def test_the_summary_says_how_many_found_no_floor(self):
+        piezas = [caja("a", 0, 0, 400), caja("lejos", 9e4, 0, 400)]
+        texto = physics_core.resumen(physics_core.asentar_tanda(piezas, [PISO]))
+        self.assertIn("1/2", texto)
+        self.assertIn("1 sin piso", texto)
+
+    def test_all_floating_is_a_failure_and_not_a_silent_ok(self):
+        texto = physics_core.resumen(physics_core.asentar_tanda([caja("a", 0, 0, 400)], []))
+        self.assertIn("✗", texto)
+
+
+class NoSeDuplicaLaReglaTests(unittest.TestCase):
+    def test_the_batch_asks_geometry_what_is_below_instead_of_reimplementing_it(self):
+        """«¿Qué hay debajo?» la contesta `geometry.soporte_top` y nadie más.
+
+        Ya la usan `physics.soltar` y `oracle_physics.verificar`. Una cuarta copia acá se separaría
+        en silencio y el oráculo diría FLOTANDO sobre algo que el asentado creyó apoyado.
+        """
+        fuente = inspect.getsource(physics_core)
+        self.assertIn("geometry.soporte_top(", fuente)
+        for sospechoso in ("origin.x) >", "extent.x +", "s_top"):
+            self.assertNotIn(sospechoso, fuente,
+                             "parece haber una segunda copia del test de solape XY")
+
+
+class PlaceLePasaLaFisicaTests(unittest.TestCase):
+    """El camino de PUNTOS de `place` ignoraba `physics` en silencio.
+
+    El param estaba en la ficha, el usuario lo prendía, y no pasaba nada: `_place_en_puntos` no lo
+    recibía. Un botón que no hace nada es peor que uno que no está, así que queda atado.
+    """
+
+    def test_the_points_path_forwards_physics(self):
+        fuente = (RAIZ / "tools.py").read_text(encoding="utf-8")
+        firma = inspect.signature(
+            __import__("jam.tools", fromlist=["x"])._place_en_puntos)
+        self.assertIn("physics", firma.parameters,
+                      "`_place_en_puntos` no acepta `physics`")
+        llamada = fuente[fuente.index("return _place_en_puntos("):]
+        llamada = llamada[:llamada.index(")\n")]
+        self.assertIn("physics=", llamada,
+                      "`t_place` no le pasa `physics` al camino de puntos")
+
+    def test_place_still_offers_physics_as_a_knob(self):
+        from jam import tools
+        self.assertIn("physics", tools.REGISTRO["place"]["params"])
+
+
+if __name__ == "__main__":
+    unittest.main()
