@@ -269,7 +269,7 @@
       "leaf_material": {
         "verb": "mesh_material",
         "params": {
-          "material": "/Game/Examples/Textures/M_PineFrond.M_PineFrond"
+          "material": "/Engine/EngineMaterials/DefaultMaterial.DefaultMaterial"
         },
         "asset": null,
         "x": 4310,

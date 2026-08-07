@@ -62,6 +62,57 @@ class CatalogoTests(unittest.TestCase):
         self.assertEqual(catalogo()[0]["grupo"], "Empezar")
 
 
+class PortabilidadTests(unittest.TestCase):
+    """Un tutorial tiene que correr en CUALQUIER proyecto, no sólo en el que se escribió.
+
+    Jam es un plugin: se instala en proyectos que no son BotOO. Un ejemplo que apunta a
+    `/Game/Examples/Textures/M_PineFrond` funciona acá y deja una ficha rota en la máquina de
+    cualquier otro — y falla en el peor momento, el primer minuto de alguien que recién llega.
+
+    Lo que SÍ es portable:
+      · `/Engine/…` — viene con el motor, existe en todo proyecto;
+      · las primitivas de Jam (`mesh_box`, `mesh_sphere`…), que no dependen de ningún asset;
+      · las carpetas de SALIDA (`/Game/Jam/Meshes`), que Jam crea al correr.
+
+    Lo que no: cualquier referencia a un objeto bajo `/Game/` que el plugin no traiga consigo.
+    """
+
+    def referencias_de(self, datos: dict) -> list[str]:
+        """Valores que apuntan a un OBJETO, no a una carpeta.
+
+        La diferencia está en el punto: `/Game/Jam/Meshes` es una carpeta de salida;
+        `/Game/X/Y.Y` es una referencia a algo que ya tiene que existir.
+        """
+        salida = []
+        for nid, nodo in (datos.get("nodes") or {}).items():
+            for clave, valor in (nodo.get("params") or {}).items():
+                texto = str(valor)
+                if texto.startswith("/Game/") and "." in texto.rsplit("/", 1)[-1]:
+                    salida.append(f"{nid}.{clave} = {texto}")
+        return salida
+
+    def test_no_example_depends_on_an_asset_of_the_host_project(self):
+        rotos = []
+        for ruta in sorted(EJEMPLOS.glob("*.jamgraph")):
+            datos = json.loads(ruta.read_text(encoding="utf-8"))
+            for ref in self.referencias_de(datos):
+                rotos.append(f"{ruta.name}: {ref}")
+        self.assertEqual(
+            rotos, [],
+            "estos ejemplos no correrían en otro proyecto (usá /Engine/… o una primitiva):\n  "
+            + "\n  ".join(rotos))
+
+    def test_the_check_would_catch_a_dependency(self):
+        """Que el test discrimine: con una referencia externa tiene que encontrarla."""
+        falso = {"nodes": {"n": {"params": {"material": "/Game/Otro/M_X.M_X"}}}}
+        self.assertEqual(len(self.referencias_de(falso)), 1)
+
+    def test_an_output_folder_is_not_a_dependency(self):
+        """`/Game/Jam/Meshes` es donde Jam ESCRIBE: no tiene que existir de antemano."""
+        salida = {"nodes": {"n": {"params": {"folder": "/Game/Jam/Meshes"}}}}
+        self.assertEqual(self.referencias_de(salida), [])
+
+
 class GrafosTests(unittest.TestCase):
     def test_every_bundled_graph_compiles(self):
         """El Compile del canvas sobre cada tutorial, en lo que se puede comprobar sin editor.
