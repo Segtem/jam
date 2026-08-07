@@ -74,6 +74,7 @@
   "compare_greater": "jam-compare-greater",
   "compare_less": "jam-compare-less",
   "compare_equal": "jam-compare-equal",
+  "brush": "jam-brush",
   "select_mesh": "jam-select-mesh",
   "select_asset": "jam-select-asset",
   "reroute_mesh": "jam-reroute-mesh",

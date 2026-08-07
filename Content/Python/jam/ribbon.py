@@ -46,7 +46,11 @@ GRUPOS: dict[str, list[tuple[str, list[str]]]] = {
     ],
     "Content": [("Assets", ["asset", "pick"])],
     "Place": [("Colocar", ["place", "drop", "snap"])],
-    "Scatter": [("Repartir", ["scatter", "spline", "pcg"])],
+    "Scatter": [
+        # El pincel va PRIMERO: marca los centros que el repartidor de al lado usa.
+        ("Pincel", ["brush"]),
+        ("Repartir", ["scatter", "spline", "pcg"]),
+    ],
     "Create": [
         ("Crear", ["create_spline", "replace", "fracture"]),
         ("Nanite", ["nanite", "nanite_analyze", "nanite_validate"]),

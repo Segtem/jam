@@ -798,6 +798,55 @@ def t_reroute(entrada=None, **_kw) -> str:
     return "REROUTE ✓"
 
 
+def t_brush(_input=None, *, actor="", alto=200.0) -> str:
+    """Pincel: marca los centros de reparto (salida P). No reparte — de eso se ocupa `scatter`.
+
+    Dos formas de decir DÓNDE, y el orden importa:
+
+      · con **nombre** (`actor`): busca ese actor por su etiqueta. El grafo queda AUTOCONTENIDO —
+        se guarda, se reabre y da lo mismo. Es la única forma válida para una herramienta publicada:
+        no puede depender de qué haya quedado seleccionado.
+      · sin nombre: usa lo ELEGIDO en el nivel. Es el gesto cómodo —poner un actor, moverlo con el
+        gizmo, correr— pero depende del estado del editor.
+
+    El nombre gana cuando está puesto. La selección no sobrevive fuera de la GUI (comprobado: en
+    commandlet `set_selected_level_actors` no vuelve por `get_`), así que es también el único camino
+    verificable sin editor.
+    """
+    from . import brush_core, ue
+    from . import scatter_core as sc
+
+    etiqueta = str(actor).strip()
+    if etiqueta:
+        elegidos = [a for a in ue.actores_nivel()
+                    if a and a.get_actor_label() == etiqueta]
+        if not elegidos:
+            raise RuntimeError(
+                f"no encontré ningún actor llamado «{etiqueta}» en el nivel; "
+                "dejá el campo vacío para usar el que tengas elegido")
+    else:
+        elegidos = list(ue._sub().get_selected_level_actors())
+        if not elegidos:
+            raise RuntimeError(
+                "el pincel necesita un actor: elegí uno en el nivel (cualquiera sirve, movelo con "
+                "el gizmo) o escribí su nombre en «actor» para que el grafo no dependa de la "
+                "selección")
+
+    posiciones = []
+    for a in elegidos:
+        loc = a.get_actor_location()
+        posiciones.append((loc.x, loc.y, loc.z))
+
+    puntos = []
+    for x, y, z in brush_core.centros(posiciones, alto=float(alto)):
+        puntos.append(sc.Sample(ue.Vec3(x, y, z), ue.Vec3(0.0, 0.0, 1.0), 0.0,
+                                brush_core.semilla_por_centro(7, x, y), (0.5, 0.5)))
+    _RUNTIME_DATA_OUTPUTS["brush"] = puntos
+    cuantos = len(puntos)
+    return (f"BRUSH ✓ — {cuantos} pincel(es) a {float(alto):.0f} cm de altura; "
+            f"enchufalo a un scatter para repartir alrededor")
+
+
 def t_select_mesh(_input=None, *, cond=None, si=None, no=None) -> str:
     return _select("select_mesh", "M", cond, si, no)
 
@@ -1731,6 +1780,14 @@ REGISTRO = {
                         "doc": "punto de paso para ordenar cables: deja pasar Curva sin tocarla"},
     "reroute_frames": {"fn": t_reroute, "cat": "Mesh", "graph_only": True, "params": {},
                         "doc": "punto de paso para ordenar cables: deja pasar Frames sin tocarla"},
+    # El pincel del Physics Paint: marca DÓNDE, no reparte. Ver `brush_core`.
+    "brush": {"fn": t_brush, "cat": "Scatter", "graph_only": True,
+              "params": {"actor": "", "alto": 200.0},
+              "etiquetas_params": {"actor": "actor", "alto": "alto (cm)"},
+              "doc": "pincel: marca los centros de reparto. Con «actor» busca ese actor por nombre y el "
+                     "grafo queda autocontenido; vacío, usa lo elegido en el nivel. «alto» los levanta "
+                     "sobre el pivote, que es lo que hace falta para pintar con física: nacen arriba y "
+                     "caen. Enchufalo a un scatter para repartir alrededor"},
     "select_mesh": {"fn": t_select_mesh, "cat": "Mesh", "graph_only": True,
                     "params": {"cond": "", "si": "", "no": ""},
                     "data_params": {"cond": "B", "si": "M", "no": "M"},
@@ -2119,13 +2176,14 @@ GRAPH_SOURCES = {"asset", "pick", "create_spline", "gizmo", "ghost", "pivot", "p
                  "mesh_cone", "mesh_sphere", "graph_curve",
                  "mesh_box", "mesh_capsule", "mesh_torus", "mesh_disc",
                  "mesh_round_rect", "mesh_stairs", "mesh_stairs_curved", "mesh_sphere_box",
+                 "brush",   # fuente: los centros salen de la selección, no de un cable
                  # Los `select_*` no tienen entrada principal: las dos ramas y la
                  # condición entran por pines de datos NOMBRADOS, porque «sí» y «no»
                  # tienen significado y no se pueden distinguir por orden de cable.
                  "select_mesh", "select_asset"}
 # Tools que realmente pueden ejecutarse sin un asset. `asset` y `pick` lo PRODUCEN; `create_spline` y
 # `pivot_set` trabajan sobre la escena/selección. Gizmo y Ghost sí necesitan uno para mostrar huella.
-GRAPH_NO_ASSET = {"asset", "pick", "create_spline", "pivot_set", "instance",
+GRAPH_NO_ASSET = {"asset", "pick", "create_spline", "pivot_set", "instance", "brush",
                   # Un reroute no CONSUME un asset: lo deja pasar.
                   "reroute_mesh", "reroute_asset", "reroute_points", "reroute_curve", "reroute_frames",
                   "select_mesh", "select_asset",
@@ -2181,7 +2239,7 @@ GRAPH_IN_NAMES = {"reroute_mesh": "M", "reroute_asset": "A", "reroute_points": "
                   "material_node": "MT", "material_connect": "MT", "material_output": "MT",
                   "material_build": "MT", "material_function": "MT", "material_call": "MT",
                   "material_instance": "A", "instance": "P"}
-GRAPH_OUT_NAMES = {"reroute_mesh": "M", "reroute_asset": "A", "reroute_points": "P", "reroute_curve": "S", "reroute_frames": "F",
+GRAPH_OUT_NAMES = {"brush": "P", "reroute_mesh": "M", "reroute_asset": "A", "reroute_points": "P", "reroute_curve": "S", "reroute_frames": "F",
                    "select_mesh": "M", "select_asset": "A",
                    "points_to_frames": "F", "debug": "M", "asset": "A", "pick": "A", "create_spline": "S",
                    # `scatter` describe DÓNDE (puntos) y `instance` decide cuándo eso se vuelve
