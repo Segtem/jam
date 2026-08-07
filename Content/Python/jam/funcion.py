@@ -178,7 +178,10 @@ def herramientas(cuerpos: dict[str, JamGraph] | None = None) -> list[dict]:
     """
     borde = [
         {"verbo": "input", "cat": "Funciones", "seccion": "Funciones", "grupo": "Firma",
-         "doc": "entrada nombrada del cuerpo de una función", "source": True, "aridad": 0,
+         "doc": "entrada nombrada del cuerpo de una función. «por defecto» VACÍO deja un pin que "
+                "hay que cablear; con un valor, la entrada pasa a ser una perilla editable en la "
+                "ficha de la herramienta (y se puede cablear igual: el cable manda sobre el campo)",
+         "source": True, "aridad": 0,
          "in_name": "", "out_name": "*", "asset_pin": False, "asset_row": False,
          "params": [
              {"nombre": "name", "default": "entrada", "tipo": "str", "data_type": "T",
@@ -188,7 +191,12 @@ def herramientas(cuerpos: dict[str, JamGraph] | None = None) -> list[dict]:
               "etiquetas_opciones": [ETIQUETAS_TIPOS_PIN[t] for t in TIPOS_PIN]},
              # Lo que convierte esta entrada en PERILLA. Vacío = pin que hay que cablear; con un
              # valor = control editable en la ficha de la herramienta (y cableable igual).
-             {"nombre": "default", "label": "valor por defecto (vacío = pin)", "default": "",
+             #
+             # La etiqueta es CORTA a propósito: la columna de params mide 104 px y el nombre se
+             # dibuja a su izquierda, así que una etiqueta larga («valor por defecto (vacío = pin)»,
+             # ~124 px) exprime el campo hasta dejarlo invisible. La explicación va en el `doc`,
+             # que se ve en el tooltip del nodo y tiene todo el lugar del mundo.
+             {"nombre": "default", "label": "por defecto", "default": "",
               "tipo": "str", "data_type": "T", "opciones": []},
          ]},
         {"verbo": "output", "cat": "Funciones", "seccion": "Funciones", "grupo": "Firma",

@@ -286,6 +286,54 @@ class GlifosQueLaFuenteTieneTests(unittest.TestCase):
                            "no se encontraron los glifos del nodo: ¿cambió la forma de los literales?")
 
 
+class EtiquetasQueEntranTests(unittest.TestCase):
+    """Una etiqueta de parámetro demasiado larga deja el campo sin lugar, y el control desaparece.
+
+    Pasó de verdad: «valor por defecto (vacío = pin)» mide ~124 px a fuente 7 y la columna entera
+    son 104 px. El campo existía y se dibujaba con ancho cero — desde el editor era imposible
+    escribir el valor, y no había ninguna señal de por qué.
+
+    El ancho de columna se LEE del `.cpp`: si alguien la ensancha, este test se relaja solo.
+    """
+
+    #: ~4 px por carácter a la fuente 7 de las filas de parámetro. Aproximado a propósito: sirve
+    #: para atajar una etiqueta desproporcionada, no para predecir el pixel exacto.
+    PX_POR_CARACTER = 4
+    #: Lo mínimo que hace usable un campo de texto o un spinner.
+    CAMPO_MINIMO_PX = 24
+
+    def ancho_de_columna(self) -> float:
+        import re
+
+        texto = (RAIZ / "Source" / "JamEditor" / "Public" / "SJamGraphNode.h").read_text(
+            encoding="utf-8")
+        m = re.search(r"ParamColW = ([\d.]+)f", texto)
+        self.assertIsNotNone(m, "no encontré ParamColW en el .h")
+        return float(m.group(1))
+
+    def test_every_param_label_leaves_room_for_its_field(self):
+        from jam import funcion
+
+        ancho = self.ancho_de_columna()
+        fichas = list(tools.REGISTRO.items())
+        largas = []
+        for verbo, info in fichas:
+            etiquetas = info.get("etiquetas_params", {})
+            for nombre in info.get("params", {}):
+                etiqueta = etiquetas.get(nombre, nombre)
+                libre = ancho - len(etiqueta) * self.PX_POR_CARACTER
+                if libre < self.CAMPO_MINIMO_PX:
+                    largas.append(f"{verbo}.{nombre}: «{etiqueta}» deja {libre:.0f} px")
+        # Los bordes de función viajan por otro camino que `REGISTRO`, y son los que fallaron.
+        for ficha in funcion.herramientas({}):
+            for p in ficha.get("params", []):
+                etiqueta = p.get("label", p["nombre"])
+                libre = ancho - len(etiqueta) * self.PX_POR_CARACTER
+                if libre < self.CAMPO_MINIMO_PX:
+                    largas.append(f"{ficha['verbo']}.{p['nombre']}: «{etiqueta}» deja {libre:.0f} px")
+        self.assertEqual(largas, [], "etiquetas que no dejan lugar al campo:\n  " + "\n  ".join(largas))
+
+
 class ContrasteDelNodoTests(unittest.TestCase):
     """El texto del nodo tiene que LEERSE, no sólo estar.
 
