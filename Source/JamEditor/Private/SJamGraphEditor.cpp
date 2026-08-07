@@ -3487,13 +3487,22 @@ FString SJamGraphEditor::InputDataTypeFor(const FString& NodeId, const FString& 
  *  desfasaje no puede volver a pasar.
  *
  *  «*» es un pin COMODÍN: lo usa el ayudante de Debug, que dibuja cualquier cosa que llegue. */
-static bool JamTiposCompatibles(const FString& OutType, const FString& InType)
+static bool JamTiposCompatibles(const FString& OutType, const FString& InType,
+	const TArray<FString>* Extras = nullptr)
 {
 	if (OutType.IsEmpty() || InType.IsEmpty())
 	{
 		return false;
 	}
-	return InType == TEXT("*") || OutType == TEXT("*") || OutType == InType;
+	if (InType == TEXT("*") || OutType == TEXT("*") || OutType == InType)
+	{
+		return true;
+	}
+	// Tipos EXTRA declarados por el verbo de destino (`in_accepts` del registro): `place`
+	// admite A y también la colección A[]. NO es un comodín — la lista es cerrada, y quien
+	// la escribe es Python. Que falte un pin compañero (A[] sin `points`) lo dice el
+	// Compile: tender el cable es legal, y el oráculo es quien juzga.
+	return Extras != nullptr && Extras->Contains(OutType);
 }
 
 bool SJamGraphEditor::CanConnect(const FString& From, const FString& FromPin, const FString& To,
@@ -3516,7 +3525,12 @@ bool SJamGraphEditor::CanConnect(const FString& From, const FString& FromPin, co
 		OutError = FString::Printf(TEXT("%s.%s no es una entrada válida"), *To, *ToPin);
 		return false;
 	}
-	if (!JamTiposCompatibles(OutType, InType))
+	const FGNode* NodoDestino = Nodes.FindByPredicate(
+		[&To](const FGNode& X) { return X.Id == To; });
+	const FJamTool* ToolDestino = NodoDestino ? FindTool(NodoDestino->Verb) : nullptr;
+	const TArray<FString>* Extras = (ToPin == TEXT("in") && ToolDestino != nullptr)
+		? &ToolDestino->InAccepts : nullptr;
+	if (!JamTiposCompatibles(OutType, InType, Extras))
 	{
 		OutError = FString::Printf(TEXT("tipo incompatible: %s.%s entrega %s; %s.%s espera %s"),
 			*From, *FromPin, *OutType, *To, *ToPin, *InType);
@@ -4916,7 +4930,9 @@ bool SJamGraphEditor::LoadGraphJson(const FString& Json, bool bConservarEdicionF
 						? JamParamDataType(Param->Name, Param->Type) : Param->DataType;
 				}
 			}
-			if (!JamTiposCompatibles(OutType, InType))
+			const TArray<FString>* Extras = (ToPin == TEXT("in") && ToTool != nullptr)
+				? &ToTool->InAccepts : nullptr;
+			if (!JamTiposCompatibles(OutType, InType, Extras))
 			{
 				return Fail(FString::Printf(TEXT("edge %d tiene pines o tipos incompatibles."), EdgeIndex));
 			}

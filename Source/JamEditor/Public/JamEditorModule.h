@@ -67,6 +67,10 @@ struct FJamTool
 	bool bAssetRow = false;
 	int32 Arity = 1;          // 0=fuente · 1=unario · -1=variádico (varios cables en «in»)
 	FString InName;           // tipo que recibe el pin gordo: A=asset/actor · P=stream de puntos
+	/** Tipos EXTRA que `in` admite además de `InName`. `place` toma un asset A y también la
+	    colección A[] de variantes. Lo declara el registro de Python y viaja en el spec: la UI
+	    no puede conocer verbos por nombre sin volver a separarse del cerebro. */
+	TArray<FString> InAccepts;
 	FString OutName;          // código de tipo legado del pin estable `out` (A/P/N/M…)
 	/** Nombre humano opcional del pin de salida; OutName conserva el código de tipo/protocolo. */
 	FString OutLabel;

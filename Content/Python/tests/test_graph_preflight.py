@@ -729,3 +729,85 @@ class RerouteTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PinQueAceptaVariosTiposTests(unittest.TestCase):
+    """`place` toma un asset A y también la COLECCIÓN A[] de variantes.
+
+    No es un comodín: la lista de tipos extra es cerrada y la escribe el registro. Y A[] arrastra
+    un requisito —`points` cableado—, porque sin puntos habría que elegir una variante para colocar
+    UNA, y eso no lo dijo nadie. El requisito viaja junto al tipo, no como regla suelta.
+    """
+
+    @staticmethod
+    def _cadena(*, con_points: bool) -> JamGraph:
+        g = JamGraph()
+        g.add("brush", {}, nid="pincel")
+        g.add("scatter", {"count": "12"}, nid="disp")
+        g.add("asset", {"name": "/A.A"}, nid="a1")
+        g.add("asset", {"name": "/B.B"}, nid="a2")
+        g.add("asset_set", {}, nid="vars")
+        g.add("place", {"physics": "True"}, nid="poner")
+        g.connect("pincel", "disp")
+        g.connect("a1", "vars")
+        g.connect("a2", "vars")
+        g.connect("vars", "poner")
+        if con_points:
+            g.connect("disp", "poner", "points")
+        return g
+
+    @staticmethod
+    def _cableado(diagnosticos: dict) -> dict:
+        """Sin motor los nodos `asset` no resuelven rutas. Eso no es lo que se está probando."""
+        ruido = ("resolver asset", "no encontrado", "ObjectPath")
+        limpio = {nid: [m for m in msgs if not any(r in m for r in ruido)]
+                  for nid, msgs in diagnosticos.items()}
+        return {nid: msgs for nid, msgs in limpio.items() if msgs}
+
+    def test_a_collection_of_variants_can_feed_place(self):
+        from jam.graph import validar
+        self.assertEqual(self._cableado(validar(self._cadena(con_points=True))), {},
+                         "A[] → place tendría que ser un cable legal")
+
+    def test_a_collection_without_points_is_refused_with_a_reason(self):
+        from jam.graph import validar
+        diag = self._cableado(validar(self._cadena(con_points=False)))
+        self.assertIn("poner", diag)
+        self.assertTrue(any("points" in m for m in diag["poner"]),
+                        f"tendría que nombrar el pin que falta: {diag}")
+
+    def test_the_extra_types_are_a_closed_list_and_not_a_wildcard(self):
+        """Un comodín aceptaría una malla o una curva. Sólo entra lo declarado."""
+        from jam.graph import validar
+        g = JamGraph()
+        g.add("mesh_box", {}, nid="caja")
+        g.add("scatter", {"count": "4"}, nid="disp")
+        g.add("place", {}, nid="poner")
+        g.connect("caja", "poner")
+        g.connect("disp", "poner", "points")
+        self.assertTrue(any("incompatible" in m for m in validar(g).get("caja", [])),
+                        "una malla no puede entrar por el pin que acepta A y A[]")
+
+    def test_the_spec_carries_the_extra_types_to_the_ui(self):
+        """Si no viajan en el spec, el C++ tendría que conocer verbos por nombre."""
+        import json
+        spec = json.loads(tools.spec_json(include_graph_only=True))
+        ficha = next(t for t in spec["tools"] if t["verbo"] == "place")
+        self.assertEqual(ficha["in_accepts"], ["A[]"])
+
+    def test_the_cpp_consults_the_extra_types_instead_of_hardcoding_place(self):
+        """La regla de compatibilidad está forzosamente duplicada en Slate: si el C++ no mirara
+        `InAccepts`, la UI rechazaría el cable que el Compile acepta — y no habría forma de tenderlo.
+        """
+        from pathlib import Path
+        cpp = (Path(__file__).resolve().parents[3] / "Source" / "JamEditor" / "Private"
+               / "SJamGraphEditor.cpp").read_text(encoding="utf-8")
+        regla = cpp[cpp.index("static bool JamTiposCompatibles"):]
+        regla = regla[:regla.index("\n}\n")]
+        self.assertIn("Extras->Contains(OutType)", regla)
+        codigo = "\n".join(l for l in regla.splitlines() if not l.strip().startswith("//"))
+        self.assertNotIn("place", codigo,
+                         "el C++ no puede conocer el verbo por nombre; lo declara el registro")
+        self.assertEqual(cpp.count("JamTiposCompatibles(OutType, InType, Extras)"), 2,
+                         "los DOS caminos —tender un cable y abrir un archivo— tienen que pasar "
+                         "los tipos extra, o uno rechaza lo que el otro acepta")

@@ -786,6 +786,15 @@ void FJamEditorModule::LoadSpec(bool bIncludeFlow)
 			T.Arity = static_cast<int32>(ArityValue);
 		}
 		O->TryGetStringField(TEXT("in_name"), T.InName);
+		const TArray<TSharedPtr<FJsonValue>>* Extras = nullptr;
+		if (O->TryGetArrayField(TEXT("in_accepts"), Extras) && Extras != nullptr)
+		{
+			for (const TSharedPtr<FJsonValue>& Item : *Extras)
+			{
+				FString Tipo;
+				if (Item.IsValid() && Item->TryGetString(Tipo)) { T.InAccepts.Add(Tipo); }
+			}
+		}
 		O->TryGetStringField(TEXT("out_name"), T.OutName);
 		O->TryGetStringField(TEXT("out_label"), T.OutLabel);
 		auto LeerPines = [&O](const TCHAR* Campo, TArray<FJamTool::FPin>& Destino)

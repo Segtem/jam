@@ -165,3 +165,43 @@ class PlaceLePasaLaFisicaTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class VeredictoHonestoTests(unittest.TestCase):
+    """«PLACE ✓ — 0 en 8 punto(s)» pintaba el nodo de VERDE.
+
+    Un tilde sobre cero piezas es exactamente la clase de veredicto que este proyecto existe para
+    no dar: se ve verde, no colocó nada, y el que mira sigue construyendo encima.
+    """
+
+    def test_zero_placed_is_never_a_check(self):
+        from jam.graph import _estado
+        from jam.tools import _veredicto_place
+        texto = _veredicto_place(0, 8, 1, "", "ORACULO")
+        self.assertIn("✗", texto)
+        self.assertNotIn("✓", texto)
+        self.assertNotEqual(_estado(texto), "ok", "cero colocados no puede pintar verde")
+
+    def test_it_says_how_many_it_failed_to_place_and_where_to_look(self):
+        texto = _v = None
+        from jam.tools import _veredicto_place
+        texto = _veredicto_place(0, 8, 0, "", "ORACULO")
+        self.assertIn("8", texto)
+        self.assertIn("[Jam] colocar", texto,
+                      "sin decir dónde mirar, el veredicto obliga a adivinar")
+
+    def test_placing_something_still_reports_the_settling_and_the_oracle(self):
+        from jam.graph import _estado
+        from jam.tools import _veredicto_place
+        texto = _veredicto_place(7, 8, 1, "\nASENTAR ✓ — 7/7", "ORACULO")
+        self.assertEqual(_estado(texto), "ok")
+        self.assertIn("ASENTAR", texto)
+        self.assertIn("ORACULO", texto)
+
+    def test_the_engine_side_says_out_loud_when_the_spawn_fails(self):
+        """`colocar` devolvía None sin decir nada y costó una ronda entera de diagnóstico."""
+        fuente = (RAIZ / "place.py").read_text(encoding="utf-8")
+        tramo = fuente[fuente.index("spawn_actor_from_object"):]
+        tramo = tramo[:tramo.index("return None")]
+        self.assertIn("log_error", tramo,
+                      "un spawn que falla en silencio parece un bug de Jam")

@@ -152,7 +152,8 @@ Lo que **nadie ejerció con las manos** de este turno:
 | Ribbon jerárquico por familias | Brian | ⏳ abrió/cerró sin crash; falta juzgar orden, densidad y navegación |
 | Resto del ABM, `Ctrl+G` + dibujo/cableado de pines múltiples | Brian | ◐ Nueva/Editar/Guardar/Renombrar/Eliminar verdes; faltan `Ctrl+G` y firmas no numéricas |
 | Aspecto de una GC Nanite fracturada y rotura en PIE | Brian | ⏳ metadata/materiales verdes; falta viewport y simulación |
-| `place` con `physics`: la tanda se apila | Brian | ◐ 716 tests + sonda 5.8.1 con actores reales verdes; falta el gesto en el Graph |
+| `place` con `physics`: la tanda se apila | Brian | ◐ 725 tests + sonda 5.8.1 con actores reales verdes; falta el gesto en el Graph |
+| `asset_set → place`: variantes por punto | Brian | ◐ compila y reparte 2/2 en 5.8.1; **colocar no se puede verificar headless** (ver trampas), falta verlo colocar |
 | El paquete de estudio subido a NotebookLM | Brian | ⏳ generado, sin abrir |
 | Que el informe del modo sombra de `vault.py` se lea bien | Brian | ⏳ |
 | Todo lo demás de `oracle` | ✅ sus propias herramientas, el diferencial y la mutación | verificado |

@@ -138,6 +138,12 @@ def colocar(
 
     actor = _actor_sub().spawn_actor_from_object(mesh, unreal.Vector(x, y, z), rot)
     if actor is None:
+        # Callarse acá cuesta una ronda entera de diagnóstico: quien llama recibe None y no tiene
+        # forma de saber si el asset no cargó o si el spawn falló. En commandlet SIEMPRE falla
+        # (`SpawnActorFromObject` necesita el editor vivo), y sin este renglón parece un bug de Jam.
+        unreal.log_error(
+            f"[Jam] colocar: spawn_actor_from_object no devolvió actor para "
+            f"{mesh.get_name()} — con el editor abierto sí coloca; en commandlet no")
         return None
     if tuple(scale) != (1.0, 1.0, 1.0):
         actor.set_actor_scale3d(unreal.Vector(*scale))

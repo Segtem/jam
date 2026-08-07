@@ -217,6 +217,19 @@ def _tipo_entrada(verb: str, pin: str, registro: dict) -> str | None:
     return _tipo_default(pin, defaults[pin]) if pin in defaults else None
 
 
+def _acepta_ademas(verb: str, pin: str, registro: dict) -> dict:
+    """Tipos EXTRA que la entrada principal de `verb` admite, y qué pin hace falta para cada uno.
+
+    Existe porque un pin puede admitir «uno o varios» sin que eso sea un comodín: `place` toma un
+    asset A, y también una colección A[] —pero sólo con `points` cableado, porque sin puntos no hay
+    a quién repartirle las variantes y elegir una sería inventar. El requisito viaja junto al tipo
+    en vez de quedar como una regla suelta que nadie relaciona con el cable que la disparó.
+    """
+    if pin != PIN_IN:
+        return {}
+    return dict(registro.get(verb, {}).get("in_accepts", {}))
+
+
 def _resolver_parametro(valor, default, tabla: dict):
     """Resuelve expresión + tipo sin defaults silenciosos. Devuelve `(valor, error_o_None)`."""
     from .flow import _es_numero, _eval_expr
@@ -337,12 +350,24 @@ def compilar(g: JamGraph, *, registro: dict | None = None, resolver_asset=None,
             continue
         # «*» es un pin COMODÍN: lo usa el ayudante de Debug, que dibuja cualquier cosa que llegue.
         # Sin esto haría falta un nodo de debug por tipo, y había que saber de antemano cuál usar.
-        if tipo_in != COMODIN and tipo_out != tipo_in:
+        extra = _acepta_ademas(g.nodes[destino].get("verb", ""), destino_pin, registro)
+        if tipo_in != COMODIN and tipo_out != tipo_in and tipo_out not in extra:
             error(origen, f"salida {tipo_out} incompatible con {destino}.{destino_pin} ({tipo_in})")
             error(destino, f"{destino_pin} esperaba {tipo_in}, recibió {tipo_out}")
             continue
         entradas[(destino, destino_pin)] = entradas.get((destino, destino_pin), 0) + 1
         valid_edges.append(enlace)
+
+    # Un tipo extra puede exigir compañía: A[] en `place` sin `points` no significa nada, y elegir
+    # una variante al azar para colocar UNA sería inventar lo que el usuario no dijo.
+    for origen, _op, destino, destino_pin in valid_edges:
+        verb_destino = g.nodes[destino].get("verb", "")
+        pedidos = _acepta_ademas(verb_destino, destino_pin, registro).get(
+            _tipo_salida(g.nodes[origen].get("verb", ""), registro))
+        for companero in pedidos or ():
+            if (destino, companero) not in entradas:
+                error(destino, f"con {_tipo_salida(g.nodes[origen].get('verb', ''), registro)} "
+                               f"hace falta un cable en «{companero}»")
 
     for (nid, pin), cantidad in entradas.items():
         info = registro.get(g.nodes[nid].get("verb", ""), {})
@@ -479,7 +504,13 @@ def compilar(g: JamGraph, *, registro: dict | None = None, resolver_asset=None,
                         if output_assets.get(origen):
                             asset = output_assets[origen]
                             break
-                if not asset and info.get("asset_required", False):
+                # Un cable de tipo extra (A[]) trae los assets recién en Run: es una colección, no
+                # una ruta. Exigir acá una ruta única sería pedirle al Compile que elija la variante.
+                extra = _acepta_ademas(verb, PIN_IN, registro)
+                por_coleccion = extra and any(
+                    _tipo_salida(g.nodes[o].get("verb", ""), registro) in extra
+                    for o in main_sources.get(nid, []))
+                if not asset and not por_coleccion and info.get("asset_required", False):
                     error(nid, "requiere asset explícito: cable Asset/Pick, campo asset o entrada A")
 
             if asset and necesita_resolver:

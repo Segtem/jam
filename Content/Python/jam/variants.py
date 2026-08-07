@@ -17,6 +17,11 @@ class AssetSet:
     def __len__(self) -> int:
         return len(self.assets)
 
+    def __iter__(self):
+        """Recorrerla da sus rutas. Sin esto, quien recibe un A[] tiene que saber que adentro hay
+        un campo `.assets` — o sea, tratar a la colección como una caja en vez de como una lista."""
+        return iter(self.assets)
+
 
 @dataclass(frozen=True)
 class FrameAssetSelection:

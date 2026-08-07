@@ -302,8 +302,21 @@ def _place_en_puntos(asset, puntos, *, anchor, sink, align, scale_min, scale_max
     semi = (max(1.0, (max(xs) - min(xs)) / 2.0), max(1.0, (max(ys) - min(ys)) / 2.0))
     existentes = ue.vecinos_en_zona(centro, semi, ignorar=actores)
     oraculo = ue.scatter_texto(actores, centro, semi, len(actores), existentes=existentes)
-    extra = f" · {len(pisados)} evitados por huella" if pisados else ""
-    return (f"PLACE \u2713 \u2014 {len(actores)} en {len(puntos)} punto(s){extra}{asentado}\n{oraculo}")
+    return _veredicto_place(len(actores), len(puntos), len(pisados), asentado, oraculo)
+
+
+def _veredicto_place(colocados: int, puntos: int, pisados: int, asentado: str, oraculo: str) -> str:
+    """El renglón de PLACE. Puro a propósito: la regla que importa —CERO colocados no puede decir
+    \u2713— se prueba sin motor.
+
+    Decía «PLACE \u2713 — 0 en 8 punto(s)» y el nodo se pintaba verde. Un tilde sobre cero piezas es
+    exactamente la clase de veredicto que este proyecto existe para no dar.
+    """
+    extra = f" · {pisados} evitados por huella" if pisados else ""
+    if colocados == 0:
+        return (f"PLACE \u2717 \u2014 no se colocó ninguna de las {puntos} piezas{extra} "
+                f"\u2014 mirá «[Jam] colocar» en el log")
+    return (f"PLACE \u2713 \u2014 {colocados} en {puntos} punto(s){extra}{asentado}\n{oraculo}")
 
 
 def _veredicto_entorno(actor) -> str:
@@ -1678,6 +1691,10 @@ REGISTRO = {
                                 "points": ""},
                      "data_params": {"points": "P"},
                      "optional_data_params": ("points",),
+                     # Además de un asset suelto acepta la COLECCIÓN de variantes, y reparte una
+                     # por punto. El requisito de `points` viaja acá y no como regla aparte: sin
+                     # puntos habría que elegir una variante, y eso no lo dijo nadie.
+                     "in_accepts": {"A[]": ("points",)},
                      "opciones": {"anchor": list(_ANCLAS)},
                      "doc": "pone el asset en el mundo: en sus coordenadas, o UNO POR PUNTO si le cableás "
                             "un scatter al pin `points`. Es el único nodo que coloca. Con `physics` la "
@@ -2481,6 +2498,9 @@ def spec_json(*, include_graph_only: bool = False) -> str:
             "aridad": info["aridad"],
             # Tipo del pin gordo de entrada: en el grafo de verbos viaja el asset/actor activo.
             "in_name": info["in_name"],
+            # Tipos EXTRA que admite el pin gordo además del suyo. Viaja en el spec para que la
+            # regla de compatibilidad del C++ no tenga que conocer verbos por nombre.
+            "in_accepts": sorted(info.get("in_accepts", {})),
             "asset_pin": info["asset_pin"],
             "asset_row": info["asset_row"],
             "out_name": info["out_name"],
