@@ -80,7 +80,8 @@ cd Content/Python/tests && PYTHONPATH=$PWD/.. python -m unittest discover -s . -
 python tools/vault.py            #  --indice reescribe Vault-kb/README.md
 
 # compilar el C++ del editor Y COMPROBAR que el binario quedó al día
-python tools/build.py            # --solo-ver para verificar sin compilar
+./BUILD-JAM.sh                   # --solo-ver para verificar sin compilar
+# (BUILD-JAM.sh es sólo el lanzador; la lógica vive en tools/build.py)
 
 # lo mismo a mano (~16-19 s incremental)
 # -NoUBA: Unreal Build Accelerator se confunde con el symlink Plugins/Jam -> ~/Dev/jam
