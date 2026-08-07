@@ -555,6 +555,10 @@ def listar_definiciones() -> list[dict]:
                 "nombre": str(p["nombre"]),
                 "scope": p.get("scope", "local"),
                 "descripcion": p.get("descripcion", ""),
+                # Publicada = aparece en la Dash. Por defecto SÍ: la idea es que construir la
+                # biblioteca vaya poblando la barra sola. Se puede apagar para las auxiliares, que
+                # sirven adentro de otro grafo y sólo serían ruido en una barra de herramientas.
+                "publicada": bool(p.get("publicada", True)),
                 "cuerpo": JamGraph.from_json(_json.dumps(cuerpo)),
             }
     return list(por_id.values())

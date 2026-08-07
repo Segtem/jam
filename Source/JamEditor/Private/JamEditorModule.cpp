@@ -899,6 +899,22 @@ TSharedRef<SWidget> FJamEditorModule::BuildDashContent()
 		}
 	}
 	TSharedRef<SHorizontalBox> TabStrip = SNew(SHorizontalBox);
+	// Biblioteca vacía: una barra sin nada parece rota, así que dice CÓMO se llena. Es el estado
+	// inicial esperado —la Dash ya no es un catálogo fijo de verbos sino el estante de lo que uno
+	// construyó— y el mensaje es lo único que enseña ese modelo a quien abre Jam por primera vez.
+	if (Tools.Num() == 0)
+	{
+		TabStrip->AddSlot().AutoWidth().Padding(4.0f, 2.0f)
+		[
+			SNew(STextBlock)
+			.Text(LOCTEXT("DashVacia",
+				"Todavía no publicaste ninguna herramienta · armá una en Jam ▸ Graph y guardala como función"))
+			.ToolTipText(LOCTEXT("DashVaciaTip",
+				"El Graph es el taller y la Dash el estante: los verbos siguen todos en el Graph, "
+				"y acá aparecen las herramientas que construyas con ellos"))
+			.ColorAndOpacity(FSlateColor(FLinearColor(0.72f, 0.72f, 0.74f)))
+		];
+	}
 	for (const FString& Cat : Categories)
 	{
 		if (Cat == TEXT("Content") || !CategoryHasTools(Cat))

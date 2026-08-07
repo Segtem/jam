@@ -850,12 +850,13 @@ class MeshTests(unittest.TestCase):
     def test_mesh_tab_is_graph_only_and_uses_typed_m_pins(self):
         import json
 
-        dash = json.loads(api.spec())
+        # La Dash ya no lista verbos —muestra la biblioteca de herramientas publicadas— así que
+        # «no está en la Dash» dejó de distinguir nada. Lo que sigue importando es que el verbo SÍ
+        # esté en el Graph, con sus pines tipados: ahí es donde se compone.
         graph = json.loads(api.spec_all())
-        dash_verbs = {item["verbo"] for item in dash["tools"]}
         graph_tools = {item["verbo"]: item for item in graph["tools"]}
 
-        self.assertNotIn("mesh_cylinder", dash_verbs)
+        self.assertIn("mesh_cylinder", graph_tools)
         self.assertIn("Mesh", graph["categorias"])
         self.assertEqual(graph_tools["mesh_cylinder"]["out_name"], "M")
         self.assertTrue(graph_tools["mesh_cylinder"]["source"])
@@ -975,14 +976,14 @@ class MeshTests(unittest.TestCase):
         self.assertEqual(graph_tools["hism_output"]["out_name"], "H")
         self.assertFalse(graph_tools["hism_output"]["source"])
         self.assertFalse(graph_tools["hism_output"]["asset_pin"])
-        self.assertNotIn("hism_output", dash_verbs)
+        self.assertTrue(tools.REGISTRO["hism_output"].get("graph_only"))
         self.assertNotIn("hism_output", tools.SIN_SPAWN)
         # El oráculo consume M, exige una referencia A por cable y DEJA PASAR la malla intacta.
         self.assertEqual(graph_tools["mesh_compare"]["in_name"], "M")
         self.assertEqual(graph_tools["mesh_compare"]["out_name"], "M")
         self.assertTrue(graph_tools["mesh_compare"]["asset_pin"])
         self.assertTrue(tools.REGISTRO["mesh_compare"]["asset_required"])
-        self.assertNotIn("mesh_compare", dash_verbs)
+        self.assertTrue(tools.REGISTRO["mesh_compare"].get("graph_only"))
         compare_params = {item["nombre"]: item for item in graph_tools["mesh_compare"]["params"]}
         self.assertEqual(compare_params["franjas"]["tipo"], "int")
         self.assertEqual(compare_params["perfil"]["tipo"], "float")

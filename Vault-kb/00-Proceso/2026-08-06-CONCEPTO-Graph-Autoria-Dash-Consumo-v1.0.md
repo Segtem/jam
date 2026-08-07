@@ -61,7 +61,28 @@ estilo `.sbsar` rompería la premisa del producto.
 
 ## Los tres huecos reales
 
-### 1. La Dash no ve lo que el Graph produce ← *el corazón de la idea*
+### 1. ✅ La Dash muestra la biblioteca (2026-08-07)
+
+`api.spec()` —lo que consume la Dash— dejó de devolver `tools.REGISTRO` y devuelve las **funciones
+publicadas**. La Dash arranca **vacía**, con un mensaje que dice cómo llenarla.
+
+Los 19 verbos que mostraba (`place`, `scatter`, `snap`, `drop`, `replace`, `fracture`, `nanite`…)
+**no desaparecieron**: siguen en el Graph, que es donde se combinan. Lo que se perdió a propósito es
+el gesto de un clic sobre un verbo suelto.
+
+> [!note] Por qué vacía y no con los básicos abajo
+> Fue una decisión explícita de Brian. Una barra llena de primitivas invita a usarlas sueltas y
+> esconde que se pueden componer; una barra vacía que dice cómo llenarse enseña el modelo.
+
+Una definición nace **publicada**. El flag existe (`publicada` en el preset) para poder apagarlo en
+las auxiliares —las que sirven adentro de otro grafo y sólo serían ruido en una barra— pero el
+default hace que construir la biblioteca vaya poblando la Dash sola, sin un paso extra.
+
+#### Lo que sigue faltando acá
+
+Botón de publicar/despublicar en la UI. Hoy el flag sólo se puede cambiar editando el preset.
+
+### 1-bis. *(histórico)* La Dash no veía lo que el Graph producía
 
 El Graph carga `api.spec_all()` (verbos + ops de flow + **funciones**). La Dash carga `api.spec()`,
 que es sólo `tools.REGISTRO`. Una definición creada en el Graph **no aparece en la Dash**.

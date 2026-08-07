@@ -20,8 +20,33 @@ from __future__ import annotations
 
 
 def spec() -> str:
-    from . import tools
-    return tools.spec_json()
+    """Lo que muestra la DASH: la biblioteca de herramientas publicadas, no el catálogo de verbos.
+
+    La Dash es el estante donde están las herramientas que uno construyó; el Graph es el taller
+    donde se construyen. Antes mostraba 19 verbos sueltos (place, scatter, snap…) — siguen todos
+    disponibles **en el Graph**, que es donde se combinan; lo que cambió es que la barra ya no es un
+    catálogo fijo sino algo que se puebla publicando desde el Graph.
+
+    Arranca vacía a propósito. Una barra vacía que dice cómo llenarse enseña el modelo; una llena de
+    primitivas invita a usarlas sueltas y esconde que se pueden componer.
+    """
+    import json
+
+    from . import funcion
+
+    herramientas = []
+    for definicion in funcion.listar_definiciones():
+        if not definicion.get("publicada", True):
+            continue
+        ficha = funcion.herramienta(
+            definicion["funcion_id"], definicion["nombre"], definicion["cuerpo"])
+        # En la Dash no son «Funciones» (eso es su forma en el Graph): son LAS herramientas.
+        ficha["cat"] = "Herramientas"
+        ficha["seccion"] = "Herramientas"
+        herramientas.append(ficha)
+    # Sin herramientas no hay categorías: el ribbon no dibuja tabs vacíos y la barra queda limpia.
+    categorias = ["Herramientas"] if herramientas else []
+    return json.dumps({"categorias": categorias, "tools": herramientas}, ensure_ascii=True)
 
 
 def assets(query: str = "", limit: int = 200, folder: str = "") -> str:
