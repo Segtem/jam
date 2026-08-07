@@ -153,7 +153,7 @@ def kind_de_grafo(grafo) -> str:
 
 
 def desde_grafo(nombre, grafo, *, categoria="", descripcion="", tags=None, scope="local",
-                debe_ok=False, funcion_id="") -> dict:
+                debe_ok=False, funcion_id="", publicada=True) -> dict:
     """Preset a partir de un grafo (dict o JSON string); el `kind` sale del contenido, no del botón."""
     if isinstance(grafo, str):
         grafo = json.loads(grafo)
@@ -163,6 +163,10 @@ def desde_grafo(nombre, grafo, *, categoria="", descripcion="", tags=None, scope
             "oraculo": {"debe_ok": debe_ok}}
     if kind == "funcion" and funcion_id:
         salida["funcion_id"] = funcion_id
+    if kind == "funcion":
+        # Publicada = aparece en la Dash. Sólo tiene sentido para una función: un preset de
+        # herramienta o de flow no es una definición que se pueda publicar.
+        salida["publicada"] = bool(publicada)
     return salida
 
 

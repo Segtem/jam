@@ -327,6 +327,76 @@ def collapse_function(nombre: str, graph_json: str, selected_json: str,
         return json.dumps({"ok": False, "report": f"FUNCIÓN ✗ — {e}"}, ensure_ascii=True)
 
 
+def tool_export(funcion_id: str, ruta: str) -> str:
+    """Escribe una herramienta como archivo portable `.jamtool`: `{ok, ruta, nombre}`.
+
+    Es JSON, legible y editable — a propósito. La analogía con `.sbsar` de Substance tienta a
+    compilar, pero una herramienta de Jam es **transparente por obligación**: se expande inline
+    antes de compilar, y si fuera opaca el oráculo dejaría de ver lo que mide. Se empaqueta; no se
+    cierra.
+    """
+    import json
+
+    from . import funcion, preset
+
+    try:
+        d = funcion.obtener_definicion(funcion_id)
+        paquete = {
+            "jamtool": 1,                       # versión del formato, para poder migrarlo después
+            "funcion_id": d["funcion_id"],
+            "nombre": d["nombre"],
+            "descripcion": d.get("descripcion", ""),
+            "publicada": bool(d.get("publicada", True)),
+            "graph": json.loads(d["cuerpo"].to_json()),
+        }
+        destino = str(ruta).strip()
+        if not destino:
+            raise ValueError("falta la ruta de destino")
+        with open(destino, "w", encoding="utf-8") as f:
+            json.dump(paquete, f, ensure_ascii=True, indent=1)
+    except Exception as exc:  # noqa: BLE001
+        return json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=True)
+    return json.dumps({"ok": True, "ruta": destino, "nombre": paquete["nombre"],
+                       "report": f"HERRAMIENTA exportada ✓ — «{paquete['nombre']}» → {destino}"},
+                      ensure_ascii=True)
+
+
+def tool_import(ruta: str) -> str:
+    """Trae una herramienta `.jamtool` a la biblioteca LOCAL: `{ok, verbo, nombre}`.
+
+    Conserva la identidad (`funcion_id`) del archivo: si esa herramienta ya estaba, la reemplaza en
+    vez de dejar dos con el mismo nombre y distinto id. Y valida el cuerpo antes de guardar — un
+    archivo de otra versión de Jam podría traer un verbo que acá no existe, y es mejor decirlo al
+    importar que dejar una ficha que revienta al usarla.
+    """
+    import json
+
+    from . import funcion, preset
+    from .graph import JamGraph
+
+    try:
+        with open(str(ruta), "r", encoding="utf-8") as f:
+            paquete = json.load(f)
+        if not isinstance(paquete, dict) or "graph" not in paquete:
+            raise ValueError("el archivo no es una herramienta de Jam (falta «graph»)")
+        cuerpo = JamGraph.from_json(json.dumps(paquete["graph"]))
+        _firma, diagnosticos = funcion.validar_cuerpo(cuerpo)
+        if diagnosticos:
+            detalle = " · ".join(m for ms in diagnosticos.values() for m in ms)
+            raise ValueError(f"la herramienta no es válida en este Jam: {detalle}")
+        nombre = str(paquete.get("nombre") or "Herramienta importada")
+        identidad = str(paquete.get("funcion_id") or funcion.nuevo_id())
+        p = preset.desde_grafo(nombre, cuerpo.to_json(),
+                               descripcion=str(paquete.get("descripcion", "")),
+                               scope="local", funcion_id=identidad,
+                               publicada=bool(paquete.get("publicada", True)))
+        preset.guardar(p)
+    except Exception as exc:  # noqa: BLE001
+        return json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=True)
+    return json.dumps({"ok": True, "verbo": funcion.PREFIJO + identidad, "nombre": nombre,
+                       "report": f"HERRAMIENTA importada ✓ — «{nombre}»"}, ensure_ascii=True)
+
+
 def function_manage(action: str, funcion_id: str = "", payload: str = "",
                     scope: str = "local") -> str:
     """ABM de definiciones para Slate. `payload` es nombre en create/rename y grafo en update."""
@@ -384,6 +454,20 @@ def function_manage(action: str, funcion_id: str = "", payload: str = "",
                     mensaje for mensajes in diagnosticos.values() for mensaje in mensajes)
                 raise funcion.FuncionError(detalle)
             nombre = d["nombre"]
+        elif action == "publish":
+            # Publicar/despublicar: sólo cambia si la herramienta aparece en la Dash. El cuerpo no
+            # se toca, así que los grafos que ya la usan siguen andando igual.
+            quiere = str(payload or "").strip().lower() not in ("false", "0", "no", "")
+            cuerpo = d["cuerpo"]
+            nombre = d["nombre"]
+            p = preset.desde_grafo(nombre, cuerpo.to_json(), descripcion=d["descripcion"],
+                                   scope=d["scope"], funcion_id=identidad, publicada=quiere)
+            preset.guardar(p)
+            estado = "publicada" if quiere else "despublicada"
+            return json.dumps(
+                {"ok": True, "publicada": quiere, "verbo": funcion.PREFIJO + identidad,
+                 "report": f"FUNCIÓN {estado} ✓ — «{nombre}»"}, ensure_ascii=True)
+
         elif action == "delete":
             if not preset.borrar_funcion(identidad):
                 raise funcion.FuncionError(f"no pude borrar la función «{d['nombre']}»")
