@@ -113,3 +113,49 @@ class EstadoTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class LaEscenografiaDeFondoNoCuentaTests(unittest.TestCase):
+    """La SkySphere envuelve el mapa, así que TODA pieza colocada está «adentro» de ella.
+
+    Sin filtrarla el aviso saltaba 24 de 24 veces, con penetraciones de 16 km contra
+    `SM_SkySphere`. Un aviso que salta siempre no lo lee nadie: deja de distinguir el caso que
+    importa —haber colocado encima de algo real— del ruido.
+
+    `oracle_placement.verificar` ya aplicaba este filtro. Faltaba acá; no es una regla nueva.
+    """
+
+    @staticmethod
+    def _cielo() -> Pieza:
+        # Semi-extensión de 1 km por lado: muy por encima de `geometry.MAX_VECINO_CM` (500 m).
+        return Pieza("SM_SkySphere",
+                     AABB(Vec3(0.0, 0.0, 0.0), Vec3(100000.0, 100000.0, 100000.0)),
+                     Vec3(0.0, 0.0, 0.0), 0.0)
+
+    def test_the_sky_sphere_does_not_count_as_something_stepped_on(self):
+        r = oracle_scatter.contra_la_escena(tanda("nueva", [0.0, 300.0, 600.0]), [self._cielo()])
+        self.assertEqual(r["pisadas"], [],
+                         "el cielo envuelve todo; pisarlo no significa nada")
+        self.assertEqual(r["limpias"], 3)
+
+    def test_the_sky_is_not_counted_as_a_neighbour_either(self):
+        """«0 pisados (1 pieza en la zona)» contando el cielo sería igual de engañoso."""
+        r = oracle_scatter.contra_la_escena(tanda("nueva", [0.0]), [self._cielo()])
+        self.assertEqual(r["existentes"], 0)
+
+    def test_a_real_neighbour_is_still_caught_with_the_sky_present(self):
+        """El filtro no puede tapar lo que sí importa: con cielo Y un vecino real, delata el real."""
+        vecino = pieza("caja_que_ya_estaba", 40.0, 0.0)
+        r = oracle_scatter.contra_la_escena([pieza("nueva", 0.0, 0.0)], [self._cielo(), vecino])
+        self.assertEqual([p[1] for p in r["pisadas"]], ["caja_que_ya_estaba"])
+        self.assertEqual(r["existentes"], 1)
+
+    def test_it_reuses_the_background_rule_instead_of_a_second_threshold(self):
+        """Un segundo umbral escrito acá se separaría del de `geometry` sin que nadie lo note."""
+        import inspect
+
+        from jam import geometry
+        fuente = inspect.getsource(oracle_scatter.contra_la_escena)
+        self.assertIn("geometry.es_fondo(", fuente)
+        self.assertNotIn(str(geometry.MAX_VECINO_CM), fuente,
+                         "el umbral tiene que vivir en `geometry`, no copiado acá")

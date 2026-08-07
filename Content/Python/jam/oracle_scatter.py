@@ -80,15 +80,20 @@ def contra_la_escena(piezas: list, existentes: list, *, tol: float = geometry.TO
     No es un error: colocar encima de algo puede ser lo que uno quiere. Por eso sale como AVISO
     (amarillo) y no como ✗.
     """
+    # La escenografía de fondo NO cuenta: la SkySphere envuelve el mapa entero, así que TODA pieza
+    # colocada está «adentro» de ella. Sin este filtro el aviso saltaba las 24 de 24 veces con
+    # penetraciones de 16 km, y un aviso que salta siempre no lo lee nadie. Es el mismo filtro que
+    # `oracle_placement.verificar` ya aplicaba — faltaba acá, no es una regla nueva.
+    reales = [v for v in existentes if not geometry.es_fondo(v.aabb)]
     pisadas = []
     for nueva in piezas:
-        for vieja in existentes:
+        for vieja in reales:
             d = geometry.penetracion(nueva.aabb, vieja.aabb, tol)
             if d > 0.0:
                 pisadas.append((nueva.nombre, vieja.nombre, round(d, 1)))
                 break     # con una alcanza: lo que importa es CUÁNTAS piezas nuevas pisan algo
     return {
-        "existentes": len(existentes),
+        "existentes": len(reales),
         "pisadas": pisadas,
         "limpias": len(piezas) - len(pisadas),
     }
