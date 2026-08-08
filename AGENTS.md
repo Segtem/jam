@@ -130,6 +130,7 @@ redistribuir, nunca relicenciar CC0. Los repos van privados.
 | `Constant3Vector` | La propiedad es `constant`, no `r/g/b`. |
 | Enums de UE | **No son subscriptables** — `getattr(Enum, nombre)`. |
 | `get_statistics` de materiales | Da **cero** headless; el costo sólo se mide con GUI. |
+| El AABB de un **landscape** como piso | Su caja llega hasta la loma más alta de TODO el mapa (medido: 121 m de ancho, `top`=3 m). Usarla para asentar deja cada pieza a esa cota, flotando sobre el terreno real. Del terreno habla `ue.raycast`, uno por pieza; el AABB sirve para cajas, no para superficies. |
 | `add_dataflow_node` / `FieldSystem` headless | **Cuelgan**. Ese camino es sólo con editor GUI. |
 | `spawn_actor_from_object` en commandlet | **Devuelve None** y sólo avisa con `LogUtils: SpawnActorFromObject. No actor was spawned.` Pasa con un mapa real cargado y un mundo válido (`spawn_actor_from_class` sí anda en la misma corrida). O sea: **`place.colocar` y todo lo que instancia no se pueden verificar headless**; la sonda verifica hasta la resolución de mallas y el acto de colocar queda para el editor GUI. |
 | `add_edge` de PCG | **No lanza** al fallar: hay que verificar el grafo después. |

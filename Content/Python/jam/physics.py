@@ -29,6 +29,14 @@ def _es_geometria(actor) -> bool:
     return bool(actor.get_components_by_class(unreal.StaticMeshComponent))
 
 
+def _es_terreno(actor) -> bool:
+    """¿Es un landscape? Su AABB no describe su superficie, así que sólo el rayo sabe su altura."""
+    try:
+        return isinstance(actor, unreal.LandscapeProxy)
+    except Exception:  # noqa: BLE001
+        return False
+
+
 def soportes_del_nivel():
     """Todos los actores del nivel que cuentan como piso/geometría (única fuente de verdad para
     `soltar` y su oráculo: ambos deben coincidir en «qué hay debajo»)."""
@@ -58,26 +66,50 @@ def soltar(actor, soportes=None, *, tol=oracle_placement._TOL_CM):
 
 
 def asentar_actores(actores, soportes=None, *, tol=oracle_placement._TOL_CM) -> list[dict]:
-    """Asienta una TANDA de actores: cada uno cae sobre lo que ya estaba **y sobre sus hermanos**.
+    """Asienta una TANDA de actores: cada uno cae sobre el suelo real **y sobre sus hermanos**.
 
     No es `soltar` en un bucle, por dos razones. Una es correcta: en un bucle cada actor caería
     contra la foto original del nivel y los N terminarían atravesados en el mismo pozo, en vez de
     apilarse — que es justo lo que uno espera al pintar. La otra es de costo: `soltar` sin
     `soportes` recorre TODOS los actores del nivel, así que llamarlo N veces escanea el nivel N
-    veces. Acá se escanea una sola.
+    veces.
+
+    El SUELO se mide con un raycast por pieza y no con el AABB del nivel. Un AABB no puede describir
+    un terreno: medido contra un landscape de 121 m, su caja dice `top = 3 m` y las piezas quedaban
+    todas a la altura de la loma más alta, flotando. El rayo pega en la superficie real bajo cada
+    una — es la misma primitiva que usa el `scatter` para muestrear el terreno.
 
     El orden y la matemática viven en `physics_core`, puro y testeable sin motor; acá sólo se
-    traduce actor ↔ pieza y se mueven las cosas.
+    traduce actor ↔ pieza, se tiran los rayos y se mueven las cosas.
     """
     from . import physics_core
 
     if not actores:
         return []
+
+    # Rayo vertical bajo cada pieza, ignorando la propia tanda: si no, una pieza se apoyaría en sí
+    # misma y el resultado dependería de en qué orden se tiraron los rayos.
+    suelos = []
+    for a in actores:
+        loc = a.get_actor_location()
+        golpe = ue.raycast(loc.x, loc.y, ignorar=list(actores))
+        suelos.append((golpe["punto"].z, golpe["actor"] or "el suelo") if golpe["hit"] else None)
+
+    # Los dos caminos se COMPLEMENTAN, y hace falta que sea así:
+    #
+    # * el AABB de una caja es una aproximación razonable de su tapa, y además funciona cuando el
+    #   rayo no puede tirarse (en commandlet `line_trace_single` no pega en nada);
+    # * el AABB de un LANDSCAPE es mentira: su caja llega hasta la loma más alta de todo el mapa, y
+    #   usarla dejaba cada pieza flotando sobre el terreno real. Del terreno habla el rayo.
+    #
+    # Así que se descartan los landscapes de la lista por caja y se gana la más alta de las dos.
     if soportes is None:
         propios = set(actores)
         soportes = [a for a in soportes_del_nivel() if a not in propios]
+    piezas_soporte = ue.piezas([a for a in soportes if not _es_terreno(a)])
 
-    resultados = physics_core.asentar_tanda(ue.piezas(actores), ue.piezas(soportes), tol=tol)
+    resultados = physics_core.asentar_tanda(
+        ue.piezas(actores), piezas_soporte, suelos=suelos, tol=tol)
     for actor, r in zip(actores, resultados):
         if r["apoyada"] and r["caida"]:
             loc = actor.get_actor_location()

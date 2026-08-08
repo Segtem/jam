@@ -41,12 +41,19 @@ def orden_de_caida(piezas) -> list[int]:
                   key=lambda i: (base_de(piezas[i].aabb), piezas[i].nombre, i))
 
 
-def asentar_tanda(piezas, soportes, *, tol: float = geometry.TOL_CM) -> list[dict]:
-    """Asienta `piezas` sobre `soportes` **y sobre sí mismas**. Devuelve un dict por pieza, en el
-    orden de ENTRADA: `{"caida", "soporte", "apoyada", "pieza"}`.
+def asentar_tanda(piezas, soportes, *, suelos=None, tol: float = geometry.TOL_CM) -> list[dict]:
+    """Asienta `piezas` sobre `soportes`, sobre el SUELO y sobre sí mismas. Devuelve un dict por
+    pieza, en el orden de ENTRADA: `{"caida", "soporte", "apoyada", "sobre_hermana", "pieza"}`.
 
-    `caida` > 0 = flotaba y bajó; < 0 = estaba clavada y subió; `apoyada` False = no había nada
-    debajo (queda donde estaba, y el oráculo de aguas abajo lo dirá — acá no se inventa un piso).
+    `suelos[i]` = `(z, nombre)` del suelo bajo la pieza `i`, o None. Va aparte de `soportes` porque
+    un AABB **no puede describir un terreno**: medido en un landscape de 121 m con lomas, su caja
+    dice `top = 3 m` y las tres piezas soltadas quedaron las tres a esa cota, flotando sobre el
+    suelo real. La altura del terreno bajo CADA pieza sólo la sabe un raycast, y eso lo hace el
+    adaptador — acá entra ya medida, como un dato.
+
+    `caida` > 0 = flotaba y bajó; < 0 = estaba clavada o se apiló y subió; `apoyada` False = no
+    había nada debajo (queda donde estaba, y el oráculo de aguas abajo lo dirá — acá no se inventa
+    un piso).
     """
     # La escenografía de fondo NO es piso. Soltando desde arriba, la SkySphere solapa en XY con
     # todo y su top está a 16 km: sin este filtro la tanda entera aterrizaría en el cielo. La regla
@@ -64,6 +71,11 @@ def asentar_tanda(piezas, soportes, *, tol: float = geometry.TOL_CM) -> list[dic
         # piezas nacidas a la misma cota se apilen en vez de descartarse mutuamente y quedar
         # cruzadas — el caso normal del pincel, donde el scatter las deja todas sobre el piso.
         z_top, etiqueta = geometry.soporte_top(p.aabb, apilables, tol, desde_arriba=True)
+        # El suelo medido gana si está MÁS ALTO que cualquier hermana: una loma que sube por debajo
+        # sostiene antes que una pieza que quedó en el valle.
+        suelo = None if suelos is None else suelos[i]
+        if suelo is not None and (z_top is None or suelo[0] > z_top):
+            z_top, etiqueta = suelo[0], suelo[1]
         if z_top is None:
             # Sin piso no se mueve, pero SÍ sigue siendo soporte: algo que caiga encima tiene que
             # apoyarse en ella igual. Descartarla haría que la de arriba la atraviese.

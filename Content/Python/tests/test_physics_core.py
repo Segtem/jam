@@ -328,3 +328,60 @@ class VeredictoHonestoTests(unittest.TestCase):
         tramo = tramo[:tramo.index("return None")]
         self.assertIn("log_error", tramo,
                       "un spawn que falla en silencio parece un bug de Jam")
+
+
+class ElSueloSeMideConUnRayoTests(unittest.TestCase):
+    """Un AABB no puede describir un terreno.
+
+    Medido contra un landscape real de 121 m con lomas: su caja dice `top = 3 m`, y tres piezas
+    soltadas desde 15 m quedaron LAS TRES a esa misma cota — flotando sobre el suelo real en todo
+    punto que no fuera la loma más alta. Es lo que Brian vio: «drop no hace que toquen el suelo».
+
+    La altura del terreno bajo CADA pieza sólo la sabe un raycast. Entra acá ya medida, como dato,
+    para que el núcleo siga siendo puro.
+    """
+
+    @staticmethod
+    def _pieza(nombre, x, z):
+        return caja(nombre, x, 0.0, z, semi=50.0, alto=50.0)
+
+    def test_each_piece_lands_on_its_own_ground_height(self):
+        piezas = [self._pieza("a", 0.0, 1500.0), self._pieza("b", 400.0, 1500.0)]
+        # Una loma: bajo «a» el terreno está a 0, bajo «b» a 620.
+        suelos = [(0.0, "Landscape1"), (620.0, "Landscape1")]
+        r = physics_core.asentar_tanda(piezas, [], suelos=suelos)
+        self.assertEqual([physics_core.base_de(x["pieza"].aabb) for x in r], [0.0, 620.0],
+                         "las dos aterrizaron a la misma cota: eso es el AABB, no el terreno")
+
+    def test_a_sibling_higher_than_the_ground_still_wins(self):
+        """Apilar sigue funcionando: lo que sostiene es lo MÁS ALTO, sea suelo o hermana."""
+        piezas = [self._pieza("a", 0.0, 50.0), self._pieza("b", 20.0, 50.0)]
+        suelos = [(0.0, "Landscape1"), (0.0, "Landscape1")]
+        r = physics_core.asentar_tanda(piezas, [], suelos=suelos)
+        self.assertEqual(r[1]["soporte"], "a")
+        self.assertTrue(r[1]["sobre_hermana"])
+        self.assertEqual(physics_core.base_de(r[1]["pieza"].aabb), 100.0)
+
+    def test_the_ground_wins_over_a_sibling_that_sits_lower(self):
+        """Una pieza en el valle no sostiene a otra que está sobre la loma."""
+        piezas = [self._pieza("valle", 0.0, 50.0), self._pieza("loma", 20.0, 50.0)]
+        suelos = [(0.0, "Landscape1"), (900.0, "Landscape1")]
+        r = physics_core.asentar_tanda(piezas, [], suelos=suelos)
+        self.assertEqual(r[1]["soporte"], "Landscape1")
+        self.assertEqual(physics_core.base_de(r[1]["pieza"].aabb), 900.0)
+
+    def test_no_ground_measured_is_not_an_invented_floor(self):
+        """Rayo al vacío = None. No se inventa z=0."""
+        piezas = [self._pieza("a", 0.0, 700.0)]
+        r = physics_core.asentar_tanda(piezas, [], suelos=[None])
+        self.assertFalse(r[0]["apoyada"])
+        self.assertEqual(physics_core.base_de(r[0]["pieza"].aabb), 650.0)
+
+    def test_the_adapter_casts_one_ray_per_piece_ignoring_the_batch(self):
+        """Sin ignorar la tanda, una pieza se apoyaría en sí misma y el resultado dependería del
+        orden en que se tiraron los rayos."""
+        import inspect
+        from jam import physics
+        cuerpo = inspect.getsource(physics.asentar_actores)
+        self.assertIn("ue.raycast(", cuerpo)
+        self.assertIn("ignorar=list(actores)", cuerpo)

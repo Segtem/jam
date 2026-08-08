@@ -70,10 +70,31 @@ try:
     exigir(abs(piso.get_actor_location().z + 5.0) < 0.1,
            f"el piso se movió: z={piso.get_actor_location().z}")
 
+        # ---- 2ª parte: contra un TERRENO real, que es donde el AABB mentía ----
+    # Un landscape de 121 m con lomas tiene un AABB cuyo top es el punto más alto de todo el mapa.
+    # Con la caja, tres piezas en XY distintos aterrizaban las tres a esa cota, flotando.
+    unreal.get_editor_subsystem(unreal.LevelEditorSubsystem).load_level(
+        "/Game/UltraDynamicSky/Maps/DemoMap")
+    sub2 = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
+    sobre_terreno = []
+    for i, (x, y) in enumerate([(0.0, 0.0), (2500.0, 0.0), (0.0, 2500.0), (-2500.0, 1200.0)]):
+        a = sub2.spawn_actor_from_class(unreal.StaticMeshActor, unreal.Vector(x, y, 15000.0))
+        a.static_mesh_component.set_static_mesh(unreal.EditorAssetLibrary.load_asset(CUBO))
+        a.set_actor_label(f"JamProbe_T{i}")
+        sobre_terreno.append(a)
+    res_t = physics.asentar_actores(sobre_terreno)
+    exigir(all(r["apoyada"] for r in res_t), f"alguna no encontró terreno: {res_t}")
+    cotas = [round(physics_core.base_de(ue.aabb(a)), 1) for a in sobre_terreno]
+    exigir(len(set(cotas)) > 1,
+           f"las {len(cotas)} aterrizaron a la MISMA cota: eso es el AABB, no el terreno — {cotas}")
+    for a in sobre_terreno:
+        sub2.destroy_actor(a)
+
     unreal.log(
         f"JAM_PHYSICS_PAINT_58 TODO VERDE — bases={bases} · "
         f"soportes={[r['soporte'] for r in res]} · "
-        f"caidas={[r['caida'] for r in res]} · piso_intacto")
+        f"caidas={[r['caida'] for r in res]} · piso_intacto · "
+        f"terreno: cotas distintas por pieza = {cotas} (soportes {[r['soporte'] for r in res_t]})")
 except Exception as exc:  # noqa: BLE001
     unreal.log_error(f"JAM_PHYSICS_PAINT_58 ROJO — {type(exc).__name__}: {exc}")
 finally:
