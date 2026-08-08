@@ -68,8 +68,20 @@ def soporte_top(a: AABB, soportes, tol: float = TOL_CM, *, desde_arriba: bool = 
     mejor = None
     for s in soportes:
         os_, es = s.aabb.origin, s.aabb.extent
-        if abs(os_.x - a.origin.x) > (es.x + a.extent.x) or abs(os_.y - a.origin.y) > (es.y + a.extent.y):
-            continue  # no solapa en XY → no es soporte
+        if desde_arriba:
+            # El CENTRO DE MASA tiene que quedar sobre el soporte. Rozarlo no alcanza: en el mundo
+            # una pieza apoyada de refilón se voltea y sigue cayendo.
+            #
+            # Con «cualquier solape» alcanzaba, y el resultado era una CHIMENEA: medido con 24
+            # piezas poisson a 30 cm, 23 se apilaban en una torre de 6,5 m y sólo una tocaba el
+            # piso. Con el centro, 18 quedan en el piso y 6 encima — un montón, que es lo que uno
+            # pinta.
+            if abs(os_.x - a.origin.x) > es.x + tol or abs(os_.y - a.origin.y) > es.y + tol:
+                continue
+        else:
+            if abs(os_.x - a.origin.x) > (es.x + a.extent.x) \
+                    or abs(os_.y - a.origin.y) > (es.y + a.extent.y):
+                continue  # no solapa en XY → no es soporte
         s_top = os_.z + es.z
         if not desde_arriba and s_top > a.origin.z + tol:
             continue  # el soporte asoma por encima del centro → no está "debajo"

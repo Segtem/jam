@@ -153,6 +153,40 @@ class SoltarDesdeArribaTests(unittest.TestCase):
                          "aterrizó en el cielo en vez del piso")
         self.assertEqual(physics_core.base_de(r[0]["pieza"].aabb), 0.0)
 
+    def test_resting_on_a_corner_topples_instead_of_stacking(self):
+        """EL segundo bug: con «cualquier solape en XY» alcanzaba para apoyarse, y 24 piezas
+        poisson a 30 cm formaban una CHIMENEA de 6,5 m con una sola tocando el piso.
+
+        En el mundo, una pieza apoyada de refilón se voltea. El criterio es el centro de masa: si
+        no cae sobre el soporte, sigue cayendo.
+        """
+        # Barriles de 65 cm de ancho (semi 32.5) separados 40 cm: se TOCAN, pero el centro de la
+        # segunda queda fuera de la huella de la primera.
+        piezas = [self._barril("a", 0.0), self._barril("b", 40.0)]
+        r = physics_core.asentar_tanda(piezas, [PISO])
+        self.assertEqual([x["soporte"] for x in r], ["Piso", "Piso"],
+                         "apoyada de refilón no se sostiene: se voltea y va al piso")
+
+    def test_it_still_stacks_when_the_centre_is_really_over_the_other(self):
+        piezas = [self._barril("a", 0.0), self._barril("b", 20.0)]   # 20 < semi 32.5
+        r = physics_core.asentar_tanda(piezas, [PISO])
+        self.assertEqual(r[1]["soporte"], "a")
+        self.assertEqual(physics_core.base_de(r[1]["pieza"].aabb), 80.0)
+
+    def test_a_realistic_brush_batch_makes_a_heap_and_not_a_chimney(self):
+        """La medida que importa, con los números de la corrida real: 24 piezas, poisson sep 30."""
+        from jam import scatter_core as sc
+        puntos = sc.poisson_disk((0.0, 0.0), (800.0, 800.0), 30.0, 7)[:24]
+        piezas = [caja(f"p{i:02d}", x, y, 40.0, semi=32.5, alto=40.0)
+                  for i, (x, y) in enumerate(puntos)]
+        r = physics_core.asentar_tanda(piezas, [PISO])
+        alturas = [physics_core.base_de(x["pieza"].aabb) for x in r]
+        en_el_piso = sum(1 for h in alturas if h <= 0.1)
+        self.assertLess(max(alturas), 400.0,
+                        f"volvió la chimenea: {max(alturas):.0f}cm de alto")
+        self.assertGreater(en_el_piso, len(piezas) // 2,
+                           f"la mayoría tendría que quedar en el piso, no {en_el_piso}")
+
     def test_dropping_from_above_is_asked_for_explicitly_and_is_not_the_default(self):
         """`physics.soltar` y `oracle_physics` siguen preguntando «¿qué hay debajo de esto DONDE
         ESTÁ?». Volver `desde_arriba` el default les cambiaría el significado por atrás."""
