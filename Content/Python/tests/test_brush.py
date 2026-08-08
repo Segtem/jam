@@ -118,14 +118,14 @@ class RepartirOApilarTests(unittest.TestCase):
         self.assertIn("dedup_por_radio(", inspect.getsource(sc.repartir_o_apilar))
 
     def test_place_asks_this_rule_instead_of_deduping_unconditionally(self):
-        """`_place_en_puntos` dedupeaba siempre; con física eso le sacaba el efecto al pincel."""
+        """El cuerpo compartido dedupeaba siempre; con física eso le sacaba el efecto al pincel."""
         import inspect
         import pathlib
         fuente = (pathlib.Path(__file__).resolve().parents[1] / "jam" / "tools.py").read_text(
             encoding="utf-8")
-        cuerpo = fuente[fuente.index("def _place_en_puntos("):]
+        cuerpo = fuente[fuente.index("def _en_puntos("):]
         cuerpo = cuerpo[:cuerpo.index("\ndef ", 1)]
         self.assertIn("repartir_o_apilar(", cuerpo)
-        self.assertIn("apilar=physics", cuerpo)
+        self.assertIn("apilar=apilar", cuerpo)
         self.assertNotIn("dedup_por_radio(", cuerpo,
                          "volvió a dedupear sin preguntar si hay física")

@@ -231,31 +231,63 @@ class NoSeDuplicaLaReglaTests(unittest.TestCase):
                              "parece haber una segunda copia del test de solape XY")
 
 
-class PlaceLePasaLaFisicaTests(unittest.TestCase):
-    """El camino de PUNTOS de `place` ignoraba `physics` en silencio.
+class PlaceRepartteYDropApilaTests(unittest.TestCase):
+    """Los dos verbos son hermanos y se diferencian en UNA cosa.
 
-    El param estaba en la ficha, el usuario lo prendía, y no pasaba nada: `_place_en_puntos` no lo
-    recibía. Un botón que no hace nada es peor que uno que no está, así que queda atado.
+    `place` reparte en un plano y descarta por huella lo que se cruzaría. `drop` deja caer: no
+    descarta nada —solaparse es la condición de apilarse— y después asienta la tanda.
+
+    Vivían en el mismo verbo con una perilla `physics`, y era confuso de la peor manera: el mismo
+    nodo hacía dos cosas distintas y había que acordarse de cuál estaba prendida. Ahora lo dice el
+    nombre.
     """
 
-    def test_the_points_path_forwards_physics(self):
-        fuente = (RAIZ / "tools.py").read_text(encoding="utf-8")
-        firma = inspect.signature(
-            __import__("jam.tools", fromlist=["x"])._place_en_puntos)
-        self.assertIn("physics", firma.parameters,
-                      "`_place_en_puntos` no acepta `physics`")
-        llamada = fuente[fuente.index("return _place_en_puntos("):]
-        llamada = llamada[:llamada.index(")\n")]
-        self.assertIn("physics=", llamada,
-                      "`t_place` no le pasa `physics` al camino de puntos")
-
-    def test_place_still_offers_physics_as_a_knob(self):
+    def test_place_no_longer_has_a_physics_knob(self):
         from jam import tools
-        self.assertIn("physics", tools.REGISTRO["place"]["params"])
+        self.assertNotIn("physics", tools.REGISTRO["place"]["params"],
+                         "hacer caer es `drop`; `place` coloca en un plano")
 
+    def test_drop_takes_points_and_a_set_of_variants_like_place(self):
+        from jam import tools
+        drop = tools.REGISTRO["drop"]
+        self.assertEqual(drop["data_params"].get("points"), "P")
+        self.assertIn("points", drop.get("optional_data_params", ()))
+        self.assertEqual(drop.get("in_accepts"), {"A[]": ("points",)})
 
-if __name__ == "__main__":
-    unittest.main()
+    def test_only_drop_stacks(self):
+        """La única diferencia, leída en la fuente: `place` llama con apilar=False y `drop` con True."""
+        fuente = (RAIZ / "tools.py").read_text(encoding="utf-8")
+        for verbo, esperado in (("t_place", "apilar=False"), ("t_drop", "apilar=True")):
+            cuerpo = fuente[fuente.index(f"def {verbo}("):]
+            cuerpo = cuerpo[:cuerpo.index("\ndef ", 1)]
+            self.assertIn(esperado, cuerpo, f"`{verbo}` no pide {esperado}")
+
+    def test_both_share_the_same_placement_body(self):
+        """El dedup, el oráculo doble y el veredicto viven UNA vez: si se separan, uno de los dos
+        verbos deja de verificar lo que el otro sí."""
+        from jam import tools
+        self.assertTrue(hasattr(tools, "_en_puntos"))
+        fuente = (RAIZ / "tools.py").read_text(encoding="utf-8")
+        self.assertEqual(fuente.count("_en_puntos(asset, points"), 2)
+
+    def test_a_saved_graph_says_where_the_knob_moved(self):
+        """Un grafo guardado con `physics` no puede decir sólo «parámetro desconocido»: obliga a
+        adivinar qué pasó y en qué commit."""
+        from jam.graph import JamGraph, validar
+        g = JamGraph()
+        g.add("asset", {"name": "/A.A"}, nid="a")
+        g.add("place", {"physics": "True"}, nid="p")
+        g.connect("a", "p")
+        mensajes = validar(g).get("p", [])
+        self.assertTrue(any("drop" in m for m in mensajes),
+                        f"tendría que nombrar adónde se mudó: {mensajes}")
+
+    def test_drop_no_longer_lands_at_the_world_origin(self):
+        """Caía SIEMPRE en (0,0): en un mundo abierto, a kilómetros de la cámara."""
+        from jam import tools
+        self.assertIn("x", tools.REGISTRO["drop"]["params"])
+        self.assertIn("view", tools.REGISTRO["drop"]["params"])
+        self.assertEqual(tools.CAPTURA_LA_MIRA.get("drop"), ("x", "y"))
 
 
 class VeredictoHonestoTests(unittest.TestCase):

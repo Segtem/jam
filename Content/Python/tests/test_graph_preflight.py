@@ -747,7 +747,7 @@ class PinQueAceptaVariosTiposTests(unittest.TestCase):
         g.add("asset", {"name": "/A.A"}, nid="a1")
         g.add("asset", {"name": "/B.B"}, nid="a2")
         g.add("asset_set", {}, nid="vars")
-        g.add("place", {"physics": "True"}, nid="poner")
+        g.add("place", {}, nid="poner")
         g.connect("pincel", "disp")
         g.connect("a1", "vars")
         g.connect("a2", "vars")

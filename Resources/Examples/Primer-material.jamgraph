@@ -112,7 +112,6 @@
 				"anchor": "base",
 				"sink": "0.0",
 				"align": "False",
-				"physics": "False",
 				"yaw": "0.0",
 				"scale": "1.0"
 			},

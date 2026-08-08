@@ -1,8 +1,8 @@
 """La cadena del pincel por el camino REAL, hasta donde el commandlet llega.
 
-`asset ×2 → asset_set → place(points)`. Se corre con el motor de verdad para contestar lo que
+`asset ×2 → asset_set → drop(points)` — y que `place` exija lo mismo. Se corre con el motor de verdad para contestar lo que
 ningún test headless puede: si el `A[]` que viaja por el cable llega vivo hasta
-`_place_en_puntos`, si de ahí salen StaticMesh de verdad, y si el reparto de variantes por punto
+`_en_puntos`, si de ahí salen StaticMesh de verdad, y si el reparto de variantes por punto
 toca las dos.
 
 **Límite conocido:** `EditorActorSubsystem.spawn_actor_from_object` NO spawnea en commandlet —
@@ -38,7 +38,7 @@ try:
     g.add("asset_set", {}, nid="vars")
     g.add("scatter", {"count": "8", "area": "600", "surface": "False", "view": "False",
                       "spacing": "150"}, nid="disp")
-    g.add("place", {"physics": "True", "surface": "False", "view": "False"}, nid="poner")
+    g.add("drop", {"view": "False"}, nid="poner")
     for o, d in (("a1", "vars"), ("a2", "vars"), ("vars", "poner")):
         g.connect(o, d)
     g.connect("disp", "poner", "points")
@@ -76,7 +76,7 @@ try:
 
     # ---- 5. el límite, comprobado y no supuesto ----
     texto = por_nodo["poner"]["texto"]
-    exigir(texto.startswith("PLACE ✗"),
+    exigir(texto.startswith("DROP \u2717"),
            f"en commandlet no puede colocar; el veredicto tiene que decirlo: {texto!r}")
     # «warn» (naranja) es el escalón de «el oráculo dice REVISAR ✗: el resultado no sirve»;
     # `error` queda para lo que revienta. Lo que NO puede ser es verde.

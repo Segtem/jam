@@ -237,7 +237,7 @@ def t_pivot_set(asset, *, to="base") -> str:
 
 
 def t_place(asset, *, points=None, x=0.0, y=0.0, z=0.0, view=True, surface=True,
-            anchor="base", sink=0.0, align=False, physics=False, yaw=0.0, scale=1.0,
+            anchor="base", sink=0.0, align=False, yaw=0.0, scale=1.0,
             scale_min=1.0, scale_max=1.0) -> str:
     """Coloca un ladrillo en relación a su entorno: `view`=en el punto de mira del viewport (x/y/z
     son offset), `surface`=raycast al piso, `anchor`=por qué punto de la pieza se coloca (base,
@@ -251,19 +251,27 @@ def t_place(asset, *, points=None, x=0.0, y=0.0, z=0.0, view=True, surface=True,
     # en sus coordenadas. Es el mismo verbo porque es la misma pregunta —«poné ESTO acá»— y la
     # única diferencia es cuántos «acá» hay.
     if points:
-        return _place_en_puntos(asset, points, anchor=anchor, sink=sink, align=align,
-                                physics=bool(physics),
-                                scale_min=float(scale_min), scale_max=float(scale_max))
+        return _en_puntos(asset, points, anchor=anchor, sink=sink, align=align, apilar=False,
+                          scale_min=float(scale_min), scale_max=float(scale_max), verbo="PLACE")
 
     actor = place.colocar(asset, (x, y, z - sink), (0.0, 0.0, yaw), (scale, scale, scale),
-                          view=view, surface=surface, anchor=anchor, align=align, physics=physics)
+                          view=view, surface=surface, anchor=anchor, align=align)
     if actor is None:
         return f"no se pudo colocar {_corto(asset)}"
     return _veredicto_entorno(actor)
 
 
-def _place_en_puntos(asset, puntos, *, anchor, sink, align, scale_min, scale_max, physics=False) -> str:
-    """Coloca el asset en cada punto, con el dedup por HUELLA REAL y el oráculo doble.
+def _en_puntos(asset, puntos, *, anchor, sink, align, scale_min, scale_max,
+               apilar=False, verbo="PLACE") -> str:
+    """Pone el asset en cada punto. La ÚNICA diferencia entre `place` y `drop` es `apilar`.
+
+    `place` reparte en un plano: lo que se cruzaría se descarta por huella. `drop` deja caer: nada
+    se descarta —solaparse es la condición de que algo se apile— y después la tanda se asienta.
+
+    Estaban en el mismo verbo con una perilla `physics`, y era confuso de la peor manera: el mismo
+    nodo hacía dos cosas distintas y había que acordarse de cuál. Ahora el nombre del verbo lo dice.
+
+    Lo demás —el dedup por HUELLA REAL, el oráculo doble— es idéntico, así que vive una sola vez.
 
     El dedup vive acá y no en `scatter` a propósito: para saber si dos piezas se pisan hay que
     conocer su tamaño, y el tamaño lo trae el ASSET. Ponerlo en el scatter obligaba a cablearle un
@@ -282,7 +290,7 @@ def _place_en_puntos(asset, puntos, *, anchor, sink, align, scale_min, scale_max
     radios = [ue.radio_de_malla(m) * max(scale_min, scale_max) for m in mallas]
     radio_por = [radios[p.seed % len(mallas)] for p in puntos]
     from . import scatter_core as sc
-    vivos, pisados = sc.repartir_o_apilar(list(puntos), radio_por, apilar=physics)
+    vivos, pisados = sc.repartir_o_apilar(list(puntos), radio_por, apilar=apilar)
 
     actores = scatter.instanciar_puntos(
         vivos, mallas, scale_min=scale_min, scale_max=scale_max, sink=sink,
@@ -292,7 +300,7 @@ def _place_en_puntos(asset, puntos, *, anchor, sink, align, scale_min, scale_max
     # El paso que convierte «sembrar» en PINTAR: la tanda se asienta contra el mundo y contra sí
     # misma, así que las piezas se apilan en vez de quedar todas clavadas en la misma cota.
     asentado = ""
-    if physics and actores:
+    if apilar and actores:
         from . import physics as fisica, physics_core
         asentado = "\n" + physics_core.resumen(fisica.asentar_actores(actores))
 
@@ -302,10 +310,11 @@ def _place_en_puntos(asset, puntos, *, anchor, sink, align, scale_min, scale_max
     semi = (max(1.0, (max(xs) - min(xs)) / 2.0), max(1.0, (max(ys) - min(ys)) / 2.0))
     existentes = ue.vecinos_en_zona(centro, semi, ignorar=actores)
     oraculo = ue.scatter_texto(actores, centro, semi, len(actores), existentes=existentes)
-    return _veredicto_place(len(actores), len(puntos), len(pisados), asentado, oraculo)
+    return _veredicto_place(len(actores), len(puntos), len(pisados), asentado, oraculo, verbo)
 
 
-def _veredicto_place(colocados: int, puntos: int, pisados: int, asentado: str, oraculo: str) -> str:
+def _veredicto_place(colocados: int, puntos: int, pisados: int, asentado: str, oraculo: str,
+                     verbo: str = "PLACE") -> str:
     """El renglón de PLACE. Puro a propósito: la regla que importa —CERO colocados no puede decir
     \u2713— se prueba sin motor.
 
@@ -314,9 +323,9 @@ def _veredicto_place(colocados: int, puntos: int, pisados: int, asentado: str, o
     """
     extra = f" · {pisados} evitados por huella" if pisados else ""
     if colocados == 0:
-        return (f"PLACE \u2717 \u2014 no se colocó ninguna de las {puntos} piezas{extra} "
+        return (f"{verbo} \u2717 \u2014 no se colocó ninguna de las {puntos} piezas{extra} "
                 f"\u2014 mirá «[Jam] colocar» en el log")
-    return (f"PLACE \u2713 \u2014 {colocados} en {puntos} punto(s){extra}{asentado}\n{oraculo}")
+    return (f"{verbo} \u2713 \u2014 {colocados} en {puntos} punto(s){extra}{asentado}\n{oraculo}")
 
 
 def _veredicto_entorno(actor) -> str:
@@ -406,11 +415,17 @@ def _grados_normal(normal) -> float:
 # crear el nodo da las dos, y deja las coordenadas a la vista para editarlas.
 CAPTURA_LA_MIRA = {
     "place": ("x", "y", "z"),
+    "drop": ("x", "y"),
     "scatter": ("x", "y"),
 }
 # `pcg` y `fracture` no entran: no tienen params de posición donde escribirla. Con `view` apagado
 # nacen en el origen — está anotado como pendiente, no disimulado con una captura que no existe.
 
+
+#: Params que se MUDARON de verbo. Sin esto, un grafo guardado dice «parámetro desconocido» y hay
+#: que adivinar; con esto dice adónde fue. `physics` vivía en `place` y era el mismo nodo haciendo
+#: dos cosas distintas — ahora hacer caer es `drop`.
+PARAMS_MUDADOS = {("place", "physics"): "drop"}
 
 PISTA_INSTANCE = "  \u2192 encha\u00falo al pin `points` de un `place` para colocarlos"
 
@@ -563,11 +578,26 @@ def _veredicto_scatter(actores, centro, semi, v) -> str:
     return f"{cab}\n{oraculo}"
 
 
-def t_drop(asset, *, height=800.0) -> str:
+def t_drop(asset, *, points=None, x=0.0, y=0.0, height=800.0, view=True, anchor="base",
+           sink=0.0, align=False, scale_min=1.0, scale_max=1.0) -> str:
+    """Deja CAER: con puntos, una pieza por punto y la tanda se apila; sin puntos, una sola a plomo
+    desde `height`. Es el hermano de `place`, que coloca en un plano y no deja que nada se cruce."""
     from . import physics, place, ue
-    caja = place.colocar(asset, (0.0, 0.0, height))  # a plomo desde `height`
+
+    if points:
+        # `height` no entra acá a propósito: el aterrizaje es determinista —cada pieza va al top de
+        # lo que la sostiene— así que soltarla desde 8 m o desde 80 da exactamente lo mismo. Poner
+        # la perilla igual sería otra que no hace nada.
+        return _en_puntos(asset, points, anchor=anchor, sink=sink, align=align, apilar=True,
+                          scale_min=float(scale_min), scale_max=float(scale_max), verbo="DROP")
+
+    # Sin puntos: una sola pieza, a plomo. Antes caía SIEMPRE en (0,0) —a kilómetros de la cámara
+    # en un mundo abierto— y parecía que la herramienta no había hecho nada.
+    caja = place.colocar(asset, (x, y, height), anchor=anchor, view=view)
+    if caja is None:
+        return f"DROP \u2717 \u2014 no se pudo colocar {_corto(asset)}"
     r = physics.soltar(caja)                          # cae sobre la geometría real del nivel
-    return f"cae {r['caida']}cm → " + ue.physics_texto(caja)
+    return f"cae {r['caida']}cm \u2192 " + ue.physics_texto(caja)
 
 
 def t_snap(asset, *, grid=100.0) -> str:
@@ -1686,7 +1716,7 @@ REGISTRO = {
     # que el default de la FUNCIÓN (`view=True`) es el que manda desde la Dash Bar.
     "place":        {"fn": t_place,   "cat": "Place",
                      "params": {"x": 0.0, "y": 0.0, "z": 0.0, "view": False, "surface": True,
-                                "anchor": "base", "sink": 0.0, "align": False, "physics": False,
+                                "anchor": "base", "sink": 0.0, "align": False,
                                 "yaw": 0.0, "scale": 1.0, "scale_min": 1.0, "scale_max": 1.0,
                                 "points": ""},
                      "data_params": {"points": "P"},
@@ -1696,9 +1726,9 @@ REGISTRO = {
                      # puntos habría que elegir una variante, y eso no lo dijo nadie.
                      "in_accepts": {"A[]": ("points",)},
                      "opciones": {"anchor": list(_ANCLAS)},
-                     "doc": "pone el asset en el mundo: en sus coordenadas, o UNO POR PUNTO si le cableás "
-                            "un scatter al pin `points`. Es el único nodo que coloca. Con `physics` la "
-                            "tanda se asienta y se APILA (physics paint). Verifica el entorno"},
+                     "doc": "coloca en un PLANO: en sus coordenadas, o uno por punto si le cableás un "
+                            "scatter a `points`. Lo que se cruzaría se descarta por huella. Para que "
+                            "caigan y se apilen, usá `drop`. Verifica el entorno"},
     "scatter":      {"fn": t_scatter, "cat": "Scatter",
                      "params": {"count": 24, "area": 800.0, "x": 0.0, "y": 0.0,
                                 "pattern": "poisson", "spacing": 0.0,
@@ -1711,8 +1741,20 @@ REGISTRO = {
                      "doc": "calcula PUNTOS sobre la superficie real con máscaras (pendiente/altura/ruido/densidad). "
                             "Sin entrada reparte en un área; con PUNTOS reparte alrededor de cada uno "
                             "(multiplicador). No coloca: enchufalo al pin `points` de un `place`. Salida P"},
-    "drop":         {"fn": t_drop,    "cat": "Place",   "params": {"height": 800.0},
-                     "doc": "deja caer el asset sobre el piso real y verifica apoyo"},
+    # El hermano de `place`: mismo trabajo, distinta física. `place` reparte en un plano y descarta
+    # lo que se cruzaría; `drop` deja caer y por eso las piezas se apilan. Tenerlo como una perilla
+    # de `place` hacía que el mismo nodo significara dos cosas.
+    "drop":         {"fn": t_drop,    "cat": "Place",
+                     "params": {"x": 0.0, "y": 0.0, "height": 800.0, "view": False,
+                                "anchor": "base", "sink": 0.0, "align": False,
+                                "scale_min": 1.0, "scale_max": 1.0, "points": ""},
+                     "data_params": {"points": "P"},
+                     "optional_data_params": ("points",),
+                     "in_accepts": {"A[]": ("points",)},
+                     "opciones": {"anchor": list(_ANCLAS)},
+                     "doc": "deja CAER: uno por punto si le cableás un scatter a `points`, y la tanda "
+                            "se APILA (physics paint); sin puntos, uno solo a plomo desde `height`. "
+                            "Verifica el apoyo"},
     "snap":         {"fn": t_snap,    "cat": "Place",   "params": {"grid": 100.0},
                      "doc": "snap a grilla y verifica alineación"},
     "replace":      {"fn": t_replace, "cat": "Create",  "params": {"sx": 2.0, "sy": 2.0, "sz": 3.0},

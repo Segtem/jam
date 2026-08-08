@@ -421,7 +421,15 @@ def compilar(g: JamGraph, *, registro: dict | None = None, resolver_asset=None,
         defaults = registro[verb].get("params", {})
         crudos = {k: v for k, v in nodo.get("params", {}).items() if k != PIN_ASSET}
         for desconocido in sorted(set(crudos) - set(defaults)):
-            error(nid, f"parámetro desconocido: «{desconocido}»")
+            # Si el param se MUDÓ de verbo, decir adónde. Un grafo guardado que abre con
+            # «parámetro desconocido» obliga a adivinar qué pasó y a buscar en qué commit.
+            from . import tools
+            destino = tools.PARAMS_MUDADOS.get((verb, desconocido))
+            if destino:
+                error(nid, f"«{desconocido}» se mudó a `{destino}`: "
+                           f"`{verb}` y `{destino}` son verbos distintos ahora")
+            else:
+                error(nid, f"parámetro desconocido: «{desconocido}»")
         efectivos: dict = {}
         data_params = registro[verb].get("data_params", {})
         # Un pin de datos puede ser OPCIONAL: sin cable, el verbo corre sin ese dato. Es el caso del
