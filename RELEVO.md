@@ -154,7 +154,8 @@ Lo que **nadie ejerció con las manos** de este turno:
 | Aspecto de una GC Nanite fracturada y rotura en PIE | Brian | ⏳ metadata/materiales verdes; falta viewport y simulación |
 | `drop`: la tanda se apila (era `place physics`) | Brian | ◐ 745 tests + sonda 5.8.1 con actores reales verdes; falta el gesto en el Graph |
 | `asset_set → drop`: variantes por punto | Brian | ◐ compila y reparte 2/2 en 5.8.1; **colocar no se puede verificar headless** (ver trampas), falta verlo colocar |
-| El corte `place` reparte / `drop` apila | Brian | ⏳ 745 tests verdes; falta el gesto: `drop` con `points` y ver el montón |
+| El corte `place` reparte / `drop` apila | Brian | ✅ visto en el nivel: montón sobre el terreno, 24/24 |
+| El Preview anterior ya no es piso (barril flotando) | **nadie** | ⏳ 753 tests + guardián; **la sonda 5.8.1 NO se pudo correr** (editor abierto) |
 | El paquete de estudio subido a NotebookLM | Brian | ⏳ generado, sin abrir |
 | Que el informe del modo sombra de `vault.py` se lea bien | Brian | ⏳ |
 | Todo lo demás de `oracle` | ✅ sus propias herramientas, el diferencial y la mutación | verificado |

@@ -104,7 +104,15 @@ def asentar_actores(actores, soportes=None, *, tol=oracle_placement._TOL_CM) -> 
     #
     # Así que se descartan los landscapes de la lista por caja y se gana la más alta de las dos.
     if soportes is None:
-        propios = set(actores)
+        # Lo que Jam puso y todavía NO está confirmado —el Preview anterior, fantasmas, gizmos— NO
+        # es piso. El Preview es transaccional: el anterior sigue vivo hasta que el nuevo termina
+        # bien, así que en este instante está ahí, y una pieza que se apoye en él queda FLOTANDO
+        # cuando lo reemplazan. Se vio: un barril en el aire con su sombra abajo.
+        #
+        # `ue.raycast` ya excluía esto (`ignorar_jam`); faltaba aplicar la MISMA regla a la lista
+        # por caja. Excluirla de un camino y no del otro es peor que no excluirla: el resultado
+        # depende de cuál de los dos ganó.
+        propios = set(actores) | set(ue.actores_de_jam())
         soportes = [a for a in soportes_del_nivel() if a not in propios]
     piezas_soporte = ue.piezas([a for a in soportes if not _es_terreno(a)])
 

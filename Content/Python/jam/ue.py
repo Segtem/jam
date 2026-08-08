@@ -212,14 +212,19 @@ def radio_de_malla(malla) -> float:
     return sc.radio_footprint(aabb_malla(malla))
 
 
-def vecinos_en_zona(centro, semi, ignorar=(), margen: float = 300.0) -> list:
+def vecinos_en_zona(centro, semi, ignorar=(), margen: float = 300.0,
+                    ignorar_jam: bool = True) -> list:
     """Los actores que YA están en la zona del reparto, sin contar los de esta tanda.
 
     Es lo que el segundo chequeo del oráculo necesita para poder decir «pisados contra lo que ya
     estaba». El margen agranda la caja porque una pieza cuyo CENTRO cae afuera igual puede meter
     medio cuerpo adentro.
     """
-    ignorar_rutas = {a.get_path_name() for a in ignorar if a is not None}
+    # «Lo que ya estaba» es la ESCENA, no el Preview anterior: ése se borra en la misma corrida,
+    # así que avisar de haberlo pisado es avisar de algo que no existe. Salían 12 de 24 contra
+    # `prev_Jam_place_*`. Misma regla que en el raycast y en el asentado.
+    saltear = list(ignorar) + (actores_de_jam() if ignorar_jam else [])
+    ignorar_rutas = {a.get_path_name() for a in saltear if a is not None}
     cx, cy = centro
     sx, sy = semi
     cerca = []

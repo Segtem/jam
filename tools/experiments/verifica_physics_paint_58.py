@@ -70,7 +70,22 @@ try:
     exigir(abs(piso.get_actor_location().z + 5.0) < 0.1,
            f"el piso se movió: z={piso.get_actor_location().z}")
 
-        # ---- 2ª parte: contra un TERRENO real, que es donde el AABB mentía ----
+        # ---- lo NO confirmado de Jam no es piso ----
+    # El Preview anterior sigue vivo hasta que el nuevo termina bien. Una pieza que se apoye en él
+    # queda FLOTANDO cuando lo reemplazan: Brian mandó la captura con un barril en el aire.
+    falso = spawnear("prev_Jam_falso", 600.0, 0.0, 300.0, (3.0, 3.0, 3.0))
+    falso.set_editor_property("tags", [unreal.Name("jam:preview")])
+    creados.append(falso)
+    encima = spawnear("JamProbe_sobre_preview", 600.0, 0.0, 900.0, (1.0, 1.0, 1.0))
+    creados.append(encima)
+    r_prev = physics.asentar_actores([encima])
+    exigir(r_prev[0]["soporte"] != "prev_Jam_falso",
+           f"se apoyó en el Preview anterior: quedaría flotando al reemplazarlo — {r_prev}")
+    exigir(abs(physics_core.base_de(ue.aabb(encima))) < 1.0,
+           f"tenía que bajar hasta el piso real, no hasta el preview: "
+           f"{physics_core.base_de(ue.aabb(encima)):.1f}")
+
+    # ---- 2ª parte: contra un TERRENO real, que es donde el AABB mentía ----
     # Un landscape de 121 m con lomas tiene un AABB cuyo top es el punto más alto de todo el mapa.
     # Con la caja, tres piezas en XY distintos aterrizaban las tres a esa cota, flotando.
     unreal.get_editor_subsystem(unreal.LevelEditorSubsystem).load_level(
@@ -94,6 +109,7 @@ try:
         f"JAM_PHYSICS_PAINT_58 TODO VERDE — bases={bases} · "
         f"soportes={[r['soporte'] for r in res]} · "
         f"caidas={[r['caida'] for r in res]} · piso_intacto · "
+        f"preview_anterior_ignorado(soporte={r_prev[0]['soporte']}) · "
         f"terreno: cotas distintas por pieza = {cotas} (soportes {[r['soporte'] for r in res_t]})")
 except Exception as exc:  # noqa: BLE001
     unreal.log_error(f"JAM_PHYSICS_PAINT_58 ROJO — {type(exc).__name__}: {exc}")

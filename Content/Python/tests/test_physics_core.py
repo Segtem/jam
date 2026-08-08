@@ -385,3 +385,47 @@ class ElSueloSeMideConUnRayoTests(unittest.TestCase):
         cuerpo = inspect.getsource(physics.asentar_actores)
         self.assertIn("ue.raycast(", cuerpo)
         self.assertIn("ignorar=list(actores)", cuerpo)
+
+
+class ElPreviewAnteriorNoEsPisoTests(unittest.TestCase):
+    """Un barril quedó FLOTANDO en el aire, con su sombra abajo.
+
+    El Preview de Jam es transaccional: el anterior sigue vivo hasta que el nuevo termina bien, para
+    poder revertir. O sea que en el instante del asentado está ahí. Una pieza que se apoya en él
+    queda en el aire cuando lo reemplazan — y el reporte lo decía sin que yo lo leyera: «12 pisados
+    contra lo que ya estaba: prev_Jam_place_0».
+
+    `ue.raycast` ya excluía lo no confirmado (`ignorar_jam`), y el docstring de `actores_de_jam`
+    describe este mismo bug para los rayos. Faltaba aplicar la MISMA regla a la lista por caja.
+    Excluirlo de un camino y no del otro es peor que no excluirlo: el resultado pasa a depender de
+    cuál de los dos ganó.
+    """
+
+    def test_the_settling_skips_jams_unconfirmed_actors(self):
+        import inspect
+
+        from jam import physics
+        cuerpo = inspect.getsource(physics.asentar_actores)
+        self.assertIn("ue.actores_de_jam()", cuerpo,
+                      "la lista por caja tiene que excluir lo mismo que el rayo")
+
+    def test_the_oracle_does_not_count_the_previous_preview_as_scene(self):
+        """«Lo que ya estaba» es la ESCENA. El Preview anterior se borra en la misma corrida, así
+        que avisar de haberlo pisado es avisar de algo que no existe."""
+        import inspect
+
+        from jam import ue
+        firma = inspect.signature(ue.vecinos_en_zona)
+        self.assertIn("ignorar_jam", firma.parameters)
+        self.assertIs(firma.parameters["ignorar_jam"].default, True)
+        self.assertIn("actores_de_jam()", inspect.getsource(ue.vecinos_en_zona))
+
+    def test_the_three_paths_agree_on_what_is_not_scene(self):
+        """Rayo, asentado y oráculo preguntan lo mismo a la MISMA función. Si mañana una lo decide
+        por su cuenta, vuelve el barril flotando."""
+        import inspect
+
+        from jam import physics, ue
+        for donde in (ue.raycast_entre, ue.vecinos_en_zona, physics.asentar_actores):
+            self.assertIn("actores_de_jam", inspect.getsource(donde),
+                          f"{donde.__name__} decide por su cuenta qué es escena")
