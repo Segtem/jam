@@ -114,12 +114,69 @@ class DesenterrarTests(unittest.TestCase):
         self.assertEqual(physics_core.base_de(r[0]["pieza"].aabb), 0.0)
 
 
+class SoltarDesdeArribaTests(unittest.TestCase):
+    """EL bug que hacía inútil al pincel, con las medidas de la corrida real de Brian.
+
+    24 barriles de 65×65×80 cm repartidos a 30 cm, todos apoyados en el piso por el scatter. El
+    oráculo informó `caída media 0.0cm` Y `interpenetran 99 pares` a la vez: nada se movió y todo
+    quedó cruzado.
+
+    La causa: `soporte_top` descartaba un candidato que asoma por encima del CENTRO de la pieza.
+    Preguntando «¿qué hay debajo de esto donde está?» esa regla es correcta —si no, una pieza junto
+    a una pared se teletransporta al techo—. Pero soltando una tanda a la MISMA cota, cada pieza
+    asoma sobre el centro de su vecina, las dos se descartan mutuamente y ninguna sube.
+    """
+
+    @staticmethod
+    def _barril(nombre, x):
+        return caja(nombre, x, 0.0, 40.0, semi=32.5, alto=40.0)   # 65×65×80, base en 0
+
+    def test_pieces_born_at_the_same_height_still_stack(self):
+        piezas = [self._barril("a", 0.0), self._barril("b", 30.0), self._barril("c", 60.0)]
+        r = physics_core.asentar_tanda(piezas, [PISO])
+        bases = [physics_core.base_de(x["pieza"].aabb) for x in r]
+        self.assertEqual(bases, [0.0, 80.0, 160.0],
+                         f"nacidas a la misma cota tienen que apilarse igual: {bases}")
+        self.assertEqual([x["soporte"] for x in r], ["Piso", "a", "b"])
+
+    def test_the_ones_that_ended_up_on_a_sibling_are_counted(self):
+        piezas = [self._barril("a", 0.0), self._barril("b", 30.0)]
+        r = physics_core.asentar_tanda(piezas, [PISO])
+        self.assertEqual([x["sobre_hermana"] for x in r], [False, True])
+
+    def test_the_sky_sphere_is_not_a_floor(self):
+        """Soltando desde arriba se pierde la protección que daba la regla del centro: la SkySphere
+        solapa en XY con TODO y su top está a 16 km. Sin filtrarla, la tanda aterriza en el cielo."""
+        cielo = caja("SM_SkySphere", 0.0, 0.0, 0.0, semi=1e6, alto=1e6)
+        r = physics_core.asentar_tanda([self._barril("a", 0.0)], [PISO, cielo])
+        self.assertEqual(r[0]["soporte"], "Piso",
+                         "aterrizó en el cielo en vez del piso")
+        self.assertEqual(physics_core.base_de(r[0]["pieza"].aabb), 0.0)
+
+    def test_dropping_from_above_is_asked_for_explicitly_and_is_not_the_default(self):
+        """`physics.soltar` y `oracle_physics` siguen preguntando «¿qué hay debajo de esto DONDE
+        ESTÁ?». Volver `desde_arriba` el default les cambiaría el significado por atrás."""
+        import inspect
+        firma = inspect.signature(geometry.soporte_top)
+        self.assertIs(firma.parameters["desde_arriba"].default, False)
+        self.assertIn("desde_arriba=True",
+                      inspect.getsource(physics_core.asentar_tanda))
+
+
 class ResumenTests(unittest.TestCase):
     def test_the_summary_says_how_many_found_no_floor(self):
         piezas = [caja("a", 0, 0, 400), caja("lejos", 9e4, 0, 400)]
         texto = physics_core.resumen(physics_core.asentar_tanda(piezas, [PISO]))
         self.assertIn("1/2", texto)
         self.assertIn("1 sin piso", texto)
+
+    def test_it_does_not_report_a_meaningless_average_fall(self):
+        """Promediar subidas con bajadas daba «caída media -60cm», que no significa nada. Lo que
+        importa es cuántas quedaron ENCIMA de otra pieza: es la diferencia entre pila y capa."""
+        piezas = [caja("a", 0, 0, 400), caja("b", 20, 0, 400)]
+        texto = physics_core.resumen(physics_core.asentar_tanda(piezas, [PISO]))
+        self.assertNotIn("caída media", texto)
+        self.assertIn("1 apiladas sobre otra pieza", texto)
 
     def test_all_floating_is_a_failure_and_not_a_silent_ok(self):
         texto = physics_core.resumen(physics_core.asentar_tanda([caja("a", 0, 0, 400)], []))

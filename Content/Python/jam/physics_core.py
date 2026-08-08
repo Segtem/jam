@@ -48,12 +48,22 @@ def asentar_tanda(piezas, soportes, *, tol: float = geometry.TOL_CM) -> list[dic
     `caida` > 0 = flotaba y bajó; < 0 = estaba clavada y subió; `apoyada` False = no había nada
     debajo (queda donde estaba, y el oráculo de aguas abajo lo dirá — acá no se inventa un piso).
     """
-    apilables = list(soportes)
-    salida = [{"caida": 0.0, "soporte": None, "apoyada": False, "pieza": p} for p in piezas]
+    # La escenografía de fondo NO es piso. Soltando desde arriba, la SkySphere solapa en XY con
+    # todo y su top está a 16 km: sin este filtro la tanda entera aterrizaría en el cielo. La regla
+    # del centro la descartaba de casualidad; acá hay que decirlo.
+    apilables = [s for s in soportes if not geometry.es_fondo(s.aabb)]
+    # Para poder decir después cuántas quedaron ENCIMA DE OTRA PIEZA de la tanda, que es la
+    # diferencia visible entre una pila y una capa.
+    nombres_tanda = {p.nombre for p in piezas}
+    salida = [{"caida": 0.0, "soporte": None, "apoyada": False, "sobre_hermana": False,
+               "pieza": p} for p in piezas]
 
     for i in orden_de_caida(piezas):
         p = piezas[i]
-        z_top, etiqueta = geometry.soporte_top(p.aabb, apilables, tol)
+        # `desde_arriba`: la tanda se SUELTA, no se evalúa donde está. Es lo que hace que dos
+        # piezas nacidas a la misma cota se apilen en vez de descartarse mutuamente y quedar
+        # cruzadas — el caso normal del pincel, donde el scatter las deja todas sobre el piso.
+        z_top, etiqueta = geometry.soporte_top(p.aabb, apilables, tol, desde_arriba=True)
         if z_top is None:
             # Sin piso no se mueve, pero SÍ sigue siendo soporte: algo que caiga encima tiene que
             # apoyarse en ella igual. Descartarla haría que la de arriba la atraviese.
@@ -62,22 +72,29 @@ def asentar_tanda(piezas, soportes, *, tol: float = geometry.TOL_CM) -> list[dic
         caida = base_de(p.aabb) - z_top
         movida = bajar(p, caida)
         salida[i] = {"caida": round(caida, 1), "soporte": etiqueta, "apoyada": True,
-                     "pieza": movida}
+                     "sobre_hermana": etiqueta in nombres_tanda, "pieza": movida}
         apilables.append(movida)
 
     return salida
 
 
 def resumen(resultados) -> str:
-    """Renglón para el veredicto: cuántas se asentaron, cuánto cayeron, cuántas quedaron sin piso."""
+    """Renglón para el veredicto.
+
+    NO habla de «caída media»: soltando una tanda, la mitad de los movimientos son hacia ARRIBA
+    —una pieza que se apila sobre otra sube—, y promediar subidas con bajadas daba «caída media
+    -60cm», que no significa nada. Lo que se quiere saber es otra cosa: **cuántas quedaron encima
+    de otra pieza**, que es la diferencia visible entre una pila y una capa.
+    """
     if not resultados:
-        return "ASENTAR — nada que soltar"
+        return "ASENTAR \u2014 nada que soltar"
     apoyadas = [r for r in resultados if r["apoyada"]]
     sin_piso = len(resultados) - len(apoyadas)
-    caidas = [r["caida"] for r in apoyadas]
     if not apoyadas:
-        return f"ASENTAR ✗ — ninguna de {len(resultados)} encontró piso debajo"
-    media = sum(caidas) / len(caidas)
-    cola = f" · {sin_piso} sin piso" if sin_piso else ""
-    return (f"ASENTAR ✓ — {len(apoyadas)}/{len(resultados)} asentadas · "
-            f"caída media {media:.1f}cm, máx {max(caidas):.1f}cm{cola}")
+        return f"ASENTAR \u2717 \u2014 ninguna de {len(resultados)} encontr\u00f3 piso debajo"
+    apiladas = sum(1 for r in apoyadas if r.get("sobre_hermana"))
+    corrimiento = max(abs(r["caida"]) for r in apoyadas)
+    cola = f" \u00b7 {sin_piso} sin piso" if sin_piso else ""
+    return (f"ASENTAR \u2713 \u2014 {len(apoyadas)}/{len(resultados)} asentadas \u00b7 "
+            f"{apiladas} apiladas sobre otra pieza \u00b7 "
+            f"corrimiento m\u00e1x {corrimiento:.1f}cm{cola}")

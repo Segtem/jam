@@ -46,16 +46,32 @@ def volumen(a: AABB) -> float:
     return e.x * e.y * e.z
 
 
-def soporte_top(a: AABB, soportes, tol: float = TOL_CM):
-    """Top del AABB del soporte más alto que solapa a `a` en XY y no asoma por encima de su centro.
-    `soportes` = lista de Pieza (que NO debe incluir a la propia). Devuelve (z_top, nombre) o (None, None)."""
+def soporte_top(a: AABB, soportes, tol: float = TOL_CM, *, desde_arriba: bool = False):
+    """Top del AABB del soporte más alto que solapa a `a` en XY.
+    `soportes` = lista de Pieza (que NO debe incluir a la propia). Devuelve (z_top, nombre) o (None, None).
+
+    Son DOS preguntas distintas y por eso hay una bandera:
+
+    * Por defecto —«¿qué hay debajo de esto, donde está?»— un candidato que asoma por encima del
+      CENTRO de `a` no cuenta: no está debajo, está al lado o alrededor. Sin esa regla, una pieza
+      parada junto a una pared se teletransportaría al techo de la pared.
+    * `desde_arriba` —«esto viene CAYENDO; ¿dónde aterriza?»— cualquier cosa que solape en XY es
+      piso, por alta que sea. Es la única forma de que una tanda soltada a la MISMA cota se apile:
+      con la regla del centro, cada pieza asoma sobre el centro de su vecina, las dos se descartan
+      mutuamente, ninguna sube y quedan las dos cruzadas. Medido con barriles de 65×65×80 a 30 cm:
+      24 piezas, caída 0.0 cm y 99 pares interpenetrados.
+
+    ⚠ Con `desde_arriba` el llamador DEBE filtrar la escenografía de fondo (`es_fondo`): la
+    SkySphere solapa en XY con todo y su top está a 16 km. La regla del centro la descartaba de
+    casualidad; sin ella, sin filtro, todo aterrizaría en el cielo.
+    """
     mejor = None
     for s in soportes:
         os_, es = s.aabb.origin, s.aabb.extent
         if abs(os_.x - a.origin.x) > (es.x + a.extent.x) or abs(os_.y - a.origin.y) > (es.y + a.extent.y):
             continue  # no solapa en XY → no es soporte
         s_top = os_.z + es.z
-        if s_top > a.origin.z + tol:
+        if not desde_arriba and s_top > a.origin.z + tol:
             continue  # el soporte asoma por encima del centro → no está "debajo"
         if mejor is None or s_top > mejor[0]:
             mejor = (s_top, s.nombre)
