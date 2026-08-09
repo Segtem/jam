@@ -1,4 +1,4 @@
-"""Compila el C++ de Jam y COMPRUEBA que el binario haya quedado al día.
+"""Compila el C++ de Jam y COMPRUEBA que cada módulo haya quedado al día.
 
     python tools/build.py            → compila y verifica
     python tools/build.py --solo-ver → sólo verifica, sin compilar
@@ -7,7 +7,8 @@ Existe por una trampa que ya costó un reporte falso: **`Result: Succeeded` tamb
 build que no hizo nada**. Un día se reportó un arreglo de UI sobre un `.so` 35 minutos más viejo
 que el `.cpp`, y lo que se estaba mirando era el binario anterior.
 
-Comprueba las dos formas en que el binario queda viejo:
+Comprueba por separado cada carpeta de `Source/` contra su binario y detecta dos formas de quedar
+viejo:
 
   1. **el build no recompiló** — el `.so` es más viejo que algún fuente de `Source/`;
   2. **el editor estaba abierto** — UBT no puede reemplazar el `.so` tomado y linkea un módulo de
@@ -29,7 +30,6 @@ RAIZ = Path(__file__).resolve().parents[1]
 MOTOR = Path(os.environ.get("JAM_UE", Path.home() / "Dev/engines/UnrealEngine_5.8"))
 PROYECTO = Path(os.environ.get("JAM_PROYECTO", Path.home() / "Dev/games/BotOO/BotOO.uproject"))
 BINARIOS = RAIZ / "Binaries/Linux"
-BASE = BINARIOS / "libUnrealEditor-JamEditor.so"
 
 
 def editor_abierto() -> bool:
@@ -42,10 +42,10 @@ def editor_abierto() -> bool:
     return any(str(PROYECTO.name) in linea for linea in salida.splitlines())
 
 
-def fuente_mas_nueva() -> tuple[Path | None, float]:
-    """El `.cpp`/`.h` modificado más recientemente, que es contra el que hay que comparar."""
+def fuente_mas_nueva(modulo: Path) -> tuple[Path | None, float]:
+    """El `.cpp`/`.h`/`.cs` más reciente de un módulo."""
     ultima, cuando = None, 0.0
-    for ruta in (RAIZ / "Source").rglob("*"):
+    for ruta in modulo.rglob("*"):
         if ruta.suffix in (".cpp", ".h", ".cs") and ruta.is_file():
             t = ruta.stat().st_mtime
             if t > cuando:
@@ -80,35 +80,37 @@ def compilar() -> bool:
 
 
 def verificar() -> bool:
-    fuente, t_fuente = fuente_mas_nueva()
-    if not BASE.exists():
-        print(f"✗ no existe {BASE.name}: el plugin nunca se compiló")
-        return False
-    t_base = BASE.stat().st_mtime
-
-    hot = sorted(BINARIOS.glob("libUnrealEditor-JamEditor-[0-9]*.so"))
-    hot_nuevo = [h for h in hot if h.stat().st_mtime > t_base]
-
+    modulos = sorted(ruta for ruta in (RAIZ / "Source").iterdir() if ruta.is_dir())
+    todo_al_dia = True
     print()
-    print(f"  fuente más nueva : {fuente.relative_to(RAIZ) if fuente else '(ninguna)'}")
-    print(f"  binario base     : {BASE.name}")
+    for modulo in modulos:
+        fuente, t_fuente = fuente_mas_nueva(modulo)
+        base = BINARIOS / f"libUnrealEditor-{modulo.name}.so"
+        print(f"  {modulo.name}")
+        print(f"    fuente más nueva : {fuente.relative_to(RAIZ) if fuente else '(ninguna)'}")
+        print(f"    binario base     : {base.name}")
+        if not base.exists():
+            print("    ✗ no existe: el módulo nunca se compiló")
+            todo_al_dia = False
+            continue
 
-    if t_base >= t_fuente and not hot_nuevo:
-        print("\n✓ AL DÍA — el binario base tiene todos los cambios.")
+        t_base = base.stat().st_mtime
+        hot = sorted(BINARIOS.glob(f"libUnrealEditor-{modulo.name}-[0-9]*.so"))
+        hot_nuevo = [ruta for ruta in hot if ruta.stat().st_mtime > t_base]
+        if hot_nuevo:
+            print("    ✗ hay hot reload más nuevo: " + ", ".join(ruta.name for ruta in hot_nuevo))
+            todo_al_dia = False
+        elif t_base < t_fuente:
+            print("    ✗ el binario está viejo")
+            todo_al_dia = False
+        else:
+            print("    ✓ al día")
+
+    if todo_al_dia:
+        print("\n✓ AL DÍA — todos los módulos tienen sus cambios.")
         return True
-
-    if hot_nuevo:
-        print(f"\n✗ HAY UN MÓDULO DE HOT RELOAD MÁS NUEVO QUE EL BASE:")
-        for h in hot_nuevo:
-            print(f"    {h.name}")
-        print("  El editor estaba abierto y UBT no pudo reemplazar el binario base.")
-        print("  El editor que está corriendo SÍ tiene los cambios, pero si lo cerrás y lo volvés")
-        print("  a abrir, carga el código VIEJO.")
-        print("\n  → cerrá el editor y volvé a correr esto.")
-        return False
-
-    print(f"\n✗ EL BINARIO ESTÁ VIEJO: hay fuentes modificadas después de compilar.")
-    print("  → volvé a correr esto (y si insiste, mirá si el build reportó algún error).")
+    print("\n✗ HAY MÓDULOS VIEJOS O DE HOT RELOAD.")
+    print("  → cerrá el editor, compilá otra vez y comprobá los binarios base.")
     return False
 
 

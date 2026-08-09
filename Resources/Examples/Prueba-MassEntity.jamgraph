@@ -1,0 +1,30 @@
+{
+	"schema_version": 1,
+	"nodes": {
+		"recorrido": {
+			"verb": "curve_bezier",
+			"params": {"start_x": "-300.0", "start_y": "40.0", "start_z": "15.0", "end_x": "900.0", "end_y": "500.0", "end_z": "215.0", "bend_x": "120.0", "bend_y": "-180.0", "bend_z": "80.0", "segments": "12"},
+			"asset": null,
+			"x": 60,
+			"y": 220
+		},
+		"frames": {
+			"verb": "curve_frames",
+			"params": {"count": "37", "start": "0.0", "end": "1.0", "radial_offset": "25.0", "turns": "1.5", "angle_offset": "17.0", "radius_start": "0.0", "radius_end": "0.0", "samples": "64", "seed": "19"},
+			"asset": null,
+			"x": 400,
+			"y": 220
+		},
+		"mass": {
+			"verb": "mass_probe",
+			"params": {},
+			"asset": null,
+			"x": 740,
+			"y": 220
+		}
+	},
+	"edges": [
+		["recorrido", "out", "frames", "in"],
+		["frames", "out", "mass", "in"]
+	]
+}

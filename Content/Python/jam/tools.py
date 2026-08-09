@@ -1651,6 +1651,21 @@ def t_points_to_frames(stream_input, *, orientacion="normal", escala=1.0,
     return f"POINTS TO F ✓ — {result['info']}"
 
 
+def t_mass_probe(frame_input) -> str:
+    """Primera vertical Mass: crea, mide y limpia entidades, y deja pasar el mismo F."""
+    from . import mass_core, ue
+
+    prepared = mass_core.prepare(frame_input)
+    if "error" in prepared:
+        raise RuntimeError(prepared["error"])
+    batch = prepared["batch"]
+    result = mass_core.judge(batch, ue.mass_probe(batch))
+    if not result["ok"]:
+        raise RuntimeError("MassEntity no verificó: " + "; ".join(result["defects"]))
+    _RUNTIME_DATA_OUTPUTS["mass_probe"] = frame_input
+    return f"MASS PROBE F ✓ — {result['info']}"
+
+
 def t_mesh_box(_input=None, *, size_x=100.0, size_y=100.0, size_z=100.0,
                steps_x=0, steps_y=0, steps_z=0) -> str:
     from . import mesh
@@ -2201,6 +2216,10 @@ REGISTRO = {
                                "asset_yaw": 0.0, "asset_roll": 0.0,
                                "asset_scale": 1.0, "inherit_scale": True},
                     "doc": "crea un actor con un HISM por variante AF; participa de Preview/Bake/Discard"},
+    "mass_probe": {"fn": t_mass_probe, "label": "Probar MassEntity", "cat": "Mass",
+                   "graph_only": True, "read_only": True, "params": {},
+                   "doc": "crea una entidad Mass real por frame F, comprueba arquetipo y transform, "
+                          "las destruye y deja pasar el mismo F; prueba de núcleo, no población persistente"},
     "mesh_leaf": {"fn": t_mesh_leaf, "cat": "Mesh", "graph_only": True,
                   "asset_argument": True, "optional_asset_argument": True,
                   "params": {"count": 4, "start": 0.1, "end": 0.95,
@@ -2450,7 +2469,7 @@ SIN_SPAWN = {"asset", "pick", "gizmo", "ghost", "pivot", "pivot_set", "normalize
 # Las seis primeras son verbos de herramienta; las que siguen llegan de las ops de Flow que ahora
 # también son verbos del Graph (ver `_registrar_ops_flow`). El orden agrupa por lo que hace cada
 # familia: generar puntos → filtrarlos → pesarlos → reordenarlos → moverlos → juntarlos → mirarlos.
-CATEGORIAS = ["Content", "Place", "Scatter", "Create", "Mesh", "Edit",
+CATEGORIAS = ["Content", "Place", "Scatter", "Mass", "Create", "Mesh", "Edit",
               "Vector", "Mask", "Weight", "Sets", "Transform", "Combine", "Display", "Debug"]
 
 # Contrato del Graph. Vive junto al REGISTRO para que Slate y el Preflight lean la misma verdad.
@@ -2484,7 +2503,7 @@ GRAPH_NO_ASSET = {"asset", "pick", "create_spline", "pivot_set", "instance", "br
                   "curve_child", "curve_frames", "distribute_frames", "transform_frames",
                   "branch_from_frames",
                   "asset_set", "choose_asset", "curve_branches", "mesh_leaf",
-                  "copy_asset_selection", "hism_output",
+                  "copy_asset_selection", "hism_output", "mass_probe",
                   "mesh_color", "mesh_uv_scale", "mesh_material", "mesh_bark", "mesh_noise", "points_to_frames", "debug",
                   "mesh_remap_materials", "mesh_clean_material_ids",
                   "mesh_validate",
@@ -2501,6 +2520,7 @@ GRAPH_NO_ASSET = {"asset", "pick", "create_spline", "pivot_set", "instance", "br
                   # transforman el dato que les llega y no tocan ningún asset.
                   "curve_noise", "mesh_vertex_gradient"}
 GRAPH_IN_NAMES = {"reroute_mesh": "M", "reroute_asset": "A", "reroute_points": "P", "reroute_curve": "S", "reroute_frames": "F",
+                  "mass_probe": "F",
                   "points_to_frames": "P", "debug": "*", "curve_child": "S", "curve_noise": "S", "curve_frames": "S", "distribute_frames": "F",
                   "series_remap": "N[]",
                   "curve_resample": "S", "curve_smooth": "S",
@@ -2529,6 +2549,7 @@ GRAPH_IN_NAMES = {"reroute_mesh": "M", "reroute_asset": "A", "reroute_points": "
                   "material_build": "MT", "material_function": "MT", "material_call": "MT",
                   "material_instance": "A", "instance": "P"}
 GRAPH_OUT_NAMES = {"brush": "P", "reroute_mesh": "M", "reroute_asset": "A", "reroute_points": "P", "reroute_curve": "S", "reroute_frames": "F",
+                   "mass_probe": "F",
                    "select_mesh": "M", "select_asset": "A",
                    "points_to_frames": "F", "debug": "M", "asset": "A", "pick": "A", "create_spline": "S",
                    # `scatter` describe DÓNDE (puntos) y `instance` decide cuándo eso se vuelve

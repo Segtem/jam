@@ -20,6 +20,24 @@ def _mundo():
     return unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).get_editor_world()
 
 
+def mass_probe(batch) -> dict:
+    """Traduce el lote puro a Unreal y delega la vida de las entidades al puente C++."""
+    import json
+
+    transforms = []
+    for frame in batch.frames:
+        location = unreal.Vector(*frame.position)
+        rotation = unreal.MathLibrary.make_rot_from_xz(
+            unreal.Vector(*frame.tangent), unreal.Vector(*frame.outward))
+        scale = unreal.Vector(float(frame.scale), float(frame.scale), float(frame.scale))
+        transforms.append(unreal.Transform(location=location, rotation=rotation, scale=scale))
+    raw = unreal.JamMassLibrary.probe_entities(_mundo(), transforms)
+    try:
+        return json.loads(str(raw))
+    except (TypeError, ValueError) as exc:
+        raise RuntimeError(f"JamMass devolvió JSON ilegible: {raw!r}") from exc
+
+
 _SIN_HIT = {"hit": False, "punto": None, "normal": None, "actor": None}
 
 

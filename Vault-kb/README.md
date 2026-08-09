@@ -1,6 +1,6 @@
 # Vault-kb de Jam
 
-65 documentos en 5 carpetas. Nomenclatura
+66 documentos en 5 carpetas. Nomenclatura
 `AAAA-MM-DD-TIPO-Nombre-vX.X.md` — la explica
 [[2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0|la guía de convención]].
 La carpeta es la taxonomía: cada doc vive en una sola y su `area:` lo dice.
@@ -87,8 +87,9 @@ Este índice y las reglas los verifica `tools/vault.py`.
 
 ## Ejecución, presets y pruebas
 
-`04-Ejecucion-y-pruebas/` · 9 documentos
+`04-Ejecucion-y-pruebas/` · 10 documentos
 
+- [[2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0|MassEntity en Jam: de una prueba de núcleo a poblaciones autorables]] · *en-progreso*
 - [[2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0|Certificación de Jam en Unreal Engine 5.8.1]] · *en-progreso*
 - [[2026-07-27-INFORME-Puente-P-a-F-Ops-Flow-v1.0|Puente P → F: las ops de Flow como verbos del Graph]] · *implementado*
 - [[2026-07-26-PLAN-Preview-Transaccional-Efectos-PCG-v1.0|Preview transaccional y efectos de PCG]] · *en-progreso*

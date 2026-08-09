@@ -53,6 +53,7 @@ GRUPOS: dict[str, list[tuple[str, list[str]]]] = {
         ("Pincel", ["brush"]),
         ("Repartir", ["scatter", "spline", "pcg"]),
     ],
+    "Mass": [("Diagnóstico", ["mass_probe"])],
     "Create": [
         ("Crear", ["create_spline", "replace", "fracture"]),
         ("Nanite", ["nanite", "nanite_analyze", "nanite_validate"]),
@@ -106,7 +107,7 @@ GRUPOS: dict[str, list[tuple[str, list[str]]]] = {
 SECCIONES: list[tuple[str, list[str]]] = [
     ("Inicio", ["Content", "Place", "Create", "Edit", "Display"]),
     ("Geometría", ["Mesh", "Vector", "Transform", "Sets", "Combine"]),
-    ("Distribución", ["Scatter", "Mask", "Weight", "Source", "Output"]),
+    ("Distribución", ["Scatter", "Mass", "Mask", "Weight", "Source", "Output"]),
     ("Datos", ["Params", "Maths", "Debug"]),
     ("Materiales", ["Shader"]),
     ("Funciones", ["Funciones"]),

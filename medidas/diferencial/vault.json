@@ -849,6 +849,19 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-08-02"
+     },
+     {
+      "area": "04-Ejecucion-y-pruebas",
+      "carpeta": "04-Ejecucion-y-pruebas",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-09",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-09"
      }
     ],
     "enlace": [
@@ -2273,6 +2286,21 @@
       "resuelve": true
      },
      {
+      "destino": "2026-07-27-INFORME-Puente-P-a-F-Ops-Flow-v1.0",
+      "origen": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-26-PLAN-Preview-Transaccional-Efectos-PCG-v1.0",
+      "origen": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "origen": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
       "origen": "README",
       "resuelve": true
@@ -2549,6 +2577,11 @@
      },
      {
       "destino": "2026-07-26-INFORME-Graph-Tab-Mesh-Verbos-Malla-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -3465,6 +3498,19 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-08-02"
+     },
+     {
+      "area": "04-Ejecucion-y-pruebas",
+      "carpeta": "04-Ejecucion-y-pruebas",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-09",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-09"
      }
     ],
     "enlace": [
@@ -4889,6 +4935,21 @@
       "resuelve": true
      },
      {
+      "destino": "2026-07-27-INFORME-Puente-P-a-F-Ops-Flow-v1.0",
+      "origen": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-26-PLAN-Preview-Transaccional-Efectos-PCG-v1.0",
+      "origen": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "origen": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
       "origen": "README",
       "resuelve": true
@@ -5165,6 +5226,11 @@
      },
      {
       "destino": "2026-07-26-INFORME-Graph-Tab-Mesh-Verbos-Malla-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -6081,6 +6147,19 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-08-02"
+     },
+     {
+      "area": "04-Ejecucion-y-pruebas",
+      "carpeta": "04-Ejecucion-y-pruebas",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-09",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-09"
      }
     ],
     "enlace": [
@@ -7505,6 +7584,21 @@
       "resuelve": true
      },
      {
+      "destino": "2026-07-27-INFORME-Puente-P-a-F-Ops-Flow-v1.0",
+      "origen": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-26-PLAN-Preview-Transaccional-Efectos-PCG-v1.0",
+      "origen": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "origen": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
       "origen": "README",
       "resuelve": true
@@ -7781,6 +7875,11 @@
      },
      {
       "destino": "2026-07-26-INFORME-Graph-Tab-Mesh-Verbos-Malla-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -8697,6 +8796,19 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-08-02"
+     },
+     {
+      "area": "04-Ejecucion-y-pruebas",
+      "carpeta": "04-Ejecucion-y-pruebas",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-09",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-09"
      }
     ],
     "enlace": [
@@ -10121,6 +10233,21 @@
       "resuelve": true
      },
      {
+      "destino": "2026-07-27-INFORME-Puente-P-a-F-Ops-Flow-v1.0",
+      "origen": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-26-PLAN-Preview-Transaccional-Efectos-PCG-v1.0",
+      "origen": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "origen": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
       "origen": "README",
       "resuelve": true
@@ -10397,6 +10524,11 @@
      },
      {
       "destino": "2026-07-26-INFORME-Graph-Tab-Mesh-Verbos-Malla-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -11313,6 +11445,19 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-08-02"
+     },
+     {
+      "area": "04-Ejecucion-y-pruebas",
+      "carpeta": "04-Ejecucion-y-pruebas",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-09",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-09"
      }
     ],
     "enlace": [
@@ -12737,6 +12882,21 @@
       "resuelve": true
      },
      {
+      "destino": "2026-07-27-INFORME-Puente-P-a-F-Ops-Flow-v1.0",
+      "origen": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-26-PLAN-Preview-Transaccional-Efectos-PCG-v1.0",
+      "origen": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "origen": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
       "origen": "README",
       "resuelve": true
@@ -13013,6 +13173,11 @@
      },
      {
       "destino": "2026-07-26-INFORME-Graph-Tab-Mesh-Verbos-Malla-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -13929,6 +14094,19 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-08-02"
+     },
+     {
+      "area": "04-Ejecucion-y-pruebas",
+      "carpeta": "04-Ejecucion-y-pruebas",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-09",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-09"
      }
     ],
     "enlace": [
@@ -15358,6 +15536,21 @@
       "resuelve": true
      },
      {
+      "destino": "2026-07-27-INFORME-Puente-P-a-F-Ops-Flow-v1.0",
+      "origen": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-26-PLAN-Preview-Transaccional-Efectos-PCG-v1.0",
+      "origen": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "origen": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
       "origen": "README",
       "resuelve": true
@@ -15634,6 +15827,11 @@
      },
      {
       "destino": "2026-07-26-INFORME-Graph-Tab-Mesh-Verbos-Malla-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -16550,6 +16748,19 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-08-02"
+     },
+     {
+      "area": "04-Ejecucion-y-pruebas",
+      "carpeta": "04-Ejecucion-y-pruebas",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-09",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-09"
      }
     ],
     "enlace": [
@@ -17974,6 +18185,21 @@
       "resuelve": true
      },
      {
+      "destino": "2026-07-27-INFORME-Puente-P-a-F-Ops-Flow-v1.0",
+      "origen": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-26-PLAN-Preview-Transaccional-Efectos-PCG-v1.0",
+      "origen": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "origen": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
       "origen": "README",
       "resuelve": true
@@ -18250,6 +18476,11 @@
      },
      {
       "destino": "2026-07-26-INFORME-Graph-Tab-Mesh-Verbos-Malla-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -19166,6 +19397,19 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-08-02"
+     },
+     {
+      "area": "04-Ejecucion-y-pruebas",
+      "carpeta": "04-Ejecucion-y-pruebas",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-09",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-09"
      },
      {
       "area": "01-Graph",
@@ -20603,6 +20847,21 @@
       "resuelve": true
      },
      {
+      "destino": "2026-07-27-INFORME-Puente-P-a-F-Ops-Flow-v1.0",
+      "origen": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-26-PLAN-Preview-Transaccional-Efectos-PCG-v1.0",
+      "origen": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "origen": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
       "origen": "2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0",
       "resuelve": true
@@ -20884,6 +21143,11 @@
      },
      {
       "destino": "2026-07-26-INFORME-Graph-Tab-Mesh-Verbos-Malla-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -21787,6 +22051,19 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-08-02"
+     },
+     {
+      "area": "04-Ejecucion-y-pruebas",
+      "carpeta": "04-Ejecucion-y-pruebas",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-09",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-09"
      },
      {
       "area": "01-Graph",
@@ -23219,6 +23496,21 @@
       "resuelve": true
      },
      {
+      "destino": "2026-07-27-INFORME-Puente-P-a-F-Ops-Flow-v1.0",
+      "origen": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-26-PLAN-Preview-Transaccional-Efectos-PCG-v1.0",
+      "origen": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "origen": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
       "origen": "2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0",
       "resuelve": true
@@ -23500,6 +23792,11 @@
      },
      {
       "destino": "2026-07-26-INFORME-Graph-Tab-Mesh-Verbos-Malla-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -24429,6 +24726,19 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-08-02"
+     },
+     {
+      "area": "04-Ejecucion-y-pruebas",
+      "carpeta": "04-Ejecucion-y-pruebas",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-09",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-09"
      }
     ],
     "enlace": [
@@ -25858,6 +26168,21 @@
       "resuelve": true
      },
      {
+      "destino": "2026-07-27-INFORME-Puente-P-a-F-Ops-Flow-v1.0",
+      "origen": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-26-PLAN-Preview-Transaccional-Efectos-PCG-v1.0",
+      "origen": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "origen": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
       "origen": "README",
       "resuelve": true
@@ -26134,6 +26459,11 @@
      },
      {
       "destino": "2026-07-26-INFORME-Graph-Tab-Mesh-Verbos-Malla-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -27050,6 +27380,19 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-08-02"
+     },
+     {
+      "area": "04-Ejecucion-y-pruebas",
+      "carpeta": "04-Ejecucion-y-pruebas",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-09",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-09"
      }
     ],
     "enlace": [
@@ -28474,6 +28817,21 @@
       "resuelve": true
      },
      {
+      "destino": "2026-07-27-INFORME-Puente-P-a-F-Ops-Flow-v1.0",
+      "origen": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-26-PLAN-Preview-Transaccional-Efectos-PCG-v1.0",
+      "origen": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
+      "origen": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0",
       "origen": "README",
       "resuelve": true
@@ -28754,6 +29112,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
       "destino": "2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0",
       "origen": "README",
       "resuelve": true
@@ -28854,7 +29217,7 @@
    "catalogo": "99372ef74c544a44c24bbbe91d0dd050320a7a0e37d88ea94e6cf2d0de34f79c",
    "configuracion": "407a21668fb6d1cc90b20875fa7e2a1044832d4f2e47f759f46e63edcb27e073",
    "emisor": "197be60d28e63e4f20f9e663ea9910ae265daf1b64580a5f5e8281be5c9d0307",
-   "referencia": "00ccdb0827961da1f69414e830128f5d62960509a44da56ca546ab5350145162"
+   "referencia": "cbe6f69cf7de249749e0106fef58d1a83750acd27eac2a4f114f50d4f88ef224"
   },
   "raiz_fuentes": ".."
  },

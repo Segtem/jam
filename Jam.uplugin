@@ -12,6 +12,11 @@
 	"Installed": false,
 	"Modules": [
 		{
+			"Name": "JamMass",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
 			"Name": "JamEditor",
 			"Type": "Editor",
 			"LoadingPhase": "PostEngineInit"

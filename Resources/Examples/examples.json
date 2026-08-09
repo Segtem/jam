@@ -51,6 +51,14 @@
 			"mensaje": "Ejemplo cargado: árbol de dos niveles. Compile y después Run graph; el follaje sale como HISM aparte."
 		},
 		{
+			"archivo": "Prueba-MassEntity.jamgraph",
+			"titulo": "Primera población MassEntity",
+			"grupo": "Simulación",
+			"icono": "jam-mass-probe",
+			"doc": "Una curva produce 37 frames F y MassEntity crea una entidad real por frame con FTransformFragment. La sonda comprueba cantidad, arquetipo y posición, destruye las 37 entidades y deja pasar el mismo F.\nEs una prueba del núcleo: todavía no crea una población persistente, representación visual, traits de MassGameplay ni comportamiento.",
+			"mensaje": "Prueba MassEntity cargada. Compile y Run graph; el nodo debe informar 37 entidades, un arquetipo, transforms conservados y limpieza completa."
+		},
+		{
 			"archivo": "Debug-Playground.jamgraph",
 			"titulo": "Banco de pruebas de Debug",
 			"grupo": "Ver el dato",
