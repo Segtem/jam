@@ -1943,6 +1943,38 @@ def corteza(source, *, amplitud: float = 2.0, escala: float = 0.06, alargue: flo
             "info": f"{_info(result)} · relieve ±{amplitud:g}cm · surcos {surcos:g}"}
 
 
+def noise(source, *, amplitud: float = 100.0, frecuencia: float = 0.003,
+          seed: int = 7, por_normal: bool = True) -> dict:
+    """Desplaza M con el Perlin nativo corregido de UE 5.8, sin modificar la entrada.
+
+    Usa exclusivamente ``apply_perlin_noise_to_mesh2``: la variante de compatibilidad anterior a
+    5.7 elevaba la frecuencia al cuadrado y no representa el parámetro que muestra el nodo.
+    """
+    from . import mesh_noise_core as core
+
+    try:
+        config = core.configurar(
+            amplitud=amplitud, frecuencia=frecuencia, seed=seed, por_normal=por_normal)
+        result = _clone(source)
+    except (TypeError, ValueError) as exc:
+        return {"error": str(exc)}
+
+    layer = unreal.GeometryScriptPerlinNoiseLayerOptions()
+    layer.set_editor_property("magnitude", config.amplitud)
+    layer.set_editor_property("frequency", config.frecuencia)
+    layer.set_editor_property("random_seed", config.seed)
+    options = unreal.GeometryScriptPerlinNoiseOptions()
+    options.set_editor_property("base_layer", layer)
+    options.set_editor_property("apply_along_normal", config.por_normal)
+    result.apply_perlin_noise_to_mesh2(unreal.GeometryScriptMeshSelection(), options)
+    unreal.GeometryScript_Normals.recompute_normals(
+        result, unreal.GeometryScriptCalculateNormalsOptions())
+    direccion = "por normal" if config.por_normal else "en XYZ"
+    return {"mesh": result,
+            "info": (f"{_info(result)} · Perlin ±{config.amplitud:g}cm · "
+                     f"{config.frecuencia:g}/cm · {direccion} · seed {config.seed}")}
+
+
 def medir(source, *, franjas: int = 8) -> dict:
     """Firma de forma de una malla `M` o de un StaticMesh `A`, para el oráculo de `compare`."""
     from . import compare

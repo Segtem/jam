@@ -8,7 +8,7 @@ crea actores ni Content. Los consumidores también aceptan un Actor/SplineCompon
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 import unreal
 
@@ -150,6 +150,144 @@ def points_of(value, *, samples: int = 16) -> tuple[tuple[float, float, float], 
     """Normaliza un ``S`` singular a una polilínea; una colección requiere ``paths_of``."""
     paths = paths_of(value, samples=samples)
     return paths[0].points if len(paths) == 1 else ()
+
+
+def polyline(*, x=None, y=None, z=None) -> dict:
+    """Construye una curva ``S`` juntando tres series ``N[]`` como coordenadas XYZ."""
+    from . import curve_sampling_core
+
+    result = curve_sampling_core.polyline_points(x, y, z)
+    if "error" in result:
+        return result
+    return {"curve": CurvePath(result["points"]), "info": result["info"]}
+
+
+def resample(value, *, count: int = 24, samples: int = 32) -> dict:
+    """Remuestrea cada recorrido de ``S`` por longitud y conserva su metadata de TreeGen."""
+    from . import curve_sampling_core
+
+    try:
+        count, samples = int(count), int(samples)
+    except (TypeError, ValueError, OverflowError):
+        return {"error": "count y samples de curve_resample deben ser enteros."}
+    if count < 2 or count > 4096:
+        return {"error": "count de curve_resample debe estar entre 2 y 4096."}
+    if samples < 2 or samples > 256:
+        return {"error": "samples de curve_resample debe estar entre 2 y 256."}
+
+    paths = paths_of(value, samples=samples)
+    if not paths:
+        return {"error": "curve_resample necesita una curva S válida."}
+    if len(paths) * count > 4096:
+        return {"error": "curve_resample no puede producir más de 4096 puntos por nodo."}
+
+    output = []
+    infos = []
+    for path in paths:
+        sampled = curve_sampling_core.resample_points(path.points, count=count)
+        if "error" in sampled:
+            return sampled
+        output.append(replace(path, points=sampled["points"]))
+        infos.append(sampled["info"])
+    result = output[0] if len(output) == 1 and not isinstance(value, CurveSet) \
+        else CurveSet(tuple(output))
+    suffix = f" · {len(output)} curvas" if len(output) > 1 else ""
+    return {"curve": result, "info": infos[0] + suffix}
+
+
+def smooth(value, *, iterations: int = 2, strength: float = 0.5,
+           preserve_ends: bool = True, samples: int = 32) -> dict:
+    """Suaviza cada recorrido de ``S`` sin cambiar su cardinalidad ni metadata."""
+    from . import curve_sampling_core
+
+    try:
+        iterations, strength, samples = int(iterations), float(strength), int(samples)
+    except (TypeError, ValueError, OverflowError):
+        return {"error": "iterations, strength y samples de curve_smooth son inválidos."}
+    if samples < 2 or samples > 256:
+        return {"error": "samples de curve_smooth debe estar entre 2 y 256."}
+    paths = paths_of(value, samples=samples)
+    if not paths:
+        return {"error": "curve_smooth necesita una curva S válida."}
+    if sum(len(path.points) for path in paths) > 4096:
+        return {"error": "curve_smooth no puede procesar más de 4096 puntos por nodo."}
+
+    output = []
+    infos = []
+    for path in paths:
+        smoothed = curve_sampling_core.smooth_points(
+            path.points, iterations=iterations, strength=strength,
+            preserve_ends=bool(preserve_ends))
+        if "error" in smoothed:
+            return smoothed
+        output.append(replace(path, points=smoothed["points"]))
+        infos.append(smoothed["info"])
+    result = output[0] if len(output) == 1 and not isinstance(value, CurveSet) \
+        else CurveSet(tuple(output))
+    suffix = f" · {len(output)} curvas" if len(output) > 1 else ""
+    return {"curve": result, "info": infos[0] + suffix}
+
+
+def fuse_collinear(value, *, angle_tolerance: float = 1.0,
+                   distance_tolerance: float = 0.01, samples: int = 32) -> dict:
+    """Fusiona redundancias de cada recorrido ``S`` y conserva su metadata."""
+    from . import curve_sampling_core
+
+    try:
+        angle_tolerance = float(angle_tolerance)
+        distance_tolerance, samples = float(distance_tolerance), int(samples)
+    except (TypeError, ValueError, OverflowError):
+        return {"error": "las tolerancias y samples de curve_fuse_collinear son inválidos."}
+    if samples < 2 or samples > 256:
+        return {"error": "samples de curve_fuse_collinear debe estar entre 2 y 256."}
+    paths = paths_of(value, samples=samples)
+    if not paths:
+        return {"error": "curve_fuse_collinear necesita una curva S válida."}
+
+    output, infos = [], []
+    for path in paths:
+        fused = curve_sampling_core.fuse_collinear_points(
+            path.points, angle_tolerance=angle_tolerance,
+            distance_tolerance=distance_tolerance)
+        if "error" in fused:
+            return fused
+        output.append(replace(path, points=fused["points"]))
+        infos.append(fused["info"])
+    result = output[0] if len(output) == 1 and not isinstance(value, CurveSet) \
+        else CurveSet(tuple(output))
+    suffix = f" · {len(output)} curvas" if len(output) > 1 else ""
+    return {"curve": result, "info": infos[0] + suffix}
+
+
+def subdivide(value, *, mode: str = "distance", distance: float = 100.0,
+              count: int = 1, samples: int = 32) -> dict:
+    """Subdivide segmentos de cada ``S`` sin perder sus vértices ni metadata."""
+    from . import curve_sampling_core
+
+    try:
+        distance, count, samples = float(distance), int(count), int(samples)
+    except (TypeError, ValueError, OverflowError):
+        return {"error": "distance, count y samples de curve_subdivide son inválidos."}
+    if samples < 2 or samples > 256:
+        return {"error": "samples de curve_subdivide debe estar entre 2 y 256."}
+    paths = paths_of(value, samples=samples)
+    if not paths:
+        return {"error": "curve_subdivide necesita una curva S válida."}
+
+    output, infos = [], []
+    for path in paths:
+        subdivided = curve_sampling_core.subdivide_points(
+            path.points, mode=mode, distance=distance, count=count)
+        if "error" in subdivided:
+            return subdivided
+        output.append(replace(path, points=subdivided["points"]))
+        infos.append(subdivided["info"])
+    if sum(len(path.points) for path in output) > 4096:
+        return {"error": "curve_subdivide no puede producir más de 4096 puntos por nodo."}
+    result = output[0] if len(output) == 1 and not isinstance(value, CurveSet) \
+        else CurveSet(tuple(output))
+    suffix = f" · {len(output)} curvas" if len(output) > 1 else ""
+    return {"curve": result, "info": infos[0] + suffix}
 
 
 def _normalized(vector):

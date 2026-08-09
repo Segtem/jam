@@ -1,6 +1,6 @@
 # Vault-kb de Jam
 
-58 documentos en 5 carpetas. Nomenclatura
+65 documentos en 5 carpetas. Nomenclatura
 `AAAA-MM-DD-TIPO-Nombre-vX.X.md` — la explica
 [[2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0|la guía de convención]].
 La carpeta es la taxonomía: cada doc vive en una sola y su `area:` lo dice.
@@ -11,8 +11,10 @@ Este índice y las reglas los verifica `tools/vault.py`.
 
 ## Proceso y dirección
 
-`00-Proceso/` · 7 documentos
+`00-Proceso/` · 9 documentos
 
+- [[2026-08-06-PLAN-Physics-Paint-Como-Herramienta-De-Graph-v1.0|Physics Paint como herramienta creada en Graph]] · *propuesta*
+- [[2026-08-06-CONCEPTO-Graph-Autoria-Dash-Consumo-v1.0|Graph autor, Dash consumidor: qué es un proyecto y qué es una herramienta]] · *propuesta*
 - [[2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0|Revisión integral de Jam, Oracle y Unreal Engine 5.8.1]] · *en-progreso*
 - [[2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0|P3 de Oracle: autonomía de embedding antes de migrar Jam]] · *completo*
 - [[2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0|Oracle: un metalenguaje de medidas para construir herramientas con un LLM]] · *implementado*
@@ -23,8 +25,9 @@ Este índice y las reglas los verifica `tools/vault.py`.
 
 ## Graph — el editor de nodos
 
-`01-Graph/` · 17 documentos
+`01-Graph/` · 18 documentos
 
+- [[2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0|Comentarios y grupos en el Graph]] · *implementado*
 - [[2026-08-03-ROADMAP-Catalogo-Matematico-Ampliado-v1.0|Catálogo matemático ampliado de Jam]] · *en-progreso*
 - [[2026-08-03-INFORME-Ribbon-Jerarquico-Familias-v1.0|Ribbon jerárquico del Graph por familias]] · *en-progreso*
 - [[2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0|Nodos de Unreal Engine 5.8.1 para Jam]] · *en-progreso*
@@ -45,8 +48,9 @@ Este índice y las reglas los verifica `tools/vault.py`.
 
 ## TreeGen — el árbol procedural
 
-`02-TreeGen/` · 18 documentos
+`02-TreeGen/` · 19 documentos
 
+- [[2026-08-09-INFORME-Biblioteca-Ejemplos-Malla-Procedural-v1.0|Biblioteca de ejemplos de malla procedural: TreeGen y ProceduralMeshDemos]] · *en-implementacion*
 - [[2026-07-27-INFORME-TreeGen-UV-Materiales-Sections-HISM-v1.0|TreeGen: UV, materiales, sections y salida HISM]] · *implementado*
 - [[2026-07-27-INFORME-TreeGen-Transform-Frames-v1.0|TreeGen: Transform Frames F]] · *implementado*
 - [[2026-07-27-INFORME-TreeGen-Relieve-De-Corteza-v1.0|TreeGen: relieve de corteza]] · *implementado*
@@ -68,8 +72,11 @@ Este índice y las reglas los verifica `tools/vault.py`.
 
 ## Mesh y materiales
 
-`03-Mesh-y-materiales/` · 7 documentos
+`03-Mesh-y-materiales/` · 10 documentos
 
+- [[2026-08-09-ROADMAP-Verbos-Y-Ejemplos-PMG-v1.0|Roadmap de verbos y ejemplos de malla procedural]] · *en-implementacion*
+- [[2026-08-09-INFORME-GitHub-Procedural-Mesh-Generation-v1.0|GitHub como corpus de verbos de malla procedural]] · *en-implementacion*
+- [[2026-08-04-INFORME-Soldar-Bordes-Y-Diagnostico-De-Malla-v1.0|Soldar bordes (mesh_weld) y el diagnóstico de malla que mentía]] · *implementado*
 - [[2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0|Nanite a Fracture en UE 5.8: Geometry Collection sin perder materiales]] · *implementado*
 - [[2026-07-28-INFORME-Primitivas-Tab-Mesh-v1.0|Primitivas del tab Mesh]] · *implementado*
 - [[2026-07-28-INFORME-Materiales-Avanzados-Layers-Substrate-Substance-v1.0|Investigación — materiales avanzados: Layers, Substrate, Material Functions y Substance]] · *investigacion-completa*

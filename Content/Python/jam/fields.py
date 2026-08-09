@@ -88,6 +88,54 @@ def graph_curve(*, start_value: float = 1.0, end_value: float = 0.15,
     }
 
 
+def series_range(*, start: float = 0.0, end: float = 1.0, count: int = 11) -> dict:
+    """Crea ``count`` valores equidistantes, incluidos ambos extremos."""
+    try:
+        start, end, count = float(start), float(end), int(count)
+    except (TypeError, ValueError, OverflowError):
+        return {"error": "start, end y count de series_range deben ser numéricos."}
+    if not math.isfinite(start) or not math.isfinite(end):
+        return {"error": "series_range contiene un extremo no finito."}
+    if count < 2 or count > 4096:
+        return {"error": "count de series_range debe estar entre 2 y 4096."}
+    step = (end - start) / (count - 1)
+    values = tuple(start + step * index for index in range(count - 1)) + (end,)
+    return {"series": ScalarSeries(values, "range"),
+            "info": f"{count} muestras · {start:g}→{end:g} · paso {step:g}"}
+
+
+def series_remap(source, *, source_min: float = 0.0, source_max: float = 1.0,
+                 target_min: float = 0.0, target_max: float = 1.0,
+                 clamp: bool = True) -> dict:
+    """Remapea cada valor de una serie entre dos dominios, con clamp opcional."""
+    if not isinstance(source, ScalarSeries) or not source.values:
+        return {"error": "series_remap necesita una serie N[] válida y no vacía."}
+    try:
+        source_min, source_max = float(source_min), float(source_max)
+        target_min, target_max = float(target_min), float(target_max)
+    except (TypeError, ValueError, OverflowError):
+        return {"error": "los dominios de series_remap deben ser numéricos."}
+    limits = (source_min, source_max, target_min, target_max)
+    if not all(math.isfinite(value) for value in limits):
+        return {"error": "series_remap contiene un límite no finito."}
+    if source_min == source_max:
+        return {"error": "source_min y source_max de series_remap no pueden ser iguales."}
+    if not all(math.isfinite(value) for value in source.values):
+        return {"error": "series_remap recibió una serie con valores no finitos."}
+
+    output = []
+    for value in source.values:
+        parameter = (value - source_min) / (source_max - source_min)
+        if clamp:
+            parameter = min(1.0, max(0.0, parameter))
+        output.append(target_min + (target_max - target_min) * parameter)
+    series = ScalarSeries(tuple(output), f"remap({source.shape})")
+    return {"series": series,
+            "info": (f"{len(output)} muestras · {source_min:g}..{source_max:g} → "
+                     f"{target_min:g}..{target_max:g} · "
+                     f"{'clamp' if clamp else 'extrapola'}")}
+
+
 def gradiente(posiciones, *, eje: str = "z", desde: float = 0.0, hasta: float = 1.0,
               power: float = 1.0) -> list[float]:
     """Un escalar 0..1 por vértice según su posición en un eje — la máscara de viento del follaje.

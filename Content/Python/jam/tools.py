@@ -938,6 +938,81 @@ def t_graph_curve(_input=None, *, start_value=1.0, end_value=0.15, shape="custom
     return f"GRAPH CURVE N[] ✓ — {result['info']}"
 
 
+def t_series_range(_input=None, *, start=0.0, end=1.0, count=11) -> str:
+    from . import fields
+    result = fields.series_range(start=float(start), end=float(end), count=int(count))
+    if "error" in result:
+        raise RuntimeError(result["error"])
+    _RUNTIME_DATA_OUTPUTS["series_range"] = result["series"]
+    return f"RANGE N[] ✓ — {result['info']}"
+
+
+def t_series_remap(series_input, *, source_min=0.0, source_max=1.0,
+                   target_min=0.0, target_max=1.0, clamp=True) -> str:
+    from . import fields
+    result = fields.series_remap(
+        series_input, source_min=float(source_min), source_max=float(source_max),
+        target_min=float(target_min), target_max=float(target_max), clamp=bool(clamp))
+    if "error" in result:
+        raise RuntimeError(result["error"])
+    _RUNTIME_DATA_OUTPUTS["series_remap"] = result["series"]
+    return f"REMAP N[] ✓ — {result['info']}"
+
+
+def t_curve_polyline(_input=None, *, x=None, y=None, z=None) -> str:
+    from . import curve
+    result = curve.polyline(x=x, y=y, z=z)
+    if "error" in result:
+        raise RuntimeError(result["error"])
+    _RUNTIME_DATA_OUTPUTS["curve_polyline"] = result["curve"]
+    return f"POLYLINE S ✓ — {result['info']}"
+
+
+def t_curve_resample(curve_input, *, count=24, samples=32) -> str:
+    from . import curve
+    result = curve.resample(curve_input, count=int(count), samples=int(samples))
+    if "error" in result:
+        raise RuntimeError(result["error"])
+    _RUNTIME_DATA_OUTPUTS["curve_resample"] = result["curve"]
+    return f"RESAMPLE S ✓ — {result['info']}"
+
+
+def t_curve_smooth(curve_input, *, iterations=2, strength=0.5,
+                   preserve_ends=True, samples=32) -> str:
+    from . import curve
+    result = curve.smooth(
+        curve_input, iterations=int(iterations), strength=float(strength),
+        preserve_ends=bool(preserve_ends), samples=int(samples))
+    if "error" in result:
+        raise RuntimeError(result["error"])
+    _RUNTIME_DATA_OUTPUTS["curve_smooth"] = result["curve"]
+    return f"SMOOTH S ✓ — {result['info']}"
+
+
+def t_curve_fuse_collinear(curve_input, *, angle_tolerance=1.0,
+                           distance_tolerance=0.01, samples=32) -> str:
+    from . import curve
+    result = curve.fuse_collinear(
+        curve_input, angle_tolerance=float(angle_tolerance),
+        distance_tolerance=float(distance_tolerance), samples=int(samples))
+    if "error" in result:
+        raise RuntimeError(result["error"])
+    _RUNTIME_DATA_OUTPUTS["curve_fuse_collinear"] = result["curve"]
+    return f"FUSE COLLINEAR S ✓ — {result['info']}"
+
+
+def t_curve_subdivide(curve_input, *, mode="distance", distance=100.0,
+                      count=1, samples=32) -> str:
+    from . import curve
+    result = curve.subdivide(
+        curve_input, mode=mode, distance=float(distance), count=int(count),
+        samples=int(samples))
+    if "error" in result:
+        raise RuntimeError(result["error"])
+    _RUNTIME_DATA_OUTPUTS["curve_subdivide"] = result["curve"]
+    return f"SUBDIVIDE S ✓ — {result['info']}"
+
+
 def t_curve_branches(curve_input, *, count=12, start=0.2, end=0.92,
                      length_min=200.0, length_max=400.0,
                      parent_scale_start=1.0, parent_scale_end=1.0,
@@ -1626,6 +1701,18 @@ def t_mesh_bark(mesh_input, *, amplitud=2.0, escala=0.06, alargue=0.25,
     )
 
 
+def t_mesh_noise(mesh_input, *, amplitud=100.0, frecuencia=0.003,
+                 seed=7, por_normal=True) -> str:
+    """Ruido Perlin 3D nativo de UE 5.8 sobre M; útil para terreno y formas orgánicas."""
+    from . import mesh
+    return _mesh_output(
+        "mesh_noise",
+        mesh.noise(mesh_input, amplitud=float(amplitud), frecuencia=float(frecuencia),
+                   seed=int(seed), por_normal=bool(por_normal)),
+        "PERLIN M",
+    )
+
+
 def t_mesh_compare(mesh_input, *, asset=None, franjas=8, solo_forma=False,
                    alto=0.30, ancho=0.35, esbeltez=0.20, vertices=0.50,
                    triangulos=0.50, perfil=0.15, silueta=0.18) -> str:
@@ -1884,6 +1971,61 @@ REGISTRO = {
                                "midpoint": 0.55, "mid_value": 0.72, "samples": 16},
                     "opciones": {"shape": ["linear", "ease_in", "ease_out", "smooth", "custom"]},
                     "doc": "crea un falloff numérico N[] editable en dominio 0..1"},
+    "series_range": {"fn": t_series_range, "label": "Rango", "cat": "Maths",
+                     "graph_only": True,
+                     "params": {"start": 0.0, "end": 1.0, "count": 11},
+                     "etiquetas_params": {"start": "inicio", "end": "fin",
+                                           "count": "cantidad"},
+                     "doc": "crea una serie N[] equidistante con ambos extremos incluidos"},
+    "series_remap": {"fn": t_series_remap, "label": "Remapear serie", "cat": "Maths",
+                     "graph_only": True,
+                     "params": {"source_min": 0.0, "source_max": 1.0,
+                                "target_min": 0.0, "target_max": 1.0, "clamp": True},
+                     "etiquetas_params": {"source_min": "origen mínimo",
+                                           "source_max": "origen máximo",
+                                           "target_min": "destino mínimo",
+                                           "target_max": "destino máximo",
+                                           "clamp": "limitar al destino"},
+                     "doc": "remapea cada valor de N[] entre dos dominios; puede limitar o extrapolar"},
+    "curve_polyline": {"fn": t_curve_polyline, "label": "Polilínea", "cat": "Mesh",
+                       "graph_only": True,
+                       "params": {"x": "", "y": "", "z": ""},
+                       "data_params": {"x": "N[]", "y": "N[]", "z": "N[]"},
+                       "etiquetas_params": {"x": "coordenadas X", "y": "coordenadas Y",
+                                             "z": "coordenadas Z"},
+                       "doc": "combina tres series N[] del mismo largo como puntos XYZ de una polilínea S"},
+    "curve_resample": {"fn": t_curve_resample, "label": "Remuestrear curva", "cat": "Mesh",
+                       "graph_only": True,
+                       "params": {"count": 24, "samples": 32},
+                       "etiquetas_params": {"count": "cantidad", "samples": "muestras de spline"},
+                       "doc": "remuestrea cada curva S a distancias uniformes y conserva su metadata"},
+    "curve_smooth": {"fn": t_curve_smooth, "label": "Suavizar curva", "cat": "Mesh",
+                     "graph_only": True,
+                     "params": {"iterations": 2, "strength": 0.5,
+                                "preserve_ends": True, "samples": 32},
+                     "etiquetas_params": {"iterations": "pasadas", "strength": "intensidad",
+                                           "preserve_ends": "preservar extremos",
+                                           "samples": "muestras de spline"},
+                     "doc": "suaviza S sin cambiar su cantidad de puntos y conserva la metadata jerárquica"},
+    "curve_fuse_collinear": {"fn": t_curve_fuse_collinear,
+                              "label": "Fusionar colineales", "cat": "Mesh",
+                              "graph_only": True,
+                              "params": {"angle_tolerance": 1.0,
+                                         "distance_tolerance": 0.01, "samples": 32},
+                              "etiquetas_params": {
+                                  "angle_tolerance": "ángulo (°)",
+                                  "distance_tolerance": "distancia (cm)",
+                                  "samples": "muestras de spline"},
+                              "doc": "quita puntos redundantes de S sin mover sus extremos"},
+    "curve_subdivide": {"fn": t_curve_subdivide, "label": "Subdividir curva", "cat": "Mesh",
+                         "graph_only": True,
+                         "params": {"mode": "distance", "distance": 100.0,
+                                    "count": 1, "samples": 32},
+                         "opciones": {"mode": ["distance", "count"]},
+                         "etiquetas_params": {"mode": "modo", "distance": "largo máximo (cm)",
+                                               "count": "puntos por segmento",
+                                               "samples": "muestras de spline"},
+                         "doc": "inserta puntos por tramo sin perder los vértices originales de S"},
     "curve_branches": {"fn": t_curve_branches, "cat": "Mesh", "graph_only": True,
                        "params": {"count": 12, "start": 0.2, "end": 0.92,
                                   "length_min": 200.0, "length_max": 400.0,
@@ -2202,6 +2344,14 @@ REGISTRO = {
                   "params": {"amplitud": 2.0, "escala": 0.06, "alargue": 0.25,
                              "octavas": 3, "surcos": 0.6, "seed": 7},
                   "doc": "relieve de corteza sobre M: ruido estirado a lo largo del eje (surcos verticales) desplazando cada vértice por su normal. «amplitud» debe ser menor que el radio más fino de la malla o la punta se invierte"},
+    "mesh_noise": {"fn": t_mesh_noise, "label": "Ruido Perlin", "cat": "Mesh",
+                   "graph_only": True,
+                   "params": {"amplitud": 100.0, "frecuencia": 0.003,
+                              "seed": 7, "por_normal": True},
+                   "etiquetas_params": {"amplitud": "amplitud (cm)",
+                                         "frecuencia": "frecuencia (1/cm)",
+                                         "por_normal": "desplazar por normal"},
+                   "doc": "deforma M con Perlin 3D determinista; frecuencia en 1/cm y amplitud en cm"},
     "mesh_compare": {"fn": t_mesh_compare, "cat": "Mesh", "graph_only": True,
                      "asset_argument": True,
                      "params": {"franjas": 8, "solo_forma": False,
@@ -2241,7 +2391,7 @@ CATEGORIAS = ["Content", "Place", "Scatter", "Create", "Mesh", "Edit",
 # `source` significa sin pin gordo `in`; una fuente todavía puede tener un pin de parámetro `asset`.
 GRAPH_SOURCES = {"asset", "pick", "create_spline", "gizmo", "ghost", "pivot", "pivot_set",
                  "curve_bezier", "mesh_triangle", "mesh_quad", "mesh_grid", "mesh_cylinder",
-                 "mesh_cone", "mesh_sphere", "graph_curve",
+                 "mesh_cone", "mesh_sphere", "graph_curve", "series_range", "curve_polyline",
                  "mesh_box", "mesh_capsule", "mesh_torus", "mesh_disc",
                  "mesh_round_rect", "mesh_stairs", "mesh_stairs_curved", "mesh_sphere_box",
                  "brush",   # fuente: los centros salen de la selección, no de un cable
@@ -2262,13 +2412,14 @@ GRAPH_NO_ASSET = {"asset", "pick", "create_spline", "pivot_set", "instance", "br
                   "mesh_cone", "mesh_sphere", "mesh_pipe", "mesh_pipe_profile",
                   "mesh_box", "mesh_capsule", "mesh_torus", "mesh_disc",
                   "mesh_round_rect", "mesh_stairs", "mesh_stairs_curved",
-                  "mesh_sphere_box", "mesh_revolve",
-                  "mesh_transform", "mesh_merge", "graph_curve",
+                  "mesh_sphere_box", "mesh_revolve", "curve_polyline", "curve_resample",
+                  "curve_smooth", "curve_fuse_collinear", "curve_subdivide",
+                  "mesh_transform", "mesh_merge", "graph_curve", "series_range", "series_remap",
                   "curve_child", "curve_frames", "distribute_frames", "transform_frames",
                   "branch_from_frames",
                   "asset_set", "choose_asset", "curve_branches", "mesh_leaf",
                   "copy_asset_selection", "hism_output",
-                  "mesh_color", "mesh_uv_scale", "mesh_material", "mesh_bark", "points_to_frames", "debug",
+                  "mesh_color", "mesh_uv_scale", "mesh_material", "mesh_bark", "mesh_noise", "points_to_frames", "debug",
                   "mesh_remap_materials", "mesh_clean_material_ids",
                   "mesh_validate",
                   "mesh_normals", "mesh_weld", "mesh_simplify_count", "mesh_simplify_tolerance",
@@ -2285,6 +2436,9 @@ GRAPH_NO_ASSET = {"asset", "pick", "create_spline", "pivot_set", "instance", "br
                   "curve_noise", "mesh_vertex_gradient"}
 GRAPH_IN_NAMES = {"reroute_mesh": "M", "reroute_asset": "A", "reroute_points": "P", "reroute_curve": "S", "reroute_frames": "F",
                   "points_to_frames": "P", "debug": "*", "curve_child": "S", "curve_noise": "S", "curve_frames": "S", "distribute_frames": "F",
+                  "series_remap": "N[]",
+                  "curve_resample": "S", "curve_smooth": "S",
+                  "curve_fuse_collinear": "S", "curve_subdivide": "S",
                   "transform_frames": "F", "branch_from_frames": "F", "curve_branches": "S",
                   "asset_set": "A", "choose_asset": "F",
                   "mesh_from_asset": "A", "mesh_copy_static": "A",
@@ -2293,7 +2447,7 @@ GRAPH_IN_NAMES = {"reroute_mesh": "M", "reroute_asset": "A", "reroute_points": "
                   "mesh_along_curve": "S", "copy_mesh_to_frames": "F", "mesh_leaf": "S",
                   "copy_asset_selection": "AF",
                   "hism_output": "AF", "mesh_transform": "M", "mesh_color": "M",
-                  "mesh_uv_scale": "M", "mesh_material": "M", "mesh_bark": "M",
+                  "mesh_uv_scale": "M", "mesh_material": "M", "mesh_bark": "M", "mesh_noise": "M",
                   "mesh_remap_materials": "M", "mesh_clean_material_ids": "M",
                   "mesh_validate": "M",
                   "mesh_vertex_gradient": "M", "mesh_merge": "M", "mesh_normals": "M",
@@ -2317,9 +2471,12 @@ GRAPH_OUT_NAMES = {"brush": "P", "reroute_mesh": "M", "reroute_asset": "A", "rer
                    "material_node": "MT", "material_connect": "MT", "material_output": "MT",
                    "material_call": "MT", "material_function": "A", "material_instance": "A",
                    "curve_bezier": "S", "curve_child": "S", "curve_noise": "S", "curve_frames": "F",
+                   "curve_polyline": "S", "curve_resample": "S", "curve_smooth": "S",
+                   "curve_fuse_collinear": "S", "curve_subdivide": "S",
                    "distribute_frames": "F", "transform_frames": "F",
                    "branch_from_frames": "S", "curve_branches": "S",
                    "asset_set": "A[]", "choose_asset": "AF", "graph_curve": "N[]",
+                   "series_range": "N[]", "series_remap": "N[]",
                    "mesh_triangle": "M", "mesh_quad": "M", "mesh_grid": "M",
                    "mesh_cylinder": "M", "mesh_cone": "M", "mesh_sphere": "M",
                    "mesh_box": "M", "mesh_capsule": "M", "mesh_torus": "M",
@@ -2331,7 +2488,7 @@ GRAPH_OUT_NAMES = {"brush": "P", "reroute_mesh": "M", "reroute_asset": "A", "rer
                    "copy_mesh_to_frames": "M", "mesh_leaf": "M",
                    "copy_asset_selection": "M",
                    "hism_output": "H", "mesh_transform": "M", "mesh_color": "M",
-                   "mesh_uv_scale": "M", "mesh_material": "M", "mesh_bark": "M",
+                   "mesh_uv_scale": "M", "mesh_material": "M", "mesh_bark": "M", "mesh_noise": "M",
                    "mesh_remap_materials": "M", "mesh_clean_material_ids": "M",
                    "mesh_validate": "M",
                    "mesh_vertex_gradient": "M", "mesh_merge": "M", "mesh_normals": "M",

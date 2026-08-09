@@ -1,0 +1,46 @@
+{
+	"schema_version": 1,
+	"nodes": {
+		"grilla": {
+			"verb": "mesh_grid",
+			"params": {"width": "1200.0", "height": "1200.0", "columns": "41", "rows": "41"},
+			"asset": null,
+			"x": 40,
+			"y": 60
+		},
+		"ruido": {
+			"verb": "mesh_noise",
+			"params": {"amplitud": "140.0", "frecuencia": "0.003", "seed": "1977", "por_normal": "True"},
+			"asset": null,
+			"x": 340,
+			"y": 60
+		},
+		"normales": {
+			"verb": "mesh_normals",
+			"params": {"angle_weighted": "True", "area_weighted": "True"},
+			"asset": null,
+			"x": 640,
+			"y": 60
+		},
+		"hornear": {
+			"verb": "mesh_to_static",
+			"params": {"name": "SM_JamTerrenoRuido", "folder": "/Game/Jam/Meshes", "collision": "True", "recompute_tangents": "True", "show_vertex_colors": "True"},
+			"asset": null,
+			"x": 940,
+			"y": 60
+		},
+		"colocar": {
+			"verb": "place",
+			"params": {"x": "0.0", "y": "0.0", "z": "0.0", "view": "True", "surface": "True", "anchor": "base", "sink": "0.0", "align": "False", "yaw": "0.0", "scale": "1.0"},
+			"asset": null,
+			"x": 1240,
+			"y": 60
+		}
+	},
+	"edges": [
+		["grilla", "out", "ruido", "in"],
+		["ruido", "out", "normales", "in"],
+		["normales", "out", "hornear", "in"],
+		["hornear", "out", "colocar", "in"]
+	]
+}

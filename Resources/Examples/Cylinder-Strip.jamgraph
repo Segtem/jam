@@ -1,0 +1,86 @@
+{
+	"schema_version": 1,
+	"nodes": {
+		"x": {
+			"verb": "series_range",
+			"params": {"start": "0.0", "end": "720.0", "count": "7"},
+			"asset": null,
+			"x": 40,
+			"y": 40
+		},
+		"y": {
+			"verb": "graph_curve",
+			"params": {"start_value": "0.0", "end_value": "0.0", "shape": "custom", "power": "2.0", "midpoint": "0.48", "mid_value": "240.0", "samples": "7"},
+			"asset": null,
+			"x": 40,
+			"y": 290
+		},
+		"z": {
+			"verb": "graph_curve",
+			"params": {"start_value": "0.0", "end_value": "180.0", "shape": "custom", "power": "2.0", "midpoint": "0.62", "mid_value": "-80.0", "samples": "7"},
+			"asset": null,
+			"x": 40,
+			"y": 540
+		},
+		"polyline": {
+			"verb": "curve_polyline",
+			"params": {"x": "", "y": "", "z": ""},
+			"asset": null,
+			"x": 360,
+			"y": 290
+		},
+		"smooth": {
+			"verb": "curve_smooth",
+			"params": {"iterations": "3", "strength": "0.45", "preserve_ends": "true", "samples": "32"},
+			"asset": null,
+			"x": 680,
+			"y": 290
+		},
+		"uniformar": {
+			"verb": "curve_resample",
+			"params": {"count": "31", "samples": "32"},
+			"asset": null,
+			"x": 1000,
+			"y": 290
+		},
+		"pipe": {
+			"verb": "mesh_pipe",
+			"params": {"radius_start": "26.0", "radius_end": "26.0", "sides": "12", "samples": "32", "capped": "true", "profile_rotation": "0.0", "miter_limit": "2.5", "radius_from_parent": "0.0", "pivot_uvs": "false"},
+			"asset": null,
+			"x": 1320,
+			"y": 290
+		},
+		"normals": {
+			"verb": "mesh_normals",
+			"params": {"angle_weighted": "true", "area_weighted": "true"},
+			"asset": null,
+			"x": 1640,
+			"y": 290
+		},
+		"hornear": {
+			"verb": "mesh_to_static",
+			"params": {"name": "SM_JamCylinderStrip", "folder": "/Game/Jam/Meshes", "collision": "true", "recompute_tangents": "true", "show_vertex_colors": "true"},
+			"asset": null,
+			"x": 1960,
+			"y": 290
+		},
+		"colocar": {
+			"verb": "place",
+			"params": {"x": "0.0", "y": "0.0", "z": "0.0", "view": "true", "surface": "true", "anchor": "base", "sink": "0.0", "align": "false", "yaw": "0.0", "scale": "1.0"},
+			"asset": null,
+			"x": 2280,
+			"y": 290
+		}
+	},
+	"edges": [
+		["x", "out", "polyline", "x"],
+		["y", "out", "polyline", "y"],
+		["z", "out", "polyline", "z"],
+		["polyline", "out", "smooth", "in"],
+		["smooth", "out", "uniformar", "in"],
+		["uniformar", "out", "pipe", "in"],
+		["pipe", "out", "normals", "in"],
+		["normals", "out", "hornear", "in"],
+		["hornear", "out", "colocar", "in"]
+	]
+}

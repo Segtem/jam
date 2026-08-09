@@ -1,0 +1,46 @@
+{
+	"schema_version": 1,
+	"nodes": {
+		"rango": {
+			"verb": "series_range",
+			"params": {"start": "-1.0", "end": "1.0", "count": "11"},
+			"asset": null,
+			"x": 40,
+			"y": 60
+		},
+		"remap": {
+			"verb": "series_remap",
+			"params": {"source_min": "-1.0", "source_max": "1.0", "target_min": "0.0", "target_max": "100.0", "clamp": "True"},
+			"asset": null,
+			"x": 340,
+			"y": 60
+		},
+		"ver": {
+			"verb": "debug",
+			"params": {"tamano": "30.0", "grosor": "1.2", "escalar_con_dato": "True", "cada": "1", "solo_direccion": "False"},
+			"asset": null,
+			"x": 640,
+			"y": 60
+		},
+		"hornear": {
+			"verb": "mesh_to_static",
+			"params": {"name": "SM_JamSerieRemap", "folder": "/Game/Jam/Meshes", "collision": "False", "recompute_tangents": "True", "show_vertex_colors": "True"},
+			"asset": null,
+			"x": 940,
+			"y": 60
+		},
+		"colocar": {
+			"verb": "place",
+			"params": {"x": "0.0", "y": "0.0", "z": "0.0", "view": "True", "surface": "True", "anchor": "base", "sink": "0.0", "align": "False", "yaw": "0.0", "scale": "1.0"},
+			"asset": null,
+			"x": 1240,
+			"y": 60
+		}
+	},
+	"edges": [
+		["rango", "out", "remap", "in"],
+		["remap", "out", "ver", "in"],
+		["ver", "out", "hornear", "in"],
+		["hornear", "out", "colocar", "in"]
+	]
+}

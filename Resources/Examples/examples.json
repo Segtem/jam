@@ -59,6 +59,38 @@
 			"mensaje": "Ejemplo cargado: banco de pruebas de Debug. Compile y después Run graph — cada carril dibuja un tipo distinto."
 		},
 		{
+			"archivo": "Terreno-con-ruido.jamgraph",
+			"titulo": "Terreno con ruido",
+			"grupo": "Formas procedurales",
+			"icono": "jam-mesh-noise",
+			"doc": "Una grilla subdividida deformada por Perlin 3D nativo de UE 5.8. Cambiá amplitud, frecuencia y seed para leer cómo cada parámetro altera la forma.\nReimplementa como Graph el ejemplo de heightfield de ProceduralMeshDemos; no depende de assets externos.",
+			"mensaje": "Terreno con ruido cargado. Ahora: Compile y después Run graph para generar y colocar la malla."
+		},
+		{
+			"archivo": "Cylinder-Strip.jamgraph",
+			"titulo": "Cylinder Strip continuo",
+			"grupo": "Formas procedurales",
+			"icono": "jam-curve-resample",
+			"doc": "Tres series N[] forman una polilínea S; Smooth reduce sus quiebres, Resample reparte 31 puntos por longitud y Pipe barre un único perfil continuo.\nParte del ejemplo Cylinder Strip de ProceduralMeshDemos, pero hace visibles los datos y evita sus cilindros independientes con juntas abiertas.",
+			"mensaje": "Cylinder Strip cargado. Compile y después Run graph; cambiá Smooth, cantidad de muestras y miter limit para estudiar el recorrido y sus juntas."
+		},
+		{
+			"archivo": "Preparar-una-curva.jamgraph",
+			"titulo": "Preparar una curva",
+			"grupo": "Formas procedurales",
+			"icono": "jam-curve-fuse-collinear",
+			"doc": "Una recta con siete puntos pasa por cuatro operaciones distintas: Fuse la reduce a sus dos extremos, Subdivide inserta tres puntos por tramo, Smooth cambia la forma sin cambiar el conteo y Resample elige trece muestras por longitud.\nUsá el Inspector y Debug para distinguir quitar, insertar, suavizar y redistribuir puntos antes de generar una malla.",
+			"mensaje": "Preparar una curva cargado. Compile y Run graph; inspeccioná la cadena 7→2→5→5→13 y después doblá un punto para ver qué conserva cada verbo."
+		},
+		{
+			"archivo": "Series-Range-Remap.jamgraph",
+			"titulo": "Rango y Remap",
+			"grupo": "Ver el dato",
+			"icono": "jam-series-remap",
+			"doc": "Range crea once valores N[] entre −1 y 1; Remap los lleva a 0..100 y Debug dibuja la serie como geometría.\nEs el ejemplo mínimo para entender que por un cable también puede viajar una lista numérica, no sólo una malla.",
+			"mensaje": "Rango y Remap cargado. Ahora: Compile y después Run graph para dibujar la serie en el Preview."
+		},
+		{
 			"archivo": "Primer-material.jamgraph",
 			"titulo": "Primer material",
 			"grupo": "Materiales",

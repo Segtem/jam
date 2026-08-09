@@ -1,0 +1,78 @@
+{
+	"schema_version": 1,
+	"nodes": {
+		"x": {
+			"verb": "series_range",
+			"params": {"start": "0.0", "end": "600.0", "count": "7"},
+			"asset": null,
+			"x": 40,
+			"y": 40
+		},
+		"y": {
+			"verb": "graph_curve",
+			"params": {"start_value": "0.0", "end_value": "0.0", "shape": "linear", "power": "2.0", "midpoint": "0.5", "mid_value": "0.0", "samples": "7"},
+			"asset": null,
+			"x": 40,
+			"y": 290
+		},
+		"z": {
+			"verb": "graph_curve",
+			"params": {"start_value": "0.0", "end_value": "0.0", "shape": "linear", "power": "2.0", "midpoint": "0.5", "mid_value": "0.0", "samples": "7"},
+			"asset": null,
+			"x": 40,
+			"y": 540
+		},
+		"polyline": {
+			"verb": "curve_polyline",
+			"params": {"x": "", "y": "", "z": ""},
+			"asset": null,
+			"x": 360,
+			"y": 290
+		},
+		"fuse": {
+			"verb": "curve_fuse_collinear",
+			"params": {"angle_tolerance": "0.1", "distance_tolerance": "0.01", "samples": "32"},
+			"asset": null,
+			"x": 680,
+			"y": 290
+		},
+		"subdivide": {
+			"verb": "curve_subdivide",
+			"params": {"mode": "count", "distance": "100.0", "count": "3", "samples": "32"},
+			"asset": null,
+			"x": 1000,
+			"y": 290
+		},
+		"smooth": {
+			"verb": "curve_smooth",
+			"params": {"iterations": "2", "strength": "0.5", "preserve_ends": "true", "samples": "32"},
+			"asset": null,
+			"x": 1320,
+			"y": 290
+		},
+		"resample": {
+			"verb": "curve_resample",
+			"params": {"count": "13", "samples": "32"},
+			"asset": null,
+			"x": 1640,
+			"y": 290
+		},
+		"debug": {
+			"verb": "debug",
+			"params": {"tamano": "30.0", "grosor": "2.0", "escalar_con_dato": "true", "cada": "1", "solo_direccion": "false"},
+			"asset": null,
+			"x": 1960,
+			"y": 290
+		}
+	},
+	"edges": [
+		["x", "out", "polyline", "x"],
+		["y", "out", "polyline", "y"],
+		["z", "out", "polyline", "z"],
+		["polyline", "out", "fuse", "in"],
+		["fuse", "out", "subdivide", "in"],
+		["subdivide", "out", "smooth", "in"],
+		["smooth", "out", "resample", "in"],
+		["resample", "out", "debug", "in"]
+	]
+}
