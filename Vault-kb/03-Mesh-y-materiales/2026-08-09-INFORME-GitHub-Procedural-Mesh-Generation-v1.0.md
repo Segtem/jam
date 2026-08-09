@@ -66,15 +66,16 @@ catálogo entero, sino extraer fronteras que sigan siendo claras en un cable:
    confundirse con remuestreo global.
 4. `curve_offset` S → S: **implementado** con plano, lado, joins y límite de miter visibles; ya
    alimenta el ejemplo Borde de camino.
-5. `curve_solidify` o ribbon S → M: convierte el contorno procesado en geometría, con ancho y UV
-   mensurables.
+5. `mesh_ribbon` S → M: **implementado**; convierte un recorrido abierto en geometría con ancho,
+   winding, UV longitudinal y Material ID mensurables. El espesor/solidify queda separado.
 6. Delaunay, Voronoi y MST: esperan un tipo explícito de conjunto de puntos/grafo; forzarlos hoy
    dentro de `S` escondería topología.
 
 El primer corte, **Fuse Collinear + Subdivide**, ya quedó cerrado con el tutorial `Preparar una
-curva`. Offset y el primer borde de camino también quedaron cerrados; sigue `mesh_ribbon`/solidify
-para producir la superficie vial. La base ya distingue quitar, insertar, redistribuir, suavizar y
-desplazar puntos antes de abordar repeat recursivo o generación urbana.
+curva`. Offset y ribbon producen ahora la superficie vial del primer borde de camino. Sigue separar
+el contrato de espesor/solidify mediante el ejemplo de muro. La base ya distingue quitar, insertar,
+redistribuir, suavizar y desplazar puntos, y convertir el recorrido en superficie, antes de abordar
+repeat recursivo o generación urbana.
 
 ## Ejemplo incorporado
 
@@ -86,6 +87,9 @@ X/Y/Z N[] → Polyline S → Smooth S → Resample S → Pipe M
 
 La curva quebrada se suaviza antes de uniformar la distancia entre muestras. El ejemplo sigue
 produciendo un solo sweep cerrado y conectado; no es una hilera de cilindros independientes.
+
+`Borde de camino` enseña la otra salida S → M: una cinta abierta con ancho y escala UV explícitos,
+en lugar de usar un pipe como sustituto de la superficie final.
 
 ## Licencias y procedencia
 

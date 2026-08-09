@@ -115,6 +115,7 @@
   "mesh_simplify_edge_length": "jam-mesh-simplify-edge-length",
   "mesh_simplify_tolerance": "jam-mesh-simplify-tolerance",
   "mesh_pipe": "jam-pipe",
+  "mesh_ribbon": "jam-mesh-ribbon",
   "mesh_pipe_profile": "jam-pipe-profile",
   "mesh_quad": "jam-quad",
   "mesh_revolve": "jam-revolve",

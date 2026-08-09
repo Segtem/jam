@@ -11,6 +11,15 @@ verde_editor_fecha: 2026-08-03
 
 Entra **claude-code**. Corré `python tools/relevo.py` antes de leer esto; si sale rojo, eso es el turno.
 
+**Actualización Codex 2026-08-09 — frente PMG.** El roadmap de verbos procedurales avanzó hasta
+`mesh_ribbon` S → M. El núcleo puro arma pares izquierda/derecha, triángulos, normales y UV0
+longitudinal; el adaptador Geometry Script asigna Material ID. **Borde de camino** dejó de fingir la
+superficie con un Pipe: ahora es `Bezier → Resample → Offset → Ribbon → Normals → Static`.
+La sonda pública UE 5.8.1 dio 25 pares, 48 tris/50 verts, ancho 360 cm sin error en extremos, UV0
+`0..5.91`, Material ID 3, abierta y una pieza. Son **790 tests**, mutación de winding discriminada y
+13/13 tutoriales compilados en el motor. Límite declarado: ribbon sólo acepta recorridos abiertos;
+la costura UV cerrada, espesor/solidify, auto-intersección, carretera modular y muro siguen.
+
 El turno que cierra hizo dos cosas grandes. En **Jam**: el roadmap de accesibilidad del Graph (fases 0
 a 3) y las funciones con firma (fase 5, cerebro). Y después nació **`oracle`** —repo aparte,
 `Segtem/oracle`— que es un metalenguaje de medidas para construir herramientas con un LLM. Jam pasó a
@@ -97,6 +106,9 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 | Qué | Comando | Resultado |
 |---|---|---|
 | Cerebro de Jam | `cd Content/Python/tests && PYTHONPATH=$PWD/.. python -m unittest discover -s . -p "test_*.py" -q` | **586 OK**, 0.3 s |
+| Cerebro de Jam, corte PMG actual | mismo comando | **790 OK**, 0.47 s; winding mutado → rojo |
+| Ribbon S → M | `tools/experiments/verifica_mesh_ribbon_58.py` en `UnrealEditor-Cmd` | **25 pares · 48 tris/50 verts · ancho 360 · UV0 0..5.91 · Material ID 3 · TODO VERDE** |
+| Tutoriales actuales | `tools/experiments/verifica_ejemplos.py` en `UnrealEditor-Cmd` | **13/13 compilan · TODO VERDE** |
 | Math en UE 5.8.1 | `tools/experiments/verifica_math_graph.py` en `UnrealEditor-Cmd` | **9 verbos · Run sin Preview · Inspector=40/2 · dominios rechazados · TODO VERDE** |
 | Nanite Analyze/Validate | `tools/experiments/verifica_nanite_diagnostics_58.py` en `UnrealEditor-Cmd` | **apagado rechazado + 416.179 tris/1.202.673 verts validados · Run sin Preview · TODO VERDE** |
 | Simplify M → M | `tools/experiments/verifica_mesh_simplify_58.py` en `UnrealEditor-Cmd` | **Count 1922→202 · Tolerance 1922→201 · Edge 1922→332 vértices · TODO VERDE** |
@@ -149,6 +161,7 @@ Lo que **nadie ejerció con las manos** de este turno:
 | Reasignar/Limpiar Material IDs, cables M → M | Brian | ⏳ 586 tests + Graph 5.8.1 verde; falta gesto en Mesh → Materiales |
 | Validar malla, requisitos y cable M → M | Brian | ⏳ 586 tests + Graph 5.8.1 verde; falta gesto en Mesh → Hornear |
 | Copiar Static/Skeletal, LOD y cables A → M | Brian | ⏳ 586 tests + Graph 5.8.1 verde; falta gesto en Mesh → Hornear |
+| Cinta de curva S → M y aspecto de Borde de camino | Brian | ⏳ 790 tests + Graph real 5.8.1 verde; falta verlo y juzgar miter/UV/material en viewport |
 | Ribbon jerárquico por familias | Brian | ⏳ abrió/cerró sin crash; falta juzgar orden, densidad y navegación |
 | Resto del ABM, `Ctrl+G` + dibujo/cableado de pines múltiples | Brian | ◐ Nueva/Editar/Guardar/Renombrar/Eliminar verdes; faltan `Ctrl+G` y firmas no numéricas |
 | Aspecto de una GC Nanite fracturada y rotura en PIE | Brian | ⏳ metadata/materiales verdes; falta viewport y simulación |
@@ -196,12 +209,12 @@ de pedir manos sin que nadie lo note.)*
 
 ## Lo próximo
 
-**Prioridad nueva: continuar
-[[2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0|los nodos de UE 5.8.1]].** Confirmar primero
-Nanite Analyze/Validate y los tres Simplify en Slate. Después avanzar sobre Geometry Script con
-ruido Perlin y otros operadores deterministas; copia Static/Skeletal, validación y Material IDs ya
-quedaron verdes. Remesh uniforme/adaptativo queda
-detrás de una categoría experimental o un oráculo por tolerancia: Epic no promete determinismo.
+**Prioridad nueva: seguir la Fase 2 del
+[[2026-08-09-ROADMAP-Verbos-Y-Ejemplos-PMG-v1.0|roadmap PMG]].** `curve_offset` y `mesh_ribbon` ya
+están cerrados por el camino real. El próximo corte debe nacer de **Muro sobre spline** para decidir
+si hace falta `curve_solidify`, extrusión con espesor o reutilizar un perfil de barrido; no agregar
+`curve_close/open/reverse` hasta que esa receta demuestre la necesidad. Después, Carretera modular
+debe medir módulos, orientación y seams, no sólo producir una malla vistosa.
 
 **1. Continuar el
 [[2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0|plan de revisión integral]].** Las fases 0 y 1

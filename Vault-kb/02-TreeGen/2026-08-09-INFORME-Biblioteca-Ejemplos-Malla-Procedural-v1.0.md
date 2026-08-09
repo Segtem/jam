@@ -72,15 +72,23 @@ El tutorial **Preparar una curva** vuelve observable la diferencia: Fuse reduce 
 puntos a sus dos extremos; Subdivide inserta tres puntos por segmento y llega a cinco; Smooth
 conserva cinco y Resample elige trece muestras por longitud.
 
-El quinto corte abre la familia de caminos y contornos:
+El quinto corte abre la familia de caminos y contornos; el sexto convierte ese dato en superficie:
 
 ```text
-Bezier S → Resample S → Offset S → Pipe M
+Bezier S → Resample S → Offset S → Ribbon M
 ```
 
 `curve_offset` desplaza un recorrido en XY, XZ o YZ, hacia izquierda o derecha. Las esquinas usan
-miter o bevel; un miter que supera el límite cae explícitamente a bevel. **Borde de camino** desplaza
-el eje 180 cm y barre un cordón continuo sobre el recorrido lateral.
+miter o bevel; un miter que supera el límite cae explícitamente a bevel. `mesh_ribbon` construye
+pares izquierda/derecha, triangula con winding medido, calcula normales geométricas, acumula UV0 por
+la longitud media de ambos bordes y asigna un Material ID visible. **Borde de camino** desplaza el eje
+180 cm y genera una calzada de 360 cm: uno de sus bordes coincide así con el eje original.
+
+En UE 5.8.1 el camino público `Compile → Run` midió 25 pares, 48 triángulos, 50 vértices, una sola
+pieza abierta, UV0 `0..5.91` y Material ID 3 sin pérdida. Los 13 tutoriales del catálogo compilaron
+en el motor. Esta cinta no admite aún recorridos cerrados: hace falta duplicar la costura para que U
+pueda terminar y volver a cero sin compartir un vértice ambiguo. Tampoco agrega caras laterales ni
+espesor; eso pertenece al próximo ejemplo de muro/solidify.
 
 ## Fuentes estudiadas
 

@@ -22,9 +22,9 @@
 			"x": 680,
 			"y": 220
 		},
-		"cordon": {
-			"verb": "mesh_pipe",
-			"params": {"radius_start": "22.0", "radius_end": "22.0", "sides": "10", "samples": "32", "capped": "true", "profile_rotation": "0.0", "miter_limit": "2.5", "radius_from_parent": "0.0", "pivot_uvs": "false"},
+		"calzada": {
+			"verb": "mesh_ribbon",
+			"params": {"width": "360.0", "plane": "xy", "join": "miter", "miter_limit": "2.5", "uv_scale": "200.0", "material_id": "0", "samples": "32"},
 			"asset": null,
 			"x": 1000,
 			"y": 220
@@ -54,8 +54,8 @@
 	"edges": [
 		["eje", "out", "uniformar", "in"],
 		["uniformar", "out", "borde", "in"],
-		["borde", "out", "cordon", "in"],
-		["cordon", "out", "normals", "in"],
+		["borde", "out", "calzada", "in"],
+		["calzada", "out", "normals", "in"],
 		["normals", "out", "hornear", "in"],
 		["hornear", "out", "colocar", "in"]
 	]

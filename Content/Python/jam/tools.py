@@ -1144,6 +1144,16 @@ def t_mesh_pipe(curve_input, *, radius_start=30.0, radius_end=5.0, sides=10, sam
     return _mesh_output("mesh_pipe", result, "PIPE M")
 
 
+def t_mesh_ribbon(curve_input, *, width=360.0, plane="xy", join="miter",
+                  miter_limit=4.0, uv_scale=200.0, material_id=0, samples=32) -> str:
+    from . import mesh
+    result = mesh.ribbon(
+        curve_input, width=float(width), plane=str(plane), join=str(join),
+        miter_limit=float(miter_limit), uv_scale=float(uv_scale),
+        material_id=int(material_id), samples=int(samples))
+    return _mesh_output("mesh_ribbon", result, "RIBBON M")
+
+
 def t_mesh_pipe_profile(curve_input, *, profile=None, radius=30.0, sides=10, samples=16,
                         capped=True, profile_rotation=0.0, miter_limit=4.0,
                         pivot_uvs=False) -> str:
@@ -2108,6 +2118,18 @@ REGISTRO = {
                               "use_build_scale": "aplicar Build Scale"},
         "doc": "copia geometría y materiales de un LOD de Skeletal Mesh A a M; los atributos internos dependen de la copia nativa",
     },
+    "mesh_ribbon": {"fn": t_mesh_ribbon, "label": "Cinta de curva", "cat": "Mesh",
+                     "graph_only": True,
+                     "params": {"width": 360.0, "plane": "xy", "join": "miter",
+                                "miter_limit": 4.0, "uv_scale": 200.0,
+                                "material_id": 0, "samples": 32},
+                     "opciones": {"plane": ["xy", "xz", "yz"],
+                                  "join": ["miter", "bevel"]},
+                     "etiquetas_params": {"width": "ancho", "plane": "plano",
+                                           "join": "unión", "miter_limit": "límite de miter",
+                                           "uv_scale": "cm por UV", "material_id": "Material ID",
+                                           "samples": "muestras"},
+                     "doc": "convierte una curva abierta S en cinta M con UV0 longitudinal y Material ID"},
     "mesh_pipe":    {"fn": t_mesh_pipe, "cat": "Mesh", "graph_only": True,
                      "params": {"radius_start": 30.0, "radius_end": 5.0,
                                 "sides": 10, "samples": 16, "capped": True,
@@ -2431,7 +2453,7 @@ GRAPH_NO_ASSET = {"asset", "pick", "create_spline", "pivot_set", "instance", "br
                   # medir huellas, y eso ahora pasa al colocar.
                   "scatter",
                   "curve_bezier", "mesh_triangle", "mesh_quad", "mesh_grid", "mesh_cylinder",
-                  "mesh_cone", "mesh_sphere", "mesh_pipe", "mesh_pipe_profile",
+                  "mesh_cone", "mesh_sphere", "mesh_ribbon", "mesh_pipe", "mesh_pipe_profile",
                   "mesh_box", "mesh_capsule", "mesh_torus", "mesh_disc",
                   "mesh_round_rect", "mesh_stairs", "mesh_stairs_curved",
                   "mesh_sphere_box", "mesh_revolve", "curve_polyline", "curve_resample",
@@ -2465,7 +2487,7 @@ GRAPH_IN_NAMES = {"reroute_mesh": "M", "reroute_asset": "A", "reroute_points": "
                   "transform_frames": "F", "branch_from_frames": "F", "curve_branches": "S",
                   "asset_set": "A", "choose_asset": "F",
                   "mesh_from_asset": "A", "mesh_copy_static": "A",
-                  "mesh_copy_skeletal": "A", "mesh_pipe": "S", "mesh_pipe_profile": "S",
+                  "mesh_copy_skeletal": "A", "mesh_ribbon": "S", "mesh_pipe": "S", "mesh_pipe_profile": "S",
                   "mesh_revolve": "S",
                   "mesh_along_curve": "S", "copy_mesh_to_frames": "F", "mesh_leaf": "S",
                   "copy_asset_selection": "AF",
@@ -2507,7 +2529,7 @@ GRAPH_OUT_NAMES = {"brush": "P", "reroute_mesh": "M", "reroute_asset": "A", "rer
                    "mesh_disc": "M", "mesh_round_rect": "M", "mesh_stairs": "M",
                    "mesh_stairs_curved": "M", "mesh_sphere_box": "M", "mesh_revolve": "M",
                    "mesh_from_asset": "M", "mesh_copy_static": "M",
-                   "mesh_copy_skeletal": "M", "mesh_pipe": "M", "mesh_pipe_profile": "M",
+                   "mesh_copy_skeletal": "M", "mesh_ribbon": "M", "mesh_pipe": "M", "mesh_pipe_profile": "M",
                    "mesh_along_curve": "M",
                    "copy_mesh_to_frames": "M", "mesh_leaf": "M",
                    "copy_asset_selection": "M",

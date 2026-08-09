@@ -42,6 +42,7 @@ Cada entrega termina solamente cuando cumple cuatro fronteras:
 | `Smooth` S → S | ✅ | Reduce aspereza sin cambiar cardinalidad |
 | `Resample` S → S | ✅ | Redistribuye por longitud |
 | `Noise` M → M | ✅ | Terreno con ruido |
+| `Offset` S → S y `Ribbon` S → M | ✅ | Borde de camino |
 | barridos S → M, frames S → F y ramas | ✅ | Cylinder Strip y ejemplos TreeGen |
 
 ## Fase 1 — editar la discretización de paths
@@ -61,22 +62,30 @@ error angular residual, largo máximo de segmento y metadata TreeGen intacta.
 
 La sonda pública midió la cadena `7→2→5→5→13`; dos mutaciones deliberadas demostraron que los
 tests detectan tanto invertir el juicio angular de Fuse como interpretar `count` con una división
-menos. El catálogo completo quedó en 12/12 ejemplos compilados dentro del motor.
+menos. El catálogo completo quedó en 13/13 ejemplos compilados dentro del motor.
 
 ## Fase 2 — contornos, caminos y muros
 
 **Objetivo:** convertir un recorrido procesado en bordes y superficies utilizables.
 
-**Estado: ◐ Offset y el primer borde de camino verificados; ribbon/solidify pendiente.**
+**Estado: ◐ Offset y ribbon verificados; espesor, carretera modular y muro pendientes.**
 
 - `curve_offset` S → S con plano, lado, joins y `miter_limit` explícitos. ✅
 - `curve_reverse`, `curve_close` y `curve_open` si una segunda receta demuestra que son necesarios.
-- `mesh_ribbon`/`curve_solidify` S → M con ancho, espesor opcional, UV longitudinal y Material IDs.
-- Ejemplo **Borde de camino**: eje → Resample → Offset → Pipe. ✅
+- `mesh_ribbon` S → M con ancho, plano, joins, UV longitudinal y Material ID. ✅
+- `curve_solidify` o espesor opcional sobre ribbon, sólo cuando el muro defina su contrato. ⏳
+- Ejemplo **Borde de camino**: eje → Resample → Offset → Ribbon. ✅
 - Ejemplos completos **Carretera modular** y **Muro sobre spline**. ⏳
 
 **Medidas:** distancia lateral, orientación, auto-intersecciones conocidas, cierre, componentes,
 ancho, estiramiento UV y presupuesto de miter. Un offset no se declara correcto sólo porque dibuja.
+
+La sonda pública de `mesh_ribbon` produjo 25 pares, 50 vértices y 48 triángulos en una sola pieza
+abierta; midió ancho de extremos de 360 cm con error 0.0000, UV0 longitudinal `0..5.91` y Material ID
+3 en los 48 triángulos. Invertir deliberadamente el winding puso rojo el test de normales. La
+primera versión acepta recorridos abiertos: cerrar una cinta exige duplicar la costura UV y hoy se
+rechaza en vez de soldarla con coordenadas ambiguas. Tampoco detecta todavía auto-intersecciones de
+un camino cuyo ancho supera el radio local de sus curvas.
 
 ## Fase 3 — atributos y selecciones observables
 
@@ -128,7 +137,7 @@ UE. No bloquea las fases de autoría sobre curvas.
 ## Orden inmediato
 
 1. ~~cerrar Fase 1 completa~~ ✅;
-2. ~~`curve_offset` + primer borde de camino~~ ✅; sigue `mesh_ribbon`/solidify;
+2. ~~`curve_offset` + `mesh_ribbon` + primer borde de camino~~ ✅; sigue espesor/muro;
 3. atributos explícitos + bambú o palmera;
 4. Repeat Compound;
 5. recién entonces definir el dato topológico y explorar generación urbana;

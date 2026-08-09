@@ -652,6 +652,65 @@ def _pivote_de(path) -> tuple[tuple[float, float, float], float]:
     return path.points[0], float(path.length)
 
 
+def ribbon(source, *, width: float = 360.0, plane: str = "xy", join: str = "miter",
+           miter_limit: float = 4.0, uv_scale: float = 200.0,
+           material_id: int = 0, samples: int = 32) -> dict:
+    """Convierte cada recorrido abierto S en una superficie M con UV0 longitudinal.
+
+    Los buffers nacen en el núcleo puro; este adaptador sólo traduce tipos y los anexa a un
+    ``DynamicMesh``. Cada recorrido conserva su isla y recibe el mismo Material ID explícito.
+    """
+    from . import curve, ribbon_core
+
+    try:
+        material_id, samples = int(material_id), int(samples)
+    except (TypeError, ValueError, OverflowError):
+        return {"error": "material_id y samples de mesh_ribbon deben ser enteros."}
+    if material_id < 0 or material_id > 1023:
+        return {"error": "material_id de mesh_ribbon debe estar entre 0 y 1023."}
+    if samples < 2 or samples > 4096:
+        return {"error": "samples de mesh_ribbon debe estar entre 2 y 4096."}
+    paths = curve.paths_of(source, samples=samples)
+    if not paths:
+        return {"error": "mesh_ribbon necesita una curva S válida con al menos dos puntos."}
+
+    result = _new_mesh()
+    total_vertices = total_triangles = 0
+    max_u = 0.0
+    for path in paths:
+        built = ribbon_core.ribbon_buffers(
+            path.points, width=width, plane=plane, join=join,
+            miter_limit=miter_limit, uv_scale=uv_scale)
+        if "error" in built:
+            return built
+        buffers = unreal.GeometryScriptSimpleMeshBuffers()
+        buffers.set_editor_property(
+            "vertices", [unreal.Vector(*vertex) for vertex in built["vertices"]])
+        buffers.set_editor_property(
+            "triangles", [unreal.IntVector(*triangle) for triangle in built["triangles"]])
+        buffers.set_editor_property(
+            "normals", [unreal.Vector(*normal) for normal in built["normals"]])
+        buffers.set_editor_property(
+            "uv0", [unreal.Vector2D(*uv) for uv in built["uv0"]])
+        unreal.GeometryScript_MeshEdits.append_buffers_to_mesh(
+            result, buffers, material_id=material_id)
+        total_vertices += len(built["vertices"])
+        total_triangles += len(built["triangles"])
+        max_u = max(max_u, built["length_u"] / float(uv_scale))
+
+    suffix = f" · {len(paths)} cintas" if len(paths) > 1 else ""
+    return {
+        "mesh": result,
+        "info": (_info(result) + suffix
+                 + f" · ancho {float(width):g} cm · UV0 hasta {max_u:.2f} U"
+                 + f" · Material ID {material_id}"),
+        "vertices": total_vertices,
+        "triangles": total_triangles,
+        "uv_max": max_u,
+        "material_id": material_id,
+    }
+
+
 def pipe(source, *, radius_start: float = 30.0, radius_end: float = 5.0,
          sides: int = 10, samples: int = 16, capped: bool = True,
          profile_rotation: float = 0.0, miter_limit: float = 4.0,

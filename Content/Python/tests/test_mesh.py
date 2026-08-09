@@ -918,6 +918,14 @@ class MeshTests(unittest.TestCase):
         self.assertEqual(graph_tools["curve_branches"]["out_name"], "S")
         self.assertEqual(graph_tools["mesh_pipe"]["in_name"], "S")
         self.assertEqual(graph_tools["mesh_pipe"]["out_name"], "M")
+        self.assertEqual(graph_tools["mesh_ribbon"]["in_name"], "S")
+        self.assertEqual(graph_tools["mesh_ribbon"]["out_name"], "M")
+        ribbon_params = {
+            item["nombre"]: item for item in graph_tools["mesh_ribbon"]["params"]
+        }
+        self.assertEqual(ribbon_params["plane"]["opciones"], ["xy", "xz", "yz"])
+        self.assertEqual(ribbon_params["join"]["opciones"], ["miter", "bevel"])
+        self.assertEqual(ribbon_params["material_id"]["tipo"], "int")
         self.assertTrue(graph_tools["graph_curve"]["source"])
         self.assertEqual(graph_tools["graph_curve"]["out_name"], "N[]")
         graph_curve_params = {
