@@ -72,6 +72,16 @@ El tutorial **Preparar una curva** vuelve observable la diferencia: Fuse reduce 
 puntos a sus dos extremos; Subdivide inserta tres puntos por segmento y llega a cinco; Smooth
 conserva cinco y Resample elige trece muestras por longitud.
 
+El quinto corte abre la familia de caminos y contornos:
+
+```text
+Bezier S → Resample S → Offset S → Pipe M
+```
+
+`curve_offset` desplaza un recorrido en XY, XZ o YZ, hacia izquierda o derecha. Las esquinas usan
+miter o bevel; un miter que supera el límite cae explícitamente a bevel. **Borde de camino** desplaza
+el eje 180 cm y barre un cordón continuo sobre el recorrido lateral.
+
 ## Fuentes estudiadas
 
 ### TreeGen local
@@ -142,7 +152,7 @@ dentro de Pipe: el mismo `S` procesado sigue sirviendo a frames, ramas, copias y
 
 ## Evidencia
 
-- Suite pura: **779 tests OK**.
+- Suite pura: **784 tests OK**.
 - Mutación deliberada: permitir frecuencia cero volvió rojo
   `test_rechaza_parametros_que_geometry_script_no_puede_defender`.
 - UE 5.8.1 por `api.compile_graph_json` y `api.run_graph_json`: **1.681 vértices**,
@@ -161,7 +171,11 @@ dentro de Pipe: el mismo `S` procesado sigue sirviendo a frames, ramas, copias y
   conservados por Subdivide.
 - Dos mutaciones deliberadas murieron: invertir el juicio angular de Fuse y usar una división menos
   en el modo `count` de Subdivide.
-- Catálogo completo en UE 5.8.1: **12/12 tutoriales compilan**, `VEREDICTO: TODO VERDE`.
+- Offset por spec + Compile + Run: 25→25 puntos, izquierda a 180 cm con error firmado máximo
+  `0,0000 cm`; Pipe de **496 triángulos/250 vértices**, cerrado y una sola pieza.
+- Marcador: `JAM_CURVE_OFFSET_58 TODO VERDE`.
+- Mutación deliberada: invertir izquierda/derecha volvió rojo el test de distancia firmada.
+- Catálogo completo en UE 5.8.1: **13/13 tutoriales compilan**, `VEREDICTO: TODO VERDE`.
 
 ## Lo que NO ve
 
@@ -176,11 +190,15 @@ dentro de Pipe: el mismo `S` procesado sigue sirviendo a frames, ramas, copias y
   ven auto-intersecciones, torsión, pinching, estiramiento UV ni calidad visual del miter.
 - La separación medida es distancia recta entre muestras consecutivas; cerca de un vértice queda
   por debajo del paso por arco aunque el parámetro de longitud sea uniforme.
+- Offset es planar: conserva la tercera coordenada de cada vértice, pero no define todavía un frame
+  transportado sobre curvas 3D arbitrarias.
+- La distancia y el límite de miter NO detectan auto-intersecciones, colapso de contornos cóncavos ni
+  calidad visual de una futura superficie vial.
 
 ## Próximo corte
 
-Implementar `Offset`, con plano, joins y límite de miter explícitos, y un ejemplo corto de carretera
-o muro. `Repeat Compound` y
+Implementar `mesh_ribbon`/solidify con ancho, UV longitudinal y Material IDs para que el borde medido
+se convierta en una superficie vial. Después siguen muro y carretera completos. `Repeat Compound` y
 Sierpinski quedan después: antes de registrarlos hay que resolver qué función pura se repite y cómo
 el límite evita explosiones de geometría. La investigación ampliada y sus licencias viven en
 [[2026-08-09-INFORME-GitHub-Procedural-Mesh-Generation-v1.0|el corpus GitHub de PMG]].

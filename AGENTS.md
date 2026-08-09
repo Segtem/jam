@@ -97,8 +97,9 @@ $ENG/Engine/Binaries/Linux/UnrealEditor-Cmd \
   -RenderOffScreen -unattended -nosplash -stdout
 ```
 
-⚠️ **La salida NO llega fiablemente a stdout.** El veredicto está en
-`/home/workstation/Dev/games/BotOO/Saved/Logs/BotOO.log`.
+⚠️ **La salida NO llega fiablemente a stdout.** El veredicto está en el `.log` más reciente de
+`/home/workstation/Dev/games/BotOO/Saved/Logs/BotOO*.log`; si el editor GUI está abierto, el
+commandlet paralelo escribe por ejemplo `BotOO_2.log`, no `BotOO.log`.
 
 ## Reglas que no se negocian
 
@@ -122,6 +123,7 @@ redistribuir, nunca relicenciar CC0. Los repos van privados.
 | Trampa | Qué pasa |
 |---|---|
 | `-nullrhi` en UE 5.7.x | **SIGFPE**. Usar `-RenderOffScreen`. |
+| Leer siempre `BotOO.log` | Con el editor GUI abierto, el commandlet paralelo escribe `BotOO_2.log` (o el siguiente sufijo) y `BotOO.log` sigue perteneciendo a la GUI. Buscar el `BotOO*.log` más reciente. |
 | Renombrar un id de nomad tab | Es la **clave persistente del layout**: le borra al usuario el acomodo de los paneles. |
 | Pila de Material Layers sin los arrays *editor-only* paralelos | **Voltea el editor** (assert + SIGSEGV). |
 | `Target.cs` desparejos | En UE 5.8.1, ambos con `BuildSettingsVersion.V7` + `EngineIncludeOrderVersion.Unreal5_8` o no comparte el entorno del motor. |

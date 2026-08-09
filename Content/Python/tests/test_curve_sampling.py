@@ -143,6 +143,49 @@ class CurveSamplingCoreTests(unittest.TestCase):
         self.assertIn("error", curve_sampling_core.subdivide_points(
             huge, mode="count", distance=100.0, count=64))
 
+    def test_offset_recta_respeta_lado_y_distancia(self):
+        line = ((0.0, 0.0, 7.0), (100.0, 0.0, 7.0))
+        left = curve_sampling_core.offset_points(line, distance=25.0, side="left")
+        right = curve_sampling_core.offset_points(line, distance=25.0, side="right")
+        self.assertEqual(left["points"], ((0.0, 25.0, 7.0), (100.0, 25.0, 7.0)))
+        self.assertEqual(right["points"], ((0.0, -25.0, 7.0), (100.0, -25.0, 7.0)))
+
+    def test_offset_miter_y_bevel_hacen_explicita_la_esquina(self):
+        corner = ((0.0, 0.0, 0.0), (100.0, 0.0, 0.0), (100.0, 100.0, 0.0))
+        miter = curve_sampling_core.offset_points(
+            corner, distance=10.0, join="miter", miter_limit=2.0)
+        bevel = curve_sampling_core.offset_points(
+            corner, distance=10.0, join="miter", miter_limit=1.1)
+        self.assertEqual(miter["points"], (
+            (0.0, 10.0, 0.0), (90.0, 10.0, 0.0), (90.0, 100.0, 0.0)))
+        self.assertEqual(bevel["points"], (
+            (0.0, 10.0, 0.0), (100.0, 10.0, 0.0),
+            (90.0, 0.0, 0.0), (90.0, 100.0, 0.0)))
+        self.assertEqual(miter["bevels"], 0)
+        self.assertEqual(bevel["bevels"], 1)
+
+    def test_offset_cierra_contorno_y_soporta_plano_xz(self):
+        square = ((0.0, 0.0, 0.0), (100.0, 0.0, 0.0), (100.0, 100.0, 0.0),
+                  (0.0, 100.0, 0.0), (0.0, 0.0, 0.0))
+        inset = curve_sampling_core.offset_points(square, distance=10.0)
+        self.assertTrue(inset["closed"])
+        self.assertEqual(inset["points"], (
+            (10.0, 10.0, 0.0), (90.0, 10.0, 0.0), (90.0, 90.0, 0.0),
+            (10.0, 90.0, 0.0), (10.0, 10.0, 0.0)))
+
+        vertical_plane = ((0.0, 7.0, 0.0), (100.0, 7.0, 0.0))
+        xz = curve_sampling_core.offset_points(vertical_plane, distance=12.0, plane="xz")
+        self.assertEqual(xz["points"], ((0.0, 7.0, 12.0), (100.0, 7.0, 12.0)))
+
+    def test_offset_rechaza_dominio_y_segmento_invisible_en_el_plano(self):
+        line = ((0.0, 0.0, 0.0), (100.0, 0.0, 0.0))
+        for params in ({"distance": 0.0}, {"side": "up"}, {"plane": "xyz"},
+                       {"join": "round"}, {"miter_limit": 0.99}):
+            with self.subTest(params=params):
+                self.assertIn("error", curve_sampling_core.offset_points(line, **params))
+        self.assertIn("error", curve_sampling_core.offset_points(
+            ((0.0, 0.0, 0.0), (0.0, 0.0, 100.0)), plane="xy"))
+
     def test_resample_preserva_metadata_de_cada_curva_treegen(self):
         source = curve.CurveSet((
             curve.CurvePath(((0, 0, 0), (100, 0, 0)), scale=0.5, seed=17,
@@ -169,7 +212,8 @@ class CurveSamplingCoreTests(unittest.TestCase):
 
         fused = curve.fuse_collinear(source, angle_tolerance=1.0)["curve"]
         subdivided = curve.subdivide(source, mode="count", count=1)["curve"]
-        for transformed in (fused, subdivided):
+        offset = curve.offset(source, distance=10.0, plane="xy")["curve"]
+        for transformed in (fused, subdivided, offset):
             self.assertIsInstance(transformed, curve.CurveSet)
             self.assertEqual(transformed.paths[0].scale, 0.5)
             self.assertEqual(transformed.paths[0].seed, 17)
@@ -179,7 +223,7 @@ class CurveSamplingCoreTests(unittest.TestCase):
 
 class CurveSamplingGraphTests(unittest.TestCase):
     VERBS = ("series_range", "graph_curve", "curve_polyline", "curve_fuse_collinear",
-             "curve_subdivide", "curve_smooth", "curve_resample")
+             "curve_subdivide", "curve_smooth", "curve_resample", "curve_offset")
 
     def tearDown(self):
         for verb in self.VERBS:
@@ -218,9 +262,10 @@ class CurveSamplingGraphTests(unittest.TestCase):
 
     def test_spec_publica_pines_nombrados_y_cadena_s_a_s(self):
         spec = {item["verbo"]: item for item in json.loads(api.spec_all())["tools"]}
-        polyline, fuse, subdivide, smooth, resample = (
+        polyline, fuse, subdivide, smooth, resample, offset = (
             spec["curve_polyline"], spec["curve_fuse_collinear"],
-            spec["curve_subdivide"], spec["curve_smooth"], spec["curve_resample"])
+            spec["curve_subdivide"], spec["curve_smooth"], spec["curve_resample"],
+            spec["curve_offset"])
         self.assertTrue(polyline["source"])
         self.assertEqual(
             {item["nombre"]: item["data_type"] for item in polyline["params"]},
@@ -238,6 +283,9 @@ class CurveSamplingGraphTests(unittest.TestCase):
         self.assertEqual(resample["in_name"], "S")
         self.assertEqual(resample["out_name"], "S")
         self.assertEqual(resample["grupo"], "Curvas")
+        self.assertEqual(offset["in_name"], "S")
+        self.assertEqual(offset["out_name"], "S")
+        self.assertEqual(offset["grupo"], "Curvas")
 
     def test_compile_y_runtime_encadenan_series_polyline_y_resample(self):
         diagram = self._graph()
@@ -277,6 +325,35 @@ class CurveSamplingGraphTests(unittest.TestCase):
         result = json.loads(api.compile_graph_json(wrong.to_json()))
         self.assertFalse(result["ok"])
         self.assertIn("x esperaba N[], recibió N", result["nodes"]["polyline"]["texto"])
+
+    def test_offset_compila_y_corre_por_el_graph_publico(self):
+        diagram = graph.JamGraph()
+        diagram.add("series_range", {"start": 0.0, "end": 200.0, "count": 3}, nid="x")
+        diagram.add("graph_curve", {
+            "start_value": 0.0, "end_value": 0.0, "shape": "linear", "power": 2.0,
+            "midpoint": 0.5, "mid_value": 0.0, "samples": 3,
+        }, nid="y")
+        diagram.add("graph_curve", {
+            "start_value": 0.0, "end_value": 0.0, "shape": "linear", "power": 2.0,
+            "midpoint": 0.5, "mid_value": 0.0, "samples": 3,
+        }, nid="z")
+        diagram.add("curve_polyline", {"x": "", "y": "", "z": ""}, nid="polyline")
+        diagram.add("curve_offset", {
+            "distance": 50.0, "side": "left", "plane": "xy", "join": "miter",
+            "miter_limit": 4.0, "samples": 32,
+        }, nid="offset")
+        diagram.connect("x", "polyline", "x")
+        diagram.connect("y", "polyline", "y")
+        diagram.connect("z", "polyline", "z")
+        diagram.connect("polyline", "offset")
+
+        compiled = json.loads(api.compile_graph_json(diagram.to_json()))
+        self.assertTrue(compiled["ok"], compiled)
+        report, states = graph.ejecutar_detalle(diagram)
+        self.assertEqual(states["offset"]["estado"], "ok", report)
+        output = tools.dato_producido_runtime("curve_offset")
+        self.assertEqual(output.points, (
+            (0.0, 50.0, 0.0), (100.0, 50.0, 0.0), (200.0, 50.0, 0.0)))
 
 
 if __name__ == "__main__":

@@ -1013,6 +1013,18 @@ def t_curve_subdivide(curve_input, *, mode="distance", distance=100.0,
     return f"SUBDIVIDE S ✓ — {result['info']}"
 
 
+def t_curve_offset(curve_input, *, distance=100.0, side="left", plane="xy",
+                   join="miter", miter_limit=4.0, samples=32) -> str:
+    from . import curve
+    result = curve.offset(
+        curve_input, distance=float(distance), side=side, plane=plane, join=join,
+        miter_limit=float(miter_limit), samples=int(samples))
+    if "error" in result:
+        raise RuntimeError(result["error"])
+    _RUNTIME_DATA_OUTPUTS["curve_offset"] = result["curve"]
+    return f"OFFSET S ✓ — {result['info']}"
+
+
 def t_curve_branches(curve_input, *, count=12, start=0.2, end=0.92,
                      length_min=200.0, length_max=400.0,
                      parent_scale_start=1.0, parent_scale_end=1.0,
@@ -2026,6 +2038,16 @@ REGISTRO = {
                                                "count": "puntos por segmento",
                                                "samples": "muestras de spline"},
                          "doc": "inserta puntos por tramo sin perder los vértices originales de S"},
+    "curve_offset": {"fn": t_curve_offset, "label": "Desplazar curva", "cat": "Mesh",
+                     "graph_only": True,
+                     "params": {"distance": 100.0, "side": "left", "plane": "xy",
+                                "join": "miter", "miter_limit": 4.0, "samples": 32},
+                     "opciones": {"side": ["left", "right"], "plane": ["xy", "xz", "yz"],
+                                  "join": ["miter", "bevel"]},
+                     "etiquetas_params": {"distance": "distancia (cm)", "side": "lado",
+                                           "plane": "plano", "join": "unión",
+                                           "miter_limit": "límite miter", "samples": "muestras"},
+                     "doc": "desplaza S lateralmente con plano, lado y unión explícitos"},
     "curve_branches": {"fn": t_curve_branches, "cat": "Mesh", "graph_only": True,
                        "params": {"count": 12, "start": 0.2, "end": 0.92,
                                   "length_min": 200.0, "length_max": 400.0,
@@ -2413,7 +2435,7 @@ GRAPH_NO_ASSET = {"asset", "pick", "create_spline", "pivot_set", "instance", "br
                   "mesh_box", "mesh_capsule", "mesh_torus", "mesh_disc",
                   "mesh_round_rect", "mesh_stairs", "mesh_stairs_curved",
                   "mesh_sphere_box", "mesh_revolve", "curve_polyline", "curve_resample",
-                  "curve_smooth", "curve_fuse_collinear", "curve_subdivide",
+                  "curve_smooth", "curve_fuse_collinear", "curve_subdivide", "curve_offset",
                   "mesh_transform", "mesh_merge", "graph_curve", "series_range", "series_remap",
                   "curve_child", "curve_frames", "distribute_frames", "transform_frames",
                   "branch_from_frames",
@@ -2439,6 +2461,7 @@ GRAPH_IN_NAMES = {"reroute_mesh": "M", "reroute_asset": "A", "reroute_points": "
                   "series_remap": "N[]",
                   "curve_resample": "S", "curve_smooth": "S",
                   "curve_fuse_collinear": "S", "curve_subdivide": "S",
+                  "curve_offset": "S",
                   "transform_frames": "F", "branch_from_frames": "F", "curve_branches": "S",
                   "asset_set": "A", "choose_asset": "F",
                   "mesh_from_asset": "A", "mesh_copy_static": "A",
@@ -2473,6 +2496,7 @@ GRAPH_OUT_NAMES = {"brush": "P", "reroute_mesh": "M", "reroute_asset": "A", "rer
                    "curve_bezier": "S", "curve_child": "S", "curve_noise": "S", "curve_frames": "F",
                    "curve_polyline": "S", "curve_resample": "S", "curve_smooth": "S",
                    "curve_fuse_collinear": "S", "curve_subdivide": "S",
+                   "curve_offset": "S",
                    "distribute_frames": "F", "transform_frames": "F",
                    "branch_from_frames": "S", "curve_branches": "S",
                    "asset_set": "A[]", "choose_asset": "AF", "graph_curve": "N[]",

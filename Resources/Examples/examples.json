@@ -83,6 +83,14 @@
 			"mensaje": "Preparar una curva cargado. Compile y Run graph; inspeccioná la cadena 7→2→5→5→13 y después doblá un punto para ver qué conserva cada verbo."
 		},
 		{
+			"archivo": "Borde-de-camino.jamgraph",
+			"titulo": "Borde de camino",
+			"grupo": "Formas procedurales",
+			"icono": "jam-curve-offset",
+			"doc": "Una Bézier define el eje; Resample fija su densidad, Offset la desplaza 180 cm a la izquierda en XY y Pipe convierte ese recorrido lateral en un cordón continuo.\nEs el primer bloque de una carretera modular: el eje sigue siendo dato S y lado, plano, unión y límite de miter quedan editables.",
+			"mensaje": "Borde de camino cargado. Compile y Run graph; cambiá left/right, distancia y miter para estudiar de qué lado aparece el cordón."
+		},
+		{
 			"archivo": "Series-Range-Remap.jamgraph",
 			"titulo": "Rango y Remap",
 			"grupo": "Ver el dato",

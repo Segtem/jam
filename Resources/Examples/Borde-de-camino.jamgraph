@@ -1,0 +1,62 @@
+{
+	"schema_version": 1,
+	"nodes": {
+		"eje": {
+			"verb": "curve_bezier",
+			"params": {"start_x": "0.0", "start_y": "0.0", "start_z": "0.0", "end_x": "900.0", "end_y": "0.0", "end_z": "80.0", "bend_x": "0.0", "bend_y": "320.0", "bend_z": "-40.0", "segments": "12"},
+			"asset": null,
+			"x": 40,
+			"y": 220
+		},
+		"uniformar": {
+			"verb": "curve_resample",
+			"params": {"count": "25", "samples": "32"},
+			"asset": null,
+			"x": 360,
+			"y": 220
+		},
+		"borde": {
+			"verb": "curve_offset",
+			"params": {"distance": "180.0", "side": "left", "plane": "xy", "join": "miter", "miter_limit": "2.5", "samples": "32"},
+			"asset": null,
+			"x": 680,
+			"y": 220
+		},
+		"cordon": {
+			"verb": "mesh_pipe",
+			"params": {"radius_start": "22.0", "radius_end": "22.0", "sides": "10", "samples": "32", "capped": "true", "profile_rotation": "0.0", "miter_limit": "2.5", "radius_from_parent": "0.0", "pivot_uvs": "false"},
+			"asset": null,
+			"x": 1000,
+			"y": 220
+		},
+		"normals": {
+			"verb": "mesh_normals",
+			"params": {"angle_weighted": "true", "area_weighted": "true"},
+			"asset": null,
+			"x": 1320,
+			"y": 220
+		},
+		"hornear": {
+			"verb": "mesh_to_static",
+			"params": {"name": "SM_JamBordeCamino", "folder": "/Game/Jam/Meshes", "collision": "true", "recompute_tangents": "true", "show_vertex_colors": "true"},
+			"asset": null,
+			"x": 1640,
+			"y": 220
+		},
+		"colocar": {
+			"verb": "place",
+			"params": {"x": "0.0", "y": "0.0", "z": "0.0", "view": "true", "surface": "true", "anchor": "base", "sink": "0.0", "align": "false", "yaw": "0.0", "scale": "1.0"},
+			"asset": null,
+			"x": 1960,
+			"y": 220
+		}
+	},
+	"edges": [
+		["eje", "out", "uniformar", "in"],
+		["uniformar", "out", "borde", "in"],
+		["borde", "out", "cordon", "in"],
+		["cordon", "out", "normals", "in"],
+		["normals", "out", "hornear", "in"],
+		["hornear", "out", "colocar", "in"]
+	]
+}

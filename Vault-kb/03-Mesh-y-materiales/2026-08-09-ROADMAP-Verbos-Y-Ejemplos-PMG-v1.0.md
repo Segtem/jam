@@ -67,10 +67,13 @@ menos. El catálogo completo quedó en 12/12 ejemplos compilados dentro del moto
 
 **Objetivo:** convertir un recorrido procesado en bordes y superficies utilizables.
 
-- `curve_offset` S → S con plano, lado, joins y `miter_limit` explícitos.
+**Estado: ◐ Offset y el primer borde de camino verificados; ribbon/solidify pendiente.**
+
+- `curve_offset` S → S con plano, lado, joins y `miter_limit` explícitos. ✅
 - `curve_reverse`, `curve_close` y `curve_open` si una segunda receta demuestra que son necesarios.
 - `mesh_ribbon`/`curve_solidify` S → M con ancho, espesor opcional, UV longitudinal y Material IDs.
-- Ejemplos **Carretera modular** y **Muro sobre spline**.
+- Ejemplo **Borde de camino**: eje → Resample → Offset → Pipe. ✅
+- Ejemplos completos **Carretera modular** y **Muro sobre spline**. ⏳
 
 **Medidas:** distancia lateral, orientación, auto-intersecciones conocidas, cierre, componentes,
 ancho, estiramiento UV y presupuesto de miter. Un offset no se declara correcto sólo porque dibuja.
@@ -125,7 +128,7 @@ UE. No bloquea las fases de autoría sobre curvas.
 ## Orden inmediato
 
 1. ~~cerrar Fase 1 completa~~ ✅;
-2. `curve_offset` + carretera/muro;
+2. ~~`curve_offset` + primer borde de camino~~ ✅; sigue `mesh_ribbon`/solidify;
 3. atributos explícitos + bambú o palmera;
 4. Repeat Compound;
 5. recién entonces definir el dato topológico y explorar generación urbana;

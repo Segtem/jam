@@ -240,3 +240,112 @@ def subdivide_points(points, *, mode: str = "distance", distance: float = 100.0,
             "info": (f"{len(source)}→{len(result)} puntos · insertó {inserted} · "
                      + (f"máx. {max_segment:.1f} cm" if mode == "distance"
                         else f"{count} por segmento"))}
+
+
+def offset_points(points, *, distance: float = 100.0, side: str = "left",
+                  plane: str = "xy", join: str = "miter",
+                  miter_limit: float = 4.0) -> dict:
+    """Desplaza una polilínea en uno de los planos principales.
+
+    ``miter`` conserva un punto por esquina mientras su extensión no supere ``miter_limit`` veces
+    la distancia. Al superar el límite cae a bevel: el presupuesto nunca queda implícito.
+    """
+    try:
+        distance, miter_limit = float(distance), float(miter_limit)
+        source = tuple(tuple(float(value) for value in point) for point in points)
+        side, plane, join = (str(value or "").strip().lower() for value in (side, plane, join))
+    except (TypeError, ValueError, OverflowError):
+        return {"error": "curve_offset recibió puntos o parámetros inválidos."}
+    if not math.isfinite(distance) or not 0.01 <= distance <= 1_000_000.0:
+        return {"error": "distance de curve_offset debe estar entre 0.01 y 1000000 cm."}
+    if side not in {"left", "right"}:
+        return {"error": "side de curve_offset debe ser left o right."}
+    if plane not in {"xy", "xz", "yz"}:
+        return {"error": "plane de curve_offset debe ser xy, xz o yz."}
+    if join not in {"miter", "bevel"}:
+        return {"error": "join de curve_offset debe ser miter o bevel."}
+    if not math.isfinite(miter_limit) or not 1.0 <= miter_limit <= 100.0:
+        return {"error": "miter_limit de curve_offset debe estar entre 1 y 100."}
+    if len(source) < 2 or any(len(point) != 3 for point in source):
+        return {"error": "curve_offset necesita una polilínea XYZ de al menos dos puntos."}
+    if any(not all(math.isfinite(value) for value in point) for point in source):
+        return {"error": "curve_offset recibió una coordenada no finita."}
+
+    axes = {"xy": (0, 1, 2), "xz": (0, 2, 1), "yz": (1, 2, 0)}[plane]
+    axis_u, axis_v, axis_other = axes
+    closed = len(source) >= 4 and math.dist(source[0], source[-1]) < 1e-6
+    vertices = source[:-1] if closed else source
+    if len(vertices) < (3 if closed else 2):
+        return {"error": "curve_offset recibió un recorrido cerrado degenerado."}
+
+    projected = tuple((point[axis_u], point[axis_v]) for point in vertices)
+    pairs = ((index, (index + 1) % len(vertices)) for index in range(len(vertices))) if closed \
+        else ((index, index + 1) for index in range(len(vertices) - 1))
+    directions = []
+    for start_index, end_index in pairs:
+        start, end = projected[start_index], projected[end_index]
+        delta = (end[0] - start[0], end[1] - start[1])
+        length = math.hypot(*delta)
+        if length < 1e-6:
+            return {"error": f"curve_offset tiene un segmento de longitud cero en el plano {plane}."}
+        directions.append((delta[0] / length, delta[1] / length))
+
+    signed_distance = distance if side == "left" else -distance
+
+    def normal(direction):
+        return (-direction[1], direction[0])
+
+    def lifted(index, planar):
+        result = [0.0, 0.0, 0.0]
+        result[axis_u], result[axis_v] = planar
+        result[axis_other] = vertices[index][axis_other]
+        return tuple(result)
+
+    output = []
+    bevels = 0
+    for index, point in enumerate(projected):
+        if not closed and index == 0:
+            n = normal(directions[0])
+            output.append(lifted(index, (
+                point[0] + n[0] * signed_distance,
+                point[1] + n[1] * signed_distance)))
+            continue
+        if not closed and index == len(projected) - 1:
+            n = normal(directions[-1])
+            output.append(lifted(index, (
+                point[0] + n[0] * signed_distance,
+                point[1] + n[1] * signed_distance)))
+            continue
+
+        previous_direction = directions[index - 1]
+        next_direction = directions[index % len(directions)]
+        previous_normal, next_normal = normal(previous_direction), normal(next_direction)
+        summed = (previous_normal[0] + next_normal[0], previous_normal[1] + next_normal[1])
+        summed_length = math.hypot(*summed)
+        denominator = 0.0
+        if summed_length >= 1e-9:
+            bisector = (summed[0] / summed_length, summed[1] / summed_length)
+            denominator = bisector[0] * previous_normal[0] + bisector[1] * previous_normal[1]
+        ratio = math.inf if abs(denominator) < 1e-9 else abs(1.0 / denominator)
+        use_miter = join == "miter" and ratio <= miter_limit
+        if use_miter:
+            scale = signed_distance / denominator
+            output.append(lifted(index, (
+                point[0] + bisector[0] * scale,
+                point[1] + bisector[1] * scale)))
+        else:
+            bevels += 1
+            for n in (previous_normal, next_normal):
+                output.append(lifted(index, (
+                    point[0] + n[0] * signed_distance,
+                    point[1] + n[1] * signed_distance)))
+        if len(output) > 4096:
+            return {"error": "curve_offset no puede producir más de 4096 puntos por recorrido."}
+
+    if closed:
+        output.append(output[0])
+    result = tuple(output)
+    length = sum(math.dist(a, b) for a, b in zip(result, result[1:]))
+    return {"points": result, "length": length, "closed": closed, "bevels": bevels,
+            "info": (f"{len(source)}→{len(result)} puntos · {distance:g} cm {side} · "
+                     f"{plane.upper()} · {join} · {bevels} bevel")}

@@ -290,6 +290,38 @@ def subdivide(value, *, mode: str = "distance", distance: float = 100.0,
     return {"curve": result, "info": infos[0] + suffix}
 
 
+def offset(value, *, distance: float = 100.0, side: str = "left", plane: str = "xy",
+           join: str = "miter", miter_limit: float = 4.0, samples: int = 32) -> dict:
+    """Desplaza cada recorrido ``S`` en un plano principal y conserva su metadata."""
+    from . import curve_sampling_core
+
+    try:
+        distance, miter_limit, samples = float(distance), float(miter_limit), int(samples)
+    except (TypeError, ValueError, OverflowError):
+        return {"error": "distance, miter_limit y samples de curve_offset son inválidos."}
+    if samples < 2 or samples > 256:
+        return {"error": "samples de curve_offset debe estar entre 2 y 256."}
+    paths = paths_of(value, samples=samples)
+    if not paths:
+        return {"error": "curve_offset necesita una curva S válida."}
+
+    output, infos = [], []
+    for path in paths:
+        displaced = curve_sampling_core.offset_points(
+            path.points, distance=distance, side=side, plane=plane,
+            join=join, miter_limit=miter_limit)
+        if "error" in displaced:
+            return displaced
+        output.append(replace(path, points=displaced["points"]))
+        infos.append(displaced["info"])
+    if sum(len(path.points) for path in output) > 4096:
+        return {"error": "curve_offset no puede producir más de 4096 puntos por nodo."}
+    result = output[0] if len(output) == 1 and not isinstance(value, CurveSet) \
+        else CurveSet(tuple(output))
+    suffix = f" · {len(output)} curvas" if len(output) > 1 else ""
+    return {"curve": result, "info": infos[0] + suffix}
+
+
 def _normalized(vector):
     length = math.sqrt(sum(component * component for component in vector))
     if length < 1e-8:

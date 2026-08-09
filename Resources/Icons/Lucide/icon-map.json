@@ -13,6 +13,7 @@
   "curve_smooth": "jam-curve-smooth",
   "curve_fuse_collinear": "jam-curve-fuse-collinear",
   "curve_subdivide": "jam-curve-subdivide",
+  "curve_offset": "jam-curve-offset",
   "curve_branches": "jam-curve-branches",
   "curve_child": "jam-curve-child",
   "curve_frames": "jam-curve-frames",

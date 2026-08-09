@@ -64,16 +64,17 @@ catálogo entero, sino extraer fronteras que sigan siendo claras en un cable:
    tolerancia espacial e informa cuántos puntos quitó.
 3. `curve_subdivide` S → S: **implementado**; inserta puntos por distancia o cantidad, sin
    confundirse con remuestreo global.
-4. `curve_offset` S → S: base de caminos, muros y contornos; necesita plano, lado, joins y límite de
-   miter visibles.
+4. `curve_offset` S → S: **implementado** con plano, lado, joins y límite de miter visibles; ya
+   alimenta el ejemplo Borde de camino.
 5. `curve_solidify` o ribbon S → M: convierte el contorno procesado en geometría, con ancho y UV
    mensurables.
 6. Delaunay, Voronoi y MST: esperan un tipo explícito de conjunto de puntos/grafo; forzarlos hoy
    dentro de `S` escondería topología.
 
 El primer corte, **Fuse Collinear + Subdivide**, ya quedó cerrado con el tutorial `Preparar una
-curva`. Sigue Offset y un tutorial de carretera o muro. La base ya distingue quitar, insertar,
-redistribuir y suavizar puntos antes de abordar repeat recursivo o generación urbana.
+curva`. Offset y el primer borde de camino también quedaron cerrados; sigue `mesh_ribbon`/solidify
+para producir la superficie vial. La base ya distingue quitar, insertar, redistribuir, suavizar y
+desplazar puntos antes de abordar repeat recursivo o generación urbana.
 
 ## Ejemplo incorporado
 
