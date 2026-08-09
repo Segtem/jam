@@ -711,6 +711,64 @@ def ribbon(source, *, width: float = 360.0, plane: str = "xy", join: str = "mite
     }
 
 
+def extrude(source, *, distance: float = 300.0, direction_x: float = 0.0,
+            direction_y: float = 0.0, direction_z: float = 1.0,
+            uv_scale: float = 100.0) -> dict:
+    """Extruye linealmente una superficie M abierta y cose su frontera como un sólido.
+
+    Esta frontera deliberada evita mezclar dos operaciones nativas distintas: sobre componentes
+    cerrados Geometry Script interpreta la extrusión completa como shell. Ese caso tendrá un verbo
+    propio cuando una receta lo necesite.
+    """
+    from . import mesh_extrude_core as core
+
+    try:
+        config = core.configurar(
+            distance=distance, direction_x=direction_x, direction_y=direction_y,
+            direction_z=direction_z, uv_scale=uv_scale)
+        result = _clone(source)
+    except (TypeError, ValueError) as exc:
+        return {"error": str(exc)}
+    queries = unreal.GeometryScript_MeshQueries
+    if bool(queries.get_is_closed_mesh(result)):
+        _MESH_MATERIALS.pop(id(result), None)
+        return {"error": ("mesh_extrude necesita una superficie abierta; "
+                          "una malla cerrada requiere shell.")}
+    triangles_before = int(queries.get_num_triangle_i_ds(result))
+    if triangles_before < 1:
+        _MESH_MATERIALS.pop(id(result), None)
+        return {"error": "mesh_extrude necesita una superficie abierta con triángulos."}
+
+    options = unreal.GeometryScriptMeshLinearExtrudeOptions()
+    options.set_editor_property("distance", config.distance)
+    options.set_editor_property(
+        "direction_mode", unreal.GeometryScriptLinearExtrudeDirection.FIXED_DIRECTION)
+    options.set_editor_property("direction", unreal.Vector(*config.direction))
+    options.set_editor_property(
+        "area_mode", unreal.GeometryScriptPolyOperationArea.ENTIRE_SELECTION)
+    options.set_editor_property("uv_scale", config.uv_factor)
+    options.set_editor_property("solids_to_shells", True)
+    unreal.GeometryScript_MeshModeling.apply_mesh_linear_extrude_faces(
+        result, options, unreal.GeometryScriptMeshSelection())
+    triangles_after = int(queries.get_num_triangle_i_ds(result))
+    closed = bool(queries.get_is_closed_mesh(result))
+    if triangles_after <= triangles_before or not closed:
+        _MESH_MATERIALS.pop(id(result), None)
+        return {"error": ("Geometry Script no pudo cerrar la extrusión: "
+                          f"{triangles_before}→{triangles_after} triángulos, "
+                          f"malla {'cerrada' if closed else 'abierta'}.")}
+    unreal.GeometryScript_Normals.recompute_normals(
+        result, unreal.GeometryScriptCalculateNormalsOptions())
+    direction = ",".join(f"{component:g}" for component in config.direction)
+    return {
+        "mesh": result,
+        "triangles_before": triangles_before,
+        "triangles_after": triangles_after,
+        "info": (f"{_info(result)} · extrusión {config.distance:g} cm hacia ({direction}) · "
+                 f"UV lateral {config.uv_scale:g} cm/UV"),
+    }
+
+
 def pipe(source, *, radius_start: float = 30.0, radius_end: float = 5.0,
          sides: int = 10, samples: int = 16, capped: bool = True,
          profile_rotation: float = 0.0, miter_limit: float = 4.0,

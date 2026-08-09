@@ -1154,6 +1154,16 @@ def t_mesh_ribbon(curve_input, *, width=360.0, plane="xy", join="miter",
     return _mesh_output("mesh_ribbon", result, "RIBBON M")
 
 
+def t_mesh_extrude(mesh_input, *, distance=300.0, direction_x=0.0,
+                   direction_y=0.0, direction_z=1.0, uv_scale=100.0) -> str:
+    from . import mesh
+    result = mesh.extrude(
+        mesh_input, distance=float(distance), direction_x=float(direction_x),
+        direction_y=float(direction_y), direction_z=float(direction_z),
+        uv_scale=float(uv_scale))
+    return _mesh_output("mesh_extrude", result, "EXTRUDE M")
+
+
 def t_mesh_pipe_profile(curve_input, *, profile=None, radius=30.0, sides=10, samples=16,
                         capped=True, profile_rotation=0.0, miter_limit=4.0,
                         pivot_uvs=False) -> str:
@@ -2130,6 +2140,18 @@ REGISTRO = {
                                            "uv_scale": "cm por UV", "material_id": "Material ID",
                                            "samples": "muestras"},
                      "doc": "convierte una curva abierta S en cinta M con UV0 longitudinal y Material ID"},
+    "mesh_extrude": {"fn": t_mesh_extrude, "label": "Extruir superficie", "cat": "Mesh",
+                     "graph_only": True,
+                     "params": {"distance": 300.0, "direction_x": 0.0,
+                                "direction_y": 0.0, "direction_z": 1.0,
+                                "uv_scale": 100.0},
+                     "etiquetas_params": {"distance": "distancia",
+                                           "direction_x": "dirección X",
+                                           "direction_y": "dirección Y",
+                                           "direction_z": "dirección Z",
+                                           "uv_scale": "cm por UV lateral"},
+                     "doc": ("extruye una superficie M abierta en dirección fija, cose la "
+                             "frontera y produce un sólido cerrado")},
     "mesh_pipe":    {"fn": t_mesh_pipe, "cat": "Mesh", "graph_only": True,
                      "params": {"radius_start": 30.0, "radius_end": 5.0,
                                 "sides": 10, "samples": 16, "capped": True,
@@ -2458,7 +2480,7 @@ GRAPH_NO_ASSET = {"asset", "pick", "create_spline", "pivot_set", "instance", "br
                   "mesh_round_rect", "mesh_stairs", "mesh_stairs_curved",
                   "mesh_sphere_box", "mesh_revolve", "curve_polyline", "curve_resample",
                   "curve_smooth", "curve_fuse_collinear", "curve_subdivide", "curve_offset",
-                  "mesh_transform", "mesh_merge", "graph_curve", "series_range", "series_remap",
+                  "mesh_transform", "mesh_extrude", "mesh_merge", "graph_curve", "series_range", "series_remap",
                   "curve_child", "curve_frames", "distribute_frames", "transform_frames",
                   "branch_from_frames",
                   "asset_set", "choose_asset", "curve_branches", "mesh_leaf",
@@ -2491,7 +2513,7 @@ GRAPH_IN_NAMES = {"reroute_mesh": "M", "reroute_asset": "A", "reroute_points": "
                   "mesh_revolve": "S",
                   "mesh_along_curve": "S", "copy_mesh_to_frames": "F", "mesh_leaf": "S",
                   "copy_asset_selection": "AF",
-                  "hism_output": "AF", "mesh_transform": "M", "mesh_color": "M",
+                  "hism_output": "AF", "mesh_transform": "M", "mesh_extrude": "M", "mesh_color": "M",
                   "mesh_uv_scale": "M", "mesh_material": "M", "mesh_bark": "M", "mesh_noise": "M",
                   "mesh_remap_materials": "M", "mesh_clean_material_ids": "M",
                   "mesh_validate": "M",
@@ -2533,7 +2555,7 @@ GRAPH_OUT_NAMES = {"brush": "P", "reroute_mesh": "M", "reroute_asset": "A", "rer
                    "mesh_along_curve": "M",
                    "copy_mesh_to_frames": "M", "mesh_leaf": "M",
                    "copy_asset_selection": "M",
-                   "hism_output": "H", "mesh_transform": "M", "mesh_color": "M",
+                   "hism_output": "H", "mesh_transform": "M", "mesh_extrude": "M", "mesh_color": "M",
                    "mesh_uv_scale": "M", "mesh_material": "M", "mesh_bark": "M", "mesh_noise": "M",
                    "mesh_remap_materials": "M", "mesh_clean_material_ids": "M",
                    "mesh_validate": "M",

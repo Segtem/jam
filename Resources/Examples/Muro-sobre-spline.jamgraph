@@ -1,0 +1,62 @@
+{
+	"schema_version": 1,
+	"nodes": {
+		"recorrido": {
+			"verb": "curve_bezier",
+			"params": {"start_x": "0.0", "start_y": "0.0", "start_z": "0.0", "end_x": "900.0", "end_y": "0.0", "end_z": "0.0", "bend_x": "0.0", "bend_y": "260.0", "bend_z": "0.0", "segments": "12"},
+			"asset": null,
+			"x": 40,
+			"y": 220
+		},
+		"uniformar": {
+			"verb": "curve_resample",
+			"params": {"count": "25", "samples": "32"},
+			"asset": null,
+			"x": 360,
+			"y": 220
+		},
+		"planta": {
+			"verb": "mesh_ribbon",
+			"params": {"width": "30.0", "plane": "xy", "join": "miter", "miter_limit": "2.5", "uv_scale": "100.0", "material_id": "0", "samples": "32"},
+			"asset": null,
+			"x": 680,
+			"y": 220
+		},
+		"altura": {
+			"verb": "mesh_extrude",
+			"params": {"distance": "300.0", "direction_x": "0.0", "direction_y": "0.0", "direction_z": "1.0", "uv_scale": "100.0"},
+			"asset": null,
+			"x": 1000,
+			"y": 220
+		},
+		"normals": {
+			"verb": "mesh_normals",
+			"params": {"angle_weighted": "true", "area_weighted": "true"},
+			"asset": null,
+			"x": 1320,
+			"y": 220
+		},
+		"hornear": {
+			"verb": "mesh_to_static",
+			"params": {"name": "SM_JamMuroSpline", "folder": "/Game/Jam/Meshes", "collision": "true", "recompute_tangents": "true", "show_vertex_colors": "true"},
+			"asset": null,
+			"x": 1640,
+			"y": 220
+		},
+		"colocar": {
+			"verb": "place",
+			"params": {"x": "0.0", "y": "0.0", "z": "0.0", "view": "true", "surface": "true", "anchor": "base", "sink": "0.0", "align": "false", "yaw": "0.0", "scale": "1.0"},
+			"asset": null,
+			"x": 1960,
+			"y": 220
+		}
+	},
+	"edges": [
+		["recorrido", "out", "uniformar", "in"],
+		["uniformar", "out", "planta", "in"],
+		["planta", "out", "altura", "in"],
+		["altura", "out", "normals", "in"],
+		["normals", "out", "hornear", "in"],
+		["hornear", "out", "colocar", "in"]
+	]
+}

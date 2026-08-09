@@ -20,6 +20,13 @@ La sonda pública UE 5.8.1 dio 25 pares, 48 tris/50 verts, ancho 360 cm sin erro
 13/13 tutoriales compilados en el motor. Límite declarado: ribbon sólo acepta recorridos abiertos;
 la costura UV cerrada, espesor/solidify, auto-intersección, carretera modular y muro siguen.
 
+**Actualización Codex 2026-08-09 — muro y extrusión.** La receta decidió el contrato: no nació un
+`curve_solidify` monolítico sino `mesh_extrude` M → M para superficies abiertas. **Muro sobre
+spline** compone `Bezier → Resample → Ribbon (30 cm) → Extrude (300 cm Z)`. UE 5.8.1 midió
+`48→196` tris, `50→100` verts, 300.00 cm, UV0 completo, Material ID 3, sólido cerrado y una pieza.
+Son **795 tests**, mutación cm/UV discriminada y **14/14 tutoriales** compilados. Una M cerrada se
+rechaza: la API nativa la convierte en shell y esa semántica no se mezcló en el mismo verbo.
+
 El turno que cierra hizo dos cosas grandes. En **Jam**: el roadmap de accesibilidad del Graph (fases 0
 a 3) y las funciones con firma (fase 5, cerebro). Y después nació **`oracle`** —repo aparte,
 `Segtem/oracle`— que es un metalenguaje de medidas para construir herramientas con un LLM. Jam pasó a
@@ -109,6 +116,8 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 | Cerebro de Jam, corte PMG actual | mismo comando | **790 OK**, 0.47 s; winding mutado → rojo |
 | Ribbon S → M | `tools/experiments/verifica_mesh_ribbon_58.py` en `UnrealEditor-Cmd` | **25 pares · 48 tris/50 verts · ancho 360 · UV0 0..5.91 · Material ID 3 · TODO VERDE** |
 | Tutoriales actuales | `tools/experiments/verifica_ejemplos.py` en `UnrealEditor-Cmd` | **13/13 compilan · TODO VERDE** |
+| Extrude M → M / Muro | `tools/experiments/verifica_mesh_extrude_58.py` en `UnrealEditor-Cmd` | **48→196 tris · 50→100 verts · 300 cm · UV0/Material ID · cerrado · TODO VERDE** |
+| Tutoriales tras muro | `tools/experiments/verifica_ejemplos.py` en `UnrealEditor-Cmd` | **14/14 compilan · TODO VERDE** |
 | Math en UE 5.8.1 | `tools/experiments/verifica_math_graph.py` en `UnrealEditor-Cmd` | **9 verbos · Run sin Preview · Inspector=40/2 · dominios rechazados · TODO VERDE** |
 | Nanite Analyze/Validate | `tools/experiments/verifica_nanite_diagnostics_58.py` en `UnrealEditor-Cmd` | **apagado rechazado + 416.179 tris/1.202.673 verts validados · Run sin Preview · TODO VERDE** |
 | Simplify M → M | `tools/experiments/verifica_mesh_simplify_58.py` en `UnrealEditor-Cmd` | **Count 1922→202 · Tolerance 1922→201 · Edge 1922→332 vértices · TODO VERDE** |
@@ -162,6 +171,7 @@ Lo que **nadie ejerció con las manos** de este turno:
 | Validar malla, requisitos y cable M → M | Brian | ⏳ 586 tests + Graph 5.8.1 verde; falta gesto en Mesh → Hornear |
 | Copiar Static/Skeletal, LOD y cables A → M | Brian | ⏳ 586 tests + Graph 5.8.1 verde; falta gesto en Mesh → Hornear |
 | Cinta de curva S → M y aspecto de Borde de camino | Brian | ⏳ 790 tests + Graph real 5.8.1 verde; falta verlo y juzgar miter/UV/material en viewport |
+| Extruir superficie M → M y aspecto de Muro sobre spline | Brian | ⏳ 795 tests + Graph real 5.8.1 verde; falta juzgar espesor, remates y UV lateral en viewport |
 | Ribbon jerárquico por familias | Brian | ⏳ abrió/cerró sin crash; falta juzgar orden, densidad y navegación |
 | Resto del ABM, `Ctrl+G` + dibujo/cableado de pines múltiples | Brian | ◐ Nueva/Editar/Guardar/Renombrar/Eliminar verdes; faltan `Ctrl+G` y firmas no numéricas |
 | Aspecto de una GC Nanite fracturada y rotura en PIE | Brian | ⏳ metadata/materiales verdes; falta viewport y simulación |
@@ -209,12 +219,11 @@ de pedir manos sin que nadie lo note.)*
 
 ## Lo próximo
 
-**Prioridad nueva: seguir la Fase 2 del
-[[2026-08-09-ROADMAP-Verbos-Y-Ejemplos-PMG-v1.0|roadmap PMG]].** `curve_offset` y `mesh_ribbon` ya
-están cerrados por el camino real. El próximo corte debe nacer de **Muro sobre spline** para decidir
-si hace falta `curve_solidify`, extrusión con espesor o reutilizar un perfil de barrido; no agregar
-`curve_close/open/reverse` hasta que esa receta demuestre la necesidad. Después, Carretera modular
-debe medir módulos, orientación y seams, no sólo producir una malla vistosa.
+**Prioridad nueva: cerrar la Fase 2 del
+[[2026-08-09-ROADMAP-Verbos-Y-Ejemplos-PMG-v1.0|roadmap PMG]] con Carretera modular.** Offset,
+Ribbon y Extrude ya están cerrados por el camino real. El próximo ejemplo debe decidir el dato de
+módulos, medir cantidad, orientación, separación/seams y estabilidad por seed; no basta duplicar
+una calzada ni agregar `curve_close/open/reverse` sin una necesidad demostrada.
 
 **1. Continuar el
 [[2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0|plan de revisión integral]].** Las fases 0 y 1

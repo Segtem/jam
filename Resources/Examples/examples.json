@@ -87,8 +87,16 @@
 			"titulo": "Borde de camino",
 			"grupo": "Formas procedurales",
 			"icono": "jam-curve-offset",
-			"doc": "Una Bézier define el eje; Resample fija su densidad, Offset la desplaza 180 cm a la izquierda en XY y Pipe convierte ese recorrido lateral en un cordón continuo.\nEs el primer bloque de una carretera modular: el eje sigue siendo dato S y lado, plano, unión y límite de miter quedan editables.",
-			"mensaje": "Borde de camino cargado. Compile y Run graph; cambiá left/right, distancia y miter para estudiar de qué lado aparece el cordón."
+			"doc": "Una Bézier define el eje; Resample fija su densidad, Offset la desplaza 180 cm a la izquierda en XY y Ribbon genera una calzada de 360 cm con UV longitudinal.\nEs el primer bloque de una carretera modular: el eje sigue siendo dato S y lado, ancho, plano, unión y límite de miter quedan editables.",
+			"mensaje": "Borde de camino cargado. Compile y Run graph; cambiá left/right, ancho, distancia y miter para estudiar la calzada."
+		},
+		{
+			"archivo": "Muro-sobre-spline.jamgraph",
+			"titulo": "Muro sobre spline",
+			"grupo": "Formas procedurales",
+			"icono": "jam-mesh-extrude",
+			"doc": "Una Bézier se vuelve una planta de 30 cm con Ribbon; Extrude levanta esa superficie abierta 300 cm en Z y cose su contorno como un sólido.\nSeparar planta M y altura M permite reutilizar la misma extrusión para muros, losas y espesor de caminos sin inventar un generador monolítico.",
+			"mensaje": "Muro sobre spline cargado. Compile y Run graph; cambiá ancho, altura, dirección y escala UV lateral para estudiar el sólido."
 		},
 		{
 			"archivo": "Series-Range-Remap.jamgraph",

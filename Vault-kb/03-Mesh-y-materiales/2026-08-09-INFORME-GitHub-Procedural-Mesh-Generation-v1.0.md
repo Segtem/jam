@@ -67,15 +67,18 @@ catálogo entero, sino extraer fronteras que sigan siendo claras en un cable:
 4. `curve_offset` S → S: **implementado** con plano, lado, joins y límite de miter visibles; ya
    alimenta el ejemplo Borde de camino.
 5. `mesh_ribbon` S → M: **implementado**; convierte un recorrido abierto en geometría con ancho,
-   winding, UV longitudinal y Material ID mensurables. El espesor/solidify queda separado.
-6. Delaunay, Voronoi y MST: esperan un tipo explícito de conjunto de puntos/grafo; forzarlos hoy
+   winding, UV longitudinal y Material ID mensurables.
+6. `mesh_extrude` M → M: **implementado** como la operación separada de volumen; una Ribbon abierta
+   se vuelve un sólido con distancia, dirección y escala UV explícitas. No hizo falta un
+   `curve_solidify` monolítico.
+7. Delaunay, Voronoi y MST: esperan un tipo explícito de conjunto de puntos/grafo; forzarlos hoy
    dentro de `S` escondería topología.
 
 El primer corte, **Fuse Collinear + Subdivide**, ya quedó cerrado con el tutorial `Preparar una
-curva`. Offset y ribbon producen ahora la superficie vial del primer borde de camino. Sigue separar
-el contrato de espesor/solidify mediante el ejemplo de muro. La base ya distingue quitar, insertar,
-redistribuir, suavizar y desplazar puntos, y convertir el recorrido en superficie, antes de abordar
-repeat recursivo o generación urbana.
+curva`. Offset y ribbon producen ahora la superficie vial del primer borde de camino; Ribbon más
+Extrude producen el sólido de **Muro sobre spline**. La base ya distingue quitar, insertar,
+redistribuir, suavizar y desplazar puntos, convertir el recorrido en superficie y darle volumen,
+antes de abordar repeat recursivo o generación urbana.
 
 ## Ejemplo incorporado
 
@@ -90,6 +93,9 @@ produciendo un solo sweep cerrado y conectado; no es una hilera de cilindros ind
 
 `Borde de camino` enseña la otra salida S → M: una cinta abierta con ancho y escala UV explícitos,
 en lugar de usar un pipe como sustituto de la superficie final.
+
+`Muro sobre spline` continúa desde esa M con una extrusión lineal. El resultado medido es cerrado,
+una pieza y conserva UV0 y Material ID; no se copió código de los repos externos para lograrlo.
 
 ## Licencias y procedencia
 

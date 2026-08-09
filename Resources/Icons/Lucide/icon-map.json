@@ -102,6 +102,7 @@
   "mesh_cone": "jam-cone",
   "mesh_cylinder": "jam-cylinder",
   "mesh_disc": "jam-disc",
+  "mesh_extrude": "jam-mesh-extrude",
   "mesh_from_asset": "jam-mesh-from-asset",
   "mesh_grid": "jam-grid",
   "mesh_leaf": "jam-leaf",

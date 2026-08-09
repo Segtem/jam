@@ -85,10 +85,27 @@ la longitud media de ambos bordes y asigna un Material ID visible. **Borde de ca
 180 cm y genera una calzada de 360 cm: uno de sus bordes coincide así con el eje original.
 
 En UE 5.8.1 el camino público `Compile → Run` midió 25 pares, 48 triángulos, 50 vértices, una sola
-pieza abierta, UV0 `0..5.91` y Material ID 3 sin pérdida. Los 13 tutoriales del catálogo compilaron
+pieza abierta, UV0 `0..5.91` y Material ID 3 sin pérdida. Los entonces 13 tutoriales compilaron
 en el motor. Esta cinta no admite aún recorridos cerrados: hace falta duplicar la costura para que U
 pueda terminar y volver a cero sin compartir un vértice ambiguo. Tampoco agrega caras laterales ni
-espesor; eso pertenece al próximo ejemplo de muro/solidify.
+espesor; ese límite dispara el corte de muro que sigue.
+
+El séptimo corte usa ese límite como composición en vez de ampliar Ribbon:
+
+```text
+Bezier S → Resample S → Ribbon M (30 cm) → Extrude M (300 cm en Z)
+```
+
+**Muro sobre spline** demuestra que el dato intermedio M alcanza: Ribbon escribe la planta y
+`mesh_extrude` duplica la superficie en una dirección fija y cose toda su frontera. La dirección se
+normaliza para que `distance` siga midiendo centímetros; `uv_scale` expresa centímetros por UV y el
+adaptador lo invierte al factor que espera Geometry Script. La sonda UE 5.8.1 obtuvo 196 triángulos,
+100 vértices, altura exacta de 300 cm, UV0 completo, Material ID conservado y un sólido cerrado de
+una pieza. El catálogo quedó en 14/14.
+
+Extrude rechaza por ahora una M cerrada. La misma función nativa interpreta una selección completa
+cerrada como shell, una operación distinta que merece un verbo y medidas propias si aparece una
+receta real. Tampoco decide puertas, vanos, remates ni módulos: el ejemplo mide sólo el sólido base.
 
 ## Fuentes estudiadas
 
@@ -130,6 +147,7 @@ ese código MIT, deberá conservar el aviso de copyright y licencia.
 | Sphere | `mesh_sphere` / `mesh_sphere_box` | Comparar topologías, no duplicar una esfera |
 | Branching Lines | TreeGen `S → F → S` | Ya cubierto; falta una versión “rayo” más pequeña |
 | Noise Heightfield | `mesh_grid → mesh_noise` | **Implementado** |
+| Muro/strip con volumen | `S → mesh_ribbon → mesh_extrude` | **Implementado: sólido cerrado y UV completo** |
 | Animated Heightfield | material/WPO o estado temporal | No mezclar con autoría estática de M |
 | Sierpinski Lines | repetición + pipe | Espera compound iterativo/recursivo |
 | Sierpinski Tetrahedron | repetición + tetraedro/merge | Espera la misma base y un límite de explosión |

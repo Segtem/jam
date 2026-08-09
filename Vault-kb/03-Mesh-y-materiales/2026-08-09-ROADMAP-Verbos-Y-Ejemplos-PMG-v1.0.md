@@ -43,6 +43,7 @@ Cada entrega termina solamente cuando cumple cuatro fronteras:
 | `Resample` S → S | ✅ | Redistribuye por longitud |
 | `Noise` M → M | ✅ | Terreno con ruido |
 | `Offset` S → S y `Ribbon` S → M | ✅ | Borde de camino |
+| `Extrude` M → M sobre superficie abierta | ✅ | Muro sobre spline |
 | barridos S → M, frames S → F y ramas | ✅ | Cylinder Strip y ejemplos TreeGen |
 
 ## Fase 1 — editar la discretización de paths
@@ -62,20 +63,23 @@ error angular residual, largo máximo de segmento y metadata TreeGen intacta.
 
 La sonda pública midió la cadena `7→2→5→5→13`; dos mutaciones deliberadas demostraron que los
 tests detectan tanto invertir el juicio angular de Fuse como interpretar `count` con una división
-menos. El catálogo completo quedó en 13/13 ejemplos compilados dentro del motor.
+menos. El catálogo completo quedó en 14/14 ejemplos compilados dentro del motor.
 
 ## Fase 2 — contornos, caminos y muros
 
 **Objetivo:** convertir un recorrido procesado en bordes y superficies utilizables.
 
-**Estado: ◐ Offset y ribbon verificados; espesor, carretera modular y muro pendientes.**
+**Estado: ◐ Offset, ribbon, extrusión y muro verificados; carretera modular pendiente.**
 
 - `curve_offset` S → S con plano, lado, joins y `miter_limit` explícitos. ✅
 - `curve_reverse`, `curve_close` y `curve_open` si una segunda receta demuestra que son necesarios.
 - `mesh_ribbon` S → M con ancho, plano, joins, UV longitudinal y Material ID. ✅
-- `curve_solidify` o espesor opcional sobre ribbon, sólo cuando el muro defina su contrato. ⏳
+- `mesh_extrude` M → M para dar altura/espesor en dirección fija a una superficie abierta. ✅
+- `curve_solidify` no fue necesario: Ribbon define la planta y Extrude la vuelve sólido sin
+  esconder dos operaciones bajo un solo nodo.
 - Ejemplo **Borde de camino**: eje → Resample → Offset → Ribbon. ✅
-- Ejemplos completos **Carretera modular** y **Muro sobre spline**. ⏳
+- Ejemplo completo **Muro sobre spline**: curva → Ribbon → Extrude. ✅
+- Ejemplo completo **Carretera modular**. ⏳
 
 **Medidas:** distancia lateral, orientación, auto-intersecciones conocidas, cierre, componentes,
 ancho, estiramiento UV y presupuesto de miter. Un offset no se declara correcto sólo porque dibuja.
@@ -86,6 +90,12 @@ abierta; midió ancho de extremos de 360 cm con error 0.0000, UV0 longitudinal `
 primera versión acepta recorridos abiertos: cerrar una cinta exige duplicar la costura UV y hoy se
 rechaza en vez de soldarla con coordenadas ambiguas. Tampoco detecta todavía auto-intersecciones de
 un camino cuyo ancho supera el radio local de sus curvas.
+
+La receta de muro resolvió la frontera de espesor con un verbo general. `mesh_extrude` normaliza la
+dirección antes de multiplicarla por la distancia —la API nativa no lo hace—, convierte centímetros
+por UV a su factor inverso y rechaza mallas cerradas porque Geometry Script cambia allí la operación
+a shell. La sonda real midió `48→196` triángulos, `50→100` vértices, altura 300.00 cm, UV0 completo,
+Material ID 3 conservado, cierre y una pieza. Mutar `1/uv_scale` a `uv_scale` puso rojo el test.
 
 ## Fase 3 — atributos y selecciones observables
 
@@ -137,7 +147,7 @@ UE. No bloquea las fases de autoría sobre curvas.
 ## Orden inmediato
 
 1. ~~cerrar Fase 1 completa~~ ✅;
-2. ~~`curve_offset` + `mesh_ribbon` + primer borde de camino~~ ✅; sigue espesor/muro;
+2. ~~`curve_offset` + `mesh_ribbon` + `mesh_extrude` + muro~~ ✅; sigue carretera modular;
 3. atributos explícitos + bambú o palmera;
 4. Repeat Compound;
 5. recién entonces definir el dato topológico y explorar generación urbana;
