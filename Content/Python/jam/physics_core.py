@@ -107,6 +107,7 @@ def resumen(resultados) -> str:
     apiladas = sum(1 for r in apoyadas if r.get("sobre_hermana"))
     corrimiento = max(abs(r["caida"]) for r in apoyadas)
     cola = f" \u00b7 {sin_piso} sin piso" if sin_piso else ""
-    return (f"ASENTAR \u2713 \u2014 {len(apoyadas)}/{len(resultados)} asentadas \u00b7 "
+    marca = "\u2717" if sin_piso else "\u2713"
+    return (f"ASENTAR {marca} \u2014 {len(apoyadas)}/{len(resultados)} asentadas \u00b7 "
             f"{apiladas} apiladas sobre otra pieza \u00b7 "
             f"corrimiento m\u00e1x {corrimiento:.1f}cm{cola}")

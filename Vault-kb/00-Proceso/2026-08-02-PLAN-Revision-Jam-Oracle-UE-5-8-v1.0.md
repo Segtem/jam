@@ -135,7 +135,8 @@ próximo paso. Nada se reemplaza sólo porque dos implementaciones coincidieron 
 | relevo | testigo/git → 6 medidas | referencia + puerta diferencial | 8/8 escenarios coinciden | no prueba gestos manuales |
 | scatter | instancia/configuración/conteo/cobertura → 4 medidas | referencia histórica + sombra | UE 5.8.1 coincide en sano y saturado | AABB y centros; el aviso contra escena sigue manual |
 | spline modular | colocaciones realizadas/largo → cobertura y solape | referencia histórica + sombra | UE 5.8.1 coincide en sano y solapado | largo nominal; no ve forma fina ni cruces no adyacentes |
-| physics unitario | pieza/soportes AABB → suelo y separación vertical | referencia histórica + sombra | UE 5.8.1 coincide en flotando, apoyado y hundido | no ve colisión fina, pendiente ni asentamiento por raycast |
+| physics unitario | pieza/soportes AABB → suelo y separación vertical | referencia histórica + sombra | UE 5.8.1 coincide en flotando, apoyado y hundido | no ve colisión fina ni pendiente |
+| physics por lotes | resultados/AABB → completitud e interpenetración | referencia histórica + sombra | UE 5.8.1 coincide en pila, Preview excluido y Landscape | no ve malla fina, equilibrio, Chaos ni vuelco posterior |
 | reemplazo, espacio | todavía sin sensor para `Motor` | referencia histórica | fuera de esta fase | migración pendiente |
 | pared R7 | constructor legado sustituido por `spline` | referencia histórica | sólo selftest legado | no migrar mientras no vuelva a ser camino de producto |
 
@@ -185,8 +186,24 @@ próximo paso. Nada se reemplaza sólo porque dos implementaciones coincidieron 
 - UE 5.8.1 ejecutó tres juicios por el adaptador real sobre actores de dimensiones no supuestas:
   200 cm flotando, 0 cm apoyado y 20 cm hundido. Las tres sombras coincidieron y el marcador incluyó
   `physics=True`; el desmontaje posterior volvió a caer, esta vez con señal 139.
-- `drop` con un flujo de puntos usa otra política: raycasts y `physics_core.asentar_tanda`. No queda
-  certificado por estas medidas y se conserva como frontera de auditoría separada.
+- `drop` con un flujo de puntos usa otra política: raycasts y `physics_core.asentar_tanda`. En este
+  corte todavía no estaba certificado y se conservó como frontera de auditoría separada.
+
+### Extensión 2026-08-10 — physics paint por lotes
+
+- `physics.tanda_completa` exige que ninguna pieza quede sin soporte;
+  `physics.tanda_sin_interpenetracion` mide los AABB finales. La cantidad apilada permanece como
+  diagnóstico: una capa separada también puede ser correcta y una torre no necesariamente lo es.
+- El audit encontró un falso verde operativo: con una pieza apoyada y otra sin piso, `resumen()`
+  publicaba `ASENTAR ✓`. Ahora todo resultado parcial lleva `✗` y el Graph no puede ocultarlo detrás
+  de una pieza que sí aterrizó.
+- Ochenta mundos diferenciales cubren pila sana, ninguna con suelo, resultado parcial y penetración.
+  Un caso a 0,5 cm fija el umbral y dos profundidades fijan el peor testigo. El total queda en
+  **739 acuerdos / 3398 veredictos** y **234/234 mutantes muertos**.
+- La sonda real de UE 5.8.1 produjo bases 0/100/200 cm fuera de orden, ignoró el Preview anterior y
+  midió por raycast cuatro cotas de Landscape. Las tres ejecuciones de `physics.tanda` coincidieron
+  con la referencia. El commandlet sólo devolvió 1 por los nueve paquetes dañados conocidos de
+  BotOO; su marcador específico quedó verde.
 
 ## Fase 2 — recertificación completa en UE 5.8.1
 
@@ -203,7 +220,7 @@ motor, commit, camino y marcador de log por superficie.
 | Nanite/Substrate | conversión, material real y costo donde el modo headless lo permita |
 | PCG | autoría, cableado verificado, generación, Preview, Bake y Discard |
 | Dataflow/Fracture | editor GUI cuando el camino headless cuelgue |
-| Oracle | `placement`, `snap`, `scatter`, `spline` y `physics` unitario con sombra observable |
+| Oracle | `placement`, `snap`, `scatter`, `spline` y `physics` unitario/por lotes con sombra observable |
 | Graph | funciones, dos instancias, compilación y gestos Slate |
 
 ### Resultado parcial 2026-08-02

@@ -40,7 +40,7 @@ Motor: `5.8.1-0+UE5`. Commit de partida: `bc0bd89`. Proyecto host:
 | Material + Geometry/UV | `verifica_tutoriales_material.py` con commandlet rendering | **TODO VERDE**: material, parámetro, cable al mesh, Static Mesh transaccional, proyección y pack UV | inspección visual y costo con GUI cuando corresponda |
 | PCG | editor completo + `-ExecCmds`, 90 ticks | **verde**: 3 nodos, 4/4 cables, preset 600 cm, hex/triangular, 287 HISM | Preview/Bake/Discard manual y PCG 5.8 nuevo |
 | Graph funciones | `verifica_funcion_graph.py` | **verde en 5.8.1**: id estable, guardar, firma, dos instancias y Compile | ABM, `Ctrl+G` y pines múltiples con las manos |
-| Oracle | editor completo + `verifica_oracle_shadow.py` | **función verde**: placement, snap, `snap.al_ras`, scatter, spline modular y physics unitario coinciden | desmontaje posterior falla: última ronda señal 139 |
+| Oracle | editor completo/commandlet + sondas específicas | **función verde**: placement, snap, `snap.al_ras`, scatter, spline modular y physics unitario/por lotes coinciden | desmontaje del editor completo falla; commandlet hereda 9 paquetes rotos de BotOO |
 | Slate | build y carga de `JamEditor` | módulo cargado | tabs, historial, gestos y Undo/Redo en GUI |
 | Nanite | editor GUI + `verifica_nanite_fracture_58.py` | **verde**: copia Nanite y GC con `EnableNanite=true` | inspección visual y materiales incompatibles |
 | Dataflow/Fracture | editor GUI, nodos y terminal v2 | **verde**: GC regenerada; 2/2 materiales distintos conservados | rotura en PIE y shutdown con señal 11 |
@@ -91,7 +91,15 @@ dejó de suponer el tamaño de un cubo y construyó flotación, apoyo y hundimie
 del asset elegido. UE midió respectivamente 200, 0 y -20 cm de separación; las tres evaluaciones de
 `Motor` coincidieron con la referencia y el marcador terminó en
 `placement=True snap=True scatter=True spline=True physics=True`. El editor cayó después del
-marcador con señal 139. El asentamiento de una tanda por raycasts sigue fuera de esta certificación.
+marcador con señal 139. En ese corte, el asentamiento de una tanda por raycasts seguía fuera de la
+certificación.
+
+La extensión de lotes cerró esa frontera con `verifica_physics_paint_58.py`: tres cubos reales
+terminaron con bases 0/100/200 cm pese a entrar fuera de orden; una pieza ignoró correctamente el
+Preview anterior, y cuatro piezas sobre Landscape recibieron cotas por raycast en vez del top global
+del AABB. Las tres sombras `physics.tanda` coincidieron. El marcador
+`JAM_PHYSICS_PAINT_58 TODO VERDE` se emitió antes del código 1 causado exclusivamente por los nueve
+paquetes inválidos ya delimitados de BotOO.
 
 ## Próximo bloque
 

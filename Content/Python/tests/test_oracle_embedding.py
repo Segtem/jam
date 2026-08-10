@@ -12,8 +12,10 @@ from contextlib import redirect_stdout
 from unittest import mock
 from pathlib import Path
 
-from jam import (bridge, oracle_physics, oracle_physics_facts, oracle_placement, oracle_scatter,
-                 oracle_scatter_facts, oracle_shadow, oracle_snap, oracle_spline_facts, spline_core)
+from jam import (bridge, oracle_physics, oracle_physics_facts, oracle_physics_tanda,
+                 oracle_physics_tanda_facts, oracle_placement, oracle_scatter,
+                 oracle_scatter_facts, oracle_shadow, oracle_snap, oracle_spline_facts,
+                 physics_core, spline_core)
 from jam.geometry import AABB, Pieza, Vec3
 
 
@@ -289,6 +291,61 @@ class OracleEmbeddingTests(unittest.TestCase):
 
         self.assertFalse(sombra.coincide)
         self.assertIn("tolerancia de physics no declarada", sombra.error)
+
+    @staticmethod
+    def _resultado_tanda(pieza, *, apoyada=True, soporte="piso"):
+        return {
+            "caida": 0.0,
+            "soporte": soporte,
+            "apoyada": apoyada,
+            "sobre_hermana": False,
+            "pieza": pieza,
+        }
+
+    def test_physics_tanda_coincide_sana_parcial_y_clavada(self) -> None:
+        a, _ = self._caso_physics()
+        centro_b = Vec3(100.0, 0.0, 75.0)
+        b = Pieza("b", AABB(centro_b, Vec3(25.0, 25.0, 25.0)), centro_b, 0.0)
+        separada = [self._resultado_tanda(a), self._resultado_tanda(b)]
+        parcial = [separada[0], self._resultado_tanda(b, apoyada=False, soporte=None)]
+        clavada = [separada[0], self._resultado_tanda(
+            physics_core.bajar(a._replace(nombre="b"), -10.0))]
+
+        for nombre, resultados in {
+            "sana": separada,
+            "parcial": parcial,
+            "clavada": clavada,
+        }.items():
+            with self.subTest(caso=nombre):
+                referencia = oracle_physics_tanda.verificar(resultados)
+                sombra = oracle_shadow.comparar_physics_tanda(resultados, referencia)
+                self.assertTrue(sombra.coincide, sombra)
+
+        self.assertTrue(oracle_physics_tanda.es_ok(
+            oracle_physics_tanda.verificar(separada)))
+        self.assertFalse(oracle_physics_tanda.es_ok(
+            oracle_physics_tanda.verificar(parcial)))
+        self.assertFalse(oracle_physics_tanda.es_ok(
+            oracle_physics_tanda.verificar(clavada)))
+
+    def test_hechos_physics_tanda_no_deciden_el_umbral(self) -> None:
+        pieza, _ = self._caso_physics()
+        evidencia = oracle_physics_tanda_facts.hechos([
+            self._resultado_tanda(pieza, apoyada=False, soporte=None)])
+
+        self.assertFalse(evidencia["asentada"][0]["apoyada"])
+        self.assertNotIn("completa", evidencia["asentada"][0])
+
+    def test_physics_tanda_no_compara_una_tolerancia_no_declarada(self) -> None:
+        pieza, _ = self._caso_physics()
+        resultados = [self._resultado_tanda(pieza)]
+        referencia = oracle_physics_tanda.verificar(resultados, tol=2.0)
+
+        sombra = oracle_shadow.comparar_physics_tanda(
+            resultados, referencia, tol=2.0)
+
+        self.assertFalse(sombra.coincide)
+        self.assertIn("tolerancia de physics.tanda no declarada", sombra.error)
 
     def test_la_sonda_real_de_physics_pasa_por_el_adaptador_con_sombra(self) -> None:
         fuente = (RAIZ / "Content" / "Python" / "jam" / "menu.py").read_text(

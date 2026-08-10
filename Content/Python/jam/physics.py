@@ -122,4 +122,8 @@ def asentar_actores(actores, soportes=None, *, tol=oracle_placement._TOL_CM) -> 
         if r["apoyada"] and r["caida"]:
             loc = actor.get_actor_location()
             actor.set_actor_location(unreal.Vector(loc.x, loc.y, loc.z - r["caida"]), False, True)
+    # Medir lo que quedó en el nivel, no sólo las piezas predichas por el núcleo. La referencia
+    # manual sigue gobernando; Motor corre en sombra y cualquier desacuerdo queda en el log.
+    observados = [r | {"pieza": ue.pieza(actor)} for actor, r in zip(actores, resultados)]
+    ue.physics_tanda(observados, tol=tol)
     return resultados

@@ -11,6 +11,17 @@ verde_editor_fecha: 2026-08-10
 
 Entra **claude-code**. Corré `python tools/relevo.py` antes de leer esto; si sale rojo, eso es el turno.
 
+**Actualización Codex 2026-08-10 — Oracle cubre physics paint por lotes.** Dos medidas nuevas exigen
+que todas las piezas encuentren soporte y que sus AABB finales no interpenetren. El audit encontró
+un falso verde: `resumen()` decía `ASENTAR ✓` si una pieza aterrizaba aunque otra quedara sin piso;
+ahora el resultado parcial lleva `✗`. Son 80 mundos nuevos, con bordes mutacionales de 0,5 cm y dos
+profundidades distintas. UE 5.8.1 apiló actores reales en bases 0/100/200 cm, ignoró el Preview
+anterior y midió cuatro alturas de Landscape por raycast; las tres sombras coincidieron y
+`JAM_PHYSICS_PAINT_58 TODO VERDE`. Quedan **821 tests**, **739 acuerdos / 3398 veredictos** y
+**234/234 mutantes**. El commandlet salió 1 sólo por los nueve paquetes inválidos conocidos de
+BotOO. La cantidad apilada sigue siendo diagnóstico, no umbral universal; falta únicamente mirar el
+gesto de `drop(points)` en Slate.
+
 **Actualización Codex 2026-08-10 — Oracle cubre el apoyo físico unitario.** El camino vivo
 `t_drop → physics.soltar → ue.physics_texto` ejecuta ahora dos medidas en sombra:
 `physics.tiene_suelo` y `physics.apoyado`. El sensor puro elige el soporte AABB válido más alto y el
@@ -158,6 +169,7 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 | Cerebro de Jam, corte Oracle scatter | mismo comando | **808 OK**, 0.48 s; conteo solicitado y sombra fijados |
 | Cerebro de Jam, corte Oracle spline | mismo comando | **812 OK**, 0.48 s; spawn real y sombra fijados |
 | Cerebro de Jam, corte Oracle physics | mismo comando | **816 OK**, 0.48 s; cuatro estados y selftest AABB fijados |
+| Cerebro de Jam, corte physics paint | mismo comando | **821 OK**, 0.49 s; parcial rojo y sombra de tanda fijados |
 | Ribbon S → M | `tools/experiments/verifica_mesh_ribbon_58.py` en `UnrealEditor-Cmd` | **25 pares · 48 tris/50 verts · ancho 360 · UV0 0..5.91 · Material ID 3 · TODO VERDE** |
 | Tutoriales actuales | `tools/experiments/verifica_ejemplos.py` en `UnrealEditor-Cmd` | **13/13 compilan · TODO VERDE** |
 | Extrude M → M / Muro | `tools/experiments/verifica_mesh_extrude_58.py` en `UnrealEditor-Cmd` | **48→196 tris · 50→100 verts · 300 cm · UV0/Material ID · cerrado · TODO VERDE** |
@@ -176,9 +188,10 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 | Nanite→Fracture | `tools/experiments/verifica_nanite_fracture_58.py` en editor GUI | **2/2 materiales distintos + GC Nanite · TODO VERDE; cierre 139** |
 | UE 5.8.1 | APIs + ejemplos + material/UV + PCG real | **103 símbolos + 84 métodos · 8/8 ejemplos · material/UV verde · 287 HISM** |
 | Oracle en UE 5.8.1 | `tools/experiments/verifica_oracle_shadow.py` con editor completo | **placement + snap + scatter + spline + physics unitario funcional verde; shutdown histórico rojo** |
+| Physics paint en UE 5.8.1 | `tools/experiments/verifica_physics_paint_58.py` | **pila 0/100/200 · Preview ignorado · Landscape por pieza · 3 sombras coinciden** |
 | oracle sobre sí mismo | `cd vendor/oracle && python tools/aceptacion.py` | **27 rojos · 12 verdes · 0 huecos** |
-| oracle sobre Jam | `python vendor/oracle/tools/diferencial.py --proyecto medidas --confiar-escalares` | **659 acuerdos · 3238 veredictos estables** |
-| » mutación de medidas | `python vendor/oracle/tools/mutar.py --proyecto medidas --confiar-escalares` | **219/219 mutantes muertos** |
+| oracle sobre Jam | `python vendor/oracle/tools/diferencial.py --proyecto medidas --confiar-escalares` | **739 acuerdos · 3398 veredictos estables** |
+| » mutación de medidas | `python vendor/oracle/tools/mutar.py --proyecto medidas --confiar-escalares` | **234/234 mutantes muertos** |
 | » tests de oracle | `cd vendor/oracle && python -m unittest discover -s tests -t . -q` | **339 OK** |
 
 El campo `verde_editor` apunta al checkpoint `c1e6bc7`, verificado en UE 5.8.1 con la sombra de
@@ -223,7 +236,7 @@ Lo que **nadie ejerció con las manos** de este turno:
 | Ribbon jerárquico por familias | Brian | ⏳ abrió/cerró sin crash; falta juzgar orden, densidad y navegación |
 | Resto del ABM, `Ctrl+G` + dibujo/cableado de pines múltiples | Brian | ◐ Nueva/Editar/Guardar/Renombrar/Eliminar verdes; faltan `Ctrl+G` y firmas no numéricas |
 | Aspecto de una GC Nanite fracturada y rotura en PIE | Brian | ⏳ metadata/materiales verdes; falta viewport y simulación |
-| `drop`: la tanda se apila (era `place physics`) | Brian | ◐ 745 tests + sonda 5.8.1 con actores reales verdes; falta el gesto en el Graph |
+| `drop`: la tanda se apila (era `place physics`) | Brian | ◐ 821 tests + sonda 5.8.1 real y sombra declarativa verdes; falta el gesto en el Graph |
 | `asset_set → drop`: variantes por punto | Brian | ◐ compila y reparte 2/2 en 5.8.1; **colocar no se puede verificar headless** (ver trampas), falta verlo colocar |
 | El corte `place` reparte / `drop` apila | Brian | ✅ visto en el nivel: montón sobre el terreno, 24/24 |
 | El Preview anterior ya no es piso (barril flotando) | **nadie** | ⏳ 753 tests + guardián; **la sonda 5.8.1 NO se pudo correr** (editor abierto) |
@@ -299,9 +312,9 @@ re-expresados como medidas y verificados por diferencial, y **siguen en uso los 
 reemplazo va cuando el diferencial lleve tiempo en verde, no el mismo día en que se escribió.
 
 **5. Re-expresar los oráculos vivos restantes del plugin** como medidas. Ya están `placement`,
-`snap`, `scatter`, la pared viva como `spline` y `physics` unitario. Siguen `reemplazo`, `espacio` y
-la auditoría separada del asentamiento por lotes de `drop`, que usa raycasts en vez del juicio AABB.
-Cada uno necesita sensor y diferencial siguiendo el patrón de `tools/emitir_diferencial.py`.
+`snap`, `scatter`, la pared viva como `spline` y `physics` unitario/por lotes. Siguen `reemplazo` y
+`espacio`. Cada uno necesita sensor y diferencial siguiendo el patrón de
+`tools/emitir_diferencial.py`.
 
 ⚠️ **La trampa del paso 5**: `jam/oracle_*.py` los llama el **editor**, así que el vendor tendría que
 estar en el path del intérprete embebido de UE — y hoy `vendor/oracle` es *hermano* de

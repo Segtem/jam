@@ -1,0 +1,4845 @@
+{
+ "dominio": "physics_tanda",
+ "escenarios": [
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": -24850.93564173506,
+      "ly": 13979.072729557483,
+      "lz": -4033.197971728492,
+      "ox": -24850.93564173506,
+      "oy": 13979.072729557483,
+      "oz": -4033.197971728492,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": -24850.93564173506,
+      "ly": 13979.072729557483,
+      "lz": -3983.197971728492,
+      "ox": -24850.93564173506,
+      "oy": 13979.072729557483,
+      "oz": -3983.197971728492,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": -24850.93564173506,
+      "ly": 13979.072729557483,
+      "lz": -3933.197971728492,
+      "ox": -24850.93564173506,
+      "oy": 13979.072729557483,
+      "oz": -3933.197971728492,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin-defecto·0",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": -4867.208323224695,
+      "ly": -39574.19533402101,
+      "lz": -48108.853247711544,
+      "ox": -4867.208323224695,
+      "oy": -39574.19533402101,
+      "oz": -48108.853247711544,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": -4867.208323224695,
+      "ly": -39574.19533402101,
+      "lz": -48058.853247711544,
+      "ox": -4867.208323224695,
+      "oy": -39574.19533402101,
+      "oz": -48058.853247711544,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": -4867.208323224695,
+      "ly": -39574.19533402101,
+      "lz": -48008.853247711544,
+      "ox": -4867.208323224695,
+      "oy": -39574.19533402101,
+      "oz": -48008.853247711544,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin-defecto·1",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": -4770.294887074808,
+      "ly": -46554.77057208729,
+      "lz": 12960.045342665384,
+      "ox": -4770.294887074808,
+      "oy": -46554.77057208729,
+      "oz": 12960.045342665384,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": -4770.294887074808,
+      "ly": -46554.77057208729,
+      "lz": 13010.045342665384,
+      "ox": -4770.294887074808,
+      "oy": -46554.77057208729,
+      "oz": 13010.045342665384,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": -4770.294887074808,
+      "ly": -46554.77057208729,
+      "lz": 13060.045342665384,
+      "ox": -4770.294887074808,
+      "oy": -46554.77057208729,
+      "oz": 13060.045342665384,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin-defecto·2",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": -3401.750344696753,
+      "ly": -24612.155035109496,
+      "lz": 23112.993865259938,
+      "ox": -3401.750344696753,
+      "oy": -24612.155035109496,
+      "oz": 23112.993865259938,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": -3401.750344696753,
+      "ly": -24612.155035109496,
+      "lz": 23162.993865259938,
+      "ox": -3401.750344696753,
+      "oy": -24612.155035109496,
+      "oz": 23162.993865259938,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": -3401.750344696753,
+      "ly": -24612.155035109496,
+      "lz": 23212.993865259938,
+      "ox": -3401.750344696753,
+      "oy": -24612.155035109496,
+      "oz": 23212.993865259938,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin-defecto·3",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": 33457.307862526824,
+      "ly": 48759.71329217298,
+      "lz": -2313.699462964403,
+      "ox": 33457.307862526824,
+      "oy": 48759.71329217298,
+      "oz": -2313.699462964403,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": 33457.307862526824,
+      "ly": 48759.71329217298,
+      "lz": -2263.699462964403,
+      "ox": 33457.307862526824,
+      "oy": 48759.71329217298,
+      "oz": -2263.699462964403,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": 33457.307862526824,
+      "ly": 48759.71329217298,
+      "lz": -2213.699462964403,
+      "ox": 33457.307862526824,
+      "oy": 48759.71329217298,
+      "oz": -2213.699462964403,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin-defecto·4",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": 13686.325497276805,
+      "ly": 15417.379100357663,
+      "lz": 37758.22751384815,
+      "ox": 13686.325497276805,
+      "oy": 15417.379100357663,
+      "oz": 37758.22751384815,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": 13686.325497276805,
+      "ly": 15417.379100357663,
+      "lz": 37808.22751384815,
+      "ox": 13686.325497276805,
+      "oy": 15417.379100357663,
+      "oz": 37808.22751384815,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": 13686.325497276805,
+      "ly": 15417.379100357663,
+      "lz": 37858.22751384815,
+      "ox": 13686.325497276805,
+      "oy": 15417.379100357663,
+      "oz": 37858.22751384815,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin-defecto·5",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": -36531.25127631555,
+      "ly": -45087.83526765015,
+      "lz": 42842.532789399964,
+      "ox": -36531.25127631555,
+      "oy": -45087.83526765015,
+      "oz": 42842.532789399964,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": -36531.25127631555,
+      "ly": -45087.83526765015,
+      "lz": 42892.532789399964,
+      "ox": -36531.25127631555,
+      "oy": -45087.83526765015,
+      "oz": 42892.532789399964,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": -36531.25127631555,
+      "ly": -45087.83526765015,
+      "lz": 42942.532789399964,
+      "ox": -36531.25127631555,
+      "oy": -45087.83526765015,
+      "oz": 42942.532789399964,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin-defecto·6",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": -2034.80648558744,
+      "ly": 23913.941951465124,
+      "lz": -26127.884942129484,
+      "ox": -2034.80648558744,
+      "oy": 23913.941951465124,
+      "oz": -26127.884942129484,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": -2034.80648558744,
+      "ly": 23913.941951465124,
+      "lz": -26077.884942129484,
+      "ox": -2034.80648558744,
+      "oy": 23913.941951465124,
+      "oz": -26077.884942129484,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": -2034.80648558744,
+      "ly": 23913.941951465124,
+      "lz": -26027.884942129484,
+      "ox": -2034.80648558744,
+      "oy": 23913.941951465124,
+      "oz": -26027.884942129484,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin-defecto·7",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": 47689.93384586935,
+      "ly": 35153.53960895978,
+      "lz": 846.5767601724074,
+      "ox": 47689.93384586935,
+      "oy": 35153.53960895978,
+      "oz": 846.5767601724074,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": 47689.93384586935,
+      "ly": 35153.53960895978,
+      "lz": 896.5767601724074,
+      "ox": 47689.93384586935,
+      "oy": 35153.53960895978,
+      "oz": 896.5767601724074,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": 47689.93384586935,
+      "ly": 35153.53960895978,
+      "lz": 946.5767601724074,
+      "ox": 47689.93384586935,
+      "oy": 35153.53960895978,
+      "oz": 946.5767601724074,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin-defecto·8",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": 32735.275115063472,
+      "ly": -3078.7219355534544,
+      "lz": 2509.602614783318,
+      "ox": 32735.275115063472,
+      "oy": -3078.7219355534544,
+      "oz": 2509.602614783318,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": 32735.275115063472,
+      "ly": -3078.7219355534544,
+      "lz": 2559.602614783318,
+      "ox": 32735.275115063472,
+      "oy": -3078.7219355534544,
+      "oz": 2559.602614783318,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": 32735.275115063472,
+      "ly": -3078.7219355534544,
+      "lz": 2609.602614783318,
+      "ox": 32735.275115063472,
+      "oy": -3078.7219355534544,
+      "oz": 2609.602614783318,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin-defecto·9",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": 22570.98896055871,
+      "ly": -43677.54251672724,
+      "lz": -7912.158170850969,
+      "ox": 22570.98896055871,
+      "oy": -43677.54251672724,
+      "oz": -7912.158170850969,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": 22570.98896055871,
+      "ly": -43677.54251672724,
+      "lz": -7862.158170850969,
+      "ox": 22570.98896055871,
+      "oy": -43677.54251672724,
+      "oz": -7862.158170850969,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": 22570.98896055871,
+      "ly": -43677.54251672724,
+      "lz": -7812.158170850969,
+      "ox": 22570.98896055871,
+      "oy": -43677.54251672724,
+      "oz": -7812.158170850969,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin-defecto·10",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": 38763.81505436187,
+      "ly": -46972.23660427971,
+      "lz": -47517.33951330994,
+      "ox": 38763.81505436187,
+      "oy": -46972.23660427971,
+      "oz": -47517.33951330994,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": 38763.81505436187,
+      "ly": -46972.23660427971,
+      "lz": -47467.33951330994,
+      "ox": 38763.81505436187,
+      "oy": -46972.23660427971,
+      "oz": -47467.33951330994,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": 38763.81505436187,
+      "ly": -46972.23660427971,
+      "lz": -47417.33951330994,
+      "ox": 38763.81505436187,
+      "oy": -46972.23660427971,
+      "oz": -47417.33951330994,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin-defecto·11",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": 23630.258910268443,
+      "ly": 43297.553665710264,
+      "lz": -10096.151130711027,
+      "ox": 23630.258910268443,
+      "oy": 43297.553665710264,
+      "oz": -10096.151130711027,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": 23630.258910268443,
+      "ly": 43297.553665710264,
+      "lz": -10046.151130711027,
+      "ox": 23630.258910268443,
+      "oy": 43297.553665710264,
+      "oz": -10046.151130711027,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": 23630.258910268443,
+      "ly": 43297.553665710264,
+      "lz": -9996.151130711027,
+      "ox": 23630.258910268443,
+      "oy": 43297.553665710264,
+      "oz": -9996.151130711027,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin-defecto·12",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": 39963.91321159192,
+      "ly": 25678.056186548856,
+      "lz": -900.3151958513627,
+      "ox": 39963.91321159192,
+      "oy": 25678.056186548856,
+      "oz": -900.3151958513627,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": 39963.91321159192,
+      "ly": 25678.056186548856,
+      "lz": -850.3151958513627,
+      "ox": 39963.91321159192,
+      "oy": 25678.056186548856,
+      "oz": -850.3151958513627,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": 39963.91321159192,
+      "ly": 25678.056186548856,
+      "lz": -800.3151958513627,
+      "ox": 39963.91321159192,
+      "oy": 25678.056186548856,
+      "oz": -800.3151958513627,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin-defecto·13",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": 26962.165439136894,
+      "ly": -28385.097865431897,
+      "lz": 25620.46644230935,
+      "ox": 26962.165439136894,
+      "oy": -28385.097865431897,
+      "oz": 25620.46644230935,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": 26962.165439136894,
+      "ly": -28385.097865431897,
+      "lz": 25670.46644230935,
+      "ox": 26962.165439136894,
+      "oy": -28385.097865431897,
+      "oz": 25670.46644230935,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": 26962.165439136894,
+      "ly": -28385.097865431897,
+      "lz": 25720.46644230935,
+      "ox": 26962.165439136894,
+      "oy": -28385.097865431897,
+      "oz": 25720.46644230935,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin-defecto·14",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": -32084.200451638655,
+      "ly": -44741.050750692804,
+      "lz": 10945.958059614597,
+      "ox": -32084.200451638655,
+      "oy": -44741.050750692804,
+      "oz": 10945.958059614597,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": -32084.200451638655,
+      "ly": -44741.050750692804,
+      "lz": 10995.958059614597,
+      "ox": -32084.200451638655,
+      "oy": -44741.050750692804,
+      "oz": 10995.958059614597,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": -32084.200451638655,
+      "ly": -44741.050750692804,
+      "lz": 11045.958059614597,
+      "ox": -32084.200451638655,
+      "oy": -44741.050750692804,
+      "oz": 11045.958059614597,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin-defecto·15",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": 22153.695313527947,
+      "ly": 42064.69719878092,
+      "lz": 10379.291055140828,
+      "ox": 22153.695313527947,
+      "oy": 42064.69719878092,
+      "oz": 10379.291055140828,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": 22153.695313527947,
+      "ly": 42064.69719878092,
+      "lz": 10429.291055140828,
+      "ox": 22153.695313527947,
+      "oy": 42064.69719878092,
+      "oz": 10429.291055140828,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": 22153.695313527947,
+      "ly": 42064.69719878092,
+      "lz": 10479.291055140828,
+      "ox": 22153.695313527947,
+      "oy": 42064.69719878092,
+      "oz": 10479.291055140828,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin-defecto·16",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": -29464.16084902147,
+      "ly": 39410.751503905645,
+      "lz": -41338.66347052581,
+      "ox": -29464.16084902147,
+      "oy": 39410.751503905645,
+      "oz": -41338.66347052581,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": -29464.16084902147,
+      "ly": 39410.751503905645,
+      "lz": -41288.66347052581,
+      "ox": -29464.16084902147,
+      "oy": 39410.751503905645,
+      "oz": -41288.66347052581,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": -29464.16084902147,
+      "ly": 39410.751503905645,
+      "lz": -41238.66347052581,
+      "ox": -29464.16084902147,
+      "oy": 39410.751503905645,
+      "oz": -41238.66347052581,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin-defecto·17",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": 16685.00377290917,
+      "ly": 11857.76194909485,
+      "lz": -33242.81889935435,
+      "ox": 16685.00377290917,
+      "oy": 11857.76194909485,
+      "oz": -33242.81889935435,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": 16685.00377290917,
+      "ly": 11857.76194909485,
+      "lz": -33192.81889935435,
+      "ox": 16685.00377290917,
+      "oy": 11857.76194909485,
+      "oz": -33192.81889935435,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": 16685.00377290917,
+      "ly": 11857.76194909485,
+      "lz": -33142.81889935435,
+      "ox": 16685.00377290917,
+      "oy": 11857.76194909485,
+      "oz": -33142.81889935435,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin-defecto·18",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": 16311.974872385486,
+      "ly": 13102.749090827005,
+      "lz": -39831.58920345158,
+      "ox": 16311.974872385486,
+      "oy": 13102.749090827005,
+      "oz": -39831.58920345158,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": 16311.974872385486,
+      "ly": 13102.749090827005,
+      "lz": -39781.58920345158,
+      "ox": 16311.974872385486,
+      "oy": 13102.749090827005,
+      "oz": -39781.58920345158,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": 16311.974872385486,
+      "ly": 13102.749090827005,
+      "lz": -39731.58920345158,
+      "ox": 16311.974872385486,
+      "oy": 13102.749090827005,
+      "oz": -39731.58920345158,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin-defecto·19",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": 32890.36458608128,
+      "ly": -1056.395316577211,
+      "lz": -47115.27789871378,
+      "ox": 32890.36458608128,
+      "oy": -1056.395316577211,
+      "oz": -47115.27789871378,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": 33890.36458608128,
+      "ly": -1056.395316577211,
+      "lz": -47115.27789871378,
+      "ox": 33890.36458608128,
+      "oy": -1056.395316577211,
+      "oz": -47115.27789871378,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": 34890.36458608128,
+      "ly": -1056.395316577211,
+      "lz": -47115.27789871378,
+      "ox": 34890.36458608128,
+      "oy": -1056.395316577211,
+      "oz": -47115.27789871378,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin_suelo·0",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": 48721.745917974185,
+      "ly": -36874.16854724923,
+      "lz": 9807.468015695653,
+      "ox": 48721.745917974185,
+      "oy": -36874.16854724923,
+      "oz": 9807.468015695653,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": 49721.745917974185,
+      "ly": -36874.16854724923,
+      "lz": 9807.468015695653,
+      "ox": 49721.745917974185,
+      "oy": -36874.16854724923,
+      "oz": 9807.468015695653,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": 50721.745917974185,
+      "ly": -36874.16854724923,
+      "lz": 9807.468015695653,
+      "ox": 50721.745917974185,
+      "oy": -36874.16854724923,
+      "oz": 9807.468015695653,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin_suelo·1",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": 46305.96741988171,
+      "ly": 13003.946186646652,
+      "lz": 12645.638872123454,
+      "ox": 46305.96741988171,
+      "oy": 13003.946186646652,
+      "oz": 12645.638872123454,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": 47305.96741988171,
+      "ly": 13003.946186646652,
+      "lz": 12645.638872123454,
+      "ox": 47305.96741988171,
+      "oy": 13003.946186646652,
+      "oz": 12645.638872123454,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": 48305.96741988171,
+      "ly": 13003.946186646652,
+      "lz": 12645.638872123454,
+      "ox": 48305.96741988171,
+      "oy": 13003.946186646652,
+      "oz": 12645.638872123454,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin_suelo·2",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": -8501.315551929169,
+      "ly": 46845.1016575206,
+      "lz": -23025.318739305912,
+      "ox": -8501.315551929169,
+      "oy": 46845.1016575206,
+      "oz": -23025.318739305912,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": -7501.315551929169,
+      "ly": 46845.1016575206,
+      "lz": -23025.318739305912,
+      "ox": -7501.315551929169,
+      "oy": 46845.1016575206,
+      "oz": -23025.318739305912,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": -6501.315551929169,
+      "ly": 46845.1016575206,
+      "lz": -23025.318739305912,
+      "ox": -6501.315551929169,
+      "oy": 46845.1016575206,
+      "oz": -23025.318739305912,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin_suelo·3",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": -857.9246321532046,
+      "ly": -36173.69552489081,
+      "lz": 15339.923223907666,
+      "ox": -857.9246321532046,
+      "oy": -36173.69552489081,
+      "oz": 15339.923223907666,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": 142.07536784679542,
+      "ly": -36173.69552489081,
+      "lz": 15339.923223907666,
+      "ox": 142.07536784679542,
+      "oy": -36173.69552489081,
+      "oz": 15339.923223907666,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": 1142.0753678467954,
+      "ly": -36173.69552489081,
+      "lz": 15339.923223907666,
+      "ox": 1142.0753678467954,
+      "oy": -36173.69552489081,
+      "oz": 15339.923223907666,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin_suelo·4",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": -10945.447736764494,
+      "ly": 25358.737619820386,
+      "lz": 15802.564646559127,
+      "ox": -10945.447736764494,
+      "oy": 25358.737619820386,
+      "oz": 15802.564646559127,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": -9945.447736764494,
+      "ly": 25358.737619820386,
+      "lz": 15802.564646559127,
+      "ox": -9945.447736764494,
+      "oy": 25358.737619820386,
+      "oz": 15802.564646559127,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": -8945.447736764494,
+      "ly": 25358.737619820386,
+      "lz": 15802.564646559127,
+      "ox": -8945.447736764494,
+      "oy": 25358.737619820386,
+      "oz": 15802.564646559127,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin_suelo·5",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": 44949.34458702165,
+      "ly": -20354.71576184308,
+      "lz": -5136.458442418756,
+      "ox": 44949.34458702165,
+      "oy": -20354.71576184308,
+      "oz": -5136.458442418756,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": 45949.34458702165,
+      "ly": -20354.71576184308,
+      "lz": -5136.458442418756,
+      "ox": 45949.34458702165,
+      "oy": -20354.71576184308,
+      "oz": -5136.458442418756,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": 46949.34458702165,
+      "ly": -20354.71576184308,
+      "lz": -5136.458442418756,
+      "ox": 46949.34458702165,
+      "oy": -20354.71576184308,
+      "oz": -5136.458442418756,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin_suelo·6",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": -39846.007069355874,
+      "ly": -28052.177776311404,
+      "lz": 15430.01387852231,
+      "ox": -39846.007069355874,
+      "oy": -28052.177776311404,
+      "oz": 15430.01387852231,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": -38846.007069355874,
+      "ly": -28052.177776311404,
+      "lz": 15430.01387852231,
+      "ox": -38846.007069355874,
+      "oy": -28052.177776311404,
+      "oz": 15430.01387852231,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": -37846.007069355874,
+      "ly": -28052.177776311404,
+      "lz": 15430.01387852231,
+      "ox": -37846.007069355874,
+      "oy": -28052.177776311404,
+      "oz": 15430.01387852231,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin_suelo·7",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": -36411.35351733223,
+      "ly": -39330.990027112246,
+      "lz": 44654.69862448414,
+      "ox": -36411.35351733223,
+      "oy": -39330.990027112246,
+      "oz": 44654.69862448414,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": -35411.35351733223,
+      "ly": -39330.990027112246,
+      "lz": 44654.69862448414,
+      "ox": -35411.35351733223,
+      "oy": -39330.990027112246,
+      "oz": 44654.69862448414,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": -34411.35351733223,
+      "ly": -39330.990027112246,
+      "lz": 44654.69862448414,
+      "ox": -34411.35351733223,
+      "oy": -39330.990027112246,
+      "oz": 44654.69862448414,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin_suelo·8",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": 47933.28772732912,
+      "ly": 21321.381867339252,
+      "lz": 6876.4173039521775,
+      "ox": 47933.28772732912,
+      "oy": 21321.381867339252,
+      "oz": 6876.4173039521775,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": 48933.28772732912,
+      "ly": 21321.381867339252,
+      "lz": 6876.4173039521775,
+      "ox": 48933.28772732912,
+      "oy": 21321.381867339252,
+      "oz": 6876.4173039521775,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": 49933.28772732912,
+      "ly": 21321.381867339252,
+      "lz": 6876.4173039521775,
+      "ox": 49933.28772732912,
+      "oy": 21321.381867339252,
+      "oz": 6876.4173039521775,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin_suelo·9",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": -34721.0776220793,
+      "ly": 18059.20151370793,
+      "lz": -8138.757579838741,
+      "ox": -34721.0776220793,
+      "oy": 18059.20151370793,
+      "oz": -8138.757579838741,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": -33721.0776220793,
+      "ly": 18059.20151370793,
+      "lz": -8138.757579838741,
+      "ox": -33721.0776220793,
+      "oy": 18059.20151370793,
+      "oz": -8138.757579838741,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": -32721.077622079298,
+      "ly": 18059.20151370793,
+      "lz": -8138.757579838741,
+      "ox": -32721.077622079298,
+      "oy": 18059.20151370793,
+      "oz": -8138.757579838741,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin_suelo·10",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": -38806.3340878858,
+      "ly": 3083.1198417433334,
+      "lz": -6649.161628751463,
+      "ox": -38806.3340878858,
+      "oy": 3083.1198417433334,
+      "oz": -6649.161628751463,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": -37806.3340878858,
+      "ly": 3083.1198417433334,
+      "lz": -6649.161628751463,
+      "ox": -37806.3340878858,
+      "oy": 3083.1198417433334,
+      "oz": -6649.161628751463,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": -36806.3340878858,
+      "ly": 3083.1198417433334,
+      "lz": -6649.161628751463,
+      "ox": -36806.3340878858,
+      "oy": 3083.1198417433334,
+      "oz": -6649.161628751463,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin_suelo·11",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": -35524.73660080083,
+      "ly": 454.85894702527,
+      "lz": -2521.579152082879,
+      "ox": -35524.73660080083,
+      "oy": 454.85894702527,
+      "oz": -2521.579152082879,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": -34524.73660080083,
+      "ly": 454.85894702527,
+      "lz": -2521.579152082879,
+      "ox": -34524.73660080083,
+      "oy": 454.85894702527,
+      "oz": -2521.579152082879,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": -33524.73660080083,
+      "ly": 454.85894702527,
+      "lz": -2521.579152082879,
+      "ox": -33524.73660080083,
+      "oy": 454.85894702527,
+      "oz": -2521.579152082879,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin_suelo·12",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": -37544.64595260058,
+      "ly": -14116.176223820243,
+      "lz": -9802.9670642813,
+      "ox": -37544.64595260058,
+      "oy": -14116.176223820243,
+      "oz": -9802.9670642813,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": -36544.64595260058,
+      "ly": -14116.176223820243,
+      "lz": -9802.9670642813,
+      "ox": -36544.64595260058,
+      "oy": -14116.176223820243,
+      "oz": -9802.9670642813,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": -35544.64595260058,
+      "ly": -14116.176223820243,
+      "lz": -9802.9670642813,
+      "ox": -35544.64595260058,
+      "oy": -14116.176223820243,
+      "oz": -9802.9670642813,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin_suelo·13",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": 22082.077963655276,
+      "ly": -44237.54242008396,
+      "lz": -12188.370066594733,
+      "ox": 22082.077963655276,
+      "oy": -44237.54242008396,
+      "oz": -12188.370066594733,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": 23082.077963655276,
+      "ly": -44237.54242008396,
+      "lz": -12188.370066594733,
+      "ox": 23082.077963655276,
+      "oy": -44237.54242008396,
+      "oz": -12188.370066594733,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": 24082.077963655276,
+      "ly": -44237.54242008396,
+      "lz": -12188.370066594733,
+      "ox": 24082.077963655276,
+      "oy": -44237.54242008396,
+      "oz": -12188.370066594733,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin_suelo·14",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": -6633.752833450933,
+      "ly": 14157.251645841476,
+      "lz": 16745.748029708368,
+      "ox": -6633.752833450933,
+      "oy": 14157.251645841476,
+      "oz": 16745.748029708368,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": -5633.752833450933,
+      "ly": 14157.251645841476,
+      "lz": 16745.748029708368,
+      "ox": -5633.752833450933,
+      "oy": 14157.251645841476,
+      "oz": 16745.748029708368,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": -4633.752833450933,
+      "ly": 14157.251645841476,
+      "lz": 16745.748029708368,
+      "ox": -4633.752833450933,
+      "oy": 14157.251645841476,
+      "oz": 16745.748029708368,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin_suelo·15",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": -46881.41863061553,
+      "ly": 5313.022282589438,
+      "lz": 39639.05831633654,
+      "ox": -46881.41863061553,
+      "oy": 5313.022282589438,
+      "oz": 39639.05831633654,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": -45881.41863061553,
+      "ly": 5313.022282589438,
+      "lz": 39639.05831633654,
+      "ox": -45881.41863061553,
+      "oy": 5313.022282589438,
+      "oz": 39639.05831633654,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": -44881.41863061553,
+      "ly": 5313.022282589438,
+      "lz": 39639.05831633654,
+      "ox": -44881.41863061553,
+      "oy": 5313.022282589438,
+      "oz": 39639.05831633654,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin_suelo·16",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": 18051.388029083406,
+      "ly": 47955.72922775826,
+      "lz": 47169.13933972464,
+      "ox": 18051.388029083406,
+      "oy": 47955.72922775826,
+      "oz": 47169.13933972464,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": 19051.388029083406,
+      "ly": 47955.72922775826,
+      "lz": 47169.13933972464,
+      "ox": 19051.388029083406,
+      "oy": 47955.72922775826,
+      "oz": 47169.13933972464,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": 20051.388029083406,
+      "ly": 47955.72922775826,
+      "lz": 47169.13933972464,
+      "ox": 20051.388029083406,
+      "oy": 47955.72922775826,
+      "oz": 47169.13933972464,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin_suelo·17",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": -30088.598124716194,
+      "ly": -34612.5803236339,
+      "lz": 22176.44621923259,
+      "ox": -30088.598124716194,
+      "oy": -34612.5803236339,
+      "oz": 22176.44621923259,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": -29088.598124716194,
+      "ly": -34612.5803236339,
+      "lz": 22176.44621923259,
+      "ox": -29088.598124716194,
+      "oy": -34612.5803236339,
+      "oz": 22176.44621923259,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": -28088.598124716194,
+      "ly": -34612.5803236339,
+      "lz": 22176.44621923259,
+      "ox": -28088.598124716194,
+      "oy": -34612.5803236339,
+      "oz": 22176.44621923259,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin_suelo·18",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": -21643.037863626123,
+      "ly": 6407.659951944392,
+      "lz": 14546.941428935148,
+      "ox": -21643.037863626123,
+      "oy": 6407.659951944392,
+      "oz": 14546.941428935148,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": -20643.037863626123,
+      "ly": 6407.659951944392,
+      "lz": 14546.941428935148,
+      "ox": -20643.037863626123,
+      "oy": 6407.659951944392,
+      "oz": 14546.941428935148,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": -19643.037863626123,
+      "ly": 6407.659951944392,
+      "lz": 14546.941428935148,
+      "ox": -19643.037863626123,
+      "oy": 6407.659951944392,
+      "oz": 14546.941428935148,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "sin_suelo·19",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "parcial",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "con_piso",
+      "lx": 31799.530877450205,
+      "ly": 32374.8455891575,
+      "lz": 32424.702731209807,
+      "ox": 31799.530877450205,
+      "oy": 32374.8455891575,
+      "oz": 32424.702731209807,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "sin_piso",
+      "lx": 32799.530877450205,
+      "ly": 32374.8455891575,
+      "lz": 32899.70273120981,
+      "ox": 32799.530877450205,
+      "oy": 32374.8455891575,
+      "oz": 32899.70273120981,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "parcial·0",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "parcial",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "con_piso",
+      "lx": -33177.55579566915,
+      "ly": 41107.60795048409,
+      "lz": 35377.87407399969,
+      "ox": -33177.55579566915,
+      "oy": 41107.60795048409,
+      "oz": 35377.87407399969,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "sin_piso",
+      "lx": -32177.55579566915,
+      "ly": 41107.60795048409,
+      "lz": 35852.87407399969,
+      "ox": -32177.55579566915,
+      "oy": 41107.60795048409,
+      "oz": 35852.87407399969,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "parcial·1",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "parcial",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "con_piso",
+      "lx": 7308.100975078589,
+      "ly": -13974.655527415955,
+      "lz": 24964.116305940144,
+      "ox": 7308.100975078589,
+      "oy": -13974.655527415955,
+      "oz": 24964.116305940144,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "sin_piso",
+      "lx": 8308.100975078589,
+      "ly": -13974.655527415955,
+      "lz": 25439.116305940144,
+      "ox": 8308.100975078589,
+      "oy": -13974.655527415955,
+      "oz": 25439.116305940144,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "parcial·2",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "parcial",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "con_piso",
+      "lx": 291.1238083141725,
+      "ly": 40812.56613768934,
+      "lz": 39181.65608089596,
+      "ox": 291.1238083141725,
+      "oy": 40812.56613768934,
+      "oz": 39181.65608089596,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "sin_piso",
+      "lx": 1291.1238083141725,
+      "ly": 40812.56613768934,
+      "lz": 39656.65608089596,
+      "ox": 1291.1238083141725,
+      "oy": 40812.56613768934,
+      "oz": 39656.65608089596,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "parcial·3",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "parcial",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "con_piso",
+      "lx": 31299.158192477276,
+      "ly": 29157.036039669954,
+      "lz": 6978.406840272248,
+      "ox": 31299.158192477276,
+      "oy": 29157.036039669954,
+      "oz": 6978.406840272248,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "sin_piso",
+      "lx": 32299.158192477276,
+      "ly": 29157.036039669954,
+      "lz": 7453.406840272248,
+      "ox": 32299.158192477276,
+      "oy": 29157.036039669954,
+      "oz": 7453.406840272248,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "parcial·4",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "parcial",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "con_piso",
+      "lx": 48981.3511468667,
+      "ly": 40463.36491619324,
+      "lz": 24456.813811642278,
+      "ox": 48981.3511468667,
+      "oy": 40463.36491619324,
+      "oz": 24456.813811642278,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "sin_piso",
+      "lx": 49981.3511468667,
+      "ly": 40463.36491619324,
+      "lz": 24931.813811642278,
+      "ox": 49981.3511468667,
+      "oy": 40463.36491619324,
+      "oz": 24931.813811642278,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "parcial·5",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "parcial",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "con_piso",
+      "lx": 45917.35724987826,
+      "ly": 12442.807850719451,
+      "lz": -24289.949889555992,
+      "ox": 45917.35724987826,
+      "oy": 12442.807850719451,
+      "oz": -24289.949889555992,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "sin_piso",
+      "lx": 46917.35724987826,
+      "ly": 12442.807850719451,
+      "lz": -23814.949889555992,
+      "ox": 46917.35724987826,
+      "oy": 12442.807850719451,
+      "oz": -23814.949889555992,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "parcial·6",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "parcial",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "con_piso",
+      "lx": -972.1822887096423,
+      "ly": -21837.230823317066,
+      "lz": -7312.78095921209,
+      "ox": -972.1822887096423,
+      "oy": -21837.230823317066,
+      "oz": -7312.78095921209,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "sin_piso",
+      "lx": 27.817711290357693,
+      "ly": -21837.230823317066,
+      "lz": -6837.78095921209,
+      "ox": 27.817711290357693,
+      "oy": -21837.230823317066,
+      "oz": -6837.78095921209,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "parcial·7",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "parcial",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "con_piso",
+      "lx": 31326.77034832025,
+      "ly": -48434.52716548119,
+      "lz": 28232.15419552385,
+      "ox": 31326.77034832025,
+      "oy": -48434.52716548119,
+      "oz": 28232.15419552385,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "sin_piso",
+      "lx": 32326.77034832025,
+      "ly": -48434.52716548119,
+      "lz": 28707.15419552385,
+      "ox": 32326.77034832025,
+      "oy": -48434.52716548119,
+      "oz": 28707.15419552385,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "parcial·8",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "parcial",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "con_piso",
+      "lx": 9749.962036375517,
+      "ly": 1833.0349956445862,
+      "lz": -45690.32042718503,
+      "ox": 9749.962036375517,
+      "oy": 1833.0349956445862,
+      "oz": -45690.32042718503,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "sin_piso",
+      "lx": 10749.962036375517,
+      "ly": 1833.0349956445862,
+      "lz": -45215.32042718503,
+      "ox": 10749.962036375517,
+      "oy": 1833.0349956445862,
+      "oz": -45215.32042718503,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "parcial·9",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "parcial",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "con_piso",
+      "lx": 23531.585242525573,
+      "ly": 23121.45869070216,
+      "lz": -21970.70042324588,
+      "ox": 23531.585242525573,
+      "oy": 23121.45869070216,
+      "oz": -21970.70042324588,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "sin_piso",
+      "lx": 24531.585242525573,
+      "ly": 23121.45869070216,
+      "lz": -21495.70042324588,
+      "ox": 24531.585242525573,
+      "oy": 23121.45869070216,
+      "oz": -21495.70042324588,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "parcial·10",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "parcial",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "con_piso",
+      "lx": 34013.91438542225,
+      "ly": -38089.52998117122,
+      "lz": -8409.822443805846,
+      "ox": 34013.91438542225,
+      "oy": -38089.52998117122,
+      "oz": -8409.822443805846,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "sin_piso",
+      "lx": 35013.91438542225,
+      "ly": -38089.52998117122,
+      "lz": -7934.822443805846,
+      "ox": 35013.91438542225,
+      "oy": -38089.52998117122,
+      "oz": -7934.822443805846,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "parcial·11",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "parcial",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "con_piso",
+      "lx": -8328.116633193393,
+      "ly": -45074.05165649293,
+      "lz": -20152.408003478347,
+      "ox": -8328.116633193393,
+      "oy": -45074.05165649293,
+      "oz": -20152.408003478347,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "sin_piso",
+      "lx": -7328.116633193393,
+      "ly": -45074.05165649293,
+      "lz": -19677.408003478347,
+      "ox": -7328.116633193393,
+      "oy": -45074.05165649293,
+      "oz": -19677.408003478347,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "parcial·12",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "parcial",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "con_piso",
+      "lx": -24528.07879156468,
+      "ly": -12817.12741945956,
+      "lz": -12388.22247536185,
+      "ox": -24528.07879156468,
+      "oy": -12817.12741945956,
+      "oz": -12388.22247536185,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "sin_piso",
+      "lx": -23528.07879156468,
+      "ly": -12817.12741945956,
+      "lz": -11913.22247536185,
+      "ox": -23528.07879156468,
+      "oy": -12817.12741945956,
+      "oz": -11913.22247536185,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "parcial·13",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "parcial",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "con_piso",
+      "lx": 4089.2224714593176,
+      "ly": 8490.601709052971,
+      "lz": 23800.67621331061,
+      "ox": 4089.2224714593176,
+      "oy": 8490.601709052971,
+      "oz": 23800.67621331061,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "sin_piso",
+      "lx": 5089.222471459318,
+      "ly": 8490.601709052971,
+      "lz": 24275.67621331061,
+      "ox": 5089.222471459318,
+      "oy": 8490.601709052971,
+      "oz": 24275.67621331061,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "parcial·14",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "parcial",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "con_piso",
+      "lx": 10193.577962790558,
+      "ly": 40340.48083971227,
+      "lz": 7152.567893832485,
+      "ox": 10193.577962790558,
+      "oy": 40340.48083971227,
+      "oz": 7152.567893832485,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "sin_piso",
+      "lx": 11193.577962790558,
+      "ly": 40340.48083971227,
+      "lz": 7627.567893832485,
+      "ox": 11193.577962790558,
+      "oy": 40340.48083971227,
+      "oz": 7627.567893832485,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "parcial·15",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "parcial",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "con_piso",
+      "lx": 20185.07155715891,
+      "ly": 15036.969559723868,
+      "lz": -2879.6706948701903,
+      "ox": 20185.07155715891,
+      "oy": 15036.969559723868,
+      "oz": -2879.6706948701903,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "sin_piso",
+      "lx": 21185.07155715891,
+      "ly": 15036.969559723868,
+      "lz": -2404.6706948701903,
+      "ox": 21185.07155715891,
+      "oy": 15036.969559723868,
+      "oz": -2404.6706948701903,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "parcial·16",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "parcial",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "con_piso",
+      "lx": -46122.7461197116,
+      "ly": -45363.481497456116,
+      "lz": -28771.26892214989,
+      "ox": -46122.7461197116,
+      "oy": -45363.481497456116,
+      "oz": -28771.26892214989,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "sin_piso",
+      "lx": -45122.7461197116,
+      "ly": -45363.481497456116,
+      "lz": -28296.26892214989,
+      "ox": -45122.7461197116,
+      "oy": -45363.481497456116,
+      "oz": -28296.26892214989,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "parcial·17",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "parcial",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "con_piso",
+      "lx": -42876.396846523654,
+      "ly": -27314.20897201393,
+      "lz": -4942.103072694823,
+      "ox": -42876.396846523654,
+      "oy": -27314.20897201393,
+      "oz": -4942.103072694823,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "sin_piso",
+      "lx": -41876.396846523654,
+      "ly": -27314.20897201393,
+      "lz": -4467.103072694823,
+      "ox": -41876.396846523654,
+      "oy": -27314.20897201393,
+      "oz": -4467.103072694823,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "parcial·18",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "parcial",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "con_piso",
+      "lx": -19048.286299471907,
+      "ly": -17291.646454284502,
+      "lz": 26497.932511742634,
+      "ox": -19048.286299471907,
+      "oy": -17291.646454284502,
+      "oz": 26497.932511742634,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": false,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "sin_piso",
+      "lx": -18048.286299471907,
+      "ly": -17291.646454284502,
+      "lz": 26972.932511742634,
+      "ox": -18048.286299471907,
+      "oy": -17291.646454284502,
+      "oz": 26972.932511742634,
+      "sobre_hermana": false,
+      "soporte": null,
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "parcial·19",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": false,
+     "physics.tanda_sin_interpenetracion": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "interpenetracion",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": 12415.062645743514,
+      "ly": 467.607899225899,
+      "lz": 17106.098227737806,
+      "ox": 12415.062645743514,
+      "oy": 467.607899225899,
+      "oz": 17106.098227737806,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": 12415.062645743514,
+      "ly": 467.607899225899,
+      "lz": 17136.098227737806,
+      "ox": 12415.062645743514,
+      "oy": 467.607899225899,
+      "oz": 17136.098227737806,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": 12415.062645743514,
+      "ly": 467.607899225899,
+      "lz": 17206.098227737806,
+      "ox": 12415.062645743514,
+      "oy": 467.607899225899,
+      "oz": 17206.098227737806,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "interpenetracion·0",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "interpenetracion",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": 14713.139718441867,
+      "ly": 46439.73317498827,
+      "lz": 32443.516706405513,
+      "ox": 14713.139718441867,
+      "oy": 46439.73317498827,
+      "oz": 32443.516706405513,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": 14713.139718441867,
+      "ly": 46439.73317498827,
+      "lz": 32473.516706405513,
+      "ox": 14713.139718441867,
+      "oy": 46439.73317498827,
+      "oz": 32473.516706405513,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": 14713.139718441867,
+      "ly": 46439.73317498827,
+      "lz": 32543.516706405513,
+      "ox": 14713.139718441867,
+      "oy": 46439.73317498827,
+      "oz": 32543.516706405513,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "interpenetracion·1",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "interpenetracion",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": -303.69559915891296,
+      "ly": 49384.97279651713,
+      "lz": -32780.19976357915,
+      "ox": -303.69559915891296,
+      "oy": 49384.97279651713,
+      "oz": -32780.19976357915,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": -303.69559915891296,
+      "ly": 49384.97279651713,
+      "lz": -32750.19976357915,
+      "ox": -303.69559915891296,
+      "oy": 49384.97279651713,
+      "oz": -32750.19976357915,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": -303.69559915891296,
+      "ly": 49384.97279651713,
+      "lz": -32680.19976357915,
+      "ox": -303.69559915891296,
+      "oy": 49384.97279651713,
+      "oz": -32680.19976357915,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "interpenetracion·2",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "interpenetracion",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": -33369.404952690595,
+      "ly": -27517.85214378597,
+      "lz": -12077.907533415688,
+      "ox": -33369.404952690595,
+      "oy": -27517.85214378597,
+      "oz": -12077.907533415688,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": -33369.404952690595,
+      "ly": -27517.85214378597,
+      "lz": -12047.907533415688,
+      "ox": -33369.404952690595,
+      "oy": -27517.85214378597,
+      "oz": -12047.907533415688,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": -33369.404952690595,
+      "ly": -27517.85214378597,
+      "lz": -11977.907533415688,
+      "ox": -33369.404952690595,
+      "oy": -27517.85214378597,
+      "oz": -11977.907533415688,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "interpenetracion·3",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "interpenetracion",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": 29629.569933091,
+      "ly": -41498.376093834675,
+      "lz": 42968.51959110507,
+      "ox": 29629.569933091,
+      "oy": -41498.376093834675,
+      "oz": 42968.51959110507,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": 29629.569933091,
+      "ly": -41498.376093834675,
+      "lz": 42998.51959110507,
+      "ox": 29629.569933091,
+      "oy": -41498.376093834675,
+      "oz": 42998.51959110507,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": 29629.569933091,
+      "ly": -41498.376093834675,
+      "lz": 43068.51959110507,
+      "ox": 29629.569933091,
+      "oy": -41498.376093834675,
+      "oz": 43068.51959110507,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "interpenetracion·4",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "interpenetracion",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": 9231.144625778368,
+      "ly": -47281.204445235526,
+      "lz": 46292.225187548465,
+      "ox": 9231.144625778368,
+      "oy": -47281.204445235526,
+      "oz": 46292.225187548465,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": 9231.144625778368,
+      "ly": -47281.204445235526,
+      "lz": 46322.225187548465,
+      "ox": 9231.144625778368,
+      "oy": -47281.204445235526,
+      "oz": 46322.225187548465,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": 9231.144625778368,
+      "ly": -47281.204445235526,
+      "lz": 46392.225187548465,
+      "ox": 9231.144625778368,
+      "oy": -47281.204445235526,
+      "oz": 46392.225187548465,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "interpenetracion·5",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "interpenetracion",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": -32399.31774713898,
+      "ly": -48931.055743102406,
+      "lz": 43476.99046069957,
+      "ox": -32399.31774713898,
+      "oy": -48931.055743102406,
+      "oz": 43476.99046069957,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": -32399.31774713898,
+      "ly": -48931.055743102406,
+      "lz": 43506.99046069957,
+      "ox": -32399.31774713898,
+      "oy": -48931.055743102406,
+      "oz": 43506.99046069957,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": -32399.31774713898,
+      "ly": -48931.055743102406,
+      "lz": 43576.99046069957,
+      "ox": -32399.31774713898,
+      "oy": -48931.055743102406,
+      "oz": 43576.99046069957,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "interpenetracion·6",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "interpenetracion",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": -23865.753379049194,
+      "ly": -41327.35956878749,
+      "lz": -18797.50630704967,
+      "ox": -23865.753379049194,
+      "oy": -41327.35956878749,
+      "oz": -18797.50630704967,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": -23865.753379049194,
+      "ly": -41327.35956878749,
+      "lz": -18767.50630704967,
+      "ox": -23865.753379049194,
+      "oy": -41327.35956878749,
+      "oz": -18767.50630704967,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": -23865.753379049194,
+      "ly": -41327.35956878749,
+      "lz": -18697.50630704967,
+      "ox": -23865.753379049194,
+      "oy": -41327.35956878749,
+      "oz": -18697.50630704967,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "interpenetracion·7",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "interpenetracion",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": 7288.728648963835,
+      "ly": -45589.89740877713,
+      "lz": -32498.497036271598,
+      "ox": 7288.728648963835,
+      "oy": -45589.89740877713,
+      "oz": -32498.497036271598,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": 7288.728648963835,
+      "ly": -45589.89740877713,
+      "lz": -32468.497036271598,
+      "ox": 7288.728648963835,
+      "oy": -45589.89740877713,
+      "oz": -32468.497036271598,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": 7288.728648963835,
+      "ly": -45589.89740877713,
+      "lz": -32398.497036271598,
+      "ox": 7288.728648963835,
+      "oy": -45589.89740877713,
+      "oz": -32398.497036271598,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "interpenetracion·8",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "interpenetracion",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": 11440.753354924513,
+      "ly": -15999.338383592556,
+      "lz": -16550.000995118142,
+      "ox": 11440.753354924513,
+      "oy": -15999.338383592556,
+      "oz": -16550.000995118142,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": 11440.753354924513,
+      "ly": -15999.338383592556,
+      "lz": -16520.000995118142,
+      "ox": 11440.753354924513,
+      "oy": -15999.338383592556,
+      "oz": -16520.000995118142,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": 11440.753354924513,
+      "ly": -15999.338383592556,
+      "lz": -16450.000995118142,
+      "ox": 11440.753354924513,
+      "oy": -15999.338383592556,
+      "oz": -16450.000995118142,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "interpenetracion·9",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "interpenetracion",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": 38661.94321718872,
+      "ly": -2469.7958946475774,
+      "lz": -15706.722021049842,
+      "ox": 38661.94321718872,
+      "oy": -2469.7958946475774,
+      "oz": -15706.722021049842,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": 38661.94321718872,
+      "ly": -2469.7958946475774,
+      "lz": -15676.722021049842,
+      "ox": 38661.94321718872,
+      "oy": -2469.7958946475774,
+      "oz": -15676.722021049842,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": 38661.94321718872,
+      "ly": -2469.7958946475774,
+      "lz": -15606.722021049842,
+      "ox": 38661.94321718872,
+      "oy": -2469.7958946475774,
+      "oz": -15606.722021049842,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "interpenetracion·10",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "interpenetracion",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": -10035.327665513607,
+      "ly": -41034.49929102503,
+      "lz": -48072.8821381718,
+      "ox": -10035.327665513607,
+      "oy": -41034.49929102503,
+      "oz": -48072.8821381718,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": -10035.327665513607,
+      "ly": -41034.49929102503,
+      "lz": -48042.8821381718,
+      "ox": -10035.327665513607,
+      "oy": -41034.49929102503,
+      "oz": -48042.8821381718,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": -10035.327665513607,
+      "ly": -41034.49929102503,
+      "lz": -47972.8821381718,
+      "ox": -10035.327665513607,
+      "oy": -41034.49929102503,
+      "oz": -47972.8821381718,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "interpenetracion·11",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "interpenetracion",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": 17720.93179990693,
+      "ly": -40364.6106225145,
+      "lz": -38974.182286147756,
+      "ox": 17720.93179990693,
+      "oy": -40364.6106225145,
+      "oz": -38974.182286147756,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": 17720.93179990693,
+      "ly": -40364.6106225145,
+      "lz": -38944.182286147756,
+      "ox": 17720.93179990693,
+      "oy": -40364.6106225145,
+      "oz": -38944.182286147756,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": 17720.93179990693,
+      "ly": -40364.6106225145,
+      "lz": -38874.182286147756,
+      "ox": 17720.93179990693,
+      "oy": -40364.6106225145,
+      "oz": -38874.182286147756,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "interpenetracion·12",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "interpenetracion",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": -11540.281847912316,
+      "ly": 32043.01768547439,
+      "lz": 17905.769155101632,
+      "ox": -11540.281847912316,
+      "oy": 32043.01768547439,
+      "oz": 17905.769155101632,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": -11540.281847912316,
+      "ly": 32043.01768547439,
+      "lz": 17935.769155101632,
+      "ox": -11540.281847912316,
+      "oy": 32043.01768547439,
+      "oz": 17935.769155101632,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": -11540.281847912316,
+      "ly": 32043.01768547439,
+      "lz": 18005.769155101632,
+      "ox": -11540.281847912316,
+      "oy": 32043.01768547439,
+      "oz": 18005.769155101632,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "interpenetracion·13",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "interpenetracion",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": 43806.956011690796,
+      "ly": -27530.565323610466,
+      "lz": -9893.648593015008,
+      "ox": 43806.956011690796,
+      "oy": -27530.565323610466,
+      "oz": -9893.648593015008,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": 43806.956011690796,
+      "ly": -27530.565323610466,
+      "lz": -9863.648593015008,
+      "ox": 43806.956011690796,
+      "oy": -27530.565323610466,
+      "oz": -9863.648593015008,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": 43806.956011690796,
+      "ly": -27530.565323610466,
+      "lz": -9793.648593015008,
+      "ox": 43806.956011690796,
+      "oy": -27530.565323610466,
+      "oz": -9793.648593015008,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "interpenetracion·14",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "interpenetracion",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": 31927.463731038457,
+      "ly": -28485.82510646391,
+      "lz": 17544.290984181294,
+      "ox": 31927.463731038457,
+      "oy": -28485.82510646391,
+      "oz": 17544.290984181294,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": 31927.463731038457,
+      "ly": -28485.82510646391,
+      "lz": 17574.290984181294,
+      "ox": 31927.463731038457,
+      "oy": -28485.82510646391,
+      "oz": 17574.290984181294,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": 31927.463731038457,
+      "ly": -28485.82510646391,
+      "lz": 17644.290984181294,
+      "ox": 31927.463731038457,
+      "oy": -28485.82510646391,
+      "oz": 17644.290984181294,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "interpenetracion·15",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "interpenetracion",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": -6661.775065348622,
+      "ly": -28487.20108644385,
+      "lz": -39027.72455811595,
+      "ox": -6661.775065348622,
+      "oy": -28487.20108644385,
+      "oz": -39027.72455811595,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": -6661.775065348622,
+      "ly": -28487.20108644385,
+      "lz": -38997.72455811595,
+      "ox": -6661.775065348622,
+      "oy": -28487.20108644385,
+      "oz": -38997.72455811595,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": -6661.775065348622,
+      "ly": -28487.20108644385,
+      "lz": -38927.72455811595,
+      "ox": -6661.775065348622,
+      "oy": -28487.20108644385,
+      "oz": -38927.72455811595,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "interpenetracion·16",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "interpenetracion",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": -16375.261169890473,
+      "ly": 17899.890934744748,
+      "lz": 32914.12245678618,
+      "ox": -16375.261169890473,
+      "oy": 17899.890934744748,
+      "oz": 32914.12245678618,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": -16375.261169890473,
+      "ly": 17899.890934744748,
+      "lz": 32944.12245678618,
+      "ox": -16375.261169890473,
+      "oy": 17899.890934744748,
+      "oz": 32944.12245678618,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": -16375.261169890473,
+      "ly": 17899.890934744748,
+      "lz": 33014.12245678618,
+      "ox": -16375.261169890473,
+      "oy": 17899.890934744748,
+      "oz": 33014.12245678618,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "interpenetracion·17",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "interpenetracion",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": -13844.946371952537,
+      "ly": 7985.996398185882,
+      "lz": -37874.64608086491,
+      "ox": -13844.946371952537,
+      "oy": 7985.996398185882,
+      "oz": -37874.64608086491,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": -13844.946371952537,
+      "ly": 7985.996398185882,
+      "lz": -37844.64608086491,
+      "ox": -13844.946371952537,
+      "oy": 7985.996398185882,
+      "oz": -37844.64608086491,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": -13844.946371952537,
+      "ly": 7985.996398185882,
+      "lz": -37774.64608086491,
+      "ox": -13844.946371952537,
+      "oy": 7985.996398185882,
+      "oz": -37774.64608086491,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "interpenetracion·18",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "interpenetracion",
+   "evidencia": {
+    "asentada": [
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p0",
+      "lx": 36117.72519734378,
+      "ly": -39475.608156067436,
+      "lz": 35868.24406713658,
+      "ox": 36117.72519734378,
+      "oy": -39475.608156067436,
+      "oz": 35868.24406713658,
+      "sobre_hermana": false,
+      "soporte": "piso",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p1",
+      "lx": 36117.72519734378,
+      "ly": -39475.608156067436,
+      "lz": 35898.24406713658,
+      "ox": 36117.72519734378,
+      "oy": -39475.608156067436,
+      "oz": 35898.24406713658,
+      "sobre_hermana": true,
+      "soporte": "p0",
+      "yaw": 0.0
+     },
+     {
+      "apoyada": true,
+      "ex": 25.0,
+      "ey": 25.0,
+      "ez": 25.0,
+      "id": "p2",
+      "lx": 36117.72519734378,
+      "ly": -39475.608156067436,
+      "lz": 35968.24406713658,
+      "ox": 36117.72519734378,
+      "oy": -39475.608156067436,
+      "oz": 35968.24406713658,
+      "sobre_hermana": true,
+      "soporte": "p1",
+      "yaw": 0.0
+     }
+    ]
+   },
+   "id": "interpenetracion·19",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.tanda_completa": true,
+     "physics.tanda_sin_interpenetracion": false
+    }
+   },
+   "referencia_ok": false
+  }
+ ],
+ "esquema": "oracle.diferencial/v1",
+ "frescura": {
+  "algoritmo": "sha256",
+  "configuracion": {
+   "defectos": [
+    "sin_suelo",
+    "parcial",
+    "interpenetracion"
+   ],
+   "descripcion": "Brianholl/jam · oracle_physics_tanda (implementación independiente)",
+   "extra": {},
+   "nombre": "physics_tanda",
+   "repeticiones": 20
+  },
+  "fuentes": {
+   "emisor": [
+    "tools/emitir_diferencial_physics_tanda.py",
+    "Content/Python/jam/oracle_physics_tanda_facts.py",
+    "Content/Python/jam/physics_core.py",
+    "medidas/escalares.py"
+   ],
+   "referencia": [
+    "Content/Python/jam/oracle_physics_tanda.py",
+    "Content/Python/jam/geometry.py"
+   ]
+  },
+  "huellas": {
+   "catalogo": "2ae0d50c8d084554802330a5788017b9626825f2c5d32e2b62dc654224e2ffe9",
+   "configuracion": "71fbf928394c1cf36d8a24f39fd1b3db97f369c051c6ef358c0e8b6eef24a04b",
+   "emisor": "a3b0a8ad86222674f3426dcac7873828498acc7406007c8c054599abac36ccd8",
+   "referencia": "3785428e1def6302a007dc73940b66c0d8de81a59f3a912dc244fed5717e25e7"
+  },
+  "raiz_fuentes": ".."
+ },
+ "medidas": [
+  "physics.tanda_completa",
+  "physics.tanda_sin_interpenetracion"
+ ],
+ "mundos": 80,
+ "origen": "Brianholl/jam · oracle_physics_tanda (implementación independiente)"
+}

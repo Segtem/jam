@@ -236,3 +236,28 @@ def comparar_physics(
             "physics.apoyado": bool(referencia["apoyado"]),
         },
     )
+
+
+def comparar_physics_tanda(
+    resultados,
+    referencia: dict,
+    *,
+    tol: float = 1.0,
+) -> ComparacionSombra:
+    """Compara completitud y penetración del resultado final de ``drop(points)``."""
+    if float(tol) != 1.0:
+        return ComparacionSombra(
+            informe=None,
+            error=f"tolerancia de physics.tanda no declarada por el catálogo: {float(tol)}",
+        )
+
+    from . import oracle_physics_tanda_facts
+
+    return _comparar_evidencia(
+        oracle_physics_tanda_facts.hechos(resultados),
+        {
+            "physics.tanda_completa": bool(referencia["completa"]),
+            "physics.tanda_sin_interpenetracion": bool(
+                referencia["sin_interpenetracion"]),
+        },
+    )

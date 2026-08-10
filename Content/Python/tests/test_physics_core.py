@@ -204,6 +204,15 @@ class ResumenTests(unittest.TestCase):
         self.assertIn("1/2", texto)
         self.assertIn("1 sin piso", texto)
 
+    def test_a_partial_batch_is_failure_not_a_green_check(self):
+        from jam.graph import _estado
+        piezas = [caja("a", 0, 0, 400), caja("lejos", 9e4, 0, 400)]
+        texto = physics_core.resumen(physics_core.asentar_tanda(piezas, [PISO]))
+        self.assertIn("✗", texto)
+        self.assertNotIn("ASENTAR ✓", texto,
+                         "una pieza apoyada no puede ocultar otra que quedó sin piso")
+        self.assertEqual("warn", _estado(texto), "el nodo no puede pintar verde el lote parcial")
+
     def test_it_does_not_report_a_meaningless_average_fall(self):
         """Promediar subidas con bajadas daba «caída media -60cm», que no significa nada. Lo que
         importa es cuántas quedaron ENCIMA de otra pieza: es la diferencia entre pila y capa."""
@@ -385,6 +394,14 @@ class ElSueloSeMideConUnRayoTests(unittest.TestCase):
         cuerpo = inspect.getsource(physics.asentar_actores)
         self.assertIn("ue.raycast(", cuerpo)
         self.assertIn("ignorar=list(actores)", cuerpo)
+
+    def test_the_adapter_shadows_the_actual_final_actor_bounds(self):
+        """La sombra debe mirar dónde quedaron los actores, no repetir la predicción del núcleo."""
+        import inspect
+        from jam import physics
+        cuerpo = inspect.getsource(physics.asentar_actores)
+        self.assertIn('r | {"pieza": ue.pieza(actor)}', cuerpo)
+        self.assertIn("ue.physics_tanda(observados", cuerpo)
 
 
 class ElPreviewAnteriorNoEsPisoTests(unittest.TestCase):

@@ -346,6 +346,15 @@ def physics(actor, soportes=None, **kw) -> dict:
     return referencia
 
 
+def physics_tanda(resultados, **kw) -> dict:
+    """Juzga una tanda ya asentada y ejecuta sus medidas declarativas en sombra."""
+    from . import oracle_physics_tanda
+    referencia = oracle_physics_tanda.verificar(resultados, **kw)
+    _ejecutar_sombra(
+        "physics.tanda", "comparar_physics_tanda", resultados, referencia, **kw)
+    return referencia
+
+
 def reemplazo_texto(nuevo, objetivo, **kw) -> str:
     from . import oracle_reemplazo
     return oracle_reemplazo.verificar_texto(pieza(nuevo), objetivo, **kw)
