@@ -3,7 +3,7 @@ turno: 2026-08-01 · codex → claude-code
 saliente: codex
 entrante: claude-code
 desde: 2026-08-01
-verde_editor: 4544065
+verde_editor: feae3f9
 verde_editor_fecha: 2026-08-10
 ---
 
@@ -228,8 +228,9 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 | » mutación de medidas | `python vendor/oracle/tools/mutar.py --proyecto medidas --confiar-escalares` | **279/279 mutantes muertos** |
 | » tests de oracle | `cd vendor/oracle && python -m unittest discover -s tests -t . -q` | **339 OK** |
 
-El campo `verde_editor` apunta al checkpoint `4544065`, verificado en UE 5.8.1 con la sombra de
-placement, snap, scatter, spline, physics, reemplazo y espacio sobre actores reales. Las verificaciones previas de Graph interactivo y
+El campo `verde_editor` apunta al checkpoint `feae3f9`, verificado en UE 5.8.1 con MS/MH,
+Preview/Discard/Bake/Clear y cambio real de mapa; también conserva la evidencia previa de placement,
+snap, scatter, spline, physics, reemplazo y espacio sobre actores reales. Las verificaciones previas de Graph interactivo y
 ribbon jerárquico siguen documentadas en sus respectivos cortes. `VIVO` distingue la
 suite de `init_unreal.py` y `jam/`, por lo que cambiar sólo tests ya no invalida falsamente esa
 evidencia.
