@@ -29,6 +29,17 @@ def frames(*items):
 
 
 class MassCoreTests(unittest.TestCase):
+    def test_mc_only_exists_after_a_spatial_massgameplay_template_is_verified(self):
+        path = "/Game/Jam/Mass/MC_Ratas.MC_Ratas"
+        facts = {"ok": True, "config_path": path, "trait_count": 1,
+                 "template_valid": True, "has_transform": True}
+
+        config = mass_core.make_config(path, facts)["config"]
+        self.assertEqual(config, mass_core.MassConfig(path))
+        for field, bad in (("trait_count", 0), ("template_valid", False),
+                           ("has_transform", False)):
+            self.assertIn("error", mass_core.make_config(path, {**facts, field: bad}))
+
     def test_prepare_accepts_finite_frames_and_computes_the_expected_sum(self):
         result = mass_core.prepare(frames(frame(10, 20, 30), frame(-2, 4, 8, scale=2)))
         self.assertNotIn("error", result)
@@ -75,6 +86,16 @@ class MassCoreTests(unittest.TestCase):
         result = mass_core.make_spec(frames(frame(), frame(1)), budget=1)
 
         self.assertIn("presupuesto de 1", result["error"])
+
+    def test_mass_spec_accepts_mc_and_rejects_ambiguous_or_invalid_configs(self):
+        config = mass_core.MassConfig("/Game/Jam/Mass/MC_Ratas.MC_Ratas")
+        spec = mass_core.make_spec(frames(frame()), config=config)["spec"]
+
+        self.assertEqual(spec.config_path, config.config_path)
+        self.assertIn("MC válido", mass_core.make_spec(frames(frame()), config=object())["error"])
+        self.assertIn("distintas", mass_core.make_spec(
+            frames(frame()), config=config,
+            config_path="/Game/Jam/Mass/Otra.Otra")["error"])
 
     def test_spawn_only_publishes_mh_after_identity_world_and_counts_match(self):
         spec = mass_core.make_spec(frames(frame(), frame(1)))["spec"]
@@ -158,6 +179,19 @@ class MassToolTests(unittest.TestCase):
         self.assertEqual(clear_call.call_count, 2)  # Clear explícito + Discard idempotente
         self.assertIs(tools.dato_producido_runtime("mass_inspect"), handle)
 
+    def test_mass_config_uses_adapter_and_feeds_mass_spec_as_mc(self):
+        path = "/Game/Jam/Mass/MC_Ratas.MC_Ratas"
+        facts = {"ok": True, "config_path": path, "trait_count": 1,
+                 "template_valid": True, "has_transform": True}
+        with mock.patch.object(ue, "mass_config", return_value=facts) as inspect:
+            text = tools.t_mass_config(path=path)
+        config = tools.dato_producido_runtime("mass_config")
+        tools.t_mass_spec(frames(frame()), config=config)
+
+        self.assertIn("template espacial válido", text)
+        self.assertEqual(tools.dato_producido_runtime("mass_spec").config_path, path)
+        inspect.assert_called_once_with(path)
+
 
 class MassContractTests(unittest.TestCase):
     def test_graph_publishes_mass_as_a_diagnostic_f_to_f(self):
@@ -197,11 +231,16 @@ class MassContractTests(unittest.TestCase):
         self.assertIn('editor.get("valid") != 3', source)
         self.assertIn('if pie.get("ok")', source)
 
-    def test_graph_publishes_ms_and_mh_without_massgameplay(self):
+    def test_graph_publishes_mc_ms_and_mh_with_massgameplay(self):
         spec = {item["verbo"]: item for item in json.loads(api.spec_all())["tools"]}
 
+        self.assertEqual((spec["mass_config"]["in_name"], spec["mass_config"]["out_name"]),
+                         ("", "MC"))
         self.assertEqual((spec["mass_spec"]["in_name"], spec["mass_spec"]["out_name"]),
                          ("F", "MS"))
+        config_param = next(p for p in spec["mass_spec"]["params"] if p["nombre"] == "config")
+        self.assertEqual(config_param["data_type"], "MC")
+        self.assertIn("config", tools.REGISTRO["mass_spec"]["optional_data_params"])
         self.assertEqual((spec["mass_spawn"]["in_name"], spec["mass_spawn"]["out_name"]),
                          ("MS", "MH"))
         self.assertEqual((spec["mass_inspect"]["in_name"], spec["mass_inspect"]["out_name"]),
@@ -210,8 +249,8 @@ class MassContractTests(unittest.TestCase):
                          ("MH", "MH"))
         build = (ROOT / "Source/JamMass/JamMass.Build.cs").read_text(encoding="utf-8")
         descriptor = (ROOT / "Jam.uplugin").read_text(encoding="utf-8")
-        self.assertNotIn("MassGameplay", build)
-        self.assertNotIn("MassGameplay", descriptor)
+        self.assertIn('"MassSpawner"', build)
+        self.assertIn('"MassGameplay"', descriptor)
 
     def test_build_verifier_checks_each_module_binary(self):
         verifier = (ROOT / "tools/build.py").read_text(encoding="utf-8")

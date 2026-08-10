@@ -67,6 +67,14 @@
 			"mensaje": "Población Mass temporal cargada. Compile y Run graph; repetí Run para probar reemplazo, o usá Bake/Discard para decidir su ciclo de vida."
 		},
 		{
+			"archivo": "Poblacion-MassGameplay-Ambiental.jamgraph",
+			"titulo": "Población MassGameplay ambiental",
+			"grupo": "Simulación",
+			"icono": "jam-mass-spawn",
+			"doc": "El config espacial distribuido por Jam se valida como MC y gobierna una receta MS de 37 frames. Crear población usa un AJamMassSpawner real y entrega un MH inspeccionable.\nEs la base sin representación para ratas, insectos o ambientación numerosa: todavía no dibuja actores/ISM, navega ni ejecuta comportamiento.",
+			"mensaje": "Población MassGameplay cargada. Compile y Run graph; Inspeccionar debe informar 37 entidades vivas y Discard debe liberarlas."
+		},
+		{
 			"archivo": "Debug-Playground.jamgraph",
 			"titulo": "Banco de pruebas de Debug",
 			"grupo": "Ver el dato",

@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "nodes": {
+    "config": {
+      "verb": "mass_config",
+      "params": {"path": "/Jam/Mass/MC_JamSpatial.MC_JamSpatial"},
+      "asset": null,
+      "x": 640,
+      "y": 40
+    },
+    "recorrido": {
+      "verb": "curve_bezier",
+      "params": {"start_x": "-300.0", "start_y": "40.0", "start_z": "15.0", "end_x": "900.0", "end_y": "500.0", "end_z": "215.0", "bend_x": "120.0", "bend_y": "-180.0", "bend_z": "80.0", "segments": "12"},
+      "asset": null,
+      "x": 40,
+      "y": 260
+    },
+    "frames": {
+      "verb": "curve_frames",
+      "params": {"count": "37", "start": "0.0", "end": "1.0", "radial_offset": "25.0", "turns": "1.5", "angle_offset": "17.0", "radius_start": "0.0", "radius_end": "0.0", "samples": "64", "seed": "19"},
+      "asset": null,
+      "x": 340,
+      "y": 260
+    },
+    "receta": {
+      "verb": "mass_spec",
+      "params": {"config_path": "", "seed": "19", "budget": "128"},
+      "asset": null,
+      "x": 640,
+      "y": 260
+    },
+    "poblacion": {
+      "verb": "mass_spawn",
+      "params": {},
+      "asset": null,
+      "x": 940,
+      "y": 260
+    },
+    "inspeccion": {
+      "verb": "mass_inspect",
+      "params": {},
+      "asset": null,
+      "x": 1240,
+      "y": 260
+    }
+  },
+  "edges": [
+    ["recorrido", "out", "frames", "in"],
+    ["frames", "out", "receta", "in"],
+    ["config", "out", "receta", "config"],
+    ["receta", "out", "poblacion", "in"],
+    ["poblacion", "out", "inspeccion", "in"]
+  ]
+}

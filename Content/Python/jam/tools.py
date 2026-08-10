@@ -1666,12 +1666,24 @@ def t_mass_probe(frame_input) -> str:
     return f"MASS PROBE F ✓ — {result['info']}"
 
 
-def t_mass_spec(frame_input, *, config_path="", seed=7, budget=4096) -> str:
+def t_mass_config(_input=None, *, path="") -> str:
+    """Ruta de asset → MC: valida traits y template mediante MassGameplay."""
+    from . import mass_core, ue
+
+    result = mass_core.make_config(path, ue.mass_config(str(path or "").strip()))
+    if "error" in result:
+        raise RuntimeError(result["error"])
+    config = result["config"]
+    _RUNTIME_DATA_OUTPUTS["mass_config"] = config
+    return f"MASS CONFIG MC ✓ — {config.config_path} · template espacial válido"
+
+
+def t_mass_spec(frame_input, *, config="", config_path="", seed=7, budget=4096) -> str:
     """F → MS: construye una receta durable sin tocar Unreal."""
     from . import mass_core
 
     result = mass_core.make_spec(
-        frame_input, config_path=config_path, seed=seed, budget=budget)
+        frame_input, config=config, config_path=config_path, seed=seed, budget=budget)
     if "error" in result:
         raise RuntimeError(result["error"])
     spec = result["spec"]
@@ -2292,10 +2304,15 @@ REGISTRO = {
                    "graph_only": True, "read_only": True, "params": {},
                    "doc": "crea una entidad Mass real por frame F, comprueba arquetipo y transform, "
                           "las destruye y deja pasar el mismo F; prueba de núcleo, no población persistente"},
+    "mass_config": {"fn": t_mass_config, "label": "Configuración MassEntity", "cat": "Mass",
+                    "graph_only": True, "read_only": True, "params": {"path": ""},
+                    "doc": "valida un UMassEntityConfigAsset y produce una referencia durable MC"},
     "mass_spec": {"fn": t_mass_spec, "label": "Receta MassEntity", "cat": "Mass",
                   "graph_only": True, "read_only": True,
-                  "params": {"config_path": "", "seed": 7, "budget": 4096},
-                  "doc": "convierte frames F en una receta durable MS; config_path queda reservado para MC"},
+                  "params": {"config": "", "config_path": "", "seed": 7, "budget": 4096},
+                  "data_params": {"config": "MC"},
+                  "optional_data_params": ("config",),
+                  "doc": "convierte frames F y una configuración MC opcional en una receta durable MS"},
     "mass_spawn": {"fn": t_mass_spawn, "label": "Crear población", "cat": "Mass",
                    "graph_only": True, "params": {},
                    "doc": "crea una población MH efímera; Discard, cambio de mundo y cierre de PIE la liberan"},
@@ -2560,6 +2577,7 @@ CATEGORIAS = ["Content", "Place", "Scatter", "Mass", "Create", "Mesh", "Edit",
 # Contrato del Graph. Vive junto al REGISTRO para que Slate y el Preflight lean la misma verdad.
 # `source` significa sin pin gordo `in`; una fuente todavía puede tener un pin de parámetro `asset`.
 GRAPH_SOURCES = {"asset", "pick", "create_spline", "gizmo", "ghost", "pivot", "pivot_set",
+                 "mass_config",
                  "curve_bezier", "mesh_triangle", "mesh_quad", "mesh_grid", "mesh_cylinder",
                  "mesh_cone", "mesh_sphere", "graph_curve", "series_range", "curve_polyline",
                  "mesh_box", "mesh_capsule", "mesh_torus", "mesh_disc",
@@ -2588,7 +2606,7 @@ GRAPH_NO_ASSET = {"asset", "pick", "create_spline", "pivot_set", "instance", "br
                   "curve_child", "curve_frames", "distribute_frames", "transform_frames",
                   "branch_from_frames",
                   "asset_set", "choose_asset", "curve_branches", "mesh_leaf",
-                  "copy_asset_selection", "hism_output", "mass_probe", "mass_spec",
+                  "copy_asset_selection", "hism_output", "mass_probe", "mass_config", "mass_spec",
                   "mass_spawn", "mass_inspect", "mass_clear",
                   "mesh_color", "mesh_uv_scale", "mesh_material", "mesh_bark", "mesh_noise", "points_to_frames", "debug",
                   "mesh_remap_materials", "mesh_clean_material_ids",
@@ -2636,7 +2654,7 @@ GRAPH_IN_NAMES = {"reroute_mesh": "M", "reroute_asset": "A", "reroute_points": "
                   "material_build": "MT", "material_function": "MT", "material_call": "MT",
                   "material_instance": "A", "instance": "P"}
 GRAPH_OUT_NAMES = {"brush": "P", "reroute_mesh": "M", "reroute_asset": "A", "reroute_points": "P", "reroute_curve": "S", "reroute_frames": "F",
-                   "mass_probe": "F",
+                   "mass_probe": "F", "mass_config": "MC",
                    "mass_spec": "MS", "mass_spawn": "MH", "mass_inspect": "MH", "mass_clear": "MH",
                    "select_mesh": "M", "select_asset": "A",
                    "points_to_frames": "F", "debug": "M", "asset": "A", "pick": "A", "create_spline": "S",

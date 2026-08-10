@@ -53,7 +53,7 @@ GRUPOS: dict[str, list[tuple[str, list[str]]]] = {
         ("Pincel", ["brush"]),
         ("Repartir", ["scatter", "spline", "pcg"]),
     ],
-    "Mass": [("Poblaciones", ["mass_spec", "mass_spawn", "mass_inspect", "mass_clear"]),
+    "Mass": [("Poblaciones", ["mass_config", "mass_spec", "mass_spawn", "mass_inspect", "mass_clear"]),
              ("Diagnóstico", ["mass_probe"])],
     "Create": [
         ("Crear", ["create_spline", "replace", "fracture"]),

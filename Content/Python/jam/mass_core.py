@@ -45,6 +45,35 @@ class MassHandle:
     position_sum: tuple[float, float, float]
 
 
+@dataclass(frozen=True)
+class MassConfig:
+    """Referencia durable MC a un ``UMassEntityConfigAsset`` ya validado."""
+
+    config_path: str
+
+
+def make_config(config_path, facts: dict) -> dict:
+    """Publica MC sólo si MassGameplay resolvió un template espacial válido."""
+    ruta = str(config_path or "").strip()
+    if not ruta.startswith("/") or "." not in ruta.rsplit("/", 1)[-1]:
+        return {"error": "mass_config necesita la ruta de objeto completa de un asset Mass."}
+    if not isinstance(facts, dict) or not facts.get("ok"):
+        return {"error": str(facts.get("error") if isinstance(facts, dict)
+                             else "MassGameplay no devolvió hechos de configuración")}
+    defects = []
+    if facts.get("config_path") != ruta:
+        defects.append("config_path no coincide con el asset pedido")
+    if not facts.get("template_valid"):
+        defects.append("el template Mass no es válido")
+    if not facts.get("has_transform"):
+        defects.append("el template no contiene FTransformFragment")
+    if not isinstance(facts.get("trait_count"), int) or facts["trait_count"] < 1:
+        defects.append("la configuración no contiene traits")
+    if defects:
+        return {"error": "; ".join(defects)}
+    return {"config": MassConfig(ruta)}
+
+
 def prepare(frame_set) -> dict:
     """Valida el dato F sin importar Unreal y construye la entrada acotada de la sonda."""
     from .curve import FrameSet
@@ -73,8 +102,8 @@ def prepare(frame_set) -> dict:
     return {"batch": MassProbeBatch(tuple(frame_set.frames), tuple(sums))}
 
 
-def make_spec(frame_set, *, config_path="", seed=7, budget=MAX_ENTITIES) -> dict:
-    """Construye MS con límites explícitos; MC queda reservado como ruta hasta la Fase 2."""
+def make_spec(frame_set, *, config=None, config_path="", seed=7, budget=MAX_ENTITIES) -> dict:
+    """Construye MS con límites explícitos y una configuración MC opcional."""
     try:
         budget = int(budget)
         seed = int(seed)
@@ -88,7 +117,13 @@ def make_spec(frame_set, *, config_path="", seed=7, budget=MAX_ENTITIES) -> dict
     batch = prepared["batch"]
     if len(batch) > budget:
         return {"error": f"mass_spec recibió {len(batch)} frames para un presupuesto de {budget}."}
-    ruta = str(config_path or "").strip() or None
+    if config not in (None, "") and not isinstance(config, MassConfig):
+        return {"error": "mass_spec necesita un MC válido en config."}
+    ruta_legacy = str(config_path or "").strip() or None
+    ruta_mc = config.config_path if isinstance(config, MassConfig) else None
+    if ruta_mc and ruta_legacy and ruta_mc != ruta_legacy:
+        return {"error": "mass_spec recibió dos configuraciones Mass distintas."}
+    ruta = ruta_mc or ruta_legacy
     return {"spec": MassSpec(batch.frames, ruta, seed, budget, batch.position_sum)}
 
 
@@ -108,6 +143,11 @@ def handle_from_spawn(spec: MassSpec, facts: dict) -> dict:
         defects.append("population_id vacío")
     if not world_id:
         defects.append("world_id vacío")
+    if spec.config_path:
+        if facts.get("config_path") != spec.config_path:
+            defects.append("config_path no coincide con MS")
+        if facts.get("spawner_class") != "JamMassSpawner":
+            defects.append("la población configurada no nació mediante JamMassSpawner")
     if defects:
         return {"error": "; ".join(defects)}
     return {"handle": MassHandle(population_id, world_id, len(spec), spec.position_sum)}

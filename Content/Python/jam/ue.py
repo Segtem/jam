@@ -47,9 +47,16 @@ def mass_probe(batch) -> dict:
         _mundo(), _mass_transforms(batch.frames)))
 
 
+def mass_config(config_path: str) -> dict:
+    return _mass_json(unreal.JamMassLibrary.inspect_config(_mundo(), config_path))
+
+
 def mass_spawn(spec) -> dict:
-    return _mass_json(unreal.JamMassLibrary.spawn_population(
-        _mundo(), _mass_transforms(spec.frames)))
+    transforms = _mass_transforms(spec.frames)
+    if spec.config_path:
+        return _mass_json(unreal.JamMassLibrary.spawn_configured_population(
+            _mundo(), transforms, spec.config_path))
+    return _mass_json(unreal.JamMassLibrary.spawn_population(_mundo(), transforms))
 
 
 def mass_inspect(handle) -> dict:

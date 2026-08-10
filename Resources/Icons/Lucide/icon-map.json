@@ -71,6 +71,7 @@
   "material_output": "jam-material-output",
   "material_wind": "jam-material-wind",
   "mass_probe": "jam-mass-probe",
+  "mass_config": "jam-mass-config",
   "mass_spec": "jam-mass-spec",
   "mass_spawn": "jam-mass-spawn",
   "mass_inspect": "jam-mass-inspect",

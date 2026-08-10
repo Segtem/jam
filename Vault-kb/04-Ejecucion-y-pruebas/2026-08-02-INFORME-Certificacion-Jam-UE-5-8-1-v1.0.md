@@ -41,7 +41,7 @@ Motor: `5.8.1-0+UE5`. Commit de partida: `bc0bd89`. Proyecto host:
 | PCG | editor completo + `-ExecCmds`, 90 ticks | **verde**: 3 nodos, 4/4 cables, preset 600 cm, hex/triangular, 287 HISM | Preview/Bake/Discard manual y PCG 5.8 nuevo |
 | Graph funciones | `verifica_funcion_graph.py` | **verde en 5.8.1**: id estable, guardar, firma, dos instancias y Compile | ABM, `Ctrl+G` y pines múltiples con las manos |
 | Oracle | editor completo/commandlet + sondas específicas | **función verde**: placement, snap, `snap.al_ras`, scatter, spline, physics, reemplazo y espacio coinciden | espacio cubre el subconjunto vivo; desmontaje del editor completo falla; commandlet hereda 9 paquetes rotos de BotOO |
-| MassEntity | `verifica_mass_entity_58.py` + `verifica_mass_pie_58.py` | **verde**: MS/MH, 37 vivas, Preview completo, cambio de mapa y cierre PIE por mundo | sin MassGameplay/config/representación |
+| MassEntity | sondas `verifica_mass_*_58.py` | **verde**: MS/MH, PIE por mundo y MC→MS→MH con config/trait/`AJamMassSpawner`, 37/37 | sin representación, LOD, navegación ni comportamiento |
 | Slate | build y carga de `JamEditor` | módulo cargado | tabs, historial, gestos y Undo/Redo en GUI |
 | Nanite | editor GUI + `verifica_nanite_fracture_58.py` | **verde**: copia Nanite y GC con `EnableNanite=true` | inspección visual y materiales incompatibles |
 | Dataflow/Fracture | editor GUI, nodos y terminal v2 | **verde**: GC regenerada; 2/2 materiales distintos conservados | rotura en PIE y shutdown con señal 11 |
@@ -125,6 +125,15 @@ existía. Con `ClearAllPopulations(World)` neutralizado y el mutante recompilado
 roja porque el registro retenía las tres entidades del mundo destruido; restaurar y recompilar
 devolvió `JAM_MASS_PIE_58 TODO VERDE`. El desmontaje posterior repitió el `double free` conocido,
 después del marcador y fuera de la frontera PIE observada.
+
+La vertical siguiente cerró la autoría mínima de MassGameplay. Un
+`UMassEntityConfigAsset` temporal recibió `UJamMassTransformTrait`, `mass_config` publicó MC sólo
+después de observar un template espacial y el Graph conectó MC con MS. `mass_spawn` creó 37
+entidades mediante `AJamMassSpawner` y `UMassSpawnLocationProcessor`; `mass_inspect` confirmó ruta
+del config, clase del spawner y cero transforms distintos, y Discard dejó cero vivas. Al recompilar
+un mutante sin `FTransformFragment`, el mismo Run quedó rojo en `mass_config`; restaurar devolvió
+`JAM_MASS_GAMEPLAY_58 TODO VERDE`. Jam incluye además el config portable
+`/Jam/Mass/MC_JamSpatial`. Esta certificación no alcanza todavía representación o comportamiento.
 
 ## Próximo bloque
 

@@ -1,4 +1,5 @@
 #include "JamMassLibrary.h"
+#include "JamMassGameplayTypes.h"
 
 #include "Dom/JsonObject.h"
 #include "Engine/Engine.h"
@@ -6,6 +7,8 @@
 #include "Mass/EntityFragments.h"
 #include "MassEntityManager.h"
 #include "MassEntitySubsystem.h"
+#include "MassEntityConfigAsset.h"
+#include "MassEntityTemplate.h"
 #include "Serialization/JsonSerializer.h"
 #include "Serialization/JsonWriter.h"
 #include "Misc/Guid.h"
@@ -17,8 +20,10 @@ constexpr int32 MaxEntities = 4096;
 struct FJamPopulation
 {
 	TWeakObjectPtr<UWorld> World;
+	TWeakObjectPtr<AJamMassSpawner> Spawner;
 	TArray<FMassEntityHandle> Entities;
 	TArray<FVector> ExpectedLocations;
+	FString ConfigPath;
 };
 
 TMap<FString, FJamPopulation> Populations;
@@ -79,6 +84,104 @@ FMassEntityManager* ResolveManager(UWorld* World)
 		: World->GetSubsystem<UMassEntitySubsystem>();
 	return Subsystem == nullptr ? nullptr : &Subsystem->GetMutableEntityManager();
 }
+
+UMassEntityConfigAsset* ResolveConfig(const FString& ConfigPath)
+{
+	return Cast<UMassEntityConfigAsset>(FSoftObjectPath(ConfigPath).TryLoad());
+}
+
+int32 CountValid(const FJamPopulation& Population, const FMassEntityManager& Manager)
+{
+	int32 Valid = 0;
+	for (const FMassEntityHandle Entity : Population.Entities)
+	{
+		Valid += Manager.IsEntityValid(Entity) ? 1 : 0;
+	}
+	return Valid;
+}
+
+void DestroyPopulation(FJamPopulation& Population, FMassEntityManager* Manager)
+{
+	if (AJamMassSpawner* Spawner = Population.Spawner.Get())
+	{
+		Spawner->DoDespawning();
+		Spawner->Destroy();
+		return;
+	}
+	if (Manager != nullptr)
+	{
+		TArray<FMassEntityHandle> ValidEntities;
+		for (const FMassEntityHandle Entity : Population.Entities)
+		{
+			if (Manager->IsEntityValid(Entity))
+			{
+				ValidEntities.Add(Entity);
+			}
+		}
+		Manager->BatchDestroyEntities(ValidEntities);
+	}
+}
+}
+
+FString UJamMassLibrary::InspectConfig(UObject* WorldContextObject, const FString& ConfigPath)
+{
+	UWorld* World = ResolveWorld(WorldContextObject);
+	UMassEntityConfigAsset* Config = ResolveConfig(ConfigPath);
+	if (World == nullptr)
+	{
+		return JsonError(TEXT("el contexto no pertenece a un UWorld"), 0);
+	}
+	if (Config == nullptr)
+	{
+		return JsonError(TEXT("no se encontró el UMassEntityConfigAsset indicado"), 0);
+	}
+
+	const FMassEntityTemplate& EntityTemplate = Config->GetOrCreateEntityTemplate(*World);
+	const bool bTemplateValid = EntityTemplate.IsValid();
+	const bool bHasTransform = bTemplateValid
+		&& EntityTemplate.GetTemplateData().HasFragment<FTransformFragment>();
+	TArray<TSharedPtr<FJsonValue>> TraitNames;
+	for (const UMassEntityTraitBase* Trait : Config->GetConfig().GetTraits())
+	{
+		TraitNames.Add(MakeShared<FJsonValueString>(GetNameSafe(Trait == nullptr
+			? nullptr : Trait->GetClass())));
+	}
+
+	TSharedRef<FJsonObject> Root = MakeShared<FJsonObject>();
+	Root->SetBoolField(TEXT("ok"), bTemplateValid && bHasTransform);
+	Root->SetStringField(TEXT("config_path"), Config->GetPathName());
+	Root->SetNumberField(TEXT("trait_count"), TraitNames.Num());
+	Root->SetArrayField(TEXT("traits"), TraitNames);
+	Root->SetBoolField(TEXT("template_valid"), bTemplateValid);
+	Root->SetBoolField(TEXT("has_transform"), bHasTransform);
+	Root->SetStringField(TEXT("template_id"), bTemplateValid
+		? EntityTemplate.GetTemplateID().ToString() : FString());
+	if (!bTemplateValid || !bHasTransform)
+	{
+		Root->SetStringField(TEXT("error"),
+			TEXT("la configuración no produce un template espacial válido"));
+	}
+	return SerializeJson(Root);
+}
+
+FString UJamMassLibrary::PrepareTransformConfig(UObject* ConfigAsset)
+{
+	UMassEntityConfigAsset* Config = Cast<UMassEntityConfigAsset>(ConfigAsset);
+	if (Config == nullptr)
+	{
+		return JsonError(TEXT("el objeto no es un UMassEntityConfigAsset"), 0);
+	}
+#if WITH_EDITOR
+	UMassEntityTraitBase* Trait = Config->AddTrait(UJamMassTransformTrait::StaticClass());
+	Config->MarkPackageDirty();
+	TSharedRef<FJsonObject> Root = MakeShared<FJsonObject>();
+	Root->SetBoolField(TEXT("ok"), Trait != nullptr);
+	Root->SetStringField(TEXT("config_path"), Config->GetPathName());
+	Root->SetStringField(TEXT("trait"), GetNameSafe(Trait == nullptr ? nullptr : Trait->GetClass()));
+	return SerializeJson(Root);
+#else
+	return JsonError(TEXT("preparar un config asset sólo está disponible en editor"), 0);
+#endif
 }
 
 FString UJamMassLibrary::ProbeEntities(
@@ -223,6 +326,76 @@ FString UJamMassLibrary::SpawnPopulation(
 	return SerializeJson(Root);
 }
 
+FString UJamMassLibrary::SpawnConfiguredPopulation(
+	UObject* WorldContextObject,
+	const TArray<FTransform>& Transforms,
+	const FString& ConfigPath)
+{
+	FString Error;
+	if (!ValidateTransforms(Transforms, Error))
+	{
+		return JsonError(Error, Transforms.Num());
+	}
+	UWorld* World = ResolveWorld(WorldContextObject);
+	FMassEntityManager* Manager = ResolveManager(World);
+	UMassEntityConfigAsset* Config = ResolveConfig(ConfigPath);
+	if (World == nullptr || Manager == nullptr)
+	{
+		return JsonError(TEXT("UMassEntitySubsystem no está disponible"), Transforms.Num());
+	}
+	if (Config == nullptr)
+	{
+		return JsonError(TEXT("no se encontró el UMassEntityConfigAsset indicado"), Transforms.Num());
+	}
+	const FMassEntityTemplate& EntityTemplate = Config->GetOrCreateEntityTemplate(*World);
+	if (!EntityTemplate.IsValid()
+		|| !EntityTemplate.GetTemplateData().HasFragment<FTransformFragment>())
+	{
+		return JsonError(TEXT("el config no produce un template con FTransformFragment"),
+			Transforms.Num());
+	}
+
+	FActorSpawnParameters SpawnParameters;
+	SpawnParameters.ObjectFlags |= RF_Transient;
+	SpawnParameters.Name = MakeUniqueObjectName(World, AJamMassSpawner::StaticClass(),
+		TEXT("JamMassSpawner"));
+	AJamMassSpawner* Spawner = World->SpawnActor<AJamMassSpawner>(SpawnParameters);
+	if (Spawner == nullptr || !Spawner->Configure(*Config, Transforms))
+	{
+		return JsonError(TEXT("JamMassSpawner no pudo configurarse"), Transforms.Num());
+	}
+	Spawner->DoSpawning();
+
+	FJamPopulation Population;
+	Population.World = World;
+	Population.Spawner = Spawner;
+	Population.ConfigPath = Config->GetPathName();
+	Spawner->AppendSpawnedEntities(Population.Entities);
+	for (const FTransform& Transform : Transforms)
+	{
+		Population.ExpectedLocations.Add(Transform.GetLocation());
+	}
+	const int32 Valid = CountValid(Population, *Manager);
+	if (Population.Entities.Num() != Transforms.Num() || Valid != Transforms.Num())
+	{
+		DestroyPopulation(Population, Manager);
+		return JsonError(TEXT("JamMassSpawner no creó la población completa"), Transforms.Num());
+	}
+
+	const FString PopulationId = FGuid::NewGuid().ToString(EGuidFormats::DigitsWithHyphensLower);
+	Populations.Add(PopulationId, MoveTemp(Population));
+	TSharedRef<FJsonObject> Root = MakeShared<FJsonObject>();
+	Root->SetBoolField(TEXT("ok"), true);
+	Root->SetStringField(TEXT("population_id"), PopulationId);
+	Root->SetStringField(TEXT("world_id"), WorldId(World));
+	Root->SetStringField(TEXT("config_path"), Config->GetPathName());
+	Root->SetStringField(TEXT("spawner_class"), TEXT("JamMassSpawner"));
+	Root->SetNumberField(TEXT("requested"), Transforms.Num());
+	Root->SetNumberField(TEXT("created"), Transforms.Num());
+	Root->SetNumberField(TEXT("valid"), Valid);
+	return SerializeJson(Root);
+}
+
 FString UJamMassLibrary::InspectPopulation(
 	UObject* WorldContextObject, const FString& PopulationId)
 {
@@ -263,6 +436,9 @@ FString UJamMassLibrary::InspectPopulation(
 	Root->SetBoolField(TEXT("ok"), true);
 	Root->SetStringField(TEXT("population_id"), PopulationId);
 	Root->SetStringField(TEXT("world_id"), WorldId(World));
+	Root->SetStringField(TEXT("config_path"), Population->ConfigPath);
+	Root->SetStringField(TEXT("spawner_class"), Population->Spawner.IsValid()
+		? TEXT("JamMassSpawner") : TEXT(""));
 	Root->SetNumberField(TEXT("requested"), Population->Entities.Num());
 	Root->SetNumberField(TEXT("valid"), Valid);
 	Root->SetNumberField(TEXT("transform_mismatches"), TransformMismatches);
@@ -296,15 +472,8 @@ FString UJamMassLibrary::ClearPopulation(
 	{
 		return JsonError(TEXT("UMassEntitySubsystem no está disponible"), Population->Entities.Num());
 	}
-	TArray<FMassEntityHandle> ValidEntities;
-	for (const FMassEntityHandle Entity : Population->Entities)
-	{
-		if (Manager->IsEntityValid(Entity))
-		{
-			ValidEntities.Add(Entity);
-		}
-	}
-	Manager->BatchDestroyEntities(ValidEntities);
+	const int32 ValidBefore = CountValid(*Population, *Manager);
+	DestroyPopulation(*Population, Manager);
 	int32 ValidAfter = 0;
 	for (const FMassEntityHandle Entity : Population->Entities)
 	{
@@ -317,7 +486,7 @@ FString UJamMassLibrary::ClearPopulation(
 	Root->SetBoolField(TEXT("ok"), true);
 	Root->SetStringField(TEXT("population_id"), PopulationId);
 	Root->SetStringField(TEXT("world_id"), Id);
-	Root->SetNumberField(TEXT("valid_before"), ValidEntities.Num());
+	Root->SetNumberField(TEXT("valid_before"), ValidBefore);
 	Root->SetNumberField(TEXT("valid_after"), ValidAfter);
 	return SerializeJson(Root);
 }
@@ -332,18 +501,7 @@ void UJamMassLibrary::ClearAllPopulations(UWorld* World)
 		{
 			continue;
 		}
-		if (FMassEntityManager* Manager = ResolveManager(PopulationWorld))
-		{
-			TArray<FMassEntityHandle> ValidEntities;
-			for (const FMassEntityHandle Entity : Pair.Value.Entities)
-			{
-				if (Manager->IsEntityValid(Entity))
-				{
-					ValidEntities.Add(Entity);
-				}
-			}
-			Manager->BatchDestroyEntities(ValidEntities);
-		}
+		DestroyPopulation(Pair.Value, ResolveManager(PopulationWorld));
 		ToRemove.Add(Pair.Key);
 	}
 	for (const FString& PopulationId : ToRemove)

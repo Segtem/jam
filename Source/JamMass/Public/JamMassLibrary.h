@@ -12,6 +12,14 @@ class JAMMASS_API UJamMassLibrary : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 
 public:
+	/** Valida un UMassEntityConfigAsset y devuelve hechos de traits/template para construir MC. */
+	UFUNCTION(BlueprintCallable, Category = "Jam|Mass", meta = (WorldContext = "WorldContextObject"))
+	static FString InspectConfig(UObject* WorldContextObject, const FString& ConfigPath);
+
+	/** Agrega el trait espacial mínimo de Jam a un config asset. Sólo modifica assets en editor. */
+	UFUNCTION(BlueprintCallable, Category = "Jam|Mass")
+	static FString PrepareTransformConfig(UObject* ConfigAsset);
+
 	/**
 	 * Prueba atómica del núcleo MassEntity: crea una entidad por transform, lee sus fragments y las
 	 * destruye antes de volver. Devuelve hechos JSON; el juicio vive en el cerebro puro de Jam.
@@ -22,6 +30,13 @@ public:
 	/** Crea una población administrada que sobrevive a la llamada y devuelve su identidad JSON. */
 	UFUNCTION(BlueprintCallable, Category = "Jam|Mass", meta = (WorldContext = "WorldContextObject"))
 	static FString SpawnPopulation(UObject* WorldContextObject, const TArray<FTransform>& Transforms);
+
+	/** Crea la población mediante AMassSpawner usando el template de un config asset MC. */
+	UFUNCTION(BlueprintCallable, Category = "Jam|Mass", meta = (WorldContext = "WorldContextObject"))
+	static FString SpawnConfiguredPopulation(
+		UObject* WorldContextObject,
+		const TArray<FTransform>& Transforms,
+		const FString& ConfigPath);
 
 	/** Inspecciona una población sin modificarla. */
 	UFUNCTION(BlueprintCallable, Category = "Jam|Mass", meta = (WorldContext = "WorldContextObject"))

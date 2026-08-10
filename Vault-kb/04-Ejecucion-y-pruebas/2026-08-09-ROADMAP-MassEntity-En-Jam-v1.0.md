@@ -82,7 +82,8 @@ en el mundo editor y tres en el `UWorld` PIE: al terminar la sesión, las primer
 el MH de PIE pasó a «inexistente o ya liberada». Neutralizar deliberadamente el callback dejó ese
 MH registrado como perteneciente a otro mundo y puso roja la misma prueba; restaurarlo volvió a
 verde. Así queda discriminada tanto la ejecución real del delegate como su alcance por mundo.
-MassGameplay continúa apagado y `config_path` no gobierna todavía el arquetipo.
+Ese corte todavía mantenía MassGameplay apagado y `config_path` no gobernaba el arquetipo; la
+Fase 2 cerró ambas fronteras sin cambiar el contrato de vida de MH.
 
 - Introducir `MS` como dato puro y `mass_spec` (`F + MC → MS`).
 - Introducir `MH` para una población viva, nunca serializable.
@@ -98,10 +99,30 @@ con el ciclo PIE ya observado.
 
 ### Fase 2 — autoría MassGameplay
 
+**Estado: primera vertical cerrada y verificada en UE 5.8.1.** El plugin experimental
+`MassGameplay` queda habilitado explícitamente. `mass_config` valida un
+`UMassEntityConfigAsset` real y sólo publica MC cuando su template contiene
+`FTransformFragment`; `mass_spec` recibe ese MC por un pin de dato. Jam distribuye
+`/Jam/Mass/MC_JamSpatial` como configuración mínima portable.
+
+La creación configurada pasa por `AJamMassSpawner`, no por el atajo directo del manager. Un
+generador determinista de Jam entrega los transforms a `UMassSpawnLocationProcessor`, y el puente
+retiene los handles que registró el spawner para inspección y limpieza. La sonda pública
+`verifica_mass_gameplay_58.py` creó un config temporal, ejecutó MC→MS→MH, midió 37/37 entidades,
+cero diferencias espaciales y cero vivas después de Discard. Quitar deliberadamente el
+`FTransformFragment` del trait, recompilar y repetir puso rojo el mismo Run; restaurarlo volvió a
+verde.
+
 - Activar `MassGameplay` de forma explícita y tratar su estado experimental como riesgo declarado.
 - Seleccionar/crear `UMassEntityConfigAsset` y validar traits.
 - Crear/configurar `AMassSpawner` con generadores de transforms de Jam.
 - Medir que la cantidad pedida coincide con la registrada por el spawner.
+
+El ejemplo portable `Poblacion-MassGameplay-Ambiental.jamgraph` deja visible toda la cadena. Esta
+fase **no** promete todavía representación, LOD, navegación ni comportamiento. También quedó
+observado que un nodo fuente rojo no cancela la ejecución de todos sus dependientes: el Run global
+queda rojo y revierte Preview, pero nodos posteriores pueden calcular con parámetros por defecto.
+Eso es una frontera general de Flow, no una entidad Mass confirmada.
 
 ### Fase 3 — representación escalable
 
@@ -142,11 +163,11 @@ La prueba se muta al menos cambiando la cantidad o una coordenada esperada: tien
 - Una suma de posiciones detecta el cableado espacial de esta muestra, pero no identifica por sí sola
   toda permutación o compensación posible de transforms.
 
-## Caso BotOO que debe gobernar la Fase 2
+## Caso BotOO que debe gobernar la Fase 3
 
-Una población ambiental simple —por ejemplo ratas o insectos— distribuida desde `F`, con una sola
-representación ISM y sin navegación. Recién después de medir cantidad, limpieza y presupuesto se
-agrega comportamiento.
+La base ambiental —por ejemplo ratas o insectos— ya se distribuye desde `F` y mide cantidad,
+limpieza y presupuesto. El siguiente corte debe agregar una sola representación ISM/LOD, todavía
+sin navegación. Recién después de medir esa representación se agrega comportamiento.
 
 ## Relacionado
 

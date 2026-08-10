@@ -11,6 +11,16 @@ verde_editor_fecha: 2026-08-10
 
 Entra **claude-code**. Corré `python tools/relevo.py` antes de leer esto; si sale rojo, eso es el turno.
 
+**Actualización Codex 2026-08-10 — MassEntity Fase 2, primera vertical MassGameplay cerrada.**
+`mass_config` valida un `UMassEntityConfigAsset` y publica MC sólo si su template tiene
+`FTransformFragment`; MC entra por pin de dato a `mass_spec`. El camino configurado crea mediante
+`AJamMassSpawner` + un generador determinista de frames, y Jam distribuye el config portable
+`/Jam/Mass/MC_JamSpatial`. La sonda pública MC→MS→MH midió **37/37 vivas, ruta y spawner
+trazables, cero transforms distintos y cero vivas tras Discard**. Quitar el fragment del trait,
+recompilar y repetir puso el Run rojo; restaurar volvió a `JAM_MASS_GAMEPLAY_58 TODO VERDE`. Límite:
+todavía no hay representación/LOD, navegación ni comportamiento. El mutante también mostró que un
+nodo fuente rojo no cancela dependientes aunque el Run global sí queda rojo y revierte Preview.
+
 **Actualización Codex 2026-08-10 — MassEntity Fase 1 cerrada con PIE real.** La nueva sonda mantiene
 simultáneamente tres entidades del editor y tres del `UWorld` PIE. Al terminar PIE, las del editor
 siguen vivas y el MH de PIE queda «inexistente o ya liberada». Neutralizar `OnWorldCleanup`,
@@ -211,6 +221,7 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 | Cerebro de Jam, corte reemplazo | mismo comando | **825 OK**, 0.5 s; centro, base y planta fijados |
 | Cerebro de Jam, corte espacio | mismo comando | **829 OK**, 0.49 s; BFS independiente y frontera avanzada fijados |
 | Cerebro de Jam, corte Mass MS/MH + PIE | mismo comando | **838 OK**; callback PIE mutado → rojo real |
+| Cerebro de Jam, corte MassGameplay MC→MS→MH | mismo comando | **841 OK**; trait sin `FTransformFragment` → rojo real |
 | Ribbon S → M | `tools/experiments/verifica_mesh_ribbon_58.py` en `UnrealEditor-Cmd` | **25 pares · 48 tris/50 verts · ancho 360 · UV0 0..5.91 · Material ID 3 · TODO VERDE** |
 | Tutoriales actuales | `tools/experiments/verifica_ejemplos.py` en `UnrealEditor-Cmd` | **13/13 compilan · TODO VERDE** |
 | Extrude M → M / Muro | `tools/experiments/verifica_mesh_extrude_58.py` en `UnrealEditor-Cmd` | **48→196 tris · 50→100 verts · 300 cm · UV0/Material ID · cerrado · TODO VERDE** |
@@ -219,6 +230,8 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 | MassEntity MS → MH | mismo script | **Run×2 reemplaza · Discard destruye · Bake conserva · Clear×2 y cambio de mapa dejan 0 · TODO VERDE** |
 | MassEntity fin de PIE | `tools/experiments/verifica_mass_pie_58.py` en editor completo | **editor 3 vivas · PIE 3 vivas · cierre libera sólo PIE · mutante real rojo · TODO VERDE** |
 | Tutoriales con MassEntity | `tools/experiments/verifica_ejemplos.py` en `UnrealEditor-Cmd` | **16/16 compilan · TODO VERDE** |
+| Tutoriales con MassGameplay | mismo script | **17/17 compilan · config `/Jam/Mass/MC_JamSpatial` resuelve · TODO VERDE** |
+| MassGameplay MC → MS → MH | `tools/experiments/verifica_mass_gameplay_58.py` en `UnrealEditor-Cmd` | **37/37 · `AJamMassSpawner` · transforms exactos · tutorial portable · Discard 0 vivas · TODO VERDE** |
 | Math en UE 5.8.1 | `tools/experiments/verifica_math_graph.py` en `UnrealEditor-Cmd` | **9 verbos · Run sin Preview · Inspector=40/2 · dominios rechazados · TODO VERDE** |
 | Nanite Analyze/Validate | `tools/experiments/verifica_nanite_diagnostics_58.py` en `UnrealEditor-Cmd` | **apagado rechazado + 416.179 tris/1.202.673 verts validados · Run sin Preview · TODO VERDE** |
 | Simplify M → M | `tools/experiments/verifica_mesh_simplify_58.py` en `UnrealEditor-Cmd` | **Count 1922→202 · Tolerance 1922→201 · Edge 1922→332 vértices · TODO VERDE** |
@@ -325,11 +338,11 @@ de pedir manos sin que nadie lo note.)*
 
 ## Lo próximo
 
-**Prioridad nueva: cerrar la Fase 1 de
-[[2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0|MassEntity en Jam]].** MS/MH y el ciclo Run/Discard/Bake
-ya están verdes, incluido el cambio real a un mapa vacío. Lo siguiente es abrir/cerrar PIE para
-probar el mismo `OnWorldCleanup` en ese ciclo. No activar MassGameplay ni crear
-`AMassSpawner` hasta cerrar ese ciclo de vida.
+**Prioridad nueva: comenzar la Fase 3 de
+[[2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0|MassEntity en Jam]].** Fase 1 cerró el ciclo de vida y
+Fase 2 ya gobierna config/traits/`AJamMassSpawner`. Lo siguiente es un único caso ambiental con
+`MassRepresentation` + `MassLOD` y representación ISM/nula medible; no agregar navegación o
+StateTree hasta demostrar primero cantidad, transición LOD y limpieza.
 
 **Después: cerrar la Fase 2 del
 [[2026-08-09-ROADMAP-Verbos-Y-Ejemplos-PMG-v1.0|roadmap PMG]] con Carretera modular.** Offset,
