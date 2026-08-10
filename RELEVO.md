@@ -11,6 +11,16 @@ verde_editor_fecha: 2026-08-10
 
 Entra **claude-code**. Corré `python tools/relevo.py` antes de leer esto; si sale rojo, eso es el turno.
 
+**Actualización Codex 2026-08-10 — MassEntity Fase 4, primera patrulla autónoma.** Jam distribuye
+`/Jam/Mass/MC_JamAmbientPatrol`: ISM dinámica y vaivén a 800 cm/s en radio 25 cm sobre el eje de
+cada frame. Trait, fragment, parámetros compartidos y processor son C++ tipado;
+`mass_config require_patrol=true` mide fragment, parámetros y movilidad antes de publicar MC. PIE
+real dio **4/4 inicializadas, movidas y revertidas, cero fuera de radio, ISM dinámica 4/4 y limpieza
+completa**. Neutralizar sólo la escritura del transform dejó el estado interno avanzando pero las
+entidades inmóviles (`transform_mismatches=0`) y puso roja la sonda; restaurar volvió a verde. Son
+854 tests. No evita obstáculos, no sigue terreno y no tiene señales/StateTree/ZoneGraph. Próximo
+corte: variación determinista por entidad o señal ambiental medible, no navegación todavía.
+
 **Actualización Codex 2026-08-10 — MassEntity Fase 3 cerrada con presupuesto LOD.** Jam distribuye
 `/Jam/Mass/MC_JamAmbientBudget`, con topes independientes High/Medium/Low=1 y Off ilimitado.
 `mass_config require_lod_budget=true` inspecciona los cuatro `LODMaxCount` antes de publicar MC; el
@@ -362,11 +372,11 @@ de pedir manos sin que nadie lo note.)*
 
 ## Lo próximo
 
-**Siguiente corte: Fase 4 de
-[[2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0|MassEntity en Jam]], comportamiento ambiental.** La
-Fase 3 ya demuestra cantidad, transición por distancia, saturación por `LODMaxCount`, ISM/nula y
-limpieza. Diseñar un trait/processor mínimo y medible para un caso BotOO; no agregar ZoneGraph ni
-StateTree hasta que la navegación o estados complejos sean una necesidad demostrada.
+**Siguiente corte de la Fase 4 de
+[[2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0|MassEntity en Jam]]: variación o señal ambiental.** La
+patrulla acotada ya demuestra un processor autónomo y representación dinámica. Agregar variación
+determinista por entidad o una señal simple que cambie un estado medible; no agregar ZoneGraph ni
+StateTree hasta que navegación o estados complejos sean una necesidad demostrada.
 
 **Después: cerrar la Fase 2 del
 [[2026-08-09-ROADMAP-Verbos-Y-Ejemplos-PMG-v1.0|roadmap PMG]] con Carretera modular.** Offset,

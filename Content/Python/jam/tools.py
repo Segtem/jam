@@ -1667,14 +1667,15 @@ def t_mass_probe(frame_input) -> str:
 
 
 def t_mass_config(_input=None, *, path="", require_ism=False,
-                  require_lod_budget=False) -> str:
+                  require_lod_budget=False, require_patrol=False) -> str:
     """Ruta de asset → MC: valida traits y template mediante MassGameplay."""
     from . import mass_core, ue
 
     result = mass_core.make_config(
         path, ue.mass_config(str(path or "").strip()),
         require_ism=bool(require_ism),
-        require_lod_budget=bool(require_lod_budget))
+        require_lod_budget=bool(require_lod_budget),
+        require_patrol=bool(require_patrol))
     if "error" in result:
         raise RuntimeError(result["error"])
     config = result["config"]
@@ -1683,8 +1684,10 @@ def t_mass_config(_input=None, *, path="", require_ism=False,
                       if config.representation == "ism" else "")
     budget = (f" · máximos LOD {config.lod_max_counts}"
               if require_lod_budget else "")
+    behavior = (f" · patrulla {config.patrol_speed:g} cm/s en radio {config.patrol_radius:g} cm"
+                if config.behavior == "patrol" else "")
     return (f"MASS CONFIG MC ✓ — {config.config_path} · template espacial válido"
-            f"{representation}{budget}")
+            f"{representation}{budget}{behavior}")
 
 
 def t_mass_spec(frame_input, *, config="", config_path="", seed=7, budget=4096) -> str:
@@ -2316,7 +2319,7 @@ REGISTRO = {
     "mass_config": {"fn": t_mass_config, "label": "Configuración MassEntity", "cat": "Mass",
                     "graph_only": True, "read_only": True,
                     "params": {"path": "", "require_ism": False,
-                               "require_lod_budget": False},
+                               "require_lod_budget": False, "require_patrol": False},
                     "doc": "valida un UMassEntityConfigAsset y produce una referencia durable MC"},
     "mass_spec": {"fn": t_mass_spec, "label": "Receta MassEntity", "cat": "Mass",
                   "graph_only": True, "read_only": True,

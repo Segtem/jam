@@ -4,6 +4,7 @@
 #include "MassEntitySpawnDataGeneratorBase.h"
 #include "MassEntityTraitBase.h"
 #include "MassLODCollectorProcessor.h"
+#include "MassProcessor.h"
 #include "MassSpawner.h"
 #include "MassRepresentationProcessor.h"
 #include "MassStationaryVisualizationTrait.h"
@@ -18,6 +19,40 @@ USTRUCT()
 struct JAMMASS_API FJamMassAmbientTag : public FMassTag
 {
 	GENERATED_BODY()
+};
+
+/** Selecciona únicamente entidades con patrulla ambiental autónoma. */
+USTRUCT()
+struct JAMMASS_API FJamMassPatrolTag : public FMassTag
+{
+	GENERATED_BODY()
+};
+
+/** Estado individual medible de una patrulla acotada alrededor del transform de spawn. */
+USTRUCT()
+struct JAMMASS_API FJamMassPatrolFragment : public FMassFragment
+{
+	GENERATED_BODY()
+
+	FVector Origin = FVector::ZeroVector;
+	FVector Axis = FVector::ForwardVector;
+	float Distance = 0.0f;
+	int32 Reversals = 0;
+	int8 Direction = 1;
+	bool bInitialized = false;
+};
+
+/** Parámetros compartidos por el arquetipo de patrulla. */
+USTRUCT()
+struct JAMMASS_API FJamMassPatrolParameters : public FMassConstSharedFragment
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category = "Patrol")
+	float Speed = 100.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Patrol")
+	float Radius = 100.0f;
 };
 
 /** Habilita el cálculo de distancia a viewers para entidades ambientales de Jam. */
@@ -92,6 +127,58 @@ public:
 protected:
 	virtual void BuildTemplate(
 		FMassEntityTemplateBuildContext& BuildContext, const UWorld& World) const override;
+};
+
+/** Representación ISM dinámica para entidades cuyo transform cambia durante la simulación. */
+UCLASS(EditInlineNew, meta = (DisplayName = "Jam Moving Ambient ISM"))
+class JAMMASS_API UJamMassMovingISMTrait final : public UMassVisualizationTrait
+{
+	GENERATED_BODY()
+
+public:
+	UJamMassMovingISMTrait();
+	bool Configure(UStaticMesh& Mesh, float MediumDistance, float LowDistance, float OffDistance);
+
+protected:
+	virtual void BuildTemplate(
+		FMassEntityTemplateBuildContext& BuildContext, const UWorld& World) const override;
+};
+
+/** Agrega el estado y los parámetros de una patrulla lineal acotada. */
+UCLASS(EditInlineNew, meta = (DisplayName = "Jam Ambient Patrol"))
+class JAMMASS_API UJamMassPatrolTrait final : public UMassEntityTraitBase
+{
+	GENERATED_BODY()
+
+public:
+	bool Configure(float Speed, float Radius);
+	float GetSpeed() const { return Parameters.Speed; }
+	float GetRadius() const { return Parameters.Radius; }
+
+protected:
+	virtual void BuildTemplate(
+		FMassEntityTemplateBuildContext& BuildContext, const UWorld& World) const override;
+
+private:
+	UPROPERTY(EditAnywhere, Category = "Patrol")
+	FJamMassPatrolParameters Parameters;
+};
+
+/** Ejecuta la patrulla antes de que LOD y representación consuman el transform. */
+UCLASS(meta = (DisplayName = "Jam Ambient Patrol Processor"))
+class JAMMASS_API UJamMassPatrolProcessor final : public UMassProcessor
+{
+	GENERATED_BODY()
+
+public:
+	UJamMassPatrolProcessor();
+
+protected:
+	virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager) override;
+	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
+
+private:
+	FMassEntityQuery EntityQuery;
 };
 
 /** Generador determinista que entrega al MassSpawner los transforms ya calculados por Jam. */

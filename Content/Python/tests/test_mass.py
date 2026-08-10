@@ -92,6 +92,30 @@ class MassCoreTests(unittest.TestCase):
                     path, {**facts, "lod_max_counts": counts},
                     require_lod_budget=True))
 
+    def test_mc_patrol_requires_dynamic_ism_positive_parameters_and_fragment(self):
+        path = "/Jam/Mass/MC_JamAmbientPatrol.MC_JamAmbientPatrol"
+        facts = {
+            "ok": True, "config_path": path, "trait_count": 3,
+            "template_valid": True, "has_transform": True,
+            "has_representation": True, "has_lod": True, "has_viewer": True,
+            "has_actor_fragment": True, "stationary": False, "moving_ism": True,
+            "has_patrol": True, "patrol_speed": 800.0, "patrol_radius": 25.0,
+            "mesh_paths": ["/Engine/BasicShapes/Sphere.Sphere"],
+            "lod_representation": ["StaticMeshInstance", "StaticMeshInstance",
+                                   "StaticMeshInstance", "None"],
+            "lod_distances": [0.0, 1500.0, 3500.0, 8000.0],
+        }
+
+        config = mass_core.make_config(path, facts, require_patrol=True)["config"]
+        self.assertEqual((config.representation, config.behavior),
+                         ("ism_dynamic", "patrol"))
+        self.assertEqual((config.patrol_speed, config.patrol_radius), (800.0, 25.0))
+        for field, bad in (("moving_ism", False), ("has_patrol", False),
+                           ("patrol_speed", 0.0), ("patrol_radius", float("inf"))):
+            with self.subTest(field=field):
+                self.assertIn("error", mass_core.make_config(
+                    path, {**facts, field: bad}, require_patrol=True))
+
     def test_prepare_accepts_finite_frames_and_computes_the_expected_sum(self):
         result = mass_core.prepare(frames(frame(10, 20, 30), frame(-2, 4, 8, scale=2)))
         self.assertNotIn("error", result)
@@ -186,6 +210,19 @@ class MassCoreTests(unittest.TestCase):
         self.assertTrue(mass_core.judge_inspect(handle, facts)["ok"])
         for field in ("representation_fragments", "lod_fragments", "mesh_desc_valid"):
             self.assertFalse(mass_core.judge_inspect(handle, {**facts, field: 1})["ok"])
+
+    def test_patrol_handle_requires_activity_and_respects_its_radius(self):
+        handle = mass_core.MassHandle(
+            "p1", "w1", 2, (0.0, 0.0, 0.0), "ism_dynamic", "patrol")
+        facts = {"ok": True, "population_id": "p1", "world_id": "w1",
+                 "requested": 2, "valid": 2, "representation_fragments": 2,
+                 "lod_fragments": 2, "mesh_desc_valid": 2,
+                 "patrol_fragments": 2, "patrol_initialized": 2,
+                 "patrol_moved": 2, "patrol_out_of_bounds": 0}
+        self.assertTrue(mass_core.judge_inspect(handle, facts)["ok"])
+        for field, bad in (("patrol_moved", 0), ("patrol_out_of_bounds", 1)):
+            self.assertFalse(mass_core.judge_inspect(
+                handle, {**facts, field: bad})["ok"])
 
 
 class MassToolTests(unittest.TestCase):
@@ -286,6 +323,25 @@ class MassToolTests(unittest.TestCase):
             tools.dato_producido_runtime("mass_config").lod_max_counts,
             (1, 1, 1, 2147483647))
 
+    def test_mass_config_can_publish_a_measured_patrol(self):
+        path = "/Jam/Mass/MC_JamAmbientPatrol.MC_JamAmbientPatrol"
+        facts = {
+            "ok": True, "config_path": path, "trait_count": 3,
+            "template_valid": True, "has_transform": True,
+            "has_representation": True, "has_lod": True, "has_viewer": True,
+            "has_actor_fragment": True, "stationary": False, "moving_ism": True,
+            "has_patrol": True, "patrol_speed": 800.0, "patrol_radius": 25.0,
+            "mesh_paths": ["/Engine/BasicShapes/Sphere.Sphere"],
+            "lod_representation": ["StaticMeshInstance", "StaticMeshInstance",
+                                   "StaticMeshInstance", "None"],
+            "lod_distances": [0.0, 1500.0, 3500.0, 8000.0],
+        }
+        with mock.patch.object(ue, "mass_config", return_value=facts):
+            text = tools.t_mass_config(path=path, require_patrol=True)
+        config = tools.dato_producido_runtime("mass_config")
+        self.assertIn("patrulla 800 cm/s en radio 25 cm", text)
+        self.assertEqual(config.behavior, "patrol")
+
 
 class MassContractTests(unittest.TestCase):
     def test_graph_publishes_mass_as_a_diagnostic_f_to_f(self):
@@ -337,6 +393,28 @@ class MassContractTests(unittest.TestCase):
                        '"lod_high": 4', '"lod_high": 1',
                        '"lod_medium": 1', '"lod_low": 1', '"lod_off": 1',
                        "JAM_MASS_LOD_BUDGET_58"):
+            self.assertIn(marker, source)
+
+    def test_patrol_processor_is_typed_bounded_and_observable(self):
+        gameplay = (ROOT / "Source/JamMass/Private/JamMassGameplayTypes.cpp").read_text(
+            encoding="utf-8")
+        library = (ROOT / "Source/JamMass/Private/JamMassLibrary.cpp").read_text(
+            encoding="utf-8")
+        for marker in ("UJamMassPatrolProcessor::Execute", "FJamMassPatrolFragment",
+                       "FJamMassPatrolParameters", "Patrol.Distance > Parameters.Radius",
+                       "++Patrol.Reversals", "ProcessorGroupNames::Movement"):
+            self.assertIn(marker, gameplay)
+        for marker in ('TEXT("patrol_fragments")', 'TEXT("patrol_reversed")',
+                       'TEXT("patrol_out_of_bounds")', "PrepareAmbientPatrolConfig"):
+            self.assertIn(marker, library)
+
+    def test_pie_patrol_probe_measures_activity_reversal_bounds_and_dynamic_ism(self):
+        source = (ROOT / "tools/experiments/verifica_mass_patrol_58.py").read_text(
+            encoding="utf-8")
+        for marker in ('"moving_ism": True', '"stationary": False',
+                       '"transform_mismatches": 4', '"patrol_moved": 4',
+                       '"patrol_reversed": 4', '"patrol_out_of_bounds": 0',
+                       '"representation_ism": 4', "JAM_MASS_PATROL_58"):
             self.assertIn(marker, source)
 
     def test_pie_probe_contrasts_editor_and_pie_world_lifetimes(self):

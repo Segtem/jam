@@ -161,9 +161,29 @@ rojo; restaurar código y asset devolvió el marcador verde.
 
 ### Fase 4 — comportamiento
 
-- Traits acotados para movimiento, señales y StateTree.
+**Estado: primera vertical autónoma cerrada y verificada en UE 5.8.1.** Jam distribuye
+`/Jam/Mass/MC_JamAmbientPatrol`: representación ISM dinámica y una patrulla lineal de vaivén a
+800 cm/s dentro de un radio de 25 cm sobre el eje inicial de cada frame. El trait agrega parámetros
+compartidos y un fragment individual; el processor conserva origen/eje, refleja el recorrido en los
+dos límites y cuenta reversiones.
+
+`mass_config require_patrol=true` sólo publica MC si observa el fragment de comportamiento,
+parámetros positivos y finitos, y una representación `ISM/ISM/ISM/None` dinámica. Así no reutiliza
+engañosamente el trait Stationary de la Fase 3. La sonda `verifica_mass_patrol_58.py` ejecutó PIE
+jugable y midió 4/4 inicializadas, movidas y revertidas, cero salidas del radio, cuatro ISM dinámicas
+y limpieza completa. Neutralizar únicamente la escritura de `FTransformFragment` mantuvo el estado
+interno activo pero dejó `transform_mismatches=0`, y puso roja la misma sonda; restaurar recompiló y
+volvió a verde.
+
+- Traits acotados para movimiento, señales y StateTree. **Cerrado el primer movimiento autónomo;
+  señales y StateTree siguen fuera.**
 - ZoneGraph sólo cuando un caso de BotOO necesite navegación de multitudes.
 - Fragments y processors personalizados como extensiones C++ tipadas, no strings arbitrarios.
+
+Esta patrulla prueba el ciclo de comportamiento, no pretende ser locomoción final de ratas: no
+evita obstáculos, no sigue terreno, no reacciona a estímulos y todas las entidades de un arquetipo
+comparten parámetros. El siguiente corte debe agregar variación determinista por entidad o una
+señal ambiental medible antes de considerar StateTree.
 
 ### Fase 5 — juego empaquetado y red
 

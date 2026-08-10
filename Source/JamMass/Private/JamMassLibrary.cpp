@@ -83,6 +83,45 @@ UJamMassAmbientISMTrait* FindOrAddAmbientTraits(UMassEntityConfigAsset& Config)
 	}
 	return AmbientTrait;
 }
+
+struct FJamPatrolTraits
+{
+	UJamMassMovingISMTrait* Visualization = nullptr;
+	UJamMassPatrolTrait* Patrol = nullptr;
+};
+
+FJamPatrolTraits FindOrAddPatrolTraits(UMassEntityConfigAsset& Config)
+{
+	FJamPatrolTraits Result;
+	bool bHasTransformTrait = false;
+	for (UMassEntityTraitBase* Trait : Config.GetMutableConfig().GetTraits())
+	{
+		if (Trait == nullptr)
+		{
+			continue;
+		}
+		Result.Visualization = Result.Visualization == nullptr
+			? Cast<UJamMassMovingISMTrait>(Trait) : Result.Visualization;
+		Result.Patrol = Result.Patrol == nullptr
+			? Cast<UJamMassPatrolTrait>(Trait) : Result.Patrol;
+		bHasTransformTrait = bHasTransformTrait || Trait->IsA<UJamMassTransformTrait>();
+	}
+	if (!bHasTransformTrait)
+	{
+		Config.AddTrait(UJamMassTransformTrait::StaticClass());
+	}
+	if (Result.Visualization == nullptr)
+	{
+		Result.Visualization = Cast<UJamMassMovingISMTrait>(
+			Config.AddTrait(UJamMassMovingISMTrait::StaticClass()));
+	}
+	if (Result.Patrol == nullptr)
+	{
+		Result.Patrol = Cast<UJamMassPatrolTrait>(
+			Config.AddTrait(UJamMassPatrolTrait::StaticClass()));
+	}
+	return Result;
+}
 #endif
 
 UWorld* ResolveWorld(UObject* WorldContextObject)
@@ -181,22 +220,35 @@ FString UJamMassLibrary::InspectConfig(UObject* WorldContextObject, const FStrin
 		&& EntityTemplate.GetTemplateData().HasFragment<FMassViewerInfoFragment>();
 	const bool bHasActor = bTemplateValid
 		&& EntityTemplate.GetTemplateData().HasFragment<FMassActorFragment>();
+	const bool bHasPatrolFragment = bTemplateValid
+		&& EntityTemplate.GetTemplateData().HasFragment<FJamMassPatrolFragment>();
 	TArray<TSharedPtr<FJsonValue>> TraitNames;
 	TArray<TSharedPtr<FJsonValue>> MeshPaths;
 	TArray<TSharedPtr<FJsonValue>> LODRepresentations;
 	TArray<TSharedPtr<FJsonValue>> LODDistances;
 	TArray<TSharedPtr<FJsonValue>> LODMaxCounts;
 	bool bStationary = false;
+	bool bMovingISM = false;
+	bool bHasPatrol = false;
+	float PatrolSpeed = 0.0f;
+	float PatrolRadius = 0.0f;
 	for (const UMassEntityTraitBase* Trait : Config->GetConfig().GetTraits())
 	{
 		TraitNames.Add(MakeShared<FJsonValueString>(GetNameSafe(Trait == nullptr
 			? nullptr : Trait->GetClass())));
+		if (const UJamMassPatrolTrait* Patrol = Cast<UJamMassPatrolTrait>(Trait))
+		{
+			bHasPatrol = true;
+			PatrolSpeed = Patrol->GetSpeed();
+			PatrolRadius = Patrol->GetRadius();
+		}
 		const UMassVisualizationTrait* Visualization = Cast<UMassVisualizationTrait>(Trait);
 		if (Visualization == nullptr)
 		{
 			continue;
 		}
 		bStationary = Visualization->IsA<UMassStationaryVisualizationTrait>();
+		bMovingISM = Visualization->IsA<UJamMassMovingISMTrait>();
 		for (const FMassStaticMeshInstanceVisualizationMeshDesc& MeshDesc
 			: Visualization->StaticMeshInstanceDesc.Meshes)
 		{
@@ -229,6 +281,10 @@ FString UJamMassLibrary::InspectConfig(UObject* WorldContextObject, const FStrin
 	Root->SetBoolField(TEXT("has_viewer"), bHasViewer);
 	Root->SetBoolField(TEXT("has_actor_fragment"), bHasActor);
 	Root->SetBoolField(TEXT("stationary"), bStationary);
+	Root->SetBoolField(TEXT("moving_ism"), bMovingISM);
+	Root->SetBoolField(TEXT("has_patrol"), bHasPatrol && bHasPatrolFragment);
+	Root->SetNumberField(TEXT("patrol_speed"), PatrolSpeed);
+	Root->SetNumberField(TEXT("patrol_radius"), PatrolRadius);
 	Root->SetArrayField(TEXT("mesh_paths"), MeshPaths);
 	Root->SetArrayField(TEXT("lod_representation"), LODRepresentations);
 	Root->SetArrayField(TEXT("lod_distances"), LODDistances);
@@ -320,6 +376,46 @@ FString UJamMassLibrary::PrepareAmbientISMBudgetConfig(
 	return SerializeJson(Root);
 #else
 	return JsonError(TEXT("preparar representación sólo está disponible en editor"), 0);
+#endif
+}
+
+FString UJamMassLibrary::PrepareAmbientPatrolConfig(
+	UObject* ConfigAsset,
+	const FString& MeshPath,
+	const float MediumDistance,
+	const float LowDistance,
+	const float OffDistance,
+	const float Speed,
+	const float Radius)
+{
+	UMassEntityConfigAsset* Config = Cast<UMassEntityConfigAsset>(ConfigAsset);
+	UStaticMesh* Mesh = Cast<UStaticMesh>(FSoftObjectPath(MeshPath).TryLoad());
+	if (Config == nullptr)
+	{
+		return JsonError(TEXT("el objeto no es un UMassEntityConfigAsset"), 0);
+	}
+	if (Mesh == nullptr)
+	{
+		return JsonError(TEXT("no se encontró el UStaticMesh de representación"), 0);
+	}
+#if WITH_EDITOR
+	const FJamPatrolTraits Traits = FindOrAddPatrolTraits(*Config);
+	if (Traits.Visualization == nullptr || Traits.Patrol == nullptr
+		|| !Traits.Visualization->Configure(*Mesh, MediumDistance, LowDistance, OffDistance)
+		|| !Traits.Patrol->Configure(Speed, Radius))
+	{
+		return JsonError(TEXT("representación dinámica o patrulla inválida"), 0);
+	}
+	Config->MarkPackageDirty();
+	TSharedRef<FJsonObject> Root = MakeShared<FJsonObject>();
+	Root->SetBoolField(TEXT("ok"), true);
+	Root->SetStringField(TEXT("config_path"), Config->GetPathName());
+	Root->SetStringField(TEXT("mesh_path"), Mesh->GetPathName());
+	Root->SetNumberField(TEXT("speed"), Speed);
+	Root->SetNumberField(TEXT("radius"), Radius);
+	return SerializeJson(Root);
+#else
+	return JsonError(TEXT("preparar patrulla sólo está disponible en editor"), 0);
 #endif
 }
 
@@ -591,6 +687,13 @@ FString UJamMassLibrary::InspectPopulation(
 	float ClosestFrustumDistanceMin = FLT_MAX;
 	float ClosestFrustumDistanceMax = -FLT_MAX;
 	int32 InsideFrustum = 0;
+	int32 PatrolFragments = 0;
+	int32 PatrolInitialized = 0;
+	int32 PatrolMoved = 0;
+	int32 PatrolReversed = 0;
+	int32 PatrolOutOfBounds = 0;
+	int32 PatrolReversals = 0;
+	float PatrolMaxAbsDistance = 0.0f;
 	FVector ObservedSum = FVector::ZeroVector;
 	for (int32 Index = 0; Index < Population->Entities.Num(); ++Index)
 	{
@@ -636,6 +739,20 @@ FString UJamMassLibrary::InspectPopulation(
 			ClosestFrustumDistanceMax = FMath::Max(
 				ClosestFrustumDistanceMax, Viewer->ClosestDistanceToFrustum);
 			InsideFrustum += Viewer->ClosestDistanceToFrustum < 0.0f ? 1 : 0;
+		}
+		if (const FJamMassPatrolFragment* Patrol =
+			Manager->GetFragmentDataPtr<FJamMassPatrolFragment>(Entity))
+		{
+			++PatrolFragments;
+			PatrolInitialized += Patrol->bInitialized ? 1 : 0;
+			PatrolMoved += FMath::Abs(Patrol->Distance) > 0.001f ? 1 : 0;
+			PatrolReversed += Patrol->Reversals > 0 ? 1 : 0;
+			PatrolReversals += Patrol->Reversals;
+			PatrolMaxAbsDistance = FMath::Max(PatrolMaxAbsDistance, FMath::Abs(Patrol->Distance));
+			const FJamMassPatrolParameters* Parameters =
+				Manager->GetConstSharedFragmentDataPtr<FJamMassPatrolParameters>(Entity);
+			PatrolOutOfBounds += Parameters != nullptr
+				&& FMath::Abs(Patrol->Distance) > Parameters->Radius + 0.001f ? 1 : 0;
 		}
 	}
 	const UMassLODSubsystem* LODSubsystem = World->GetSubsystem<UMassLODSubsystem>();
@@ -684,6 +801,13 @@ FString UJamMassLibrary::InspectPopulation(
 	Root->SetNumberField(TEXT("closest_frustum_min"), ClosestFrustumDistanceMin);
 	Root->SetNumberField(TEXT("closest_frustum_max"), ClosestFrustumDistanceMax);
 	Root->SetNumberField(TEXT("inside_frustum"), InsideFrustum);
+	Root->SetNumberField(TEXT("patrol_fragments"), PatrolFragments);
+	Root->SetNumberField(TEXT("patrol_initialized"), PatrolInitialized);
+	Root->SetNumberField(TEXT("patrol_moved"), PatrolMoved);
+	Root->SetNumberField(TEXT("patrol_reversed"), PatrolReversed);
+	Root->SetNumberField(TEXT("patrol_reversals"), PatrolReversals);
+	Root->SetNumberField(TEXT("patrol_out_of_bounds"), PatrolOutOfBounds);
+	Root->SetNumberField(TEXT("patrol_max_abs_distance"), PatrolMaxAbsDistance);
 	Root->SetNumberField(TEXT("observed_sum_x"), ObservedSum.X);
 	Root->SetNumberField(TEXT("observed_sum_y"), ObservedSum.Y);
 	Root->SetNumberField(TEXT("observed_sum_z"), ObservedSum.Z);

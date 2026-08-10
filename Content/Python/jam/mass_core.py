@@ -32,6 +32,7 @@ class MassSpec:
     budget: int
     position_sum: tuple[float, float, float]
     representation: str | None = None
+    behavior: str | None = None
 
     def __len__(self) -> int:
         return len(self.frames)
@@ -46,6 +47,7 @@ class MassHandle:
     requested: int
     position_sum: tuple[float, float, float]
     representation: str | None = None
+    behavior: str | None = None
 
 
 @dataclass(frozen=True)
@@ -57,10 +59,13 @@ class MassConfig:
     mesh_paths: tuple[str, ...] = ()
     lod_distances: tuple[float, ...] = ()
     lod_max_counts: tuple[int, ...] = ()
+    behavior: str | None = None
+    patrol_speed: float | None = None
+    patrol_radius: float | None = None
 
 
 def make_config(config_path, facts: dict, *, require_ism=False,
-                require_lod_budget=False) -> dict:
+                require_lod_budget=False, require_patrol=False) -> dict:
     """Publica MC sólo si MassGameplay resolvió un template espacial válido."""
     ruta = str(config_path or "").strip()
     if not ruta.startswith("/") or "." not in ruta.rsplit("/", 1)[-1]:
@@ -92,25 +97,44 @@ def make_config(config_path, facts: dict, *, require_ism=False,
                                 and 0 <= value <= UNLIMITED_LOD_COUNT
                                 for value in raw_max_counts))
     lod_max_counts = tuple(raw_max_counts) if valid_max_counts else ()
-    ism_defects = []
+    visual_defects = []
     if not facts.get("has_representation"):
-        ism_defects.append("el template no contiene FMassRepresentationFragment")
+        visual_defects.append("el template no contiene FMassRepresentationFragment")
     if not facts.get("has_lod") or not facts.get("has_viewer"):
-        ism_defects.append("el template no contiene el contrato LOD/viewer")
+        visual_defects.append("el template no contiene el contrato LOD/viewer")
     if not facts.get("has_actor_fragment"):
-        ism_defects.append("el template no contiene FMassActorFragment")
-    if not facts.get("stationary"):
-        ism_defects.append("la representación no es Stationary")
+        visual_defects.append("el template no contiene FMassActorFragment")
     if not mesh_paths:
-        ism_defects.append("la representación no contiene Static Mesh")
+        visual_defects.append("la representación no contiene Static Mesh")
     if lod_representation != expected_lod:
-        ism_defects.append("los LOD no siguen ISM/ISM/ISM/None")
+        visual_defects.append("los LOD no siguen ISM/ISM/ISM/None")
     if (len(lod_distances) != 4 or not all(math.isfinite(value) for value in lod_distances)
             or lod_distances[0] != 0.0
             or not all(a < b for a, b in zip(lod_distances, lod_distances[1:]))):
-        ism_defects.append("las distancias LOD no son 0 < Medium < Low < Off")
+        visual_defects.append("las distancias LOD no son 0 < Medium < Low < Off")
+    ism_defects = list(visual_defects)
+    if not facts.get("stationary"):
+        ism_defects.append("la representación no es Stationary")
     if not ism_defects:
         representation = "ism"
+
+    behavior = None
+    patrol_speed = facts.get("patrol_speed")
+    patrol_radius = facts.get("patrol_radius")
+    patrol_defects = list(visual_defects)
+    if not facts.get("moving_ism"):
+        patrol_defects.append("la patrulla no usa una representación ISM dinámica")
+    if not facts.get("has_patrol"):
+        patrol_defects.append("el template no contiene la patrulla ambiental")
+    for name, value in (("velocidad", patrol_speed), ("radio", patrol_radius)):
+        if (not isinstance(value, (int, float)) or isinstance(value, bool)
+                or not math.isfinite(float(value)) or float(value) <= 0.0):
+            patrol_defects.append(f"la patrulla necesita {name} positiva y finita")
+    if not patrol_defects:
+        representation = "ism_dynamic"
+        behavior = "patrol"
+        patrol_speed = float(patrol_speed)
+        patrol_radius = float(patrol_radius)
     if require_ism:
         defects.extend(ism_defects)
     if require_lod_budget:
@@ -121,6 +145,8 @@ def make_config(config_path, facts: dict, *, require_ism=False,
         elif (lod_max_counts[3] != UNLIMITED_LOD_COUNT
               or any(value == UNLIMITED_LOD_COUNT for value in lod_max_counts[:3])):
             defects.append("el presupuesto LOD debe acotar High/Medium/Low y dejar Off ilimitado")
+    if require_patrol:
+        defects.extend(defect for defect in patrol_defects if defect not in defects)
     if defects:
         return {"error": "; ".join(defects)}
     return {"config": MassConfig(
@@ -129,6 +155,9 @@ def make_config(config_path, facts: dict, *, require_ism=False,
         mesh_paths=mesh_paths,
         lod_distances=lod_distances,
         lod_max_counts=lod_max_counts,
+        behavior=behavior,
+        patrol_speed=patrol_speed if behavior else None,
+        patrol_radius=patrol_radius if behavior else None,
     )}
 
 
@@ -183,8 +212,9 @@ def make_spec(frame_set, *, config=None, config_path="", seed=7, budget=MAX_ENTI
         return {"error": "mass_spec recibió dos configuraciones Mass distintas."}
     ruta = ruta_mc or ruta_legacy
     representation = config.representation if isinstance(config, MassConfig) else None
+    behavior = config.behavior if isinstance(config, MassConfig) else None
     return {"spec": MassSpec(
-        batch.frames, ruta, seed, budget, batch.position_sum, representation)}
+        batch.frames, ruta, seed, budget, batch.position_sum, representation, behavior)}
 
 
 def handle_from_spawn(spec: MassSpec, facts: dict) -> dict:
@@ -211,7 +241,8 @@ def handle_from_spawn(spec: MassSpec, facts: dict) -> dict:
     if defects:
         return {"error": "; ".join(defects)}
     return {"handle": MassHandle(
-        population_id, world_id, len(spec), spec.position_sum, spec.representation)}
+        population_id, world_id, len(spec), spec.position_sum,
+        spec.representation, spec.behavior)}
 
 
 def judge_inspect(handle: MassHandle, facts: dict) -> dict:
@@ -225,21 +256,30 @@ def judge_inspect(handle: MassHandle, facts: dict) -> dict:
         "world_id": handle.world_id,
         "requested": handle.requested,
         "valid": handle.requested,
-        "transform_mismatches": 0,
     }
+    if handle.behavior is None:
+        expected["transform_mismatches"] = 0
     for field, value in expected.items():
         if facts.get(field) != value:
             defects.append(f"{field}={facts.get(field)!r}, esperado {value!r}")
-    for axis, value in zip("xyz", handle.position_sum):
-        observed = facts.get(f"observed_sum_{axis}")
-        if not isinstance(observed, (int, float)) or abs(observed - value) > POSITION_TOLERANCE_CM:
-            defects.append(f"observed_sum_{axis} no conserva los fragments")
-    if handle.representation == "ism":
+    if handle.behavior is None:
+        for axis, value in zip("xyz", handle.position_sum):
+            observed = facts.get(f"observed_sum_{axis}")
+            if not isinstance(observed, (int, float)) or abs(observed - value) > POSITION_TOLERANCE_CM:
+                defects.append(f"observed_sum_{axis} no conserva los fragments")
+    if handle.representation in ("ism", "ism_dynamic"):
         for field in ("representation_fragments", "lod_fragments", "mesh_desc_valid"):
             if facts.get(field) != handle.requested:
                 defects.append(f"{field}={facts.get(field)!r}, esperado {handle.requested}")
+    if handle.behavior == "patrol":
+        for field in ("patrol_fragments", "patrol_initialized", "patrol_moved"):
+            if facts.get(field) != handle.requested:
+                defects.append(f"{field}={facts.get(field)!r}, esperado {handle.requested}")
+        if facts.get("patrol_out_of_bounds") != 0:
+            defects.append("la patrulla salió de su radio")
     return {"ok": not defects, "defects": defects,
-            "info": f"{handle.requested} entidades vivas · transforms conservados"}
+            "info": (f"{handle.requested} entidades vivas · "
+                     f"{'patrulla acotada' if handle.behavior == 'patrol' else 'transforms conservados'}")}
 
 
 def judge_clear(handle: MassHandle, facts: dict) -> dict:

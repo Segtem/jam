@@ -18,6 +18,7 @@ public class JamMass : ModuleRules
 		{
 			"Json",
 			"MassCore",
+			"MassCommon",
 			"MassEntity",
 			"MassActors",
 			"MassLOD",

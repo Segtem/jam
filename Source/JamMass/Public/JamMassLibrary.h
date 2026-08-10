@@ -41,6 +41,17 @@ public:
 		int32 MediumMaxCount,
 		int32 LowMaxCount);
 
+	/** Agrega ISM dinámica y una patrulla lineal acotada alrededor de cada transform inicial. */
+	UFUNCTION(BlueprintCallable, Category = "Jam|Mass")
+	static FString PrepareAmbientPatrolConfig(
+		UObject* ConfigAsset,
+		const FString& MeshPath,
+		float MediumDistance,
+		float LowDistance,
+		float OffDistance,
+		float Speed,
+		float Radius);
+
 	/**
 	 * Prueba atómica del núcleo MassEntity: crea una entidad por transform, lee sus fragments y las
 	 * destruye antes de volver. Devuelve hechos JSON; el juicio vive en el cerebro puro de Jam.

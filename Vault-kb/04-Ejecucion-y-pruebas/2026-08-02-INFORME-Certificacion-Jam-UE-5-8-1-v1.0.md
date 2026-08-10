@@ -41,7 +41,7 @@ Motor: `5.8.1-0+UE5`. Commit de partida: `bc0bd89`. Proyecto host:
 | PCG | editor completo + `-ExecCmds`, 90 ticks | **verde**: 3 nodos, 4/4 cables, preset 600 cm, hex/triangular, 287 HISM | Preview/Bake/Discard manual y PCG 5.8 nuevo |
 | Graph funciones | `verifica_funcion_graph.py` | **verde en 5.8.1**: id estable, guardar, firma, dos instancias y Compile | ABM, `Ctrl+G` y pines múltiples con las manos |
 | Oracle | editor completo/commandlet + sondas específicas | **función verde**: placement, snap, `snap.al_ras`, scatter, spline, physics, reemplazo y espacio coinciden | espacio cubre el subconjunto vivo; desmontaje del editor completo falla; commandlet hereda 9 paquetes rotos de BotOO |
-| MassEntity | sondas `verifica_mass_*_58.py` | **verde**: MS/MH, PIE por mundo, MC→MS→MH, LOD por distancia y presupuesto 1/1/1 con control ilimitado High=4 | sin actores high/low, navegación ni comportamiento |
+| MassEntity | sondas `verifica_mass_*_58.py` | **verde**: MS/MH, PIE por mundo, MC→MS→MH, LOD por distancia/presupuesto y patrulla 4/4 movidas/revertidas dentro de radio | sin obstáculos, terreno, señales, StateTree ni navegación |
 | Slate | build y carga de `JamEditor` | módulo cargado | tabs, historial, gestos y Undo/Redo en GUI |
 | Nanite | editor GUI + `verifica_nanite_fracture_58.py` | **verde**: copia Nanite y GC con `EnableNanite=true` | inspección visual y materiales incompatibles |
 | Dataflow/Fracture | editor GUI, nodos y terminal v2 | **verde**: GC regenerada; 2/2 materiales distintos conservados | rotura en PIE y shutdown con señal 11 |

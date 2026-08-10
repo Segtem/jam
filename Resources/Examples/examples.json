@@ -83,6 +83,14 @@
 			"mensaje": "Población Mass presupuestada cargada. Compile y Run graph; el MC debe informar máximos LOD (1, 1, 1, 2147483647)."
 		},
 		{
+			"archivo": "Patrulla-Mass-Ambiental.jamgraph",
+			"titulo": "Patrulla Mass ambiental",
+			"grupo": "Simulación",
+			"icono": "jam-mass-spawn",
+			"doc": "Ocho entidades reciben una patrulla autónoma de vaivén sobre el eje de cada frame. El processor conserva el origen, limita el recorrido a 25 cm y cuenta cada reversión.\nUsa ISM dinámica para que la representación siga los transforms; no necesita ZoneGraph, StateTree ni actores.",
+			"mensaje": "Patrulla Mass cargada. Compile y Run graph; el MC debe informar 800 cm/s, radio 25 cm y patrulla dinámica válida."
+		},
+		{
 			"archivo": "Debug-Playground.jamgraph",
 			"titulo": "Banco de pruebas de Debug",
 			"grupo": "Ver el dato",
