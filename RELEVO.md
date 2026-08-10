@@ -11,6 +11,18 @@ verde_editor_fecha: 2026-08-10
 
 Entra **claude-code**. Corré `python tools/relevo.py` antes de leer esto; si sale rojo, eso es el turno.
 
+**Actualización Codex 2026-08-10 — MassEntity Fase 3 cerrada con presupuesto LOD.** Jam distribuye
+`/Jam/Mass/MC_JamAmbientBudget`, con topes independientes High/Medium/Low=1 y Off ilimitado.
+`mass_config require_lod_budget=true` inspecciona los cuatro `LODMaxCount` antes de publicar MC; el
+tutorial `Poblacion-Mass-LOD-Presupuestado` deja visible MC→MS→MH. En PIE real, cuatro entidades
+dentro del rango High dieron **High=4** con el control ilimitado y **High/Medium/Low/Off=1/1/1/1,
+ISM/None=3/1** con el presupuesto. Mutar High a ilimitado dejó 4/0/0/0 y puso roja la misma sonda;
+código y asset fueron restaurados. Son 849 tests y ambos módulos están al día. El shutdown sigue
+abortando después del marcador; una apertura/cierre mínima lo reprodujo incluso con
+`-DisablePlugins=Jam`, así que queda delimitado como rojo del host/editor, no como verde de Jam.
+Lo próximo es Fase 4: un comportamiento ambiental mínimo y medible, sin ZoneGraph hasta que un caso
+de BotOO exija navegación.
+
 **Actualización Codex 2026-08-10 — MassEntity Fase 3, representación ambiental cerrada.** Jam
 distribuye `/Jam/Mass/MC_JamAmbientISM`: Stationary, Sphere, ISM en High/Medium/Low y None en Off.
 `mass_config require_ism=true` mide fragments, descriptor, movilidad, perfil y umbrales antes de
@@ -350,11 +362,11 @@ de pedir manos sin que nadie lo note.)*
 
 ## Lo próximo
 
-**Siguiente corte de la Fase 3 de
-[[2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0|MassEntity en Jam]]: presupuesto LOD.** El caso
-ambiental ya demuestra cantidad, transición High/Medium/Low/Off, ISM/nula y limpieza. Sigue una
-prueba de saturación con `LODMaxCount` acotado y medida de degradación; actor high/low sólo si un
-caso BotOO lo justifica. No agregar navegación o StateTree todavía.
+**Siguiente corte: Fase 4 de
+[[2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0|MassEntity en Jam]], comportamiento ambiental.** La
+Fase 3 ya demuestra cantidad, transición por distancia, saturación por `LODMaxCount`, ISM/nula y
+limpieza. Diseñar un trait/processor mínimo y medible para un caso BotOO; no agregar ZoneGraph ni
+StateTree hasta que la navegación o estados complejos sean una necesidad demostrada.
 
 **Después: cerrar la Fase 2 del
 [[2026-08-09-ROADMAP-Verbos-Y-Ejemplos-PMG-v1.0|roadmap PMG]] con Carretera modular.** Offset,

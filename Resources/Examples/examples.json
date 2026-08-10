@@ -71,8 +71,16 @@
 			"titulo": "Población MassGameplay ambiental",
 			"grupo": "Simulación",
 			"icono": "jam-mass-spawn",
-			"doc": "El config espacial distribuido por Jam se valida como MC y gobierna una receta MS de 37 frames. Crear población usa un AJamMassSpawner real y entrega un MH inspeccionable.\nEs la base sin representación para ratas, insectos o ambientación numerosa: todavía no dibuja actores/ISM, navega ni ejecuta comportamiento.",
+			"doc": "El config espacial distribuido por Jam se valida como MC y gobierna una receta MS de 37 frames. Crear población usa un AJamMassSpawner real y entrega un MH inspeccionable.\nLa representación ambiental estacionaria usa ISM en High/Medium/Low y desaparece en Off; todavía no navega ni ejecuta comportamiento.",
 			"mensaje": "Población MassGameplay cargada. Compile y Run graph; Inspeccionar debe informar 37 entidades vivas y Discard debe liberarlas."
+		},
+		{
+			"archivo": "Poblacion-Mass-LOD-Presupuestado.jamgraph",
+			"titulo": "Población Mass con presupuesto LOD",
+			"grupo": "Simulación",
+			"icono": "jam-mass-spawn",
+			"doc": "Cuatro entidades cercanas compiten por un máximo independiente de una plaza High, una Medium y una Low. Mass degrada el excedente hasta Off, sin que Jam ordene entidades a mano.\nEl nodo Configuración exige que el asset medido tenga los tres topes y deja Off ilimitado como sumidero.",
+			"mensaje": "Población Mass presupuestada cargada. Compile y Run graph; el MC debe informar máximos LOD (1, 1, 1, 2147483647)."
 		},
 		{
 			"archivo": "Debug-Playground.jamgraph",

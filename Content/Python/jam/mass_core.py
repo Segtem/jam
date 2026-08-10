@@ -8,6 +8,7 @@ import math
 
 MAX_ENTITIES = 4096
 POSITION_TOLERANCE_CM = 0.001
+UNLIMITED_LOD_COUNT = 2_147_483_647
 
 
 @dataclass(frozen=True)
@@ -55,9 +56,11 @@ class MassConfig:
     representation: str | None = None
     mesh_paths: tuple[str, ...] = ()
     lod_distances: tuple[float, ...] = ()
+    lod_max_counts: tuple[int, ...] = ()
 
 
-def make_config(config_path, facts: dict, *, require_ism=False) -> dict:
+def make_config(config_path, facts: dict, *, require_ism=False,
+                require_lod_budget=False) -> dict:
     """Publica MC sólo si MassGameplay resolvió un template espacial válido."""
     ruta = str(config_path or "").strip()
     if not ruta.startswith("/") or "." not in ruta.rsplit("/", 1)[-1]:
@@ -82,6 +85,13 @@ def make_config(config_path, facts: dict, *, require_ism=False) -> dict:
                           if isinstance(value, (int, float)))
     expected_lod = ("StaticMeshInstance", "StaticMeshInstance", "StaticMeshInstance", "None")
     lod_representation = tuple(facts.get("lod_representation", ()))
+    raw_max_counts = facts.get("lod_max_counts", ())
+    valid_max_counts = (isinstance(raw_max_counts, (list, tuple))
+                        and len(raw_max_counts) == 4
+                        and all(isinstance(value, int) and not isinstance(value, bool)
+                                and 0 <= value <= UNLIMITED_LOD_COUNT
+                                for value in raw_max_counts))
+    lod_max_counts = tuple(raw_max_counts) if valid_max_counts else ()
     ism_defects = []
     if not facts.get("has_representation"):
         ism_defects.append("el template no contiene FMassRepresentationFragment")
@@ -103,9 +113,23 @@ def make_config(config_path, facts: dict, *, require_ism=False) -> dict:
         representation = "ism"
     if require_ism:
         defects.extend(ism_defects)
+    if require_lod_budget:
+        if ism_defects:
+            defects.extend(defect for defect in ism_defects if defect not in defects)
+        if not valid_max_counts:
+            defects.append("el presupuesto LOD necesita cuatro máximos enteros no negativos")
+        elif (lod_max_counts[3] != UNLIMITED_LOD_COUNT
+              or any(value == UNLIMITED_LOD_COUNT for value in lod_max_counts[:3])):
+            defects.append("el presupuesto LOD debe acotar High/Medium/Low y dejar Off ilimitado")
     if defects:
         return {"error": "; ".join(defects)}
-    return {"config": MassConfig(ruta, representation, mesh_paths, lod_distances)}
+    return {"config": MassConfig(
+        config_path=ruta,
+        representation=representation,
+        mesh_paths=mesh_paths,
+        lod_distances=lod_distances,
+        lod_max_counts=lod_max_counts,
+    )}
 
 
 def prepare(frame_set) -> dict:

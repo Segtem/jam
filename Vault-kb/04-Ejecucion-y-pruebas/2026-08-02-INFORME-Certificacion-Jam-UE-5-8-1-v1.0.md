@@ -41,7 +41,7 @@ Motor: `5.8.1-0+UE5`. Commit de partida: `bc0bd89`. Proyecto host:
 | PCG | editor completo + `-ExecCmds`, 90 ticks | **verde**: 3 nodos, 4/4 cables, preset 600 cm, hex/triangular, 287 HISM | Preview/Bake/Discard manual y PCG 5.8 nuevo |
 | Graph funciones | `verifica_funcion_graph.py` | **verde en 5.8.1**: id estable, guardar, firma, dos instancias y Compile | ABM, `Ctrl+G` y pines múltiples con las manos |
 | Oracle | editor completo/commandlet + sondas específicas | **función verde**: placement, snap, `snap.al_ras`, scatter, spline, physics, reemplazo y espacio coinciden | espacio cubre el subconjunto vivo; desmontaje del editor completo falla; commandlet hereda 9 paquetes rotos de BotOO |
-| MassEntity | sondas `verifica_mass_*_58.py` | **verde**: MS/MH, PIE por mundo, MC→MS→MH y representación ambiental High/Medium/Low/Off = 1/1/1/1, ISM/None = 3/1 | sin presupuesto LOD saturado, actores, navegación ni comportamiento |
+| MassEntity | sondas `verifica_mass_*_58.py` | **verde**: MS/MH, PIE por mundo, MC→MS→MH, LOD por distancia y presupuesto 1/1/1 con control ilimitado High=4 | sin actores high/low, navegación ni comportamiento |
 | Slate | build y carga de `JamEditor` | módulo cargado | tabs, historial, gestos y Undo/Redo en GUI |
 | Nanite | editor GUI + `verifica_nanite_fracture_58.py` | **verde**: copia Nanite y GC con `EnableNanite=true` | inspección visual y materiales incompatibles |
 | Dataflow/Fracture | editor GUI, nodos y terminal v2 | **verde**: GC regenerada; 2/2 materiales distintos conservados | rotura en PIE y shutdown con señal 11 |
@@ -80,6 +80,12 @@ el reparto sano quedó verde, el saturado produjo 36 pares interpenetrados y amb
 `Motor` coincidieron con la referencia. El marcador final fue
 `JAM_ORACLE_SHADOW_58 TODO VERDE — placement=True snap=True scatter=True por UE 5.8.1`; después se
 repitió la señal 11 histórica durante el desmontaje.
+
+La sonda de presupuesto Mass repitió el defecto de desmontaje después de medir su marcador verde.
+Un control mínimo que sólo abrió y cerró BotOO lo reprodujo, y también lo hizo con
+`-DisablePlugins=Jam`: el heap corrupto del shutdown pertenece al host/editor de esta instalación,
+no al camino Mass ni al plugin Jam cargado. Sigue siendo un rojo real del entorno y no se usa el
+marcador funcional para declararlo resuelto.
 
 La extensión siguiente probó el reemplazo operativo de la pared R7: `spline` coloca módulos sin
 estirarlos. Una cadena de cinco piezas dio cobertura 1.0; otra con `gap` negativo produjo cinco

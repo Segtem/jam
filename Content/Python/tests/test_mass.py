@@ -51,6 +51,7 @@ class MassCoreTests(unittest.TestCase):
             "lod_representation": ["StaticMeshInstance", "StaticMeshInstance",
                                    "StaticMeshInstance", "None"],
             "lod_distances": [0.0, 1500.0, 3500.0, 8000.0],
+            "lod_max_counts": [2147483647, 2147483647, 2147483647, 2147483647],
         }
 
         config = mass_core.make_config(path, facts, require_ism=True)["config"]
@@ -66,6 +67,30 @@ class MassCoreTests(unittest.TestCase):
             with self.subTest(field=field):
                 self.assertIn("error", mass_core.make_config(
                     path, {**facts, field: bad}, require_ism=True))
+
+    def test_mc_can_require_a_measured_per_tier_lod_budget(self):
+        path = "/Jam/Mass/MC_JamAmbientBudget.MC_JamAmbientBudget"
+        facts = {
+            "ok": True, "config_path": path, "trait_count": 2,
+            "template_valid": True, "has_transform": True,
+            "has_representation": True, "has_lod": True, "has_viewer": True,
+            "has_actor_fragment": True, "stationary": True,
+            "mesh_paths": ["/Engine/BasicShapes/Sphere.Sphere"],
+            "lod_representation": ["StaticMeshInstance", "StaticMeshInstance",
+                                   "StaticMeshInstance", "None"],
+            "lod_distances": [0.0, 1500.0, 3500.0, 8000.0],
+            "lod_max_counts": [1, 1, 1, 2147483647],
+        }
+
+        config = mass_core.make_config(
+            path, facts, require_lod_budget=True)["config"]
+        self.assertEqual(config.lod_max_counts, (1, 1, 1, 2147483647))
+        for counts in ([2147483647] * 4, [1, 1, 1, 1], [1, -1, 1, 2147483647],
+                       [True, 1, 1, 2147483647], [1, 1, 2147483647]):
+            with self.subTest(counts=counts):
+                self.assertIn("error", mass_core.make_config(
+                    path, {**facts, "lod_max_counts": counts},
+                    require_lod_budget=True))
 
     def test_prepare_accepts_finite_frames_and_computes_the_expected_sum(self):
         result = mass_core.prepare(frames(frame(10, 20, 30), frame(-2, 4, 8, scale=2)))
@@ -239,6 +264,28 @@ class MassToolTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "FMassRepresentationFragment"):
                 tools.t_mass_config(path=path, require_ism=True)
 
+    def test_mass_config_can_demand_and_publish_a_measured_lod_budget(self):
+        path = "/Jam/Mass/MC_JamAmbientBudget.MC_JamAmbientBudget"
+        facts = {
+            "ok": True, "config_path": path, "trait_count": 2,
+            "template_valid": True, "has_transform": True,
+            "has_representation": True, "has_lod": True, "has_viewer": True,
+            "has_actor_fragment": True, "stationary": True,
+            "mesh_paths": ["/Engine/BasicShapes/Sphere.Sphere"],
+            "lod_representation": ["StaticMeshInstance", "StaticMeshInstance",
+                                   "StaticMeshInstance", "None"],
+            "lod_distances": [0.0, 1500.0, 3500.0, 8000.0],
+            "lod_max_counts": [1, 1, 1, 2147483647],
+        }
+        with mock.patch.object(ue, "mass_config", return_value=facts):
+            text = tools.t_mass_config(
+                path=path, require_ism=True, require_lod_budget=True)
+
+        self.assertIn("máximos LOD (1, 1, 1, 2147483647)", text)
+        self.assertEqual(
+            tools.dato_producido_runtime("mass_config").lod_max_counts,
+            (1, 1, 1, 2147483647))
+
 
 class MassContractTests(unittest.TestCase):
     def test_graph_publishes_mass_as_a_diagnostic_f_to_f(self):
@@ -267,6 +314,30 @@ class MassContractTests(unittest.TestCase):
         self.assertIn('\"MassEntity\"', build)
         module = next(item for item in descriptor["Modules"] if item["Name"] == "JamMass")
         self.assertEqual(module["Type"], "Runtime")
+
+    def test_budget_bridge_writes_and_inspects_the_four_lod_limits(self):
+        library = (ROOT / "Source/JamMass/Private/JamMassLibrary.cpp").read_text(
+            encoding="utf-8")
+        trait = (ROOT / "Source/JamMass/Private/JamMassGameplayTypes.cpp").read_text(
+            encoding="utf-8")
+        for marker in ("PrepareAmbientISMBudgetConfig", 'TEXT("lod_max_counts")',
+                       "Visualization->LODParams.LODMaxCount[LOD]"):
+            self.assertIn(marker, library)
+        for marker in ("ConfigureBudget", "HighMaxCount < 0",
+                       "LODParams.LODMaxCount[EMassLOD::High] = HighMaxCount",
+                       "LODParams.LODMaxCount[EMassLOD::Medium] = MediumMaxCount",
+                       "LODParams.LODMaxCount[EMassLOD::Low] = LowMaxCount",
+                       "LODParams.LODMaxCount[EMassLOD::Off] = MAX_int32"):
+            self.assertIn(marker, trait)
+
+    def test_pie_budget_probe_has_an_unlimited_control_and_a_bounded_population(self):
+        source = (ROOT / "tools/experiments/verifica_mass_lod_budget_58.py").read_text(
+            encoding="utf-8")
+        for marker in ("MC_JamAmbientISM", "MC_JamAmbientBudget",
+                       '"lod_high": 4', '"lod_high": 1',
+                       '"lod_medium": 1', '"lod_low": 1', '"lod_off": 1',
+                       "JAM_MASS_LOD_BUDGET_58"):
+            self.assertIn(marker, source)
 
     def test_pie_probe_contrasts_editor_and_pie_world_lifetimes(self):
         source = (ROOT / "tools/experiments/verifica_mass_pie_58.py").read_text(

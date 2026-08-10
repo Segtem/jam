@@ -58,6 +58,33 @@ FString JsonError(const FString& Message, const int32 Requested)
 	return SerializeJson(Root);
 }
 
+#if WITH_EDITOR
+UJamMassAmbientISMTrait* FindOrAddAmbientTraits(UMassEntityConfigAsset& Config)
+{
+	UJamMassAmbientISMTrait* AmbientTrait = nullptr;
+	bool bHasTransformTrait = false;
+	for (UMassEntityTraitBase* Trait : Config.GetMutableConfig().GetTraits())
+	{
+		if (Trait == nullptr)
+		{
+			continue;
+		}
+		AmbientTrait = AmbientTrait == nullptr ? Cast<UJamMassAmbientISMTrait>(Trait) : AmbientTrait;
+		bHasTransformTrait = bHasTransformTrait || Trait->IsA<UJamMassTransformTrait>();
+	}
+	if (!bHasTransformTrait)
+	{
+		Config.AddTrait(UJamMassTransformTrait::StaticClass());
+	}
+	if (AmbientTrait == nullptr)
+	{
+		AmbientTrait = Cast<UJamMassAmbientISMTrait>(
+			Config.AddTrait(UJamMassAmbientISMTrait::StaticClass()));
+	}
+	return AmbientTrait;
+}
+#endif
+
 UWorld* ResolveWorld(UObject* WorldContextObject)
 {
 	return GEngine == nullptr
@@ -158,6 +185,7 @@ FString UJamMassLibrary::InspectConfig(UObject* WorldContextObject, const FStrin
 	TArray<TSharedPtr<FJsonValue>> MeshPaths;
 	TArray<TSharedPtr<FJsonValue>> LODRepresentations;
 	TArray<TSharedPtr<FJsonValue>> LODDistances;
+	TArray<TSharedPtr<FJsonValue>> LODMaxCounts;
 	bool bStationary = false;
 	for (const UMassEntityTraitBase* Trait : Config->GetConfig().GetTraits())
 	{
@@ -184,6 +212,8 @@ FString UJamMassLibrary::InspectConfig(UObject* WorldContextObject, const FStrin
 					static_cast<int64>(Visualization->Params.LODRepresentation[LOD]))));
 			LODDistances.Add(MakeShared<FJsonValueNumber>(
 				Visualization->LODParams.BaseLODDistance[LOD]));
+			LODMaxCounts.Add(MakeShared<FJsonValueNumber>(
+				Visualization->LODParams.LODMaxCount[LOD]));
 		}
 	}
 
@@ -202,6 +232,7 @@ FString UJamMassLibrary::InspectConfig(UObject* WorldContextObject, const FStrin
 	Root->SetArrayField(TEXT("mesh_paths"), MeshPaths);
 	Root->SetArrayField(TEXT("lod_representation"), LODRepresentations);
 	Root->SetArrayField(TEXT("lod_distances"), LODDistances);
+	Root->SetArrayField(TEXT("lod_max_counts"), LODMaxCounts);
 	Root->SetStringField(TEXT("template_id"), bTemplateValid
 		? EntityTemplate.GetTemplateID().ToString() : FString());
 	if (!bTemplateValid || !bHasTransform)
@@ -230,22 +261,7 @@ FString UJamMassLibrary::PrepareAmbientISMConfig(
 		return JsonError(TEXT("no se encontró el UStaticMesh de representación"), 0);
 	}
 #if WITH_EDITOR
-	UJamMassAmbientISMTrait* AmbientTrait = nullptr;
-	bool bHasTransformTrait = false;
-	for (UMassEntityTraitBase* Trait : Config->GetMutableConfig().GetTraits())
-	{
-		AmbientTrait = AmbientTrait == nullptr ? Cast<UJamMassAmbientISMTrait>(Trait) : AmbientTrait;
-		bHasTransformTrait = bHasTransformTrait || Trait->IsA<UJamMassTransformTrait>();
-	}
-	if (!bHasTransformTrait)
-	{
-		Config->AddTrait(UJamMassTransformTrait::StaticClass());
-	}
-	if (AmbientTrait == nullptr)
-	{
-		AmbientTrait = Cast<UJamMassAmbientISMTrait>(
-			Config->AddTrait(UJamMassAmbientISMTrait::StaticClass()));
-	}
+	UJamMassAmbientISMTrait* AmbientTrait = FindOrAddAmbientTraits(*Config);
 	if (AmbientTrait == nullptr
 		|| !AmbientTrait->Configure(*Mesh, MediumDistance, LowDistance, OffDistance))
 	{
@@ -259,6 +275,48 @@ FString UJamMassLibrary::PrepareAmbientISMConfig(
 	Root->SetNumberField(TEXT("medium_distance"), MediumDistance);
 	Root->SetNumberField(TEXT("low_distance"), LowDistance);
 	Root->SetNumberField(TEXT("off_distance"), OffDistance);
+	return SerializeJson(Root);
+#else
+	return JsonError(TEXT("preparar representación sólo está disponible en editor"), 0);
+#endif
+}
+
+FString UJamMassLibrary::PrepareAmbientISMBudgetConfig(
+	UObject* ConfigAsset,
+	const FString& MeshPath,
+	const float MediumDistance,
+	const float LowDistance,
+	const float OffDistance,
+	const int32 HighMaxCount,
+	const int32 MediumMaxCount,
+	const int32 LowMaxCount)
+{
+	UMassEntityConfigAsset* Config = Cast<UMassEntityConfigAsset>(ConfigAsset);
+	UStaticMesh* Mesh = Cast<UStaticMesh>(FSoftObjectPath(MeshPath).TryLoad());
+	if (Config == nullptr)
+	{
+		return JsonError(TEXT("el objeto no es un UMassEntityConfigAsset"), 0);
+	}
+	if (Mesh == nullptr)
+	{
+		return JsonError(TEXT("no se encontró el UStaticMesh de representación"), 0);
+	}
+#if WITH_EDITOR
+	UJamMassAmbientISMTrait* AmbientTrait = FindOrAddAmbientTraits(*Config);
+	if (AmbientTrait == nullptr || !AmbientTrait->ConfigureBudget(
+		*Mesh, MediumDistance, LowDistance, OffDistance,
+		HighMaxCount, MediumMaxCount, LowMaxCount))
+	{
+		return JsonError(TEXT("umbrales, presupuesto LOD o trait ISM inválidos"), 0);
+	}
+	Config->MarkPackageDirty();
+	TSharedRef<FJsonObject> Root = MakeShared<FJsonObject>();
+	Root->SetBoolField(TEXT("ok"), true);
+	Root->SetStringField(TEXT("config_path"), Config->GetPathName());
+	Root->SetStringField(TEXT("mesh_path"), Mesh->GetPathName());
+	Root->SetNumberField(TEXT("high_max_count"), HighMaxCount);
+	Root->SetNumberField(TEXT("medium_max_count"), MediumMaxCount);
+	Root->SetNumberField(TEXT("low_max_count"), LowMaxCount);
 	return SerializeJson(Root);
 #else
 	return JsonError(TEXT("preparar representación sólo está disponible en editor"), 0);

@@ -145,11 +145,19 @@ limpieza completa. La representación no puede certificarse en commandlet ni en 
 ambos omiten la cadena real de simulación/viewers. El `double free` histórico de BotOO reaparece al
 desmontar el editor, después del marcador verde.
 
+El segundo corte distribuye `/Jam/Mass/MC_JamAmbientBudget`, con máximos independientes
+**High=1, Medium=1, Low=1 y Off ilimitado**. `mass_config require_lod_budget=true` lee los cuatro
+`LODMaxCount` del asset y rechaza perfiles ilimitados, valores inválidos o un Off acotado. La sonda
+`verifica_mass_lod_budget_58.py` coloca las mismas cuatro entidades dentro del rango High: el control
+sin topes conserva High=4 y el config presupuestado converge a High/Medium/Low/Off=1/1/1/1,
+ISM/None=3/1. Mutar el setter High a ilimitado dejó las cuatro en High y llevó la sonda al timeout
+rojo; restaurar código y asset devolvió el marcador verde.
+
 - Configurar `MassRepresentation` y `MassLOD`.
 - Permitir actor de alta/baja resolución, ISM y representación nula. **Cerrado sólo ISM/nula; los
   actores quedan para un caso que los necesite.**
 - Medir distribución por representación y presupuesto, sin confundir entidades con actores.
-  **Cerrada la distribución por distancia; falta saturación por presupuesto.**
+  **Cerradas la distribución por distancia y la saturación por presupuesto.**
 
 ### Fase 4 — comportamiento
 
@@ -187,9 +195,9 @@ La prueba se muta al menos cambiando la cantidad o una coordenada esperada: tien
 ## Caso BotOO que debe gobernar la Fase 3
 
 La base ambiental —por ejemplo ratas o insectos— ya se distribuye desde `F` y mide cantidad,
-limpieza, cuatro LOD y representación ISM/nula. El siguiente corte de esta fase debe saturar un
-presupuesto LOD explícito o justificar actores high/low con un caso real; comportamiento y
-navegación siguen fuera hasta entonces.
+limpieza, cuatro LOD, representación ISM/nula y degradación por presupuesto. La Fase 3 queda cerrada
+para el caso ambiental estacionario; actores high/low sólo entran con un caso BotOO que los
+necesite. Comportamiento y navegación siguen fuera hasta entonces.
 
 ## Relacionado
 

@@ -104,6 +104,27 @@ bool UJamMassAmbientISMTrait::Configure(
 	return true;
 }
 
+bool UJamMassAmbientISMTrait::ConfigureBudget(
+	UStaticMesh& Mesh,
+	const float MediumDistance,
+	const float LowDistance,
+	const float OffDistance,
+	const int32 HighMaxCount,
+	const int32 MediumMaxCount,
+	const int32 LowMaxCount)
+{
+	if (HighMaxCount < 0 || MediumMaxCount < 0 || LowMaxCount < 0
+		|| !Configure(Mesh, MediumDistance, LowDistance, OffDistance))
+	{
+		return false;
+	}
+	LODParams.LODMaxCount[EMassLOD::High] = HighMaxCount;
+	LODParams.LODMaxCount[EMassLOD::Medium] = MediumMaxCount;
+	LODParams.LODMaxCount[EMassLOD::Low] = LowMaxCount;
+	LODParams.LODMaxCount[EMassLOD::Off] = MAX_int32;
+	return true;
+}
+
 void UJamMassAmbientISMTrait::BuildTemplate(
 	FMassEntityTemplateBuildContext& BuildContext, const UWorld& World) const
 {

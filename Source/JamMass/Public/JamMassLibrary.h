@@ -29,6 +29,18 @@ public:
 		float LowDistance,
 		float OffDistance);
 
+	/** Variante con máximos por LOD para medir degradación por presupuesto. */
+	UFUNCTION(BlueprintCallable, Category = "Jam|Mass")
+	static FString PrepareAmbientISMBudgetConfig(
+		UObject* ConfigAsset,
+		const FString& MeshPath,
+		float MediumDistance,
+		float LowDistance,
+		float OffDistance,
+		int32 HighMaxCount,
+		int32 MediumMaxCount,
+		int32 LowMaxCount);
+
 	/**
 	 * Prueba atómica del núcleo MassEntity: crea una entidad por transform, lee sus fragments y las
 	 * destruye antes de volver. Devuelve hechos JSON; el juicio vive en el cerebro puro de Jam.

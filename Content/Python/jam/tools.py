@@ -1666,20 +1666,25 @@ def t_mass_probe(frame_input) -> str:
     return f"MASS PROBE F ✓ — {result['info']}"
 
 
-def t_mass_config(_input=None, *, path="", require_ism=False) -> str:
+def t_mass_config(_input=None, *, path="", require_ism=False,
+                  require_lod_budget=False) -> str:
     """Ruta de asset → MC: valida traits y template mediante MassGameplay."""
     from . import mass_core, ue
 
     result = mass_core.make_config(
-        path, ue.mass_config(str(path or "").strip()), require_ism=bool(require_ism))
+        path, ue.mass_config(str(path or "").strip()),
+        require_ism=bool(require_ism),
+        require_lod_budget=bool(require_lod_budget))
     if "error" in result:
         raise RuntimeError(result["error"])
     config = result["config"]
     _RUNTIME_DATA_OUTPUTS["mass_config"] = config
     representation = (f" · ISM estacionario · LOD {config.lod_distances}"
                       if config.representation == "ism" else "")
+    budget = (f" · máximos LOD {config.lod_max_counts}"
+              if require_lod_budget else "")
     return (f"MASS CONFIG MC ✓ — {config.config_path} · template espacial válido"
-            f"{representation}")
+            f"{representation}{budget}")
 
 
 def t_mass_spec(frame_input, *, config="", config_path="", seed=7, budget=4096) -> str:
@@ -2310,7 +2315,8 @@ REGISTRO = {
                           "las destruye y deja pasar el mismo F; prueba de núcleo, no población persistente"},
     "mass_config": {"fn": t_mass_config, "label": "Configuración MassEntity", "cat": "Mass",
                     "graph_only": True, "read_only": True,
-                    "params": {"path": "", "require_ism": False},
+                    "params": {"path": "", "require_ism": False,
+                               "require_lod_budget": False},
                     "doc": "valida un UMassEntityConfigAsset y produce una referencia durable MC"},
     "mass_spec": {"fn": t_mass_spec, "label": "Receta MassEntity", "cat": "Mass",
                   "graph_only": True, "read_only": True,

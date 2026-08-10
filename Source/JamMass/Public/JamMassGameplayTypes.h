@@ -80,6 +80,14 @@ public:
 	UJamMassAmbientISMTrait(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	bool Configure(UStaticMesh& Mesh, float MediumDistance, float LowDistance, float OffDistance);
+	bool ConfigureBudget(
+		UStaticMesh& Mesh,
+		float MediumDistance,
+		float LowDistance,
+		float OffDistance,
+		int32 HighMaxCount,
+		int32 MediumMaxCount,
+		int32 LowMaxCount);
 
 protected:
 	virtual void BuildTemplate(
