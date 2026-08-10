@@ -261,3 +261,31 @@ def comparar_physics_tanda(
                 referencia["sin_interpenetracion"]),
         },
     )
+
+
+def comparar_reemplazo(
+    pieza,
+    objetivo: dict,
+    referencia: dict,
+    *,
+    tol: float = 1.0,
+    tol_fp: float = 2.0,
+) -> ComparacionSombra:
+    """Compara centro, base y footprint del reemplazo operativo."""
+    if (float(tol), float(tol_fp)) != (1.0, 2.0):
+        return ComparacionSombra(
+            informe=None,
+            error=("tolerancias de reemplazo no declaradas por el catálogo: "
+                   f"(tol, tol_fp)=({float(tol)}, {float(tol_fp)})"),
+        )
+
+    from . import oracle_reemplazo_facts
+
+    return _comparar_evidencia(
+        oracle_reemplazo_facts.hechos(pieza, objetivo),
+        {
+            "reemplazo.centrado": bool(referencia["centrado"]),
+            "reemplazo.apoyado": bool(referencia["apoyado"]),
+            "reemplazo.footprint": bool(referencia["footprint"]),
+        },
+    )

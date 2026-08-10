@@ -14,8 +14,9 @@ Lo que se ganó al traducir, y no es poco:
   · **Los puntos ciegos quedaron escritos.** Los AABB no ven la malla real ni la oclusión visual, y
     eso no estaba dicho en ningún lado — se sabía, que es distinto de estar declarado.
 
-Falta traducir: pared (continuidad y cobertura), scatter, physics, reemplazo, espacio. Se hacen
-cuando el módulo se mude al paquete `oraculo` aparte, que es su lugar definitivo.
+El catálogo activo de `medidas/` ya cubre placement, snap, scatter, spline, physics y reemplazo por
+la fachada de Oracle. Este módulo conserva la primera prueba embebida; del runtime vivo sólo falta
+traducir `espacio`.
 """
 
 from __future__ import annotations

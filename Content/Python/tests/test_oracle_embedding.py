@@ -13,7 +13,8 @@ from unittest import mock
 from pathlib import Path
 
 from jam import (bridge, oracle_physics, oracle_physics_facts, oracle_physics_tanda,
-                 oracle_physics_tanda_facts, oracle_placement, oracle_scatter,
+                 oracle_physics_tanda_facts, oracle_placement, oracle_reemplazo,
+                 oracle_reemplazo_facts, oracle_scatter,
                  oracle_scatter_facts, oracle_shadow, oracle_snap, oracle_spline_facts,
                  physics_core, spline_core)
 from jam.geometry import AABB, Pieza, Vec3
@@ -355,6 +356,58 @@ class OracleEmbeddingTests(unittest.TestCase):
 
         self.assertEqual(3, cuerpo.count("ue.physics("))
         self.assertNotIn("r_antes = oracle_physics.verificar(", cuerpo)
+
+    @staticmethod
+    def _caso_reemplazo(*, dx=0.0, dy=0.0, dbase=0.0, dfx=0.0, dfy=0.0):
+        objetivo = {"cx": 100.0, "cy": 200.0, "base": 30.0,
+                    "ex": 50.0, "ey": 75.0, "ez": 40.0}
+        extension = Vec3(50.0 + dfx, 75.0 + dfy, 40.0)
+        origen = Vec3(100.0 + dx, 200.0 + dy, 30.0 + 40.0 + dbase)
+        pieza = Pieza("nuevo", AABB(origen, extension), origen, 0.0)
+        return pieza, objetivo
+
+    def test_reemplazo_coincide_preservado_centro_base_y_footprint_rotos(self) -> None:
+        casos = {
+            "preservado": self._caso_reemplazo(),
+            "descentrado": self._caso_reemplazo(dx=5.0),
+            "base": self._caso_reemplazo(dbase=-5.0),
+            "footprint": self._caso_reemplazo(dfy=5.0),
+        }
+        for nombre, (pieza, objetivo) in casos.items():
+            with self.subTest(caso=nombre):
+                referencia = oracle_reemplazo.verificar(pieza, objetivo)
+                sombra = oracle_shadow.comparar_reemplazo(pieza, objetivo, referencia)
+                self.assertEqual(nombre == "preservado", referencia["preserva"])
+                self.assertTrue(sombra.coincide, sombra)
+
+    def test_hechos_reemplazo_publican_desvios_sin_decidir_tolerancias(self) -> None:
+        pieza, objetivo = self._caso_reemplazo(dx=-3.0, dbase=4.0, dfx=6.0)
+
+        fila = oracle_reemplazo_facts.hechos(pieza, objetivo)["reemplazo"][0]
+
+        self.assertEqual(-3.0, fila["d_centro_x"])
+        self.assertEqual(4.0, fila["d_base"])
+        self.assertEqual(6.0, fila["d_footprint_x"])
+        self.assertNotIn("preserva", fila)
+
+    def test_reemplazo_no_compara_tolerancias_no_declaradas(self) -> None:
+        pieza, objetivo = self._caso_reemplazo()
+        referencia = oracle_reemplazo.verificar(pieza, objetivo, tol=2.0)
+
+        sombra = oracle_shadow.comparar_reemplazo(
+            pieza, objetivo, referencia, tol=2.0)
+
+        self.assertFalse(sombra.coincide)
+        self.assertIn("tolerancias de reemplazo no declaradas", sombra.error)
+
+    def test_la_sonda_real_de_reemplazo_pasa_por_el_adaptador_con_sombra(self) -> None:
+        fuente = (RAIZ / "Content" / "Python" / "jam" / "menu.py").read_text(
+            encoding="utf-8")
+        cuerpo = fuente[fuente.index("def selftest_reemplazo("):]
+        cuerpo = cuerpo[:cuerpo.index("\ndef ", 1)]
+
+        self.assertEqual(3, cuerpo.count("ue.reemplazo("))
+        self.assertNotIn("r1 = oracle_reemplazo.verificar(", cuerpo)
 
     def test_una_grilla_no_declarada_no_se_compara_con_el_default(self) -> None:
         pieza = Pieza(

@@ -265,21 +265,33 @@ def selftest_reemplazo() -> bool:
 
     b1 = place.colocar(ruta, (x0, 0.0, 150.0), scale=(2.0, 2.0, 3.0))  # blockout 200×200×300
     n1, obj1 = reemplazar.reemplazar(b1, ruta, ajustar_escala=True)
-    r1 = oracle_reemplazo.verificar(ue.pieza(n1), obj1)
+    r1 = ue.reemplazo(n1, obj1)
     _log("escala  " + oracle_reemplazo.verificar_texto(ue.pieza(n1), obj1))
 
     b2 = place.colocar(ruta, (x0 + 1000.0, 0.0, 150.0), scale=(2.0, 2.0, 3.0))
     n2, obj2 = reemplazar.reemplazar(b2, ruta, ajustar_escala=False)  # nativo 100³ vs 200×200×300
-    r2 = oracle_reemplazo.verificar(ue.pieza(n2), obj2)
+    r2 = ue.reemplazo(n2, obj2)
     _log("nativo  " + oracle_reemplazo.verificar_texto(ue.pieza(n2), obj2))
 
+    b3 = place.colocar(ruta, (x0 + 2000.0, 0.0, 150.0), scale=(2.0, 2.0, 3.0))
+    n3, obj3 = reemplazar.reemplazar(b3, ruta, ajustar_escala=True)
+    loc3 = n3.get_actor_location()
+    n3.set_actor_location(
+        unreal.Vector(loc3.x + 10.0, loc3.y, loc3.z + 10.0), False, True)
+    r3 = ue.reemplazo(n3, obj3)
+    _log("corrido " + oracle_reemplazo.verificar_texto(ue.pieza(n3), obj3))
+
     actor_sub = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
-    for x in (n1, n2):
+    for x in (n1, n2, n3):
         actor_sub.destroy_actor(x)
 
-    ok = oracle_reemplazo.es_ok(r1) and not oracle_reemplazo.es_ok(r2) and not r2["footprint"]
+    ok = (oracle_reemplazo.es_ok(r1)
+          and not oracle_reemplazo.es_ok(r2) and not r2["footprint"]
+          and not oracle_reemplazo.es_ok(r3) and not r3["centrado"]
+          and not r3["apoyado"] and r3["footprint"])
     _log(f"reemplazo {'OK ✓' if ok else 'FALLÓ ✗'} "
-         f"(escala.preserva={r1['preserva']}, nativo.preserva={r2['preserva']}, nativo.footprint={r2['footprint']})")
+         f"(escala.preserva={r1['preserva']}, nativo.footprint={r2['footprint']}, "
+         f"corrido.centrado={r3['centrado']}, corrido.apoyado={r3['apoyado']})")
     return ok
 
 

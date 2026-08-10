@@ -40,7 +40,7 @@ Motor: `5.8.1-0+UE5`. Commit de partida: `bc0bd89`. Proyecto host:
 | Material + Geometry/UV | `verifica_tutoriales_material.py` con commandlet rendering | **TODO VERDE**: material, parámetro, cable al mesh, Static Mesh transaccional, proyección y pack UV | inspección visual y costo con GUI cuando corresponda |
 | PCG | editor completo + `-ExecCmds`, 90 ticks | **verde**: 3 nodos, 4/4 cables, preset 600 cm, hex/triangular, 287 HISM | Preview/Bake/Discard manual y PCG 5.8 nuevo |
 | Graph funciones | `verifica_funcion_graph.py` | **verde en 5.8.1**: id estable, guardar, firma, dos instancias y Compile | ABM, `Ctrl+G` y pines múltiples con las manos |
-| Oracle | editor completo/commandlet + sondas específicas | **función verde**: placement, snap, `snap.al_ras`, scatter, spline modular y physics unitario/por lotes coinciden | desmontaje del editor completo falla; commandlet hereda 9 paquetes rotos de BotOO |
+| Oracle | editor completo/commandlet + sondas específicas | **función verde**: placement, snap, `snap.al_ras`, scatter, spline, physics y reemplazo coinciden | desmontaje del editor completo falla; commandlet hereda 9 paquetes rotos de BotOO |
 | Slate | build y carga de `JamEditor` | módulo cargado | tabs, historial, gestos y Undo/Redo en GUI |
 | Nanite | editor GUI + `verifica_nanite_fracture_58.py` | **verde**: copia Nanite y GC con `EnableNanite=true` | inspección visual y materiales incompatibles |
 | Dataflow/Fracture | editor GUI, nodos y terminal v2 | **verde**: GC regenerada; 2/2 materiales distintos conservados | rotura en PIE y shutdown con señal 11 |
@@ -100,6 +100,13 @@ Preview anterior, y cuatro piezas sobre Landscape recibieron cotas por raycast e
 del AABB. Las tres sombras `physics.tanda` coincidieron. El marcador
 `JAM_PHYSICS_PAINT_58 TODO VERDE` se emitió antes del código 1 causado exclusivamente por los nueve
 paquetes inválidos ya delimitados de BotOO.
+
+La extensión siguiente incorporó `replace` por el editor completo. Un reemplazo ajustado preservó
+centro, base y planta; el asset a escala nativa rompió la planta por `(-98,5, -107,0)` cm; y un
+tercer actor desplazado 10 cm rompió centro y base conservando el footprint. Las tres evaluaciones
+de `Motor` coincidieron y el marcador terminó en
+`placement=True snap=True scatter=True spline=True physics=True reemplazo=True`. El shutdown
+posterior repitió `double free or corruption` y señal 6.
 
 ## Próximo bloque
 

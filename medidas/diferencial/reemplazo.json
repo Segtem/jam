@@ -1,0 +1,2044 @@
+{
+ "dominio": "reemplazo",
+ "escenarios": [
+  {
+   "defecto": "",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "sin-defecto·0",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "sin-defecto·1",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "sin-defecto·2",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "sin-defecto·3",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "sin-defecto·4",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "sin-defecto·5",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "sin-defecto·6",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "sin-defecto·7",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "sin-defecto·8",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "sin-defecto·9",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "sin-defecto·10",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "sin-defecto·11",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "sin-defecto·12",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "sin-defecto·13",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "sin-defecto·14",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "sin-defecto·15",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "sin-defecto·16",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "sin-defecto·17",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "sin-defecto·18",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "sin-defecto·19",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "descentrado",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": -10.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "descentrado·0",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": false,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "descentrado",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 10.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "descentrado·1",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": false,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "descentrado",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 10.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "descentrado·2",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": false,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "descentrado",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 10.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "descentrado·3",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": false,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "descentrado",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 10.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "descentrado·4",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": false,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "descentrado",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 10.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "descentrado·5",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": false,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "descentrado",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 10.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "descentrado·6",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": false,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "descentrado",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": -10.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "descentrado·7",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": false,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "descentrado",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 10.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "descentrado·8",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": false,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "descentrado",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": -10.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "descentrado·9",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": false,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "descentrado",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": -10.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "descentrado·10",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": false,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "descentrado",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": -10.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "descentrado·11",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": false,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "descentrado",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": -10.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "descentrado·12",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": false,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "descentrado",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 10.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "descentrado·13",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": false,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "descentrado",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": -10.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "descentrado·14",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": false,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "descentrado",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 10.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "descentrado·15",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": false,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "descentrado",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 10.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "descentrado·16",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": false,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "descentrado",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 10.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "descentrado·17",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": false,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "descentrado",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 10.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "descentrado·18",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": false,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "descentrado",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 10.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "descentrado·19",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": false,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "base",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": -10.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "base·0",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": false,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "base",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": -10.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "base·1",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": false,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "base",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 10.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "base·2",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": false,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "base",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 10.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "base·3",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": false,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "base",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 10.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "base·4",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": false,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "base",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": -10.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "base·5",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": false,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "base",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": -10.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "base·6",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": false,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "base",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 10.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "base·7",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": false,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "base",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 10.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "base·8",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": false,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "base",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 10.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "base·9",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": false,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "base",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": -10.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "base·10",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": false,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "base",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": -10.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "base·11",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": false,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "base",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 10.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "base·12",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": false,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "base",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 10.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "base·13",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": false,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "base",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 10.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "base·14",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": false,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "base",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 10.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "base·15",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": false,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "base",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 10.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "base·16",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": false,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "base",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 10.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "base·17",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": false,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "base",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": -10.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "base·18",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": false,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "base",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 10.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "base·19",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": false,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "footprint",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": -10.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "footprint·0",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "footprint",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 10.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "footprint·1",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "footprint",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": -10.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "footprint·2",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "footprint",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": -10.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "footprint·3",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "footprint",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 10.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "footprint·4",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "footprint",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": -10.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "footprint·5",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "footprint",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": -10.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "footprint·6",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "footprint",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": -10.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "footprint·7",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "footprint",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 10.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "footprint·8",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "footprint",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 10.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "footprint·9",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "footprint",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 10.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "footprint·10",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "footprint",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": -10.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "footprint·11",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "footprint",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 10.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "footprint·12",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "footprint",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 10.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "footprint·13",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "footprint",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 10.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "footprint·14",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "footprint",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": -10.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "footprint·15",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "footprint",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 10.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "footprint·16",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "footprint",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 10.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "footprint·17",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "footprint",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 10.0,
+      "d_footprint_y": 0.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "footprint·18",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "footprint",
+   "evidencia": {
+    "reemplazo": [
+     {
+      "d_base": 0.0,
+      "d_centro_x": 0.0,
+      "d_centro_y": 0.0,
+      "d_footprint_x": 0.0,
+      "d_footprint_y": 10.0,
+      "id": "reemplazo"
+     }
+    ]
+   },
+   "id": "footprint·19",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "reemplazo.apoyado": true,
+     "reemplazo.centrado": true,
+     "reemplazo.footprint": false
+    }
+   },
+   "referencia_ok": false
+  }
+ ],
+ "esquema": "oracle.diferencial/v1",
+ "frescura": {
+  "algoritmo": "sha256",
+  "configuracion": {
+   "defectos": [
+    "descentrado",
+    "base",
+    "footprint"
+   ],
+   "descripcion": "Brianholl/jam · oracle_reemplazo (implementación independiente)",
+   "extra": {},
+   "nombre": "reemplazo",
+   "repeticiones": 20
+  },
+  "fuentes": {
+   "emisor": [
+    "tools/emitir_diferencial_reemplazo.py",
+    "Content/Python/jam/oracle_reemplazo_facts.py",
+    "medidas/escalares.py"
+   ],
+   "referencia": [
+    "Content/Python/jam/oracle_reemplazo.py"
+   ]
+  },
+  "huellas": {
+   "catalogo": "3b22342e057b84d001b0f472d318629d78bc55d06571f36b9b00980277a770ef",
+   "configuracion": "7a64d1a8d4c9c0712f48f2402c12b0a20e6e73f359466612db74e9fe2d4c86a6",
+   "emisor": "cfd0e690b67c6f5f0bb111f588aeaa95045f97030a26a10d851bb647a06f310d",
+   "referencia": "82688f0fc6367a4dfd074c8a3404fc9a187ef6dbc9bab45927f36c197c50115c"
+  },
+  "raiz_fuentes": ".."
+ },
+ "medidas": [
+  "reemplazo.centrado",
+  "reemplazo.apoyado",
+  "reemplazo.footprint"
+ ],
+ "mundos": 80,
+ "origen": "Brianholl/jam · oracle_reemplazo (implementación independiente)"
+}

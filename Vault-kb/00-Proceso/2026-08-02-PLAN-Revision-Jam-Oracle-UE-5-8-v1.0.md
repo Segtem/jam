@@ -137,7 +137,8 @@ próximo paso. Nada se reemplaza sólo porque dos implementaciones coincidieron 
 | spline modular | colocaciones realizadas/largo → cobertura y solape | referencia histórica + sombra | UE 5.8.1 coincide en sano y solapado | largo nominal; no ve forma fina ni cruces no adyacentes |
 | physics unitario | pieza/soportes AABB → suelo y separación vertical | referencia histórica + sombra | UE 5.8.1 coincide en flotando, apoyado y hundido | no ve colisión fina ni pendiente |
 | physics por lotes | resultados/AABB → completitud e interpenetración | referencia histórica + sombra | UE 5.8.1 coincide en pila, Preview excluido y Landscape | no ve malla fina, equilibrio, Chaos ni vuelco posterior |
-| reemplazo, espacio | todavía sin sensor para `Motor` | referencia histórica | fuera de esta fase | migración pendiente |
+| reemplazo | pieza/objetivo → centro, base y planta | referencia histórica + sombra | UE 5.8.1 coincide en preservado, planta rota y actor corrido | AABB no ve forma, navegación ni pivote semántico |
+| espacio | todavía sin sensor para `Motor` | referencia histórica | fuera de esta fase | migración pendiente |
 | pared R7 | constructor legado sustituido por `spline` | referencia histórica | sólo selftest legado | no migrar mientras no vuelva a ser camino de producto |
 
 ### Extensión 2026-08-09 — primer dominio completo: scatter
@@ -205,6 +206,18 @@ próximo paso. Nada se reemplaza sólo porque dos implementaciones coincidieron 
   con la referencia. El commandlet sólo devolvió 1 por los nueve paquetes dañados conocidos de
   BotOO; su marcador específico quedó verde.
 
+### Extensión 2026-08-10 — reemplazo de blockout
+
+- `reemplazo.centrado`, `reemplazo.apoyado` y `reemplazo.footprint` separan las tres decisiones del
+  oráculo operativo. Las tolerancias declaradas son 1 cm para centro/base y 2 cm por semi-extensión
+  de planta; altura y silueta no forman parte de este contrato.
+- Ochenta mundos —20 sanos y 20 por defecto— comparan la referencia histórica contra el sensor
+  puro. Aflojar deliberadamente el footprint a 20 cm produjo veinte falsos verdes antes de
+  restaurarlo. El total queda en **819 acuerdos / 3638 veredictos** y **260/260 mutantes muertos**.
+- El editor completo verificó tres reemplazos reales: uno preservado, uno nativo con planta
+  `(-98,5, -107,0)` cm y uno desplazado 10 cm en centro/base. Las tres sombras coincidieron; el
+  marcador terminó con `reemplazo=True` y el shutdown posterior repitió la señal 6 histórica.
+
 ## Fase 2 — recertificación completa en UE 5.8.1
 
 Los informes 5.7.4 no se corrigen en masa: son evidencia fechada. Se crea una certificación nueva con
@@ -220,7 +233,7 @@ motor, commit, camino y marcador de log por superficie.
 | Nanite/Substrate | conversión, material real y costo donde el modo headless lo permita |
 | PCG | autoría, cableado verificado, generación, Preview, Bake y Discard |
 | Dataflow/Fracture | editor GUI cuando el camino headless cuelgue |
-| Oracle | `placement`, `snap`, `scatter`, `spline` y `physics` unitario/por lotes con sombra observable |
+| Oracle | `placement`, `snap`, `scatter`, `spline`, `physics` y `reemplazo` con sombra observable |
 | Graph | funciones, dos instancias, compilación y gestos Slate |
 
 ### Resultado parcial 2026-08-02

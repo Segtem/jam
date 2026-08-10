@@ -357,9 +357,17 @@ def physics_tanda(resultados, **kw) -> dict:
 
 def reemplazo_texto(nuevo, objetivo, **kw) -> str:
     from . import oracle_reemplazo
-    return oracle_reemplazo.verificar_texto(pieza(nuevo), objetivo, **kw)
+    sujeto = pieza(nuevo)
+    referencia = oracle_reemplazo.verificar(sujeto, objetivo, **kw)
+    _ejecutar_sombra(
+        "reemplazo", "comparar_reemplazo", sujeto, objetivo, referencia, **kw)
+    return oracle_reemplazo.verificar_texto(sujeto, objetivo, **kw)
 
 
 def reemplazo(nuevo, objetivo, **kw) -> dict:
     from . import oracle_reemplazo
-    return oracle_reemplazo.verificar(pieza(nuevo), objetivo, **kw)
+    sujeto = pieza(nuevo)
+    referencia = oracle_reemplazo.verificar(sujeto, objetivo, **kw)
+    _ejecutar_sombra(
+        "reemplazo", "comparar_reemplazo", sujeto, objetivo, referencia, **kw)
+    return referencia
