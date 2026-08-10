@@ -173,16 +173,30 @@ def selftest_physics() -> bool:
         return False
     ruta = libro[0]["ruta"]
     x0 = 200000.0  # lejos de todo, para que el piso sea el único soporte
-    piso = place.colocar(ruta, (x0, 0.0, 0.0), scale=(50.0, 50.0, 1.0))  # top del AABB en +50
-    caja = place.colocar(ruta, (x0, 0.0, 800.0))                        # flota muy por encima
-    clavada = place.colocar(ruta, (x0 + 1000.0, 0.0, 50.0))             # base en 0 < top piso 50
+    piso = place.colocar(ruta, (x0, 0.0, 0.0), scale=(50.0, 50.0, 1.0))
+    caja = place.colocar(ruta, (x0, 0.0, 800.0))
+    clavada = place.colocar(ruta, (x0, 0.0, 400.0))
 
-    r_antes = oracle_physics.verificar(ue.pieza(caja), ue.piezas([piso]))
+    # No asumir un cubo de 100 cm: `library.buscar(limit=1)` puede elegir una rama, una roca o
+    # cualquier StaticMesh. Los estados se construyen desde SUS bounds reales.
+    top_piso = ue.pieza(piso).aabb.origin.z + ue.pieza(piso).aabb.extent.z
+
+    def mover_base(actor, destino):
+        sujeto = ue.pieza(actor)
+        base = sujeto.aabb.origin.z - sujeto.aabb.extent.z
+        loc = actor.get_actor_location()
+        actor.set_actor_location(unreal.Vector(loc.x, loc.y, loc.z + destino - base), False, True)
+
+    mover_base(caja, top_piso + 200.0)  # flota con 200 cm de aire
+    hundimiento = min(20.0, max(2.0, ue.pieza(clavada).aabb.extent.z * 0.5))
+    mover_base(clavada, top_piso - hundimiento)
+
+    r_antes = ue.physics(caja, [piso])
     _log("caja  " + oracle_physics.verificar_texto(ue.pieza(caja), ue.piezas([piso])))
     drop = physics.soltar(caja, [piso])
-    r_desp = oracle_physics.verificar(ue.pieza(caja), ue.piezas([piso]))
+    r_desp = ue.physics(caja, [piso])
     _log(f"caja  cae {drop['caida']}cm → " + oracle_physics.verificar_texto(ue.pieza(caja), ue.piezas([piso])))
-    r_clav = oracle_physics.verificar(ue.pieza(clavada), ue.piezas([piso]))
+    r_clav = ue.physics(clavada, [piso])
     _log("clav  " + oracle_physics.verificar_texto(ue.pieza(clavada), ue.piezas([piso])))
 
     actor_sub = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)

@@ -211,3 +211,28 @@ def comparar_spline_modular(
             "spline.sin_solape": bool(referencia["sin_solape"]),
         },
     )
+
+
+def comparar_physics(
+    pieza,
+    soportes,
+    referencia: dict,
+    *,
+    tol: float = 1.0,
+) -> ComparacionSombra:
+    """Compara existencia de suelo y contacto vertical del drop unitario."""
+    if float(tol) != 1.0:
+        return ComparacionSombra(
+            informe=None,
+            error=f"tolerancia de physics no declarada por el catálogo: {float(tol)}",
+        )
+
+    from . import oracle_physics_facts
+
+    return _comparar_evidencia(
+        oracle_physics_facts.hechos(pieza, soportes, tol=tol),
+        {
+            "physics.tiene_suelo": referencia["estado"] != "sin_suelo",
+            "physics.apoyado": bool(referencia["apoyado"]),
+        },
+    )

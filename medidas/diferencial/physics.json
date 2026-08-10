@@ -1,0 +1,1804 @@
+{
+ "dominio": "physics",
+ "escenarios": [
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 0.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "sin-defecto·0",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.apoyado": true,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 0.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "sin-defecto·1",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.apoyado": true,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 0.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "sin-defecto·2",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.apoyado": true,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 0.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "sin-defecto·3",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.apoyado": true,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 0.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "sin-defecto·4",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.apoyado": true,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 0.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "sin-defecto·5",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.apoyado": true,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 0.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "sin-defecto·6",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.apoyado": true,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 0.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "sin-defecto·7",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.apoyado": true,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 0.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "sin-defecto·8",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.apoyado": true,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 0.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "sin-defecto·9",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.apoyado": true,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 0.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "sin-defecto·10",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.apoyado": true,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 0.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "sin-defecto·11",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.apoyado": true,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 0.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "sin-defecto·12",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.apoyado": true,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 0.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "sin-defecto·13",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.apoyado": true,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 0.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "sin-defecto·14",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.apoyado": true,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 0.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "sin-defecto·15",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.apoyado": true,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 0.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "sin-defecto·16",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.apoyado": true,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 0.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "sin-defecto·17",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.apoyado": true,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 0.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "sin-defecto·18",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.apoyado": true,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 0.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "sin-defecto·19",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "physics.apoyado": true,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": null,
+      "pieza": "sujeto",
+      "soporte": null,
+      "tiene_suelo": false
+     }
+    ]
+   },
+   "id": "sin_suelo·0",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": null,
+      "pieza": "sujeto",
+      "soporte": null,
+      "tiene_suelo": false
+     }
+    ]
+   },
+   "id": "sin_suelo·1",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": null,
+      "pieza": "sujeto",
+      "soporte": null,
+      "tiene_suelo": false
+     }
+    ]
+   },
+   "id": "sin_suelo·2",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": null,
+      "pieza": "sujeto",
+      "soporte": null,
+      "tiene_suelo": false
+     }
+    ]
+   },
+   "id": "sin_suelo·3",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": null,
+      "pieza": "sujeto",
+      "soporte": null,
+      "tiene_suelo": false
+     }
+    ]
+   },
+   "id": "sin_suelo·4",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": null,
+      "pieza": "sujeto",
+      "soporte": null,
+      "tiene_suelo": false
+     }
+    ]
+   },
+   "id": "sin_suelo·5",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": null,
+      "pieza": "sujeto",
+      "soporte": null,
+      "tiene_suelo": false
+     }
+    ]
+   },
+   "id": "sin_suelo·6",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": null,
+      "pieza": "sujeto",
+      "soporte": null,
+      "tiene_suelo": false
+     }
+    ]
+   },
+   "id": "sin_suelo·7",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": null,
+      "pieza": "sujeto",
+      "soporte": null,
+      "tiene_suelo": false
+     }
+    ]
+   },
+   "id": "sin_suelo·8",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": null,
+      "pieza": "sujeto",
+      "soporte": null,
+      "tiene_suelo": false
+     }
+    ]
+   },
+   "id": "sin_suelo·9",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": null,
+      "pieza": "sujeto",
+      "soporte": null,
+      "tiene_suelo": false
+     }
+    ]
+   },
+   "id": "sin_suelo·10",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": null,
+      "pieza": "sujeto",
+      "soporte": null,
+      "tiene_suelo": false
+     }
+    ]
+   },
+   "id": "sin_suelo·11",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": null,
+      "pieza": "sujeto",
+      "soporte": null,
+      "tiene_suelo": false
+     }
+    ]
+   },
+   "id": "sin_suelo·12",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": null,
+      "pieza": "sujeto",
+      "soporte": null,
+      "tiene_suelo": false
+     }
+    ]
+   },
+   "id": "sin_suelo·13",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": null,
+      "pieza": "sujeto",
+      "soporte": null,
+      "tiene_suelo": false
+     }
+    ]
+   },
+   "id": "sin_suelo·14",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": null,
+      "pieza": "sujeto",
+      "soporte": null,
+      "tiene_suelo": false
+     }
+    ]
+   },
+   "id": "sin_suelo·15",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": null,
+      "pieza": "sujeto",
+      "soporte": null,
+      "tiene_suelo": false
+     }
+    ]
+   },
+   "id": "sin_suelo·16",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": null,
+      "pieza": "sujeto",
+      "soporte": null,
+      "tiene_suelo": false
+     }
+    ]
+   },
+   "id": "sin_suelo·17",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": null,
+      "pieza": "sujeto",
+      "soporte": null,
+      "tiene_suelo": false
+     }
+    ]
+   },
+   "id": "sin_suelo·18",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_suelo",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": null,
+      "pieza": "sujeto",
+      "soporte": null,
+      "tiene_suelo": false
+     }
+    ]
+   },
+   "id": "sin_suelo·19",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "flotando",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 25.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "flotando·0",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "flotando",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 25.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "flotando·1",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "flotando",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 25.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "flotando·2",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "flotando",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 25.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "flotando·3",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "flotando",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 25.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "flotando·4",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "flotando",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 25.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "flotando·5",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "flotando",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 25.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "flotando·6",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "flotando",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 25.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "flotando·7",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "flotando",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 25.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "flotando·8",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "flotando",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 25.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "flotando·9",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "flotando",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 25.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "flotando·10",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "flotando",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 25.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "flotando·11",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "flotando",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 25.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "flotando·12",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "flotando",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 25.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "flotando·13",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "flotando",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 25.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "flotando·14",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "flotando",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 25.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "flotando·15",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "flotando",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 25.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "flotando·16",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "flotando",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 25.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "flotando·17",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "flotando",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 25.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "flotando·18",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "flotando",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": 25.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "flotando·19",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "hundido",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": -15.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "hundido·0",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "hundido",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": -15.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "hundido·1",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "hundido",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": -15.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "hundido·2",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "hundido",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": -15.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "hundido·3",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "hundido",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": -15.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "hundido·4",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "hundido",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": -15.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "hundido·5",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "hundido",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": -15.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "hundido·6",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "hundido",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": -15.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "hundido·7",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "hundido",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": -15.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "hundido·8",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "hundido",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": -15.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "hundido·9",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "hundido",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": -15.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "hundido·10",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "hundido",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": -15.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "hundido·11",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "hundido",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": -15.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "hundido·12",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "hundido",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": -15.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "hundido·13",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "hundido",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": -15.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "hundido·14",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "hundido",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": -15.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "hundido·15",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "hundido",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": -15.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "hundido·16",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "hundido",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": -15.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "hundido·17",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "hundido",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": -15.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "hundido·18",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "hundido",
+   "evidencia": {
+    "asentamiento": [
+     {
+      "gap": -15.0,
+      "pieza": "sujeto",
+      "soporte": "piso",
+      "tiene_suelo": true
+     }
+    ]
+   },
+   "id": "hundido·19",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "physics.apoyado": false,
+     "physics.tiene_suelo": true
+    }
+   },
+   "referencia_ok": false
+  }
+ ],
+ "esquema": "oracle.diferencial/v1",
+ "frescura": {
+  "algoritmo": "sha256",
+  "configuracion": {
+   "defectos": [
+    "sin_suelo",
+    "flotando",
+    "hundido"
+   ],
+   "descripcion": "Brianholl/jam · oracle_physics (implementación independiente)",
+   "extra": {},
+   "nombre": "physics",
+   "repeticiones": 20
+  },
+  "fuentes": {
+   "emisor": [
+    "tools/emitir_diferencial_physics.py",
+    "Content/Python/jam/oracle_physics_facts.py",
+    "medidas/escalares.py"
+   ],
+   "referencia": [
+    "Content/Python/jam/oracle_physics.py",
+    "Content/Python/jam/geometry.py"
+   ]
+  },
+  "huellas": {
+   "catalogo": "0f249813c4ccaedce293d041fe4637b6c886250bf9c1f0897e9ea60d52c2594c",
+   "configuracion": "ad0e4157309c814e793aa25876da24cd310055de43c1540f0ca23797e43728a9",
+   "emisor": "330311e86cf8287be26ebe095a27477df1def7749b4db3eea311af6bfaef11d6",
+   "referencia": "7a2e7926f2118a4b45c6c8f18557a015818e0f3e91b5b859bde8c69c2698c462"
+  },
+  "raiz_fuentes": ".."
+ },
+ "medidas": [
+  "physics.tiene_suelo",
+  "physics.apoyado"
+ ],
+ "mundos": 80,
+ "origen": "Brianholl/jam · oracle_physics (implementación independiente)"
+}

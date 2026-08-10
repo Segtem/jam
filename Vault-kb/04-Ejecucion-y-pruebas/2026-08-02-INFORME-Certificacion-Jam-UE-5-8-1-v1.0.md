@@ -40,7 +40,7 @@ Motor: `5.8.1-0+UE5`. Commit de partida: `bc0bd89`. Proyecto host:
 | Material + Geometry/UV | `verifica_tutoriales_material.py` con commandlet rendering | **TODO VERDE**: material, parámetro, cable al mesh, Static Mesh transaccional, proyección y pack UV | inspección visual y costo con GUI cuando corresponda |
 | PCG | editor completo + `-ExecCmds`, 90 ticks | **verde**: 3 nodos, 4/4 cables, preset 600 cm, hex/triangular, 287 HISM | Preview/Bake/Discard manual y PCG 5.8 nuevo |
 | Graph funciones | `verifica_funcion_graph.py` | **verde en 5.8.1**: id estable, guardar, firma, dos instancias y Compile | ABM, `Ctrl+G` y pines múltiples con las manos |
-| Oracle | editor completo + `verifica_oracle_shadow.py` | **función verde**: placement, snap, `snap.al_ras`, scatter y spline modular coinciden | desmontaje posterior falla: históricamente 139; última ronda señal 6 |
+| Oracle | editor completo + `verifica_oracle_shadow.py` | **función verde**: placement, snap, `snap.al_ras`, scatter, spline modular y physics unitario coinciden | desmontaje posterior falla: última ronda señal 139 |
 | Slate | build y carga de `JamEditor` | módulo cargado | tabs, historial, gestos y Undo/Redo en GUI |
 | Nanite | editor GUI + `verifica_nanite_fracture_58.py` | **verde**: copia Nanite y GC con `EnableNanite=true` | inspección visual y materiales incompatibles |
 | Dataflow/Fracture | editor GUI, nodos y terminal v2 | **verde**: GC regenerada; 2/2 materiales distintos conservados | rotura en PIE y shutdown con señal 11 |
@@ -85,6 +85,13 @@ estirarlos. Una cadena de cinco piezas dio cobertura 1.0; otra con `gap` negativ
 piezas y cuatro juntas solapadas. Las dos evaluaciones de `Motor` coincidieron y el marcador terminó
 en `placement=True snap=True scatter=True spline=True`. Tras escribirlo, el shutdown abortó con
 `munmap_chunk(): invalid pointer` y señal 6; la función está verde y el ciclo de vida continúa rojo.
+
+La repetición del 2026-08-10 agregó el juicio físico unitario que usa `drop` sin puntos. El selftest
+dejó de suponer el tamaño de un cubo y construyó flotación, apoyo y hundimiento desde los AABB reales
+del asset elegido. UE midió respectivamente 200, 0 y -20 cm de separación; las tres evaluaciones de
+`Motor` coincidieron con la referencia y el marcador terminó en
+`placement=True snap=True scatter=True spline=True physics=True`. El editor cayó después del
+marcador con señal 139. El asentamiento de una tanda por raycasts sigue fuera de esta certificación.
 
 ## Próximo bloque
 

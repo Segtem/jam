@@ -44,7 +44,8 @@ tres fronteras rompió.
 - La distribución continúa acoplada a la ubicación vendorizada mediante `jam.bridge`, aunque ese
   conocimiento está centralizado.
 - En la apertura sólo `placement` y `snap` corrían en sombra. La revisión posterior incorporó
-  `scatter` y el `spline` modular operativo; gobiernan todavía sus referencias históricas.
+  `scatter`, el `spline` modular operativo y el juicio unitario de `physics`; gobiernan todavía sus
+  referencias históricas.
 - El diferencial completo abrió rojo: `medidas/diferencial/relevo.json` quedó vencido respecto de
   `proceso.verificacion_vigente`. Por lo tanto, el verde de apertura no estaba exigiendo todas las
   puertas que `RELEVO.md` afirmaba.
@@ -134,7 +135,8 @@ próximo paso. Nada se reemplaza sólo porque dos implementaciones coincidieron 
 | relevo | testigo/git → 6 medidas | referencia + puerta diferencial | 8/8 escenarios coinciden | no prueba gestos manuales |
 | scatter | instancia/configuración/conteo/cobertura → 4 medidas | referencia histórica + sombra | UE 5.8.1 coincide en sano y saturado | AABB y centros; el aviso contra escena sigue manual |
 | spline modular | colocaciones realizadas/largo → cobertura y solape | referencia histórica + sombra | UE 5.8.1 coincide en sano y solapado | largo nominal; no ve forma fina ni cruces no adyacentes |
-| physics, reemplazo, espacio | todavía sin sensor para `Motor` | referencia histórica | fuera de esta fase | migración pendiente |
+| physics unitario | pieza/soportes AABB → suelo y separación vertical | referencia histórica + sombra | UE 5.8.1 coincide en flotando, apoyado y hundido | no ve colisión fina, pendiente ni asentamiento por raycast |
+| reemplazo, espacio | todavía sin sensor para `Motor` | referencia histórica | fuera de esta fase | migración pendiente |
 | pared R7 | constructor legado sustituido por `spline` | referencia histórica | sólo selftest legado | no migrar mientras no vuelva a ser camino de producto |
 
 ### Extensión 2026-08-09 — primer dominio completo: scatter
@@ -170,6 +172,22 @@ próximo paso. Nada se reemplaza sólo porque dos implementaciones coincidieron 
   coincidencias de sombra. El marcador final incluyó `spline=True`; el desmontaje posterior cayó con
   `invalid pointer` y señal 6, sin adelantar la frontera de ciclo de vida.
 
+### Extensión 2026-08-10 — apoyo físico unitario
+
+- El camino vivo sin flujo de puntos es `t_drop → physics.soltar → ue.physics_texto`. Su referencia
+  distingue `sin_suelo`, `flotando`, `apoyado` y `hundido`; únicamente `apoyado` es éxito.
+- Un sensor puro selecciona de forma independiente el soporte AABB válido más alto bajo la pieza y
+  publica suelo, `gap` y relación de asentamiento. `physics.tiene_suelo` y `physics.apoyado`
+  reexpresan el juicio con tolerancia declarada de 1 cm.
+- Ochenta mundos —20 por estado— forman el diferencial. Invertir a propósito el comparador de
+  apoyo produjo desacuerdos en los casos sano, flotante y hundido antes de restaurarlo. El total
+  queda en **659 acuerdos / 3238 veredictos** y **219/219 mutantes muertos**.
+- UE 5.8.1 ejecutó tres juicios por el adaptador real sobre actores de dimensiones no supuestas:
+  200 cm flotando, 0 cm apoyado y 20 cm hundido. Las tres sombras coincidieron y el marcador incluyó
+  `physics=True`; el desmontaje posterior volvió a caer, esta vez con señal 139.
+- `drop` con un flujo de puntos usa otra política: raycasts y `physics_core.asentar_tanda`. No queda
+  certificado por estas medidas y se conserva como frontera de auditoría separada.
+
 ## Fase 2 — recertificación completa en UE 5.8.1
 
 Los informes 5.7.4 no se corrigen en masa: son evidencia fechada. Se crea una certificación nueva con
@@ -185,7 +203,7 @@ motor, commit, camino y marcador de log por superficie.
 | Nanite/Substrate | conversión, material real y costo donde el modo headless lo permita |
 | PCG | autoría, cableado verificado, generación, Preview, Bake y Discard |
 | Dataflow/Fracture | editor GUI cuando el camino headless cuelgue |
-| Oracle | `placement`, `snap`, `scatter` y `spline` con sombra observable |
+| Oracle | `placement`, `snap`, `scatter`, `spline` y `physics` unitario con sombra observable |
 | Graph | funciones, dos instancias, compilación y gestos Slate |
 
 ### Resultado parcial 2026-08-02

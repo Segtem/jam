@@ -328,16 +328,22 @@ def physics_texto(actor, soportes=None, **kw) -> str:
     from . import oracle_physics, physics
     if soportes is None:
         soportes = physics.soportes_del_nivel()
+    sujeto = pieza(actor)
     sp = piezas([s for s in soportes if s != actor])
-    return oracle_physics.verificar_texto(pieza(actor), sp, **kw)
+    referencia = oracle_physics.verificar(sujeto, sp, **kw)
+    _ejecutar_sombra("physics", "comparar_physics", sujeto, sp, referencia, **kw)
+    return oracle_physics.verificar_texto(sujeto, sp, **kw)
 
 
 def physics(actor, soportes=None, **kw) -> dict:
     from . import oracle_physics, physics as _ph
     if soportes is None:
         soportes = _ph.soportes_del_nivel()
+    sujeto = pieza(actor)
     sp = piezas([s for s in soportes if s != actor])
-    return oracle_physics.verificar(pieza(actor), sp, **kw)
+    referencia = oracle_physics.verificar(sujeto, sp, **kw)
+    _ejecutar_sombra("physics", "comparar_physics", sujeto, sp, referencia, **kw)
+    return referencia
 
 
 def reemplazo_texto(nuevo, objetivo, **kw) -> str:

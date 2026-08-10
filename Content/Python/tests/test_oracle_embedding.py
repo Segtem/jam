@@ -12,8 +12,8 @@ from contextlib import redirect_stdout
 from unittest import mock
 from pathlib import Path
 
-from jam import (bridge, oracle_placement, oracle_scatter, oracle_scatter_facts, oracle_shadow,
-                 oracle_snap, oracle_spline_facts, spline_core)
+from jam import (bridge, oracle_physics, oracle_physics_facts, oracle_placement, oracle_scatter,
+                 oracle_scatter_facts, oracle_shadow, oracle_snap, oracle_spline_facts, spline_core)
 from jam.geometry import AABB, Pieza, Vec3
 
 
@@ -244,6 +244,60 @@ class OracleEmbeddingTests(unittest.TestCase):
         self.assertIn("verificar_continuidad(realizadas, largo)", cuerpo)
         self.assertIn("ue.spline_modular(realizadas, largo, v)", cuerpo)
         self.assertNotIn("verificar_continuidad(colocaciones, largo)", cuerpo)
+
+    @staticmethod
+    def _caso_physics(gap=0.0, *, con_suelo=True):
+        piso_centro = Vec3(0.0, 0.0, 0.0)
+        piso = Pieza(
+            "piso", AABB(piso_centro, Vec3(200.0, 200.0, 50.0)), piso_centro, 0.0)
+        centro = Vec3(0.0, 0.0, 75.0 + gap)
+        pieza = Pieza("sujeto", AABB(centro, Vec3(25.0, 25.0, 25.0)), centro, 0.0)
+        return pieza, ([piso] if con_suelo else [])
+
+    def test_physics_coincide_apoyado_flotando_hundido_y_sin_suelo(self) -> None:
+        casos = {
+            "apoyado": self._caso_physics(),
+            "flotando": self._caso_physics(20.0),
+            "hundido": self._caso_physics(-15.0),
+            "sin_suelo": self._caso_physics(con_suelo=False),
+        }
+        for nombre, (pieza, soportes) in casos.items():
+            with self.subTest(caso=nombre):
+                referencia = oracle_physics.verificar(pieza, soportes)
+                sombra = oracle_shadow.comparar_physics(pieza, soportes, referencia)
+                self.assertEqual(nombre, referencia["estado"])
+                self.assertTrue(sombra.coincide, sombra)
+
+    def test_hechos_physics_eligen_el_soporte_mas_alto_y_miden_gap(self) -> None:
+        pieza, [piso] = self._caso_physics(20.0)
+        bajo_centro = Vec3(0.0, 0.0, -200.0)
+        bajo = Pieza(
+            "bajo", AABB(bajo_centro, Vec3(300.0, 300.0, 25.0)), bajo_centro, 0.0)
+
+        evidencia = oracle_physics_facts.hechos(pieza, [bajo, piso])
+        observacion = evidencia["asentamiento"][0]
+
+        self.assertEqual("piso", observacion["soporte"])
+        self.assertEqual(20.0, observacion["gap"])
+
+    def test_physics_no_compara_una_tolerancia_no_declarada(self) -> None:
+        pieza, soportes = self._caso_physics()
+        referencia = oracle_physics.verificar(pieza, soportes, tol=2.0)
+
+        sombra = oracle_shadow.comparar_physics(
+            pieza, soportes, referencia, tol=2.0)
+
+        self.assertFalse(sombra.coincide)
+        self.assertIn("tolerancia de physics no declarada", sombra.error)
+
+    def test_la_sonda_real_de_physics_pasa_por_el_adaptador_con_sombra(self) -> None:
+        fuente = (RAIZ / "Content" / "Python" / "jam" / "menu.py").read_text(
+            encoding="utf-8")
+        cuerpo = fuente[fuente.index("def selftest_physics("):]
+        cuerpo = cuerpo[:cuerpo.index("\ndef ", 1)]
+
+        self.assertEqual(3, cuerpo.count("ue.physics("))
+        self.assertNotIn("r_antes = oracle_physics.verificar(", cuerpo)
 
     def test_una_grilla_no_declarada_no_se_compara_con_el_default(self) -> None:
         pieza = Pieza(

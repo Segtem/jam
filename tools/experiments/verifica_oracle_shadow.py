@@ -29,14 +29,15 @@ def main() -> None:
         snap = menu.selftest_snap()
         scatter = menu.selftest_scatter()
         spline = menu.selftest_spline_modular()
-        if placement and snap and scatter and spline:
+        physics = menu.selftest_physics()
+        if placement and snap and scatter and spline and physics:
             unreal.log(
                 f"{MARCADOR} TODO VERDE — placement={placement} snap={snap} "
-                f"scatter={scatter} spline={spline} por UE 5.8.1")
+                f"scatter={scatter} spline={spline} physics={physics} por UE 5.8.1")
         else:
             unreal.log_error(
                 f"{MARCADOR} ROJO — placement={placement} snap={snap} "
-                f"scatter={scatter} spline={spline} por UE 5.8.1")
+                f"scatter={scatter} spline={spline} physics={physics} por UE 5.8.1")
     except Exception as exc:  # noqa: BLE001 — el log del editor es el veredicto reproducible
         unreal.log_error(f"{MARCADOR} EXCEPCIÓN — {type(exc).__name__}: {exc}")
         unreal.log_error(traceback.format_exc())
