@@ -12,12 +12,16 @@ from contextlib import redirect_stdout
 from unittest import mock
 from pathlib import Path
 
-from jam import (bridge, oracle_physics, oracle_physics_facts, oracle_physics_tanda,
+from jam import (bridge, oracle_espacio, oracle_espacio_facts,
+                 oracle_physics, oracle_physics_facts, oracle_physics_tanda,
                  oracle_physics_tanda_facts, oracle_placement, oracle_reemplazo,
                  oracle_reemplazo_facts, oracle_scatter,
                  oracle_scatter_facts, oracle_shadow, oracle_snap, oracle_spline_facts,
                  physics_core, spline_core)
 from jam.geometry import AABB, Pieza, Vec3
+
+bridge.ensure_oraculo_on_path()
+from oraculo.mazes.spacegraph import GraphNode  # noqa: E402
 
 
 RAIZ = Path(__file__).resolve().parents[3]
@@ -408,6 +412,53 @@ class OracleEmbeddingTests(unittest.TestCase):
 
         self.assertEqual(3, cuerpo.count("ue.reemplazo("))
         self.assertNotIn("r1 = oracle_reemplazo.verificar(", cuerpo)
+
+    def test_espacio_coincide_en_mapa_ganable_y_llave_inalcanzable(self) -> None:
+        for esperado, graph in (
+            (True, oracle_espacio.mapa_botoo_ganable()),
+            (False, oracle_espacio.mapa_botoo_roto()),
+        ):
+            with self.subTest(ganable=esperado):
+                referencia = oracle_espacio.veredicto(graph)
+                sombra = oracle_shadow.comparar_espacio(graph, referencia)
+                self.assertEqual(esperado, referencia["solvable"])
+                self.assertTrue(sombra.coincide, sombra)
+                self.assertEqual(
+                    {"espacio.inicio_unico", "espacio.meta_unica", "espacio.ganable"},
+                    {v.id for v in sombra.informe.veredictos if v.id.startswith("espacio.")},
+                )
+
+    def test_hechos_espacio_publican_alcance_sin_copiar_el_veredicto(self) -> None:
+        graph = oracle_espacio.mapa_botoo_ganable()
+
+        fila = oracle_espacio_facts.hechos(graph)["espacio"][0]
+
+        self.assertEqual(1, fila["inicios"])
+        self.assertEqual(1, fila["metas"])
+        self.assertTrue(fila["alcanzable"])
+        self.assertGreater(fila["estados_explorados"], 0)
+        self.assertNotIn("solvable", fila)
+
+    def test_espacio_rechaza_mecanicas_fuera_del_contrato_vivo(self) -> None:
+        graph = oracle_espacio.mapa_botoo_ganable()
+        primero = next(iter(graph.nodes))
+        graph.nodes[primero] = GraphNode(primero, start=True, switch="corriente")
+
+        sombra = oracle_shadow.comparar_espacio(graph, oracle_espacio.veredicto(graph))
+
+        self.assertFalse(sombra.coincide)
+        self.assertIn("configuración de espacio no declarada", sombra.error)
+        self.assertIn("switch", sombra.error)
+
+    def test_nivel_y_la_sonda_real_pasan_por_espacio_con_sombra(self) -> None:
+        nivel = (RAIZ / "Content" / "Python" / "jam" / "nivel.py").read_text(
+            encoding="utf-8")
+        experimento = (RAIZ / "tools" / "experiments" /
+                       "verifica_oracle_shadow.py").read_text(encoding="utf-8")
+
+        self.assertIn("return ue.espacio(g), g", nivel)
+        self.assertNotIn("solve_graph(g)", nivel)
+        self.assertIn("espacio = menu.selftest_nivel()", experimento)
 
     def test_una_grilla_no_declarada_no_se_compara_con_el_default(self) -> None:
         pieza = Pieza(

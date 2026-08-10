@@ -31,16 +31,17 @@ def main() -> None:
         spline = menu.selftest_spline_modular()
         physics = menu.selftest_physics()
         reemplazo = menu.selftest_reemplazo()
-        if placement and snap and scatter and spline and physics and reemplazo:
+        espacio = menu.selftest_nivel()
+        if placement and snap and scatter and spline and physics and reemplazo and espacio:
             unreal.log(
                 f"{MARCADOR} TODO VERDE — placement={placement} snap={snap} "
                 f"scatter={scatter} spline={spline} physics={physics} "
-                f"reemplazo={reemplazo} por UE 5.8.1")
+                f"reemplazo={reemplazo} espacio={espacio} por UE 5.8.1")
         else:
             unreal.log_error(
                 f"{MARCADOR} ROJO — placement={placement} snap={snap} "
                 f"scatter={scatter} spline={spline} physics={physics} "
-                f"reemplazo={reemplazo} por UE 5.8.1")
+                f"reemplazo={reemplazo} espacio={espacio} por UE 5.8.1")
     except Exception as exc:  # noqa: BLE001 — el log del editor es el veredicto reproducible
         unreal.log_error(f"{MARCADOR} EXCEPCIÓN — {type(exc).__name__}: {exc}")
         unreal.log_error(traceback.format_exc())

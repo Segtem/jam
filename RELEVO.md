@@ -11,6 +11,17 @@ verde_editor_fecha: 2026-08-10
 
 Entra **claude-code**. Corré `python tools/relevo.py` antes de leer esto; si sale rojo, eso es el turno.
 
+**Actualización Codex 2026-08-10 — Oracle cubre espacio y completa los oráculos vivos.** Tres
+medidas declaran inicio único, meta única y extracción alcanzable sobre el subconjunto que
+`nivel.py` produce hoy: nodos, llaves y puertas. El sensor puro hace su propio BFS `(nodo, llaves)`;
+100 mundos diferenciales cubren cuatro defectos y la mutación deliberada del alcance produjo 60
+desacuerdos. UE 5.8.1 creó cinco actores, reconstruyó el grafo desde tags `jam:*`, pasó el mapa sano
+y detectó el roto al desconectar la llave. Cuatro sombras coincidieron y el marcador terminó en
+`espacio=True`; después volvió el `invalid pointer`/señal 6 de shutdown. Switches, hazards, flags,
+recursos, tareas, canales y subgrafos sin aplanar se rechazan visiblemente, no se certifican por
+accidente. Quedan **829 tests**, **919 acuerdos / 3938 veredictos** y **279/279 mutantes**. Ya no
+queda ningún oráculo del runtime vivo sin sensor, catálogo y diferencial.
+
 **Actualización Codex 2026-08-10 — Oracle cubre reemplazo.** Tres medidas declarativas separan
 centro XY, base y footprint del blockout. Ochenta mundos cubren las tres roturas; aflojar
 deliberadamente la planta de 2 a 20 cm produjo veinte falsos verdes. En UE 5.8.1, un reemplazo
@@ -179,6 +190,7 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 | Cerebro de Jam, corte Oracle physics | mismo comando | **816 OK**, 0.48 s; cuatro estados y selftest AABB fijados |
 | Cerebro de Jam, corte physics paint | mismo comando | **821 OK**, 0.49 s; parcial rojo y sombra de tanda fijados |
 | Cerebro de Jam, corte reemplazo | mismo comando | **825 OK**, 0.5 s; centro, base y planta fijados |
+| Cerebro de Jam, corte espacio | mismo comando | **829 OK**, 0.49 s; BFS independiente y frontera avanzada fijados |
 | Ribbon S → M | `tools/experiments/verifica_mesh_ribbon_58.py` en `UnrealEditor-Cmd` | **25 pares · 48 tris/50 verts · ancho 360 · UV0 0..5.91 · Material ID 3 · TODO VERDE** |
 | Tutoriales actuales | `tools/experiments/verifica_ejemplos.py` en `UnrealEditor-Cmd` | **13/13 compilan · TODO VERDE** |
 | Extrude M → M / Muro | `tools/experiments/verifica_mesh_extrude_58.py` en `UnrealEditor-Cmd` | **48→196 tris · 50→100 verts · 300 cm · UV0/Material ID · cerrado · TODO VERDE** |
@@ -196,11 +208,11 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 | Motor | sonda headless + gestos reales de función/ventana | **ABM + Compile de cuerpo + ventana Wayland interactiva · TODO VERDE** |
 | Nanite→Fracture | `tools/experiments/verifica_nanite_fracture_58.py` en editor GUI | **2/2 materiales distintos + GC Nanite · TODO VERDE; cierre 139** |
 | UE 5.8.1 | APIs + ejemplos + material/UV + PCG real | **103 símbolos + 84 métodos · 8/8 ejemplos · material/UV verde · 287 HISM** |
-| Oracle en UE 5.8.1 | `tools/experiments/verifica_oracle_shadow.py` con editor completo | **placement + snap + scatter + spline + physics + reemplazo funcional verde; shutdown histórico rojo** |
+| Oracle en UE 5.8.1 | `tools/experiments/verifica_oracle_shadow.py` con editor completo | **placement + snap + scatter + spline + physics + reemplazo + espacio funcional verde; shutdown histórico rojo** |
 | Physics paint en UE 5.8.1 | `tools/experiments/verifica_physics_paint_58.py` | **pila 0/100/200 · Preview ignorado · Landscape por pieza · 3 sombras coinciden** |
 | oracle sobre sí mismo | `cd vendor/oracle && python tools/aceptacion.py` | **27 rojos · 12 verdes · 0 huecos** |
-| oracle sobre Jam | `python vendor/oracle/tools/diferencial.py --proyecto medidas --confiar-escalares` | **819 acuerdos · 3638 veredictos estables** |
-| » mutación de medidas | `python vendor/oracle/tools/mutar.py --proyecto medidas --confiar-escalares` | **260/260 mutantes muertos** |
+| oracle sobre Jam | `python vendor/oracle/tools/diferencial.py --proyecto medidas --confiar-escalares` | **919 acuerdos · 3938 veredictos estables** |
+| » mutación de medidas | `python vendor/oracle/tools/mutar.py --proyecto medidas --confiar-escalares` | **279/279 mutantes muertos** |
 | » tests de oracle | `cd vendor/oracle && python -m unittest discover -s tests -t . -q` | **339 OK** |
 
 El campo `verde_editor` apunta al checkpoint `e4ed6e5`, verificado en UE 5.8.1 con la sombra de
@@ -321,8 +333,9 @@ re-expresados como medidas y verificados por diferencial, y **siguen en uso los 
 reemplazo va cuando el diferencial lleve tiempo en verde, no el mismo día en que se escribió.
 
 **5. Re-expresar los oráculos vivos restantes del plugin** como medidas. Ya están `placement`,
-`snap`, `scatter`, la pared viva como `spline`, `physics` unitario/por lotes y `reemplazo`. Sigue
-`espacio`, con sensor y diferencial siguiendo el patrón de `tools/emitir_diferencial.py`.
+`snap`, `scatter`, la pared viva como `spline`, `physics` unitario/por lotes, `reemplazo` y
+`espacio`. La migración en sombra del runtime vivo quedó completa; el paso siguiente es dejarla
+madurar antes de decidir qué referencias históricas pueden retirarse.
 
 ⚠️ **La trampa del paso 5**: `jam/oracle_*.py` los llama el **editor**, así que el vendor tendría que
 estar en el path del intérprete embebido de UE — y hoy `vendor/oracle` es *hermano* de

@@ -20,11 +20,11 @@ from __future__ import annotations
 
 import unreal
 
-from . import bridge
+from . import bridge, ue
 
 bridge.ensure_oraculo_on_path()
 
-from oraculo.mazes.spacegraph import GraphEdge, GraphNode, SpaceGraph, solve_graph  # noqa: E402
+from oraculo.mazes.spacegraph import GraphEdge, GraphNode, SpaceGraph  # noqa: E402
 
 _PREFIJO = "jam:"
 
@@ -130,7 +130,7 @@ def veredicto_nivel(actores=None):
     g = grafo_del_nivel(actores)
     if not g.nodes:
         return None, g
-    return solve_graph(g), g
+    return ue.espacio(g), g
 
 
 def veredicto_texto_nivel(actores=None) -> str:

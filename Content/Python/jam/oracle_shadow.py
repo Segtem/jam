@@ -289,3 +289,29 @@ def comparar_reemplazo(
             "reemplazo.footprint": bool(referencia["footprint"]),
         },
     )
+
+
+def comparar_espacio(graph, referencia: dict) -> ComparacionSombra:
+    """Compara el contrato vivo de entrada, extracción, llaves y puertas."""
+    from . import oracle_espacio_facts
+
+    problemas = oracle_espacio_facts.configuracion_no_soportada(graph)
+    if problemas:
+        return ComparacionSombra(
+            informe=None,
+            error="configuración de espacio no declarada: " + "; ".join(problemas),
+        )
+    if bool(referencia.get("truncated")):
+        return ComparacionSombra(
+            informe=None,
+            error="el solver de referencia truncó la búsqueda; no hay veredicto comparable",
+        )
+    fila = oracle_espacio_facts.hechos(graph)["espacio"][0]
+    return _comparar_evidencia(
+        {"espacio": [fila]},
+        {
+            "espacio.inicio_unico": fila["inicios"] == 1,
+            "espacio.meta_unica": fila["metas"] == 1,
+            "espacio.ganable": bool(referencia["solvable"]),
+        },
+    )

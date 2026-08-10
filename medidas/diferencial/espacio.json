@@ -1,0 +1,2346 @@
+{
+ "dominio": "espacio",
+ "escenarios": [
+  {
+   "defecto": "",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": true,
+      "estados_explorados": 7,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin-defecto·0",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "espacio.ganable": true,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": true,
+      "estados_explorados": 7,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin-defecto·1",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "espacio.ganable": true,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": true,
+      "estados_explorados": 7,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin-defecto·2",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "espacio.ganable": true,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": true,
+      "estados_explorados": 7,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin-defecto·3",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "espacio.ganable": true,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": true,
+      "estados_explorados": 7,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin-defecto·4",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "espacio.ganable": true,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": true,
+      "estados_explorados": 7,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin-defecto·5",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "espacio.ganable": true,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": true,
+      "estados_explorados": 7,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin-defecto·6",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "espacio.ganable": true,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": true,
+      "estados_explorados": 7,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin-defecto·7",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "espacio.ganable": true,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": true,
+      "estados_explorados": 7,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin-defecto·8",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "espacio.ganable": true,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": true,
+      "estados_explorados": 7,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin-defecto·9",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "espacio.ganable": true,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": true,
+      "estados_explorados": 7,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin-defecto·10",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "espacio.ganable": true,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": true,
+      "estados_explorados": 7,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin-defecto·11",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "espacio.ganable": true,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": true,
+      "estados_explorados": 7,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin-defecto·12",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "espacio.ganable": true,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": true,
+      "estados_explorados": 7,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin-defecto·13",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "espacio.ganable": true,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": true,
+      "estados_explorados": 7,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin-defecto·14",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "espacio.ganable": true,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": true,
+      "estados_explorados": 7,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin-defecto·15",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "espacio.ganable": true,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": true,
+      "estados_explorados": 7,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin-defecto·16",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "espacio.ganable": true,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": true,
+      "estados_explorados": 7,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin-defecto·17",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "espacio.ganable": true,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": true,
+      "estados_explorados": 7,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin-defecto·18",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "espacio.ganable": true,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": true,
+      "estados_explorados": 7,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin-defecto·19",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "espacio.ganable": true,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "sin_inicio",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 0,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin_inicio·0",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": false,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_inicio",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 0,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin_inicio·1",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": false,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_inicio",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 0,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin_inicio·2",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": false,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_inicio",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 0,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin_inicio·3",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": false,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_inicio",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 0,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin_inicio·4",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": false,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_inicio",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 0,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin_inicio·5",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": false,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_inicio",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 0,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin_inicio·6",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": false,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_inicio",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 0,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin_inicio·7",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": false,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_inicio",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 0,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin_inicio·8",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": false,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_inicio",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 0,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin_inicio·9",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": false,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_inicio",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 0,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin_inicio·10",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": false,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_inicio",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 0,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin_inicio·11",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": false,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_inicio",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 0,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin_inicio·12",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": false,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_inicio",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 0,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin_inicio·13",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": false,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_inicio",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 0,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin_inicio·14",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": false,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_inicio",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 0,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin_inicio·15",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": false,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_inicio",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 0,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin_inicio·16",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": false,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_inicio",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 0,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin_inicio·17",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": false,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_inicio",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 0,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin_inicio·18",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": false,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_inicio",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 0,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "sin_inicio·19",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": false,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_meta",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 1,
+      "metas": 0
+     }
+    ]
+   },
+   "id": "sin_meta·0",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_meta",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 1,
+      "metas": 0
+     }
+    ]
+   },
+   "id": "sin_meta·1",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_meta",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 1,
+      "metas": 0
+     }
+    ]
+   },
+   "id": "sin_meta·2",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_meta",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 1,
+      "metas": 0
+     }
+    ]
+   },
+   "id": "sin_meta·3",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_meta",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 1,
+      "metas": 0
+     }
+    ]
+   },
+   "id": "sin_meta·4",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_meta",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 1,
+      "metas": 0
+     }
+    ]
+   },
+   "id": "sin_meta·5",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_meta",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 1,
+      "metas": 0
+     }
+    ]
+   },
+   "id": "sin_meta·6",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_meta",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 1,
+      "metas": 0
+     }
+    ]
+   },
+   "id": "sin_meta·7",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_meta",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 1,
+      "metas": 0
+     }
+    ]
+   },
+   "id": "sin_meta·8",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_meta",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 1,
+      "metas": 0
+     }
+    ]
+   },
+   "id": "sin_meta·9",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_meta",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 1,
+      "metas": 0
+     }
+    ]
+   },
+   "id": "sin_meta·10",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_meta",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 1,
+      "metas": 0
+     }
+    ]
+   },
+   "id": "sin_meta·11",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_meta",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 1,
+      "metas": 0
+     }
+    ]
+   },
+   "id": "sin_meta·12",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_meta",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 1,
+      "metas": 0
+     }
+    ]
+   },
+   "id": "sin_meta·13",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_meta",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 1,
+      "metas": 0
+     }
+    ]
+   },
+   "id": "sin_meta·14",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_meta",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 1,
+      "metas": 0
+     }
+    ]
+   },
+   "id": "sin_meta·15",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_meta",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 1,
+      "metas": 0
+     }
+    ]
+   },
+   "id": "sin_meta·16",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_meta",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 1,
+      "metas": 0
+     }
+    ]
+   },
+   "id": "sin_meta·17",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_meta",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 1,
+      "metas": 0
+     }
+    ]
+   },
+   "id": "sin_meta·18",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "sin_meta",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 0,
+      "inicios": 1,
+      "metas": 0
+     }
+    ]
+   },
+   "id": "sin_meta·19",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "llave_inalcanzable",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 3,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "llave_inalcanzable·0",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "llave_inalcanzable",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 3,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "llave_inalcanzable·1",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "llave_inalcanzable",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 3,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "llave_inalcanzable·2",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "llave_inalcanzable",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 3,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "llave_inalcanzable·3",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "llave_inalcanzable",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 3,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "llave_inalcanzable·4",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "llave_inalcanzable",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 3,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "llave_inalcanzable·5",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "llave_inalcanzable",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 3,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "llave_inalcanzable·6",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "llave_inalcanzable",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 3,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "llave_inalcanzable·7",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "llave_inalcanzable",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 3,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "llave_inalcanzable·8",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "llave_inalcanzable",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 3,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "llave_inalcanzable·9",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "llave_inalcanzable",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 3,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "llave_inalcanzable·10",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "llave_inalcanzable",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 3,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "llave_inalcanzable·11",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "llave_inalcanzable",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 3,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "llave_inalcanzable·12",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "llave_inalcanzable",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 3,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "llave_inalcanzable·13",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "llave_inalcanzable",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 3,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "llave_inalcanzable·14",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "llave_inalcanzable",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 3,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "llave_inalcanzable·15",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "llave_inalcanzable",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 3,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "llave_inalcanzable·16",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "llave_inalcanzable",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 3,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "llave_inalcanzable·17",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "llave_inalcanzable",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 3,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "llave_inalcanzable·18",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "llave_inalcanzable",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 3,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "llave_inalcanzable·19",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "puerta_sin_llave",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 4,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "puerta_sin_llave·0",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "puerta_sin_llave",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 4,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "puerta_sin_llave·1",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "puerta_sin_llave",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 4,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "puerta_sin_llave·2",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "puerta_sin_llave",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 4,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "puerta_sin_llave·3",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "puerta_sin_llave",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 4,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "puerta_sin_llave·4",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "puerta_sin_llave",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 4,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "puerta_sin_llave·5",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "puerta_sin_llave",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 4,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "puerta_sin_llave·6",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "puerta_sin_llave",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 4,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "puerta_sin_llave·7",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "puerta_sin_llave",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 4,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "puerta_sin_llave·8",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "puerta_sin_llave",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 4,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "puerta_sin_llave·9",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "puerta_sin_llave",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 4,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "puerta_sin_llave·10",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "puerta_sin_llave",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 4,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "puerta_sin_llave·11",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "puerta_sin_llave",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 4,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "puerta_sin_llave·12",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "puerta_sin_llave",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 4,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "puerta_sin_llave·13",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "puerta_sin_llave",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 4,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "puerta_sin_llave·14",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "puerta_sin_llave",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 4,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "puerta_sin_llave·15",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "puerta_sin_llave",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 4,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "puerta_sin_llave·16",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "puerta_sin_llave",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 4,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "puerta_sin_llave·17",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "puerta_sin_llave",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 4,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "puerta_sin_llave·18",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "puerta_sin_llave",
+   "evidencia": {
+    "espacio": [
+     {
+      "alcanzable": false,
+      "estados_explorados": 4,
+      "inicios": 1,
+      "metas": 1
+     }
+    ]
+   },
+   "id": "puerta_sin_llave·19",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "espacio.ganable": false,
+     "espacio.inicio_unico": true,
+     "espacio.meta_unica": true
+    }
+   },
+   "referencia_ok": false
+  }
+ ],
+ "esquema": "oracle.diferencial/v1",
+ "frescura": {
+  "algoritmo": "sha256",
+  "configuracion": {
+   "defectos": [
+    "sin_inicio",
+    "sin_meta",
+    "llave_inalcanzable",
+    "puerta_sin_llave"
+   ],
+   "descripcion": "Brianholl/jam · solve_graph histórico (implementación independiente)",
+   "extra": {},
+   "nombre": "espacio",
+   "repeticiones": 20
+  },
+  "fuentes": {
+   "emisor": [
+    "tools/emitir_diferencial_espacio.py",
+    "Content/Python/jam/oracle_espacio_facts.py",
+    "medidas/escalares.py"
+   ],
+   "referencia": [
+    "Content/Python/jam/oracle_espacio.py",
+    "oraculo/mazes/spacegraph.py"
+   ]
+  },
+  "huellas": {
+   "catalogo": "4b59f65ab7e7e125df2c5a845741624d92cbc7122da6f3d0f364b936ba6b3d21",
+   "configuracion": "ef5d4d80ce5e550050a8ff5711972b37c1317efd13ca97e20cb6e2f9e15b628a",
+   "emisor": "099b2d881655c2354bc16f42f2366287e9b1408dbe066a0dfbdd22be1837a0a2",
+   "referencia": "d787eef5db39f70d2d67e33f0314b4fde0d936da25c6df744feaa5959cd23716"
+  },
+  "raiz_fuentes": ".."
+ },
+ "medidas": [
+  "espacio.inicio_unico",
+  "espacio.meta_unica",
+  "espacio.ganable"
+ ],
+ "mundos": 100,
+ "origen": "Brianholl/jam · solve_graph histórico (implementación independiente)"
+}

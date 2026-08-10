@@ -40,7 +40,7 @@ Motor: `5.8.1-0+UE5`. Commit de partida: `bc0bd89`. Proyecto host:
 | Material + Geometry/UV | `verifica_tutoriales_material.py` con commandlet rendering | **TODO VERDE**: material, parámetro, cable al mesh, Static Mesh transaccional, proyección y pack UV | inspección visual y costo con GUI cuando corresponda |
 | PCG | editor completo + `-ExecCmds`, 90 ticks | **verde**: 3 nodos, 4/4 cables, preset 600 cm, hex/triangular, 287 HISM | Preview/Bake/Discard manual y PCG 5.8 nuevo |
 | Graph funciones | `verifica_funcion_graph.py` | **verde en 5.8.1**: id estable, guardar, firma, dos instancias y Compile | ABM, `Ctrl+G` y pines múltiples con las manos |
-| Oracle | editor completo/commandlet + sondas específicas | **función verde**: placement, snap, `snap.al_ras`, scatter, spline, physics y reemplazo coinciden | desmontaje del editor completo falla; commandlet hereda 9 paquetes rotos de BotOO |
+| Oracle | editor completo/commandlet + sondas específicas | **función verde**: placement, snap, `snap.al_ras`, scatter, spline, physics, reemplazo y espacio coinciden | espacio cubre el subconjunto vivo; desmontaje del editor completo falla; commandlet hereda 9 paquetes rotos de BotOO |
 | Slate | build y carga de `JamEditor` | módulo cargado | tabs, historial, gestos y Undo/Redo en GUI |
 | Nanite | editor GUI + `verifica_nanite_fracture_58.py` | **verde**: copia Nanite y GC con `EnableNanite=true` | inspección visual y materiales incompatibles |
 | Dataflow/Fracture | editor GUI, nodos y terminal v2 | **verde**: GC regenerada; 2/2 materiales distintos conservados | rotura en PIE y shutdown con señal 11 |
@@ -107,6 +107,15 @@ tercer actor desplazado 10 cm rompió centro y base conservando el footprint. La
 de `Motor` coincidieron y el marcador terminó en
 `placement=True snap=True scatter=True spline=True physics=True reemplazo=True`. El shutdown
 posterior repitió `double free or corruption` y señal 6.
+
+La repetición final del 2026-08-10 incorporó el grafo de espacio que el adaptador de nivel produce
+hoy: entrada, extracción, llaves y puertas. El sensor independiente recorre estados `(nodo, llaves)`
+y tres medidas exigen inicio único, meta única y extracción alcanzable. El diferencial cubre 100
+mundos; invertir la regla de alcance hizo fallar 60. En el editor, la sonda creó cinco actores,
+escribió y volvió a leer sus tags `jam:*`, certificó el mapa ganable, quitó el enlace a la llave y
+certificó el rojo. Cuatro sombras coincidieron y el marcador terminó en `espacio=True`; el shutdown
+posterior repitió señal 6. Switches, hazards, flags, recursos, tareas, canales y subgrafos sin aplanar
+se rechazan explícitamente: no forman parte todavía del contrato vivo de `nivel.py`.
 
 ## Próximo bloque
 

@@ -371,3 +371,12 @@ def reemplazo(nuevo, objetivo, **kw) -> dict:
     _ejecutar_sombra(
         "reemplazo", "comparar_reemplazo", sujeto, objetivo, referencia, **kw)
     return referencia
+
+
+def espacio(graph, referencia=None) -> dict:
+    """Conserva el solver histórico como gobierno y ejecuta las medidas de espacio en sombra."""
+    from . import oracle_espacio
+    if referencia is None:
+        referencia = oracle_espacio.veredicto(graph)
+    _ejecutar_sombra("espacio", "comparar_espacio", graph, referencia)
+    return referencia

@@ -85,8 +85,8 @@ def on_verificar_espacio() -> str:
 def selftest_espacio() -> bool:
     """Oráculo de espacio: el mapa sano es ganable, el roto no."""
     _log("--- selftest: espacio ---")
-    r_sano = oracle_espacio.veredicto(oracle_espacio.mapa_botoo_ganable())
-    r_roto = oracle_espacio.veredicto(oracle_espacio.mapa_botoo_roto())
+    r_sano = ue.espacio(oracle_espacio.mapa_botoo_ganable())
+    r_roto = ue.espacio(oracle_espacio.mapa_botoo_roto())
     _log(oracle_espacio.veredicto_texto("BotOO sano", oracle_espacio.mapa_botoo_ganable()))
     _log(oracle_espacio.veredicto_texto("BotOO roto", oracle_espacio.mapa_botoo_roto()))
     ok = bool(r_sano["solvable"]) and not bool(r_roto["solvable"])
