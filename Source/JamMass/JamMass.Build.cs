@@ -19,6 +19,9 @@ public class JamMass : ModuleRules
 			"Json",
 			"MassCore",
 			"MassEntity",
+			"MassActors",
+			"MassLOD",
+			"MassRepresentation",
 			"MassSpawner",
 		});
 	}

@@ -126,9 +126,30 @@ Eso es una frontera general de Flow, no una entidad Mass confirmada.
 
 ### Fase 3 — representación escalable
 
+**Estado: primera vertical ambiental cerrada y verificada en UE 5.8.1.** Jam distribuye
+`/Jam/Mass/MC_JamAmbientISM`, con una Static Mesh estacionaria, ISM para High/Medium/Low y `None`
+para Off. `mass_config require_ism=true` no publica MC por intención: inspecciona el template y
+exige fragments de representación, LOD, viewer y actor, descriptor de malla, movilidad Stationary,
+perfil exacto `ISM/ISM/ISM/None` y umbrales crecientes.
+
+Epic deja `UMassLODCollectorProcessor`, `UMassVisualizationLODProcessor` y
+`UMassVisualizationProcessor` fuera de las fases globales. Jam habilita tres subclases propias,
+aisladas por `FJamMassAmbientTag`; el mismo tag enlaza el trait, las queries y
+`FMassVisualizationLODParameters::FilterTag`. Omitir ese último enlace ejecuta los procesadores con
+datos LOD sin preparar y envía todo a Off, defecto que la prueba de paridad C++ discrimina.
+
+La sonda de editor completo `verifica_mass_representation_58.py` inicia PIE jugable, espera la vista
+real del PlayerController y crea cuatro entidades a 500, 2500, 5000 y 10000 cm. Con ticks y viewer
+reales midió **High=1, Medium=1, Low=1, Off=1; ISM=3, None=1**, cuatro descriptores válidos y
+limpieza completa. La representación no puede certificarse en commandlet ni en el mundo editor:
+ambos omiten la cadena real de simulación/viewers. El `double free` histórico de BotOO reaparece al
+desmontar el editor, después del marcador verde.
+
 - Configurar `MassRepresentation` y `MassLOD`.
-- Permitir actor de alta/baja resolución, ISM y representación nula.
+- Permitir actor de alta/baja resolución, ISM y representación nula. **Cerrado sólo ISM/nula; los
+  actores quedan para un caso que los necesite.**
 - Medir distribución por representación y presupuesto, sin confundir entidades con actores.
+  **Cerrada la distribución por distancia; falta saturación por presupuesto.**
 
 ### Fase 4 — comportamiento
 
@@ -166,8 +187,9 @@ La prueba se muta al menos cambiando la cantidad o una coordenada esperada: tien
 ## Caso BotOO que debe gobernar la Fase 3
 
 La base ambiental —por ejemplo ratas o insectos— ya se distribuye desde `F` y mide cantidad,
-limpieza y presupuesto. El siguiente corte debe agregar una sola representación ISM/LOD, todavía
-sin navegación. Recién después de medir esa representación se agrega comportamiento.
+limpieza, cuatro LOD y representación ISM/nula. El siguiente corte de esta fase debe saturar un
+presupuesto LOD explícito o justificar actores high/low con un caso real; comportamiento y
+navegación siguen fuera hasta entonces.
 
 ## Relacionado
 

@@ -41,7 +41,7 @@ Motor: `5.8.1-0+UE5`. Commit de partida: `bc0bd89`. Proyecto host:
 | PCG | editor completo + `-ExecCmds`, 90 ticks | **verde**: 3 nodos, 4/4 cables, preset 600 cm, hex/triangular, 287 HISM | Preview/Bake/Discard manual y PCG 5.8 nuevo |
 | Graph funciones | `verifica_funcion_graph.py` | **verde en 5.8.1**: id estable, guardar, firma, dos instancias y Compile | ABM, `Ctrl+G` y pines múltiples con las manos |
 | Oracle | editor completo/commandlet + sondas específicas | **función verde**: placement, snap, `snap.al_ras`, scatter, spline, physics, reemplazo y espacio coinciden | espacio cubre el subconjunto vivo; desmontaje del editor completo falla; commandlet hereda 9 paquetes rotos de BotOO |
-| MassEntity | sondas `verifica_mass_*_58.py` | **verde**: MS/MH, PIE por mundo y MC→MS→MH con config/trait/`AJamMassSpawner`, 37/37 | sin representación, LOD, navegación ni comportamiento |
+| MassEntity | sondas `verifica_mass_*_58.py` | **verde**: MS/MH, PIE por mundo, MC→MS→MH y representación ambiental High/Medium/Low/Off = 1/1/1/1, ISM/None = 3/1 | sin presupuesto LOD saturado, actores, navegación ni comportamiento |
 | Slate | build y carga de `JamEditor` | módulo cargado | tabs, historial, gestos y Undo/Redo en GUI |
 | Nanite | editor GUI + `verifica_nanite_fracture_58.py` | **verde**: copia Nanite y GC con `EnableNanite=true` | inspección visual y materiales incompatibles |
 | Dataflow/Fracture | editor GUI, nodos y terminal v2 | **verde**: GC regenerada; 2/2 materiales distintos conservados | rotura en PIE y shutdown con señal 11 |
@@ -133,7 +133,15 @@ entidades mediante `AJamMassSpawner` y `UMassSpawnLocationProcessor`; `mass_insp
 del config, clase del spawner y cero transforms distintos, y Discard dejó cero vivas. Al recompilar
 un mutante sin `FTransformFragment`, el mismo Run quedó rojo en `mass_config`; restaurar devolvió
 `JAM_MASS_GAMEPLAY_58 TODO VERDE`. Jam incluye además el config portable
-`/Jam/Mass/MC_JamSpatial`. Esta certificación no alcanza todavía representación o comportamiento.
+`/Jam/Mass/MC_JamSpatial`.
+
+La vertical de representación agrega `/Jam/Mass/MC_JamAmbientISM`: un trait Stationary y tres
+procesadores Jam aislados por tag habilitan la cadena que Epic deja dinámica. En PIE jugable, cuatro
+entidades delante del viewer resolvieron High/Medium/Low/Off una vez cada una; tres eligieron ISM y
+la cuarta `None`. Los cuatro descriptores de malla fueron válidos y Clear dejó cero vivas. La prueba
+usa PlayerController, frustum y ticks reales: Simulate sin viewer había enviado todo a Off y sirvió
+para discriminar la frontera. Todavía no certifica saturación de presupuesto, representación Actor
+ni comportamiento.
 
 ## Próximo bloque
 

@@ -11,6 +11,17 @@ verde_editor_fecha: 2026-08-10
 
 Entra **claude-code**. Corré `python tools/relevo.py` antes de leer esto; si sale rojo, eso es el turno.
 
+**Actualización Codex 2026-08-10 — MassEntity Fase 3, representación ambiental cerrada.** Jam
+distribuye `/Jam/Mass/MC_JamAmbientISM`: Stationary, Sphere, ISM en High/Medium/Low y None en Off.
+`mass_config require_ism=true` mide fragments, descriptor, movilidad, perfil y umbrales antes de
+publicar MC. Tres procesadores Jam habilitan las bases dinámicas de Epic y quedan aislados con
+`FJamMassAmbientTag`; el mismo tag enlaza `LODParams.FilterTag`, cuya ausencia mandaba todo a Off.
+La sonda de editor completo, con PIE jugable/viewer/ticks reales, midió **High/Medium/Low/Off =
+1/1/1/1, ISM/None = 3/1, cuatro descriptores válidos y limpieza completa**. Simulate primero
+discriminó que sin viewer todo queda Off; el test de paridad C++ pasó a rojo al quitar el enlace del
+tag. Son 845 tests. Límite: no hay saturación por presupuesto, actores high/low, navegación ni
+comportamiento. El `double free` histórico vuelve sólo al apagar el editor, después del marcador.
+
 **Actualización Codex 2026-08-10 — MassEntity Fase 2, primera vertical MassGameplay cerrada.**
 `mass_config` valida un `UMassEntityConfigAsset` y publica MC sólo si su template tiene
 `FTransformFragment`; MC entra por pin de dato a `mass_spec`. El camino configurado crea mediante
@@ -232,6 +243,7 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 | Tutoriales con MassEntity | `tools/experiments/verifica_ejemplos.py` en `UnrealEditor-Cmd` | **16/16 compilan · TODO VERDE** |
 | Tutoriales con MassGameplay | mismo script | **17/17 compilan · config `/Jam/Mass/MC_JamSpatial` resuelve · TODO VERDE** |
 | MassGameplay MC → MS → MH | `tools/experiments/verifica_mass_gameplay_58.py` en `UnrealEditor-Cmd` | **37/37 · `AJamMassSpawner` · transforms exactos · tutorial portable · Discard 0 vivas · TODO VERDE** |
+| MassRepresentation ambiental | `tools/experiments/verifica_mass_representation_58.py` en editor completo | **High/Medium/Low/Off 1/1/1/1 · ISM/None 3/1 · 4 descriptores · Clear 0 · TODO VERDE** |
 | Math en UE 5.8.1 | `tools/experiments/verifica_math_graph.py` en `UnrealEditor-Cmd` | **9 verbos · Run sin Preview · Inspector=40/2 · dominios rechazados · TODO VERDE** |
 | Nanite Analyze/Validate | `tools/experiments/verifica_nanite_diagnostics_58.py` en `UnrealEditor-Cmd` | **apagado rechazado + 416.179 tris/1.202.673 verts validados · Run sin Preview · TODO VERDE** |
 | Simplify M → M | `tools/experiments/verifica_mesh_simplify_58.py` en `UnrealEditor-Cmd` | **Count 1922→202 · Tolerance 1922→201 · Edge 1922→332 vértices · TODO VERDE** |
@@ -338,11 +350,11 @@ de pedir manos sin que nadie lo note.)*
 
 ## Lo próximo
 
-**Prioridad nueva: comenzar la Fase 3 de
-[[2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0|MassEntity en Jam]].** Fase 1 cerró el ciclo de vida y
-Fase 2 ya gobierna config/traits/`AJamMassSpawner`. Lo siguiente es un único caso ambiental con
-`MassRepresentation` + `MassLOD` y representación ISM/nula medible; no agregar navegación o
-StateTree hasta demostrar primero cantidad, transición LOD y limpieza.
+**Siguiente corte de la Fase 3 de
+[[2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0|MassEntity en Jam]]: presupuesto LOD.** El caso
+ambiental ya demuestra cantidad, transición High/Medium/Low/Off, ISM/nula y limpieza. Sigue una
+prueba de saturación con `LODMaxCount` acotado y medida de degradación; actor high/low sólo si un
+caso BotOO lo justifica. No agregar navegación o StateTree todavía.
 
 **Después: cerrar la Fase 2 del
 [[2026-08-09-ROADMAP-Verbos-Y-Ejemplos-PMG-v1.0|roadmap PMG]] con Carretera modular.** Offset,

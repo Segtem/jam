@@ -101,8 +101,12 @@ try:
     tutorial_run = json.loads(api.run_graph_json(tutorial))
     exigir(tutorial_run.get("ok"), f"el tutorial con MC_JamSpatial no corrió: {tutorial_run}")
     tutorial_handle = tools.dato_producido_runtime("mass_inspect")
+    tutorial_config = tools.dato_producido_runtime("mass_config")
+    exigir(tutorial_config.representation == "ism", f"MC no conservó perfil ISM: {tutorial_config}")
     tutorial_facts = ue.mass_inspect(tutorial_handle)
     exigir(tutorial_facts.get("valid") == 37, f"tutorial portable incompleto: {tutorial_facts}")
+    for field in ("representation_fragments", "lod_fragments", "mesh_desc_valid"):
+        exigir(tutorial_facts.get(field) == 37, f"{field} no cubre la población: {tutorial_facts}")
     api.discard("graph")
     exigir(not ue.mass_inspect(tutorial_handle).get("ok"),
            "el tutorial portable dejó su población viva")
@@ -110,7 +114,8 @@ try:
     unreal.log(
         "JAM_MASS_GAMEPLAY_58 TODO VERDE — MC→MS→MH por Graph público · "
         "UMassEntityConfigAsset + UJamMassTransformTrait · AJamMassSpawner · "
-        "37 entidades · transforms conservados · tutorial portable · Discard deja 0 vivas")
+        "37 entidades · fragments LOD/ISM registrados · transforms conservados · "
+        "tutorial portable · Discard deja 0 vivas")
 except Exception as exc:  # noqa: BLE001
     unreal.log_error(f"JAM_MASS_GAMEPLAY_58 ROJO — {type(exc).__name__}: {exc}")
 finally:

@@ -40,6 +40,33 @@ class MassCoreTests(unittest.TestCase):
                            ("has_transform", False)):
             self.assertIn("error", mass_core.make_config(path, {**facts, field: bad}))
 
+    def test_mc_ism_requires_stationary_mesh_fragments_and_monotonic_lod(self):
+        path = "/Jam/Mass/MC_JamAmbientISM.MC_JamAmbientISM"
+        facts = {
+            "ok": True, "config_path": path, "trait_count": 2,
+            "template_valid": True, "has_transform": True,
+            "has_representation": True, "has_lod": True, "has_viewer": True,
+            "has_actor_fragment": True, "stationary": True,
+            "mesh_paths": ["/Engine/BasicShapes/Sphere.Sphere"],
+            "lod_representation": ["StaticMeshInstance", "StaticMeshInstance",
+                                   "StaticMeshInstance", "None"],
+            "lod_distances": [0.0, 1500.0, 3500.0, 8000.0],
+        }
+
+        config = mass_core.make_config(path, facts, require_ism=True)["config"]
+        self.assertEqual(config.representation, "ism")
+        self.assertEqual(config.mesh_paths, ("/Engine/BasicShapes/Sphere.Sphere",))
+        self.assertEqual(config.lod_distances, (0.0, 1500.0, 3500.0, 8000.0))
+        spec = mass_core.make_spec(frames(frame()), config=config)["spec"]
+        self.assertEqual(spec.representation, "ism")
+        for field, bad in (("stationary", False), ("mesh_paths", []),
+                           ("has_lod", False),
+                           ("lod_distances", [0.0, 3500.0, 1500.0, 8000.0]),
+                           ("lod_distances", [0.0, 1500.0, 3500.0, float("inf")])):
+            with self.subTest(field=field):
+                self.assertIn("error", mass_core.make_config(
+                    path, {**facts, field: bad}, require_ism=True))
+
     def test_prepare_accepts_finite_frames_and_computes_the_expected_sum(self):
         result = mass_core.prepare(frames(frame(10, 20, 30), frame(-2, 4, 8, scale=2)))
         self.assertNotIn("error", result)
@@ -124,6 +151,17 @@ class MassCoreTests(unittest.TestCase):
         self.assertFalse(mass_core.judge_clear(
             handle, {**clear, "valid_after": 1})["ok"])
 
+    def test_ism_handle_requires_registered_representation_and_lod_fragments(self):
+        handle = mass_core.MassHandle("p1", "w1", 2, (1.0, 0.0, 0.0), "ism")
+        facts = {"ok": True, "population_id": "p1", "world_id": "w1",
+                 "requested": 2, "valid": 2, "transform_mismatches": 0,
+                 "observed_sum_x": 1.0, "observed_sum_y": 0.0, "observed_sum_z": 0.0,
+                 "representation_fragments": 2, "lod_fragments": 2,
+                 "mesh_desc_valid": 2}
+        self.assertTrue(mass_core.judge_inspect(handle, facts)["ok"])
+        for field in ("representation_fragments", "lod_fragments", "mesh_desc_valid"):
+            self.assertFalse(mass_core.judge_inspect(handle, {**facts, field: 1})["ok"])
+
 
 class MassToolTests(unittest.TestCase):
     FACTS = {
@@ -192,6 +230,15 @@ class MassToolTests(unittest.TestCase):
         self.assertEqual(tools.dato_producido_runtime("mass_spec").config_path, path)
         inspect.assert_called_once_with(path)
 
+    def test_mass_config_can_demand_a_measured_ism_profile(self):
+        path = "/Jam/Mass/MC_JamAmbientISM.MC_JamAmbientISM"
+        facts = {"ok": True, "config_path": path, "trait_count": 2,
+                 "template_valid": True, "has_transform": True,
+                 "has_representation": False}
+        with mock.patch.object(ue, "mass_config", return_value=facts):
+            with self.assertRaisesRegex(RuntimeError, "FMassRepresentationFragment"):
+                tools.t_mass_config(path=path, require_ism=True)
+
 
 class MassContractTests(unittest.TestCase):
     def test_graph_publishes_mass_as_a_diagnostic_f_to_f(self):
@@ -251,6 +298,22 @@ class MassContractTests(unittest.TestCase):
         descriptor = (ROOT / "Jam.uplugin").read_text(encoding="utf-8")
         self.assertIn('"MassSpawner"', build)
         self.assertIn('"MassGameplay"', descriptor)
+
+    def test_ambient_representation_binds_traits_tags_and_global_processors(self):
+        header = (ROOT / "Source/JamMass/Public/JamMassGameplayTypes.h").read_text(
+            encoding="utf-8")
+        source = (ROOT / "Source/JamMass/Private/JamMassGameplayTypes.cpp").read_text(
+            encoding="utf-8")
+
+        for processor in ("UJamMassLODCollectorProcessor",
+                          "UJamMassVisualizationLODProcessor",
+                          "UJamMassVisualizationProcessor"):
+            self.assertIn(processor, header)
+        self.assertGreaterEqual(source.count("bAutoRegisterWithProcessingPhases = true"), 3)
+        self.assertIn("LODParams.FilterTag = FJamMassAmbientTag::StaticStruct()", source)
+        self.assertIn("BuildContext.AddTag<FJamMassAmbientTag>()", source)
+        self.assertIn("EntityQuery.AddTagRequirement<FJamMassAmbientTag>", source)
+        self.assertIn("FilterTag = FJamMassAmbientTag::StaticStruct()", source)
 
     def test_build_verifier_checks_each_module_binary(self):
         verifier = (ROOT / "tools/build.py").read_text(encoding="utf-8")

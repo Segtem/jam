@@ -1666,16 +1666,20 @@ def t_mass_probe(frame_input) -> str:
     return f"MASS PROBE F ✓ — {result['info']}"
 
 
-def t_mass_config(_input=None, *, path="") -> str:
+def t_mass_config(_input=None, *, path="", require_ism=False) -> str:
     """Ruta de asset → MC: valida traits y template mediante MassGameplay."""
     from . import mass_core, ue
 
-    result = mass_core.make_config(path, ue.mass_config(str(path or "").strip()))
+    result = mass_core.make_config(
+        path, ue.mass_config(str(path or "").strip()), require_ism=bool(require_ism))
     if "error" in result:
         raise RuntimeError(result["error"])
     config = result["config"]
     _RUNTIME_DATA_OUTPUTS["mass_config"] = config
-    return f"MASS CONFIG MC ✓ — {config.config_path} · template espacial válido"
+    representation = (f" · ISM estacionario · LOD {config.lod_distances}"
+                      if config.representation == "ism" else "")
+    return (f"MASS CONFIG MC ✓ — {config.config_path} · template espacial válido"
+            f"{representation}")
 
 
 def t_mass_spec(frame_input, *, config="", config_path="", seed=7, budget=4096) -> str:
@@ -2305,7 +2309,8 @@ REGISTRO = {
                    "doc": "crea una entidad Mass real por frame F, comprueba arquetipo y transform, "
                           "las destruye y deja pasar el mismo F; prueba de núcleo, no población persistente"},
     "mass_config": {"fn": t_mass_config, "label": "Configuración MassEntity", "cat": "Mass",
-                    "graph_only": True, "read_only": True, "params": {"path": ""},
+                    "graph_only": True, "read_only": True,
+                    "params": {"path": "", "require_ism": False},
                     "doc": "valida un UMassEntityConfigAsset y produce una referencia durable MC"},
     "mass_spec": {"fn": t_mass_spec, "label": "Receta MassEntity", "cat": "Mass",
                   "graph_only": True, "read_only": True,

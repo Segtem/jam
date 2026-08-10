@@ -3,7 +3,7 @@
   "nodes": {
     "config": {
       "verb": "mass_config",
-      "params": {"path": "/Jam/Mass/MC_JamSpatial.MC_JamSpatial"},
+      "params": {"path": "/Jam/Mass/MC_JamAmbientISM.MC_JamAmbientISM", "require_ism": true},
       "asset": null,
       "x": 640,
       "y": 40

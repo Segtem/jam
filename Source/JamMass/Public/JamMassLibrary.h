@@ -20,6 +20,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Jam|Mass")
 	static FString PrepareTransformConfig(UObject* ConfigAsset);
 
+	/** Agrega la representación ambiental ISM/None autocontenida y sus umbrales LOD. */
+	UFUNCTION(BlueprintCallable, Category = "Jam|Mass")
+	static FString PrepareAmbientISMConfig(
+		UObject* ConfigAsset,
+		const FString& MeshPath,
+		float MediumDistance,
+		float LowDistance,
+		float OffDistance);
+
 	/**
 	 * Prueba atómica del núcleo MassEntity: crea una entidad por transform, lee sus fragments y las
 	 * destruye antes de volver. Devuelve hechos JSON; el juicio vive en el cerebro puro de Jam.

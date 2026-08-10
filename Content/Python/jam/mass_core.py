@@ -30,6 +30,7 @@ class MassSpec:
     seed: int
     budget: int
     position_sum: tuple[float, float, float]
+    representation: str | None = None
 
     def __len__(self) -> int:
         return len(self.frames)
@@ -43,6 +44,7 @@ class MassHandle:
     world_id: str
     requested: int
     position_sum: tuple[float, float, float]
+    representation: str | None = None
 
 
 @dataclass(frozen=True)
@@ -50,9 +52,12 @@ class MassConfig:
     """Referencia durable MC a un ``UMassEntityConfigAsset`` ya validado."""
 
     config_path: str
+    representation: str | None = None
+    mesh_paths: tuple[str, ...] = ()
+    lod_distances: tuple[float, ...] = ()
 
 
-def make_config(config_path, facts: dict) -> dict:
+def make_config(config_path, facts: dict, *, require_ism=False) -> dict:
     """Publica MC sólo si MassGameplay resolvió un template espacial válido."""
     ruta = str(config_path or "").strip()
     if not ruta.startswith("/") or "." not in ruta.rsplit("/", 1)[-1]:
@@ -69,9 +74,38 @@ def make_config(config_path, facts: dict) -> dict:
         defects.append("el template no contiene FTransformFragment")
     if not isinstance(facts.get("trait_count"), int) or facts["trait_count"] < 1:
         defects.append("la configuración no contiene traits")
+
+    representation = None
+    mesh_paths = tuple(str(path) for path in facts.get("mesh_paths", ()) if path)
+    raw_distances = facts.get("lod_distances", ())
+    lod_distances = tuple(float(value) for value in raw_distances
+                          if isinstance(value, (int, float)))
+    expected_lod = ("StaticMeshInstance", "StaticMeshInstance", "StaticMeshInstance", "None")
+    lod_representation = tuple(facts.get("lod_representation", ()))
+    ism_defects = []
+    if not facts.get("has_representation"):
+        ism_defects.append("el template no contiene FMassRepresentationFragment")
+    if not facts.get("has_lod") or not facts.get("has_viewer"):
+        ism_defects.append("el template no contiene el contrato LOD/viewer")
+    if not facts.get("has_actor_fragment"):
+        ism_defects.append("el template no contiene FMassActorFragment")
+    if not facts.get("stationary"):
+        ism_defects.append("la representación no es Stationary")
+    if not mesh_paths:
+        ism_defects.append("la representación no contiene Static Mesh")
+    if lod_representation != expected_lod:
+        ism_defects.append("los LOD no siguen ISM/ISM/ISM/None")
+    if (len(lod_distances) != 4 or not all(math.isfinite(value) for value in lod_distances)
+            or lod_distances[0] != 0.0
+            or not all(a < b for a, b in zip(lod_distances, lod_distances[1:]))):
+        ism_defects.append("las distancias LOD no son 0 < Medium < Low < Off")
+    if not ism_defects:
+        representation = "ism"
+    if require_ism:
+        defects.extend(ism_defects)
     if defects:
         return {"error": "; ".join(defects)}
-    return {"config": MassConfig(ruta)}
+    return {"config": MassConfig(ruta, representation, mesh_paths, lod_distances)}
 
 
 def prepare(frame_set) -> dict:
@@ -124,7 +158,9 @@ def make_spec(frame_set, *, config=None, config_path="", seed=7, budget=MAX_ENTI
     if ruta_mc and ruta_legacy and ruta_mc != ruta_legacy:
         return {"error": "mass_spec recibió dos configuraciones Mass distintas."}
     ruta = ruta_mc or ruta_legacy
-    return {"spec": MassSpec(batch.frames, ruta, seed, budget, batch.position_sum)}
+    representation = config.representation if isinstance(config, MassConfig) else None
+    return {"spec": MassSpec(
+        batch.frames, ruta, seed, budget, batch.position_sum, representation)}
 
 
 def handle_from_spawn(spec: MassSpec, facts: dict) -> dict:
@@ -150,7 +186,8 @@ def handle_from_spawn(spec: MassSpec, facts: dict) -> dict:
             defects.append("la población configurada no nació mediante JamMassSpawner")
     if defects:
         return {"error": "; ".join(defects)}
-    return {"handle": MassHandle(population_id, world_id, len(spec), spec.position_sum)}
+    return {"handle": MassHandle(
+        population_id, world_id, len(spec), spec.position_sum, spec.representation)}
 
 
 def judge_inspect(handle: MassHandle, facts: dict) -> dict:
@@ -173,6 +210,10 @@ def judge_inspect(handle: MassHandle, facts: dict) -> dict:
         observed = facts.get(f"observed_sum_{axis}")
         if not isinstance(observed, (int, float)) or abs(observed - value) > POSITION_TOLERANCE_CM:
             defects.append(f"observed_sum_{axis} no conserva los fragments")
+    if handle.representation == "ism":
+        for field in ("representation_fragments", "lod_fragments", "mesh_desc_valid"):
+            if facts.get(field) != handle.requested:
+                defects.append(f"{field}={facts.get(field)!r}, esperado {handle.requested}")
     return {"ok": not defects, "defects": defects,
             "info": f"{handle.requested} entidades vivas · transforms conservados"}
 
