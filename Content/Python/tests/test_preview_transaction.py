@@ -91,6 +91,7 @@ class PreviewTransactionTests(unittest.TestCase):
         self.assets: set[str] = set()
         panel._PREVIEW_CONTEXT = None
         panel._PREVIEW_ASSETS_BY_OWNER.clear()
+        panel._PREVIEW_EFFECTS_BY_OWNER.clear()
 
         def delete_asset(path):
             self.assets.discard(path)
@@ -121,6 +122,7 @@ class PreviewTransactionTests(unittest.TestCase):
     def tearDown(self):
         panel._PREVIEW_CONTEXT = None
         panel._PREVIEW_ASSETS_BY_OWNER.clear()
+        panel._PREVIEW_EFFECTS_BY_OWNER.clear()
         for patcher in reversed(self.patchers):
             patcher.stop()
 
@@ -150,6 +152,51 @@ class PreviewTransactionTests(unittest.TestCase):
         self.assertEqual(panel._owner_de(new_dash), "dash")
         self.assertEqual(new_dash.get_actor_label(), "prev_NewDash")
         self.assertIn("reemplazó 1", report)
+
+    def test_runtime_effect_is_replaced_and_discarded_with_its_owner(self):
+        calls = []
+
+        def first(_widget):
+            panel.registrar_efecto_preview(
+                lambda: calls.append("discard first"), descripcion="primero")
+            return "first"
+
+        def second(_widget):
+            panel.registrar_efecto_preview(
+                lambda: calls.append("discard second"), descripcion="segundo")
+            return "second"
+
+        panel._preview(first, owner="graph")
+        self.assertTrue(panel.hay_preview("graph"))
+        panel._preview(second, owner="graph")
+        self.assertEqual(calls, ["discard first"])
+
+        report = panel._h_descartar(owner="graph")
+
+        self.assertEqual(calls, ["discard first", "discard second"])
+        self.assertIn("1 efecto(s) runtime liberado(s)", report)
+        self.assertFalse(panel.hay_preview("graph"))
+
+    def test_failed_preview_rolls_back_new_runtime_effect_and_preserves_previous(self):
+        calls = []
+
+        panel._preview(lambda _w: (
+            panel.registrar_efecto_preview(
+                lambda: calls.append("old"), descripcion="anterior") or "ok"),
+            owner="graph")
+
+        def fail(_widget):
+            panel.registrar_efecto_preview(
+                lambda: calls.append("new"), descripcion="nuevo")
+            raise RuntimeError("fallo deliberado")
+
+        report = panel._preview(fail, owner="graph")
+
+        self.assertIn("PREVIEW revertida", report)
+        self.assertEqual(calls, ["new"])
+        self.assertTrue(panel.hay_preview("graph"))
+        panel._h_descartar(owner="graph")
+        self.assertEqual(calls, ["new", "old"])
 
     def test_exception_rolls_back_new_actors_and_preserves_previous_preview(self):
         previous = self._preview_actor("/Level/Previous", "graph")

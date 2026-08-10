@@ -18,4 +18,19 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Jam|Mass", meta = (WorldContext = "WorldContextObject"))
 	static FString ProbeEntities(UObject* WorldContextObject, const TArray<FTransform>& Transforms);
+
+	/** Crea una población administrada que sobrevive a la llamada y devuelve su identidad JSON. */
+	UFUNCTION(BlueprintCallable, Category = "Jam|Mass", meta = (WorldContext = "WorldContextObject"))
+	static FString SpawnPopulation(UObject* WorldContextObject, const TArray<FTransform>& Transforms);
+
+	/** Inspecciona una población sin modificarla. */
+	UFUNCTION(BlueprintCallable, Category = "Jam|Mass", meta = (WorldContext = "WorldContextObject"))
+	static FString InspectPopulation(UObject* WorldContextObject, const FString& PopulationId);
+
+	/** Destruye una población. Repetir Clear es una operación válida e idempotente. */
+	UFUNCTION(BlueprintCallable, Category = "Jam|Mass", meta = (WorldContext = "WorldContextObject"))
+	static FString ClearPopulation(UObject* WorldContextObject, const FString& PopulationId);
+
+	/** Frontera de ciclo de vida usada por OnWorldCleanup y ShutdownModule. */
+	static void ClearAllPopulations(UWorld* World = nullptr);
 };

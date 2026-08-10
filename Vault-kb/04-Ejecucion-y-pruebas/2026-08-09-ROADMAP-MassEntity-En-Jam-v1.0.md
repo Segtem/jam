@@ -68,11 +68,28 @@ experimental `MassGameplay`.
 
 ### Fase 1 — receta pura y ciclo Preview
 
+**Estado: primera vertical operativa y verificada en UE 5.8.1.** `MS` conserva frames, ruta MC
+reservada, seed y presupuesto; `MH` conserva únicamente identidad de población, mundo, cantidad y
+la suma esperada para inspección. Ninguno importa Unreal y MH nunca se serializa.
+
+`mass_spawn`, `mass_inspect` y `mass_clear` crean, miden y destruyen una población administrada por
+el módulo C++. Preview trata poblaciones como efectos runtime transaccionales: un segundo Run
+destruye la anterior, un Run fallido revierte la nueva y Discard la libera. Bake conserva la
+población sólo durante la vida del `UWorld`; no crea Content ni estado durable. Clear es idempotente.
+`OnWorldCleanup` y `ShutdownModule` llaman una limpieza global. Una sonda confirmó además que abrir
+un mapa vacío retira el MH del mundo anterior; falta ejercer el cierre de PIE — la presencia del
+delegate compilado no certifica por sí sola ese momento.
+MassGameplay continúa apagado y `config_path` no gobierna todavía el arquetipo.
+
 - Introducir `MS` como dato puro y `mass_spec` (`F + MC → MS`).
 - Introducir `MH` para una población viva, nunca serializable.
 - Hacer `mass_spawn`, `mass_inspect` y `mass_clear`.
 - Atar Run/Discard a destrucción y decidir qué significa Bake para una población runtime.
 - Soltar poblaciones también al cambiar de mundo, cerrar PIE o descargar el módulo.
+
+Verificado en esta vertical: 37 entidades; Run×2 reemplaza; Discard destruye; Bake conserva; Clear×2
+deja cero vivas; cambiar a un mapa vacío limpia la población confirmada. Pendiente para cerrar la fase: PIE y recuperación observable si
+un callback de limpieza falla durante teardown.
 
 ### Fase 2 — autoría MassGameplay
 

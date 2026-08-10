@@ -13,7 +13,7 @@ unreal = sys.modules.setdefault("unreal", types.ModuleType("unreal"))
 if not hasattr(unreal, "TopLevelAssetPath"):
     unreal.TopLevelAssetPath = lambda package, name: (package, name)
 
-from jam import api, curve, mass_core, ribbon, tools, ue  # noqa: E402
+from jam import api, curve, mass_core, panel, ribbon, tools, ue  # noqa: E402
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -60,6 +60,49 @@ class MassCoreTests(unittest.TestCase):
                 mutated = {**facts, field: bad}
                 self.assertFalse(mass_core.judge(batch, mutated)["ok"])
 
+    def test_ms_is_a_bounded_durable_recipe_without_unreal_handles(self):
+        result = mass_core.make_spec(
+            frames(frame(10, 20, 30), frame(-2, 4, 8)),
+            config_path="/Game/Mass/Ratas", seed=19, budget=8)
+
+        spec = result["spec"]
+        self.assertIsInstance(spec, mass_core.MassSpec)
+        self.assertEqual((len(spec), spec.seed, spec.budget), (2, 19, 8))
+        self.assertEqual(spec.config_path, "/Game/Mass/Ratas")
+        self.assertFalse(any("unreal" in type(value).__module__ for value in spec.frames))
+
+    def test_mass_spec_rejects_a_population_over_its_own_budget(self):
+        result = mass_core.make_spec(frames(frame(), frame(1)), budget=1)
+
+        self.assertIn("presupuesto de 1", result["error"])
+
+    def test_spawn_only_publishes_mh_after_identity_world_and_counts_match(self):
+        spec = mass_core.make_spec(frames(frame(), frame(1)))["spec"]
+        facts = {"ok": True, "population_id": "p1", "world_id": "w1",
+                 "requested": 2, "created": 2, "valid": 2}
+
+        handle = mass_core.handle_from_spawn(spec, facts)["handle"]
+        self.assertEqual(handle, mass_core.MassHandle("p1", "w1", 2, (1.0, 0.0, 0.0)))
+        self.assertIn("created", mass_core.handle_from_spawn(
+            spec, {**facts, "created": 1})["error"])
+
+    def test_inspect_and_clear_discriminate_liveness_transform_and_cleanup(self):
+        spec = mass_core.make_spec(frames(frame(10, 20, 30), frame(-2, 4, 8)))["spec"]
+        handle = mass_core.MassHandle("p1", "w1", 2, spec.position_sum)
+        inspect = {"ok": True, "population_id": "p1", "world_id": "w1",
+                   "requested": 2, "valid": 2, "transform_mismatches": 0,
+                   "observed_sum_x": 8.0, "observed_sum_y": 24.0,
+                   "observed_sum_z": 38.0}
+        clear = {"ok": True, "population_id": "p1", "world_id": "w1",
+                 "valid_before": 2, "valid_after": 0}
+
+        self.assertTrue(mass_core.judge_inspect(handle, inspect)["ok"])
+        self.assertTrue(mass_core.judge_clear(handle, clear)["ok"])
+        self.assertFalse(mass_core.judge_inspect(
+            handle, {**inspect, "valid": 1})["ok"])
+        self.assertFalse(mass_core.judge_clear(
+            handle, {**clear, "valid_after": 1})["ok"])
+
 
 class MassToolTests(unittest.TestCase):
     FACTS = {
@@ -87,6 +130,34 @@ class MassToolTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "valid_after"):
                 tools.t_mass_probe(stream)
 
+    def test_phase1_tools_create_inspect_and_clear_the_same_population(self):
+        stream = frames(frame(10, 20, 30), frame(-2, 4, 8))
+        tools.t_mass_spec(stream, seed=19, budget=8)
+        spec = tools.dato_producido_runtime("mass_spec")
+        spawn = {"ok": True, "population_id": "p1", "world_id": "w1",
+                 "requested": 2, "created": 2, "valid": 2}
+        inspect = {"ok": True, "population_id": "p1", "world_id": "w1",
+                   "requested": 2, "valid": 2, "transform_mismatches": 0,
+                   "observed_sum_x": 8.0, "observed_sum_y": 24.0,
+                   "observed_sum_z": 38.0}
+        clear = {"ok": True, "population_id": "p1", "world_id": "w1",
+                 "valid_before": 2, "valid_after": 0}
+
+        with mock.patch.object(ue, "mass_spawn", return_value=spawn), \
+             mock.patch.object(ue, "mass_inspect", return_value=inspect), \
+             mock.patch.object(ue, "mass_clear", return_value=clear) as clear_call, \
+             mock.patch.object(panel, "registrar_efecto_preview") as register:
+            tools.t_mass_spawn(spec)
+            handle = tools.dato_producido_runtime("mass_spawn")
+            inspected = tools.t_mass_inspect(handle)
+            cleared = tools.t_mass_clear(handle)
+            register.call_args.args[0]()
+
+        self.assertIn("2 entidades vivas", inspected)
+        self.assertIn("0 vivas", cleared)
+        self.assertEqual(clear_call.call_count, 2)  # Clear explícito + Discard idempotente
+        self.assertIs(tools.dato_producido_runtime("mass_inspect"), handle)
+
 
 class MassContractTests(unittest.TestCase):
     def test_graph_publishes_mass_as_a_diagnostic_f_to_f(self):
@@ -104,12 +175,33 @@ class MassContractTests(unittest.TestCase):
         descriptor = json.loads((ROOT / "Jam.uplugin").read_text(encoding="utf-8"))
         for marker in ("FTransformFragment::StaticStruct()", "BatchCreateEntities",
                        "GetFragmentDataChecked<FTransformFragment>", "BatchDestroyEntities",
-                       "IsEntityValid", "Transform.ContainsNaN()"):
+                       "IsEntityValid", "Transform.ContainsNaN()", "SpawnPopulation",
+                       "InspectPopulation", "ClearPopulation", "Populations.Add"):
             self.assertIn(marker, source)
+        module_source = (ROOT / "Source/JamMass/Private/JamMassModule.cpp").read_text(
+            encoding="utf-8")
+        self.assertIn("FWorldDelegates::OnWorldCleanup", module_source)
+        self.assertIn("ClearAllPopulations", module_source)
         self.assertIn('\"MassCore\"', build)
         self.assertIn('\"MassEntity\"', build)
         module = next(item for item in descriptor["Modules"] if item["Name"] == "JamMass")
         self.assertEqual(module["Type"], "Runtime")
+
+    def test_graph_publishes_ms_and_mh_without_massgameplay(self):
+        spec = {item["verbo"]: item for item in json.loads(api.spec_all())["tools"]}
+
+        self.assertEqual((spec["mass_spec"]["in_name"], spec["mass_spec"]["out_name"]),
+                         ("F", "MS"))
+        self.assertEqual((spec["mass_spawn"]["in_name"], spec["mass_spawn"]["out_name"]),
+                         ("MS", "MH"))
+        self.assertEqual((spec["mass_inspect"]["in_name"], spec["mass_inspect"]["out_name"]),
+                         ("MH", "MH"))
+        self.assertEqual((spec["mass_clear"]["in_name"], spec["mass_clear"]["out_name"]),
+                         ("MH", "MH"))
+        build = (ROOT / "Source/JamMass/JamMass.Build.cs").read_text(encoding="utf-8")
+        descriptor = (ROOT / "Jam.uplugin").read_text(encoding="utf-8")
+        self.assertNotIn("MassGameplay", build)
+        self.assertNotIn("MassGameplay", descriptor)
 
     def test_build_verifier_checks_each_module_binary(self):
         verifier = (ROOT / "tools/build.py").read_text(encoding="utf-8")

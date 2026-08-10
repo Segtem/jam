@@ -3858,6 +3858,9 @@ FLinearColor SJamGraphEditor::DataColor(const FString& OutName)
 	if (OutName == TEXT("*")) { return FLinearColor(0.72f, 0.72f, 0.76f, 1.0f); }   // gris claro (comodín: acepta cualquier cable)
 	if (OutName == TEXT("S")) { return FLinearColor(0.60f, 0.42f, 0.14f, 1.0f); }   // dorado (spline)
 	if (OutName == TEXT("F")) { return FLinearColor(0.70f, 0.28f, 0.48f, 1.0f); }   // rosa  (frames)
+	if (OutName == TEXT("MC")) { return FLinearColor(0.20f, 0.52f, 0.28f, 1.0f); }  // verde (config Mass)
+	if (OutName == TEXT("MS")) { return FLinearColor(0.70f, 0.28f, 0.48f, 1.0f); }  // rosa (receta Mass)
+	if (OutName == TEXT("MH")) { return FLinearColor(0.16f, 0.50f, 0.46f, 1.0f); }  // verde azulado (handle Mass)
 	if (OutName == TEXT("M")) { return FLinearColor(0.08f, 0.58f, 0.62f, 1.0f); }   // cian (DynamicMesh)
 	// Cobre, no el dorado del tab Shader: ése cae a un pelo del dorado de `S` (spline) y dos cables
 	// distintos no se pueden distinguir por un pelo.
@@ -3878,6 +3881,9 @@ FString SJamGraphEditor::DataName(const FString& Type)
 	if (Type == TEXT("M"))   { return TEXT("malla"); }
 	if (Type == TEXT("S"))   { return TEXT("curva"); }
 	if (Type == TEXT("F"))   { return TEXT("frames"); }
+	if (Type == TEXT("MC"))  { return TEXT("config Mass"); }
+	if (Type == TEXT("MS"))  { return TEXT("receta Mass"); }
+	if (Type == TEXT("MH"))  { return TEXT("población Mass"); }
 	if (Type == TEXT("P"))   { return TEXT("puntos"); }
 	if (Type == TEXT("N"))   { return TEXT("número"); }
 	if (Type == TEXT("N[]")) { return TEXT("serie"); }

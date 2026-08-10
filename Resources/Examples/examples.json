@@ -59,6 +59,14 @@
 			"mensaje": "Prueba MassEntity cargada. Compile y Run graph; el nodo debe informar 37 entidades, un arquetipo, transforms conservados y limpieza completa."
 		},
 		{
+			"archivo": "Poblacion-MassEntity-Temporal.jamgraph",
+			"titulo": "Población MassEntity temporal",
+			"grupo": "Simulación",
+			"icono": "jam-mass-spawn",
+			"doc": "Una curva produce 37 frames F, Receta los vuelve MS y Crear población entrega un MH vivo que Inspeccionar mide sin destruir.\nRun reemplaza la población Preview anterior; Discard la destruye. Bake la conserva sólo durante la vida del mundo: MH nunca se serializa en el Graph.",
+			"mensaje": "Población Mass temporal cargada. Compile y Run graph; repetí Run para probar reemplazo, o usá Bake/Discard para decidir su ciclo de vida."
+		},
+		{
 			"archivo": "Debug-Playground.jamgraph",
 			"titulo": "Banco de pruebas de Debug",
 			"grupo": "Ver el dato",

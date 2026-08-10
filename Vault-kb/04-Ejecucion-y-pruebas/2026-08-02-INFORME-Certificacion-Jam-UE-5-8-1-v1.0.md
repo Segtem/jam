@@ -41,6 +41,7 @@ Motor: `5.8.1-0+UE5`. Commit de partida: `bc0bd89`. Proyecto host:
 | PCG | editor completo + `-ExecCmds`, 90 ticks | **verde**: 3 nodos, 4/4 cables, preset 600 cm, hex/triangular, 287 HISM | Preview/Bake/Discard manual y PCG 5.8 nuevo |
 | Graph funciones | `verifica_funcion_graph.py` | **verde en 5.8.1**: id estable, guardar, firma, dos instancias y Compile | ABM, `Ctrl+G` y pines múltiples con las manos |
 | Oracle | editor completo/commandlet + sondas específicas | **función verde**: placement, snap, `snap.al_ras`, scatter, spline, physics, reemplazo y espacio coinciden | espacio cubre el subconjunto vivo; desmontaje del editor completo falla; commandlet hereda 9 paquetes rotos de BotOO |
+| MassEntity | `verifica_mass_entity_58.py` por Spec → Compile → Run | **verde**: MS/MH, 37 vivas, Run reemplaza, Discard destruye, Bake conserva, Clear idempotente y cambio de mapa dejan 0 | falta ejercer cierre de PIE; sin MassGameplay/representación |
 | Slate | build y carga de `JamEditor` | módulo cargado | tabs, historial, gestos y Undo/Redo en GUI |
 | Nanite | editor GUI + `verifica_nanite_fracture_58.py` | **verde**: copia Nanite y GC con `EnableNanite=true` | inspección visual y materiales incompatibles |
 | Dataflow/Fracture | editor GUI, nodos y terminal v2 | **verde**: GC regenerada; 2/2 materiales distintos conservados | rotura en PIE y shutdown con señal 11 |

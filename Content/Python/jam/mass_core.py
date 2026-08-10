@@ -1,4 +1,4 @@
-"""Contrato puro de la primera prueba MassEntity de Jam."""
+"""Contratos puros de MassEntity: receta durable y handle efímero de población."""
 
 from __future__ import annotations
 
@@ -19,6 +19,30 @@ class MassProbeBatch:
 
     def __len__(self) -> int:
         return len(self.frames)
+
+
+@dataclass(frozen=True)
+class MassSpec:
+    """Receta durable MS; no contiene handles ni objetos de Unreal."""
+
+    frames: tuple
+    config_path: str | None
+    seed: int
+    budget: int
+    position_sum: tuple[float, float, float]
+
+    def __len__(self) -> int:
+        return len(self.frames)
+
+
+@dataclass(frozen=True)
+class MassHandle:
+    """Referencia MH a una población viva; sólo tiene sentido dentro de su mundo."""
+
+    population_id: str
+    world_id: str
+    requested: int
+    position_sum: tuple[float, float, float]
 
 
 def prepare(frame_set) -> dict:
@@ -47,6 +71,89 @@ def prepare(frame_set) -> dict:
             sums[axis] += float(frame.position[axis])
 
     return {"batch": MassProbeBatch(tuple(frame_set.frames), tuple(sums))}
+
+
+def make_spec(frame_set, *, config_path="", seed=7, budget=MAX_ENTITIES) -> dict:
+    """Construye MS con límites explícitos; MC queda reservado como ruta hasta la Fase 2."""
+    try:
+        budget = int(budget)
+        seed = int(seed)
+    except (TypeError, ValueError):
+        return {"error": "mass_spec necesita seed y presupuesto enteros."}
+    if budget < 1 or budget > MAX_ENTITIES:
+        return {"error": f"mass_spec exige un presupuesto entre 1 y {MAX_ENTITIES}."}
+    prepared = prepare(frame_set)
+    if "error" in prepared:
+        return {"error": prepared["error"].replace("mass_probe", "mass_spec")}
+    batch = prepared["batch"]
+    if len(batch) > budget:
+        return {"error": f"mass_spec recibió {len(batch)} frames para un presupuesto de {budget}."}
+    ruta = str(config_path or "").strip() or None
+    return {"spec": MassSpec(batch.frames, ruta, seed, budget, batch.position_sum)}
+
+
+def handle_from_spawn(spec: MassSpec, facts: dict) -> dict:
+    """Valida la creación real y recién entonces publica un MH."""
+    if not isinstance(facts, dict) or not facts.get("ok"):
+        return {"error": str(facts.get("error") if isinstance(facts, dict) else
+                             "el puente Mass no devolvió hechos")}
+    defects = []
+    for field, expected in (("requested", len(spec)), ("created", len(spec)),
+                            ("valid", len(spec))):
+        if facts.get(field) != expected:
+            defects.append(f"{field}={facts.get(field)!r}, esperado {expected}")
+    population_id = str(facts.get("population_id") or "")
+    world_id = str(facts.get("world_id") or "")
+    if not population_id:
+        defects.append("population_id vacío")
+    if not world_id:
+        defects.append("world_id vacío")
+    if defects:
+        return {"error": "; ".join(defects)}
+    return {"handle": MassHandle(population_id, world_id, len(spec), spec.position_sum)}
+
+
+def judge_inspect(handle: MassHandle, facts: dict) -> dict:
+    """Juzga identidad, mundo, cantidad y transforms de una población todavía viva."""
+    if not isinstance(facts, dict) or not facts.get("ok"):
+        return {"ok": False, "defects": [str(
+            facts.get("error") if isinstance(facts, dict) else "inspección Mass sin hechos")]}
+    defects = []
+    expected = {
+        "population_id": handle.population_id,
+        "world_id": handle.world_id,
+        "requested": handle.requested,
+        "valid": handle.requested,
+        "transform_mismatches": 0,
+    }
+    for field, value in expected.items():
+        if facts.get(field) != value:
+            defects.append(f"{field}={facts.get(field)!r}, esperado {value!r}")
+    for axis, value in zip("xyz", handle.position_sum):
+        observed = facts.get(f"observed_sum_{axis}")
+        if not isinstance(observed, (int, float)) or abs(observed - value) > POSITION_TOLERANCE_CM:
+            defects.append(f"observed_sum_{axis} no conserva los fragments")
+    return {"ok": not defects, "defects": defects,
+            "info": f"{handle.requested} entidades vivas · transforms conservados"}
+
+
+def judge_clear(handle: MassHandle, facts: dict) -> dict:
+    """Exige que Clear deje cero entidades válidas; repetirlo puede ser idempotente."""
+    if not isinstance(facts, dict) or not facts.get("ok"):
+        return {"ok": False, "defects": [str(
+            facts.get("error") if isinstance(facts, dict) else "limpieza Mass sin hechos")]}
+    defects = []
+    if facts.get("population_id") != handle.population_id:
+        defects.append("la limpieza respondió por otra población")
+    if facts.get("world_id") != handle.world_id:
+        defects.append("la limpieza respondió por otro mundo")
+    if facts.get("valid_after") != 0:
+        defects.append(f"valid_after={facts.get('valid_after')!r}, esperado 0")
+    valid_before = facts.get("valid_before")
+    if valid_before not in (0, handle.requested):
+        defects.append(f"valid_before={valid_before!r}, esperado 0 o {handle.requested}")
+    return {"ok": not defects, "defects": defects,
+            "info": f"{valid_before or 0} entidades destruidas · 0 vivas"}
 
 
 def judge(batch: MassProbeBatch, facts: dict) -> dict:

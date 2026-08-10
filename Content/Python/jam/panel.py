@@ -30,8 +30,37 @@ _PREVIEW_CONTEXT: dict | None = None
 # Los actores siguen siendo la fuente de verdad principal. Este índice cubre previews que producen
 # solamente assets (por ejemplo Asset → Nanite) y los metadatos permiten reconstruirlo tras reload.
 _PREVIEW_ASSETS_BY_OWNER: dict[str, list[dict]] = {}
+# Efectos sin Actor ni Content (hoy poblaciones Mass). Son deliberadamente efímeros: un reload de
+# Python no intenta reconstruir handles; el módulo C++ los libera al cambiar/cerrar el UWorld.
+_PREVIEW_EFFECTS_BY_OWNER: dict[str, list[dict]] = {}
 _ASSET_META_OWNER = "JamPreviewOwner"
 _ASSET_META_FINAL = "JamPreviewFinal"
+
+
+def registrar_efecto_preview(descartar, *, confirmar=None, descripcion="efecto runtime") -> None:
+    """Incorpora un efecto no-Actor a la transacción Preview que está ejecutándose."""
+    if _PREVIEW_CONTEXT is None:
+        raise RuntimeError("un efecto runtime sólo puede nacer dentro de Preview")
+    if not callable(descartar):
+        raise TypeError("descartar tiene que ser invocable")
+    _PREVIEW_CONTEXT["effects"].append({
+        "discard": descartar,
+        "confirm": confirmar if callable(confirmar) else (lambda: None),
+        "description": str(descripcion),
+    })
+
+
+def _resolver_efectos(records: list[dict], accion: str) -> tuple[list[dict], list[str]]:
+    """Ejecuta callbacks en reversa y devuelve los que fallaron para poder reintentar."""
+    fallidos, mensajes = [], []
+    for record in reversed(list(records)):
+        try:
+            record[accion]()
+        except Exception as exc:  # noqa: BLE001 — conservar registro habilita el reintento
+            fallidos.append(record)
+            mensajes.append(f"{record['description']}: {type(exc).__name__}: {exc}")
+    fallidos.reverse()
+    return fallidos, mensajes
 
 
 def _asset_biblioteca():
@@ -473,6 +502,14 @@ def _descartar_preview_detalle(owner: str | None = None) -> tuple[int, int, int,
 def _descartar_preview(owner: str | None = None) -> int:
     """Borra el Preview indicado (o todos si owner=None), incluso después de recargar Python."""
     borrados, _fallidos, _assets_borrados, _assets_fallidos = _descartar_preview_detalle(owner)
+    owners = list(_PREVIEW_EFFECTS_BY_OWNER) if owner is None else [owner]
+    for effect_owner in owners:
+        fallidos, _mensajes = _resolver_efectos(
+            _PREVIEW_EFFECTS_BY_OWNER.get(effect_owner, []), "discard")
+        if fallidos:
+            _PREVIEW_EFFECTS_BY_OWNER[effect_owner] = fallidos
+        else:
+            _PREVIEW_EFFECTS_BY_OWNER.pop(effect_owner, None)
     return borrados
 
 
@@ -496,9 +533,10 @@ def _preview(fn, widget=None, *, owner: str = "dash") -> str:
     global _PREVIEW_CONTEXT
     anteriores = _actores_preview(owner)
     assets_anteriores = _asset_records_for_owner(owner, anteriores)
+    efectos_anteriores = list(_PREVIEW_EFFECTS_BY_OWNER.get(owner, []))
     antes = {a.get_path_name() for a in _todos()}
     contexto_anterior = _PREVIEW_CONTEXT
-    contexto = {"owner": owner, "id": uuid.uuid4().hex[:10], "assets": []}
+    contexto = {"owner": owner, "id": uuid.uuid4().hex[:10], "assets": [], "effects": []}
     _PREVIEW_CONTEXT = contexto
     try:
         texto = fn(widget)
@@ -506,12 +544,18 @@ def _preview(fn, widget=None, *, owner: str = "dash") -> str:
         nuevos = [a for a in _todos() if a.get_path_name() not in antes]
         borrados, fallidos = _destruir_actores(nuevos)
         assets_borrados, assets_fallidos = _discard_staged_assets(contexto["assets"])
+        efectos_fallidos, mensajes_efectos = _resolver_efectos(contexto["effects"], "discard")
+        if efectos_fallidos:
+            _PREVIEW_EFFECTS_BY_OWNER[owner] = (
+                list(_PREVIEW_EFFECTS_BY_OWNER.get(owner, [])) + efectos_fallidos)
         extra = f"; {fallidos} no se pudieron borrar" if fallidos else ""
         extra_assets = (f" · {assets_borrados} asset(s) temporal(es) eliminado(s)"
                         + (f"; {assets_fallidos} fallaron" if assets_fallidos else ""))
+        extra_efectos = (f" · efectos sin limpiar: {'; '.join(mensajes_efectos)}"
+                         if efectos_fallidos else "")
         return (f"[error] PREVIEW revertida — {type(exc).__name__}: {exc}\n"
                 f"ROLLBACK ✓ · {borrados} actor(es) nuevos eliminados{extra}; "
-                f"se conserva el Preview anterior de «{owner}»{extra_assets}.")
+                f"se conserva el Preview anterior de «{owner}»{extra_assets}{extra_efectos}.")
     finally:
         _PREVIEW_CONTEXT = contexto_anterior
 
@@ -522,15 +566,25 @@ def _preview(fn, widget=None, *, owner: str = "dash") -> str:
     except Exception as exc:  # noqa: BLE001
         borrados, fallidos = _destruir_actores(nuevos)
         assets_borrados, assets_fallidos = _discard_staged_assets(contexto["assets"])
+        efectos_fallidos, mensajes_efectos = _resolver_efectos(contexto["effects"], "discard")
+        if efectos_fallidos:
+            _PREVIEW_EFFECTS_BY_OWNER[owner] = (
+                list(_PREVIEW_EFFECTS_BY_OWNER.get(owner, [])) + efectos_fallidos)
         return (f"[error] PREVIEW revertida — no pude marcar el staging: {exc}. "
                 f"ROLLBACK ✓ · {borrados} actor(es) y {assets_borrados} asset(s) eliminado(s)"
                 + (f"; fallaron {fallidos} actor(es) y {assets_fallidos} asset(s)"
                    if fallidos or assets_fallidos else "")
+                + (f"; efectos sin limpiar: {'; '.join(mensajes_efectos)}"
+                   if efectos_fallidos else "")
                 + f"; se conserva el Preview anterior de «{owner}».")
     if contexto["assets"]:
         _PREVIEW_ASSETS_BY_OWNER[owner] = _unique_asset_records(contexto["assets"])
     else:
         _PREVIEW_ASSETS_BY_OWNER.pop(owner, None)
+    _PREVIEW_EFFECTS_BY_OWNER[owner] = list(contexto["effects"])
+    efectos_fallidos, mensajes_efectos = _resolver_efectos(efectos_anteriores, "discard")
+    if efectos_fallidos:
+        _PREVIEW_EFFECTS_BY_OWNER[owner] = efectos_fallidos + _PREVIEW_EFFECTS_BY_OWNER[owner]
     assets_reemplazados, assets_fallidos = _discard_staged_assets(assets_anteriores)
     # Si queda un asset temporal sin borrar, el actor anterior conserva el tag que permite recuperar
     # su ruta y reintentar. Es preferible ver dos previews un instante a dejar Content huérfano.
@@ -546,19 +600,27 @@ def _preview(fn, widget=None, *, owner: str = "dash") -> str:
     reemplazo = f" · reemplazó {reemplazados} anterior(es)" if reemplazados else ""
     advertencia = f" · {fallidos} anterior(es) no se pudieron borrar" if fallidos else ""
     assets_txt = f" · {len(contexto['assets'])} asset(s) temporal(es)" if contexto["assets"] else ""
+    efectos_txt = f" · {len(contexto['effects'])} efecto(s) runtime" if contexto["effects"] else ""
+    if mensajes_efectos:
+        efectos_txt += " · no se limpió el efecto anterior: " + "; ".join(mensajes_efectos)
     if assets_reemplazados:
         assets_txt += f" · limpió {assets_reemplazados} asset(s) anterior(es)"
     if assets_fallidos:
         assets_txt += (f" · {assets_fallidos} asset(s) anterior(es) no se pudieron borrar; "
                        "se conservó su Preview para reintentar")
     return (f"{texto}\n\nPREVIEW [{owner}] · {len(nuevos)} piezas en escena (seleccionadas)"
-            f"{reemplazo}{advertencia}{assets_txt} — «Bake/Confirmar» las fija · «Descartar» las borra.")
+            f"{reemplazo}{advertencia}{assets_txt}{efectos_txt} — «Bake/Confirmar» las fija · «Descartar» las borra.")
 
 
 def hay_preview(owner: str | None = None) -> bool:
     """¿Hay algo esperando que lo confirmen o descarten?"""
     actores = _actores_preview(owner)
     if actores:
+        return True
+    if owner is None:
+        if any(_PREVIEW_EFFECTS_BY_OWNER.values()):
+            return True
+    elif _PREVIEW_EFFECTS_BY_OWNER.get(owner):
         return True
     return any(_asset_exists(record["temp"])
                for record in _asset_records_for_owner(owner, actores))
@@ -567,8 +629,14 @@ def hay_preview(owner: str | None = None) -> bool:
 def _h_confirmar(widget=None, *, owner: str | None = None) -> str:
     actores = _actores_preview(owner)
     records = _asset_records_for_owner(owner, actores)
-    if not actores and not records:
+    owners = list(_PREVIEW_EFFECTS_BY_OWNER) if owner is None else [owner]
+    effects = [record for effect_owner in owners
+               for record in _PREVIEW_EFFECTS_BY_OWNER.get(effect_owner, [])]
+    if not actores and not records and not effects:
         return "no hay preview activa para confirmar."
+    efectos_fallidos, mensajes_efectos = _resolver_efectos(effects, "confirm")
+    if efectos_fallidos:
+        return "[error] BAKE cancelado — " + "; ".join(mensajes_efectos)
     estados = [(actor, _tags_de(actor), _label_original(actor)) for actor in actores]
     assets_promovidos: list[tuple[str, str]] = []
     try:
@@ -600,8 +668,10 @@ def _h_confirmar(widget=None, *, owner: str | None = None) -> str:
     n = len(confirmados)
     if owner is None:
         _PREVIEW_ASSETS_BY_OWNER.clear()
+        _PREVIEW_EFFECTS_BY_OWNER.clear()
     else:
         _PREVIEW_ASSETS_BY_OWNER.pop(owner, None)
+        _PREVIEW_EFFECTS_BY_OWNER.pop(owner, None)
     # decir QUÉ quedó y DÓNDE: sin esto, un confirm sobre algo fuera de cuadro no se distingue de
     # un confirm que no hizo nada.
     detalle = []
@@ -620,8 +690,13 @@ def _h_confirmar(widget=None, *, owner: str | None = None) -> str:
                   + ", ".join(destinos_promovidos)) if destinos_promovidos else ""
     if componentes_reasignados:
         assets_txt += f" · {componentes_reasignados} referencia(s) PCG fijada(s)"
-    piezas_txt = (f"{n} piezas fijadas en el nivel: " + ", ".join(detalle)) if n else \
-        "sin actores; se fijó únicamente Content producido por el Graph"
+    if n:
+        piezas_txt = f"{n} piezas fijadas en el nivel: " + ", ".join(detalle)
+    elif effects:
+        piezas_txt = (f"sin actores; {len(effects)} población(es) runtime quedan vivas "
+                      "hasta Clear, cambio de mundo o cierre de PIE")
+    else:
+        piezas_txt = "sin actores; se fijó únicamente Content producido por el Graph"
     seleccion_txt = "\n    siguen seleccionadas: F en el viewport vuela hasta ellas." if n else ""
     return f"BAKE/CONFIRMADO{scope} ✓ — {piezas_txt}{assets_txt}{seleccion_txt}"
 
@@ -630,13 +705,27 @@ def _h_descartar(widget=None, *, owner: str | None = None) -> str:
     if not hay_preview(owner):
         return "no hay preview activa para descartar."
     n, actores_fallidos, assets_borrados, assets_fallidos = _descartar_preview_detalle(owner)
+    owners = list(_PREVIEW_EFFECTS_BY_OWNER) if owner is None else [owner]
+    efectos = [record for effect_owner in owners
+               for record in _PREVIEW_EFFECTS_BY_OWNER.get(effect_owner, [])]
+    efectos_fallidos, mensajes_efectos = _resolver_efectos(efectos, "discard")
+    if owner is None:
+        _PREVIEW_EFFECTS_BY_OWNER.clear()
+        for record in efectos_fallidos:
+            _PREVIEW_EFFECTS_BY_OWNER.setdefault("runtime", []).append(record)
+    elif efectos_fallidos:
+        _PREVIEW_EFFECTS_BY_OWNER[owner] = efectos_fallidos
+    else:
+        _PREVIEW_EFFECTS_BY_OWNER.pop(owner, None)
     scope = f" [{owner}]" if owner else ""
-    if assets_fallidos:
+    if assets_fallidos or efectos_fallidos:
         return (f"[error] DESCARTE incompleto{scope} — {assets_fallidos} asset(s) temporal(es) "
-                "no se pudieron borrar; los actores y sus registros se conservaron para reintentar.")
+                "no se pudieron borrar; " + "; ".join(mensajes_efectos)
+                + "; los registros se conservaron para reintentar.")
     extra_assets = f" · {assets_borrados} asset(s) temporal(es) borrado(s)" if assets_borrados else ""
     extra_actores = f" · {actores_fallidos} actor(es) no se pudieron borrar" if actores_fallidos else ""
-    return f"descartado{scope} ✗ — {n} piezas borradas{extra_assets}{extra_actores}."
+    extra_efectos = f" · {len(efectos)} efecto(s) runtime liberado(s)" if efectos else ""
+    return f"descartado{scope} ✗ — {n} piezas borradas{extra_assets}{extra_actores}{extra_efectos}."
 
 
 # ---- Ejecución del DSL y del grafo (lo que llama la UI C++) ----

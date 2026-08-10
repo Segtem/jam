@@ -11,6 +11,17 @@ verde_editor_fecha: 2026-08-10
 
 Entra **claude-code**. Corré `python tools/relevo.py` antes de leer esto; si sale rojo, eso es el turno.
 
+**Actualización Codex 2026-08-10 — MassEntity Fase 1, primera vertical MS/MH.** `mass_spec` convierte
+F en una receta pura MS con seed/presupuesto; `mass_spawn`, `mass_inspect` y `mass_clear` gobiernan
+una población MH viva desde `JamMass`. Preview ahora admite efectos runtime sin Actor: Run×2 libera
+la población anterior, un Run fallido revierte la nueva y Discard la destruye. Bake conserva MH sólo
+durante la vida del mundo; Clear es idempotente. UE 5.8.1 verificó 37 entidades en cada etapa y acabó
+con cero vivas; mutar deliberadamente el juicio de `valid_after` puso rojo el test. Son **837 tests**
+y ambos módulos están compilados/al día. Abrir un mapa vacío retiró además la población confirmada
+del mundo anterior mediante `OnWorldCleanup`; falta ejercer cierre de PIE antes de declarar cerrada
+la Fase 1. MassGameplay
+sigue apagado; `config_path` reserva MC pero todavía no cambia el arquetipo.
+
 **Actualización Codex 2026-08-10 — Oracle cubre espacio y completa los oráculos vivos.** Tres
 medidas declaran inicio único, meta única y extracción alcanzable sobre el subconjunto que
 `nivel.py` produce hoy: nodos, llaves y puertas. El sensor puro hace su propio BFS `(nodo, llaves)`;
@@ -191,12 +202,14 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 | Cerebro de Jam, corte physics paint | mismo comando | **821 OK**, 0.49 s; parcial rojo y sombra de tanda fijados |
 | Cerebro de Jam, corte reemplazo | mismo comando | **825 OK**, 0.5 s; centro, base y planta fijados |
 | Cerebro de Jam, corte espacio | mismo comando | **829 OK**, 0.49 s; BFS independiente y frontera avanzada fijados |
+| Cerebro de Jam, corte Mass MS/MH | mismo comando | **837 OK**, 0.52 s; limpieza mutada → rojo |
 | Ribbon S → M | `tools/experiments/verifica_mesh_ribbon_58.py` en `UnrealEditor-Cmd` | **25 pares · 48 tris/50 verts · ancho 360 · UV0 0..5.91 · Material ID 3 · TODO VERDE** |
 | Tutoriales actuales | `tools/experiments/verifica_ejemplos.py` en `UnrealEditor-Cmd` | **13/13 compilan · TODO VERDE** |
 | Extrude M → M / Muro | `tools/experiments/verifica_mesh_extrude_58.py` en `UnrealEditor-Cmd` | **48→196 tris · 50→100 verts · 300 cm · UV0/Material ID · cerrado · TODO VERDE** |
 | Tutoriales tras muro | `tools/experiments/verifica_ejemplos.py` en `UnrealEditor-Cmd` | **14/14 compilan · TODO VERDE** |
 | MassEntity core F → F | `tools/experiments/verifica_mass_entity_58.py` en `UnrealEditor-Cmd` | **37 válidas · 1 arquetipo `FTransformFragment` · transforms conservados · 37/37 destruidas · TODO VERDE** |
-| Tutoriales con MassEntity | `tools/experiments/verifica_ejemplos.py` en `UnrealEditor-Cmd` | **15/15 compilan · TODO VERDE** |
+| MassEntity MS → MH | mismo script | **Run×2 reemplaza · Discard destruye · Bake conserva · Clear×2 y cambio de mapa dejan 0 · TODO VERDE** |
+| Tutoriales con MassEntity | `tools/experiments/verifica_ejemplos.py` en `UnrealEditor-Cmd` | **16/16 compilan · TODO VERDE** |
 | Math en UE 5.8.1 | `tools/experiments/verifica_math_graph.py` en `UnrealEditor-Cmd` | **9 verbos · Run sin Preview · Inspector=40/2 · dominios rechazados · TODO VERDE** |
 | Nanite Analyze/Validate | `tools/experiments/verifica_nanite_diagnostics_58.py` en `UnrealEditor-Cmd` | **apagado rechazado + 416.179 tris/1.202.673 verts validados · Run sin Preview · TODO VERDE** |
 | Simplify M → M | `tools/experiments/verifica_mesh_simplify_58.py` en `UnrealEditor-Cmd` | **Count 1922→202 · Tolerance 1922→201 · Edge 1922→332 vértices · TODO VERDE** |
@@ -254,6 +267,7 @@ Lo que **nadie ejerció con las manos** de este turno:
 | Cinta de curva S → M y aspecto de Borde de camino | Brian | ⏳ 790 tests + Graph real 5.8.1 verde; falta verlo y juzgar miter/UV/material en viewport |
 | Extruir superficie M → M y aspecto de Muro sobre spline | Brian | ⏳ 795 tests + Graph real 5.8.1 verde; falta juzgar espesor, remates y UV lateral en viewport |
 | Mass → Probar MassEntity, cable F → F y resultado | Brian | ⏳ 803 tests + Graph real 5.8.1 verde; falta abrir el tutorial y confirmar ficha/cable/informe en Slate |
+| Mass → MS/MH, cuatro fichas y ciclo Preview | Brian | ⏳ 837 tests + Graph real 5.8.1 verde; falta ver pines, Output y botones Bake/Discard en Slate |
 | Ribbon jerárquico por familias | Brian | ⏳ abrió/cerró sin crash; falta juzgar orden, densidad y navegación |
 | Resto del ABM, `Ctrl+G` + dibujo/cableado de pines múltiples | Brian | ◐ Nueva/Editar/Guardar/Renombrar/Eliminar verdes; faltan `Ctrl+G` y firmas no numéricas |
 | Aspecto de una GC Nanite fracturada y rotura en PIE | Brian | ⏳ metadata/materiales verdes; falta viewport y simulación |
@@ -301,11 +315,11 @@ de pedir manos sin que nadie lo note.)*
 
 ## Lo próximo
 
-**Prioridad nueva: Fase 1 de
-[[2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0|MassEntity en Jam]].** La prueba atómica core está
-cerrada. Lo siguiente es diseñar `MS` (receta durable) y `MH` (población efímera), con
-`mass_spawn`/`mass_inspect`/`mass_clear` y destrucción obligatoria en Discard, cambio de mundo y
-cierre de PIE. No activar MassGameplay ni crear `AMassSpawner` hasta cerrar ese ciclo de vida.
+**Prioridad nueva: cerrar la Fase 1 de
+[[2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0|MassEntity en Jam]].** MS/MH y el ciclo Run/Discard/Bake
+ya están verdes, incluido el cambio real a un mapa vacío. Lo siguiente es abrir/cerrar PIE para
+probar el mismo `OnWorldCleanup` en ese ciclo. No activar MassGameplay ni crear
+`AMassSpawner` hasta cerrar ese ciclo de vida.
 
 **Después: cerrar la Fase 2 del
 [[2026-08-09-ROADMAP-Verbos-Y-Ejemplos-PMG-v1.0|roadmap PMG]] con Carretera modular.** Offset,

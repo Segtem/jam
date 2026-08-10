@@ -20,22 +20,46 @@ def _mundo():
     return unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).get_editor_world()
 
 
-def mass_probe(batch) -> dict:
-    """Traduce el lote puro a Unreal y delega la vida de las entidades al puente C++."""
-    import json
-
+def _mass_transforms(frames) -> list:
+    """Única traducción F/MS → FTransform del adaptador."""
     transforms = []
-    for frame in batch.frames:
+    for frame in frames:
         location = unreal.Vector(*frame.position)
         rotation = unreal.MathLibrary.make_rot_from_xz(
             unreal.Vector(*frame.tangent), unreal.Vector(*frame.outward))
         scale = unreal.Vector(float(frame.scale), float(frame.scale), float(frame.scale))
         transforms.append(unreal.Transform(location=location, rotation=rotation, scale=scale))
-    raw = unreal.JamMassLibrary.probe_entities(_mundo(), transforms)
+    return transforms
+
+
+def _mass_json(raw) -> dict:
+    import json
+
     try:
         return json.loads(str(raw))
     except (TypeError, ValueError) as exc:
         raise RuntimeError(f"JamMass devolvió JSON ilegible: {raw!r}") from exc
+
+
+def mass_probe(batch) -> dict:
+    """Traduce el lote puro a Unreal y delega la vida de las entidades al puente C++."""
+    return _mass_json(unreal.JamMassLibrary.probe_entities(
+        _mundo(), _mass_transforms(batch.frames)))
+
+
+def mass_spawn(spec) -> dict:
+    return _mass_json(unreal.JamMassLibrary.spawn_population(
+        _mundo(), _mass_transforms(spec.frames)))
+
+
+def mass_inspect(handle) -> dict:
+    return _mass_json(unreal.JamMassLibrary.inspect_population(
+        _mundo(), handle.population_id))
+
+
+def mass_clear(handle) -> dict:
+    return _mass_json(unreal.JamMassLibrary.clear_population(
+        _mundo(), handle.population_id))
 
 
 _SIN_HIT = {"hit": False, "punto": None, "normal": None, "actor": None}

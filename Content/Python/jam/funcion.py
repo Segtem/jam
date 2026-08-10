@@ -31,7 +31,7 @@ VERBOS_BORDE = ("input", "output")
 PIN_IN, PIN_OUT = "in", "out"
 # El mismo vocabulario corto que usan los cables del Graph. El borde de una función no acepta un
 # texto arbitrario: un typo acá convertiría la firma en un tipo que ningún nodo puede conectar.
-TIPOS_PIN = ["*", "A", "A[]", "AF", "B", "F", "H", "M", "MT", "N", "N[]", "P", "S", "T"]
+TIPOS_PIN = ["*", "A", "A[]", "AF", "B", "F", "H", "M", "MC", "MH", "MS", "MT", "N", "N[]", "P", "S", "T"]
 # El código corto es protocolo y queda en presets/cables. La UI recibe una etiqueta aparte: cambiar
 # `N` por `Número` en `opciones` rompería funciones ya guardadas y volvería ambiguo el intercambio
 # con Slate. El código entre paréntesis conserva además el vocabulario de tooltips y diagnósticos.
@@ -47,6 +47,9 @@ ETIQUETAS_TIPOS_PIN = {
     "MT": "Material (MT)",
     "N": "Número (N)",
     "N[]": "Serie numérica (N[])",
+    "MC": "Configuración MassEntity (MC)",
+    "MS": "Receta MassEntity (MS)",
+    "MH": "Población MassEntity viva (MH)",
     "P": "Flujo de puntos (P)",
     "S": "Curva (S)",
     "T": "Texto (T)",

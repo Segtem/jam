@@ -1666,6 +1666,78 @@ def t_mass_probe(frame_input) -> str:
     return f"MASS PROBE F ✓ — {result['info']}"
 
 
+def t_mass_spec(frame_input, *, config_path="", seed=7, budget=4096) -> str:
+    """F → MS: construye una receta durable sin tocar Unreal."""
+    from . import mass_core
+
+    result = mass_core.make_spec(
+        frame_input, config_path=config_path, seed=seed, budget=budget)
+    if "error" in result:
+        raise RuntimeError(result["error"])
+    spec = result["spec"]
+    _RUNTIME_DATA_OUTPUTS["mass_spec"] = spec
+    config = spec.config_path or "arquetipo base FTransformFragment"
+    return (f"MASS SPEC MS ✓ — {len(spec)} entidades · presupuesto {spec.budget} · "
+            f"seed {spec.seed} · {config}")
+
+
+def _mass_clear_handle(handle):
+    from . import mass_core, ue
+
+    result = mass_core.judge_clear(handle, ue.mass_clear(handle))
+    if not result["ok"]:
+        raise RuntimeError("MassEntity no limpió: " + "; ".join(result["defects"]))
+    return result
+
+
+def t_mass_spawn(spec_input) -> str:
+    """MS → MH: crea una población viva y la incorpora a Preview/Discard."""
+    from . import mass_core, panel, ue
+
+    if not isinstance(spec_input, mass_core.MassSpec):
+        raise RuntimeError("mass_spawn necesita una receta MS válida")
+    facts = ue.mass_spawn(spec_input)
+    result = mass_core.handle_from_spawn(spec_input, facts)
+    if "error" in result:
+        # Si C++ alcanzó a crear una población pero sus hechos no cumplen el contrato, no se fuga.
+        if facts.get("population_id") and facts.get("world_id"):
+            provisional = mass_core.MassHandle(
+                str(facts["population_id"]), str(facts["world_id"]),
+                len(spec_input), spec_input.position_sum)
+            ue.mass_clear(provisional)
+        raise RuntimeError("MassEntity no creó la población: " + result["error"])
+    handle = result["handle"]
+    panel.registrar_efecto_preview(
+        lambda h=handle: _mass_clear_handle(h),
+        descripcion=f"población Mass {handle.population_id}")
+    _RUNTIME_DATA_OUTPUTS["mass_spawn"] = handle
+    return f"MASS SPAWN MH ✓ — {handle.requested} entidades vivas · {handle.population_id}"
+
+
+def t_mass_inspect(handle_input) -> str:
+    """MH → MH: mide una población viva sin modificarla."""
+    from . import mass_core, ue
+
+    if not isinstance(handle_input, mass_core.MassHandle):
+        raise RuntimeError("mass_inspect necesita un handle MH válido")
+    result = mass_core.judge_inspect(handle_input, ue.mass_inspect(handle_input))
+    if not result["ok"]:
+        raise RuntimeError("MassEntity no verificó la población: " + "; ".join(result["defects"]))
+    _RUNTIME_DATA_OUTPUTS["mass_inspect"] = handle_input
+    return f"MASS INSPECT MH ✓ — {result['info']}"
+
+
+def t_mass_clear(handle_input) -> str:
+    """MH → MH: libera de forma idempotente la población indicada."""
+    from . import mass_core
+
+    if not isinstance(handle_input, mass_core.MassHandle):
+        raise RuntimeError("mass_clear necesita un handle MH válido")
+    result = _mass_clear_handle(handle_input)
+    _RUNTIME_DATA_OUTPUTS["mass_clear"] = handle_input
+    return f"MASS CLEAR MH ✓ — {result['info']}"
+
+
 def t_mesh_box(_input=None, *, size_x=100.0, size_y=100.0, size_z=100.0,
                steps_x=0, steps_y=0, steps_z=0) -> str:
     from . import mesh
@@ -2220,6 +2292,19 @@ REGISTRO = {
                    "graph_only": True, "read_only": True, "params": {},
                    "doc": "crea una entidad Mass real por frame F, comprueba arquetipo y transform, "
                           "las destruye y deja pasar el mismo F; prueba de núcleo, no población persistente"},
+    "mass_spec": {"fn": t_mass_spec, "label": "Receta MassEntity", "cat": "Mass",
+                  "graph_only": True, "read_only": True,
+                  "params": {"config_path": "", "seed": 7, "budget": 4096},
+                  "doc": "convierte frames F en una receta durable MS; config_path queda reservado para MC"},
+    "mass_spawn": {"fn": t_mass_spawn, "label": "Crear población", "cat": "Mass",
+                   "graph_only": True, "params": {},
+                   "doc": "crea una población MH efímera; Discard, cambio de mundo y cierre de PIE la liberan"},
+    "mass_inspect": {"fn": t_mass_inspect, "label": "Inspeccionar población", "cat": "Mass",
+                     "graph_only": True, "read_only": True, "params": {},
+                     "doc": "mide cantidad, mundo y transforms de una población MH sin modificarla"},
+    "mass_clear": {"fn": t_mass_clear, "label": "Liberar población", "cat": "Mass",
+                   "graph_only": True, "params": {},
+                   "doc": "destruye de forma idempotente todas las entidades de una población MH"},
     "mesh_leaf": {"fn": t_mesh_leaf, "cat": "Mesh", "graph_only": True,
                   "asset_argument": True, "optional_asset_argument": True,
                   "params": {"count": 4, "start": 0.1, "end": 0.95,
@@ -2503,7 +2588,8 @@ GRAPH_NO_ASSET = {"asset", "pick", "create_spline", "pivot_set", "instance", "br
                   "curve_child", "curve_frames", "distribute_frames", "transform_frames",
                   "branch_from_frames",
                   "asset_set", "choose_asset", "curve_branches", "mesh_leaf",
-                  "copy_asset_selection", "hism_output", "mass_probe",
+                  "copy_asset_selection", "hism_output", "mass_probe", "mass_spec",
+                  "mass_spawn", "mass_inspect", "mass_clear",
                   "mesh_color", "mesh_uv_scale", "mesh_material", "mesh_bark", "mesh_noise", "points_to_frames", "debug",
                   "mesh_remap_materials", "mesh_clean_material_ids",
                   "mesh_validate",
@@ -2521,6 +2607,7 @@ GRAPH_NO_ASSET = {"asset", "pick", "create_spline", "pivot_set", "instance", "br
                   "curve_noise", "mesh_vertex_gradient"}
 GRAPH_IN_NAMES = {"reroute_mesh": "M", "reroute_asset": "A", "reroute_points": "P", "reroute_curve": "S", "reroute_frames": "F",
                   "mass_probe": "F",
+                  "mass_spec": "F", "mass_spawn": "MS", "mass_inspect": "MH", "mass_clear": "MH",
                   "points_to_frames": "P", "debug": "*", "curve_child": "S", "curve_noise": "S", "curve_frames": "S", "distribute_frames": "F",
                   "series_remap": "N[]",
                   "curve_resample": "S", "curve_smooth": "S",
@@ -2550,6 +2637,7 @@ GRAPH_IN_NAMES = {"reroute_mesh": "M", "reroute_asset": "A", "reroute_points": "
                   "material_instance": "A", "instance": "P"}
 GRAPH_OUT_NAMES = {"brush": "P", "reroute_mesh": "M", "reroute_asset": "A", "reroute_points": "P", "reroute_curve": "S", "reroute_frames": "F",
                    "mass_probe": "F",
+                   "mass_spec": "MS", "mass_spawn": "MH", "mass_inspect": "MH", "mass_clear": "MH",
                    "select_mesh": "M", "select_asset": "A",
                    "points_to_frames": "F", "debug": "M", "asset": "A", "pick": "A", "create_spline": "S",
                    # `scatter` describe DÓNDE (puntos) y `instance` decide cuándo eso se vuelve
