@@ -29,6 +29,7 @@ from . import (
     reemplazar,
     scatter,
     snap,
+    spline,
     ue,
 )
 
@@ -300,6 +301,42 @@ def selftest_pared() -> bool:
     _log(f"pared {'OK ✓' if ok else 'FALLÓ ✗'} "
          f"(recto.continua={r_recto['continua']} maxgap={r_recto['max_gap']}, "
          f"pico.continua={r_pico['continua']} maxgap={r_pico['max_gap']})")
+    return ok
+
+
+def selftest_spline_modular() -> bool:
+    """Camino operativo del Graph: módulos a largo real, una cadena sana y otra solapada."""
+    _log("--- selftest: spline modular ---")
+    libro = library.buscar(limit=1)
+    if not libro:
+        _log("biblioteca vacía — no hay StaticMesh bajo /Game")
+        return False
+    ruta = libro[0]["ruta"]
+    malla = library.cargar_malla(ruta)
+    modulo = ue.aabb_malla(malla).extent.x * 2.0
+    if modulo <= 1.0:
+        _log(f"módulo inválido: {modulo}cm")
+        return False
+
+    x0 = 700000.0
+    largo = modulo * 5.0
+    sp_sano = pared.crear_spline(
+        [(x0, 0.0, 0.0), (x0 + largo, 0.0, 0.0)], seleccionar=False)
+    sanos, v_sano = spline.construir(sp_sano, ruta)
+
+    sp_solape = pared.crear_spline(
+        [(x0, 100000.0, 0.0), (x0 + largo, 100000.0, 0.0)], seleccionar=False)
+    solapados, v_solape = spline.construir(
+        sp_solape, ruta, gap=-max(5.0, modulo * 0.1))
+
+    actor_sub = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
+    for actor in sanos + solapados + [sp_sano, sp_solape]:
+        actor_sub.destroy_actor(actor)
+
+    ok = bool(v_sano["sin_solape"] and v_sano["cobertura_ok"] and v_solape["solapes"])
+    _log(f"spline modular {'OK ✓' if ok else 'FALLÓ ✗'} "
+         f"(sano={len(sanos)} cobertura={v_sano['cobertura']}, "
+         f"solapado={len(solapados)} juntas={len(v_solape['solapes'])})")
     return ok
 
 

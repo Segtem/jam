@@ -40,7 +40,7 @@ Motor: `5.8.1-0+UE5`. Commit de partida: `bc0bd89`. Proyecto host:
 | Material + Geometry/UV | `verifica_tutoriales_material.py` con commandlet rendering | **TODO VERDE**: material, parámetro, cable al mesh, Static Mesh transaccional, proyección y pack UV | inspección visual y costo con GUI cuando corresponda |
 | PCG | editor completo + `-ExecCmds`, 90 ticks | **verde**: 3 nodos, 4/4 cables, preset 600 cm, hex/triangular, 287 HISM | Preview/Bake/Discard manual y PCG 5.8 nuevo |
 | Graph funciones | `verifica_funcion_graph.py` | **verde en 5.8.1**: id estable, guardar, firma, dos instancias y Compile | ABM, `Ctrl+G` y pines múltiples con las manos |
-| Oracle | editor completo + `verifica_oracle_shadow.py` | **función verde**: placement, snap, `snap.al_ras` y scatter sano/saturado coinciden | desmontaje del proceso cae con código 139 |
+| Oracle | editor completo + `verifica_oracle_shadow.py` | **función verde**: placement, snap, `snap.al_ras`, scatter y spline modular coinciden | desmontaje posterior falla: históricamente 139; última ronda señal 6 |
 | Slate | build y carga de `JamEditor` | módulo cargado | tabs, historial, gestos y Undo/Redo en GUI |
 | Nanite | editor GUI + `verifica_nanite_fracture_58.py` | **verde**: copia Nanite y GC con `EnableNanite=true` | inspección visual y materiales incompatibles |
 | Dataflow/Fracture | editor GUI, nodos y terminal v2 | **verde**: GC regenerada; 2/2 materiales distintos conservados | rotura en PIE y shutdown con señal 11 |
@@ -79,6 +79,12 @@ el reparto sano quedó verde, el saturado produjo 36 pares interpenetrados y amb
 `Motor` coincidieron con la referencia. El marcador final fue
 `JAM_ORACLE_SHADOW_58 TODO VERDE — placement=True snap=True scatter=True por UE 5.8.1`; después se
 repitió la señal 11 histórica durante el desmontaje.
+
+La extensión siguiente probó el reemplazo operativo de la pared R7: `spline` coloca módulos sin
+estirarlos. Una cadena de cinco piezas dio cobertura 1.0; otra con `gap` negativo produjo cinco
+piezas y cuatro juntas solapadas. Las dos evaluaciones de `Motor` coincidieron y el marcador terminó
+en `placement=True snap=True scatter=True spline=True`. Tras escribirlo, el shutdown abortó con
+`munmap_chunk(): invalid pointer` y señal 6; la función está verde y el ciclo de vida continúa rojo.
 
 ## Próximo bloque
 

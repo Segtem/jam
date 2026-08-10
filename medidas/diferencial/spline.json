@@ -1,0 +1,2362 @@
+{
+ "dominio": "spline",
+ "escenarios": [
+  {
+   "defecto": "",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 951.4906435826495,
+      "largo_curva": 951.4906435826495,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "sin-defecto·0",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 1.1368683772161603e-13
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 1151.327916767753,
+      "largo_curva": 1151.327916767753,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "sin-defecto·1",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 2.842170943040401e-14
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 1.1368683772161603e-13
+     },
+     {
+      "id": 3,
+      "solape": 1.1368683772161603e-13
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 1152.297051129252,
+      "largo_curva": 1152.297051129252,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "sin-defecto·2",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 1165.9824965530324,
+      "largo_curva": 1165.9824965530324,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "sin-defecto·3",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 1534.5730786252682,
+      "largo_curva": 1534.5730786252682,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "sin-defecto·4",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 1336.8632549727681,
+      "largo_curva": 1336.8632549727681,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "sin-defecto·5",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 1.1368683772161603e-13
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0000000000000002,
+      "cubierto": 834.6874872368446,
+      "largo_curva": 834.6874872368445,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "sin-defecto·6",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 2.842170943040401e-14
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 1.1368683772161603e-13
+     },
+     {
+      "id": 3,
+      "solape": 1.1368683772161603e-13
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 1179.6519351441257,
+      "largo_curva": 1179.6519351441257,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "sin-defecto·7",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 0.9999999999999999,
+      "cubierto": 1676.8993384586934,
+      "largo_curva": 1676.8993384586936,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "sin-defecto·8",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 1527.3527511506347,
+      "largo_curva": 1527.3527511506347,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "sin-defecto·9",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 1425.709889605587,
+      "largo_curva": 1425.709889605587,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "sin-defecto·10",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 1587.6381505436188,
+      "largo_curva": 1587.6381505436188,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "sin-defecto·11",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 5.684341886080802e-14
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 1.1368683772161603e-13
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 1436.3025891026846,
+      "largo_curva": 1436.3025891026846,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "sin-defecto·12",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 5.684341886080802e-14
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 1.1368683772161603e-13
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 1599.6391321159192,
+      "largo_curva": 1599.6391321159192,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "sin-defecto·13",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 5.684341886080802e-14
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 1.1368683772161603e-13
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 1469.621654391369,
+      "largo_curva": 1469.621654391369,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "sin-defecto·14",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 2.842170943040401e-14
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 879.1579954836134,
+      "largo_curva": 879.1579954836134,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "sin-defecto·15",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 1421.5369531352794,
+      "largo_curva": 1421.5369531352794,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "sin-defecto·16",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 905.3583915097853,
+      "largo_curva": 905.3583915097853,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "sin-defecto·17",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 1366.8500377290916,
+      "largo_curva": 1366.8500377290916,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "sin-defecto·18",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 1363.1197487238549,
+      "largo_curva": 1363.1197487238549,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "sin-defecto·19",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "cobertura_baja",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 2.842170943040401e-14
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 0.7999999999999999,
+      "cubierto": 871.9178476795254,
+      "largo_curva": 1089.8973095994068,
+      "piezas": 4
+     }
+    ]
+   },
+   "id": "cobertura_baja·0",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": false,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "cobertura_baja",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 0.8,
+      "cubierto": 1337.7249265504488,
+      "largo_curva": 1672.156158188061,
+      "piezas": 4
+     }
+    ]
+   },
+   "id": "cobertura_baja·1",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": false,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "cobertura_baja",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 0.8,
+      "cubierto": 838.9935438320199,
+      "largo_curva": 1048.7419297900249,
+      "piezas": 4
+     }
+    ]
+   },
+   "id": "cobertura_baja·2",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": false,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "cobertura_baja",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 0.8,
+      "cubierto": 1260.627386686286,
+      "largo_curva": 1575.7842333578574,
+      "piezas": 4
+     }
+    ]
+   },
+   "id": "cobertura_baja·3",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": false,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "cobertura_baja",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 0.8,
+      "cubierto": 657.7111781723585,
+      "largo_curva": 822.1389727154481,
+      "piezas": 4
+     }
+    ]
+   },
+   "id": "cobertura_baja·4",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": false,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "cobertura_baja",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 0.8,
+      "cubierto": 949.5744186710426,
+      "largo_curva": 1186.9680233388033,
+      "piezas": 4
+     }
+    ]
+   },
+   "id": "cobertura_baja·5",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": false,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "cobertura_baja",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 5.684341886080802e-14
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 0.7999999999999999,
+      "cubierto": 1309.6004896480924,
+      "largo_curva": 1637.0006120601156,
+      "piezas": 4
+     }
+    ]
+   },
+   "id": "cobertura_baja·6",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": false,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "cobertura_baja",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 2.842170943040401e-14
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 1.1368683772161603e-13
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 0.7999999999999999,
+      "cubierto": 927.2725733900786,
+      "largo_curva": 1159.0907167375983,
+      "piezas": 4
+     }
+    ]
+   },
+   "id": "cobertura_baja·7",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": false,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "cobertura_baja",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 2.2737367544323206e-13
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 0.7999999999999999,
+      "cubierto": 1288.475348756881,
+      "largo_curva": 1610.5941859461013,
+      "piezas": 4
+     }
+    ]
+   },
+   "id": "cobertura_baja·8",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": false,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "cobertura_baja",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 1.1368683772161603e-13
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 0.7999999999999999,
+      "cubierto": 633.0000614048029,
+      "largo_curva": 791.2500767560036,
+      "piezas": 4
+     }
+    ]
+   },
+   "id": "cobertura_baja·9",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": false,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "cobertura_baja",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 0.8,
+      "cubierto": 886.01076447797,
+      "largo_curva": 1107.5134555974626,
+      "piezas": 4
+     }
+    ]
+   },
+   "id": "cobertura_baja·10",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": false,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "cobertura_baja",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 2.842170943040401e-14
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 0.7999999999999999,
+      "cubierto": 1023.2213979259062,
+      "largo_curva": 1279.0267474073828,
+      "piezas": 4
+     }
+    ]
+   },
+   "id": "cobertura_baja·11",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": false,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "cobertura_baja",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 5.684341886080802e-14
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 1.1368683772161603e-13
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 0.7999999999999999,
+      "cubierto": 1122.8118318626964,
+      "largo_curva": 1403.5147898283706,
+      "piezas": 4
+     }
+    ]
+   },
+   "id": "cobertura_baja·12",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": false,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "cobertura_baja",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 2.2737367544323206e-13
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 0.7999999999999999,
+      "cubierto": 1315.3727713330259,
+      "largo_curva": 1644.2159641662824,
+      "piezas": 4
+     }
+    ]
+   },
+   "id": "cobertura_baja·13",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": false,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "cobertura_baja",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 0.8,
+      "cubierto": 1292.5379255362695,
+      "largo_curva": 1615.672406920337,
+      "piezas": 4
+     }
+    ]
+   },
+   "id": "cobertura_baja·14",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": false,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "cobertura_baja",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 0.7999999999999999,
+      "cubierto": 624.8710264070098,
+      "largo_curva": 781.0887830087623,
+      "piezas": 4
+     }
+    ]
+   },
+   "id": "cobertura_baja·15",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": false,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "cobertura_baja",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 0.8,
+      "cubierto": 1061.7747012920627,
+      "largo_curva": 1327.2183766150783,
+      "piezas": 4
+     }
+    ]
+   },
+   "id": "cobertura_baja·16",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": false,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "cobertura_baja",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 0.8,
+      "cubierto": 1332.3144766752052,
+      "largo_curva": 1665.3930958440064,
+      "piezas": 4
+     }
+    ]
+   },
+   "id": "cobertura_baja·17",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": false,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "cobertura_baja",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 0.8,
+      "cubierto": 639.1874198951512,
+      "largo_curva": 798.9842748689389,
+      "piezas": 4
+     }
+    ]
+   },
+   "id": "cobertura_baja·18",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": false,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "cobertura_baja",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 0.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 0.8,
+      "cubierto": 1033.3639792798149,
+      "largo_curva": 1291.7049740997686,
+      "piezas": 4
+     }
+    ]
+   },
+   "id": "cobertura_baja·19",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": false,
+     "spline.sin_solape": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solape",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 2.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 1356.1647988000436,
+      "largo_curva": 1356.1647988000436,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "solape·0",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solape",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 2.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     },
+     {
+      "id": 3,
+      "solape": 1.1368683772161603e-13
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 1242.0232840521062,
+      "largo_curva": 1242.0232840521062,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "solape·1",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solape",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 2.842170943040401e-14
+     },
+     {
+      "id": 1,
+      "solape": 2.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0000000000000002,
+      "cubierto": 857.8910027949016,
+      "largo_curva": 857.8910027949015,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "solape·2",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solape",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 2.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 1484.3558342621113,
+      "largo_curva": 1484.3558342621113,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "solape·3",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solape",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 2.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 0.9999999999999998,
+      "cubierto": 1354.229348769266,
+      "largo_curva": 1354.2293487692662,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "solape·4",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solape",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 2.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 1596.8309290673747,
+      "largo_curva": 1596.8309290673747,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "solape·5",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solape",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 2.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 1010.684365583387,
+      "largo_curva": 1010.684365583387,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "solape·6",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solape",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 5.684341886080802e-14
+     },
+     {
+      "id": 1,
+      "solape": 2.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 1461.4116831226372,
+      "largo_curva": 1461.4116831226372,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "solape·7",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solape",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 2.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 863.4467760899987,
+      "largo_curva": 863.4467760899987,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "solape·8",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solape",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 2.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 834.7761777954631,
+      "largo_curva": 834.7761777954631,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "solape·9",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solape",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 2.842170943040401e-14
+     },
+     {
+      "id": 1,
+      "solape": 2.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 728.0732148686023,
+      "largo_curva": 728.0732148686023,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "solape·10",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solape",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 2.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 1204.5353400270483,
+      "largo_curva": 1204.5353400270483,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "solape·11",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solape",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 2.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 0.9999999999999999,
+      "cubierto": 1470.1733721123405,
+      "largo_curva": 1470.1733721123408,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "solape·12",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solape",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 2.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 1590.6962890298955,
+      "largo_curva": 1590.6962890298955,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "solape·13",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solape",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 2.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 0.9999999999999999,
+      "cubierto": 1492.8258371311067,
+      "largo_curva": 1492.825837131107,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "solape·14",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solape",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 2.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 1219.4424293647753,
+      "largo_curva": 1219.4424293647753,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "solape·15",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solape",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 2.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     },
+     {
+      "id": 3,
+      "solape": 1.1368683772161603e-13
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 1196.847951965553,
+      "largo_curva": 1196.847951965553,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "solape·16",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solape",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 2.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 1210.9338062213562,
+      "largo_curva": 1210.9338062213562,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "solape·17",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solape",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 0.0
+     },
+     {
+      "id": 1,
+      "solape": 2.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     },
+     {
+      "id": 3,
+      "solape": 0.0
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 1331.6806585916952,
+      "largo_curva": 1331.6806585916952,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "solape·18",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solape",
+   "evidencia": {
+    "junta_spline": [
+     {
+      "id": 0,
+      "solape": 2.842170943040401e-14
+     },
+     {
+      "id": 1,
+      "solape": 2.0
+     },
+     {
+      "id": 2,
+      "solape": 0.0
+     },
+     {
+      "id": 3,
+      "solape": 1.1368683772161603e-13
+     }
+    ],
+    "spline_modular": [
+     {
+      "cobertura": 1.0,
+      "cubierto": 1191.0577102605234,
+      "largo_curva": 1191.0577102605234,
+      "piezas": 5
+     }
+    ]
+   },
+   "id": "solape·19",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "spline.cobertura": true,
+     "spline.sin_solape": false
+    }
+   },
+   "referencia_ok": false
+  }
+ ],
+ "esquema": "oracle.diferencial/v1",
+ "frescura": {
+  "algoritmo": "sha256",
+  "configuracion": {
+   "defectos": [
+    "cobertura_baja",
+    "solape"
+   ],
+   "descripcion": "Brianholl/jam · spline_core.verificar_continuidad",
+   "extra": {},
+   "nombre": "spline",
+   "repeticiones": 20
+  },
+  "fuentes": {
+   "emisor": [
+    "tools/emitir_diferencial_spline.py",
+    "Content/Python/jam/oracle_spline_facts.py",
+    "medidas/escalares.py"
+   ],
+   "referencia": [
+    "Content/Python/jam/spline_core.py"
+   ]
+  },
+  "huellas": {
+   "catalogo": "a60f4db4890cf74d4f432acb3c3089c34bdce592bf5ee082969842fb53ca1c49",
+   "configuracion": "af7e60ed659c80fcf9db2c70dbef25c864292e9015393cf292e2a2715aead335",
+   "emisor": "f1f3004d3666cdf9adf4fe153b8651afeb6e145931a99fa24435fabf2b85995e",
+   "referencia": "6d8b9b0183e6acec181cbeba2615f7fd0add0664673dbf15f9da9306a82bae42"
+  },
+  "raiz_fuentes": ".."
+ },
+ "medidas": [
+  "spline.cobertura",
+  "spline.sin_solape"
+ ],
+ "mundos": 60,
+ "origen": "Brianholl/jam · spline_core.verificar_continuidad"
+}

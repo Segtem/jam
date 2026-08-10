@@ -182,3 +182,32 @@ def comparar_scatter(
             "scatter.cobertura": bool(referencia["cobertura_ok"]),
         },
     )
+
+
+def comparar_spline_modular(
+    colocaciones,
+    largo_curva: float,
+    referencia: dict,
+    *,
+    tol: float = 1.0,
+    cobertura_min: float = 0.9,
+) -> ComparacionSombra:
+    """Compara el juicio del verbo operativo `spline`, no el constructor legado `pared` R7."""
+    configuracion = (float(tol), float(cobertura_min))
+    declarada = (1.0, 0.9)
+    if configuracion != declarada:
+        return ComparacionSombra(
+            informe=None,
+            error=("configuración de spline no declarada por el catálogo "
+                   f"(tol, cobertura_min)={configuracion}"),
+        )
+
+    from . import oracle_spline_facts
+
+    return _comparar_evidencia(
+        oracle_spline_facts.hechos(colocaciones, largo_curva),
+        {
+            "spline.cobertura": bool(referencia["cobertura_ok"]),
+            "spline.sin_solape": bool(referencia["sin_solape"]),
+        },
+    )

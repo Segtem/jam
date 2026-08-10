@@ -282,6 +282,14 @@ def scatter(actores, centro, semi, cantidad, **kw) -> dict:
     return referencia
 
 
+def spline_modular(colocaciones, largo_curva, referencia, **kw) -> dict:
+    """Ejecuta la sombra sobre los mismos datos puros que gobiernan el verbo `spline`."""
+    _ejecutar_sombra(
+        "spline", "comparar_spline_modular", colocaciones, largo_curva, referencia,
+        tol=kw.get("tol", 1.0), cobertura_min=kw.get("cobertura_min", 0.9))
+    return referencia
+
+
 def snap_grilla_texto(actor, grilla=100.0, **kw) -> str:
     from . import oracle_snap
     sujeto = pieza(actor)

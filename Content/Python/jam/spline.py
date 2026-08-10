@@ -54,7 +54,7 @@ def construir(actor, assets, *, gap=0.0, seed=0, eje="x", anchor="base", align=F
     largos = [_largo_modulo(m, eje) * scale for m in mallas]
     colocaciones = sp.caminar(poli, largos, gap=gap, seed=seed, jitter_yaw=jitter_yaw)
 
-    actores = []
+    actores, realizadas = [], []
     for i, c in enumerate(colocaciones):
         malla = mallas[c.idx]
         a = place.colocar(malla, (c.pos.x, c.pos.y, c.pos.z), (0.0, 0.0, c.yaw),
@@ -63,8 +63,12 @@ def construir(actor, assets, *, gap=0.0, seed=0, eje="x", anchor="base", align=F
         if a is not None:
             a.set_actor_label(f"Jam_spline_{i}")
             actores.append(a)
+            realizadas.append(c)
 
     largo = sp.largo_total(poli)
-    v = sp.verificar_continuidad(colocaciones, largo)
+    # El juicio es sobre lo que Unreal CREÓ, no sobre el plan. Antes un spawn fallido desaparecía
+    # del mundo pero seguía contando para cobertura y podía publicar una cadena sana inexistente.
+    v = sp.verificar_continuidad(realizadas, largo)
+    ue.spline_modular(realizadas, largo, v)
     v.update({"largo_curva": round(largo, 1), "assets": len(mallas), "modulos": [round(x) for x in largos]})
     return actores, v

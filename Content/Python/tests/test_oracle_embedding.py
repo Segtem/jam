@@ -13,7 +13,7 @@ from unittest import mock
 from pathlib import Path
 
 from jam import (bridge, oracle_placement, oracle_scatter, oracle_scatter_facts, oracle_shadow,
-                 oracle_snap)
+                 oracle_snap, oracle_spline_facts, spline_core)
 from jam.geometry import AABB, Pieza, Vec3
 
 
@@ -190,6 +190,60 @@ class OracleEmbeddingTests(unittest.TestCase):
 
         self.assertEqual(2, cuerpo.count("ue.scatter("))
         self.assertNotIn("r_sano = oracle_scatter.verificar(", cuerpo)
+
+    @staticmethod
+    def _spline_modular(cantidad=5):
+        modulo = 200.0
+        return [
+            spline_core.Colocacion(
+                Vec3((i + 0.5) * modulo, 0.0, 0.0), 0.0, modulo, 0,
+                (i + 0.5) * modulo, i)
+            for i in range(cantidad)
+        ]
+
+    def test_spline_modular_coincide_sano_con_cobertura_baja_y_solape(self) -> None:
+        sano = self._spline_modular()
+        cobertura_baja = self._spline_modular(4)
+        solape = list(sano)
+        solape[2] = solape[2]._replace(s=solape[2].s - 2.0)
+
+        for nombre, colocaciones in (
+            ("sano", sano), ("cobertura", cobertura_baja), ("solape", solape)
+        ):
+            with self.subTest(caso=nombre):
+                referencia = spline_core.verificar_continuidad(colocaciones, 1000.0)
+                sombra = oracle_shadow.comparar_spline_modular(
+                    colocaciones, 1000.0, referencia)
+                self.assertTrue(sombra.coincide, sombra)
+
+    def test_hechos_spline_conservan_cobertura_y_solape_longitudinal(self) -> None:
+        colocaciones = self._spline_modular()
+        colocaciones[1] = colocaciones[1]._replace(s=colocaciones[1].s - 2.0)
+
+        evidencia = oracle_spline_facts.hechos(colocaciones, 1000.0)
+
+        self.assertEqual(1.0, evidencia["spline_modular"][0]["cobertura"])
+        self.assertEqual(2.0, evidencia["junta_spline"][0]["solape"])
+
+    def test_spline_no_compara_una_tolerancia_no_declarada(self) -> None:
+        colocaciones = self._spline_modular()
+        referencia = spline_core.verificar_continuidad(colocaciones, 1000.0, tol=5.0)
+
+        sombra = oracle_shadow.comparar_spline_modular(
+            colocaciones, 1000.0, referencia, tol=5.0)
+
+        self.assertFalse(sombra.coincide)
+        self.assertIn("configuración de spline no declarada", sombra.error)
+
+    def test_el_constructor_operativo_de_spline_ejecuta_la_sombra(self) -> None:
+        fuente = (RAIZ / "Content" / "Python" / "jam" / "spline.py").read_text(
+            encoding="utf-8")
+        cuerpo = fuente[fuente.index("def construir("):]
+
+        self.assertIn("realizadas.append(c)", cuerpo)
+        self.assertIn("verificar_continuidad(realizadas, largo)", cuerpo)
+        self.assertIn("ue.spline_modular(realizadas, largo, v)", cuerpo)
+        self.assertNotIn("verificar_continuidad(colocaciones, largo)", cuerpo)
 
     def test_una_grilla_no_declarada_no_se_compara_con_el_default(self) -> None:
         pieza = Pieza(

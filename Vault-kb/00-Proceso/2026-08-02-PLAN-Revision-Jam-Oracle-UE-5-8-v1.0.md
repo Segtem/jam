@@ -43,8 +43,8 @@ tres fronteras rompió.
   [[2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0|P3 de Oracle]].
 - La distribución continúa acoplada a la ubicación vendorizada mediante `jam.bridge`, aunque ese
   conocimiento está centralizado.
-- `placement` y `snap` corren en sombra: gobierna la referencia histórica. Los otros dominios vivos
-  (`scatter`, `pared`, `physics`, `reemplazo`, `espacio`) todavía no fueron migrados a medidas.
+- En la apertura sólo `placement` y `snap` corrían en sombra. La revisión posterior incorporó
+  `scatter` y el `spline` modular operativo; gobiernan todavía sus referencias históricas.
 - El diferencial completo abrió rojo: `medidas/diferencial/relevo.json` quedó vencido respecto de
   `proceso.verificacion_vigente`. Por lo tanto, el verde de apertura no estaba exigiendo todas las
   puertas que `RELEVO.md` afirmaba.
@@ -133,7 +133,9 @@ próximo paso. Nada se reemplaza sólo porque dos implementaciones coincidieron 
 | vault | hechos documentales → 10 medidas | doble vía | 11/11 escenarios coinciden | forma y enlaces, no pertinencia ni verdad |
 | relevo | testigo/git → 6 medidas | referencia + puerta diferencial | 8/8 escenarios coinciden | no prueba gestos manuales |
 | scatter | instancia/configuración/conteo/cobertura → 4 medidas | referencia histórica + sombra | UE 5.8.1 coincide en sano y saturado | AABB y centros; el aviso contra escena sigue manual |
-| pared, physics, reemplazo, espacio | todavía sin sensor para `Motor` | referencia histórica | fuera de esta fase | migración pendiente |
+| spline modular | colocaciones realizadas/largo → cobertura y solape | referencia histórica + sombra | UE 5.8.1 coincide en sano y solapado | largo nominal; no ve forma fina ni cruces no adyacentes |
+| physics, reemplazo, espacio | todavía sin sensor para `Motor` | referencia histórica | fuera de esta fase | migración pendiente |
+| pared R7 | constructor legado sustituido por `spline` | referencia histórica | sólo selftest legado | no migrar mientras no vuelva a ser camino de producto |
 
 ### Extensión 2026-08-09 — primer dominio completo: scatter
 
@@ -152,6 +154,22 @@ próximo paso. Nada se reemplaza sólo porque dos implementaciones coincidieron 
   marcador `placement=True snap=True scatter=True`. El SIGSEGV posterior de desmontaje permanece
   separado como deuda de ciclo de vida.
 
+### Extensión 2026-08-09 — pared significa spline modular
+
+- `oracle_pared` y `pared.construir` son la implementación R7 que estiraba segmentos; el Graph ya no
+  los usa. El verbo vivo es `t_spline → spline.construir → spline_core`, que conserva el largo real
+  de cada módulo. Migrar R7 habría mejorado únicamente un selftest de código legado.
+- `spline.cobertura` fija el mínimo de 90% y `spline.sin_solape` la tolerancia longitudinal de 1 cm.
+  Sesenta mundos diferenciales cubren cadena sana, cobertura baja y solape aislado.
+- El runtime verificaba el plan completo aunque Unreal no hubiese creado alguno de sus actores.
+  Ahora conserva las colocaciones realizadas y tanto la referencia como `Motor` juzgan esa lista;
+  un fallo de spawn reduce cobertura en vez de publicar una cadena sana inexistente.
+- Invertir deliberadamente cobertura produjo 40 desacuerdos; volver a juzgar el plan rompió la
+  regresión específica. El total queda en **579 acuerdos / 3078 veredictos** y **201/201 mutantes**.
+- UE 5.8.1 creó cinco módulos sanos y cinco solapados: cobertura 1.0, cuatro juntas defectuosas y dos
+  coincidencias de sombra. El marcador final incluyó `spline=True`; el desmontaje posterior cayó con
+  `invalid pointer` y señal 6, sin adelantar la frontera de ciclo de vida.
+
 ## Fase 2 — recertificación completa en UE 5.8.1
 
 Los informes 5.7.4 no se corrigen en masa: son evidencia fechada. Se crea una certificación nueva con
@@ -167,7 +185,7 @@ motor, commit, camino y marcador de log por superficie.
 | Nanite/Substrate | conversión, material real y costo donde el modo headless lo permita |
 | PCG | autoría, cableado verificado, generación, Preview, Bake y Discard |
 | Dataflow/Fracture | editor GUI cuando el camino headless cuelgue |
-| Oracle | `placement`, `snap` y `scatter` con sombra observable |
+| Oracle | `placement`, `snap`, `scatter` y `spline` con sombra observable |
 | Graph | funciones, dos instancias, compilación y gestos Slate |
 
 ### Resultado parcial 2026-08-02
