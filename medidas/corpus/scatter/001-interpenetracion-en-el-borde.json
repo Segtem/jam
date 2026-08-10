@@ -1,0 +1,17 @@
+{
+  "id": "scatter-001-interpenetracion-en-el-borde",
+  "fecha": "2026-08-09",
+  "origen": {"repo": "Brianholl/jam", "commit": "migracion-scatter-oracle"},
+  "titulo": "Una clavada efectiva de medio centímetro sigue siendo roja",
+  "etiqueta": "falso_verde",
+  "sintoma": "Aflojar el umbral de cero a uno aceptaba una interpenetración pequeña.",
+  "como_se_detecto": "mutacion",
+  "medida": "scatter.interpenetracion",
+  "evidencia": {
+    "instancia": [
+      {"id": "a", "ox": 0.0, "oy": 0.0, "oz": 0.0, "ex": 25.0, "ey": 25.0, "ez": 25.0},
+      {"id": "b", "ox": 48.5, "oy": 0.0, "oz": 0.0, "ex": 25.0, "ey": 25.0, "ez": 25.0}
+    ]
+  },
+  "leccion": "El umbral sólo queda fijado con un defecto dentro del primer paso que permitiría el mutador."
+}

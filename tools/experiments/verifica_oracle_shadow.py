@@ -27,12 +27,15 @@ def main() -> None:
 
         placement = menu.selftest_colocar()
         snap = menu.selftest_snap()
-        if placement and snap:
+        scatter = menu.selftest_scatter()
+        if placement and snap and scatter:
             unreal.log(
-                f"{MARCADOR} TODO VERDE — placement={placement} snap={snap} por UE 5.8.1")
+                f"{MARCADOR} TODO VERDE — placement={placement} snap={snap} "
+                f"scatter={scatter} por UE 5.8.1")
         else:
             unreal.log_error(
-                f"{MARCADOR} ROJO — placement={placement} snap={snap} por UE 5.8.1")
+                f"{MARCADOR} ROJO — placement={placement} snap={snap} "
+                f"scatter={scatter} por UE 5.8.1")
     except Exception as exc:  # noqa: BLE001 — el log del editor es el veredicto reproducible
         unreal.log_error(f"{MARCADOR} EXCEPCIÓN — {type(exc).__name__}: {exc}")
         unreal.log_error(traceback.format_exc())

@@ -40,7 +40,7 @@ Motor: `5.8.1-0+UE5`. Commit de partida: `bc0bd89`. Proyecto host:
 | Material + Geometry/UV | `verifica_tutoriales_material.py` con commandlet rendering | **TODO VERDE**: material, parámetro, cable al mesh, Static Mesh transaccional, proyección y pack UV | inspección visual y costo con GUI cuando corresponda |
 | PCG | editor completo + `-ExecCmds`, 90 ticks | **verde**: 3 nodos, 4/4 cables, preset 600 cm, hex/triangular, 287 HISM | Preview/Bake/Discard manual y PCG 5.8 nuevo |
 | Graph funciones | `verifica_funcion_graph.py` | **verde en 5.8.1**: id estable, guardar, firma, dos instancias y Compile | ABM, `Ctrl+G` y pines múltiples con las manos |
-| Oracle | editor completo + `verifica_oracle_shadow.py` | **función verde**: placement, snap y `snap.al_ras` coinciden | desmontaje del proceso cae con código 139 |
+| Oracle | editor completo + `verifica_oracle_shadow.py` | **función verde**: placement, snap, `snap.al_ras` y scatter sano/saturado coinciden | desmontaje del proceso cae con código 139 |
 | Slate | build y carga de `JamEditor` | módulo cargado | tabs, historial, gestos y Undo/Redo en GUI |
 | Nanite | editor GUI + `verifica_nanite_fracture_58.py` | **verde**: copia Nanite y GC con `EnableNanite=true` | inspección visual y materiales incompatibles |
 | Dataflow/Fracture | editor GUI, nodos y terminal v2 | **verde**: GC regenerada; 2/2 materiales distintos conservados | rotura en PIE y shutdown con señal 11 |
@@ -73,6 +73,12 @@ por la lista explícita de errores del host; el exit code solo no puede ser puer
 El otro rojo sí cruza Jam, pero está delimitado: tanto `verifica_oracle_shadow.py` como la nueva
 sonda Nanite/Fracture emiten su marcador verde y después el editor cae durante shutdown con código
 139. Por eso la matriz separa **función** de **ciclo de vida**.
+
+La repetición del 2026-08-09 amplió la sonda Oracle a `scatter`. Sobre actores creados por el editor,
+el reparto sano quedó verde, el saturado produjo 36 pares interpenetrados y ambas evaluaciones de
+`Motor` coincidieron con la referencia. El marcador final fue
+`JAM_ORACLE_SHADOW_58 TODO VERDE — placement=True snap=True scatter=True por UE 5.8.1`; después se
+repitió la señal 11 histórica durante el desmontaje.
 
 ## Próximo bloque
 

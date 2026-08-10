@@ -260,14 +260,26 @@ def vecinos_en_zona(centro, semi, ignorar=(), margen: float = 300.0,
 
 def scatter_texto(actores, centro, semi, cantidad, *, existentes=None, **kw) -> str:
     from . import oracle_scatter
+    tanda = piezas(actores)
+    referencia = oracle_scatter.verificar(tanda, centro, semi, cantidad, **kw)
+    _ejecutar_sombra(
+        "scatter", "comparar_scatter", tanda, centro, semi, cantidad, referencia,
+        grilla=kw.get("grilla", 3), cobertura_min=kw.get("cobertura_min", 0.6),
+        tol=kw.get("tol", 1.0))
     return oracle_scatter.verificar_texto(
-        piezas(actores), centro, semi, cantidad,
+        tanda, centro, semi, cantidad,
         existentes=piezas(existentes) if existentes else None, **kw)
 
 
 def scatter(actores, centro, semi, cantidad, **kw) -> dict:
     from . import oracle_scatter
-    return oracle_scatter.verificar(piezas(actores), centro, semi, cantidad, **kw)
+    tanda = piezas(actores)
+    referencia = oracle_scatter.verificar(tanda, centro, semi, cantidad, **kw)
+    _ejecutar_sombra(
+        "scatter", "comparar_scatter", tanda, centro, semi, cantidad, referencia,
+        grilla=kw.get("grilla", 3), cobertura_min=kw.get("cobertura_min", 0.6),
+        tol=kw.get("tol", 1.0))
+    return referencia
 
 
 def snap_grilla_texto(actor, grilla=100.0, **kw) -> str:

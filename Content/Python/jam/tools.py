@@ -309,7 +309,7 @@ def _en_puntos(asset, puntos, *, anchor, sink, align, scale_min, scale_max,
     centro = ((min(xs) + max(xs)) / 2.0, (min(ys) + max(ys)) / 2.0)
     semi = (max(1.0, (max(xs) - min(xs)) / 2.0), max(1.0, (max(ys) - min(ys)) / 2.0))
     existentes = ue.vecinos_en_zona(centro, semi, ignorar=actores)
-    oraculo = ue.scatter_texto(actores, centro, semi, len(actores), existentes=existentes)
+    oraculo = ue.scatter_texto(actores, centro, semi, len(vivos), existentes=existentes)
     return _veredicto_place(len(actores), len(puntos), len(pisados), asentado, oraculo, verbo)
 
 
@@ -554,7 +554,7 @@ def t_instance(points_input, *, assets="", asset_source=None, scale_min=1.0, sca
     else:
         centro, semi = zona
     existentes = ue.vecinos_en_zona(centro, semi, ignorar=actores)
-    oraculo = ue.scatter_texto(actores, centro, semi, len(actores), existentes=existentes)
+    oraculo = ue.scatter_texto(actores, centro, semi, len(puntos), existentes=existentes)
     _RUNTIME_ASSET_OUTPUTS["instance"] = rutas[0] if rutas else ""
     return (f"INSTANCE \u2713 \u2014 {len(actores)} colocado(s) en {len(puntos)} punto(s) "
             f"\u00b7 {len(mallas)} asset(s)\n{oraculo}")

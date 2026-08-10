@@ -1,0 +1,8 @@
+[
+  "medida",
+  "scatter.cobertura",
+  ["desde", ["de", "cobertura_scatter", "c"]],
+  ["resumen", "min", ["campo", "c", "fraccion"]],
+  ["umbral", ">=", 0.6, "el contrato operativo considera amontonado un reparto que ocupa menos del 60% de una grilla 3×3"],
+  ["alcance", "fracción de celdas con al menos un centro. NO ve uniformidad dentro de cada celda, distancias entre vecinos, patrones, orientación ni calidad visual"]
+]

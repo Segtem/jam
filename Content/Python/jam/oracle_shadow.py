@@ -147,3 +147,38 @@ def comparar_al_ras(
             "snap.comparte_cara": referencia["estado"] != "desalineado",
         },
     )
+
+
+def comparar_scatter(
+    piezas,
+    centro,
+    semi,
+    cantidad_pedida: int,
+    referencia: dict,
+    *,
+    grilla: int = 3,
+    cobertura_min: float = 0.6,
+    tol: float = 1.0,
+) -> ComparacionSombra:
+    """Compara las cuatro decisiones binarias del reparto contra las medidas declaradas."""
+    configuracion = (int(grilla), float(cobertura_min), float(tol))
+    declarada = (3, 0.6, 1.0)
+    if configuracion != declarada:
+        return ComparacionSombra(
+            informe=None,
+            error=("configuración de scatter no declarada por el catálogo "
+                   f"(grilla, cobertura_min, tol)={configuracion}"),
+        )
+
+    from . import oracle_scatter_facts
+
+    return _comparar_evidencia(
+        oracle_scatter_facts.hechos(
+            piezas, centro, semi, cantidad_pedida, grilla=grilla),
+        {
+            "scatter.cantidad": bool(referencia["cantidad_ok"]),
+            "scatter.contencion": not bool(referencia["fuera"]),
+            "scatter.interpenetracion": not bool(referencia["interpenetra"]),
+            "scatter.cobertura": bool(referencia["cobertura_ok"]),
+        },
+    )

@@ -93,3 +93,16 @@ def solape_lateral_minimo(a: dict, b: dict) -> float:
         - abs(a[f"o{otro}"] - b[f"o{otro}"])
         for otro in laterales
     )
+
+
+@escalar("fuera_de_region")
+def fuera_de_region(instancia: dict, configuracion: dict, tol: float = TOL_CM) -> bool:
+    """Si el centro XY de una instancia queda fuera del rectángulo del scatter.
+
+    El tamaño de la pieza no participa: ése es también el contrato del oráculo operativo. Una pieza
+    grande puede sobresalir aunque su centro esté adentro; ese punto ciego queda en la medida.
+    """
+    return (
+        abs(instancia["ox"] - configuracion["cx"]) > configuracion["sx"] + tol
+        or abs(instancia["oy"] - configuracion["cy"]) > configuracion["sy"] + tol
+    )

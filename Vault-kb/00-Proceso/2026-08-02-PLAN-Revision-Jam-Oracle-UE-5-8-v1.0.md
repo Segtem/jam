@@ -132,7 +132,25 @@ próximo paso. Nada se reemplaza sólo porque dos implementaciones coincidieron 
 | snap | `Pieza`/AABB → grilla, yaw, contacto y cara compartida | referencia histórica | UE 5.8.1 coincide | sólo están declarados los defaults de tolerancia |
 | vault | hechos documentales → 10 medidas | doble vía | 11/11 escenarios coinciden | forma y enlaces, no pertinencia ni verdad |
 | relevo | testigo/git → 6 medidas | referencia + puerta diferencial | 8/8 escenarios coinciden | no prueba gestos manuales |
-| scatter, pared, physics, reemplazo, espacio | todavía sin sensor para `Motor` | referencia histórica | fuera de esta fase | migración pendiente |
+| scatter | instancia/configuración/conteo/cobertura → 4 medidas | referencia histórica + sombra | UE 5.8.1 coincide en sano y saturado | AABB y centros; el aviso contra escena sigue manual |
+| pared, physics, reemplazo, espacio | todavía sin sensor para `Motor` | referencia histórica | fuera de esta fase | migración pendiente |
+
+### Extensión 2026-08-09 — primer dominio completo: scatter
+
+- `scatter.cantidad`, `scatter.contencion`, `scatter.interpenetracion` y `scatter.cobertura` cubren
+  las cuatro decisiones que gobiernan `oracle_scatter`; el aviso contra piezas preexistentes sigue
+  siendo informativo y manual porque todavía no tiene una política binaria defendible.
+- El sensor puro compartido evita que el fixture y el runtime aplanen la evidencia de dos maneras
+  distintas. Cien mundos —20 sanos y 20 por defecto aislado— coinciden con la referencia.
+- La migración encontró una trampa operativa: `place` informaba como cantidad pedida la cantidad de
+  actores que Unreal ya había logrado crear. Ahora conserva el número de puntos vivos; un fallo de
+  spawn ya puede volver roja la medida de cantidad.
+- Cuatro reducciones de borde cerraron los mutantes que el generador realista no podía fijar:
+  interpenetración efectiva de 0,5 cm, dos profundidades, cobertura inmediatamente inferior a 0,6
+  y dos observaciones de cobertura. El proyecto queda en **189/189 mutantes muertos**.
+- UE 5.8.1 ejecutó la referencia y `Motor` sobre actores reales: sano y saturado coincidieron, con
+  marcador `placement=True snap=True scatter=True`. El SIGSEGV posterior de desmontaje permanece
+  separado como deuda de ciclo de vida.
 
 ## Fase 2 — recertificación completa en UE 5.8.1
 
@@ -149,7 +167,7 @@ motor, commit, camino y marcador de log por superficie.
 | Nanite/Substrate | conversión, material real y costo donde el modo headless lo permita |
 | PCG | autoría, cableado verificado, generación, Preview, Bake y Discard |
 | Dataflow/Fracture | editor GUI cuando el camino headless cuelgue |
-| Oracle | `placement` y `snap` con sombra observable |
+| Oracle | `placement`, `snap` y `scatter` con sombra observable |
 | Graph | funciones, dos instancias, compilación y gestos Slate |
 
 ### Resultado parcial 2026-08-02

@@ -143,12 +143,13 @@ def selftest_scatter() -> bool:
 
     c_sano, s_sano, n = (0.0, 0.0), (500.0, 500.0), 9
     sano = scatter.esparcir(ruta, c_sano, s_sano, n, seed=7, yaw_aleatorio=False)
-    r_sano = oracle_scatter.verificar(ue.piezas(sano), c_sano, s_sano, n)
+    # Pasa por el adaptador real para ejecutar también la medida declarativa en sombra.
+    r_sano = ue.scatter(sano, c_sano, s_sano, n)
     _log(oracle_scatter.verificar_texto(ue.piezas(sano), c_sano, s_sano, n))
 
     c_den, s_den = (100000.0, 0.0), (60.0, 60.0)   # lejos del sano; 120×120cm para 9 cubos de 100
     denso = scatter.esparcir(ruta, c_den, s_den, n, seed=7, yaw_aleatorio=False)
-    r_den = oracle_scatter.verificar(ue.piezas(denso), c_den, s_den, n)
+    r_den = ue.scatter(denso, c_den, s_den, n)
     _log(oracle_scatter.verificar_texto(ue.piezas(denso), c_den, s_den, n))
 
     actor_sub = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)

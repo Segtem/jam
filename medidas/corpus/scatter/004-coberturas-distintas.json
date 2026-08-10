@@ -1,0 +1,17 @@
+{
+  "id": "scatter-004-coberturas-distintas",
+  "fecha": "2026-08-09",
+  "origen": {"repo": "Brianholl/jam", "commit": "migracion-scatter-oracle"},
+  "titulo": "La cobertura publicada toma la peor observación",
+  "etiqueta": "falso_verde",
+  "sintoma": "Con una sola fila, resumir por mínimo o máximo era indistinguible.",
+  "como_se_detecto": "mutacion",
+  "medida": "scatter.cobertura",
+  "evidencia": {
+    "cobertura_scatter": [
+      {"ocupadas": 5, "total": 9, "fraccion": 0.55},
+      {"ocupadas": 9, "total": 9, "fraccion": 1.0}
+    ]
+  },
+  "leccion": "El mínimo expresa fail-closed si el sensor entrega más de una observación."
+}

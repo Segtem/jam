@@ -12,7 +12,8 @@ from contextlib import redirect_stdout
 from unittest import mock
 from pathlib import Path
 
-from jam import bridge, oracle_placement, oracle_shadow, oracle_snap
+from jam import (bridge, oracle_placement, oracle_scatter, oracle_scatter_facts, oracle_shadow,
+                 oracle_snap)
 from jam.geometry import AABB, Pieza, Vec3
 
 
@@ -34,6 +35,16 @@ def _cargar_relevo():
 
 
 class OracleEmbeddingTests(unittest.TestCase):
+    @staticmethod
+    def _scatter_sano() -> tuple[list[Pieza], tuple[float, float], tuple[float, float]]:
+        piezas = []
+        for indice, (x, y) in enumerate(
+                (x, y) for y in (-300.0, 0.0, 300.0) for x in (-300.0, 0.0, 300.0)):
+            centro = Vec3(x, y, 0.0)
+            piezas.append(Pieza(
+                f"i{indice}", AABB(centro, Vec3(25.0, 25.0, 25.0)), centro, 0.0))
+        return piezas, (0.0, 0.0), (450.0, 450.0)
+
     def test_el_proyecto_pide_el_catalogo_base_que_usa_relevo(self) -> None:
         configuracion = json.loads((RAIZ / "medidas" / "oracle.json").read_text())
         fixture = json.loads(
@@ -114,6 +125,71 @@ class OracleEmbeddingTests(unittest.TestCase):
             ("snap.yaw: referencia=False, Motor=True",),
             sombra.diferencias,
         )
+
+    def test_scatter_coincide_en_sano_y_cada_defecto_aislado(self) -> None:
+        piezas, centro, semi = self._scatter_sano()
+        casos = {
+            "sano": piezas,
+            "cantidad": piezas[:-1],
+            "fuera": [
+                Pieza("fuera", AABB(Vec3(470.0, 0.0, 0.0), Vec3(25.0, 25.0, 25.0)),
+                      Vec3(470.0, 0.0, 0.0), 0.0),
+                *piezas[1:],
+            ],
+            "interpenetracion": [
+                *piezas[:-1],
+                Pieza("duplicada", piezas[0].aabb, piezas[0].location, piezas[0].yaw),
+            ],
+            "cobertura": [
+                Pieza(f"c{i}", AABB(Vec3(x, y, 0.0), Vec3(10.0, 10.0, 10.0)),
+                      Vec3(x, y, 0.0), 0.0)
+                for i, (x, y) in enumerate((
+                    (-340.0, -300.0), (-250.0, -300.0),
+                    (-40.0, -300.0), (40.0, -300.0),
+                    (260.0, -300.0), (340.0, -300.0),
+                    (-340.0, 0.0), (-250.0, 0.0),
+                    (-40.0, 0.0),
+                ))
+            ],
+        }
+
+        for nombre, tanda in casos.items():
+            with self.subTest(caso=nombre):
+                referencia = oracle_scatter.verificar(tanda, centro, semi, 9)
+                sombra = oracle_shadow.comparar_scatter(
+                    tanda, centro, semi, 9, referencia)
+                self.assertTrue(sombra.coincide, sombra)
+                self.assertEqual(4, len([
+                    v for v in sombra.informe.veredictos if v.id.startswith("scatter.")]))
+
+    def test_los_hechos_de_scatter_conservan_pedido_y_cobertura(self) -> None:
+        piezas, centro, semi = self._scatter_sano()
+
+        evidencia = oracle_scatter_facts.hechos(piezas[:-1], centro, semi, 9)
+
+        self.assertEqual(
+            {"pedidas": 9, "obtenidas": 8}, evidencia["conteo_scatter"][0])
+        self.assertEqual(8, evidencia["cobertura_scatter"][0]["ocupadas"])
+        self.assertAlmostEqual(8 / 9, evidencia["cobertura_scatter"][0]["fraccion"])
+
+    def test_scatter_no_compara_una_configuracion_no_declarada(self) -> None:
+        piezas, centro, semi = self._scatter_sano()
+        referencia = oracle_scatter.verificar(piezas, centro, semi, 9, grilla=4)
+
+        sombra = oracle_shadow.comparar_scatter(
+            piezas, centro, semi, 9, referencia, grilla=4)
+
+        self.assertFalse(sombra.coincide)
+        self.assertIn("configuración de scatter no declarada", sombra.error)
+
+    def test_la_sonda_real_de_scatter_pasa_por_el_adaptador_con_sombra(self) -> None:
+        fuente = (RAIZ / "Content" / "Python" / "jam" / "menu.py").read_text(
+            encoding="utf-8")
+        cuerpo = fuente[fuente.index("def selftest_scatter("):]
+        cuerpo = cuerpo[:cuerpo.index("\ndef ", 1)]
+
+        self.assertEqual(2, cuerpo.count("ue.scatter("))
+        self.assertNotIn("r_sano = oracle_scatter.verificar(", cuerpo)
 
     def test_una_grilla_no_declarada_no_se_compara_con_el_default(self) -> None:
         pieza = Pieza(

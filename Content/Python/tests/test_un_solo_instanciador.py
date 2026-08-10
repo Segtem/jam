@@ -15,6 +15,7 @@ import pathlib
 import sys
 import types
 import unittest
+from unittest import mock
 
 _unreal = sys.modules.setdefault("unreal", types.ModuleType("unreal"))
 # `jam.library` construye una ruta de clase al importarse; sin este stub, importar el adaptador de
@@ -89,6 +90,31 @@ class UnSoloInstanciadorTests(unittest.TestCase):
         que es exactamente la queja que en su momento originó `place` centrado en el punto de mira."""
         self.assertIn("place", tools.PISTA_INSTANCE)
         self.assertTrue(tools.PISTA_INSTANCE.strip(), "la pista no puede quedar vacía")
+
+    def test_place_informa_al_oraculo_cuantas_intento_colocar(self):
+        """Si UE crea menos actores que puntos vivos, cantidad debe ponerse roja."""
+        from jam.geometry import Vec3
+        from jam.scatter_core import Sample
+
+        puntos = [
+            Sample(Vec3(float(i) * 200.0, 0.0, 0.0), Vec3(0.0, 0.0, 1.0),
+                   0.0, i, (0.0, 0.0))
+            for i in range(3)
+        ]
+        from jam import ue
+        scatter_texto = mock.Mock(return_value="SCATTER rojo deliberado")
+
+        with mock.patch.object(scatter, "_mallas_de", return_value=[object()]), \
+             mock.patch.object(scatter, "instanciar_puntos", return_value=[object(), object()]), \
+             mock.patch.object(ue, "radio_de_malla", return_value=10.0), \
+             mock.patch.object(ue, "seleccionar"), \
+             mock.patch.object(ue, "vecinos_en_zona", return_value=[]), \
+             mock.patch.object(ue, "scatter_texto", scatter_texto):
+            tools._en_puntos(
+                object(), puntos, anchor="base", sink=0.0, align=False,
+                scale_min=1.0, scale_max=1.0)
+
+        self.assertEqual(3, scatter_texto.call_args.args[3])
 
 
 class ComandoTests(unittest.TestCase):
