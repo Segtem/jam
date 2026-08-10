@@ -68,7 +68,7 @@ experimental `MassGameplay`.
 
 ### Fase 1 — receta pura y ciclo Preview
 
-**Estado: primera vertical operativa y verificada en UE 5.8.1.** `MS` conserva frames, ruta MC
+**Estado: cerrada y verificada en UE 5.8.1.** `MS` conserva frames, ruta MC
 reservada, seed y presupuesto; `MH` conserva únicamente identidad de población, mundo, cantidad y
 la suma esperada para inspección. Ninguno importa Unreal y MH nunca se serializa.
 
@@ -77,8 +77,11 @@ el módulo C++. Preview trata poblaciones como efectos runtime transaccionales: 
 destruye la anterior, un Run fallido revierte la nueva y Discard la libera. Bake conserva la
 población sólo durante la vida del `UWorld`; no crea Content ni estado durable. Clear es idempotente.
 `OnWorldCleanup` y `ShutdownModule` llaman una limpieza global. Una sonda confirmó además que abrir
-un mapa vacío retira el MH del mundo anterior; falta ejercer el cierre de PIE — la presencia del
-delegate compilado no certifica por sí sola ese momento.
+un mapa vacío retira el MH del mundo anterior. La sonda PIE mantuvo simultáneamente tres entidades
+en el mundo editor y tres en el `UWorld` PIE: al terminar la sesión, las primeras siguieron vivas y
+el MH de PIE pasó a «inexistente o ya liberada». Neutralizar deliberadamente el callback dejó ese
+MH registrado como perteneciente a otro mundo y puso roja la misma prueba; restaurarlo volvió a
+verde. Así queda discriminada tanto la ejecución real del delegate como su alcance por mundo.
 MassGameplay continúa apagado y `config_path` no gobierna todavía el arquetipo.
 
 - Introducir `MS` como dato puro y `mass_spec` (`F + MC → MS`).
@@ -88,8 +91,10 @@ MassGameplay continúa apagado y `config_path` no gobierna todavía el arquetipo
 - Soltar poblaciones también al cambiar de mundo, cerrar PIE o descargar el módulo.
 
 Verificado en esta vertical: 37 entidades; Run×2 reemplaza; Discard destruye; Bake conserva; Clear×2
-deja cero vivas; cambiar a un mapa vacío limpia la población confirmada. Pendiente para cerrar la fase: PIE y recuperación observable si
-un callback de limpieza falla durante teardown.
+deja cero vivas; cambiar a un mapa vacío limpia la población confirmada; cerrar PIE limpia sólo el
+mundo que termina. La sonda reproducible es `tools/experiments/verifica_mass_pie_58.py`. El editor
+completo repite después del marcador el `double free` histórico de desmontaje, que no se confunde
+con el ciclo PIE ya observado.
 
 ### Fase 2 — autoría MassGameplay
 

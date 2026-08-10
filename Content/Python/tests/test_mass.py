@@ -187,6 +187,16 @@ class MassContractTests(unittest.TestCase):
         module = next(item for item in descriptor["Modules"] if item["Name"] == "JamMass")
         self.assertEqual(module["Type"], "Runtime")
 
+    def test_pie_probe_contrasts_editor_and_pie_world_lifetimes(self):
+        source = (ROOT / "tools/experiments/verifica_mass_pie_58.py").read_text(
+            encoding="utf-8")
+        for marker in ("editor_play_simulate", "get_pie_worlds", "editor_request_end_play",
+                       'ESTADO["editor_id"]', 'ESTADO["pie_id"]',
+                       "inexistente o ya liberada", "JAM_MASS_PIE_58 TODO VERDE"):
+            self.assertIn(marker, source)
+        self.assertIn('editor.get("valid") != 3', source)
+        self.assertIn('if pie.get("ok")', source)
+
     def test_graph_publishes_ms_and_mh_without_massgameplay(self):
         spec = {item["verbo"]: item for item in json.loads(api.spec_all())["tools"]}
 

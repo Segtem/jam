@@ -11,6 +11,14 @@ verde_editor_fecha: 2026-08-10
 
 Entra **claude-code**. Corré `python tools/relevo.py` antes de leer esto; si sale rojo, eso es el turno.
 
+**Actualización Codex 2026-08-10 — MassEntity Fase 1 cerrada con PIE real.** La nueva sonda mantiene
+simultáneamente tres entidades del editor y tres del `UWorld` PIE. Al terminar PIE, las del editor
+siguen vivas y el MH de PIE queda «inexistente o ya liberada». Neutralizar `OnWorldCleanup`,
+recompilar y repetir dejó el MH atado al mundo destruido y puso la sonda roja; restaurar el callback
+y recompilar devolvió `JAM_MASS_PIE_58 TODO VERDE`. El `double free` histórico ocurre después del
+marcador durante el desmontaje completo. La Fase 1 queda cerrada; el próximo corte es Fase 2:
+`MassGameplay`, MC/traits y un caso ambiental acotado de BotOO.
+
 **Actualización Codex 2026-08-10 — MassEntity Fase 1, primera vertical MS/MH.** `mass_spec` convierte
 F en una receta pura MS con seed/presupuesto; `mass_spawn`, `mass_inspect` y `mass_clear` gobiernan
 una población MH viva desde `JamMass`. Preview ahora admite efectos runtime sin Actor: Run×2 libera
@@ -202,13 +210,14 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 | Cerebro de Jam, corte physics paint | mismo comando | **821 OK**, 0.49 s; parcial rojo y sombra de tanda fijados |
 | Cerebro de Jam, corte reemplazo | mismo comando | **825 OK**, 0.5 s; centro, base y planta fijados |
 | Cerebro de Jam, corte espacio | mismo comando | **829 OK**, 0.49 s; BFS independiente y frontera avanzada fijados |
-| Cerebro de Jam, corte Mass MS/MH | mismo comando | **837 OK**, 0.52 s; limpieza mutada → rojo |
+| Cerebro de Jam, corte Mass MS/MH + PIE | mismo comando | **838 OK**; callback PIE mutado → rojo real |
 | Ribbon S → M | `tools/experiments/verifica_mesh_ribbon_58.py` en `UnrealEditor-Cmd` | **25 pares · 48 tris/50 verts · ancho 360 · UV0 0..5.91 · Material ID 3 · TODO VERDE** |
 | Tutoriales actuales | `tools/experiments/verifica_ejemplos.py` en `UnrealEditor-Cmd` | **13/13 compilan · TODO VERDE** |
 | Extrude M → M / Muro | `tools/experiments/verifica_mesh_extrude_58.py` en `UnrealEditor-Cmd` | **48→196 tris · 50→100 verts · 300 cm · UV0/Material ID · cerrado · TODO VERDE** |
 | Tutoriales tras muro | `tools/experiments/verifica_ejemplos.py` en `UnrealEditor-Cmd` | **14/14 compilan · TODO VERDE** |
 | MassEntity core F → F | `tools/experiments/verifica_mass_entity_58.py` en `UnrealEditor-Cmd` | **37 válidas · 1 arquetipo `FTransformFragment` · transforms conservados · 37/37 destruidas · TODO VERDE** |
 | MassEntity MS → MH | mismo script | **Run×2 reemplaza · Discard destruye · Bake conserva · Clear×2 y cambio de mapa dejan 0 · TODO VERDE** |
+| MassEntity fin de PIE | `tools/experiments/verifica_mass_pie_58.py` en editor completo | **editor 3 vivas · PIE 3 vivas · cierre libera sólo PIE · mutante real rojo · TODO VERDE** |
 | Tutoriales con MassEntity | `tools/experiments/verifica_ejemplos.py` en `UnrealEditor-Cmd` | **16/16 compilan · TODO VERDE** |
 | Math en UE 5.8.1 | `tools/experiments/verifica_math_graph.py` en `UnrealEditor-Cmd` | **9 verbos · Run sin Preview · Inspector=40/2 · dominios rechazados · TODO VERDE** |
 | Nanite Analyze/Validate | `tools/experiments/verifica_nanite_diagnostics_58.py` en `UnrealEditor-Cmd` | **apagado rechazado + 416.179 tris/1.202.673 verts validados · Run sin Preview · TODO VERDE** |
@@ -229,7 +238,8 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 | » tests de oracle | `cd vendor/oracle && python -m unittest discover -s tests -t . -q` | **339 OK** |
 
 El campo `verde_editor` apunta al checkpoint `feae3f9`, verificado en UE 5.8.1 con MS/MH,
-Preview/Discard/Bake/Clear y cambio real de mapa; también conserva la evidencia previa de placement,
+Preview/Discard/Bake/Clear y cambio real de mapa. La sonda PIE posterior está verde y discriminada,
+pero el hash se actualizará al commit de este corte. También conserva la evidencia previa de placement,
 snap, scatter, spline, physics, reemplazo y espacio sobre actores reales. Las verificaciones previas de Graph interactivo y
 ribbon jerárquico siguen documentadas en sus respectivos cortes. `VIVO` distingue la
 suite de `init_unreal.py` y `jam/`, por lo que cambiar sólo tests ya no invalida falsamente esa

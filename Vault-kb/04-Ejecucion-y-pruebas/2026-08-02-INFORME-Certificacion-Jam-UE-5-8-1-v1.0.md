@@ -41,7 +41,7 @@ Motor: `5.8.1-0+UE5`. Commit de partida: `bc0bd89`. Proyecto host:
 | PCG | editor completo + `-ExecCmds`, 90 ticks | **verde**: 3 nodos, 4/4 cables, preset 600 cm, hex/triangular, 287 HISM | Preview/Bake/Discard manual y PCG 5.8 nuevo |
 | Graph funciones | `verifica_funcion_graph.py` | **verde en 5.8.1**: id estable, guardar, firma, dos instancias y Compile | ABM, `Ctrl+G` y pines múltiples con las manos |
 | Oracle | editor completo/commandlet + sondas específicas | **función verde**: placement, snap, `snap.al_ras`, scatter, spline, physics, reemplazo y espacio coinciden | espacio cubre el subconjunto vivo; desmontaje del editor completo falla; commandlet hereda 9 paquetes rotos de BotOO |
-| MassEntity | `verifica_mass_entity_58.py` por Spec → Compile → Run | **verde**: MS/MH, 37 vivas, Run reemplaza, Discard destruye, Bake conserva, Clear idempotente y cambio de mapa dejan 0 | falta ejercer cierre de PIE; sin MassGameplay/representación |
+| MassEntity | `verifica_mass_entity_58.py` + `verifica_mass_pie_58.py` | **verde**: MS/MH, 37 vivas, Preview completo, cambio de mapa y cierre PIE por mundo | sin MassGameplay/config/representación |
 | Slate | build y carga de `JamEditor` | módulo cargado | tabs, historial, gestos y Undo/Redo en GUI |
 | Nanite | editor GUI + `verifica_nanite_fracture_58.py` | **verde**: copia Nanite y GC con `EnableNanite=true` | inspección visual y materiales incompatibles |
 | Dataflow/Fracture | editor GUI, nodos y terminal v2 | **verde**: GC regenerada; 2/2 materiales distintos conservados | rotura en PIE y shutdown con señal 11 |
@@ -117,6 +117,14 @@ escribió y volvió a leer sus tags `jam:*`, certificó el mapa ganable, quitó 
 certificó el rojo. Cuatro sombras coincidieron y el marcador terminó en `espacio=True`; el shutdown
 posterior repitió señal 6. Switches, hazards, flags, recursos, tareas, canales y subgrafos sin aplanar
 se rechazan explícitamente: no forman parte todavía del contrato vivo de `nivel.py`.
+
+La sonda final de MassEntity cerró la Fase 1 en un PIE real. Conservó una población de tres
+entidades en el mundo editor, creó otra de tres dentro del `UWorld` PIE y pidió el fin de la sesión.
+Después de `CleanupWorld`, la población del editor seguía íntegra y el identificador PIE ya no
+existía. Con `ClearAllPopulations(World)` neutralizado y el mutante recompilado, la misma sonda quedó
+roja porque el registro retenía las tres entidades del mundo destruido; restaurar y recompilar
+devolvió `JAM_MASS_PIE_58 TODO VERDE`. El desmontaje posterior repitió el `double free` conocido,
+después del marcador y fuera de la frontera PIE observada.
 
 ## Próximo bloque
 
