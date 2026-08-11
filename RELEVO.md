@@ -573,6 +573,20 @@ de pedir manos sin que nadie lo note.)*
 
 ## Lo próximo
 
+**0-quater. Live view estilo Houdini — MEDIDO, y la medición corrigió el diseño.** Tutoriales
+reales en UE 5.8.1: **compile 0,1–0,3 ms · Run 167–498 ms**. O sea que el cerebro puro es GRATIS
+(~7000 cooks/s) y el 99,9% del costo está dentro del motor. **Cachear el compile no sirve de nada**
+—era lo primero que yo había propuesto, y estaba mal—: el caché tiene que ser de los RESULTADOS del
+motor, la geometría ya construida por nodo. El costo escala por nodo ejecutado (4 nodos = 167 ms,
+11 = 498), así que tocar el último parámetro de una cadena de 7 hoy recomputa 7 y con caché
+recomputa 1: un orden de magnitud, que pone el gesto típico en 30–70 ms. Diseño que sale de los
+datos: (1) caché por nodo con hash de `(verbo, params, hash de entradas)` —el hash se calcula en el
+cerebro, gratis, pero guarda la malla—, (2) debounce ~150 ms, (3) `DynamicMeshComponent` en el
+preview sin hornear hasta Bake, (4) display flag para ver un nodo del medio.
+⚠️ **La medición NO incluye el spawn de actores** (`spawn_actor_from_object` devuelve None en
+commandlet), así que el Run real es MÁS caro, no menos; falta medirlo con GUI. El viaje C++→Python
+es ruido al lado de esto.
+
 **0-ter. La consola estilo Rhino: viva y al día, con dos huecos.** Brian preguntó si el norte
 original —escribir `place box` y que funcione— seguía actualizado. **Sí, y es la parte mejor
 mantenida del sistema: parsea 165 de 165 verbos**, porque `dsl.py` lee `tools.REGISTRO` directo y
