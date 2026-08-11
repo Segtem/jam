@@ -31,33 +31,31 @@ contra la normal de sombreado de sus propios vértices, cero como único corte d
 `malla.superficie_sin_vueltas`. En su PRIMER uso la medida encontró un defecto que nadie había visto:
 **`ribbon_core` pliega caras cuando el recorrido dobla más cerrado que el ancho de la cinta** (4 de 20
 mundos «limpios» salían rotos). No se escondió bajando el generador: quedó como el defecto nombrado
-`curva_mas_cerrada_que_el_ancho`, con 12 rojos / 8 verdes. Son **861 tests**, **1019 acuerdos / 4138
-veredictos**, **291/291 mutantes** y 10 dominios. **Ese pliegue sigue SIN ARREGLAR** — está medido y
-acotado, no resuelto; es el próximo corte natural de PMG.
+`curva_mas_cerrada_que_el_ancho`, con 12 rojos / 8 verdes. El estado final de ese pliegue está
+en el párrafo siguiente, que es el único que hay que leer sobre el tema.
 
-**El pliegue quedó ARREGLADO para el rango realista, y su límite declarado.** `_sin_pliegues`
-angosta la cinta donde el recorrido dobla más cerrado que su media anchura, aplicando el mismo factor
-a los dos bordes para no descentrarla, y lo publica en `angostados` — el mismo patrón con que
-`miter_limit` cae a bevel en vez de estirar la esquina en silencio. Con giros de hasta 22° por
-muestra: **0 de 20 cintas plegadas, contra 4 de 20 antes**. Con giros de 140° y cintas más anchas que
-el paso siguen quedando **11 de 20**: el punto medio deja de representar al eje cuando el miter empuja
-un borde lejísimos. **Ese resto NO se afinó contra la medida a propósito** — corregirlo pide reescribir
-el offset con el eje real y su correspondencia de muestras, y es un corte aparte. En UE 5.8.1:
-`JAM_MESH_RIBBON_58 TODO VERDE` con los mismos 25 pares / 48 tris / UV0 0..5.91 de siempre,
-`mesh_extrude` verde, cara de la cinta 48/48 a +Z y **19/19 tutoriales compilan**. Son 863 tests.
+**ESTADO DEL PLIEGUE — resuelto en el rango realista, con un residuo que es otro defecto.**
+`_sin_pliegues` angosta la cinta donde el recorrido dobla más cerrado que su media anchura, con el
+mismo factor en los dos bordes para no descentrarla, y lo publica en `angostados`: el mismo patrón con
+que `miter_limit` cae a bevel en vez de estirar la esquina en silencio. Trabaja contra el eje REAL de
+cada muestra, porque `offset_points` ahora publica `origins` —de qué vértice nació cada punto emitido,
+dos con el mismo índice en un bevel—; el punto medio entre bordes, que se usó primero, deja de
+representar al eje cuando un miter empuja un borde lejísimos.
 
-**El pliegue extremo bajó de 11/20 a 7/20, y lo que queda es OTRO defecto.** `offset_points` ahora
-publica `origins` —de qué vértice del eje nació cada punto emitido, dos con el mismo en un bevel—, así
-que `_sin_pliegues` usa el eje REAL en vez del punto medio entre bordes, que dejaba de representarlo
-cuando un miter empuja un borde lejísimos. Los limpios siguen en 0/20.
+| recorrido | antes | con punto medio | con eje real |
+|---|---|---|---|
+| giros ≤22° por muestra (realista) | 4/20 plegadas | **0/20** | **0/20** |
+| giros de 140°, cinta más ancha que el paso | 20/20 | 11/20 | **7/20** |
 
-Lo que resta NO es un pliegue por cruce y por eso no se siguió afinando: ahí el borde interior **no
-retrocede, avanza muy poco**. Medido en el mundo 1 del corpus, el izquierdo avanza 1,4 cm mientras el
-derecho avanza ~460, y como cada muestra lleva su propia Z el triángulo casi sin base queda casi
-vertical (`nz = -0,048`). Es una degeneración por avance despreciable y merece su propio corte, con
-criterio y defensa de umbral propios —avance mínimo proporcional al del eje, o fusionar muestras casi
-coincidentes—. `malla.cara_visible` los marca en rojo mientras tanto. `curve_offset` (que comparte ese
-núcleo) y los 19 tutoriales siguen verdes en UE 5.8.1.
+**Los 7 que quedan NO son el mismo defecto**, y por eso no se siguió afinando: ahí el borde interior
+**no retrocede, avanza muy poco**. Medido en el mundo 1 del corpus, el izquierdo avanza 1,4 cm contra
+~460 del derecho, y como cada muestra lleva su propia Z el triángulo casi sin base queda casi vertical
+(`nz = -0,048`). Es una degeneración por avance despreciable; pide criterio y defensa de umbral
+propios —avance mínimo proporcional al del eje, o fusionar muestras casi coincidentes— y es el próximo
+corte. `malla.cara_visible` los marca en rojo mientras tanto: **no se afinó el algoritmo contra la
+medida a propósito.** En UE 5.8.1: `JAM_MESH_RIBBON_58 TODO VERDE` con los mismos 25 pares / 48 tris /
+UV0 0..5.91 de siempre, `mesh_extrude` y `curve_offset` —que comparte el núcleo tocado— verdes, cara
+de la cinta 48/48 a +Z y **19/19 tutoriales compilan**.
 
 **`malla` se extendió a los SÓLIDOS: extrude y primitivas.** Una superficie abierta se juzga por el
 lado que muestra; un sólido, por si sus caras miran hacia AFUERA —invertidas, la pieza se ve como si
@@ -449,12 +447,12 @@ de pedir manos sin que nadie lo note.)*
 
 ## Lo próximo
 
-**0. Arreglar el pliegue de `ribbon_core` que destapó `malla`.** Cuando el recorrido dobla más
-cerrado que el ancho de la cinta, los bordes se cruzan y las caras del tramo se dan vuelta. Está
-MEDIDO y acotado (`curva_mas_cerrada_que_el_ancho`, 12/20 mundos), no resuelto. El `miter_limit` y los
-bevels no alcanzan: hace falta decidir qué hace la cinta cuando el offset se auto-interseca —recortar
-la junta, limitar el ancho efectivo o rechazar el recorrido—. Es el próximo corte natural de PMG y
-ahora tiene oráculo que lo juzga.
+**0. Cerrar el residuo de la cinta: muestras con avance despreciable.** El pliegue por cruce ya está
+resuelto en el rango realista (ver «ESTADO DEL PLIEGUE» arriba). Quedan 7 de 20 en giros de 140°, y
+son otra cosa: el borde no retrocede, avanza casi nada —1,4 cm contra ~460 del otro lado— y con Z
+propia por muestra el triángulo casi sin base queda casi vertical. Pide su propio criterio y su
+defensa de umbral: exigir avance mínimo proporcional al del eje, o fusionar muestras casi
+coincidentes. `malla.cara_visible` ya lo juzga, así que el corte llega con oráculo puesto.
 
 **Siguiente corte de la Fase 4 de
 [[2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0|MassEntity en Jam]]: variación o señal ambiental.** La
