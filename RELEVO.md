@@ -606,11 +606,17 @@ cercana a «vive en el canvas y no toca el nivel»; es un criterio PRESTADO y es
 en el código, para que se cambie ahí el día que el registro tenga un campo propio. Tampoco se cachea
 un nodo que falló: sería volver permanente un error hasta que alguien toque un parámetro.
 
-⚠️ **La medición de ahorro da 82–90% pero sus números absolutos no cierran**: `ejecutar_detalle`
-directo da 1,4 ms donde `api.run_graph` daba 359 —250× de diferencia que el caché no explica—. O
-`run_graph` hace mucho más, o los nodos fallaron en silencio sin construir nada, y entonces ese 87%
-sería el ahorro de saltear nodos que no hicieron nada. **No contar el caché como ganancia hasta
-resolverlo**: imprimir el estado por nodo, o medir por el mismo camino que la línea base.
+**La duda de la medición quedó RESUELTA, en dos partes.** (1) Los nodos **sí construyen**
+—`BEZIER S ✓ 13 points`, `CONE M ✓ 192 triángulos`—, así que el ahorro es sobre trabajo real y no
+sobre nodos vacíos. (2) Pero los 82–90% **subestiman el Run completo**: en los dos grafos falla el
+nodo de hornear («el asset final ya existe») y falla RÁPIDO, y ese es el paso más caro. Por eso
+`ejecutar_detalle` daba 1,4 ms y la línea base 359 — aquella horneaba de verdad.
+
+⚠️ **Consecuencia de diseño**: `mesh_to_static` produce `A` y por eso NO es cacheable —escribir en
+Content es un efecto—, así que **el nodo más caro se paga siempre**. Para el live view está bien
+—ajustando parámetros no se hornea, se mira la malla— pero **«87% más rápido» no es una promesa
+válida sobre el Run completo** y no hay que anotarla así. Para medirlo limpio: borrar los assets de
+salida antes de correr, o medir por `api.run_graph` con el almacén.
 
 **Falta, además** —guardar el resultado por huella y saltear los
 limpios—, que es el corazón de la ejecución y no se tocó por prudencia. La línea base para comparar

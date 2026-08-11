@@ -2,15 +2,24 @@
 
 Medido el 2026-08-11: 82–90% menos en la corrida repetida, con tasa de acierto 75%.
 
-⚠️ **Los números absolutos NO son comparables con `mide_latencia_run_58`** y hay que resolver eso
-antes de creerles. Acá `ejecutar_detalle` directo da 1,4 ms donde `api.run_graph` daba 359: una
-diferencia de 250× que el caché no explica. O `run_graph` hace mucho más —preview, marcado,
-oráculo— o los nodos fallaron en silencio sin construir geometría, que es plausible sin asset
-activo ni contexto de preview. En el segundo caso el 87% sería el ahorro de saltear nodos que no
-hicieron nada, o sea ninguno.
+DUDA RESUELTA el 2026-08-11, y en dos partes:
 
-Para cerrarlo: imprimir el estado por nodo y confirmar que construyen de verdad, o medir por el
-mismo camino que la línea base (`api.run_graph`) pasándole el almacén.
+1. **Los nodos SÍ construyen** — `BEZIER S ✓ 13 points`, `CONE M ✓ 192 triángulos`. El ahorro es
+   sobre trabajo real, no sobre nodos vacíos.
+2. **Pero estos números subestiman el Run completo.** En los dos grafos falla el nodo de hornear
+   —«el asset final ya existe»— que es **el más caro de la cadena**, y falla RÁPIDO. Por eso acá da
+   1,4 ms y la línea base daba 359: aquella incluía el horneado, la primera vez que el asset no
+   existía.
+
+**Consecuencia de diseño que hay que tener presente:** `mesh_to_static` produce `A` y por lo tanto
+NO es cacheable —escribir en Content es un efecto—. O sea que el nodo más caro se paga siempre y el
+ahorro real en un Run completo es bastante menor que este 87%.
+
+Para el LIVE VIEW eso está bien: mientras se ajustan parámetros no se hornea nada, se mira la malla,
+y ahí el caché rinde. Pero «87% más rápido» NO es una promesa válida sobre el Run completo.
+
+Para medirlo bien: borrar los assets de salida antes de la corrida, o medir por `api.run_graph`
+pasándole el almacén.
 """
 import json, os, statistics, time
 import unreal
