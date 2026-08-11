@@ -490,3 +490,48 @@ class DropDelRibbonAlLienzoEnElCppTests(unittest.TestCase):
         cuerpo = cpp[inicio:cpp.index("\n}\n", inicio)]
         self.assertLess(cuerpo.index("DropPendienteVerbo.Reset()"), cuerpo.index("AddNode("),
                         "el pendiente se limpia después de crear: un fallo lo reintenta para siempre")
+
+
+class IndiceDelSwitcherDelNodoEnElCppTests(unittest.TestCase):
+    """El `SWidgetSwitcher` de la ficha elegía su columna con un lambda que capturaba `this` crudo.
+
+    Un nodo destruido mientras su switcher todavía se dibujaba hacía leer `bCompacto` sobre memoria
+    liberada, y el editor moría en `DrawPrepass` con «Array index out of bounds: 254 into an array of
+    size 2». El 254 es la firma del bug: con optimización el compilador sabe que un `bool` sólo vale
+    0 o 1, así que `bCompacto ? 1 : 0` compila como una carga directa del byte, sin rama; sobre
+    memoria liberada ese byte es basura y entra tal cual como índice de slot.
+
+    No se puede testear sin motor —hace falta destruir un widget vivo— así que se ata leyendo el
+    `.cpp`, como el marquee. La confirmación de que no vuelve es el gesto real.
+    """
+
+    def lambda_del_switcher(self) -> str:
+        from pathlib import Path
+
+        raiz = Path(__file__).resolve().parents[3]
+        cpp = (raiz / "Source" / "JamEditor" / "Private" / "SJamGraphNode.cpp").read_text(
+            encoding="utf-8")
+        inicio = cpp.index("SNew(SWidgetSwitcher)")
+        bloque = cpp[inicio:cpp.index("+ SWidgetSwitcher::Slot()", inicio)]
+        # Sin comentarios: el de acá al lado EXPLICA el bug y menciona `[this]`, así que juzgarlo
+        # junto con el código haría que el test se atrape a sí mismo. Pasó en el primer intento.
+        return "\n".join(linea for linea in bloque.splitlines()
+                          if not linea.strip().startswith("//"))
+
+    def test_el_indice_no_captura_this_crudo(self):
+        """La regresión exacta: volver a `[this]` devuelve el use-after-free."""
+        self.assertNotIn("[this]", self.lambda_del_switcher(),
+                         "el índice del switcher volvió a capturar `this` crudo")
+
+    def test_el_indice_usa_un_puntero_debil(self):
+        cuerpo = self.lambda_del_switcher()
+        self.assertIn("TWeakPtr<SJamGraphNode>", cuerpo)
+        self.assertIn("Debil.Pin()", cuerpo)
+
+    def test_el_indice_queda_acotado_al_rango_de_slots(self):
+        """Defensa en profundidad: el switcher tiene DOS slots, así que un índice fuera de 0..1 es un
+        assert y no un dibujo raro. Si algún día se agrega un tercer slot, este test obliga a mirar
+        el clamp en vez de dejarlo desactualizado en silencio."""
+        cuerpo = self.lambda_del_switcher()
+        self.assertIn("FMath::Clamp", cuerpo)
+        self.assertIn("0, 1)", cuerpo)

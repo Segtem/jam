@@ -72,7 +72,23 @@ sentido que los laterales) y después **no eran convexos** (un radio suelto por 
 estrellados, y sobre un cóncavo no valen ni el abanico ni la referencia). Son **1099 acuerdos / 4298
 veredictos**, **303/303 mutantes** y 11 dominios.
 
-**Arrastrar una ficha del ribbon al lienzo rompía el editor; arreglado, falta el gesto.** Brian lo
+**El crash del arrastre era un USE-AFTER-FREE, no lo que yo había supuesto.** El primer arreglo
+—diferir la creación del nodo un frame— no era la causa; se conserva porque mutar la jerarquía dentro
+del evento igual está mal, pero el editor siguió rompiéndose. El stack completo que trajo Brian tenía
+el dato que faltaba: `Array index out of bounds: **254** into an array of size **2**`, en un
+`TOneDynamicChildBase` con `TSlateAttribute<int>` — o sea un `SWidgetSwitcher`. El de
+`SJamGraphNode.cpp` elegía su columna con `.WidgetIndex_Lambda([this]() { return bCompacto ? 1 : 0; })`,
+capturando `this` CRUDO: con el nodo destruido y el switcher todavía dibujándose, leía `bCompacto`
+sobre memoria liberada.
+
+**El 254 era la firma del bug**, no ruido: con optimización el compilador sabe que un `bool` sólo vale
+0 o 1, así que `bCompacto ? 1 : 0` compila como una carga directa del byte, sin rama; la basura entra
+tal cual como índice de slot. Ahora el lambda captura `TWeakPtr<SJamGraphNode>` y acota con
+`FMath::Clamp`. Tres tests leen el `.cpp` y las dos mutaciones —volver a `[this]`, quitar el clamp—
+lo ponen rojo. Son **870 tests**. ⚠️ **Quedan 17 lambdas `[this]` más sólo en ese archivo**, con el
+mismo riesgo latente; sólo ésta reventaba porque su valor se usa como índice.
+
+**El gesto de arrastre en sí ya existía** Brian lo
 reportó como intermitente («de vez en cuando»). El gesto YA existía —`SJamVerbTile::OnDragDetected`
 más `SJamGraphEditor::OnDrop`—, así que no había que incorporarlo sino entender por qué reventaba. El
 stack de los asserts lo ubica: `SWidget::Prepass_Internal` → `ForEachWidget` → `GetChildRefAt` con

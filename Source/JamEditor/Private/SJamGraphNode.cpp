@@ -526,7 +526,21 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 				[this]() { return FOptionalSize(AnchoColumnaCentral()); }))
 			[
 				SNew(SWidgetSwitcher)
-				.WidgetIndex_Lambda([this]() { return bCompacto ? 1 : 0; })
+				// El puntero va DÉBIL y el índice sale acotado a mano. Con `[this]` crudo, un nodo
+				// destruido mientras su switcher todavía se dibuja hacía leer `bCompacto` sobre
+				// memoria liberada, y el editor moría con
+				// «Array index out of bounds: 254 into an array of size 2» dentro de `DrawPrepass`.
+				//
+				// El 254 no era casual, era la firma del bug: con optimización el compilador sabe
+				// que un `bool` sólo vale 0 o 1, así que `bCompacto ? 1 : 0` se compila como una
+				// carga directa del byte, sin rama. Sobre memoria liberada ese byte es basura y
+				// entra tal cual como índice. `FMath::Clamp` deja el destrozo en un dibujo raro en
+				// vez de un assert, aunque el puntero débil ya evita llegar hasta ahí.
+				.WidgetIndex_Lambda([Debil = TWeakPtr<SJamGraphNode>(SharedThis(this))]()
+				{
+					const TSharedPtr<SJamGraphNode> Vivo = Debil.Pin();
+					return Vivo.IsValid() ? FMath::Clamp(Vivo->IsCompacto() ? 1 : 0, 0, 1) : 0;
+				})
 				+ SWidgetSwitcher::Slot()[ ParamCol ]
 				+ SWidgetSwitcher::Slot()[ LetrasCol ]
 			]
