@@ -45,6 +45,49 @@ def normal_de_cara(vertices, triangulo):
     return (n[0] / largo, n[1] / largo, n[2] / largo)
 
 
+def hechos_solido(vertices, triangulos) -> dict:
+    """Evidencia de un sólido CERRADO: hacia dónde miran sus caras, en un solo número.
+
+    Una superficie abierta se juzga por el lado que muestra; un sólido, por si sus caras miran hacia
+    AFUERA. Con las normales invertidas la pieza se ve como si uno estuviera adentro, que es la
+    versión en volumen del mismo defecto que dejó invisible a «Borde de camino».
+
+    Se usa el volumen con signo y no el producto punto contra el centroide porque ese atajo falla en
+    cualquier forma cóncava —una L, una escalera, un muro con hueco— y las piezas de un kit lo son.
+
+    `volumen_orientado` es POSITIVO cuando las caras miran hacia afuera. El signo está acomodado a la
+    convención de winding que usa Unreal (ver `normal_de_cara`), así que sale del revés de la fórmula
+    de manual; lo verifica `verifica_malla_solidos_58.py` contra primitivas nativas del motor.
+    """
+    vertices = [tuple(float(c) for c in v) for v in vertices]
+    triangulos = [tuple(int(i) for i in t) for t in triangulos]
+
+    doble = 0.0
+    for triangulo in triangulos:
+        a, b, c = (vertices[i] for i in triangulo)
+        doble += (a[0] * (b[1] * c[2] - b[2] * c[1])
+                  - a[1] * (b[0] * c[2] - b[2] * c[0])
+                  + a[2] * (b[0] * c[1] - b[1] * c[0]))
+    volumen_estandar = doble / 6.0
+
+    # Cada arista de un sólido cerrado tiene que aparecer exactamente dos veces, y en sentidos
+    # opuestos. Sin esto, «volumen orientado» sobre una malla abierta daría un número con apariencia
+    # de veredicto: el corte lo separa en vez de dejarlo pasar disfrazado.
+    aristas = {}
+    for triangulo in triangulos:
+        for inicio, fin in zip(triangulo, triangulo[1:] + triangulo[:1]):
+            aristas[(inicio, fin)] = aristas.get((inicio, fin), 0) + 1
+    sueltas = sum(1 for (inicio, fin) in aristas if aristas.get((fin, inicio), 0) != 1)
+
+    return {
+        "solido_malla": [{
+            "triangulos": len(triangulos),
+            "volumen_orientado": -volumen_estandar,
+            "aristas_sueltas": sueltas,
+        }],
+    }
+
+
 def hechos(vertices, triangulos, normales) -> dict:
     """Evidencia por triángulo y por superficie. Sin umbrales: sólo números y conteos."""
     vertices = [tuple(float(c) for c in v) for v in vertices]

@@ -46,6 +46,21 @@ el offset con el eje real y su correspondencia de muestras, y es un corte aparte
 `JAM_MESH_RIBBON_58 TODO VERDE` con los mismos 25 pares / 48 tris / UV0 0..5.91 de siempre,
 `mesh_extrude` verde, cara de la cinta 48/48 a +Z y **19/19 tutoriales compilan**. Son 863 tests.
 
+**`malla` se extendió a los SÓLIDOS: extrude y primitivas.** Una superficie abierta se juzga por el
+lado que muestra; un sólido, por si sus caras miran hacia AFUERA —invertidas, la pieza se ve como si
+uno estuviera adentro—. `malla.solido_hacia_afuera` usa el volumen con signo, no el producto punto
+contra el centroide, porque ese atajo falla en cualquier forma cóncava y las piezas de un kit lo son;
+`malla.solido_esta_cerrado` es su guarda, porque sobre una malla abierta el volumen daría un número
+con apariencia de veredicto. El signo NO se razonó: `verifica_malla_solidos_58.py` lo fija contra
+primitivas nativas, y un `mesh_box` de 200×140×90 dio **volumen_orientado = 2.520.000 exacto**, con la
+misma caja invertida en el negativo exacto. El muro real —cinta extruida— salió cerrado y positivo.
+
+El corpus se escribió dos veces porque oracle rechazó las dos primeras versiones, y las dos veces
+tenía razón: primero **mis propios prismas no cerraban** (la base recorría el polígono en el mismo
+sentido que los laterales) y después **no eran convexos** (un radio suelto por vértice los volvía
+estrellados, y sobre un cóncavo no valen ni el abanico ni la referencia). Son **1099 acuerdos / 4298
+veredictos**, **303/303 mutantes** y 11 dominios.
+
 ⚠️ **El fix de Wayland del Graph está compilado pero NO verificado.** Reabrir el Graph dejaba la
 ventana sin recibir clics: `ReshapeWindow` pedía `(173, 97)` y Slate seguía informando `(0, 0)`, así
 que el hit-test quedaba corrido y sólo se destrababa con un resize manual. `SincronizarGeometriaFlotante`
@@ -327,8 +342,9 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 | Oracle en UE 5.8.1 | `tools/experiments/verifica_oracle_shadow.py` con editor completo | **placement + snap + scatter + spline + physics + reemplazo + espacio funcional verde; shutdown histórico rojo** |
 | Physics paint en UE 5.8.1 | `tools/experiments/verifica_physics_paint_58.py` | **pila 0/100/200 · Preview ignorado · Landscape por pieza · 3 sombras coinciden** |
 | oracle sobre sí mismo | `cd vendor/oracle && python tools/aceptacion.py` | **27 rojos · 12 verdes · 0 huecos** |
-| oracle sobre Jam | `python vendor/oracle/tools/diferencial.py --proyecto medidas --confiar-escalares` | **1019 acuerdos · 4138 veredictos estables** (10 dominios: entró `malla`) |
-| » mutación de medidas | `python vendor/oracle/tools/mutar.py --proyecto medidas --confiar-escalares` | **291/291 mutantes muertos** |
+| oracle sobre Jam | `python vendor/oracle/tools/diferencial.py --proyecto medidas --confiar-escalares` | **1099 acuerdos · 4298 veredictos estables** (11 dominios: `malla` y `malla_solidos`) |
+| » mutación de medidas | `python vendor/oracle/tools/mutar.py --proyecto medidas --confiar-escalares` | **303/303 mutantes muertos** |
+| Sólidos en UE 5.8.1 | `tools/experiments/verifica_malla_solidos_58.py` | **caja 2.520.000 exacto · esfera y muro cerrados y positivos · caja invertida negativa · TODO VERDE** |
 | » tests de oracle | `cd vendor/oracle && python -m unittest discover -s tests -t . -q` | **339 OK** |
 
 El campo `verde_editor` apunta al checkpoint `4eaf0c7`, verificado en UE 5.8.1 con MS/MH,

@@ -1,0 +1,1723 @@
+{
+ "dominio": "malla_solidos",
+ "escenarios": [
+  {
+   "defecto": "",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 16,
+      "volumen_orientado": 799765484.0146723
+     }
+    ]
+   },
+   "id": "sin-defecto·0",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 20,
+      "volumen_orientado": 65481969.210833736
+     }
+    ]
+   },
+   "id": "sin-defecto·1",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 20,
+      "volumen_orientado": 252603594.03093758
+     }
+    ]
+   },
+   "id": "sin-defecto·2",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 20,
+      "volumen_orientado": 499558671.09492165
+     }
+    ]
+   },
+   "id": "sin-defecto·3",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 32,
+      "volumen_orientado": 189731349.43888995
+     }
+    ]
+   },
+   "id": "sin-defecto·4",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 28,
+      "volumen_orientado": 47003121.39813917
+     }
+    ]
+   },
+   "id": "sin-defecto·5",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 12,
+      "volumen_orientado": 289501842.0077329
+     }
+    ]
+   },
+   "id": "sin-defecto·6",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 20,
+      "volumen_orientado": 376001186.22887284
+     }
+    ]
+   },
+   "id": "sin-defecto·7",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 28,
+      "volumen_orientado": 426446338.60130805
+     }
+    ]
+   },
+   "id": "sin-defecto·8",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 32,
+      "volumen_orientado": 126014528.19409794
+     }
+    ]
+   },
+   "id": "sin-defecto·9",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 28,
+      "volumen_orientado": 280141984.50452703
+     }
+    ]
+   },
+   "id": "sin-defecto·10",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 32,
+      "volumen_orientado": 520132.18086161726
+     }
+    ]
+   },
+   "id": "sin-defecto·11",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 28,
+      "volumen_orientado": 730019667.380464
+     }
+    ]
+   },
+   "id": "sin-defecto·12",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 16,
+      "volumen_orientado": 196792489.07594737
+     }
+    ]
+   },
+   "id": "sin-defecto·13",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 32,
+      "volumen_orientado": 524485124.11864454
+     }
+    ]
+   },
+   "id": "sin-defecto·14",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 12,
+      "volumen_orientado": 8847897.52142485
+     }
+    ]
+   },
+   "id": "sin-defecto·15",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 28,
+      "volumen_orientado": 190601799.58699414
+     }
+    ]
+   },
+   "id": "sin-defecto·16",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 12,
+      "volumen_orientado": 150060207.39582178
+     }
+    ]
+   },
+   "id": "sin-defecto·17",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 28,
+      "volumen_orientado": 501233268.86439323
+     }
+    ]
+   },
+   "id": "sin-defecto·18",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 28,
+      "volumen_orientado": 3279815.482247518
+     }
+    ]
+   },
+   "id": "sin-defecto·19",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "solido_invertido",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 24,
+      "volumen_orientado": -301939642.2972487
+     }
+    ]
+   },
+   "id": "solido_invertido·0",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solido_invertido",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 8,
+      "volumen_orientado": -93788505.1138215
+     }
+    ]
+   },
+   "id": "solido_invertido·1",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solido_invertido",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 24,
+      "volumen_orientado": -171695389.66319868
+     }
+    ]
+   },
+   "id": "solido_invertido·2",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solido_invertido",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 28,
+      "volumen_orientado": -116827242.42054321
+     }
+    ]
+   },
+   "id": "solido_invertido·3",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solido_invertido",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 28,
+      "volumen_orientado": -331274225.13884944
+     }
+    ]
+   },
+   "id": "solido_invertido·4",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solido_invertido",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 20,
+      "volumen_orientado": -70010221.56596811
+     }
+    ]
+   },
+   "id": "solido_invertido·5",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solido_invertido",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 28,
+      "volumen_orientado": -146862337.111207
+     }
+    ]
+   },
+   "id": "solido_invertido·6",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solido_invertido",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 28,
+      "volumen_orientado": -187925210.3547567
+     }
+    ]
+   },
+   "id": "solido_invertido·7",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solido_invertido",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 20,
+      "volumen_orientado": -3999125.5626979615
+     }
+    ]
+   },
+   "id": "solido_invertido·8",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solido_invertido",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 16,
+      "volumen_orientado": -24826705.690450367
+     }
+    ]
+   },
+   "id": "solido_invertido·9",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solido_invertido",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 16,
+      "volumen_orientado": -386124325.5218632
+     }
+    ]
+   },
+   "id": "solido_invertido·10",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solido_invertido",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 32,
+      "volumen_orientado": -62054788.77255427
+     }
+    ]
+   },
+   "id": "solido_invertido·11",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solido_invertido",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 28,
+      "volumen_orientado": -375382610.74961734
+     }
+    ]
+   },
+   "id": "solido_invertido·12",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solido_invertido",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 12,
+      "volumen_orientado": -165064888.82428274
+     }
+    ]
+   },
+   "id": "solido_invertido·13",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solido_invertido",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 28,
+      "volumen_orientado": -344757823.59188014
+     }
+    ]
+   },
+   "id": "solido_invertido·14",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solido_invertido",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 20,
+      "volumen_orientado": -135856378.78916177
+     }
+    ]
+   },
+   "id": "solido_invertido·15",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solido_invertido",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 24,
+      "volumen_orientado": -561569538.7581424
+     }
+    ]
+   },
+   "id": "solido_invertido·16",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solido_invertido",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 8,
+      "volumen_orientado": -17185610.498558424
+     }
+    ]
+   },
+   "id": "solido_invertido·17",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solido_invertido",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 8,
+      "volumen_orientado": -64690379.986700594
+     }
+    ]
+   },
+   "id": "solido_invertido·18",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "solido_invertido",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 0,
+      "triangulos": 20,
+      "volumen_orientado": -28704237.698360417
+     }
+    ]
+   },
+   "id": "solido_invertido·19",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": true,
+     "malla.solido_hacia_afuera": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_invertida",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 12,
+      "volumen_orientado": 12846374.086202852
+     }
+    ]
+   },
+   "id": "una_cara_invertida·0",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_invertida",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 20,
+      "volumen_orientado": 9252592.505035587
+     }
+    ]
+   },
+   "id": "una_cara_invertida·1",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_invertida",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 24,
+      "volumen_orientado": 44396945.3288213
+     }
+    ]
+   },
+   "id": "una_cara_invertida·2",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_invertida",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 8,
+      "volumen_orientado": 5872645.833642128
+     }
+    ]
+   },
+   "id": "una_cara_invertida·3",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_invertida",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 16,
+      "volumen_orientado": 616571959.1478497
+     }
+    ]
+   },
+   "id": "una_cara_invertida·4",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_invertida",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 24,
+      "volumen_orientado": 1298320.9480711024
+     }
+    ]
+   },
+   "id": "una_cara_invertida·5",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_invertida",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 32,
+      "volumen_orientado": 49543954.187915325
+     }
+    ]
+   },
+   "id": "una_cara_invertida·6",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_invertida",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 8,
+      "volumen_orientado": 50962121.123558946
+     }
+    ]
+   },
+   "id": "una_cara_invertida·7",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_invertida",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 32,
+      "volumen_orientado": 468130131.15404105
+     }
+    ]
+   },
+   "id": "una_cara_invertida·8",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_invertida",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 12,
+      "volumen_orientado": 3313829.2980327816
+     }
+    ]
+   },
+   "id": "una_cara_invertida·9",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_invertida",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 12,
+      "volumen_orientado": 14312443.127395114
+     }
+    ]
+   },
+   "id": "una_cara_invertida·10",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_invertida",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 32,
+      "volumen_orientado": 14188581.694848048
+     }
+    ]
+   },
+   "id": "una_cara_invertida·11",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_invertida",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 12,
+      "volumen_orientado": 35968539.149415985
+     }
+    ]
+   },
+   "id": "una_cara_invertida·12",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_invertida",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 32,
+      "volumen_orientado": 484275596.2472875
+     }
+    ]
+   },
+   "id": "una_cara_invertida·13",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_invertida",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 12,
+      "volumen_orientado": 1852642.189915741
+     }
+    ]
+   },
+   "id": "una_cara_invertida·14",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_invertida",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 8,
+      "volumen_orientado": 55060372.50141421
+     }
+    ]
+   },
+   "id": "una_cara_invertida·15",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_invertida",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 32,
+      "volumen_orientado": 122980689.84892736
+     }
+    ]
+   },
+   "id": "una_cara_invertida·16",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_invertida",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 24,
+      "volumen_orientado": 52337045.07604748
+     }
+    ]
+   },
+   "id": "una_cara_invertida·17",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_invertida",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 24,
+      "volumen_orientado": 8751007.520411925
+     }
+    ]
+   },
+   "id": "una_cara_invertida·18",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_invertida",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 12,
+      "volumen_orientado": 20136007.036643475
+     }
+    ]
+   },
+   "id": "una_cara_invertida·19",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "tapa_faltante",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 15,
+      "volumen_orientado": 165098549.84398744
+     }
+    ]
+   },
+   "id": "tapa_faltante·0",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "tapa_faltante",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 15,
+      "volumen_orientado": 47887343.07553327
+     }
+    ]
+   },
+   "id": "tapa_faltante·1",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "tapa_faltante",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 7,
+      "volumen_orientado": 14740010.98579794
+     }
+    ]
+   },
+   "id": "tapa_faltante·2",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "tapa_faltante",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 15,
+      "volumen_orientado": 40883892.27331504
+     }
+    ]
+   },
+   "id": "tapa_faltante·3",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "tapa_faltante",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 27,
+      "volumen_orientado": 15134004.604506502
+     }
+    ]
+   },
+   "id": "tapa_faltante·4",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "tapa_faltante",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 23,
+      "volumen_orientado": 29898294.33631937
+     }
+    ]
+   },
+   "id": "tapa_faltante·5",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "tapa_faltante",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 23,
+      "volumen_orientado": 85264581.56259225
+     }
+    ]
+   },
+   "id": "tapa_faltante·6",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "tapa_faltante",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 31,
+      "volumen_orientado": 206582336.34806442
+     }
+    ]
+   },
+   "id": "tapa_faltante·7",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "tapa_faltante",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 31,
+      "volumen_orientado": 33429415.10622401
+     }
+    ]
+   },
+   "id": "tapa_faltante·8",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "tapa_faltante",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 15,
+      "volumen_orientado": 185278057.07139984
+     }
+    ]
+   },
+   "id": "tapa_faltante·9",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "tapa_faltante",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 31,
+      "volumen_orientado": 10424421.911007784
+     }
+    ]
+   },
+   "id": "tapa_faltante·10",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "tapa_faltante",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 15,
+      "volumen_orientado": 261558131.44462112
+     }
+    ]
+   },
+   "id": "tapa_faltante·11",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "tapa_faltante",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 15,
+      "volumen_orientado": 7714876.618791368
+     }
+    ]
+   },
+   "id": "tapa_faltante·12",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "tapa_faltante",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 23,
+      "volumen_orientado": 90813540.17195718
+     }
+    ]
+   },
+   "id": "tapa_faltante·13",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "tapa_faltante",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 7,
+      "volumen_orientado": 5434883.586657335
+     }
+    ]
+   },
+   "id": "tapa_faltante·14",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "tapa_faltante",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 11,
+      "volumen_orientado": 111332187.14124353
+     }
+    ]
+   },
+   "id": "tapa_faltante·15",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "tapa_faltante",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 31,
+      "volumen_orientado": 1279230549.8276083
+     }
+    ]
+   },
+   "id": "tapa_faltante·16",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "tapa_faltante",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 19,
+      "volumen_orientado": 84275363.27496712
+     }
+    ]
+   },
+   "id": "tapa_faltante·17",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "tapa_faltante",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 11,
+      "volumen_orientado": 247715763.0541453
+     }
+    ]
+   },
+   "id": "tapa_faltante·18",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "tapa_faltante",
+   "evidencia": {
+    "solido_malla": [
+     {
+      "aristas_sueltas": 3,
+      "triangulos": 23,
+      "volumen_orientado": 215977732.5469811
+     }
+    ]
+   },
+   "id": "tapa_faltante·19",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.solido_esta_cerrado": false,
+     "malla.solido_hacia_afuera": true
+    }
+   },
+   "referencia_ok": false
+  }
+ ],
+ "esquema": "oracle.diferencial/v1",
+ "frescura": {
+  "algoritmo": "sha256",
+  "configuracion": {
+   "defectos": [
+    "solido_invertido",
+    "una_cara_invertida",
+    "tapa_faltante"
+   ],
+   "descripcion": "Brianholl/jam · sólidos cerrados de mesh_extrude y primitivas",
+   "extra": {},
+   "nombre": "malla_solidos",
+   "repeticiones": 20
+  },
+  "fuentes": {
+   "emisor": [
+    "tools/emitir_diferencial_malla_solidos.py",
+    "Content/Python/jam/oracle_malla_facts.py",
+    "medidas/escalares.py"
+   ],
+   "referencia": [
+    "Content/Python/jam/oracle_malla_facts.py"
+   ]
+  },
+  "huellas": {
+   "catalogo": "6826471a84f5eb5a156eba44c504214a171b3d734e87a92a1cc87a8c85a652d8",
+   "configuracion": "2c6e48fad472d13582cf17b638fd9fd35f34033e6dd0d63bdb833c14efd64a8e",
+   "emisor": "a179e05fb166e3d3df4dbcd556e6022cea90a7704f7d1a5990ddf4db2e497b83",
+   "referencia": "02906f85f6d95f435c511350763ad0f0917db7838b2fc6f2fa5aa7b05de8b783"
+  },
+  "raiz_fuentes": ".."
+ },
+ "medidas": [
+  "malla.solido_hacia_afuera",
+  "malla.solido_esta_cerrado"
+ ],
+ "mundos": 80,
+ "origen": "Brianholl/jam · sólidos cerrados de mesh_extrude y primitivas"
+}
