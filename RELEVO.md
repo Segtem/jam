@@ -586,6 +586,14 @@ el grafo determina cuán vivo se siente** —geometría pesada arriba, ajustes a
 en la doc de los tutoriales. ⚠️ Esa sonda usa «el nodo con más params» como proxy del último y en dos
 de tres casos eso era la fuente: midió el PEOR caso.
 
+**El almacén ya está**: `cache.Almacen` guarda resultados por huella con desalojo del menos usado
+(capacidad 64) y `plan()` dice ANTES de tocar el motor qué se reusa y qué se cocina —para poder
+mostrar «8 de 11 reusados» en vez de que el ahorro sea una mejora invisible—. Dos reglas que no se
+negocian: **una huella que no coincide EXACTO es un fallo**, nunca «lo más parecido» —un caché que a
+veces devuelve algo viejo se ve como «a veces el muro sale mal», el peor síntoma para depurar— y hay
+**tope de memoria**, porque cada entrada retiene una malla del motor y sin tope una sesión larga de
+live view mata el editor por una causa que nadie relacionaría con esto. Son **929 tests**.
+
 **Falta conectarlo a `graph.ejecutar_detalle`** —guardar el resultado por huella y saltear los
 limpios—, que es el corazón de la ejecución y no se tocó por prudencia. La línea base para comparar
 son los números de arriba.
