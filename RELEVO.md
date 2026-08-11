@@ -606,32 +606,55 @@ cercana a «vive en el canvas y no toca el nivel»; es un criterio PRESTADO y es
 en el código, para que se cambie ahí el día que el registro tenga un campo propio. Tampoco se cachea
 un nodo que falló: sería volver permanente un error hasta que alguien toque un parámetro.
 
-🚨 **CORRECCIÓN: el live view NO está resuelto, y mi conclusión anterior estaba mal por medir
-POR EL ATAJO.** El verbo `mesh_preview` («Ver sin hornear») existe, compila y corre en el Graph —eso
-es real—, pero medido por el CAMINO REAL da vuelta el resultado:
+✅ **RESUELTO — los 517 ms no existían: eran tres defectos de medición apilados.** Medida la
+cadencia REAL del live view —el mismo grafo recocido seis veces seguidas, que es lo que hace mover
+un slider— con `mide_recoccion_58.py`:
 
-| por el camino del Graph (`api.run_graph`) | ms |
+| recocción del mismo grafo (`api.run_graph`, mediana de 6) | ms/vuelta |
 |---|---|
-| `mesh_preview` (mostrar sin hornear) | **517,5** |
-| `mesh_to_static` (hornear) | **56,8** |
+| cadena sin terminal (el piso: bezier + ribbon) | **1,4** |
+| `mesh_preview` (ver sin hornear) | **1,7** |
+| `mesh_to_static` (hornear) | **215,2** |
 
-**Hornear es 10× MÁS RÁPIDO que mostrar**, exactamente al revés de lo que yo había concluido. La
-medición vieja de «1,2 ms para mostrar» fue llamando `mesh.mostrar` DIRECTO, sin pasar por el flujo
-de Preview — el atajo que `AGENTS.md` prohíbe en su primera regla, y que igual usé.
+**Ver sin hornear es 129× más rápido al recocinar.** El live view es viable y lo que queda es UI, no
+rendimiento.
 
-**Dónde está el costo entonces:** `mesh_preview` spawnea un actor, y eso dispara la maquinaria de
-**Preview transaccional** —marcado, registro de efectos por owner, transacción de undo—.
-`mesh_to_static` sólo escribe un asset y no spawnea, así que no la dispara. O sea que el cuello no es
-hornear ni construir geometría: **es spawnear un actor dentro del flujo de Preview**.
+**Los tres defectos que producían el 517**, que valen más que el número:
 
-**Lo próximo del live view es medir ESE flujo**, descomponiendo qué parte de los 517 ms es el spawn,
-qué es el marcado y qué la transacción. Recién con eso se sabe si el live view necesita un camino de
-preview liviano —sin transacción por cook— o si el actor de preview tiene que reusarse en vez de
-recrearse. Reusar el mismo `DynamicMeshActor` entre cooks es la primera hipótesis a probar, pero es
-una hipótesis, no una conclusión.
+1. **Arranque frío.** La sonda medía UNA corrida y `mesh_preview` era la primera del proceso, así
+   que se comió la carga de clases y subsistemas. Medido: la vuelta 0 de una cadena que después
+   cuesta 2,6 ms cuesta **271 ms**.
+2. **Orden.** Al alternar terminales, la corrida del preview heredaba el asset que había dejado la
+   corrida del horneado y pagaba su borrado. El costo estaba en la corrida equivocada.
+3. **Una sola vuelta** no distingue costo de arranque de costo de régimen.
 
-**(histórico, y equivocado)** «El preview sin hornear funciona — el live view deja de ser un problema
-de rendimiento».
+**Y la causa verdadera, que no era la que yo dije.** Cronometrar los tramos que yo sospechaba
+—`mostrar`, `_marcar_preview`, `_todos`— encontró **0,7 ms de 156**: elegir los tramos a mano sólo
+encuentra lo que uno ya sospecha. Un perfilador, que no elige, lo puso en una línea:
+
+| | ms |
+|---|---|
+| `mesh.mostrar` (spawnear el actor y pasarle la malla) | **0,3** |
+| `mesh.to_static` (escribir el StaticMesh) | 37,5 |
+| `panel._asset_delete` (borrar el asset de la vuelta anterior) | **157,0** |
+
+**Lo caro no es hornear: es DESHACER lo horneado.** Borrar el asset staged cuesta 4× lo que cuesta
+escribirlo, y una recocción paga las dos cosas. Spawnear el actor de preview es gratis — mi
+explicación de «la maquinaria de Preview transaccional se dispara al spawnear» era **falsa**, y era
+otra deducción sin medir encima de una medición mal hecha.
+
+⚠️ **Esto también le pega al Run normal, no sólo al live view.** Cualquier grafo que hornee y se
+vuelva a correr paga esos 157 ms de borrado. Reusar el asset staged en vez de borrarlo y recrearlo
+es una optimización pendiente del camino de Bake, medible con la misma sonda.
+
+**La sonda vieja quedó arreglada** (`verifica_verbo_preview_58.py`: tanda por terminal, calentamiento
+descartado, mediana de 4) y da verde: 2,3 ms contra 213,4 ms, 93×.
+
+**(histórico, y esta vez acertado por accidente)** «El preview sin hornear funciona — el live view
+deja de ser un problema de rendimiento». Los 0,8 ms de recocción de acá abajo estaban bien: el
+número era correcto y el camino por el que se obtuvo, no. Que la conclusión sobreviva a la medición
+buena no valida el atajo — la corrección intermedia que decía lo contrario también venía de una
+medición mala.
 `mesh.mostrar(M)` crea un `DynamicMeshActor` y le pasa la malla con `set_dynamic_mesh`, sin escribir
 nada en Content. Medido en UE 5.8.1 sobre la cadena real de «Borde de camino», la misma que
 horneando costaba 68,8 ms:

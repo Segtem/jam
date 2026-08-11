@@ -1,7 +1,16 @@
-"""«Ver sin hornear» por el camino REAL del Graph: Compile + Run, contra el mismo grafo horneando."""
-import json, time
+"""«Ver sin hornear» por el camino REAL del Graph: Compile + Run, contra el mismo grafo horneando.
+
+⚠️ La primera versión de esta sonda medía UNA corrida de cada terminal, alternadas, sin calentar, y
+daba que hornear era 10x más rápido — lo contrario de la verdad. Tenía tres confusiones encima:
+el arranque frío caía sobre el primer terminal medido; el orden hacía que la limpieza del asset
+horneado se cobrara en la corrida del preview; y una sola vuelta no distingue costo de arranque.
+
+Acá cada terminal corre su propia tanda, con calentamiento descartado y mediana de varias vueltas.
+Ver `mide_recoccion_58.py`, que mide la cadencia del live view con el mismo cuidado.
+"""
+import json, statistics, time
 import unreal
-from jam import api, graph
+from jam import api, graph, panel
 
 def log(m): unreal.log(f"[VERBO] {m}")
 FALLAS = []
@@ -21,29 +30,32 @@ def cadena(ultimo):
         "edges": [["eje", "out", "cinta", "in"], ["cinta", "out", "fin", "in"]]})
 
 log("=" * 70)
+medianas = {}
 for ultimo in ("mesh_preview", "mesh_to_static"):
     g_json = cadena(ultimo)
     reporte = json.loads(api.compile_graph_json(g_json))
     malos = {n: e["texto"] for n, e in reporte["nodes"].items() if e.get("estado") == "error"}
     exigir(not malos, f"«{ultimo}» compila en el Graph ({malos or 'sin errores'})")
 
-    if ultimo == "mesh_to_static":
-        try:
-            unreal.EditorAssetLibrary.delete_asset("/Game/Jam/Meshes/SM_PruebaHornear")
-        except Exception:
-            pass
-    t = time.perf_counter()
-    salida = api.run_graph(g_json)
-    ms = (time.perf_counter() - t) * 1000.0
+    # Cada terminal en su tanda y sin heredar el Preview del anterior: si no, el que corre segundo
+    # paga el borrado del asset que dejó el primero, y la comparación mide otra cosa.
+    panel._descartar_preview("graph")
+    salida = api.run_graph(g_json)  # calentamiento
     ok = "error" not in salida.lower() or "✓" in salida
-    log(f"  Run con «{ultimo}»: {ms:7.1f}ms")
     exigir(ok, f"«{ultimo}» corre sin error")
-    globals()[f"ms_{ultimo}"] = ms
 
-if "ms_mesh_preview" in globals() and "ms_mesh_to_static" in globals():
-    a, b = globals()["ms_mesh_preview"], globals()["ms_mesh_to_static"]
+    tiempos = []
+    for _ in range(4):
+        t = time.perf_counter()
+        api.run_graph(g_json)
+        tiempos.append((time.perf_counter() - t) * 1000.0)
+    medianas[ultimo] = statistics.median(tiempos)
+    log(f"  Run con «{ultimo}»: mediana {medianas[ultimo]:7.1f}ms  de {[f'{x:.1f}' for x in tiempos]}")
+
+if len(medianas) == 2:
+    a, b = medianas["mesh_preview"], medianas["mesh_to_static"]
     log("-" * 70)
-    log(f"ver sin hornear {a:.1f}ms  ·  hornear {b:.1f}ms  →  {b/max(a,0.01):.1f}x más rápido")
+    log(f"ver sin hornear {a:.1f}ms  ·  hornear {b:.1f}ms  →  {b/max(a,0.01):.0f}x más rápido")
     exigir(a < b, "ver sin hornear es más rápido que hornear, por el camino del Graph")
 
 log("JAM_VERBO_PREVIEW_58 TODO VERDE" if not FALLAS else f"JAM_VERBO_PREVIEW_58 ROJO — {len(FALLAS)}")

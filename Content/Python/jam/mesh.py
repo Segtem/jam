@@ -2327,10 +2327,14 @@ def uv_triangulos(malla, canal: int = 0) -> list:
 def mostrar(source, *, location=None, name: str = "JamPreview") -> dict:
     """Muestra una malla `M` en el nivel SIN hornearla a StaticMesh.
 
-    Es la pieza del live view. Medido en UE 5.8.1: hornear una cadena cuesta 68–257 ms y es el 99%
-    del Run, mientras construir la geometría cuesta 1–2 ms. Mostrarla con un `DynamicMeshComponent`
-    evita ese 99% — no por reusar trabajo, sino por no hacerlo: el asset recién se escribe en Bake,
-    que es cuando alguien decidió quedarse con el resultado. Es como cocina Houdini.
+    Es la pieza del live view. Medido en UE 5.8.1 recocinando el mismo grafo seis veces seguidas
+    (`mide_recoccion_58.py`): **1.7 ms por vuelta contra 215 ms horneando**, 129x.
+
+    Lo caro no resultó ser hornear sino DESHACER lo horneado: escribir el StaticMesh cuesta ~38 ms,
+    pero borrar el asset que dejó la vuelta anterior cuesta ~157 ms, y una recocción paga las dos
+    cosas. Mostrar con un `DynamicMeshComponent` no paga ninguna: no hay asset que escribir ni que
+    borrar. El asset recién se escribe en Bake, que es cuando alguien decidió quedarse con el
+    resultado. Es la cocina de Houdini.
 
     El actor queda marcado como transitorio para que un Preview no ensucie el nivel guardado.
     """
