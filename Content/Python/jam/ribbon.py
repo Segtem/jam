@@ -42,7 +42,7 @@ GRUPOS: dict[str, list[tuple[str, list[str]]]] = {
         ("Acabado", ["mesh_bark", "mesh_noise", "mesh_normals", "mesh_color",
                      "mesh_vertex_gradient", "mesh_transform",
                      "mesh_merge"]),
-        ("Hornear", ["mesh_copy_static", "mesh_copy_skeletal", "mesh_validate",
+        ("Hornear", ["mesh_preview", "mesh_copy_static", "mesh_copy_skeletal", "mesh_validate",
                      "mesh_to_static", "hism_output", "mesh_compare"]),
         ("Compatibilidad", ["mesh_from_asset"]),
     ],

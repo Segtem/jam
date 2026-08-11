@@ -606,7 +606,32 @@ cercana a «vive en el canvas y no toca el nivel»; es un criterio PRESTADO y es
 en el código, para que se cambie ahí el día que el registro tenga un campo propio. Tampoco se cachea
 un nodo que falló: sería volver permanente un error hasta que alguien toque un parámetro.
 
-🔑 **EL PREVIEW SIN HORNEAR FUNCIONA — el live view deja de ser un problema de rendimiento.**
+🚨 **CORRECCIÓN: el live view NO está resuelto, y mi conclusión anterior estaba mal por medir
+POR EL ATAJO.** El verbo `mesh_preview` («Ver sin hornear») existe, compila y corre en el Graph —eso
+es real—, pero medido por el CAMINO REAL da vuelta el resultado:
+
+| por el camino del Graph (`api.run_graph`) | ms |
+|---|---|
+| `mesh_preview` (mostrar sin hornear) | **517,5** |
+| `mesh_to_static` (hornear) | **56,8** |
+
+**Hornear es 10× MÁS RÁPIDO que mostrar**, exactamente al revés de lo que yo había concluido. La
+medición vieja de «1,2 ms para mostrar» fue llamando `mesh.mostrar` DIRECTO, sin pasar por el flujo
+de Preview — el atajo que `AGENTS.md` prohíbe en su primera regla, y que igual usé.
+
+**Dónde está el costo entonces:** `mesh_preview` spawnea un actor, y eso dispara la maquinaria de
+**Preview transaccional** —marcado, registro de efectos por owner, transacción de undo—.
+`mesh_to_static` sólo escribe un asset y no spawnea, así que no la dispara. O sea que el cuello no es
+hornear ni construir geometría: **es spawnear un actor dentro del flujo de Preview**.
+
+**Lo próximo del live view es medir ESE flujo**, descomponiendo qué parte de los 517 ms es el spawn,
+qué es el marcado y qué la transacción. Recién con eso se sabe si el live view necesita un camino de
+preview liviano —sin transacción por cook— o si el actor de preview tiene que reusarse en vez de
+recrearse. Reusar el mismo `DynamicMeshActor` entre cooks es la primera hipótesis a probar, pero es
+una hipótesis, no una conclusión.
+
+**(histórico, y equivocado)** «El preview sin hornear funciona — el live view deja de ser un problema
+de rendimiento».
 `mesh.mostrar(M)` crea un `DynamicMeshActor` y le pasa la malla con `set_dynamic_mesh`, sin escribir
 nada en Content. Medido en UE 5.8.1 sobre la cadena real de «Borde de camino», la misma que
 horneando costaba 68,8 ms:

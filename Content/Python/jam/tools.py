@@ -1896,6 +1896,24 @@ def t_mesh_to_static(mesh_input, *, name="GeneratedMesh", folder="/Game/Jam/Mesh
             "Bake fija el asset; Discard lo elimina.")
 
 
+def t_mesh_preview(mesh_input, *, name="JamPreview") -> str:
+    """Muestra la malla en el nivel SIN hornearla. Es el nodo del live view.
+
+    Se agrega como verbo y NO como un modo de `mesh_to_static` a propósito: hornear produce un asset
+    `A` y mostrar produce un actor, así que hacer que el mismo verbo devuelva una cosa u otra según
+    un modo le rompería el tipo a todo lo que cuelga aguas abajo —`place`, por ejemplo—. Son dos
+    verbos porque son dos salidas distintas.
+
+    Medido: mostrar cuesta ~1 ms contra los 68–257 ms de hornear la misma cadena.
+    """
+    from . import mesh
+    result = mesh.mostrar(mesh_input, name=str(name or "JamPreview"))
+    if "error" in result:
+        raise RuntimeError(result["error"])
+    return (f"PREVIEW ✓ — {result['triangulos']} triángulos sin hornear. "
+            "Cambiá lo que quieras y volvé a correr; Bake recién cuando te guste.")
+
+
 def asset_producido(verbo: str, asset_entrada, params: dict | None = None) -> str | None:
     """Ruta prevista para conversores (Fracture mesh→GC, Nanite mesh→mesh) que sale por su pin.
     El grafo la pasa aguas abajo en vez del asset de entrada. None si el verbo no transforma."""
@@ -2574,6 +2592,12 @@ REGISTRO = {
                                 "vertices": 0.50, "triangulos": 0.50,
                                 "perfil": 0.15, "silueta": 0.18},
                      "doc": "ORÁCULO: compara la malla M contra un StaticMesh de referencia (tamaño, proporción, conteos, secciones, perfil de masa y silueta) y la deja pasar sin tocarla. «solo_forma» compara la FORMA sin exigir el mismo tamaño"},
+    "mesh_preview": {"fn": t_mesh_preview, "cat": "Mesh", "graph_only": True,
+                     "label": "Ver sin hornear",
+                     "params": {"name": "JamPreview"},
+                     "doc": "muestra la malla en el nivel SIN escribir un asset: ~1 ms contra los "
+                            "68-257 ms de hornear. Es el nodo para iterar — poné este al final "
+                            "mientras ajustás, y cambialo por «Mesh to Static» cuando te guste"},
     "mesh_to_static": {"fn": t_mesh_to_static, "cat": "Mesh", "graph_only": True,
                        "params": {"name": "GeneratedMesh", "folder": "/Game/Jam/Meshes",
                                   "collision": True, "recompute_tangents": True,
@@ -2617,7 +2641,7 @@ GRAPH_SOURCES = {"asset", "pick", "create_spline", "gizmo", "ghost", "pivot", "p
                  "select_mesh", "select_asset"}
 # Tools que realmente pueden ejecutarse sin un asset. `asset` y `pick` lo PRODUCEN; `create_spline` y
 # `pivot_set` trabajan sobre la escena/selección. Gizmo y Ghost sí necesitan uno para mostrar huella.
-GRAPH_NO_ASSET = {"asset", "pick", "create_spline", "pivot_set", "instance", "brush",
+GRAPH_NO_ASSET = {"mesh_preview", "asset", "pick", "create_spline", "pivot_set", "instance", "brush",
                   # Un reroute no CONSUME un asset: lo deja pasar.
                   "reroute_mesh", "reroute_asset", "reroute_points", "reroute_curve", "reroute_frames",
                   "select_mesh", "select_asset",
@@ -2677,11 +2701,11 @@ GRAPH_IN_NAMES = {"reroute_mesh": "M", "reroute_asset": "A", "reroute_points": "
                   "mesh_uv_box": "M", "mesh_uv_unwrap": "M", "mesh_uv_pack": "M",
                   # Entrada OPCIONAL: sin cable reparte en un área; con puntos, alrededor de cada uno.
                   "scatter": "P",
-                  "mesh_compare": "M", "mesh_to_static": "M",
+                  "mesh_compare": "M", "mesh_to_static": "M", "mesh_preview": "M",
                   "material_node": "MT", "material_connect": "MT", "material_output": "MT",
                   "material_build": "MT", "material_function": "MT", "material_call": "MT",
                   "material_instance": "A", "instance": "P"}
-GRAPH_OUT_NAMES = {"brush": "P", "reroute_mesh": "M", "reroute_asset": "A", "reroute_points": "P", "reroute_curve": "S", "reroute_frames": "F",
+GRAPH_OUT_NAMES = {"brush": "P", "mesh_preview": "", "reroute_mesh": "M", "reroute_asset": "A", "reroute_points": "P", "reroute_curve": "S", "reroute_frames": "F",
                    "mass_probe": "F", "mass_config": "MC",
                    "mass_spec": "MS", "mass_spawn": "MH", "mass_inspect": "MH", "mass_clear": "MH",
                    "select_mesh": "M", "select_asset": "A",
