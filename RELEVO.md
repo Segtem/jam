@@ -606,6 +606,18 @@ cercana a «vive en el canvas y no toca el nivel»; es un criterio PRESTADO y es
 en el código, para que se cambie ahí el día que el registro tenga un campo propio. Tampoco se cachea
 un nodo que falló: sería volver permanente un error hasta que alguien toque un parámetro.
 
+**Primer paso del preview SIN HORNEAR: el camino es viable y da el orden de magnitud esperado.**
+Medido en UE 5.8.1: `DynamicMeshActor` existe en el binding y **se spawnea por clase en commandlet
+en 1,7 ms** —importante: `spawn_actor_from_object` devuelve None ahí, así que este camino SÍ se puede
+verificar headless, a diferencia de todo lo demás que coloca cosas—. Construir la malla, 0,2 ms.
+**Total ~2 ms contra los 68–257 ms de hornear.**
+
+⚠️ **Quedó a medio paso**: falla al tomar el componente con
+`actor.get_editor_property("dynamic_mesh_component")` — el nombre real de la propiedad es otro. Lo
+que sigue es una línea: listar las propiedades de `DynamicMeshActor`, usar la correcta, y pasarle la
+malla con `GeometryScript_MeshBasicEdits.append_mesh`. Las clases disponibles son `DynamicMeshActor`
+y `GeneratedDynamicMeshActor`; el componente es `DynamicMeshComponent`.
+
 🔑 **MEDICIÓN LIMPIA — el caché NO es la palanca del live view, y conviene saberlo antes de
 seguir invirtiendo ahí.** Con los assets borrados y cero errores:
 
