@@ -1979,6 +1979,10 @@ REGISTRO = {
     # lo que se cruzaría; `drop` deja caer y por eso las piezas se apilan. Tenerlo como una perilla
     # de `place` hacía que el mismo nodo significara dos cosas.
     "drop":         {"fn": t_drop,    "cat": "Place",
+                     "label": "Soltar con física",
+                     # Primera tool migrada al contrato nuevo: dice EN POSITIVO dónde se ve. Antes
+                     # llegaba a la barra por no tener `graph_only`, o sea por omisión.
+                     "superficies": ("dash", "graph"),
                      "params": {"x": 0.0, "y": 0.0, "height": 800.0, "view": False,
                                 "anchor": "base", "sink": 0.0, "align": False,
                                 "scale_min": 1.0, "scale_max": 1.0, "points": ""},
@@ -2083,7 +2087,12 @@ REGISTRO = {
     "reroute_frames": {"fn": t_reroute, "cat": "Mesh", "graph_only": True, "params": {},
                         "doc": "punto de paso para ordenar cables: deja pasar Frames sin tocarla"},
     # El pincel del Physics Paint: marca DÓNDE, no reparte. Ver `brush_core`.
-    "brush": {"fn": t_brush, "cat": "Scatter", "graph_only": True,
+    "brush": {"fn": t_brush, "cat": "Scatter",
+              "label": "Pincel de reparto",
+              # Estaba `graph_only`, así que el pincel vivía sólo en el canvas. Dash expone su
+              # Physics Paint en la barra —es un gesto sobre la escena, no una cadena de nodos— y
+              # acá pasa lo mismo: el pincel marca centros sobre lo que estás mirando.
+              "superficies": ("dash", "graph"),
               "params": {"actor": "", "alto": 200.0},
               "etiquetas_params": {"actor": "actor", "alto": "alto (cm)"},
               "doc": "pincel: marca los centros de reparto. Con «actor» busca ese actor por nombre y el "
@@ -2895,8 +2904,13 @@ def spec_json(*, include_graph_only: bool = False) -> str:
         return "str"
 
     salida = []
+    from .registro_core import superficies_de
+
     for nombre, info in REGISTRO.items():
-        if info.get("graph_only") and not include_graph_only:
+        # La superficie decide quién ve la tool. `include_graph_only` sigue siendo el pedido del
+        # canvas —«dame todo»—; sin él se sirve la Dash Bar, que es una superficie declarada y ya no
+        # «lo que nadie marcó».
+        if not include_graph_only and "dash" not in superficies_de(info):
             continue
         opciones = info.get("opciones", {})
         # Letra de cada pin para el modo compacto. Va en el spec —y no la calcula el C++— para que

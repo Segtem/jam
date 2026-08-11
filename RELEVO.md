@@ -573,7 +573,28 @@ de pedir manos sin que nadie lo note.)*
 
 ## Lo próximo
 
-**0-bis. Decidir cómo se DEFINE una tool y cómo llega a la Dash Bar.** Brian pidió el relevamiento y
+**0-bis. Seguir la migración del registro. La base YA ESTÁ, con physics como primer target.**
+`registro_core.superficies_de` decide dónde se ve una tool **en positivo** (`superficies=("dash",
+"graph")`) y `spec_json` la consulta, así que la Dash Bar dejó de servirse «lo que nadie marcó».
+Convive con `graph_only` a propósito: sin eso, migrar 113 entradas pedía una ventana con el ribbon a
+medias. `registro_core.auditar` es **el oráculo del registro** que faltaba: label, superficie válida,
+categoría que exista en el ribbon, doc, y dominios/tipos sobre params que existan.
+
+Primer target migrado, el equivalente de las Physics Tools que Dash pone bajo Place:
+`drop` → **«Soltar con física»** y `brush` → **«Pincel de reparto»**, ambas en las dos superficies.
+El pincel estaba `graph_only`, o sea existía en el canvas y no en la barra, que es exactamente el
+caso que motivó el relevamiento. Verificado por el camino real en UE 5.8.1: **20 tools en la barra,
+186 en el canvas**, las dos con su label. Son **885 tests**.
+
+**La deuda quedó medida y acotada: 136 defectos, y los 136 son `sin label`.** Categorías, docs,
+dominios y tipos de pin están TODOS sanos — la única deuda de declaración son los nombres visibles,
+que es justo lo que se lee en la barra. Un test fija ese tope: bajarlo es trabajo, subirlo es una
+regresión, y una tool NUEVA sin label lo pone rojo. Lo próximo es ponerle nombre a las que se ven en
+la barra y seguir migrando por superficie, no por archivo. El relevamiento completo, con el estado
+del arte de Houdini/Grasshopper/Substance/Blender/UE, está en
+[[2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0]].
+
+**(pendiente de decisión)** El descriptor único que unifique las nueve tablas paralelas — Brian pidió el relevamiento y
 está en [[2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0]]. Lo medido: una tool se declara
 en hasta CUATRO lugares —`REGISTRO`, nueve tablas paralelas indexadas por nombre, `ribbon.py` y
 `letras.py`— y la superficie se decide **en negativo** (`graph_only`, puesto en 93 de 113), así que
