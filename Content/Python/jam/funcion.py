@@ -234,7 +234,8 @@ def herramientas(cuerpos: dict[str, JamGraph] | None = None) -> list[dict]:
     return salida
 
 
-def herramienta(funcion_id: str, nombre: str, cuerpo: JamGraph) -> dict:
+def herramienta(funcion_id: str, nombre: str, cuerpo: JamGraph,
+                preset: dict | None = None) -> dict:
     """Spec de una llamada: verbo interno estable y etiqueta humana independiente."""
     f = firma(cuerpo)
     # Las entradas CON default se publican como perillas de la ficha; las que no, como pines.
@@ -242,9 +243,19 @@ def herramienta(funcion_id: str, nombre: str, cuerpo: JamGraph) -> dict:
     # que una herramienta sea usable sin entender el grafo de adentro.
     perillas = [e for e in f["entradas"] if "default" in e]
     pines = [e for e in f["entradas"] if "default" not in e]
+    from .jamtool_core import entrada_de_seleccion, superficies_de_funcion
+
+    # Dónde se ve esta tool armada por el usuario. Por defecto sólo en el Graph: una función recién
+    # colapsada es un paso intermedio de lo que alguien está construyendo, y llenar la barra con eso
+    # repetiría el error que tenía el registro —estar ahí por omisión—. Publicarla es deliberado.
+    superficies = sorted(superficies_de_funcion(preset or {}))
     return {
         "verbo": PREFIJO + funcion_id, "label": nombre,
         "cat": "Funciones", "seccion": "Funciones", "grupo": "Biblioteca",
+        "superficies": superficies,
+        # Por dónde entra la selección de la escena cuando corre desde la Dash Bar. En el Graph la
+        # alimentan los cables; en la barra no hay cables.
+        "entrada_seleccion": entrada_de_seleccion(f) or "",
         "doc": f"función «{nombre}» — se expande inline antes de Compile",
         "source": not pines, "aridad": 0 if not pines else 1,
         "in_name": "", "out_name": "", "asset_pin": False, "asset_row": False,

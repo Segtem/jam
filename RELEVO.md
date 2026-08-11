@@ -594,7 +594,33 @@ la barra y seguir migrando por superficie, no por archivo. El relevamiento compl
 del arte de Houdini/Grasshopper/Substance/Blender/UE, está en
 [[2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0]].
 
-**El norte, corregido por Brian: `.jamtool`.** Una tool NO se programa en Python: el Graph produce un
+**`.jamtool` — LAS TRES PIEZAS ESTÁN, en cerebro puro.** `jamtool_core.py`:
+
+1. **Artefacto portable.** `exportar`/`importar` con `esquema=1`, identidad estable (`funcion_id`,
+   así renombrar no rompe las llamadas) y **`requiere`: los verbos que el cuerpo necesita**, para
+   decir «esta tool necesita algo que no tenés» AL IMPORTAR y no a mitad del Run. `input`/`output`
+   no cuentan como dependencias: son la firma.
+2. **Superficie.** `funcion.herramienta()` publica `superficies`. Por defecto **sólo `graph`**: una
+   función recién colapsada es un paso intermedio, y llenar la barra con eso repetiría el error del
+   registro —estar ahí por omisión—. Publicarla es deliberado.
+3. **La entrada desde la barra**, que era la única decisión de diseño real: **explícito con default**.
+   Si la firma declara `entrada_seleccion`, manda; si no, el primer input cuyo tipo pueda venir de la
+   escena. Con un solo input las dos reglas coinciden y no hay que declarar nada; con dos, el default
+   elegiría por orden de dibujo —un detalle visual, no una decisión—. Devolver `None` es una
+   respuesta: esa tool no se aplica a la selección y la barra le pide todo por parámetros.
+
+⚠️ Dos cosas que sólo aparecieron al probar contra el camino REAL, no contra datos de test:
+`funcion.firma()` emite `entradas` con campo **`name`** (no `inputs`/`nombre`), y marca el tipo con
+el comodín **`*`** cuando el borde no declara uno concreto —que hoy es el caso más común—. Sin
+aceptar `*`, toda tool recién colapsada quedaba inaplicable en la barra. Probado de punta a punta:
+publicada → `['dash','graph']`, entrada `'malla'`, `requiere ['mesh_extrude']`, y al importar sin ese
+verbo el error lo nombra. Son **902 tests**.
+
+**Lo que falta para cerrarlo**: el gesto (Exportar/Importar en la UI), leer y escribir el archivo
+`.jamtool` en disco, y que la Dash Bar EJECUTE una función publicada resolviendo su entrada desde la
+selección. El núcleo ya decide todo eso; falta el adaptador y el Slate.
+
+**(diseño)** El norte, corregido por Brian: `.jamtool`. Una tool NO se programa en Python: el Graph produce un
 `.jamtool` que se importa a la Dash Bar, y así cualquiera arma sus herramientas. Es el HDA de Houdini
 y el User Object de Grasshopper. **Jam ya tiene la mitad**: `preset.py` guarda `kind:"funcion"` —grafo
 con firma e identidad estable— y `funcion.herramientas()` ya las publica como nodos del Graph;
