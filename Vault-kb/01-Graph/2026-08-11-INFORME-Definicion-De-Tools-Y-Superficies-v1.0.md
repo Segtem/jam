@@ -1,7 +1,7 @@
 ---
 title: "Cómo se define una tool y cómo llega a la Dash Bar"
 tipo: INFORME
-version: "1.0"
+version: "1.1"
 date: 2026-08-11
 updated: 2026-08-11
 status: relevamiento
@@ -123,6 +123,47 @@ exactamente el tipo de defecto silencioso que el proyecto persigue en todo lo de
 **d. Migración incremental, no big-bang.** El descriptor puede convivir con el dict actual: se
 agrega, se hace que las 113 entradas lo satisfagan de a poco, y un test exige que **toda tool nueva**
 lo use. Sin ventana de rotura.
+
+## 4-bis. La dirección real: `.jamtool`, no más Python
+
+Brian corrigió el rumbo después del primer relevamiento, y la corrección cambia el objetivo: **una
+tool no debería programarse en Python**. El Graph tiene que poder producir un **`.jamtool`** que se
+importa a la Dash Bar, para que cualquiera arme sus propias herramientas sin tocar el registro.
+
+Eso es exactamente el modelo del estado del arte, y explica por qué las cinco herramientas de la
+sección 3 se parecen tanto entre sí:
+
+| | cómo se hace una tool propia |
+|---|---|
+| **Houdini** | seleccionás nodos, *Collapse into Digital Asset*: el HDA aparece en el Tab menu como un nodo más, con los parms que promoviste |
+| **Grasshopper** | seleccionás componentes, *Cluster* → guardar como **User Object**: aparece en la barra con su icono |
+| **Substance** | un `.sbs` se instancia como nodo en otro grafo |
+| **Blender** | *Node Group*: la subred pasa a ser un nodo con su interfaz |
+
+**Jam ya tiene la mitad construida**, y es más de lo que parece. `preset.py` guarda `kind:"funcion"`:
+un grafo con firma `input`/`output` e **identidad estable** (`funcion_id`) separada del nombre visible
+—el mismo patrón que el GUID de Grasshopper, y ya resolvió el renombrar sin romper llamadas—.
+`funcion.herramientas()` convierte esas funciones guardadas en entradas del spec, así que **ya
+aparecen como nodos en el ribbon del Graph**. `Ctrl+G` es el *Collapse* de Houdini.
+
+Lo que falta, entonces, no es el concepto sino tres cosas concretas:
+
+1. **Un artefacto portable.** Hoy un preset vive en un directorio local o global. Un `.jamtool` es
+   ese mismo JSON con lo necesario para viajar solo: firma, cuerpo, versión de esquema, y los verbos
+   que usa (para poder decir «esta tool necesita algo que no tenés» en vez de fallar al ejecutar).
+2. **Superficie propia.** Que una función declare `superficies` como cualquier otra tool. El
+   mecanismo de la sección 4b ya existe y sirve tal cual: es la pieza que lo habilita.
+3. **Ejecución desde la barra.** En el Graph una función se expande a grafo y compila. En la Dash Bar
+   una acción se aplica a lo seleccionado ahora. Hay que decidir qué significa un `input` sin cable:
+   lo más parecido a Dash es que la selección de la escena ENTRE por ahí, y que los inputs sin
+   resolver se pidan como parámetros en la barra.
+
+El punto 3 es el único con una decisión de diseño de verdad; 1 y 2 son mecánica sobre lo que ya hay.
+
+**Lo que esto le hace al resto del informe:** el descriptor único de la sección 4a deja de ser un
+refactor interno y pasa a ser **el formato de un artefacto de usuario**. Es más razón para hacerlo,
+no menos — pero también sube la vara: lo que se declare ahí va a ser un contrato público que otros
+archivos van a tener que seguir cumpliendo dentro de seis meses.
 
 ## 5. Lo que este informe NO dice
 

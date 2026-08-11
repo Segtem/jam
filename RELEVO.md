@@ -594,6 +594,16 @@ la barra y seguir migrando por superficie, no por archivo. El relevamiento compl
 del arte de Houdini/Grasshopper/Substance/Blender/UE, está en
 [[2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0]].
 
+**El norte, corregido por Brian: `.jamtool`.** Una tool NO se programa en Python: el Graph produce un
+`.jamtool` que se importa a la Dash Bar, y así cualquiera arma sus herramientas. Es el HDA de Houdini
+y el User Object de Grasshopper. **Jam ya tiene la mitad**: `preset.py` guarda `kind:"funcion"` —grafo
+con firma e identidad estable— y `funcion.herramientas()` ya las publica como nodos del Graph;
+`Ctrl+G` es el Collapse. Faltan tres cosas: (1) el artefacto portable con esquema y sus dependencias
+declaradas, (2) que la función declare `superficies` —el mecanismo ya está—, y (3) decidir qué
+significa un `input` sin cable cuando la tool corre desde la barra, que es la única decisión de
+diseño real; lo más parecido a Dash es que la selección de la escena entre por ahí. Con esto el
+descriptor único deja de ser un refactor interno y pasa a ser el formato de un ARTEFACTO DE USUARIO.
+
 **(pendiente de decisión)** El descriptor único que unifique las nueve tablas paralelas — Brian pidió el relevamiento y
 está en [[2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0]]. Lo medido: una tool se declara
 en hasta CUATRO lugares —`REGISTRO`, nueve tablas paralelas indexadas por nombre, `ribbon.py` y
