@@ -11,6 +11,50 @@ verde_editor_fecha: 2026-08-10
 
 Entra **claude-code**. Corré `python tools/relevo.py` antes de leer esto; si sale rojo, eso es el turno.
 
+**Actualización Claude Code 2026-08-11 — la deuda de gestos se cobró dos falsos verdes.** Brian abrió
+los tutoriales acumulados en ⏳ y **«Borde de camino» era invisible desde arriba**: sólo el contorno de
+selección, con el piso a través. `mesh_ribbon` le entregaba a Unreal el winding invertido. Los 790
+tests miraban el array `normals` —que estaba bien, `(0,0,1)`— y el backface culling **ignora ese array
+y mira el orden de los índices**; el test incluso había congelado el orden defectuoso
+(`assertEqual(triangles, ((0,1,2),(1,3,2)))`), fijando lo observado como si fuera lo correcto. La
+sonda `investiga_winding_ribbon_58.py` lo midió con control y tratamiento en UE 5.8.1: un `mesh_box`
+nativo daba su tapa a +Z mientras los **48/48 triángulos** del tutorial daban -Z; tras el arreglo,
+**48/48 a +Z**. El fix tiene dos mitades que van juntas —invertir el winding e invertir el cross de
+`_normals`—, porque sólo la primera dejaría la cinta visible pero iluminada por detrás. Brian
+confirmó las dos con los ojos: la calzada se ve y el muro quedó del lado correcto (se extruye sobre
+la misma superficie, así que se corrigió solo). Es el ÚNICO verbo que arma buffers a mano: censado.
+
+**Y oracle no lo veía, aunque lo había avisado.** Los puntos ciegos declarados de `spline.cobertura`
+(«NO ve … visibilidad») y `spline.sin_solape` («NO ve … triángulos») nombraban exactamente este
+hueco. Nació el dominio **`malla`** con dos medidas: `malla.cara_visible` —la cara que dibuja el motor
+contra la normal de sombreado de sus propios vértices, cero como único corte defendible— y
+`malla.superficie_sin_vueltas`. En su PRIMER uso la medida encontró un defecto que nadie había visto:
+**`ribbon_core` pliega caras cuando el recorrido dobla más cerrado que el ancho de la cinta** (4 de 20
+mundos «limpios» salían rotos). No se escondió bajando el generador: quedó como el defecto nombrado
+`curva_mas_cerrada_que_el_ancho`, con 12 rojos / 8 verdes. Son **861 tests**, **1019 acuerdos / 4138
+veredictos**, **291/291 mutantes** y 10 dominios. **Ese pliegue sigue SIN ARREGLAR** — está medido y
+acotado, no resuelto; es el próximo corte natural de PMG.
+
+**El pliegue quedó ARREGLADO para el rango realista, y su límite declarado.** `_sin_pliegues`
+angosta la cinta donde el recorrido dobla más cerrado que su media anchura, aplicando el mismo factor
+a los dos bordes para no descentrarla, y lo publica en `angostados` — el mismo patrón con que
+`miter_limit` cae a bevel en vez de estirar la esquina en silencio. Con giros de hasta 22° por
+muestra: **0 de 20 cintas plegadas, contra 4 de 20 antes**. Con giros de 140° y cintas más anchas que
+el paso siguen quedando **11 de 20**: el punto medio deja de representar al eje cuando el miter empuja
+un borde lejísimos. **Ese resto NO se afinó contra la medida a propósito** — corregirlo pide reescribir
+el offset con el eje real y su correspondencia de muestras, y es un corte aparte. En UE 5.8.1:
+`JAM_MESH_RIBBON_58 TODO VERDE` con los mismos 25 pares / 48 tris / UV0 0..5.91 de siempre,
+`mesh_extrude` verde, cara de la cinta 48/48 a +Z y **19/19 tutoriales compilan**. Son 863 tests.
+
+⚠️ **El fix de Wayland del Graph está compilado pero NO verificado.** Reabrir el Graph dejaba la
+ventana sin recibir clics: `ReshapeWindow` pedía `(173, 97)` y Slate seguía informando `(0, 0)`, así
+que el hit-test quedaba corrido y sólo se destrababa con un resize manual. `SincronizarGeometriaFlotante`
+repite en dos ticks el gesto del resize (con un tamaño DISTINTO: al mismo tamaño el compositor puede
+no emitir `configure`) y publica `ventana Graph resincronizada — alineada=sí/no`. Cuatro tests atan el
+`.cpp` y las cuatro mutaciones discriminan. **Pero en la sesión de verificación el camino no se
+ejecutó ni una vez** (`reubicada=no` en las tres reaperturas, porque el rect ya era válido en el
+segundo monitor): el editor anduvo por otra razón. No lo cuentes como verde.
+
 **Actualización Codex 2026-08-10 — MassEntity Fase 4, primera patrulla autónoma.** Jam distribuye
 `/Jam/Mass/MC_JamAmbientPatrol`: ISM dinámica y vaivén a 800 cm/s en radio 25 cm sobre el eje de
 cada frame. Trait, fragment, parámetros compartidos y processor son C++ tipado;
@@ -255,6 +299,9 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 | Cerebro de Jam, corte espacio | mismo comando | **829 OK**, 0.49 s; BFS independiente y frontera avanzada fijados |
 | Cerebro de Jam, corte Mass MS/MH + PIE | mismo comando | **838 OK**; callback PIE mutado → rojo real |
 | Cerebro de Jam, corte MassGameplay MC→MS→MH | mismo comando | **841 OK**; trait sin `FTransformFragment` → rojo real |
+| Cerebro de Jam, corte winding + Wayland | mismo comando | **861 OK**, 0.54 s; winding revertido → 4 rojos, normales desincronizadas → 3 rojos |
+| Cara visible de la cinta | `tools/experiments/investiga_winding_ribbon_58.py` en `UnrealEditor-Cmd` | **control caja +Z=2/-Z=2 · cinta 48/48 a +Z · VEREDICTO VERDE** (antes del fix: 48/48 a -Z) |
+| » y con los ojos | Brian, en el viewport | **la calzada se ve · el muro del lado correcto** |
 | Ribbon S → M | `tools/experiments/verifica_mesh_ribbon_58.py` en `UnrealEditor-Cmd` | **25 pares · 48 tris/50 verts · ancho 360 · UV0 0..5.91 · Material ID 3 · TODO VERDE** |
 | Tutoriales actuales | `tools/experiments/verifica_ejemplos.py` en `UnrealEditor-Cmd` | **13/13 compilan · TODO VERDE** |
 | Extrude M → M / Muro | `tools/experiments/verifica_mesh_extrude_58.py` en `UnrealEditor-Cmd` | **48→196 tris · 50→100 verts · 300 cm · UV0/Material ID · cerrado · TODO VERDE** |
@@ -280,8 +327,8 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 | Oracle en UE 5.8.1 | `tools/experiments/verifica_oracle_shadow.py` con editor completo | **placement + snap + scatter + spline + physics + reemplazo + espacio funcional verde; shutdown histórico rojo** |
 | Physics paint en UE 5.8.1 | `tools/experiments/verifica_physics_paint_58.py` | **pila 0/100/200 · Preview ignorado · Landscape por pieza · 3 sombras coinciden** |
 | oracle sobre sí mismo | `cd vendor/oracle && python tools/aceptacion.py` | **27 rojos · 12 verdes · 0 huecos** |
-| oracle sobre Jam | `python vendor/oracle/tools/diferencial.py --proyecto medidas --confiar-escalares` | **919 acuerdos · 3938 veredictos estables** |
-| » mutación de medidas | `python vendor/oracle/tools/mutar.py --proyecto medidas --confiar-escalares` | **279/279 mutantes muertos** |
+| oracle sobre Jam | `python vendor/oracle/tools/diferencial.py --proyecto medidas --confiar-escalares` | **1019 acuerdos · 4138 veredictos estables** (10 dominios: entró `malla`) |
+| » mutación de medidas | `python vendor/oracle/tools/mutar.py --proyecto medidas --confiar-escalares` | **291/291 mutantes muertos** |
 | » tests de oracle | `cd vendor/oracle && python -m unittest discover -s tests -t . -q` | **339 OK** |
 
 El campo `verde_editor` apunta al checkpoint `4eaf0c7`, verificado en UE 5.8.1 con MS/MH,
@@ -312,7 +359,8 @@ Lo que **nadie ejerció con las manos** de este turno:
 
 | Cosa | Quién puede verificarla | Estado |
 |---|---|---|
-| Apertura/cierre de Graph y entrada global | Brian | ✅ ventana raíz resincronizada; menú abre Graph; captor sí→no al cerrar |
+| Apertura/cierre de Graph y entrada global | Brian | ◐ anduvo, pero el camino del fix nuevo (`reubicada=sí`) NO se ejecutó: sin verificar |
+| El pliegue de `ribbon_core` en curvas cerradas | **nadie** | ⏳ medido y acotado por `malla`; **sin arreglar** |
 | Selector de tipos completo | Brian | ⏳ falta desplegar la lista y confirmar la presentación real |
 | Maths: Sumar/Restar/Multiplicar/Dividir, pines y resultado | Brian | ✅ función/instancia + Run + Inspector + persistencia; sin Preview vacío |
 | Maths: Negar/Absoluto/Módulo/Potencia/Raíz | Brian | ⏳ tests/sonda/build verdes; falta gesto en Datos → Maths |
@@ -321,10 +369,10 @@ Lo que **nadie ejerció con las manos** de este turno:
 | Reasignar/Limpiar Material IDs, cables M → M | Brian | ⏳ 586 tests + Graph 5.8.1 verde; falta gesto en Mesh → Materiales |
 | Validar malla, requisitos y cable M → M | Brian | ⏳ 586 tests + Graph 5.8.1 verde; falta gesto en Mesh → Hornear |
 | Copiar Static/Skeletal, LOD y cables A → M | Brian | ⏳ 586 tests + Graph 5.8.1 verde; falta gesto en Mesh → Hornear |
-| Cinta de curva S → M y aspecto de Borde de camino | Brian | ⏳ 790 tests + Graph real 5.8.1 verde; falta verlo y juzgar miter/UV/material en viewport |
-| Extruir superficie M → M y aspecto de Muro sobre spline | Brian | ⏳ 795 tests + Graph real 5.8.1 verde; falta juzgar espesor, remates y UV lateral en viewport |
-| Mass → Probar MassEntity, cable F → F y resultado | Brian | ⏳ 803 tests + Graph real 5.8.1 verde; falta abrir el tutorial y confirmar ficha/cable/informe en Slate |
-| Mass → MS/MH, cuatro fichas y ciclo Preview | Brian | ⏳ 837 tests + Graph real 5.8.1 verde; falta ver pines, Output y botones Bake/Discard en Slate |
+| Cinta de curva S → M y aspecto de Borde de camino | Brian | ✅ 2026-08-11: **estaba ROTO** (invisible por winding). Arreglado, medido y visto |
+| Extruir superficie M → M y aspecto de Muro sobre spline | Brian | ✅ 2026-08-11: heredaba la vuelta de la cinta; corregido en la base y visto |
+| Mass → Probar MassEntity, cable F → F y resultado | Brian | ✅ 2026-08-11: ficha, cable e informe correctos en Slate |
+| Mass → MS/MH, cuatro fichas y ciclo Preview | Brian | ✅ 2026-08-11: las cinco fichas y sus cables se ven bien |
 | Ribbon jerárquico por familias | Brian | ⏳ abrió/cerró sin crash; falta juzgar orden, densidad y navegación |
 | Resto del ABM, `Ctrl+G` + dibujo/cableado de pines múltiples | Brian | ◐ Nueva/Editar/Guardar/Renombrar/Eliminar verdes; faltan `Ctrl+G` y firmas no numéricas |
 | Aspecto de una GC Nanite fracturada y rotura en PIE | Brian | ⏳ metadata/materiales verdes; falta viewport y simulación |
@@ -371,6 +419,13 @@ Después, sin urgencia: subir `~/Dev/oracle/estudio/` a NotebookLM. Empezá por 
 de pedir manos sin que nadie lo note.)*
 
 ## Lo próximo
+
+**0. Arreglar el pliegue de `ribbon_core` que destapó `malla`.** Cuando el recorrido dobla más
+cerrado que el ancho de la cinta, los bordes se cruzan y las caras del tramo se dan vuelta. Está
+MEDIDO y acotado (`curva_mas_cerrada_que_el_ancho`, 12/20 mundos), no resuelto. El `miter_limit` y los
+bevels no alcanzan: hace falta decidir qué hace la cinta cuando el offset se auto-interseca —recortar
+la junta, limitar el ancho efectivo o rechazar el recorrido—. Es el próximo corte natural de PMG y
+ahora tiene oráculo que lo juzga.
 
 **Siguiente corte de la Fase 4 de
 [[2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0|MassEntity en Jam]]: variación o señal ambiental.** La
