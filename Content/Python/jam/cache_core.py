@@ -73,3 +73,38 @@ def sucios(antes: dict, ahora: dict) -> list[str]:
     corridas es imposible de comparar cuando algo sale mal.
     """
     return sorted(nid for nid, h in (ahora or {}).items() if (antes or {}).get(nid) != h)
+
+
+#: Salidas que son un DATO transitorio: viven en memoria y reusarlas equivale exactamente a
+#: recomputarlas. `A` queda afuera aunque sea un dato, porque un verbo que produce un asset suele
+#: haberlo escrito en Content, y reusar su resultado saltearía esa escritura.
+SALIDAS_CACHEABLES = ("M", "S", "P", "F", "N", "N[]")
+
+
+def es_cacheable(info: dict) -> bool:
+    """¿Se puede reusar el resultado de este verbo sin cambiar lo que pasa en la escena?
+
+    La pregunta NO es «¿es puro?» sino «¿saltearlo deja el mundo igual?». Un verbo que spawnea
+    actores puede devolver el mismo dato dos veces y no por eso se lo puede saltear: la segunda
+    corrida tiene que volver a poner los actores. Por eso el criterio mira la SALIDA —si es un dato
+    transitorio— y no el determinismo de la función.
+
+    Se empieza conservador a propósito. Un falso negativo cuesta tiempo de cocción; un falso
+    positivo hace desaparecer geometría de la escena y se diagnostica como «a veces no aparece»,
+    que es de lo peor que hay para depurar. Ampliar esta lista pide evidencia, no intuición.
+    """
+    if not isinstance(info, dict):
+        return False
+    if info.get("asset_argument"):
+        return False
+    # Que la salida sea un dato NO alcanza, y esto lo encontró un test contra el registro real:
+    # `scatter` produce `P` —puntos— y ADEMÁS spawnea actores. Reusar su resultado devolvería los
+    # mismos puntos y dejaría la escena sin nada, que es el falso positivo que hay que evitar.
+    #
+    # `graph_only` es hoy la marca más cercana a «esto vive en el canvas y no toca el nivel»: los
+    # verbos de geometría la tienen y los de colocación no. Es un criterio prestado, no uno propio,
+    # y por eso se declara acá: cuando el registro tenga un campo que diga exactamente «no tiene
+    # efectos en la escena», este es el lugar que hay que cambiar.
+    if not info.get("graph_only"):
+        return False
+    return str(info.get("out_name") or "") in SALIDAS_CACHEABLES

@@ -589,11 +589,18 @@ def ejecutar(g: JamGraph, plan: GraphPlan | None = None) -> str:
     return ejecutar_detalle(g, plan)[0]
 
 
-def ejecutar_detalle(g: JamGraph, plan: GraphPlan | None = None) -> tuple[str, dict]:
+def ejecutar_detalle(g: JamGraph, plan: GraphPlan | None = None,
+                     almacen=None) -> tuple[str, dict]:
     """Corre el grafo en orden topológico: cada nodo dispara su tool y su oráculo. Devuelve
     (reporte, {nid: {'estado','texto'}}) — el estado es lo que pinta cada nodo en el canvas.
-    Los actores quedan en el nivel (quien llama decide preview/confirm)."""
-    from . import dsl, tools
+    Los actores quedan en el nivel (quien llama decide preview/confirm).
+
+    `almacen` es OPT-IN y está apagado por defecto: sin él, esto se comporta exactamente como antes.
+    Con él, un nodo cuya huella ya está guardada NO se vuelve a ejecutar. Sólo participan los verbos
+    que `cache_core.es_cacheable` acepta —los que producen un dato transitorio—: saltear uno que
+    spawnea dejaría la escena sin sus actores, y eso se diagnostica como «a veces no aparece».
+    """
+    from . import cache_core, dsl, tools
     try:
         plan = plan or compilar(g)
     except GraphValidationError as exc:
@@ -621,6 +628,13 @@ def ejecutar_detalle(g: JamGraph, plan: GraphPlan | None = None) -> tuple[str, d
             main_sources.setdefault(destino, []).append(origen)
         else:
             data_sources[(destino, destino_pin)] = origen
+
+    # Las huellas se calculan una vez, antes del recorrido: cuestan microsegundos y el que las pide
+    # necesita el mapa entero para decidir qué reusar.
+    huellas = cache_core.huellas_del_grafo(
+        {nid: g.nodes[nid] for nid in g.nodes},
+        [list(a) for a in g.edges]) if almacen is not None else {}
+    reusados = []
 
     for nid in plan.order:
         n = g.nodes[nid]
@@ -684,6 +698,20 @@ def ejecutar_detalle(g: JamGraph, plan: GraphPlan | None = None) -> tuple[str, d
         for pin in info.get("data_params", {}):
             origen_dato = data_sources.get((nid, pin))
             kw[pin] = runtime_outputs.get(origen_dato) if origen_dato is not None else None
+        # ---- caché: un nodo limpio no se vuelve a cocinar ----
+        huella_nodo = huellas.get(nid) if almacen is not None else None
+        guardado = (almacen.obtener(huella_nodo)
+                    if huella_nodo and cache_core.es_cacheable(info) else None)
+        if guardado is not None:
+            txt_guardado, salida_guardada = guardado
+            lineas.append(f"[{nid}·{verb}] {txt_guardado} (reusado)")
+            por_nodo[nid] = {"estado": "ok", "texto": txt_guardado}
+            runtime_outputs[nid] = salida_guardada
+            if salida_guardada is not None:
+                _ULTIMA_CORRIDA[nid] = salida_guardada
+            reusados.append(nid)
+            continue
+
         tools.limpiar_asset_producido_runtime(verb)
         try:
             txt = str(info["fn"](entrada, **kw))
@@ -697,6 +725,11 @@ def ejecutar_detalle(g: JamGraph, plan: GraphPlan | None = None) -> tuple[str, d
         runtime_outputs[nid] = salida
         if salida is not None:
             _ULTIMA_CORRIDA[nid] = salida
+        # Sólo se guarda lo que salió BIEN: cachear un error lo volvería permanente hasta que
+        # alguien cambie un parámetro, y el usuario vería el mismo fallo sin entender por qué.
+        if (almacen is not None and huella_nodo and estado != "error"
+                and cache_core.es_cacheable(info) and salida is not None):
+            almacen.guardar(huella_nodo, (txt, salida))
 
         # ---- flag de debug del nodo ----
         # El estado del arte no es un nodo de debug aparte: Houdini usa el display flag, PCG la

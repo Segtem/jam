@@ -594,7 +594,25 @@ veces devuelve algo viejo se ve como «a veces el muro sale mal», el peor sínt
 **tope de memoria**, porque cada entrada retiene una malla del motor y sin tope una sesión larga de
 live view mata el editor por una causa que nadie relacionaría con esto. Son **929 tests**.
 
-**Falta conectarlo a `graph.ejecutar_detalle`** —guardar el resultado por huella y saltear los
+**INTEGRADO, opt-in, y con una medición que NO se puede creer todavía.** `ejecutar_detalle` acepta
+`almacen=None`: sin él se comporta igual que siempre —el camino real no cambió y los 937 tests lo
+fijan—. Con él, un nodo cuya huella ya está guardada no se vuelve a ejecutar.
+
+El criterio de qué se puede reusar lo endureció un test contra el registro REAL: `es_cacheable`
+miraba sólo el tipo de salida, y así **`scatter` daba cacheable porque produce puntos… y además
+spawnea actores**. Reusarlo habría devuelto los mismos puntos dejando la escena vacía — el falso
+positivo exacto que había que evitar. Ahora exige además `graph_only`, que es hoy la marca más
+cercana a «vive en el canvas y no toca el nivel»; es un criterio PRESTADO y está declarado como tal
+en el código, para que se cambie ahí el día que el registro tenga un campo propio. Tampoco se cachea
+un nodo que falló: sería volver permanente un error hasta que alguien toque un parámetro.
+
+⚠️ **La medición de ahorro da 82–90% pero sus números absolutos no cierran**: `ejecutar_detalle`
+directo da 1,4 ms donde `api.run_graph` daba 359 —250× de diferencia que el caché no explica—. O
+`run_graph` hace mucho más, o los nodos fallaron en silencio sin construir nada, y entonces ese 87%
+sería el ahorro de saltear nodos que no hicieron nada. **No contar el caché como ganancia hasta
+resolverlo**: imprimir el estado por nodo, o medir por el mismo camino que la línea base.
+
+**Falta, además** —guardar el resultado por huella y saltear los
 limpios—, que es el corazón de la ejecución y no se tocó por prudencia. La línea base para comparar
 son los números de arriba.
 

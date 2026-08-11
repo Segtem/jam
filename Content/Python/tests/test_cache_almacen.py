@@ -85,3 +85,72 @@ class AlmacenTests(unittest.TestCase):
         a.guardar("h1", 1)
         a.limpiar()
         self.assertEqual(a.tamano, 0)
+
+
+class QueSePuedeReusarTests(unittest.TestCase):
+    """La pregunta NO es «¿es puro?» sino «¿saltearlo deja el mundo igual?».
+
+    Un verbo que spawnea actores puede devolver el mismo dato dos veces y aun así no se lo puede
+    saltear: la segunda corrida tiene que volver a poner los actores.
+    """
+
+    def test_una_malla_transitoria_del_canvas_se_reusa(self):
+        from jam import cache_core
+
+        self.assertTrue(cache_core.es_cacheable({"out_name": "M", "graph_only": True}))
+
+    def test_una_salida_de_dato_NO_alcanza_si_el_verbo_toca_la_escena(self):
+        """Lo encontró este mismo test contra el registro real: `scatter` produce puntos Y spawnea.
+        Reusarlo devolvería los mismos puntos y dejaría la escena vacía."""
+        from jam import cache_core
+
+        self.assertFalse(cache_core.es_cacheable({"out_name": "P"}))
+
+    def test_un_verbo_que_produce_un_asset_no(self):
+        """Escribir en Content es un efecto: reusarlo saltearía la escritura."""
+        from jam import cache_core
+
+        self.assertFalse(cache_core.es_cacheable({"out_name": "A"}))
+
+    def test_un_verbo_sin_salida_de_dato_no(self):
+        """`place` y compañía dejan actores en el nivel; saltearlos los haría desaparecer."""
+        from jam import cache_core
+
+        self.assertFalse(cache_core.es_cacheable({"out_name": ""}))
+
+    def test_los_verbos_reales_de_geometria_son_cacheables(self):
+        """Contra el registro de verdad, no contra un dict inventado."""
+        from jam import cache_core, tools
+
+        for verbo in ("mesh_ribbon", "mesh_extrude", "curve_bezier"):
+            with self.subTest(verbo=verbo):
+                self.assertTrue(cache_core.es_cacheable(tools.REGISTRO[verbo]))
+
+    def test_los_verbos_reales_que_tocan_la_escena_no(self):
+        from jam import cache_core, tools
+
+        for verbo in ("place", "drop", "scatter"):
+            with self.subTest(verbo=verbo):
+                self.assertFalse(cache_core.es_cacheable(tools.REGISTRO[verbo]))
+
+
+class IntegracionConElEjecutorTests(unittest.TestCase):
+    def test_el_ejecutor_sigue_igual_sin_almacen(self):
+        """La integración es opt-in: sin almacén, el camino real no cambia en nada."""
+        import inspect
+
+        from jam import graph
+
+        firma = inspect.signature(graph.ejecutar_detalle)
+        self.assertIsNone(firma.parameters["almacen"].default)
+
+    def test_no_se_cachea_un_nodo_que_fallo(self):
+        """Cachear un error lo volvería permanente hasta que alguien cambie un parámetro, y el
+        usuario vería el mismo fallo sin entender por qué."""
+        from pathlib import Path
+
+        fuente = (Path(__file__).resolve().parents[1] / "jam" / "graph.py").read_text(
+            encoding="utf-8")
+        i = fuente.index("almacen.guardar(huella_nodo")
+        contexto = fuente[max(0, i - 400):i]
+        self.assertIn('estado != "error"', contexto)
