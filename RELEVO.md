@@ -573,6 +573,19 @@ de pedir manos sin que nadie lo note.)*
 
 ## Lo próximo
 
+**0-ter. La consola estilo Rhino: viva y al día, con dos huecos.** Brian preguntó si el norte
+original —escribir `place box` y que funcione— seguía actualizado. **Sí, y es la parte mejor
+mantenida del sistema: parsea 165 de 165 verbos**, porque `dsl.py` lee `tools.REGISTRO` directo y
+agregar un verbo lo habilita en la consola sin tocar el DSL. Tiene dos entradas vivas: `jam.api.run`
+dentro del editor y `tools/jam.py`, un REPL con Python pelado FUERA de Unreal por TCP. Lo que falta:
+(1) **no respeta las superficies** —acepta los 145 verbos que sólo viven en el Graph, y
+`mesh_extrude` como comando suelto no tiene sentido porque no hay cable del que venga—; ahora que
+existe `registro_core.superficies_de`, la consola debería ser una tercera superficie (`"cli"`) y
+contestar «eso es un verbo de grafo» en vez de fallar raro; y (2) **no se encontró la caja de
+comandos en Slate** —los `SEditableTextBox` que hay son de nodos y comentarios—. Ojo que (2) es un
+NO-HALLAZGO, no una certeza: se buscó por nombre y puede estar bajo otro. Confirmarlo es mirar el
+panel.
+
 **0-bis. Seguir la migración del registro. La base YA ESTÁ, con physics como primer target.**
 `registro_core.superficies_de` decide dónde se ve una tool **en positivo** (`superficies=("dash",
 "graph")`) y `spec_json` la consulta, así que la Dash Bar dejó de servirse «lo que nadie marcó».
@@ -616,9 +629,18 @@ aceptar `*`, toda tool recién colapsada quedaba inaplicable en la barra. Probad
 publicada → `['dash','graph']`, entrada `'malla'`, `requiere ['mesh_extrude']`, y al importar sin ese
 verbo el error lo nombra. Son **902 tests**.
 
-**Lo que falta para cerrarlo**: el gesto (Exportar/Importar en la UI), leer y escribir el archivo
-`.jamtool` en disco, y que la Dash Bar EJECUTE una función publicada resolviendo su entrada desde la
-selección. El núcleo ya decide todo eso; falta el adaptador y el Slate.
+**El archivo YA VIVE en el disco.** `jamtool.py` es el adaptador —el juicio sigue en el núcleo— y
+`api.jamtool_export/import/list` es el contrato que va a llamar Slate. Un `.jamtool` es **JSON a
+propósito**: una tool que alguien armó tiene que poder mirarse, compartirse por chat y entrar en un
+repo. Un archivo ilegible en el listado aparece CON SU ERROR en vez de vaciar la lista: que una tool
+corrupta esconda a las otras diecinueve sería peor que mostrarla rota. Verificado de punta a punta en
+UE 5.8.1 (`JAM_JAMTOOL_58 TODO VERDE`): escribe 1018 bytes, conserva identidad y superficie, el
+listado lo lee sin abrirlo del todo, sus dependencias existen en el registro real y una tool que pide
+un verbo ausente **se rechaza al importar nombrando lo que falta**. Son **909 tests**.
+
+**Lo único que falta para cerrarlo**: el gesto en Slate (botones Exportar/Importar) y que la Dash Bar
+EJECUTE una función publicada resolviendo su entrada desde la selección. Las dos son C++ y necesitan
+manos para verificarse — el núcleo y el adaptador ya deciden todo lo demás.
 
 **(diseño)** El norte, corregido por Brian: `.jamtool`. Una tool NO se programa en Python: el Graph produce un
 `.jamtool` que se importa a la Dash Bar, y así cualquiera arma sus herramientas. Es el HDA de Houdini

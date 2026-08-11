@@ -766,3 +766,48 @@ def params_de_nodo_nuevo(verbo: str) -> str:
                 if campo in params:
                     params[campo] = round(float(valor), 1)
     return json.dumps(params, ensure_ascii=True)
+
+
+def jamtool_export(funcion_id: str, destino: str) -> str:
+    """Exporta una función guardada como `.jamtool` portable.
+
+    Es el contrato que llama el gesto de Slate. Devuelve texto para el log —no JSON— porque el
+    resultado que le importa a quien aprieta Exportar es «dónde quedó», y un error tiene que poder
+    leerse tal cual.
+    """
+    from . import jamtool, preset
+
+    for p in preset.listar(kind="funcion"):
+        if str(p.get("funcion_id") or "") == str(funcion_id):
+            try:
+                ruta = jamtool.escribir(p, destino)
+            except Exception as exc:  # noqa: BLE001 — el motivo va al usuario, no al stack
+                return f"JAMTOOL ERROR — {exc}"
+            return f"JAMTOOL exportado ✓ — «{p.get('nombre')}» → {ruta}"
+    return f"JAMTOOL ERROR — no hay una función con id «{funcion_id}»"
+
+
+def jamtool_import(origen: str) -> str:
+    """Importa un `.jamtool` y lo guarda como función de la biblioteca.
+
+    Se le pasan los verbos que este Jam tiene: así una tool que necesita algo ausente se rechaza
+    ACÁ, con el nombre de lo que falta, y no a mitad del Run.
+    """
+    from . import jamtool, preset, tools
+
+    try:
+        p = jamtool.leer(origen, verbos_disponibles=set(tools.REGISTRO))
+        ruta = preset.guardar(p)
+    except Exception as exc:  # noqa: BLE001
+        return f"JAMTOOL ERROR — {exc}"
+    superficies = ", ".join(p.get("superficies") or ["graph"])
+    return f"JAMTOOL importado ✓ — «{p['nombre']}» ({superficies})  {ruta}"
+
+
+def jamtool_list(carpeta: str) -> str:
+    """Los `.jamtool` de una carpeta, como JSON para que Slate arme la lista."""
+    import json
+
+    from . import jamtool
+
+    return json.dumps({"tools": jamtool.listar(carpeta)}, ensure_ascii=False)

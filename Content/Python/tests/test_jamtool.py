@@ -135,3 +135,66 @@ class ArtefactoPortableTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ArchivoEnDiscoTests(unittest.TestCase):
+    """El `.jamtool` como archivo. JSON a propósito: una tool que alguien armó tiene que poder
+    mirarse, compartirse por chat y meterse en un repo."""
+
+    def setUp(self):
+        import tempfile
+
+        from jam import jamtool
+
+        self.jamtool = jamtool
+        self.dir = tempfile.mkdtemp()
+
+    def ruta(self, nombre="muro"):
+        import os
+
+        return os.path.join(self.dir, nombre)
+
+    def test_ida_y_vuelta_por_el_disco(self):
+        escrita = self.jamtool.escribir(preset(), self.ruta())
+        self.assertTrue(escrita.endswith(".jamtool"))
+        self.assertEqual(self.jamtool.leer(escrita)["funcion_id"], "fn-0001")
+
+    def test_le_pone_la_extension_si_falta(self):
+        """Guardar «muro» a secas no puede dejar un archivo que después no se reconozca."""
+        self.assertTrue(self.jamtool.escribir(preset(), self.ruta("muro")).endswith(".jamtool"))
+
+    def test_un_json_cualquiera_no_es_una_tool(self):
+        import pathlib
+
+        otro = pathlib.Path(self.dir) / "cosa.json"
+        otro.write_text("{}", encoding="utf-8")
+        with self.assertRaises(jamtool_core.JamToolInvalido):
+            self.jamtool.leer(str(otro))
+
+    def test_un_archivo_roto_dice_por_que(self):
+        import pathlib
+
+        roto = pathlib.Path(self.dir) / "roto.jamtool"
+        roto.write_text("{no es json", encoding="utf-8")
+        with self.assertRaises(jamtool_core.JamToolInvalido) as e:
+            self.jamtool.leer(str(roto))
+        self.assertIn("no se pudo leer", str(e.exception))
+
+    def test_el_listado_muestra_lo_justo_sin_abrir_todo(self):
+        self.jamtool.escribir(preset(), self.ruta("uno"))
+        fila = self.jamtool.listar(self.dir)[0]
+        self.assertEqual(fila["nombre"], "Muro rápido")
+        self.assertEqual(fila["requiere"], ["mesh_extrude", "mesh_to_static"])
+
+    def test_una_tool_corrupta_no_esconde_a_las_demas(self):
+        """Que un archivo roto vacíe el listado sería peor que mostrarlo roto."""
+        import pathlib
+
+        self.jamtool.escribir(preset(), self.ruta("buena"))
+        (pathlib.Path(self.dir) / "mala.jamtool").write_text("{", encoding="utf-8")
+        filas = self.jamtool.listar(self.dir)
+        self.assertEqual(len(filas), 2)
+        self.assertEqual(sum(1 for f in filas if "error" in f), 1)
+
+    def test_una_carpeta_que_no_existe_no_es_un_error(self):
+        self.assertEqual(self.jamtool.listar("/no/existe/nada"), [])
