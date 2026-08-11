@@ -525,24 +525,39 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 			.WidthOverride(TAttribute<FOptionalSize>::CreateLambda(
 				[this]() { return FOptionalSize(AnchoColumnaCentral()); }))
 			[
-				SNew(SWidgetSwitcher)
-				// El puntero va DÉBIL y el índice sale acotado a mano. Con `[this]` crudo, un nodo
-				// destruido mientras su switcher todavía se dibuja hacía leer `bCompacto` sobre
-				// memoria liberada, y el editor moría con
-				// «Array index out of bounds: 254 into an array of size 2» dentro de `DrawPrepass`.
+				// Acá había un `SWidgetSwitcher` que elegía la columna por índice. El editor moría
+				// en `DrawPrepass` con «Array index out of bounds: 254 into an array of size 2»
+				// dentro de un `TOneDynamicChildBase<…, TSlateAttribute<int>>`, que es su firma.
 				//
-				// El 254 no era casual, era la firma del bug: con optimización el compilador sabe
-				// que un `bool` sólo vale 0 o 1, así que `bCompacto ? 1 : 0` se compila como una
-				// carga directa del byte, sin rama. Sobre memoria liberada ese byte es basura y
-				// entra tal cual como índice. `FMath::Clamp` deja el destrozo en un dibujo raro en
-				// vez de un assert, aunque el puntero débil ya evita llegar hasta ahí.
-				.WidgetIndex_Lambda([Debil = TWeakPtr<SJamGraphNode>(SharedThis(this))]()
-				{
-					const TSharedPtr<SJamGraphNode> Vivo = Debil.Pin();
-					return Vivo.IsValid() ? FMath::Clamp(Vivo->IsCompacto() ? 1 : 0, 0, 1) : 0;
-				})
-				+ SWidgetSwitcher::Slot()[ ParamCol ]
-				+ SWidgetSwitcher::Slot()[ LetrasCol ]
+				// Se intentó dos veces arreglar el índice —diferir la creación del nodo, y cambiar
+				// el `[this]` crudo del lambda por un puntero débil con clamp— y el crash volvió
+				// igual las dos veces. En vez de seguir afinando el índice se saca el índice: dos
+				// hijos con `Visibility` hacen lo mismo y no hay entero que pueda quedar fuera de
+				// rango. Si el crash SIGUE después de esto, el switcher que revienta no es de Jam
+				// —es el único que había— y hay que buscarlo en el editor.
+				SNew(SOverlay)
+				+ SOverlay::Slot()
+				[
+					SNew(SBox)
+					.Visibility_Lambda([Debil = TWeakPtr<SJamGraphNode>(SharedThis(this))]()
+					{
+						const TSharedPtr<SJamGraphNode> Vivo = Debil.Pin();
+						return (Vivo.IsValid() && !Vivo->IsCompacto())
+							? EVisibility::Visible : EVisibility::Collapsed;
+					})
+					[ ParamCol ]
+				]
+				+ SOverlay::Slot()
+				[
+					SNew(SBox)
+					.Visibility_Lambda([Debil = TWeakPtr<SJamGraphNode>(SharedThis(this))]()
+					{
+						const TSharedPtr<SJamGraphNode> Vivo = Debil.Pin();
+						return (Vivo.IsValid() && Vivo->IsCompacto())
+							? EVisibility::Visible : EVisibility::Collapsed;
+					})
+					[ LetrasCol ]
+				]
 			]
 		]
 		+ SHorizontalBox::Slot().FillWidth(1.0f)[ SNew(SSpacer) ]   // centro: icono (OnPaint)

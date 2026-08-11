@@ -505,14 +505,15 @@ class IndiceDelSwitcherDelNodoEnElCppTests(unittest.TestCase):
     `.cpp`, como el marquee. La confirmación de que no vuelve es el gesto real.
     """
 
-    def lambda_del_switcher(self) -> str:
+    def lambda_de_la_columna(self) -> str:
         from pathlib import Path
 
         raiz = Path(__file__).resolve().parents[3]
         cpp = (raiz / "Source" / "JamEditor" / "Private" / "SJamGraphNode.cpp").read_text(
             encoding="utf-8")
-        inicio = cpp.index("SNew(SWidgetSwitcher)")
-        bloque = cpp[inicio:cpp.index("+ SWidgetSwitcher::Slot()", inicio)]
+        # Anclado a la columna central por su ancho: hay otros SOverlay en el archivo.
+        inicio = cpp.index("AnchoColumnaCentral()); }))")
+        bloque = cpp[inicio:cpp.index("// centro: icono", inicio)]
         # Sin comentarios: el de acá al lado EXPLICA el bug y menciona `[this]`, así que juzgarlo
         # junto con el código haría que el test se atrape a sí mismo. Pasó en el primer intento.
         return "\n".join(linea for linea in bloque.splitlines()
@@ -520,18 +521,28 @@ class IndiceDelSwitcherDelNodoEnElCppTests(unittest.TestCase):
 
     def test_el_indice_no_captura_this_crudo(self):
         """La regresión exacta: volver a `[this]` devuelve el use-after-free."""
-        self.assertNotIn("[this]", self.lambda_del_switcher(),
-                         "el índice del switcher volvió a capturar `this` crudo")
+        self.assertNotIn("[this]", self.lambda_de_la_columna(),
+                         "la columna de la ficha volvió a capturar `this` crudo")
 
     def test_el_indice_usa_un_puntero_debil(self):
-        cuerpo = self.lambda_del_switcher()
+        cuerpo = self.lambda_de_la_columna()
         self.assertIn("TWeakPtr<SJamGraphNode>", cuerpo)
         self.assertIn("Debil.Pin()", cuerpo)
 
-    def test_el_indice_queda_acotado_al_rango_de_slots(self):
-        """Defensa en profundidad: el switcher tiene DOS slots, así que un índice fuera de 0..1 es un
-        assert y no un dibujo raro. Si algún día se agrega un tercer slot, este test obliga a mirar
-        el clamp en vez de dejarlo desactualizado en silencio."""
-        cuerpo = self.lambda_del_switcher()
-        self.assertIn("FMath::Clamp", cuerpo)
-        self.assertIn("0, 1)", cuerpo)
+    def test_la_ficha_no_elige_su_columna_por_indice(self):
+        """El experimento que discrimina de quién es el crash.
+
+        Arreglar el índice dos veces —diferir la creación, y cambiar `[this]` por un puntero débil
+        con clamp— no lo evitó. Así que se saca el índice: dos hijos con `Visibility` hacen lo mismo
+        y no hay entero que pueda quedar fuera de rango. Si el editor SIGUE cayendo en un
+        `TOneDynamicChildBase<…, TSlateAttribute<int>>`, el switcher culpable no es de Jam, porque
+        este era el único que había, y hay que buscarlo en el editor.
+        """
+        from pathlib import Path
+
+        raiz = Path(__file__).resolve().parents[3]
+        fuentes = list((raiz / "Source").rglob("*.cpp")) + list((raiz / "Source").rglob("*.h"))
+        con_switcher = [f.name for f in fuentes
+                        if "SNew(SWidgetSwitcher)" in f.read_text(encoding="utf-8")]
+        self.assertEqual(con_switcher, [],
+                         f"volvió a aparecer un SWidgetSwitcher en Slate: {con_switcher}")

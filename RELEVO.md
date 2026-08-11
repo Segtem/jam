@@ -72,7 +72,35 @@ sentido que los laterales) y después **no eran convexos** (un radio suelto por 
 estrellados, y sobre un cóncavo no valen ni el abanico ni la referencia). Son **1099 acuerdos / 4298
 veredictos**, **303/303 mutantes** y 11 dominios.
 
-**El crash del arrastre era un USE-AFTER-FREE, no lo que yo había supuesto.** El primer arreglo
+⚠️ **EL CRASH DEL ARRASTRE SIGUE ABIERTO — tres intentos, y el tercero es un EXPERIMENTO, no un
+arreglo.** Brian lo reproduce arrastrando una ficha del ribbon al lienzo. Siempre cae igual:
+`TOneDynamicChildBase<…, TSlateAttribute<int>>::GetChildRefAt` dentro de `DrawPrepass`, con
+«Array index out of bounds: **254** into an array of size **2**» y, la última vez, además
+`SIGSEGV … write at 0x3`.
+
+Lo intentado y DESCARTADO, para que nadie lo repita:
+1. **Diferir la creación del nodo un frame** (`OnDrop` guarda y un `RegisterActiveTimer` crea). No
+   era la causa; se conserva porque mutar la jerarquía dentro del evento igual está mal.
+2. **Puntero débil + clamp en el `WidgetIndex_Lambda`** del `SWidgetSwitcher` de la ficha, que
+   capturaba `this` crudo. Tampoco: el crash volvió con el binario nuevo — verificado por
+   timestamps, el crash de las 11:25:28 es posterior al `.so` de las 11:23:33.
+
+3. **Lo que está ahora es un experimento que DISCRIMINA, y hay que leerlo como tal.** Se eliminó el
+   único `SWidgetSwitcher` de todo Jam: la columna de la ficha usa dos hijos con `Visibility` en un
+   `SOverlay`, que hace lo mismo sin ningún índice. **Sin índice no puede haber índice fuera de
+   rango.** Por eso el resultado es informativo en las dos direcciones:
+   · si el crash **desaparece**, era nuestro y quedó cerrado;
+   · si el crash **sigue**, el `TOneDynamicChildBase` culpable **no es de Jam** —era el único que
+     había— y hay que buscarlo en el editor: candidatos son los switchers propios de Slate en la
+     ventana del decorador de drag-drop o en el tab, y ahí ya no alcanza con leer el stack.
+
+Un test recorre `Source/` y falla si vuelve a aparecer `SNew(SWidgetSwitcher)`. **870 tests.**
+⚠️ **Quedan 17 lambdas `[this]` más en `SJamGraphNode.cpp`** con el mismo riesgo latente.
+
+**Lo que se aprendió del método**: deducir la causa desde un stack sin poder reproducir el gesto
+falló dos veces seguidas. El tercer paso no pretende acertar sino PARTIR EL PROBLEMA EN DOS.
+
+**(histórico del intento 2)** El crash del arrastre parecía un USE-AFTER-FREE. El primer arreglo
 —diferir la creación del nodo un frame— no era la causa; se conserva porque mutar la jerarquía dentro
 del evento igual está mal, pero el editor siguió rompiéndose. El stack completo que trajo Brian tenía
 el dato que faltaba: `Array index out of bounds: **254** into an array of size **2**`, en un
