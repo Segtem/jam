@@ -573,7 +573,24 @@ de pedir manos sin que nadie lo note.)*
 
 ## Lo próximo
 
-**0-quater. Live view estilo Houdini — MEDIDO, y la medición corrigió el diseño.** Tutoriales
+**0-quater. Live view — el caché ARRANCÓ y el ahorro está medido: depende de DÓNDE se toca.**
+`cache_core` calcula la huella de cada nodo —`(verbo, params, huellas de sus entradas)`— y propaga
+el sucio solo; un nodo en un ciclo NO recibe huella, porque sin orden no hay identidad estable. Los
+params se normalizan a texto: el canvas manda `"20"` y un archivo manda `20`.
+
+Medido con `tools/experiments/mide_ahorro_cache_58.py`: tocar la FUENTE de una cadena ensucia 7/7 y
+no ahorra nada —correcto e inevitable, en Houdini pasa igual—; tocar una hoja saltea **10 de 11**
+nodos (~9% del costo). **Mi estimación previa de «un orden de magnitud» era optimista**: vale para
+el final de la cadena, no para el principio. Corolario que no había visto: **el orden en que se arma
+el grafo determina cuán vivo se siente** —geometría pesada arriba, ajustes abajo—, y eso merece estar
+en la doc de los tutoriales. ⚠️ Esa sonda usa «el nodo con más params» como proxy del último y en dos
+de tres casos eso era la fuente: midió el PEOR caso.
+
+**Falta conectarlo a `graph.ejecutar_detalle`** —guardar el resultado por huella y saltear los
+limpios—, que es el corazón de la ejecución y no se tocó por prudencia. La línea base para comparar
+son los números de arriba.
+
+**0-quater-bis. La latencia base, medida.** Tutoriales
 reales en UE 5.8.1: **compile 0,1–0,3 ms · Run 167–498 ms**. O sea que el cerebro puro es GRATIS
 (~7000 cooks/s) y el 99,9% del costo está dentro del motor. **Cachear el compile no sirve de nada**
 —era lo primero que yo había propuesto, y estaba mal—: el caché tiene que ser de los RESULTADOS del
