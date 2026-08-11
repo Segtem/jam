@@ -561,3 +561,36 @@ class IndiceDelSwitcherDelNodoEnElCppTests(unittest.TestCase):
                         if "SNew(SWidgetSwitcher)" in f.read_text(encoding="utf-8")]
         self.assertEqual(con_switcher, [],
                          f"volvió a aparecer un SWidgetSwitcher en Slate: {con_switcher}")
+
+
+class ArgumentosDelNodoInicializadosTests(unittest.TestCase):
+    """Los `SLATE_ARGUMENT` de tipo POD nacen SIN INICIALIZAR.
+
+    Son miembros crudos de la struct de args: quien no los pasa se lleva lo que hubiera en la pila.
+    `AddNode` nunca pasaba `Compacto`, así que un nodo recién creado leía un `bool` basura y salía en
+    tamaño normal pero con las letras del modo compacto.
+
+    Ese mismo bool causó el crash que costó tres intentos: con optimización `bCompacto ? 1 : 0`
+    compila como una carga directa del byte, así que un 254 de basura entraba tal cual como índice
+    de slot y volteaba el editor. No era un use-after-free como se creyó dos veces: era esto.
+    """
+
+    def begin_args(self) -> str:
+        from pathlib import Path
+
+        raiz = Path(__file__).resolve().parents[3]
+        cabecera = (raiz / "Source" / "JamEditor" / "Public" / "SJamGraphNode.h").read_text(
+            encoding="utf-8")
+        inicio = cabecera.index("SLATE_BEGIN_ARGS(SJamGraphNode)")
+        return cabecera[inicio:cabecera.index("SLATE_END_ARGS", inicio)]
+
+    def test_todo_bool_de_los_args_arranca_con_un_valor(self):
+        """Sin esto el bug vuelve en silencio y encima no determinista."""
+        import re
+
+        bloque = self.begin_args()
+        declarados = set(re.findall(r"SLATE_ARGUMENT\(bool,\s*(\w+)\)", bloque))
+        inicializados = set(re.findall(r"_(\w+)\((?:true|false)\)", bloque))
+        faltan = declarados - inicializados
+        self.assertEqual(faltan, set(),
+                         f"estos bool de SLATE_ARGUMENT quedan sin inicializar: {sorted(faltan)}")

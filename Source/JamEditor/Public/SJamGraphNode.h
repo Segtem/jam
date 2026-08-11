@@ -67,7 +67,20 @@ DECLARE_DELEGATE_RetVal(TArray<FString>, FOnPedirVariables);
 class SJamGraphNode : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SJamGraphNode) {}
+	// Los `SLATE_ARGUMENT` POD nacen SIN INICIALIZAR: son miembros crudos de la struct de args, y
+	// quien no los pasa se lleva lo que hubiera en la pila. `AddNode` nunca pasaba `Compacto`, así
+	// que un nodo recién creado leía un `bool` basura y aparecía en tamaño normal PERO con las
+	// letras del modo compacto.
+	//
+	// El mismo bool causó el crash que costó tres intentos: con optimización, `bCompacto ? 1 : 0`
+	// compila como una carga directa del byte —el compilador sabe que un bool vale 0 o 1—, así que
+	// un 254 de basura entraba tal cual como índice en un `SWidgetSwitcher` de dos slots y volteaba
+	// el editor con «Array index out of bounds: 254 into an array of size 2».
+	SLATE_BEGIN_ARGS(SJamGraphNode)
+		: _HasInput(true)
+		, _CanBypass(false)
+		, _Compacto(false)
+	{}
 		SLATE_ARGUMENT(FString, Verb)
 		/** Título humano separado del verbo interno. */
 		SLATE_ARGUMENT(FString, DisplayName)

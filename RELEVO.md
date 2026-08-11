@@ -72,7 +72,27 @@ sentido que los laterales) y después **no eran convexos** (un radio suelto por 
 estrellados, y sobre un cóncavo no valen ni el abanico ni la referencia). Son **1099 acuerdos / 4298
 veredictos**, **303/303 mutantes** y 11 dominios.
 
-**EL CRASH DEL ARRASTRE ESTÁ RESUELTO, y lo resolvió un experimento, no un diagnóstico.** Brian
+**LA CAUSA RAÍZ ERA UN `SLATE_ARGUMENT` SIN INICIALIZAR — no lo que se creyó las tres veces.**
+`SLATE_ARGUMENT(bool, Compacto)` declara un miembro POD crudo en la struct de args: quien no lo pasa
+se lleva lo que hubiera en la pila. `AddNode` nunca pasaba `Compacto`, así que **todo nodo recién
+creado leía un `bool` basura**. De ahí salían los dos síntomas y su intermitencia:
+
+· el nodo aparecía en tamaño normal PERO con las letras del modo compacto —el bool basura elegía la
+  columna, mientras el editor dejaba `Width = NodeWidth` porque su lado asume que nace normal—;
+· y el crash: con optimización `bCompacto ? 1 : 0` compila como **carga directa del byte** —el
+  compilador sabe que un bool vale 0 o 1—, así que un **254** de basura entraba tal cual como índice
+  en el `SWidgetSwitcher` de dos slots. El «Array index out of bounds: 254 into an array of size 2»
+  no era un puntero colgado: era este bool.
+
+`SLATE_BEGIN_ARGS` ahora inicializa `_HasInput`, `_CanBypass` y `_Compacto`, y un test falla si algún
+bool de los args queda sin valor. **872 tests.**
+
+**Los tres intentos anteriores atacaron síntomas** y quedan documentados abajo para que nadie los
+repita. El segundo —quitar el `SWidgetSwitcher`— igual se conserva: sin índice no puede volver a
+haber índice fuera de rango, así que el mismo bug hoy sería a lo sumo un dibujo raro. También se
+conserva el diferido de `OnDrop` y la visibilidad explícita en `SetCompacto`.
+
+**(histórico)** El crash del arrastre y su experimento. Brian
 confirmó que ya no rompe. Era nuestro: el `SWidgetSwitcher` de la ficha, que elegía la columna por
 ÍNDICE, caía en `DrawPrepass` con «Array index out of bounds: 254 into an array of size 2».
 
