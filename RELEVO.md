@@ -606,6 +606,24 @@ cercana a «vive en el canvas y no toca el nivel»; es un criterio PRESTADO y es
 en el código, para que se cambie ahí el día que el registro tenga un campo propio. Tampoco se cachea
 un nodo que falló: sería volver permanente un error hasta que alguien toque un parámetro.
 
+🔑 **MEDICIÓN LIMPIA — el caché NO es la palanca del live view, y conviene saberlo antes de
+seguir invirtiendo ahí.** Con los assets borrados y cero errores:
+
+| | run completo | geometría | horneado |
+|---|---|---|---|
+| Borde de camino | 68,8 ms | **1,0 ms** | **67,8 ms (98,5%)** |
+| Pino procedural | 257,3 ms | **1,6 ms** | **255,7 ms (99,4%)** |
+
+La geometría YA es casi gratis. El 92,7% que ahorra el caché es 92,7% de 1,6 ms: un milisegundo y
+medio. El 99% del costo es **hornear a StaticMesh**, que es justo lo que el caché no puede tocar
+—produce `A`, y escribir en Content es un efecto—.
+
+**La palanca es NO HORNEAR**: dibujar el preview con un `DynamicMeshComponent` en vez de crear un
+StaticMesh lleva el cook de 68–257 ms a ~1–2 ms. Dos órdenes de magnitud, y por no hacer el trabajo
+en vez de por reusarlo. El horneado queda en Bake, una vez — como Houdini, que cocina en memoria y
+escribe al disco sólo cuando se lo piden. **Ese es el próximo corte del live view**, y el caché pasa
+a ser una optimización secundaria para cadenas de geometría largas.
+
 **La duda de la medición quedó RESUELTA, en dos partes.** (1) Los nodos **sí construyen**
 —`BEZIER S ✓ 13 points`, `CONE M ✓ 192 triángulos`—, así que el ahorro es sobre trabajo real y no
 sobre nodos vacíos. (2) Pero los 82–90% **subestiman el Run completo**: en los dos grafos falla el
