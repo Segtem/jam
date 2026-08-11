@@ -2008,8 +2008,31 @@ FReply SJamGraphEditor::OnDrop(const FGeometry& MyGeometry, const FDragDropEvent
 		? WireLayer->GetCachedGeometry().AbsoluteToLocal(E.GetScreenSpacePosition())
 		: MyGeometry.AbsoluteToLocal(E.GetScreenSpacePosition());
 	const FVector2D Modelo = LocalToModel(Local) - FVector2D(NodeWidth * 0.5f, 20.0f);
-	AddNode(Op->Verb, &Modelo);
+
+	// El nodo NO se crea acá. `AddNode` agrega slots al canvas, y hacerlo dentro del manejo del drop
+	// muta la jerarquía de widgets mientras Slate la está recorriendo: el crash aparece en
+	// `Prepass_Internal` → `ForEachWidget` → `GetChildRefAt` con un índice fuera de rango. Es
+	// intermitente porque depende de que el drop caiga dentro de ese recorrido, y por eso costó
+	// tanto de atrapar. Se difiere un frame, cuando Slate ya terminó.
+	DropPendienteVerbo = Op->Verb;
+	DropPendientePos = Modelo;
+	RegisterActiveTimer(0.0f, FWidgetActiveTimerDelegate::CreateSP(
+		this, &SJamGraphEditor::CrearNodoDiferido));
 	return FReply::Handled();
+}
+
+EActiveTimerReturnType SJamGraphEditor::CrearNodoDiferido(const double, const float)
+{
+	if (!DropPendienteVerbo.IsEmpty())
+	{
+		const FVector2D Donde = DropPendientePos;
+		const FString Verbo = DropPendienteVerbo;
+		// Se limpia ANTES de crear: si `AddNode` fallara, un pendiente sin borrar volvería a
+		// intentarlo en cada frame.
+		DropPendienteVerbo.Reset();
+		AddNode(Verbo, &Donde);
+	}
+	return EActiveTimerReturnType::Stop;
 }
 
 FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At,

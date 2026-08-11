@@ -447,3 +447,46 @@ class SincronizacionDeLaVentanaFlotanteEnElCppTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class DropDelRibbonAlLienzoEnElCppTests(unittest.TestCase):
+    """Arrastrar una ficha del ribbon al lienzo rompía el editor cada tanto.
+
+    El stack del assert lo ubica: `SWidget::Prepass_Internal` → `ForEachWidget` →
+    `GetChildRefAt` con un índice fuera de rango. `OnDrop` llamaba a `AddNode`, que agrega slots al
+    canvas, en medio del recorrido que Slate estaba haciendo sobre esos mismos hijos. Que fuera
+    intermitente es coherente: depende de que el drop caiga dentro de ese recorrido.
+
+    Esto no se puede testear sin motor —es un gesto de mouse en Slate— así que se ata leyendo el
+    `.cpp`, igual que el marquee. La verificación de que el crash desapareció es el gesto real.
+    """
+
+    def modulo(self) -> str:
+        from pathlib import Path
+
+        raiz = Path(__file__).resolve().parents[3]
+        return (raiz / "Source" / "JamEditor" / "Private" / "SJamGraphEditor.cpp").read_text(
+            encoding="utf-8")
+
+    def cuerpo_de_ondrop(self) -> str:
+        cpp = self.modulo()
+        inicio = cpp.index("FReply SJamGraphEditor::OnDrop")
+        return cpp[inicio:cpp.index("\n}", inicio)]
+
+    def test_el_drop_no_crea_el_nodo_dentro_del_evento(self):
+        """La regresión que importa: volver a llamar `AddNode` desde `OnDrop` devuelve el crash."""
+        self.assertNotIn("AddNode(", self.cuerpo_de_ondrop(),
+                         "OnDrop volvió a crear el nodo durante el manejo del evento")
+
+    def test_el_drop_difiere_la_creacion_a_un_timer(self):
+        cuerpo = self.cuerpo_de_ondrop()
+        self.assertIn("RegisterActiveTimer", cuerpo)
+        self.assertIn("CrearNodoDiferido", cuerpo)
+
+    def test_el_pendiente_se_limpia_antes_de_crear(self):
+        """Sin esto, un `AddNode` que falle deja el pendiente vivo y lo reintenta cada frame."""
+        cpp = self.modulo()
+        inicio = cpp.index("EActiveTimerReturnType SJamGraphEditor::CrearNodoDiferido")
+        cuerpo = cpp[inicio:cpp.index("\n}\n", inicio)]
+        self.assertLess(cuerpo.index("DropPendienteVerbo.Reset()"), cuerpo.index("AddNode("),
+                        "el pendiente se limpia después de crear: un fallo lo reintenta para siempre")

@@ -72,6 +72,18 @@ sentido que los laterales) y después **no eran convexos** (un radio suelto por 
 estrellados, y sobre un cóncavo no valen ni el abanico ni la referencia). Son **1099 acuerdos / 4298
 veredictos**, **303/303 mutantes** y 11 dominios.
 
+**Arrastrar una ficha del ribbon al lienzo rompía el editor; arreglado, falta el gesto.** Brian lo
+reportó como intermitente («de vez en cuando»). El gesto YA existía —`SJamVerbTile::OnDragDetected`
+más `SJamGraphEditor::OnDrop`—, así que no había que incorporarlo sino entender por qué reventaba. El
+stack de los asserts lo ubica: `SWidget::Prepass_Internal` → `ForEachWidget` → `GetChildRefAt` con
+índice fuera de rango. `OnDrop` llamaba a `AddNode`, que agrega slots al canvas, **en medio del
+recorrido que Slate hacía sobre esos mismos hijos**; que fuera intermitente es coherente con que el
+drop caiga o no dentro de ese recorrido. Ahora `OnDrop` sólo guarda verbo y posición y
+`RegisterActiveTimer` crea el nodo en el frame siguiente. Tres tests leen el `.cpp` y dos mutaciones
+—devolver `AddNode` a `OnDrop`, y limpiar el pendiente después de crear en vez de antes— lo ponen
+rojo. **Compila y son 867 tests, pero el gesto no se pudo ejercer**: necesita mouse real en el editor
+GUI. Que el crash desapareció lo confirma Brian, no yo.
+
 ⚠️ **MassEntity Fase 4b — variación por entidad: IMPLEMENTADA Y COMPILADA, SIN VERIFICAR EN PIE.**
 La patrulla anterior movía a toda la población al unísono: `Distance = 0`, `Direction = 1` y la misma
 velocidad para todas, así que salían juntas, tocaban el extremo en el mismo frame y volvían juntas.

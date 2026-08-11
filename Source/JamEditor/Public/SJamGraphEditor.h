@@ -185,6 +185,18 @@ private:
 	FString AddNodeAlCentro(const FString& Verb);
 	virtual FReply OnDragOver(const FGeometry& MyGeometry, const FDragDropEvent& DragDropEvent) override;
 	virtual FReply OnDrop(const FGeometry& MyGeometry, const FDragDropEvent& DragDropEvent) override;
+
+	/**
+	 * Verbo y posición de un drop todavía sin materializar.
+	 *
+	 * Crear el nodo DENTRO de `OnDrop` agrega slots al canvas mientras Slate está recorriendo sus
+	 * hijos, y ese recorrido revienta con un índice fuera de rango en `Prepass`. Se guarda acá y se
+	 * crea en el frame siguiente, cuando el recorrido ya terminó.
+	 */
+	EActiveTimerReturnType CrearNodoDiferido(const double InTime, const float InDelta);
+
+	FString DropPendienteVerbo;
+	FVector2D DropPendientePos = FVector2D::ZeroVector;
 	void DeleteNode(const FString& Id);
 
 	// ---- cajas de comentario/grupo (Fase 7.1) ----
