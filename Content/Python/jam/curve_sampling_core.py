@@ -302,6 +302,10 @@ def offset_points(points, *, distance: float = 100.0, side: str = "left",
         return tuple(result)
 
     output = []
+    # De qué vértice del eje nació cada punto emitido. `mesh_ribbon` lo necesita para conocer el eje
+    # REAL de cada muestra: el punto medio entre bordes deja de servir cuando un miter empuja uno de
+    # los dos muy lejos. Un bevel emite dos puntos con el mismo origen, a propósito.
+    origins = []
     bevels = 0
     for index, point in enumerate(projected):
         if not closed and index == 0:
@@ -309,12 +313,14 @@ def offset_points(points, *, distance: float = 100.0, side: str = "left",
             output.append(lifted(index, (
                 point[0] + n[0] * signed_distance,
                 point[1] + n[1] * signed_distance)))
+            origins.append(index)
             continue
         if not closed and index == len(projected) - 1:
             n = normal(directions[-1])
             output.append(lifted(index, (
                 point[0] + n[0] * signed_distance,
                 point[1] + n[1] * signed_distance)))
+            origins.append(index)
             continue
 
         previous_direction = directions[index - 1]
@@ -333,19 +339,23 @@ def offset_points(points, *, distance: float = 100.0, side: str = "left",
             output.append(lifted(index, (
                 point[0] + bisector[0] * scale,
                 point[1] + bisector[1] * scale)))
+            origins.append(index)
         else:
             bevels += 1
             for n in (previous_normal, next_normal):
                 output.append(lifted(index, (
                     point[0] + n[0] * signed_distance,
                     point[1] + n[1] * signed_distance)))
+                origins.append(index)
         if len(output) > 4096:
             return {"error": "curve_offset no puede producir más de 4096 puntos por recorrido."}
 
     if closed:
         output.append(output[0])
+        origins.append(origins[0])
     result = tuple(output)
     length = sum(math.dist(a, b) for a, b in zip(result, result[1:]))
     return {"points": result, "length": length, "closed": closed, "bevels": bevels,
+            "origins": tuple(origins),
             "info": (f"{len(source)}→{len(result)} puntos · {distance:g} cm {side} · "
                      f"{plane.upper()} · {join} · {bevels} bevel")}

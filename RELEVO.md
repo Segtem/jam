@@ -46,6 +46,19 @@ el offset con el eje real y su correspondencia de muestras, y es un corte aparte
 `JAM_MESH_RIBBON_58 TODO VERDE` con los mismos 25 pares / 48 tris / UV0 0..5.91 de siempre,
 `mesh_extrude` verde, cara de la cinta 48/48 a +Z y **19/19 tutoriales compilan**. Son 863 tests.
 
+**El pliegue extremo bajó de 11/20 a 7/20, y lo que queda es OTRO defecto.** `offset_points` ahora
+publica `origins` —de qué vértice del eje nació cada punto emitido, dos con el mismo en un bevel—, así
+que `_sin_pliegues` usa el eje REAL en vez del punto medio entre bordes, que dejaba de representarlo
+cuando un miter empuja un borde lejísimos. Los limpios siguen en 0/20.
+
+Lo que resta NO es un pliegue por cruce y por eso no se siguió afinando: ahí el borde interior **no
+retrocede, avanza muy poco**. Medido en el mundo 1 del corpus, el izquierdo avanza 1,4 cm mientras el
+derecho avanza ~460, y como cada muestra lleva su propia Z el triángulo casi sin base queda casi
+vertical (`nz = -0,048`). Es una degeneración por avance despreciable y merece su propio corte, con
+criterio y defensa de umbral propios —avance mínimo proporcional al del eje, o fusionar muestras casi
+coincidentes—. `malla.cara_visible` los marca en rojo mientras tanto. `curve_offset` (que comparte ese
+núcleo) y los 19 tutoriales siguen verdes en UE 5.8.1.
+
 **`malla` se extendió a los SÓLIDOS: extrude y primitivas.** Una superficie abierta se juzga por el
 lado que muestra; un sólido, por si sus caras miran hacia AFUERA —invertidas, la pieza se ve como si
 uno estuviera adentro—. `malla.solido_hacia_afuera` usa el volumen con signo, no el producto punto

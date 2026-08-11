@@ -20,7 +20,7 @@ def _cross(a, b):
     )
 
 
-def _sin_pliegues(left, right, margen: float = 0.98):
+def _sin_pliegues(left, right, ejes_reales=None, margen: float = 0.98):
     """Angosta la cinta donde el recorrido dobla más cerrado que su propio ancho.
 
     Cuando el radio de curvatura es menor que la media anchura, el borde INTERIOR se cruza consigo
@@ -32,48 +32,69 @@ def _sin_pliegues(left, right, margen: float = 0.98):
     inyectado ya salían con caras invertidas. Se degrada explícito y se informa, igual que
     `miter_limit` cae a bevel en vez de estirar la esquina en silencio.
 
-    Devuelve `(left, right, tramos_angostados)`. Trabaja sobre el eje implícito —el punto medio de
-    cada par— y aplica el MISMO factor a los dos bordes, para que la cinta se angoste sin descentrarse.
+    Devuelve `(left, right, tramos_angostados)`. Usa el eje REAL de cada muestra —`offset_points`
+    publica de qué vértice nació cada punto— y aplica el MISMO factor a los dos bordes, para que la
+    cinta se angoste sin descentrarse.
 
-    LÍMITE MEDIDO, no supuesto: el punto medio deja de representar al eje cuando el miter de una
-    esquina muy cerrada empuja un borde lejísimos, y ahí el ancho local ya no es `width`. Con giros
-    de hasta 22° por muestra —el rango realista— esto deja 0 de 20 cintas plegadas, contra 4 de 20
-    antes. Con giros de 140° y cintas más anchas que el paso, siguen quedando 11 de 20: ese caso
-    es geométricamente degenerado y lo sigue marcando `malla.cara_visible`. NO se afinó el algoritmo
-    contra la medida a propósito; corregirlo de verdad pide reescribir el offset con el eje real y su
-    correspondencia de muestras, que es un corte aparte.
+    LÍMITES MEDIDOS, no supuestos:
+
+    · Con giros de hasta 22° por muestra —el rango realista— quedan **0 de 20** cintas plegadas,
+      contra 4 de 20 antes de existir esta función.
+    · Con giros de 140° y cintas más anchas que el paso quedan **7 de 20**. Pasar del punto medio al
+      eje real bajó ese número de 11 a 7.
+
+    Lo que queda NO es el mismo defecto, y por eso no se sigue afinando acá: en esos casos el borde
+    interior **no retrocede**, avanza muy poco. Medido en el mundo 1 del corpus: el izquierdo avanza
+    1,4 cm mientras el derecho avanza ~460, y como cada muestra tiene su propia Z el triángulo casi
+    sin base queda casi vertical (`nz = -0,048`). Es una degeneración por avance despreciable, no un
+    pliegue por cruce. Atacarla pide un criterio propio —exigir avance mínimo proporcional al del
+    eje, o fusionar muestras casi coincidentes— y merece su corte, con su propia defensa de umbral.
+    `malla.cara_visible` los sigue marcando en rojo mientras tanto.
     """
-    ejes = [tuple((l[eje] + r[eje]) / 2.0 for eje in range(3)) for l, r in zip(left, right)]
-    medios = [tuple((l[eje] - r[eje]) / 2.0 for eje in range(3)) for l, r in zip(left, right)]
+    if ejes_reales is not None:
+        # El eje VERDADERO de cada muestra. Con miters fuertes el punto medio entre bordes se aleja
+        # muchísimo del eje y escalar contra él corrige mal: por eso `offset_points` publica de qué
+        # vértice nació cada punto.
+        ejes = [tuple(float(c) for c in punto) for punto in ejes_reales]
+    else:
+        ejes = [tuple((l[eje] + r[eje]) / 2.0 for eje in range(3)) for l, r in zip(left, right)]
+    izquierdos = [tuple(l[eje] - e[eje] for eje in range(3)) for l, e in zip(left, ejes)]
+    derechos = [tuple(r[eje] - e[eje] for eje in range(3)) for r, e in zip(right, ejes)]
     escala = [1.0] * len(ejes)
 
     # Cada pasada corrige los tramos que siguen plegados; reducir un vértice puede plegar a su
     # vecino, así que se repite. El tope evita que un recorrido patológico gire para siempre.
-    for _ in range(8):
+    for _ in range(24):
         plegados = 0
         for i in range(len(ejes) - 1):
             d = tuple(ejes[i + 1][eje] - ejes[i][eje] for eje in range(3))
             largo_d = sum(componente * componente for componente in d)
             if largo_d < 1e-12:
+                # Dos muestras sobre el MISMO vértice del eje: es un bevel, que abre un abanico en
+                # el lugar en vez de avanzar. Ahí no hay dirección de avance contra la cual juzgar.
                 continue
-            delta = tuple(medios[i + 1][eje] * escala[i + 1] - medios[i][eje] * escala[i]
-                          for eje in range(3))
-            proyeccion = sum(delta[eje] * d[eje] for eje in range(3))
-            # El borde se da vuelta cuando el avance del eje no alcanza a compensar la diferencia
-            # entre las medias anchuras. `-proyeccion > largo_d` es exactamente esa condición.
-            if -proyeccion <= largo_d:
-                continue
-            plegados += 1
-            factor = largo_d / (-proyeccion) * margen
-            escala[i] *= factor
-            escala[i + 1] *= factor
+            # Los dos bordes se juzgan por separado: con el eje real cada uno tiene su propio brazo,
+            # y en una esquina el interior se pliega mucho antes que el exterior.
+            for brazos in (izquierdos, derechos):
+                delta = tuple(brazos[i + 1][eje] * escala[i + 1] - brazos[i][eje] * escala[i]
+                              for eje in range(3))
+                proyeccion = sum(delta[eje] * d[eje] for eje in range(3))
+                # El borde retrocede cuando el avance del eje no alcanza a compensar la diferencia
+                # entre los brazos. `-proyeccion > largo_d` es exactamente esa condición.
+                if -proyeccion <= largo_d:
+                    continue
+                plegados += 1
+                factor = largo_d / (-proyeccion) * margen
+                # El mismo factor a los dos lados: angosta sin descentrar la cinta.
+                escala[i] *= factor
+                escala[i + 1] *= factor
         if not plegados:
             break
 
     angostados = sum(1 for valor in escala if valor < 0.999)
-    nuevo_left = [tuple(ejes[i][eje] + medios[i][eje] * escala[i] for eje in range(3))
+    nuevo_left = [tuple(ejes[i][eje] + izquierdos[i][eje] * escala[i] for eje in range(3))
                   for i in range(len(ejes))]
-    nuevo_right = [tuple(ejes[i][eje] - medios[i][eje] * escala[i] for eje in range(3))
+    nuevo_right = [tuple(ejes[i][eje] + derechos[i][eje] * escala[i] for eje in range(3))
                    for i in range(len(ejes))]
     return nuevo_left, nuevo_right, angostados
 
@@ -147,7 +168,9 @@ def ribbon_buffers(points, *, width: float = 360.0, plane: str = "xy",
     if len(left["points"]) * 2 > 4096:
         return {"error": "mesh_ribbon no puede producir más de 4096 vértices por recorrido."}
 
-    puntos_left, puntos_right, angostados = _sin_pliegues(left["points"], right["points"])
+    ejes_reales = [source[indice] for indice in left["origins"]]
+    puntos_left, puntos_right, angostados = _sin_pliegues(
+        left["points"], right["points"], ejes_reales)
     vertices = tuple(
         point
         for pair in zip(puntos_left, puntos_right)
