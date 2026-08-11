@@ -2258,11 +2258,11 @@ def to_static(source, *, name: str = "GeneratedMesh", folder: str = CARPETA,
     from . import panel
     final_path = asset_path_for(name, folder)
     output_path = panel.preview_asset_path(final_path)
-    exists = unreal.EditorAssetLibrary.does_asset_exist(output_path)
-    if exists and not output_path.startswith("/Game/JamPreview/"):
+    # Una ruta de staging ocupada se PISA, no se borra: es la ranura de dos corridas atrás y
+    # sobrescribirla cuesta 21 ms contra 142 de borrarla (`mide_borrado_asset_58.py`). Una ruta
+    # FINAL ocupada sigue siendo un error: ahí sí habría trabajo de alguien del otro lado.
+    if unreal.EditorAssetLibrary.does_asset_exist(output_path) and not panel.es_ruta_staged(output_path):
         return {"error": f"el asset final «{output_path}» ya existe; usá otro name."}
-    if exists and not unreal.EditorAssetLibrary.delete_asset(output_path):
-        return {"error": f"no pude limpiar el temporal «{output_path}»."}
 
     options = unreal.GeometryScriptCreateNewStaticMeshAssetOptions()
     options.set_editor_property("enable_recompute_normals", False)

@@ -606,6 +606,48 @@ cercana a «vive en el canvas y no toca el nivel»; es un criterio PRESTADO y es
 en el código, para que se cambie ahí el día que el registro tenga un campo propio. Tampoco se cachea
 un nodo que falló: sería volver permanente un error hasta que alguien toque un parámetro.
 
+✅ **HECHO — el Run que hornea bajó de 215 ms a ~35 ms (ping-pong de ranuras).** Es la deuda que
+dejó servida la medición de abajo: recocinar un grafo que hornea costaba 215 ms y **142 eran
+`delete_asset`** sobre el temporal de la vuelta anterior. No es sólo del live view: lo paga cualquier
+grafo que hornee y se vuelva a correr.
+
+**Primero se descartó lo barato.** Ninguna primitiva del binding evita el costo: `delete_loaded_asset`
+cuesta 156 ms, renombrar 83, y borrar en lote sólo ayuda con varios (26 ms c/u con ocho, 142 con uno).
+El costo es casi fijo POR LLAMADA. Lo único que lo evita es **no borrar**.
+
+**El diseño: dos ranuras por destino** (`PVA_…` / `PVB_…`) en vez de una ruta nueva por corrida. La
+corrida N escribe la ranura libre y deja en pie la de N-1, así que **la garantía transaccional se
+conserva** —si N falla, el Preview de N-1 sigue entero en su ruta— y aun así no se borra nada en
+plena interacción. Sobrescribir cuesta 21 ms contra 147 de borrar+crear. La basura queda acotada a
+un asset por destino, y Discard/Bake la barren en una pasada de carpeta.
+
+Medido por el camino real (`verifica_pingpong_58.py`, TODO VERDE): **215,2 → 49,9 ms** de mediana
+(4,3×; con la instrumentación puesta bajó a 32 ms), la ruta alterna entre exactamente dos ranuras,
+la tercera vuelta pisa la primera, **Bake promueve UN solo asset final** —el riesgo propio de tener
+dos ranuras vivas— y Discard no deja nada atrás.
+
+**Lo que se cuidó de no romper**, con 7 tests nuevos y **6 mutaciones que confirman que discriminan**
+(cada una mata exactamente su test, y el control sin mutar queda verde): que la ranura alterne, que
+no crezca a una tercera, que el staged anterior NO se borre, que un destino que el grafo dejó de
+producir SÍ se borre, que **una corrida fallida deje intacto el Preview anterior**, y que Discard y
+Bake barran la ranura sobrante. Más 3 tests de recuperación tras reload: con dos ranuras en disco la
+memoria no puede decir cuál vale, así que se sella cada una con `_ASSET_META_SERIE` y gana la más
+reciente — sin eso, Bake promovería las dos y de un Preview saldrían dos assets.
+
+⚠️ **Dos cosas quedan medidas y sin explicar.** Sobrescribir una ruta ocupada cuesta 37–86 ms contra
+5 de estrenarla, y **el costo crece vuelta a vuelta**. Un costo creciente parecía acumulación adentro
+del paquete —que habría sido un bug de correctitud mío—, así que se midió: `verifica_sobrescritura_58.py`
+da TODO VERDE, el asset en disco tiene la geometría de la última cocción, se devuelve el mismo objeto
+y no quedan assets extra. **Sobrescribir es correcto; de dónde sale el costo creciente sigue sin
+saberse.** Y una de las dos ranuras resulta consistentemente más cara que la otra dentro de una misma
+sesión, pero cuál cambia entre sesiones. Ahí hay entre 30 y 80 ms más para alguien que quiera seguir.
+
+**Sin tocar:** `mesh.to_static` es el único escritor que pisa la ranura en vez de borrarla. `nanite`
+y `fracture` siguen borrando y pagan los 142 ms — no es una regresión, es que no se midió si sus
+escritores toleran que les pisen el destino, y declararlo sin medirlo sería inventar.
+
+---
+
 ✅ **RESUELTO — los 517 ms no existían: eran tres defectos de medición apilados.** Medida la
 cadencia REAL del live view —el mismo grafo recocido seis veces seguidas, que es lo que hace mover
 un slider— con `mide_recoccion_58.py`:

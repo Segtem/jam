@@ -85,7 +85,10 @@ class _ActorSubsystem:
         self.actors.remove(actor)
 
 
-class PreviewTransactionTests(unittest.TestCase):
+class _ArnesPreview:
+    """El arnés falso compartido. Va aparte de los TestCase para que heredarlo no reejecute la
+    suite del vecino: una clase de tests que hereda de otra corre también todos sus casos."""
+
     def setUp(self):
         self.subsystem = _ActorSubsystem()
         self.assets: set[str] = set()
@@ -134,6 +137,8 @@ class PreviewTransactionTests(unittest.TestCase):
         actor.set_actor_label(panel._PREFIX_PREVIEW + original)
         return actor
 
+
+class PreviewTransactionTests(_ArnesPreview, unittest.TestCase):
     def test_success_replaces_only_the_same_owner_preview(self):
         old_dash = self._preview_actor("/Level/OldDash", "dash")
         graph = self._preview_actor("/Level/Graph", "graph")
@@ -458,6 +463,156 @@ class PreviewTransactionTests(unittest.TestCase):
         self.assertEqual(self.subsystem.actors, [baked])
         self.assertTrue(all(final in self.assets for final in finals))
         self.assertTrue(all(temp not in self.assets for temp in second_staged))
+
+
+class PingPongDeRanurasTests(_ArnesPreview, unittest.TestCase):
+    """El staging alterna entre DOS ranuras por destino en vez de estrenar ruta cada corrida.
+
+    El motivo es medido y está en `preview_asset_path`: borrar el temporal de la vuelta anterior
+    costaba 142 ms —cuatro veces escribirlo, y ninguna primitiva del binding lo evita—, así que la
+    corrida interactiva dejó de borrar. Lo que estos tests cuidan es que ese ahorro no se haya
+    llevado puesta ninguna de las propiedades que el Preview ya garantizaba.
+    """
+
+    FINAL = "/Game/Jam/Meshes/SM_Cinta"
+
+    def _correr(self, final=None, fallar=False, actor=None):
+        """Una corrida como la de un verbo que hornea: pide ruta staged y escribe ahí."""
+        destino = final or self.FINAL
+        caja = {}
+
+        def run(_widget):
+            caja["temp"] = panel.preview_asset_path(destino)
+            self.assets.add(caja["temp"])
+            if actor:
+                self.subsystem.actors.append(_Actor(actor))
+            if fallar:
+                raise RuntimeError("el grafo falló después de escribir el asset")
+            return "ok"
+
+        caja["reporte"] = panel._preview(run, owner="graph")
+        return caja
+
+    def test_dos_corridas_seguidas_usan_ranuras_distintas(self):
+        primera = self._correr()
+        segunda = self._correr()
+        self.assertNotEqual(primera["temp"], segunda["temp"])
+
+    def test_la_tercera_corrida_vuelve_a_pisar_la_primera_ranura(self):
+        """Dos ranuras alcanzan: si la tercera estrenara ruta, la basura crecería sin techo."""
+        rutas = [self._correr()["temp"] for _ in range(3)]
+        self.assertEqual(rutas[0], rutas[2])
+        self.assertNotEqual(rutas[0], rutas[1])
+
+    def test_la_corrida_exitosa_NO_borra_el_staged_anterior(self):
+        """Es el ahorro entero: lo que la vuelta que viene va a pisar no se borra ahora."""
+        primera = self._correr()
+        self._correr()
+        self.assertIn(primera["temp"], self.assets)
+
+    def test_un_destino_que_el_grafo_dejo_de_producir_SI_se_borra(self):
+        """A ese no va a pisarlo nadie: sin esto el ping-pong sería una excusa para dejar basura."""
+        viejo = self._correr(final="/Game/Jam/Meshes/SM_Viejo")
+        self._correr(final="/Game/Jam/Meshes/SM_Nuevo")
+        self.assertNotIn(viejo["temp"], self.assets)
+
+    def test_una_corrida_que_FALLA_deja_intacto_el_Preview_anterior(self):
+        """La garantía que el ping-pong existía para no romper.
+
+        Sobrescribir la misma ruta habría sido más simple y también más rápido, pero una corrida
+        fallida se habría llevado puesto el Preview bueno de la corrida anterior. Con dos ranuras el
+        anterior nunca se toca: lo que se pisa es basura de dos vueltas atrás.
+        """
+        bueno = self._correr()
+        malo = self._correr(fallar=True)
+
+        self.assertIn(bueno["temp"], self.assets, "el Preview anterior tiene que seguir en su ruta")
+        self.assertNotEqual(bueno["temp"], malo["temp"])
+        self.assertNotIn(malo["temp"], self.assets, "lo nuevo de una corrida fallida se descarta")
+        self.assertIn("ROLLBACK", malo["reporte"])
+
+    def test_descartar_barre_la_ranura_vieja_que_el_Run_dejo_en_pie(self):
+        """Lo que el Run no borró tiene que llevárselo alguien, o Content acumula para siempre."""
+        barridas = []
+        with mock.patch.object(panel, "_barrer_ranuras_sobrantes",
+                               side_effect=lambda owner: barridas.append(owner)):
+            self._correr(actor="/Level/Cinta")
+            self._correr(actor="/Level/Cinta2")
+            panel._h_descartar(owner="graph")
+        self.assertEqual(barridas, ["graph"])
+
+    def test_bake_tambien_barre_la_ranura_vieja(self):
+        barridas = []
+        with mock.patch.object(panel, "_barrer_ranuras_sobrantes",
+                               side_effect=lambda owner: barridas.append(owner)):
+            self._correr(actor="/Level/Cinta")
+            self._correr(actor="/Level/Cinta2")
+            panel._h_confirmar(owner="graph")
+        self.assertEqual(barridas, ["graph"])
+
+
+class RecuperacionDeRanurasTests(unittest.TestCase):
+    """Tras recargar Python la memoria no existe y hay DOS temporales por destino en disco.
+
+    Sin un criterio de recencia, Bake promovería los dos y de un Preview saldrían dos assets
+    finales. El sello `_ASSET_META_SERIE` es ese criterio.
+    """
+
+    def setUp(self):
+        self.serie = {}
+        self.finales = {}
+        self.rutas = []
+
+        def get_metadata_tag(obj, tag):
+            ruta = obj.path
+            if tag == panel._ASSET_META_OWNER:
+                return "graph"
+            if tag == panel._ASSET_META_FINAL:
+                return self.finales.get(ruta, "")
+            if tag == panel._ASSET_META_SERIE:
+                return self.serie.get(ruta, "")
+            return ""
+
+        biblioteca = types.SimpleNamespace(
+            list_assets=lambda base, recursive, include_folder: list(self.rutas),
+            get_metadata_tag=get_metadata_tag)
+        self.patchers = [
+            mock.patch.object(panel.unreal, "EditorAssetLibrary", biblioteca, create=True),
+            mock.patch.object(panel, "_asset_load", side_effect=lambda p: _Asset(p)),
+        ]
+        for p in self.patchers:
+            p.start()
+
+    def tearDown(self):
+        for p in reversed(self.patchers):
+            p.stop()
+
+    def _slot(self, ruta, final, serie):
+        self.rutas.append(ruta)
+        self.finales[ruta] = final
+        self.serie[ruta] = serie
+
+    def test_de_dos_ranuras_del_mismo_destino_gana_la_del_sello_mas_alto(self):
+        final = "/Game/Jam/Meshes/SM_Cinta"
+        self._slot("/Game/JamPreview/graph/PVA_SM_Cinta", final, "1000.0")
+        self._slot("/Game/JamPreview/graph/PVB_SM_Cinta", final, "2000.0")
+        recuperados = panel._recover_asset_records("graph")
+        self.assertEqual([r["temp"] for r in recuperados],
+                         ["/Game/JamPreview/graph/PVB_SM_Cinta"])
+
+    def test_destinos_distintos_se_recuperan_los_dos(self):
+        """Colapsar por destino no puede comerse previews que no compiten entre sí."""
+        self._slot("/Game/JamPreview/graph/PVA_SM_Uno", "/Game/Jam/SM_Uno", "1000.0")
+        self._slot("/Game/JamPreview/graph/PVA_SM_Dos", "/Game/Jam/SM_Dos", "1000.0")
+        self.assertEqual(len(panel._recover_asset_records("graph")), 2)
+
+    def test_un_asset_sin_sello_pierde_contra_uno_sellado(self):
+        """Un temporal escrito por la versión anterior de Jam: no tiene sello y es el viejo."""
+        final = "/Game/Jam/Meshes/SM_Cinta"
+        self._slot("/Game/JamPreview/graph/PV_abc123_SM_Cinta", final, "")
+        self._slot("/Game/JamPreview/graph/PVA_SM_Cinta", final, "1000.0")
+        self.assertEqual([r["temp"] for r in panel._recover_asset_records("graph")],
+                         ["/Game/JamPreview/graph/PVA_SM_Cinta"])
 
 
 if __name__ == "__main__":

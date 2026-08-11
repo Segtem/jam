@@ -11,6 +11,7 @@ from __future__ import annotations
 import base64
 import json
 import re
+import time
 import uuid
 
 import unreal
@@ -35,6 +36,12 @@ _PREVIEW_ASSETS_BY_OWNER: dict[str, list[dict]] = {}
 _PREVIEW_EFFECTS_BY_OWNER: dict[str, list[dict]] = {}
 _ASSET_META_OWNER = "JamPreviewOwner"
 _ASSET_META_FINAL = "JamPreviewFinal"
+# Marca de recencia. Con ping-pong de ranuras conviven DOS assets temporales por destino, y tras un
+# reload de Python la memoria no puede decir cuál es el vigente: sin esto, Bake promovería los dos.
+_ASSET_META_SERIE = "JamPreviewSerie"
+_RAIZ_PREVIEW = "/Game/JamPreview"
+# Dos ranuras alcanzan: la corrida N escribe la que no está viva, que es la basura de la corrida N-1.
+_RANURAS = ("A", "B")
 
 
 def registrar_efecto_preview(descartar, *, confirmar=None, descripcion="efecto runtime") -> None:
@@ -195,13 +202,18 @@ def _unique_asset_records(records: list[dict]) -> list[dict]:
 
 
 def _recover_asset_records(owner: str | None) -> list[dict]:
-    """Reconstruye assets-only Preview desde metadatos de Content tras recargar Python."""
-    base = f"/Game/JamPreview/{owner}" if owner else "/Game/JamPreview"
-    records: list[dict] = []
+    """Reconstruye assets-only Preview desde metadatos de Content tras recargar Python.
+
+    Con ping-pong de ranuras conviven DOS temporales por destino, así que hay que quedarse con el
+    vigente: si no, Bake promovería los dos y de un Preview saldrían dos assets finales. El criterio
+    es el sello `_ASSET_META_SERIE`; sin sello, el asset es de antes de esta versión y pierde.
+    """
+    base = f"{_RAIZ_PREVIEW}/{owner}" if owner else _RAIZ_PREVIEW
+    encontrados: list[tuple[str, str, float]] = []
     try:
         paths = unreal.EditorAssetLibrary.list_assets(base, recursive=True, include_folder=False)
     except Exception:  # noqa: BLE001
-        return records
+        return []
     for path in paths:
         try:
             obj = _asset_load(path)
@@ -209,10 +221,21 @@ def _recover_asset_records(owner: str | None) -> list[dict]:
                 unreal.EditorAssetLibrary.get_metadata_tag(obj, _ASSET_META_OWNER) or "")
             final = str(unreal.EditorAssetLibrary.get_metadata_tag(obj, _ASSET_META_FINAL) or "")
             if obj is not None and final and (owner is None or record_owner == owner):
-                records.append({"temp": str(path).split(".", 1)[0], "final": final})
+                try:
+                    serie = float(
+                        unreal.EditorAssetLibrary.get_metadata_tag(obj, _ASSET_META_SERIE) or 0.0)
+                except (TypeError, ValueError):
+                    serie = 0.0
+                encontrados.append((str(path).split(".", 1)[0], final, serie))
         except Exception:  # noqa: BLE001
             continue
-    return _unique_asset_records(records)
+    vigentes: dict[str, tuple[str, str, float]] = {}
+    for temp, final, serie in encontrados:
+        previo = vigentes.get(final)
+        if previo is None or serie > previo[2]:
+            vigentes[final] = (temp, final, serie)
+    return _unique_asset_records(
+        [{"temp": temp, "final": final} for temp, final, _ in vigentes.values()])
 
 
 def _asset_records_for_owner(owner: str | None, actores=None) -> list[dict]:
@@ -226,8 +249,37 @@ def _asset_records_for_owner(owner: str | None, actores=None) -> list[dict]:
     return _unique_asset_records(records)
 
 
+def es_ruta_staged(path: str) -> bool:
+    """¿Es una ruta temporal de Preview? Esas se PISAN en vez de borrarse — ver `preview_asset_path`."""
+    return str(path).startswith(_RAIZ_PREVIEW + "/")
+
+
+def _ranura_para(owner: str, final: str) -> str:
+    """La ranura que NO está ocupada por el Preview vigente de este mismo destino.
+
+    Escribir en la otra ranura es lo que hace innecesario borrar: el asset que se pisa es el de dos
+    corridas atrás, basura cuyo único trabajo era estar disponible para ser pisada.
+    """
+    for record in _PREVIEW_ASSETS_BY_OWNER.get(owner, []):
+        if record.get("final") == final:
+            actual = str(record.get("temp", "")).rsplit("/", 1)[-1]
+            return _RANURAS[1] if actual.startswith("PV" + _RANURAS[0]) else _RANURAS[0]
+    return _RANURAS[0]
+
+
 def preview_asset_path(final_path: str) -> str:
     """Devuelve una ruta temporal durante `_preview` y registra cómo promoverla en Bake.
+
+    La ruta alterna entre dos RANURAS por destino en vez de ser nueva en cada corrida. El motivo es
+    medido: recocinar un grafo que hornea costaba 215 ms y 142 de esos eran `delete_asset` sobre el
+    temporal de la vuelta anterior —cuatro veces lo que cuesta escribirlo, y un costo casi fijo por
+    llamada, no por asset—. Ninguna primitiva del binding lo evita (`delete_loaded_asset` cuesta
+    156 ms; renombrar, 83). Lo único que lo evita es no borrar.
+
+    Con dos ranuras no hace falta: la corrida N escribe la ranura libre y deja la anterior en pie,
+    así que **la garantía transaccional se conserva** —si N falla, el Preview de N-1 sigue entero en
+    su ruta— y aun así no se borra nada en la corrida interactiva. La basura queda acotada a un
+    asset por destino, y Discard/Bake la barren en lote, que es cuando el costo no se siente.
 
     Fuera de un Preview conserva la ruta solicitada, para no cambiar callers directos o de mantenimiento.
     """
@@ -237,7 +289,7 @@ def preview_asset_path(final_path: str) -> str:
     nombre = final.rsplit("/", 1)[-1]
     nombre = re.sub(r"[^A-Za-z0-9_]+", "_", nombre).strip("_") or "Asset"
     owner = _PREVIEW_CONTEXT["owner"]
-    temp = f"/Game/JamPreview/{owner}/PV_{_PREVIEW_CONTEXT['id']}_{nombre}"
+    temp = f"{_RAIZ_PREVIEW}/{owner}/PV{_ranura_para(owner, final)}_{nombre}"
     record = {"temp": temp, "final": final}
     if record not in _PREVIEW_CONTEXT["assets"]:
         _PREVIEW_CONTEXT["assets"].append(record)
@@ -261,6 +313,9 @@ def register_preview_asset(path: str) -> None:
         raise RuntimeError(f"no pude cargar el asset temporal «{temp}» para registrar su Preview")
     unreal.EditorAssetLibrary.set_metadata_tag(obj, _ASSET_META_OWNER, _PREVIEW_CONTEXT["owner"])
     unreal.EditorAssetLibrary.set_metadata_tag(obj, _ASSET_META_FINAL, record["final"])
+    # Sella cuál de las dos ranuras es la vigente. El sello es un reloj y no un contador porque un
+    # contador se reinicia con Python y volvería a empatar con el sello viejo que quedó en disco.
+    unreal.EditorAssetLibrary.set_metadata_tag(obj, _ASSET_META_SERIE, f"{time.time():.6f}")
     if not unreal.EditorAssetLibrary.save_asset(temp, only_if_is_dirty=False):
         raise RuntimeError(f"no pude guardar metadatos de Preview en «{temp}»")
 
@@ -480,6 +535,29 @@ def _destruir_actores(actores) -> tuple[int, int]:
     return borrados, fallidos
 
 
+def _barrer_ranuras_sobrantes(owner: str | None) -> int:
+    """Tira lo que quede en la carpeta de staging de un owner, en UNA pasada.
+
+    Es el recolector del ping-pong. `_recover_asset_records` devuelve sólo la ranura vigente —para
+    que Bake no promueva dos veces el mismo destino—, así que la ranura vieja no aparece en ningún
+    record y necesita quien la levante. Este es el lugar: Discard y Bake ya terminaron con el
+    Preview, nadie va a pisar nada más, y el borrado sale de la corrida interactiva.
+
+    Devuelve cuántas carpetas barrió. Que falle no invalida la operación: lo peor que deja es un
+    asset temporal de más, que el propio ping-pong reutiliza en la próxima corrida.
+    """
+    carpetas = [f"{_RAIZ_PREVIEW}/{owner}"] if owner else [_RAIZ_PREVIEW]
+    barridas = 0
+    for carpeta in carpetas:
+        try:
+            if unreal.EditorAssetLibrary.does_directory_exist(carpeta):
+                unreal.EditorAssetLibrary.delete_directory(carpeta)
+                barridas += 1
+        except Exception:  # noqa: BLE001
+            continue
+    return barridas
+
+
 def _descartar_preview_detalle(owner: str | None = None) -> tuple[int, int, int, int]:
     """Descarta un Preview sin perder el registro si Unreal no puede borrar un asset.
 
@@ -495,6 +573,10 @@ def _descartar_preview_detalle(owner: str | None = None) -> tuple[int, int, int,
         _PREVIEW_ASSETS_BY_OWNER.clear()
     else:
         _PREVIEW_ASSETS_BY_OWNER.pop(owner, None)
+    # Acá se barre la ranura vieja del ping-pong. Durante el Run se la deja en pie a propósito para
+    # no pagar 142 ms en plena interacción; Discard es el momento en que ya no va a pisarla nadie, y
+    # además es gratis relativo: una pasada de carpeta cuesta 26 ms por asset contra 142 sueltos.
+    _barrer_ranuras_sobrantes(owner)
     borrados, fallidos = _destruir_actores(actores)
     return borrados, fallidos, assets_borrados, 0
 
@@ -585,12 +667,18 @@ def _preview(fn, widget=None, *, owner: str = "dash") -> str:
     efectos_fallidos, mensajes_efectos = _resolver_efectos(efectos_anteriores, "discard")
     if efectos_fallidos:
         _PREVIEW_EFFECTS_BY_OWNER[owner] = efectos_fallidos + _PREVIEW_EFFECTS_BY_OWNER[owner]
-    assets_reemplazados, assets_fallidos = _discard_staged_assets(assets_anteriores)
+    # El staged anterior de un destino que este Run volvió a producir NO se borra: la corrida que
+    # viene lo pisa (ping-pong de ranuras, ver `preview_asset_path`), y borrarlo acá costaría 142 ms
+    # en plena interacción para tirar algo que va a ser reescrito igual. Sí se borra el de un destino
+    # que el grafo dejó de producir: a ese no va a pisarlo nadie y quedaría huérfano en Content.
+    finales_vigentes = {r["final"] for r in contexto["assets"]}
+    huerfanos = [r for r in assets_anteriores if r["final"] not in finales_vigentes]
+    assets_reemplazados, assets_fallidos = _discard_staged_assets(huerfanos)
     # Si queda un asset temporal sin borrar, el actor anterior conserva el tag que permite recuperar
     # su ruta y reintentar. Es preferible ver dos previews un instante a dejar Content huérfano.
     if assets_fallidos:
         _PREVIEW_ASSETS_BY_OWNER[owner] = _unique_asset_records(
-            contexto["assets"] + assets_anteriores)
+            contexto["assets"] + huerfanos)
         reemplazados, fallidos = 0, 0
     else:
         reemplazados, fallidos = _destruir_actores(anteriores)
@@ -672,6 +760,9 @@ def _h_confirmar(widget=None, *, owner: str | None = None) -> str:
     else:
         _PREVIEW_ASSETS_BY_OWNER.pop(owner, None)
         _PREVIEW_EFFECTS_BY_OWNER.pop(owner, None)
+    # Lo promovido ya salió de la carpeta de staging por rename; lo que queda ahí es la ranura vieja
+    # del ping-pong. Se barre acá y no durante el Run, que es el punto de todo el cambio.
+    _barrer_ranuras_sobrantes(owner)
     # decir QUÉ quedó y DÓNDE: sin esto, un confirm sobre algo fuera de cuadro no se distingue de
     # un confirm que no hizo nada.
     detalle = []
