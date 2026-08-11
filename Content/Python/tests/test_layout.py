@@ -391,5 +391,59 @@ class MarcoTests(unittest.TestCase):
         self.assertEqual(layout.marco_de([]), (0.0, 0.0, 0.0, 0.0))
 
 
+class SincronizacionDeLaVentanaFlotanteEnElCppTests(unittest.TestCase):
+    """Reabrir el Graph en Wayland/KWin dejaba la ventana sin recibir clics.
+
+    Medido el 2026-08-10: `AsegurarVentanaGraphVisible` pidió mover la ventana a `(173, 97)` y
+    `GetRectInScreen()` siguió informando `(0, 0)` en el mismo frame. Slate conserva ese rectángulo
+    para el hit-test mientras KWin dibuja en el otro, así que los clics caen corridos por la
+    diferencia y la ventana parece muerta. Sólo se destrababa redimensionando a mano.
+
+    Esto no se puede testear sin motor —es geometría de un compositor real— así que se ata igual que
+    el marquee: el test LEE el `.cpp` y exige que las tres decisiones que hacen al arreglo sigan ahí.
+    La verificación de que funciona es el gesto en el editor, y su evidencia es la línea de log
+    `ventana Graph resincronizada — alineada=…`.
+    """
+
+    def modulo(self) -> str:
+        from pathlib import Path
+
+        raiz = Path(__file__).resolve().parents[3]
+        return (raiz / "Source" / "JamEditor" / "Private" / "JamEditorModule.cpp").read_text(
+            encoding="utf-8")
+
+    def test_una_flotante_reubicada_se_resincroniza(self):
+        """Sin la llamada, reubicar deja el hit-test corrido: es el defecto original."""
+        cpp = self.modulo()
+        self.assertIn("static void SincronizarGeometriaFlotante", cpp)
+        self.assertIn("SincronizarGeometriaFlotante(Ventana.ToSharedRef()", cpp)
+
+    def test_el_empujon_cambia_el_tamano_de_verdad(self):
+        """El corazón del arreglo. Un `ReshapeWindow` al MISMO tamaño puede no generar ningún
+        `configure` del compositor, y sin ese evento Slate nunca actualiza su geometría: el arreglo
+        se volvería un no-op silencioso que igual loguea. El primer paso tiene que pedir un tamaño
+        distinto del final."""
+        self.assertIn("TamPedido - FVector2D(1.0f, 1.0f)", self.modulo())
+
+    def test_la_resincronizacion_es_diferida_y_no_en_el_mismo_frame(self):
+        """Hacerlo en el frame de la apertura reproduce el estado que se intenta reparar: el
+        compositor todavía no confirmó nada. Van dos ticks, como en la ventana principal."""
+        import re
+
+        cpp = self.modulo()
+        cuerpo = cpp[cpp.index("static void SincronizarGeometriaFlotante"):]
+        cuerpo = cuerpo[:cuerpo.index("\n/**")]
+        # El paréntesis es parte del patrón a propósito: sin él, `AddTicker` matchea también el
+        # prefijo de cualquier identificador más largo y el test deja pasar la mutación que buscaba.
+        self.assertEqual(len(re.findall(r"AddTicker\(", cuerpo)), 2,
+                         "la resincronización de la flotante dejó de ser dos ticks diferidos")
+
+    def test_el_log_publica_si_quedo_alineada(self):
+        """Sin esta medida, «se arregló» dependería de que alguien intente un clic y lo reporte."""
+        cpp = self.modulo()
+        self.assertIn("ventana Graph resincronizada", cpp)
+        self.assertIn("bAlineada", cpp)
+
+
 if __name__ == "__main__":
     unittest.main()

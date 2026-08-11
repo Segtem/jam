@@ -90,6 +90,60 @@ static void RestablecerEntradaTrasCerrarGraph(const TCHAR* Fase, bool bEnfocarVe
 }
 
 /**
+ * Fuerza a Wayland/KWin a confirmarle a Slate la geometría de una ventana FLOTANTE recién reubicada.
+ *
+ * `ReshapeWindow` pide la posición nueva, pero el compositor la confirma en un frame posterior: leer
+ * `GetRectInScreen()` en el mismo frame devuelve la anterior y Slate se queda con un rectángulo de
+ * hit-test que no coincide con lo que KWin dibuja, así que los clics caen corridos por esa
+ * diferencia. Medido al reabrir el Graph: se pidió `(173, 97)` y Slate siguió informando `(0, 0)`.
+ *
+ * La ventana raíz ya tiene su arreglo en `SincronizarVentanaPrincipalTrasLayout`, que se apoya en el
+ * cambio de estado de `Restore()`. Una flotante que no está maximizada ni minimizada nunca pasa por
+ * ahí, y hasta ahora sólo se destrababa con un resize manual.
+ *
+ * El empujón de un píxel no es cosmético: un `ReshapeWindow` al MISMO tamaño puede no generar ningún
+ * `configure` del compositor, y sin ese evento Slate jamás actualiza su geometría. Cambiar el tamaño
+ * y volver es, en dos ticks, el mismo gesto que el resize a mano.
+ */
+static void SincronizarGeometriaFlotante(const TSharedRef<SWindow>& Ventana,
+	const FVector2D& PosPedida, const FVector2D& TamPedido)
+{
+	const TWeakPtr<SWindow> VentanaDebil = Ventana;
+	FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda(
+		[VentanaDebil, PosPedida, TamPedido](float)
+		{
+			const TSharedPtr<SWindow> VentanaViva = VentanaDebil.Pin();
+			if (!VentanaViva.IsValid() || !FSlateApplication::IsInitialized()) { return false; }
+			// Tamaño distinto: es lo que obliga al compositor a emitir el `configure`.
+			VentanaViva->ReshapeWindow(PosPedida, TamPedido - FVector2D(1.0f, 1.0f));
+
+			FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda(
+				[VentanaDebil, PosPedida, TamPedido](float)
+				{
+					const TSharedPtr<SWindow> VentanaFinal = VentanaDebil.Pin();
+					if (!VentanaFinal.IsValid() || !FSlateApplication::IsInitialized()) { return false; }
+					VentanaFinal->ReshapeWindow(PosPedida, TamPedido);
+					FSlateApplication& Slate = FSlateApplication::Get();
+					Slate.InvalidateAllWidgets(false);
+					VentanaFinal->BringToFront(/*bForce*/ true);
+					// `alineada` es la MEDIDA del arreglo: si sale `no`, el hit-test sigue corrido y
+					// el log lo dice sin depender de que alguien intente un clic y lo reporte.
+					const FSlateRect RectFinal = VentanaFinal->GetRectInScreen();
+					const bool bAlineada = FMath::IsNearlyEqual(RectFinal.Left, PosPedida.X, 2.0f)
+						&& FMath::IsNearlyEqual(RectFinal.Top, PosPedida.Y, 2.0f);
+					UE_LOG(LogTemp, Display,
+						TEXT("[JamEditor] ventana Graph resincronizada — alineada=%s pedida=%.0f,%.0f ")
+						TEXT("rect=%.0f,%.0f %.0fx%.0f"),
+						bAlineada ? TEXT("sí") : TEXT("no"), PosPedida.X, PosPedida.Y,
+						RectFinal.Left, RectFinal.Top,
+						RectFinal.Right - RectFinal.Left, RectFinal.Bottom - RectFinal.Top);
+					return false;
+				}), 0.12f);
+			return false;
+		}), 0.12f);
+}
+
+/**
  * Hace visible y utilizable el tab aunque el layout persistido lo haya dejado maximizado,
  * minimizado o fuera de las pantallas actuales. En Linux/SDL 5.8 una ventana flotante restaurada
  * maximizada puede conservar una superficie/hit-test obsoletos hasta el primer resize manual.
@@ -137,13 +191,16 @@ static void AsegurarVentanaGraphVisible(const TSharedRef<SDockTab>& Tab,
 		&& Ancho <= (Area.Right - Area.Left) * 1.10f
 		&& Alto <= (Area.Bottom - Area.Top) * 1.10f;
 	bool bReubicada = false;
+	FVector2D PosPedida = FVector2D::ZeroVector;
+	FVector2D TamPedido = FVector2D::ZeroVector;
 	if (!bEsVentanaPrincipal && (!bAreaVisible || !bTamanoValido))
 	{
 		const float NuevoAncho = FMath::Clamp((Area.Right - Area.Left) * 0.82f, 900.0f, 1600.0f);
 		const float NuevoAlto = FMath::Clamp((Area.Bottom - Area.Top) * 0.82f, 620.0f, 1050.0f);
-		const FVector2D Pos(Area.Left + ((Area.Right - Area.Left) - NuevoAncho) * 0.5f,
+		PosPedida = FVector2D(Area.Left + ((Area.Right - Area.Left) - NuevoAncho) * 0.5f,
 			Area.Top + ((Area.Bottom - Area.Top) - NuevoAlto) * 0.5f);
-		Ventana->ReshapeWindow(Pos, FVector2D(NuevoAncho, NuevoAlto));
+		TamPedido = FVector2D(NuevoAncho, NuevoAlto);
+		Ventana->ReshapeWindow(PosPedida, TamPedido);
 		Rect = Ventana->GetRectInScreen();
 		bReubicada = true;
 	}
@@ -154,6 +211,11 @@ static void AsegurarVentanaGraphVisible(const TSharedRef<SDockTab>& Tab,
 		Fase, bEsVentanaPrincipal ? TEXT("sí") : TEXT("no"), bMaximizada ? TEXT("sí") : TEXT("no"),
 		bMinimizada ? TEXT("sí") : TEXT("no"), bReubicada ? TEXT("sí") : TEXT("no"),
 		Rect.Left, Rect.Top, Rect.Right - Rect.Left, Rect.Bottom - Rect.Top);
+
+	if (bReubicada)
+	{
+		SincronizarGeometriaFlotante(Ventana.ToSharedRef(), PosPedida, TamPedido);
+	}
 }
 
 /**
