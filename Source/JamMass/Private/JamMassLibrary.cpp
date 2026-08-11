@@ -232,6 +232,7 @@ FString UJamMassLibrary::InspectConfig(UObject* WorldContextObject, const FStrin
 	bool bHasPatrol = false;
 	float PatrolSpeed = 0.0f;
 	float PatrolRadius = 0.0f;
+	float PatrolVariation = 0.0f;
 	for (const UMassEntityTraitBase* Trait : Config->GetConfig().GetTraits())
 	{
 		TraitNames.Add(MakeShared<FJsonValueString>(GetNameSafe(Trait == nullptr
@@ -241,6 +242,7 @@ FString UJamMassLibrary::InspectConfig(UObject* WorldContextObject, const FStrin
 			bHasPatrol = true;
 			PatrolSpeed = Patrol->GetSpeed();
 			PatrolRadius = Patrol->GetRadius();
+			PatrolVariation = Patrol->GetVariation();
 		}
 		const UMassVisualizationTrait* Visualization = Cast<UMassVisualizationTrait>(Trait);
 		if (Visualization == nullptr)
@@ -285,6 +287,7 @@ FString UJamMassLibrary::InspectConfig(UObject* WorldContextObject, const FStrin
 	Root->SetBoolField(TEXT("has_patrol"), bHasPatrol && bHasPatrolFragment);
 	Root->SetNumberField(TEXT("patrol_speed"), PatrolSpeed);
 	Root->SetNumberField(TEXT("patrol_radius"), PatrolRadius);
+	Root->SetNumberField(TEXT("patrol_variation"), PatrolVariation);
 	Root->SetArrayField(TEXT("mesh_paths"), MeshPaths);
 	Root->SetArrayField(TEXT("lod_representation"), LODRepresentations);
 	Root->SetArrayField(TEXT("lod_distances"), LODDistances);
@@ -386,7 +389,8 @@ FString UJamMassLibrary::PrepareAmbientPatrolConfig(
 	const float LowDistance,
 	const float OffDistance,
 	const float Speed,
-	const float Radius)
+	const float Radius,
+	const float Variation)
 {
 	UMassEntityConfigAsset* Config = Cast<UMassEntityConfigAsset>(ConfigAsset);
 	UStaticMesh* Mesh = Cast<UStaticMesh>(FSoftObjectPath(MeshPath).TryLoad());
@@ -402,7 +406,7 @@ FString UJamMassLibrary::PrepareAmbientPatrolConfig(
 	const FJamPatrolTraits Traits = FindOrAddPatrolTraits(*Config);
 	if (Traits.Visualization == nullptr || Traits.Patrol == nullptr
 		|| !Traits.Visualization->Configure(*Mesh, MediumDistance, LowDistance, OffDistance)
-		|| !Traits.Patrol->Configure(Speed, Radius))
+		|| !Traits.Patrol->Configure(Speed, Radius, Variation))
 	{
 		return JsonError(TEXT("representación dinámica o patrulla inválida"), 0);
 	}
@@ -689,6 +693,10 @@ FString UJamMassLibrary::InspectPopulation(
 	int32 InsideFrustum = 0;
 	int32 PatrolFragments = 0;
 	int32 PatrolInitialized = 0;
+	// Fases y escalas individuales: sin ellas sólo se puede afirmar que la población se mueve, no
+	// que cada entidad se mueva DISTINTO, que es lo que separa una multitud de una formación.
+	TArray<double> PatrolPhases;
+	TArray<double> PatrolSpeedScales;
 	int32 PatrolMoved = 0;
 	int32 PatrolReversed = 0;
 	int32 PatrolOutOfBounds = 0;
@@ -749,6 +757,8 @@ FString UJamMassLibrary::InspectPopulation(
 			PatrolReversed += Patrol->Reversals > 0 ? 1 : 0;
 			PatrolReversals += Patrol->Reversals;
 			PatrolMaxAbsDistance = FMath::Max(PatrolMaxAbsDistance, FMath::Abs(Patrol->Distance));
+			PatrolPhases.Add(Patrol->Phase);
+			PatrolSpeedScales.Add(Patrol->SpeedScale);
 			const FJamMassPatrolParameters* Parameters =
 				Manager->GetConstSharedFragmentDataPtr<FJamMassPatrolParameters>(Entity);
 			PatrolOutOfBounds += Parameters != nullptr
@@ -807,6 +817,22 @@ FString UJamMassLibrary::InspectPopulation(
 	Root->SetNumberField(TEXT("patrol_reversed"), PatrolReversed);
 	Root->SetNumberField(TEXT("patrol_reversals"), PatrolReversals);
 	Root->SetNumberField(TEXT("patrol_out_of_bounds"), PatrolOutOfBounds);
+	{
+		// Se publican las listas crudas y no un promedio: el juicio vive en el cerebro puro, y una
+		// media escondería justamente el caso que importa —toda la población con la misma fase—.
+		TArray<TSharedPtr<FJsonValue>> Phases;
+		TArray<TSharedPtr<FJsonValue>> Scales;
+		for (const double Value : PatrolPhases)
+		{
+			Phases.Add(MakeShared<FJsonValueNumber>(Value));
+		}
+		for (const double Value : PatrolSpeedScales)
+		{
+			Scales.Add(MakeShared<FJsonValueNumber>(Value));
+		}
+		Root->SetArrayField(TEXT("patrol_phases"), Phases);
+		Root->SetArrayField(TEXT("patrol_speed_scales"), Scales);
+	}
 	Root->SetNumberField(TEXT("patrol_max_abs_distance"), PatrolMaxAbsDistance);
 	Root->SetNumberField(TEXT("observed_sum_x"), ObservedSum.X);
 	Root->SetNumberField(TEXT("observed_sum_y"), ObservedSum.Y);

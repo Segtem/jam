@@ -40,6 +40,10 @@ struct JAMMASS_API FJamMassPatrolFragment : public FMassFragment
 	int32 Reversals = 0;
 	int8 Direction = 1;
 	bool bInitialized = false;
+
+	/** Fase inicial en -1..1, y multiplicador de velocidad alrededor de 1. Ambos por entidad. */
+	float Phase = 0.0f;
+	float SpeedScale = 1.0f;
 };
 
 /** Parámetros compartidos por el arquetipo de patrulla. */
@@ -53,6 +57,19 @@ struct JAMMASS_API FJamMassPatrolParameters : public FMassConstSharedFragment
 
 	UPROPERTY(EditAnywhere, Category = "Patrol")
 	float Radius = 100.0f;
+
+	/**
+	 * Cuánto se separa cada entidad del resto, en 0..1.
+	 *
+	 * Con 0 toda la población arranca en fase y a la misma velocidad: se mueve como una formación,
+	 * que es lo que delata a una multitud sintética aunque cada individuo esté bien animado. Con 1
+	 * la fase se reparte por todo el recorrido y la velocidad varía ±50%.
+	 *
+	 * La variación se deriva del ORIGEN de spawn, no del orden en que Mass crea las entidades: así
+	 * dos corridas de la misma escena dan exactamente lo mismo sin depender de un detalle interno.
+	 */
+	UPROPERTY(EditAnywhere, Category = "Patrol", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	float Variation = 0.0f;
 };
 
 /** Habilita el cálculo de distancia a viewers para entidades ambientales de Jam. */
@@ -151,9 +168,10 @@ class JAMMASS_API UJamMassPatrolTrait final : public UMassEntityTraitBase
 	GENERATED_BODY()
 
 public:
-	bool Configure(float Speed, float Radius);
+	bool Configure(float Speed, float Radius, float Variation = 0.0f);
 	float GetSpeed() const { return Parameters.Speed; }
 	float GetRadius() const { return Parameters.Radius; }
+	float GetVariation() const { return Parameters.Variation; }
 
 protected:
 	virtual void BuildTemplate(

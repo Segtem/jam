@@ -116,6 +116,42 @@ class MassCoreTests(unittest.TestCase):
                 self.assertIn("error", mass_core.make_config(
                     path, {**facts, field: bad}, require_patrol=True))
 
+    def test_mc_variation_is_required_apart_from_the_patrol(self):
+        """Una población en fase es una patrulla VÁLIDA, sólo que se mueve como una formación.
+
+        Por eso `require_variation` es un requisito propio y no parte de `require_patrol`: mezclarlos
+        habría puesto en rojo la Fase 4 anterior, que quedó verde sin variación alguna.
+        """
+        path = "/Jam/Mass/MC_JamAmbientPatrol.MC_JamAmbientPatrol"
+        base = {
+            "ok": True, "config_path": path, "trait_count": 3,
+            "template_valid": True, "has_transform": True,
+            "has_representation": True, "has_lod": True, "has_viewer": True,
+            "has_actor_fragment": True, "stationary": False, "moving_ism": True,
+            "has_patrol": True, "patrol_speed": 800.0, "patrol_radius": 25.0,
+            "mesh_paths": ["/Engine/BasicShapes/Sphere.Sphere"],
+            "lod_representation": ["StaticMeshInstance", "StaticMeshInstance",
+                                   "StaticMeshInstance", "None"],
+            "lod_distances": [0.0, 1500.0, 3500.0, 8000.0],
+        }
+
+        # Sin variación: la patrulla pasa, la variación no.
+        sin_variacion = {**base, "patrol_variation": 0.0}
+        self.assertNotIn("error", mass_core.make_config(
+            path, sin_variacion, require_patrol=True))
+        self.assertIn("error", mass_core.make_config(
+            path, sin_variacion, require_variation=True))
+
+        con_variacion = {**base, "patrol_variation": 0.6}
+        config = mass_core.make_config(
+            path, con_variacion, require_variation=True)["config"]
+        self.assertEqual(config.patrol_variation, 0.6)
+
+        for valor in (-0.1, 1.5, float("nan"), "mucha", None):
+            with self.subTest(valor=valor):
+                self.assertIn("error", mass_core.make_config(
+                    path, {**base, "patrol_variation": valor}, require_variation=True))
+
     def test_prepare_accepts_finite_frames_and_computes_the_expected_sum(self):
         result = mass_core.prepare(frames(frame(10, 20, 30), frame(-2, 4, 8, scale=2)))
         self.assertNotIn("error", result)

@@ -72,6 +72,33 @@ sentido que los laterales) y después **no eran convexos** (un radio suelto por 
 estrellados, y sobre un cóncavo no valen ni el abanico ni la referencia). Son **1099 acuerdos / 4298
 veredictos**, **303/303 mutantes** y 11 dominios.
 
+⚠️ **MassEntity Fase 4b — variación por entidad: IMPLEMENTADA Y COMPILADA, SIN VERIFICAR EN PIE.**
+La patrulla anterior movía a toda la población al unísono: `Distance = 0`, `Direction = 1` y la misma
+velocidad para todas, así que salían juntas, tocaban el extremo en el mismo frame y volvían juntas.
+Cada individuo estaba bien y el conjunto se veía como una coreografía.
+
+Ahora `FJamMassPatrolFragment` lleva `Phase` y `SpeedScale` por entidad, y `FJamMassPatrolParameters`
+un `Variation` en 0..1 (el asset quedó en **0.70**). La variación se deriva del **ORIGEN de spawn**,
+cuantizado a centímetros, y NO del índice de la entidad: el orden en que Mass crea y ordena entidades
+es un detalle interno, y atarse a él haría que una escena no se viera igual dos veces sin que nada
+avisara. Cada canal (fase, velocidad, sentido) sale de un hash distinto — si fase y velocidad salieran
+del mismo número, las más adelantadas serían siempre las más rápidas y la formación volvería ordenada
+de otra manera. `mass_config require_variation=true` es un requisito APARTE de `require_patrol`,
+porque una población en fase es una patrulla válida; mezclarlos habría puesto en rojo la Fase 4
+anterior. `inspect_population` publica ahora `patrol_phases` y `patrol_speed_scales` crudas —no un
+promedio, que escondería justamente el caso de todas iguales— y `mass_core.judge_variation` las juzga.
+
+**Lo que falta es la sonda, y no es un detalle.** `verifica_mass_variacion_58.py` está escrita y mide
+lo que corresponde —dispersión y determinismo entre dos poblaciones sobre los mismos transforms— pero
+NO se logró ejecutar: en commandlet (`-run=pythonscript`) no hay bucle de Slate, así que el callback
+por tick nunca dispara y el editor sale en 4 ms; con `-ExecCmds="py …"` en editor completo tampoco
+escribió su marcador. La receta de invocación de las sondas PIE quedó sin resolver, así que **la
+variación no está verificada en el motor**: lo único medido es que compila, que los 864 tests del
+cerebro pasan y que el asset conserva `variación 0.70`. Al retomar, lo primero es hacer correr esa
+sonda —mirar cómo se invoca `verifica_mass_pie_58.py`, que sí funciona en editor completo—. Antes de
+eso, dos ceros conocidos: crear y leer la población en el MISMO tick da seis fases en 0 porque el
+processor todavía no corrió, y sin PIE tampoco tickea.
+
 ⚠️ **El fix de Wayland del Graph está compilado pero NO verificado.** Reabrir el Graph dejaba la
 ventana sin recibir clics: `ReshapeWindow` pedía `(173, 97)` y Slate seguía informando `(0, 0)`, así
 que el hit-test quedaba corrido y sólo se destrababa con un resize manual. `SincronizarGeometriaFlotante`

@@ -62,10 +62,12 @@ class MassConfig:
     behavior: str | None = None
     patrol_speed: float | None = None
     patrol_radius: float | None = None
+    patrol_variation: float | None = None
 
 
 def make_config(config_path, facts: dict, *, require_ism=False,
-                require_lod_budget=False, require_patrol=False) -> dict:
+                require_lod_budget=False, require_patrol=False,
+                require_variation=False) -> dict:
     """Publica MC sólo si MassGameplay resolvió un template espacial válido."""
     ruta = str(config_path or "").strip()
     if not ruta.startswith("/") or "." not in ruta.rsplit("/", 1)[-1]:
@@ -121,6 +123,7 @@ def make_config(config_path, facts: dict, *, require_ism=False,
     behavior = None
     patrol_speed = facts.get("patrol_speed")
     patrol_radius = facts.get("patrol_radius")
+    patrol_variation = facts.get("patrol_variation")
     patrol_defects = list(visual_defects)
     if not facts.get("moving_ism"):
         patrol_defects.append("la patrulla no usa una representación ISM dinámica")
@@ -130,6 +133,19 @@ def make_config(config_path, facts: dict, *, require_ism=False,
         if (not isinstance(value, (int, float)) or isinstance(value, bool)
                 or not math.isfinite(float(value)) or float(value) <= 0.0):
             patrol_defects.append(f"la patrulla necesita {name} positiva y finita")
+    # La variación se juzga aparte de la patrulla: una población en fase es una patrulla VÁLIDA,
+    # sólo que se mueve como una formación. Exigirla siempre rompería la Fase 4 anterior, que quedó
+    # verde sin ella; mezclarlas en el mismo requisito borraría esa distinción.
+    variation_defects = []
+    if (not isinstance(patrol_variation, (int, float)) or isinstance(patrol_variation, bool)
+            or not math.isfinite(float(patrol_variation))):
+        variation_defects.append("la variación de patrulla debe ser un número finito")
+    elif not 0.0 <= float(patrol_variation) <= 1.0:
+        variation_defects.append("la variación de patrulla debe estar entre 0 y 1")
+    elif float(patrol_variation) <= 0.0:
+        variation_defects.append(
+            "la variación de patrulla es 0: toda la población se mueve en fase, como una formación")
+
     if not patrol_defects:
         representation = "ism_dynamic"
         behavior = "patrol"
@@ -147,6 +163,9 @@ def make_config(config_path, facts: dict, *, require_ism=False,
             defects.append("el presupuesto LOD debe acotar High/Medium/Low y dejar Off ilimitado")
     if require_patrol:
         defects.extend(defect for defect in patrol_defects if defect not in defects)
+    if require_variation:
+        defects.extend(defect for defect in patrol_defects if defect not in defects)
+        defects.extend(defect for defect in variation_defects if defect not in defects)
     if defects:
         return {"error": "; ".join(defects)}
     return {"config": MassConfig(
@@ -158,6 +177,8 @@ def make_config(config_path, facts: dict, *, require_ism=False,
         behavior=behavior,
         patrol_speed=patrol_speed if behavior else None,
         patrol_radius=patrol_radius if behavior else None,
+        patrol_variation=(float(patrol_variation)
+                          if behavior and not variation_defects else None),
     )}
 
 
@@ -335,4 +356,41 @@ def judge(batch: MassProbeBatch, facts: dict) -> dict:
         "defects": defects,
         "info": (f"{count} entidades · 1 arquetipo · transforms conservados · "
                  "limpieza completa"),
+    }
+
+
+def judge_variation(phases, speed_scales, *, expected: int) -> dict:
+    """¿La población se mueve como una multitud o como una formación?
+
+    Que las entidades se muevan no alcanza: con la fase en cero todas salen juntas, llegan al
+    extremo en el mismo frame y vuelven juntas. Eso se ve como una coreografía y es el defecto que
+    esta medida existe para atrapar.
+
+    Se juzgan las listas crudas, no un promedio: la media de un conjunto de fases idénticas es
+    perfectamente razonable y escondería exactamente el caso que importa.
+    """
+    if not isinstance(phases, list) or not isinstance(speed_scales, list):
+        return {"error": "la variación necesita las listas de fases y escalas"}
+    if len(phases) != expected or len(speed_scales) != expected:
+        return {"error": (f"se esperaban {expected} fases y escalas, "
+                          f"llegaron {len(phases)} y {len(speed_scales)}")}
+    for nombre, valores in (("fase", phases), ("escala", speed_scales)):
+        for valor in valores:
+            if (not isinstance(valor, (int, float)) or isinstance(valor, bool)
+                    or not math.isfinite(float(valor))):
+                return {"error": f"una {nombre} no es un número finito: {valor!r}"}
+
+    fases = [float(valor) for valor in phases]
+    escalas = [float(valor) for valor in speed_scales]
+    # Se cuentan valores DISTINTOS y no una desviación: con dos entidades una desviación no
+    # significa gran cosa, mientras que "cuántas comparten fase" se lee igual con 2 que con 2000.
+    fases_distintas = len({round(valor, 4) for valor in fases})
+    escalas_distintas = len({round(valor, 4) for valor in escalas})
+    return {
+        "fases_distintas": fases_distintas,
+        "escalas_distintas": escalas_distintas,
+        "rango_de_fase": max(fases) - min(fases) if fases else 0.0,
+        "en_fase": fases_distintas <= 1 and len(fases) > 1,
+        "fases": fases,
+        "escalas": escalas,
     }

@@ -9,6 +9,41 @@
 #include "MassLODFragments.h"
 #include "MassSpawnLocationProcessor.h"
 
+namespace JamMassPatrol
+{
+	/**
+	 * Un valor determinista en -1..1 a partir del punto de spawn y un número de canal.
+	 *
+	 * Se deriva del ORIGEN y no del índice de la entidad porque el orden en que Mass crea y ordena
+	 * las entidades es un detalle interno: dos corridas de la misma escena tienen que dar la misma
+	 * variación, y atarla a ese orden lo volvería frágil sin que nada avisara.
+	 *
+	 * Cada `Canal` da una secuencia SIN CORRELACIÓN con las otras. Importa: si la fase y la
+	 * velocidad salieran del mismo número, las entidades más adelantadas serían siempre las más
+	 * rápidas y la formación volvería por la ventana, ordenada de otra manera.
+	 */
+	static float VariacionDesdeOrigen(const FVector& Origen, const int32 Canal)
+	{
+		// Cuantizar a centímetros enteros antes de mezclar: sin esto, dos corridas que difieran en
+		// el último bit de un float darían fases distintas y el resultado dejaría de ser reproducible.
+		const int64 X = static_cast<int64>(FMath::RoundToDouble(Origen.X));
+		const int64 Y = static_cast<int64>(FMath::RoundToDouble(Origen.Y));
+		const int64 Z = static_cast<int64>(FMath::RoundToDouble(Origen.Z));
+		uint32 Semilla = static_cast<uint32>(Canal) * 2654435761u;
+		Semilla = HashCombine(Semilla, static_cast<uint32>(X * 73856093));
+		Semilla = HashCombine(Semilla, static_cast<uint32>(Y * 19349663));
+		Semilla = HashCombine(Semilla, static_cast<uint32>(Z * 83492791));
+		// Una vuelta más de mezcla: `HashCombine` sobre enteros vecinos deja patrones visibles, y
+		// un patrón en la fase se ve en pantalla como una onda recorriendo la multitud.
+		Semilla ^= Semilla >> 16;
+		Semilla *= 2246822519u;
+		Semilla ^= Semilla >> 13;
+		Semilla *= 3266489917u;
+		Semilla ^= Semilla >> 16;
+		return static_cast<float>(Semilla) / static_cast<float>(MAX_uint32) * 2.0f - 1.0f;
+	}
+}
+
 UJamMassLODCollectorProcessor::UJamMassLODCollectorProcessor()
 {
 	bAutoRegisterWithProcessingPhases = true;
@@ -100,9 +135,20 @@ void UJamMassPatrolProcessor::Execute(
 				Patrol.Origin = Transform.GetLocation();
 				Patrol.Axis = Transform.GetRotation().GetForwardVector().GetSafeNormal();
 				Patrol.Axis = Patrol.Axis.IsNearlyZero() ? FVector::ForwardVector : Patrol.Axis;
+				Patrol.Phase = JamMassPatrol::VariacionDesdeOrigen(Patrol.Origin, 0);
+				Patrol.SpeedScale = 1.0f + 0.5f * Parameters.Variation
+					* JamMassPatrol::VariacionDesdeOrigen(Patrol.Origin, 1);
+				// Repartir la fase por el recorrido es lo que rompe la formación: sin esto todas
+				// arrancan en el centro y llegan al extremo en el mismo frame.
+				Patrol.Distance = Parameters.Variation * Patrol.Phase * Parameters.Radius;
+				if (Parameters.Variation > 0.0f
+					&& JamMassPatrol::VariacionDesdeOrigen(Patrol.Origin, 2) < 0.0f)
+				{
+					Patrol.Direction = -1;
+				}
 				Patrol.bInitialized = true;
 			}
-			Patrol.Distance += Patrol.Direction * Parameters.Speed * DeltaTime;
+			Patrol.Distance += Patrol.Direction * Parameters.Speed * Patrol.SpeedScale * DeltaTime;
 			while (Patrol.Distance > Parameters.Radius || Patrol.Distance < -Parameters.Radius)
 			{
 				if (Patrol.Distance > Parameters.Radius)
@@ -248,14 +294,21 @@ void UJamMassMovingISMTrait::BuildTemplate(
 	Super::BuildTemplate(BuildContext, World);
 }
 
-bool UJamMassPatrolTrait::Configure(const float Speed, const float Radius)
+bool UJamMassPatrolTrait::Configure(const float Speed, const float Radius, const float Variation)
 {
 	if (!FMath::IsFinite(Speed) || !FMath::IsFinite(Radius) || Speed <= 0.0f || Radius <= 0.0f)
 	{
 		return false;
 	}
+	// La variación se rechaza fuera de rango en vez de recortarse: un 5 silenciosamente convertido
+	// en 1 dejaría al autor creyendo que pidió algo que el motor nunca vio.
+	if (!FMath::IsFinite(Variation) || Variation < 0.0f || Variation > 1.0f)
+	{
+		return false;
+	}
 	Parameters.Speed = Speed;
 	Parameters.Radius = Radius;
+	Parameters.Variation = Variation;
 	return true;
 }
 

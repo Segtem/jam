@@ -50,7 +50,8 @@ public:
 		float LowDistance,
 		float OffDistance,
 		float Speed,
-		float Radius);
+		float Radius,
+		float Variation);
 
 	/**
 	 * Prueba atómica del núcleo MassEntity: crea una entidad por transform, lee sus fragments y las
