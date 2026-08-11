@@ -14,7 +14,7 @@ class RibbonCoreTests(unittest.TestCase):
         self.assertEqual(result["vertices"], (
             (0.0, 10.0, 7.0), (0.0, -10.0, 7.0),
             (100.0, 10.0, 7.0), (100.0, -10.0, 7.0)))
-        self.assertEqual(result["triangles"], ((0, 1, 2), (1, 3, 2)))
+        self.assertEqual(result["triangles"], ((0, 2, 1), (1, 2, 3)))
         self.assertEqual(result["normals"], ((0.0, 0.0, 1.0),) * 4)
         self.assertEqual(result["uv0"], ((0.0, 0.0), (0.0, 1.0),
                                          (1.0, 0.0), (1.0, 1.0)))
@@ -57,6 +57,91 @@ class RibbonCoreTests(unittest.TestCase):
         yz = ribbon_core.ribbon_buffers(((7, 0, 0), (7, 100, 0)), plane="yz")
         self.assertEqual(xz["normals"], ((0.0, -1.0, 0.0),) * 4)
         self.assertEqual(yz["normals"], ((1.0, 0.0, 0.0),) * 4)
+
+
+class CaraVisibleEnUnrealTests(unittest.TestCase):
+    """La cinta tiene que quedar VISIBLE desde arriba, y eso no lo deciden las normales.
+
+    Los tests de arriba miran `normals`, que es el sombreado que se envía aparte en los buffers. El
+    backface culling ignora ese array y mira el ORDEN DE LOS ÍNDICES. Por eso los 790 tests estaban
+    en verde mientras «Borde de camino» se veía transparente en el viewport y «Muro sobre spline»
+    aparecía dado vuelta: ninguna medida miraba el winding.
+
+    Medido en UE 5.8.1 el 2026-08-10 con `tools/experiments/investiga_winding_ribbon_58.py`: con el
+    orden anterior el motor reportaba 48/48 triángulos hacia -Z, contra un `mesh_box` nativo que
+    daba su tapa hacia +Z. Estos tests fijan el criterio del motor para que nadie lo revierta.
+    """
+
+    def normal_de_cara_segun_unreal(self, vertices, triangle):
+        """La normal que computa Unreal para un triángulo, dada su terna de índices.
+
+        Es el cross en el orden `(c-a) × (b-a)`: el opuesto al matemático habitual. La constante de
+        este test es empírica, no teórica — sale de comparar contra una malla nativa en el motor.
+        """
+        a, b, c = (vertices[index] for index in triangle)
+        u = tuple(c[axis] - a[axis] for axis in range(3))
+        v = tuple(b[axis] - a[axis] for axis in range(3))
+        n = (u[1] * v[2] - u[2] * v[1],
+             u[2] * v[0] - u[0] * v[2],
+             u[0] * v[1] - u[1] * v[0])
+        largo = math.sqrt(sum(componente * componente for componente in n))
+        return tuple(componente / largo for componente in n)
+
+    def test_una_cinta_horizontal_le_muestra_la_cara_de_arriba_al_motor(self):
+        """El defecto original: la calzada existía pero el motor dibujaba su reverso."""
+        result = ribbon_core.ribbon_buffers(((0, 0, 0), (500, 0, 0), (1000, 0, 0)), width=360)
+        for triangle in result["triangles"]:
+            normal = self.normal_de_cara_segun_unreal(result["vertices"], triangle)
+            self.assertGreater(normal[2], 0.9,
+                               f"el triángulo {triangle} le muestra a Unreal la cara de abajo")
+
+    def test_tambien_al_curvar_y_al_subir(self):
+        """El tutorial no usa una recta: curva en Y y sube en Z. La cara no puede darse vuelta
+        en el medio del recorrido."""
+        result = ribbon_core.ribbon_buffers(
+            ((0, 0, 0), (225, 120, 10), (450, 200, 30), (675, 180, 55), (900, 0, 80)), width=360)
+        for triangle in result["triangles"]:
+            normal = self.normal_de_cara_segun_unreal(result["vertices"], triangle)
+            self.assertGreater(normal[2], 0.0,
+                               f"el triángulo {triangle} se dio vuelta al curvar")
+
+    def test_una_curva_cerrada_angosta_la_cinta_en_vez_de_plegarla(self):
+        """El defecto que encontró `malla.cara_visible` en su primer uso.
+
+        Doblar más cerrado que la media anchura cruzaba el borde interior consigo mismo y daba
+        vuelta las caras de ese tramo. No existe una cinta de ese ancho sobre esa curva, así que se
+        angosta ahí y se informa —como `miter_limit` cae a bevel— en vez de entregar geometría
+        plegada en silencio.
+        """
+        # Una U de casi 180° con una cinta de 300 cm sobre tramos de ~400: el borde interior no
+        # entra. Los números salen de probar la geometría, no de elegirlos para que el test pase.
+        result = ribbon_core.ribbon_buffers(
+            ((0, 0, 0), (400, 0, 0), (380, 120, 0), (0, 140, 0)), width=300)
+        self.assertNotIn("error", result)
+        for triangle in result["triangles"]:
+            normal = self.normal_de_cara_segun_unreal(result["vertices"], triangle)
+            self.assertGreater(normal[2], 0.0,
+                               f"el triángulo {triangle} quedó plegado en la curva cerrada")
+        self.assertGreater(result["angostados"], 0,
+                           "la cinta se angostó pero no lo declaró en «angostados»")
+
+    def test_una_curva_suave_no_se_angosta(self):
+        """El remedio no puede cobrarse ancho donde no hacía falta: sería peor que el defecto."""
+        result = ribbon_core.ribbon_buffers(
+            ((0, 0, 0), (500, 0, 0), (1000, 120, 0), (1500, 260, 0)), width=200)
+        self.assertEqual(result["angostados"], 0)
+
+    def test_la_cara_visible_y_la_normal_de_sombreado_miran_para_el_mismo_lado(self):
+        """Si se corrigiera sólo el winding, la cinta se vería pero iluminada por detrás. Las dos
+        mitades del arreglo tienen que moverse juntas."""
+        result = ribbon_core.ribbon_buffers(((0, 0, 0), (500, 0, 0)), width=200)
+        for triangle in result["triangles"]:
+            cara = self.normal_de_cara_segun_unreal(result["vertices"], triangle)
+            for indice in triangle:
+                sombreado = result["normals"][indice]
+                producto = sum(cara[axis] * sombreado[axis] for axis in range(3))
+                self.assertGreater(producto, 0.0,
+                                   "la normal de sombreado apunta al lado contrario de la cara")
 
     def test_rechaza_cerrada_dominio_invalido_y_presupuesto(self):
         line = ((0, 0, 0), (100, 0, 0))

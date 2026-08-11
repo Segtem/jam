@@ -1,0 +1,5434 @@
+{
+ "dominio": "malla",
+ "escenarios": [
+  {
+   "defecto": "",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999988832798437,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9999900737890224,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9999834002302308,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9995178175675481,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": 0.9982344314178311,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": 0.9998349931991637,
+      "degenerado": 0,
+      "id": 5
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9954553619769518,
+      "triangulos": 6
+     }
+    ]
+   },
+   "id": "sin-defecto·0",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.cara_visible": true,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999987359053507,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9999956728373887,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9999962665537309,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9999984153440863,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": 0.9999918623051751,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": 0.9998799681807703,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": 0.9999113290602167,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": 0.9999891947907597,
+      "degenerado": 0,
+      "id": 7
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9992323429596305,
+      "triangulos": 8
+     }
+    ]
+   },
+   "id": "sin-defecto·1",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.cara_visible": true,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999734583852318,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9997667298712949,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9996715965685374,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9999995815482868,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": 0.9999262708621818,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": 0.99981989054182,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": 0.9998674240390093,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": 0.9999852654131348,
+      "degenerado": 0,
+      "id": 7
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9985464099592941,
+      "triangulos": 8
+     }
+    ]
+   },
+   "id": "sin-defecto·2",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.cara_visible": true,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999963643383007,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9999813883480662,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9999996913651135,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9997403521842686,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": 0.999718040882672,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": 0.9995944131474283,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": 0.9996656187101104,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": 0.9999700396369572,
+      "degenerado": 0,
+      "id": 7
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9983075581182338,
+      "triangulos": 8
+     }
+    ]
+   },
+   "id": "sin-defecto·3",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.cara_visible": true,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999895728439253,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9999088792017335,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9998784729611702,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9999243766807245,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": 0.9999100615644912,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": 0.9997758808264263,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": 0.9998367130563736,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": 0.9999711055256079,
+      "degenerado": 0,
+      "id": 7
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9990958725879536,
+      "triangulos": 8
+     }
+    ]
+   },
+   "id": "sin-defecto·4",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.cara_visible": true,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999270828355784,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.999193691264662,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9995637249904047,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9999537056637636,
+      "degenerado": 0,
+      "id": 3
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.998591735767618,
+      "triangulos": 4
+     }
+    ]
+   },
+   "id": "sin-defecto·5",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.cara_visible": true,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999800885027127,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9998320799674817,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9998460318713814,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9999785537420397,
+      "degenerado": 0,
+      "id": 3
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9996048962756331,
+      "triangulos": 4
+     }
+    ]
+   },
+   "id": "sin-defecto·6",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.cara_visible": true,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999239695296551,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9992293586351513,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9998834083379448,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9999415101475317,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": 0.9998047567904423,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": 0.9998881300347433,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": 0.9999709160575629,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": 0.9999961238970747,
+      "degenerado": 0,
+      "id": 7
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9961809736961362,
+      "triangulos": 8
+     }
+    ]
+   },
+   "id": "sin-defecto·7",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.cara_visible": true,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999522355590469,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9995996500999831,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9995447297010477,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9999603074759357,
+      "degenerado": 0,
+      "id": 3
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9990149177573863,
+      "triangulos": 4
+     }
+    ]
+   },
+   "id": "sin-defecto·8",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.cara_visible": true,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999844190142192,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9998679558959903,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9994150075482979,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9989340562210296,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": 0.9993735282278615,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": 0.9997430000700228,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": 0.9999950698557734,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": 0.9998498015163657,
+      "degenerado": 0,
+      "id": 7
+     },
+     {
+      "acuerdo": 0.9994926815007643,
+      "degenerado": 0,
+      "id": 8
+     },
+     {
+      "acuerdo": 0.9999281553625022,
+      "degenerado": 0,
+      "id": 9
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9984414221458808,
+      "triangulos": 10
+     }
+    ]
+   },
+   "id": "sin-defecto·9",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.cara_visible": true,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999518630532173,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9996052218916708,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.998138638325244,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9976062653631587,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": 0.9986390408893983,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": 0.999789614667027,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": 0.9999895884355414,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": 0.9998442067488251,
+      "degenerado": 0,
+      "id": 7
+     },
+     {
+      "acuerdo": 0.9999286222770195,
+      "degenerado": 0,
+      "id": 8
+     },
+     {
+      "acuerdo": 0.9999941637794364,
+      "degenerado": 0,
+      "id": 9
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9948443394223968,
+      "triangulos": 10
+     }
+    ]
+   },
+   "id": "sin-defecto·10",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.cara_visible": true,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 1.0,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 1.0,
+      "degenerado": 0,
+      "id": 1
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 1.0,
+      "triangulos": 2
+     }
+    ]
+   },
+   "id": "sin-defecto·11",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.cara_visible": true,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999912623625087,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9998732491021752,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9996564023776165,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9999150470864709,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": 0.9999838715439834,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": 0.9999351151259614,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": 0.9999429913831471,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": 0.9999942665610446,
+      "degenerado": 0,
+      "id": 7
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9987777580859133,
+      "triangulos": 8
+     }
+    ]
+   },
+   "id": "sin-defecto·12",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.cara_visible": true,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999969711164871,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9999963589682963,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9999400938362528,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9991636801051728,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": 0.999442169949528,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": 0.9999320453390083,
+      "degenerado": 0,
+      "id": 5
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9971393149973609,
+      "triangulos": 6
+     }
+    ]
+   },
+   "id": "sin-defecto·13",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.cara_visible": true,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9998894476822946,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9991556952770851,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9994254980793298,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9999453446852462,
+      "degenerado": 0,
+      "id": 3
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9983917881372188,
+      "triangulos": 4
+     }
+    ]
+   },
+   "id": "sin-defecto·14",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.cara_visible": true,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.99995124817879,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9995870478578548,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9996678984432836,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9999653574920387,
+      "degenerado": 0,
+      "id": 3
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9991631981482894,
+      "triangulos": 4
+     }
+    ]
+   },
+   "id": "sin-defecto·15",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.cara_visible": true,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999803426342541,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9998470914373045,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9998772596497658,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9998105510654113,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": 0.999768241648771,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": 0.9999723229753139,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": 0.9998006714504724,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": 0.9996729982733317,
+      "degenerado": 0,
+      "id": 7
+     },
+     {
+      "acuerdo": 0.9992480630645936,
+      "degenerado": 0,
+      "id": 8
+     },
+     {
+      "acuerdo": 0.9999123089258091,
+      "degenerado": 0,
+      "id": 9
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9979752800217424,
+      "triangulos": 10
+     }
+    ]
+   },
+   "id": "sin-defecto·16",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.cara_visible": true,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999937108918963,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9999253737685407,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9998578439530209,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.999976593447758,
+      "degenerado": 0,
+      "id": 3
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.999741532190851,
+      "triangulos": 4
+     }
+    ]
+   },
+   "id": "sin-defecto·17",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.cara_visible": true,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999682625888676,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.999731256580165,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9998920896378239,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9999819589102682,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": 0.9994729989428948,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": 0.9991449122172471,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": 0.9998849030670743,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": 0.999889058247011,
+      "degenerado": 0,
+      "id": 7
+     },
+     {
+      "acuerdo": 0.9996027634557547,
+      "degenerado": 0,
+      "id": 8
+     },
+     {
+      "acuerdo": 0.9999626412038967,
+      "degenerado": 0,
+      "id": 9
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9967080858364343,
+      "triangulos": 10
+     }
+    ]
+   },
+   "id": "sin-defecto·18",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.cara_visible": true,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 1.0,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 1.0,
+      "degenerado": 0,
+      "id": 1
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 1.0,
+      "triangulos": 2
+     }
+    ]
+   },
+   "id": "sin-defecto·19",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.cara_visible": true,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "winding_invertido",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -0.999992129876434,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.999928901490307,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": -0.9998644609799837,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.9998389221224367,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": -0.9999807080047243,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": -0.999762886742809,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": -0.9995134729409836,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": -0.9999677312431379,
+      "degenerado": 0,
+      "id": 7
+     },
+     {
+      "acuerdo": -0.9999993552787574,
+      "degenerado": 0,
+      "id": 8
+     },
+     {
+      "acuerdo": -0.9999996960204054,
+      "degenerado": 0,
+      "id": 9
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9977734215733631,
+      "triangulos": 10
+     }
+    ]
+   },
+   "id": "winding_invertido·0",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "winding_invertido",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -1.0,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -1.0,
+      "degenerado": 0,
+      "id": 1
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 1.0,
+      "triangulos": 2
+     }
+    ]
+   },
+   "id": "winding_invertido·1",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "winding_invertido",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -0.9999562542182764,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.9998552195627343,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": -0.999979152200307,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.9998619242245765,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": -0.9996613592867362,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": -0.9999429366333046,
+      "degenerado": 0,
+      "id": 5
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9979710826636938,
+      "triangulos": 6
+     }
+    ]
+   },
+   "id": "winding_invertido·2",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "winding_invertido",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -0.9999987382002725,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.9999893725125734,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": -0.9999845729688925,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.9999968336556657,
+      "degenerado": 0,
+      "id": 3
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9999629051410245,
+      "triangulos": 4
+     }
+    ]
+   },
+   "id": "winding_invertido·3",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "winding_invertido",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -0.9999909619540595,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.999900526305011,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": -0.9997987944658054,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.9999591613046291,
+      "degenerado": 0,
+      "id": 3
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9996098193373251,
+      "triangulos": 4
+     }
+    ]
+   },
+   "id": "winding_invertido·4",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "winding_invertido",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -0.9999993088258218,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.9999986453867197,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": -0.9999663992387463,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.9995417502304096,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": -0.9991110168357376,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": -0.9989301747658903,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": -0.9991979313532324,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": -0.999610738190469,
+      "degenerado": 0,
+      "id": 7
+     },
+     {
+      "acuerdo": -0.9998466594651904,
+      "degenerado": 0,
+      "id": 8
+     },
+     {
+      "acuerdo": -0.999981110657194,
+      "degenerado": 0,
+      "id": 9
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9974164723537499,
+      "triangulos": 10
+     }
+    ]
+   },
+   "id": "winding_invertido·5",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "winding_invertido",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -1.0000000000000002,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -1.0000000000000002,
+      "degenerado": 0,
+      "id": 1
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 1.0,
+      "triangulos": 2
+     }
+    ]
+   },
+   "id": "winding_invertido·6",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "winding_invertido",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -0.9999088888047967,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.9990806360383059,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": -0.9992674569530038,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.9994147747699104,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": -0.9996674867833654,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": -0.9998891025886526,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": -0.9998867471246388,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": -0.9994848269228762,
+      "degenerado": 0,
+      "id": 7
+     },
+     {
+      "acuerdo": -0.9993489644814872,
+      "degenerado": 0,
+      "id": 8
+     },
+     {
+      "acuerdo": -0.9999126133661965,
+      "degenerado": 0,
+      "id": 9
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.997120898984591,
+      "triangulos": 10
+     }
+    ]
+   },
+   "id": "winding_invertido·7",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "winding_invertido",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -0.9999999999999999,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.9999999999999999,
+      "degenerado": 0,
+      "id": 1
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 1.0,
+      "triangulos": 2
+     }
+    ]
+   },
+   "id": "winding_invertido·8",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "winding_invertido",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -0.9999485733632436,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.9994545330023054,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": -0.9994960182696269,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.9995846696268805,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": -0.999788814936251,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": -0.9999780247807751,
+      "degenerado": 0,
+      "id": 5
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.998847994570608,
+      "triangulos": 6
+     }
+    ]
+   },
+   "id": "winding_invertido·9",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "winding_invertido",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -0.9999812230427433,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.9997814202063902,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": -0.9993976254634274,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.9992676753418992,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": -0.9997166184705749,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": -0.9999643617854567,
+      "degenerado": 0,
+      "id": 5
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9986652851992256,
+      "triangulos": 6
+     }
+    ]
+   },
+   "id": "winding_invertido·10",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "winding_invertido",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -0.9999755451435602,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.9996910104446696,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": -0.9993407283243578,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.9989164114961862,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": -0.9995421151183531,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": -0.9999673113944976,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": -0.9999923021950115,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": -0.9999912194863911,
+      "degenerado": 0,
+      "id": 7
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9975223497573833,
+      "triangulos": 8
+     }
+    ]
+   },
+   "id": "winding_invertido·11",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "winding_invertido",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -0.9999653060573115,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.9998432379073678,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": -0.9999254469816709,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.9999858305965261,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": -0.9999897420882569,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": -0.9999400562511248,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": -0.9998718078643345,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": -0.9998317884011455,
+      "degenerado": 0,
+      "id": 7
+     },
+     {
+      "acuerdo": -0.9999166241353541,
+      "degenerado": 0,
+      "id": 8
+     },
+     {
+      "acuerdo": -0.9999931857153096,
+      "degenerado": 0,
+      "id": 9
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9990634116061347,
+      "triangulos": 10
+     }
+    ]
+   },
+   "id": "winding_invertido·12",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "winding_invertido",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -0.9999777111194791,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.9998082641852575,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": -0.9996543361383178,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.9996767044684383,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": -0.9997238510939741,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": -0.9999902687830126,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": -0.9999746782219636,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": -0.9999874817219273,
+      "degenerado": 0,
+      "id": 7
+     },
+     {
+      "acuerdo": -0.9999594637784813,
+      "degenerado": 0,
+      "id": 8
+     },
+     {
+      "acuerdo": -0.9999673863587706,
+      "degenerado": 0,
+      "id": 9
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9978491898990497,
+      "triangulos": 10
+     }
+    ]
+   },
+   "id": "winding_invertido·13",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "winding_invertido",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -0.9999545398172458,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.9995985685194678,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": -0.99933605119189,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.999425826515934,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": -0.9998311446340663,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": -0.9999837419061471,
+      "degenerado": 0,
+      "id": 5
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9987609467314323,
+      "triangulos": 6
+     }
+    ]
+   },
+   "id": "winding_invertido·14",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "winding_invertido",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -0.9999091137875761,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.9990764434275672,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": -0.999000845379658,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.999873293473531,
+      "degenerado": 0,
+      "id": 3
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9978003608140635,
+      "triangulos": 4
+     }
+    ]
+   },
+   "id": "winding_invertido·15",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "winding_invertido",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -0.9999969920819567,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.9999738850078045,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": -0.9999458229318627,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.9999836735358811,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": -0.9999872752539025,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": -0.9999975459832701,
+      "degenerado": 0,
+      "id": 5
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9999030688906846,
+      "triangulos": 6
+     }
+    ]
+   },
+   "id": "winding_invertido·16",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "winding_invertido",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -0.9999993657356465,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.9999943074969063,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": -0.9999668505515481,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.9999281631193588,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": -0.9999991303170445,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": -0.9996854873253136,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": -0.9995385065253894,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": -0.999940342088891,
+      "degenerado": 0,
+      "id": 7
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9968908031686109,
+      "triangulos": 8
+     }
+    ]
+   },
+   "id": "winding_invertido·17",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "winding_invertido",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -0.9999422271248143,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.9995729042143816,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": -0.9997532610274407,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.9999763451617595,
+      "degenerado": 0,
+      "id": 3
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.999235793286607,
+      "triangulos": 4
+     }
+    ]
+   },
+   "id": "winding_invertido·18",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "winding_invertido",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -1.0,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -1.0,
+      "degenerado": 0,
+      "id": 1
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 1.0,
+      "triangulos": 2
+     }
+    ]
+   },
+   "id": "winding_invertido·19",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "normales_invertidas",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -0.9999950339004912,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.9999758732251578,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": -0.9999965720272159,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.9996855028414623,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": -0.999016390127332,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": -0.9998943880815033,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": -0.9999920102831472,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": -0.9999002605161872,
+      "degenerado": 0,
+      "id": 7
+     },
+     {
+      "acuerdo": -0.9995932304229558,
+      "degenerado": 0,
+      "id": 8
+     },
+     {
+      "acuerdo": -0.9999554187169288,
+      "degenerado": 0,
+      "id": 9
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.995677626332104,
+      "triangulos": 10
+     }
+    ]
+   },
+   "id": "normales_invertidas·0",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "normales_invertidas",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -0.9999515517508955,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.9995333284838774,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": -0.9994556294604369,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.9999827748316227,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": -0.9996090322786911,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": -0.999232830562176,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": -0.9993700742263766,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": -0.9996177151737421,
+      "degenerado": 0,
+      "id": 7
+     },
+     {
+      "acuerdo": -0.9996033002253107,
+      "degenerado": 0,
+      "id": 8
+     },
+     {
+      "acuerdo": -0.9999485826979942,
+      "degenerado": 0,
+      "id": 9
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9957232075925866,
+      "triangulos": 10
+     }
+    ]
+   },
+   "id": "normales_invertidas·1",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "normales_invertidas",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -0.9999929759900302,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.9999347308963842,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": -0.9997027138649373,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.9999235062706661,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": -0.9999809541491665,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": -0.9995111174255007,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": -0.9982293566108481,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": -0.9997982766506557,
+      "degenerado": 0,
+      "id": 7
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9952747495217618,
+      "triangulos": 8
+     }
+    ]
+   },
+   "id": "normales_invertidas·2",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "normales_invertidas",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -0.9999602781868927,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.999549981037047,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": -0.9998124522966082,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.9998801229342233,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": -0.9979468283542257,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": -0.9963984331099618,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": -0.9979848392428752,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": -0.9998005853545271,
+      "degenerado": 0,
+      "id": 7
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9928878482585849,
+      "triangulos": 8
+     }
+    ]
+   },
+   "id": "normales_invertidas·3",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "normales_invertidas",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -0.9998179804353797,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.9984688133459246,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": -0.9988122105057501,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.9993951562598774,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": -0.9999014700601241,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": -0.9999421128731477,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": -0.9994966137325627,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": -0.9990299032322276,
+      "degenerado": 0,
+      "id": 7
+     },
+     {
+      "acuerdo": -0.998460003577291,
+      "degenerado": 0,
+      "id": 8
+     },
+     {
+      "acuerdo": -0.9998659513401571,
+      "degenerado": 0,
+      "id": 9
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9963969785439027,
+      "triangulos": 10
+     }
+    ]
+   },
+   "id": "normales_invertidas·4",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "normales_invertidas",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -0.9999999999999999,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.9999999999999999,
+      "degenerado": 0,
+      "id": 1
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9999999999999999,
+      "triangulos": 2
+     }
+    ]
+   },
+   "id": "normales_invertidas·5",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "normales_invertidas",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -0.9999704090061559,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.9997546727458336,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": -0.9997454439917615,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.9998630239977123,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": -0.9999502580618459,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": -0.9999582632264361,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": -0.9999364301666437,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": -0.9999907114200819,
+      "degenerado": 0,
+      "id": 7
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9992734247512913,
+      "triangulos": 8
+     }
+    ]
+   },
+   "id": "normales_invertidas·6",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "normales_invertidas",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -1.0,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -1.0,
+      "degenerado": 0,
+      "id": 1
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 1.0,
+      "triangulos": 2
+     }
+    ]
+   },
+   "id": "normales_invertidas·7",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "normales_invertidas",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -0.9999985683328922,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.9999850719393433,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": -0.9999147017586524,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.9998209641157685,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": -0.9997776038041366,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": -0.9997102454936596,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": -0.9998421971206886,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": -0.9998867543829381,
+      "degenerado": 0,
+      "id": 7
+     },
+     {
+      "acuerdo": -0.9999133213496878,
+      "degenerado": 0,
+      "id": 8
+     },
+     {
+      "acuerdo": -0.999991869070617,
+      "degenerado": 0,
+      "id": 9
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9996354665938068,
+      "triangulos": 10
+     }
+    ]
+   },
+   "id": "normales_invertidas·8",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "normales_invertidas",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -1.0,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -1.0,
+      "degenerado": 0,
+      "id": 1
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 1.0,
+      "triangulos": 2
+     }
+    ]
+   },
+   "id": "normales_invertidas·9",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "normales_invertidas",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -1.0,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -1.0,
+      "degenerado": 0,
+      "id": 1
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 1.0,
+      "triangulos": 2
+     }
+    ]
+   },
+   "id": "normales_invertidas·10",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "normales_invertidas",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -0.9999315687089371,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.9995035069858564,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": -0.9999041513228145,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.9999798545211206,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": -0.9999541476132643,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": -0.999999715593095,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": -0.99999183127989,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": -0.9999951417255306,
+      "degenerado": 0,
+      "id": 7
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9972194907232333,
+      "triangulos": 8
+     }
+    ]
+   },
+   "id": "normales_invertidas·11",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "normales_invertidas",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -0.9999990599112623,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.9999941140473846,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": -0.999998353383215,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.9999251022106656,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": -0.9995270608759684,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": -0.9994180865895659,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": -0.9999282141115259,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": -0.9999751921783272,
+      "degenerado": 0,
+      "id": 7
+     },
+     {
+      "acuerdo": -0.9999126767383473,
+      "degenerado": 0,
+      "id": 8
+     },
+     {
+      "acuerdo": -0.9999909230878443,
+      "degenerado": 0,
+      "id": 9
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.998532786498009,
+      "triangulos": 10
+     }
+    ]
+   },
+   "id": "normales_invertidas·12",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "normales_invertidas",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -0.9999598043289939,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.9997867452798622,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": -0.9992313487186718,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.9969534252936015,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": -0.9993677945378219,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": -0.9998271928752659,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": -0.9999686447781146,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": -0.9999957212900239,
+      "degenerado": 0,
+      "id": 7
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9957335025954372,
+      "triangulos": 8
+     }
+    ]
+   },
+   "id": "normales_invertidas·13",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "normales_invertidas",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -0.9999885126673264,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.9999207796434828,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": -0.9999122584155634,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.999982402523191,
+      "degenerado": 0,
+      "id": 3
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9997616400122423,
+      "triangulos": 4
+     }
+    ]
+   },
+   "id": "normales_invertidas·14",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "normales_invertidas",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -1.0,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -1.0,
+      "degenerado": 0,
+      "id": 1
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 1.0,
+      "triangulos": 2
+     }
+    ]
+   },
+   "id": "normales_invertidas·15",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "normales_invertidas",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -1.0000000000000002,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -1.0000000000000002,
+      "degenerado": 0,
+      "id": 1
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 1.0,
+      "triangulos": 2
+     }
+    ]
+   },
+   "id": "normales_invertidas·16",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "normales_invertidas",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -0.9999802914005308,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.9997950855196187,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": -0.998582611429731,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.9970945151692259,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": -0.9982306499502344,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": -0.998111690939076,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": -0.9963416495783913,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": -0.9970123902890512,
+      "degenerado": 0,
+      "id": 7
+     },
+     {
+      "acuerdo": -0.9992936815248739,
+      "degenerado": 0,
+      "id": 8
+     },
+     {
+      "acuerdo": -0.9999290758636109,
+      "degenerado": 0,
+      "id": 9
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9953391554758545,
+      "triangulos": 10
+     }
+    ]
+   },
+   "id": "normales_invertidas·17",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "normales_invertidas",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -0.9999899238877669,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.9998758986082257,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": -0.9997078643727706,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.9995421246895828,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": -0.9996455540066808,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": -0.999953474482017,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": -0.9998842694950046,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": -0.9984991491740676,
+      "degenerado": 0,
+      "id": 7
+     },
+     {
+      "acuerdo": -0.9974963533462512,
+      "degenerado": 0,
+      "id": 8
+     },
+     {
+      "acuerdo": -0.9995905799977876,
+      "degenerado": 0,
+      "id": 9
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.9921520973368537,
+      "triangulos": 10
+     }
+    ]
+   },
+   "id": "normales_invertidas·18",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "normales_invertidas",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": -1.0,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -1.0000000000000002,
+      "degenerado": 0,
+      "id": 1
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 1.0,
+      "triangulos": 2
+     }
+    ]
+   },
+   "id": "normales_invertidas·19",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_dada_vuelta",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9998144860658896,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9989635518769108,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9995794825189774,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9999873587787868,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": -0.9998781381298701,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": 0.999615315396832,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": 0.9998284601915638,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": 0.9999844924216016,
+      "degenerado": 0,
+      "id": 7
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": -0.9976294878495726,
+      "triangulos": 8
+     }
+    ]
+   },
+   "id": "una_cara_dada_vuelta·0",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_dada_vuelta",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999154253578484,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9994000855735975,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9989937673902434,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9992215975954276,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": 0.9991642914466593,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": -0.9997890507038074,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": 0.9999999626735606,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": 0.999966954394128,
+      "degenerado": 0,
+      "id": 7
+     },
+     {
+      "acuerdo": 0.9999546430336858,
+      "degenerado": 0,
+      "id": 8
+     },
+     {
+      "acuerdo": 0.999994867526875,
+      "degenerado": 0,
+      "id": 9
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": -0.999242695446626,
+      "triangulos": 10
+     }
+    ]
+   },
+   "id": "una_cara_dada_vuelta·1",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_dada_vuelta",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999484959649815,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9995801970100608,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9998841220132114,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9999845966841575,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": -0.9998215805258539,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": 0.9994273707825546,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": 0.9983857632552748,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": 0.9996737597896056,
+      "degenerado": 0,
+      "id": 7
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": -0.9960283389210431,
+      "triangulos": 8
+     }
+    ]
+   },
+   "id": "una_cara_dada_vuelta·2",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_dada_vuelta",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999857636293511,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9998338806736002,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9997333658197828,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.9999755026571325,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": 0.9999054619410344,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": 0.9999918056354471,
+      "degenerado": 0,
+      "id": 5
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": -0.9998983301922778,
+      "triangulos": 6
+     }
+    ]
+   },
+   "id": "una_cara_dada_vuelta·3",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_dada_vuelta",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9998793955415477,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9996810841806176,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9998993327171743,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9999736462205112,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": 0.9999761035478116,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": -0.9999466670665608,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": 0.9999826697762527,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": 0.9999964545041734,
+      "degenerado": 0,
+      "id": 7
+     },
+     {
+      "acuerdo": 0.9999995722923611,
+      "degenerado": 0,
+      "id": 8
+     },
+     {
+      "acuerdo": 0.9999999492145241,
+      "degenerado": 0,
+      "id": 9
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": -0.9998436407809839,
+      "triangulos": 10
+     }
+    ]
+   },
+   "id": "una_cara_dada_vuelta·4",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_dada_vuelta",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 1.0,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -1.0,
+      "degenerado": 0,
+      "id": 1
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.0,
+      "triangulos": 2
+     }
+    ]
+   },
+   "id": "una_cara_dada_vuelta·5",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_dada_vuelta",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999996430076767,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9999982688413076,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9999911233510653,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9999640060992702,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": 0.9996461237504528,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": -0.9992876300255035,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": 0.9998366862335395,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": 0.9999436965848384,
+      "degenerado": 0,
+      "id": 7
+     },
+     {
+      "acuerdo": 0.9998675994059953,
+      "degenerado": 0,
+      "id": 8
+     },
+     {
+      "acuerdo": 0.9999786296470583,
+      "degenerado": 0,
+      "id": 9
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": -0.9973379265150564,
+      "triangulos": 10
+     }
+    ]
+   },
+   "id": "una_cara_dada_vuelta·6",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_dada_vuelta",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999455029477702,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9994859883954686,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9990777104497272,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.999944718068449,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": 0.9999940618186809,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": 0.9999970222879971,
+      "degenerado": 0,
+      "id": 5
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": -0.9989045573422748,
+      "triangulos": 6
+     }
+    ]
+   },
+   "id": "una_cara_dada_vuelta·7",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_dada_vuelta",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999887458557665,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9999987714690346,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9999498182298515,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.9999006294397864,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": 0.9999424678951429,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": 0.9999899442060756,
+      "degenerado": 0,
+      "id": 5
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": -0.9996177936411521,
+      "triangulos": 6
+     }
+    ]
+   },
+   "id": "una_cara_dada_vuelta·8",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_dada_vuelta",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 1.0,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -1.0,
+      "degenerado": 0,
+      "id": 1
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.0,
+      "triangulos": 2
+     }
+    ]
+   },
+   "id": "una_cara_dada_vuelta·9",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_dada_vuelta",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999958555774439,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9999632434740243,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9999312239782157,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9997417339422918,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": -0.9994392531971572,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": 0.9999772992185539,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": 0.9999543983982683,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": 0.9999866670026679,
+      "degenerado": 0,
+      "id": 7
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": -0.9987706115049719,
+      "triangulos": 8
+     }
+    ]
+   },
+   "id": "una_cara_dada_vuelta·10",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_dada_vuelta",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999714026827562,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9999803233997393,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9999451346277631,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.9990710335173265,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": 0.9990731246881964,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": 0.9998738205226847,
+      "degenerado": 0,
+      "id": 5
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": -0.9983651153225774,
+      "triangulos": 6
+     }
+    ]
+   },
+   "id": "una_cara_dada_vuelta·11",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_dada_vuelta",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999999999999998,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.9999999999999998,
+      "degenerado": 0,
+      "id": 1
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.0,
+      "triangulos": 2
+     }
+    ]
+   },
+   "id": "una_cara_dada_vuelta·12",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_dada_vuelta",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999440866496794,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9995972526275742,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": -0.9996945020673714,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9999730457348558,
+      "degenerado": 0,
+      "id": 3
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": -0.9967676279614222,
+      "triangulos": 4
+     }
+    ]
+   },
+   "id": "una_cara_dada_vuelta·13",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_dada_vuelta",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999980683018833,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9999827767105035,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": -0.9999873240975742,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9999983626655019,
+      "degenerado": 0,
+      "id": 3
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": -0.9998856357558761,
+      "triangulos": 4
+     }
+    ]
+   },
+   "id": "una_cara_dada_vuelta·14",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_dada_vuelta",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999236014955424,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9992590303953315,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9990006477112338,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9995664209791599,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": -0.9999999953807677,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": 0.9993221677394374,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": 0.9983845951691079,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": 0.9997551877540556,
+      "degenerado": 0,
+      "id": 7
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": -0.9981223639047443,
+      "triangulos": 8
+     }
+    ]
+   },
+   "id": "una_cara_dada_vuelta·15",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_dada_vuelta",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 1.0000000000000002,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -1.0000000000000002,
+      "degenerado": 0,
+      "id": 1
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.0,
+      "triangulos": 2
+     }
+    ]
+   },
+   "id": "una_cara_dada_vuelta·16",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_dada_vuelta",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999791749846064,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9998541106169634,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9998479810045771,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.9998538021307416,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": 0.9999318728030442,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": 0.9999924555477692,
+      "degenerado": 0,
+      "id": 5
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": -0.9992113172366335,
+      "triangulos": 6
+     }
+    ]
+   },
+   "id": "una_cara_dada_vuelta·17",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_dada_vuelta",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999995156977041,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.99999936736715,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.999999850906917,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9999870604020377,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": 0.9999445101664329,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": -0.9998946743509087,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": 0.9998098544103247,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": 0.9998764771453749,
+      "degenerado": 0,
+      "id": 7
+     },
+     {
+      "acuerdo": 0.9999569749796243,
+      "degenerado": 0,
+      "id": 8
+     },
+     {
+      "acuerdo": 0.9999961665074862,
+      "degenerado": 0,
+      "id": 9
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": -0.9997260938320305,
+      "triangulos": 10
+     }
+    ]
+   },
+   "id": "una_cara_dada_vuelta·18",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "una_cara_dada_vuelta",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 1.0,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -1.0,
+      "degenerado": 0,
+      "id": 1
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.0,
+      "triangulos": 2
+     }
+    ]
+   },
+   "id": "una_cara_dada_vuelta·19",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "curva_mas_cerrada_que_el_ancho",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 1.0,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 1.0,
+      "degenerado": 0,
+      "id": 1
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 1.0,
+      "triangulos": 2
+     }
+    ]
+   },
+   "id": "curva_mas_cerrada_que_el_ancho·0",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.cara_visible": true,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "curva_mas_cerrada_que_el_ancho",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9992118164756697,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9995836936426442,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": -0.030326476281131984,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9997692098830365,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": 0.9997983105419177,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": 0.999989424063521,
+      "degenerado": 0,
+      "id": 5
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.1378929494624578,
+      "triangulos": 6
+     }
+    ]
+   },
+   "id": "curva_mas_cerrada_que_el_ancho·1",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "curva_mas_cerrada_que_el_ancho",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 1.0,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 1.0,
+      "degenerado": 0,
+      "id": 1
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 1.0,
+      "triangulos": 2
+     }
+    ]
+   },
+   "id": "curva_mas_cerrada_que_el_ancho·2",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.cara_visible": true,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "curva_mas_cerrada_que_el_ancho",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 1.0,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 1.0,
+      "degenerado": 0,
+      "id": 1
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 1.0,
+      "triangulos": 2
+     }
+    ]
+   },
+   "id": "curva_mas_cerrada_que_el_ancho·3",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.cara_visible": true,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "curva_mas_cerrada_que_el_ancho",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.999806140881402,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9938678112700683,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.3279016801963332,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9987730160948767,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": -0.9518158008628077,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": 0.9998567008238075,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": -0.9984849350835926,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": 0.9965364364689149,
+      "degenerado": 0,
+      "id": 7
+     },
+     {
+      "acuerdo": 0.9948821480433679,
+      "degenerado": 0,
+      "id": 8
+     },
+     {
+      "acuerdo": 0.9999295547286323,
+      "degenerado": 0,
+      "id": 9
+     },
+     {
+      "acuerdo": 0.987065517266093,
+      "degenerado": 0,
+      "id": 10
+     },
+     {
+      "acuerdo": 0.9999012239824245,
+      "degenerado": 0,
+      "id": 11
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": -0.9870105749718018,
+      "triangulos": 12
+     }
+    ]
+   },
+   "id": "curva_mas_cerrada_que_el_ancho·4",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "curva_mas_cerrada_que_el_ancho",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999329928450609,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9984780494618066,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9997942571098084,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9623541091626974,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": 0.9995351888361647,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": 0.9999342005414721,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": -0.999058091443683,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": 0.9982310873516977,
+      "degenerado": 0,
+      "id": 7
+     },
+     {
+      "acuerdo": 0.9970203020784071,
+      "degenerado": 0,
+      "id": 8
+     },
+     {
+      "acuerdo": 0.9999138227671076,
+      "degenerado": 0,
+      "id": 9
+     },
+     {
+      "acuerdo": 0.9998601178068287,
+      "degenerado": 0,
+      "id": 10
+     },
+     {
+      "acuerdo": 0.9999848023875514,
+      "degenerado": 0,
+      "id": 11
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": -0.9991611317963435,
+      "triangulos": 12
+     }
+    ]
+   },
+   "id": "curva_mas_cerrada_que_el_ancho·5",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "curva_mas_cerrada_que_el_ancho",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999880093909576,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9998786174250737,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9999752926110566,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9998787773423663,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": 0.9990231892135071,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": 0.9994193397120736,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": 0.9995179128012213,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": 0.9999608903743508,
+      "degenerado": 0,
+      "id": 7
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.996723449154738,
+      "triangulos": 8
+     }
+    ]
+   },
+   "id": "curva_mas_cerrada_que_el_ancho·6",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.cara_visible": true,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "curva_mas_cerrada_que_el_ancho",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999940666682283,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9997458949952196,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9997562469621643,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.8465635264006066,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": 0.879847787200567,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": 0.7389446093897266,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": 0.9980428444684512,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": 0.998898617774253,
+      "degenerado": 0,
+      "id": 7
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": -0.9984184711868236,
+      "triangulos": 8
+     }
+    ]
+   },
+   "id": "curva_mas_cerrada_que_el_ancho·7",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "curva_mas_cerrada_que_el_ancho",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999583739949007,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9994353008060658,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9996461319337602,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9981942647407528,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": -0.9897322864786056,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": 0.9995304899845188,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": 0.9999624000618363,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": 0.9987364822650862,
+      "degenerado": 0,
+      "id": 7
+     },
+     {
+      "acuerdo": 0.9996908772527884,
+      "degenerado": 0,
+      "id": 8
+     },
+     {
+      "acuerdo": 0.9979132145228599,
+      "degenerado": 0,
+      "id": 9
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": -0.9990737172392552,
+      "triangulos": 10
+     }
+    ]
+   },
+   "id": "curva_mas_cerrada_que_el_ancho·8",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "curva_mas_cerrada_que_el_ancho",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9996119293842511,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9996572273429055,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": -0.8608908534279539,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9999438273517037,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": -0.9992131198472488,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": 0.9999998639978971,
+      "degenerado": 0,
+      "id": 5
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": -0.9749390057019639,
+      "triangulos": 6
+     }
+    ]
+   },
+   "id": "curva_mas_cerrada_que_el_ancho·9",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "curva_mas_cerrada_que_el_ancho",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999999999999999,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9999999999999999,
+      "degenerado": 0,
+      "id": 1
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 1.0,
+      "triangulos": 2
+     }
+    ]
+   },
+   "id": "curva_mas_cerrada_que_el_ancho·10",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.cara_visible": true,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "curva_mas_cerrada_que_el_ancho",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999999999999999,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9999999999999999,
+      "degenerado": 0,
+      "id": 1
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 1.0,
+      "triangulos": 2
+     }
+    ]
+   },
+   "id": "curva_mas_cerrada_que_el_ancho·11",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.cara_visible": true,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "curva_mas_cerrada_que_el_ancho",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.99933485325389,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9996010839565954,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.980144803342923,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9992138437125726,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": -0.9132510175066981,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": 0.9998682747141528,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": 0.9999267218371769,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": 0.9903015723643666,
+      "degenerado": 0,
+      "id": 7
+     },
+     {
+      "acuerdo": 0.9994328683559173,
+      "degenerado": 0,
+      "id": 8
+     },
+     {
+      "acuerdo": -0.3748298561276,
+      "degenerado": 0,
+      "id": 9
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": -0.9301024655806721,
+      "triangulos": 10
+     }
+    ]
+   },
+   "id": "curva_mas_cerrada_que_el_ancho·12",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "curva_mas_cerrada_que_el_ancho",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9988860860003483,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9997495558430882,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9803859027298093,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9996981503408409,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": -0.99111214408018,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": 0.9999920370660336,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": 0.9997127268168527,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": 0.9999834328296714,
+      "degenerado": 0,
+      "id": 7
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": -0.9881828373089204,
+      "triangulos": 8
+     }
+    ]
+   },
+   "id": "curva_mas_cerrada_que_el_ancho·13",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "curva_mas_cerrada_que_el_ancho",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999963544896151,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.999274444313413,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9999712054170774,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9984485545440293,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": 0.9987457781026884,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": 0.9999254260408214,
+      "degenerado": 0,
+      "id": 5
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": -0.9998814071857182,
+      "triangulos": 6
+     }
+    ]
+   },
+   "id": "curva_mas_cerrada_que_el_ancho·14",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "curva_mas_cerrada_que_el_ancho",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9998349513391461,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9994571703238474,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.118932583857959,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9996345675467461,
+      "degenerado": 0,
+      "id": 3
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.36732738955540517,
+      "triangulos": 4
+     }
+    ]
+   },
+   "id": "curva_mas_cerrada_que_el_ancho·15",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.cara_visible": true,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "curva_mas_cerrada_que_el_ancho",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999730335739414,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.1283837917382403,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9997829596921132,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": -0.9908362507846751,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": 0.9958177775517578,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": -0.2580004979438228,
+      "degenerado": 0,
+      "id": 5
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": -0.6670867049646192,
+      "triangulos": 6
+     }
+    ]
+   },
+   "id": "curva_mas_cerrada_que_el_ancho·16",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": false
+    }
+   },
+   "referencia_ok": false
+  },
+  {
+   "defecto": "curva_mas_cerrada_que_el_ancho",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999999999999999,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9999999999999999,
+      "degenerado": 0,
+      "id": 1
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 1.0,
+      "triangulos": 2
+     }
+    ]
+   },
+   "id": "curva_mas_cerrada_que_el_ancho·17",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.cara_visible": true,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "curva_mas_cerrada_que_el_ancho",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9999998076976367,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": 0.9999896101938394,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9999951530224559,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9999995954098387,
+      "degenerado": 0,
+      "id": 3
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": 0.999982588453776,
+      "triangulos": 4
+     }
+    ]
+   },
+   "id": "curva_mas_cerrada_que_el_ancho·18",
+   "oracle_al_generar": {
+    "global_ok": true,
+    "por_medida": {
+     "malla.cara_visible": true,
+     "malla.superficie_sin_vueltas": true
+    }
+   },
+   "referencia_ok": true
+  },
+  {
+   "defecto": "curva_mas_cerrada_que_el_ancho",
+   "evidencia": {
+    "cara_malla": [
+     {
+      "acuerdo": 0.9994423811810749,
+      "degenerado": 0,
+      "id": 0
+     },
+     {
+      "acuerdo": -0.29490369356356305,
+      "degenerado": 0,
+      "id": 1
+     },
+     {
+      "acuerdo": 0.9971248357832246,
+      "degenerado": 0,
+      "id": 2
+     },
+     {
+      "acuerdo": 0.9997447877349938,
+      "degenerado": 0,
+      "id": 3
+     },
+     {
+      "acuerdo": 0.9995437550928884,
+      "degenerado": 0,
+      "id": 4
+     },
+     {
+      "acuerdo": 0.9998883122538764,
+      "degenerado": 0,
+      "id": 5
+     },
+     {
+      "acuerdo": 0.9999945639080157,
+      "degenerado": 0,
+      "id": 6
+     },
+     {
+      "acuerdo": 0.9999736467896182,
+      "degenerado": 0,
+      "id": 7
+     },
+     {
+      "acuerdo": 0.9990304519938142,
+      "degenerado": 0,
+      "id": 8
+     },
+     {
+      "acuerdo": 0.9999605713201978,
+      "degenerado": 0,
+      "id": 9
+     }
+    ],
+    "superficie_malla": [
+     {
+      "degenerados": 0,
+      "peor_acuerdo_con_la_superficie": -0.2715864839833272,
+      "triangulos": 10
+     }
+    ]
+   },
+   "id": "curva_mas_cerrada_que_el_ancho·19",
+   "oracle_al_generar": {
+    "global_ok": false,
+    "por_medida": {
+     "malla.cara_visible": false,
+     "malla.superficie_sin_vueltas": false
+    }
+   },
+   "referencia_ok": false
+  }
+ ],
+ "esquema": "oracle.diferencial/v1",
+ "frescura": {
+  "algoritmo": "sha256",
+  "configuracion": {
+   "defectos": [
+    "winding_invertido",
+    "normales_invertidas",
+    "una_cara_dada_vuelta",
+    "curva_mas_cerrada_que_el_ancho"
+   ],
+   "descripcion": "Brianholl/jam · cara visible de ribbon_core en UE 5.8.1",
+   "extra": {},
+   "nombre": "malla",
+   "repeticiones": 20
+  },
+  "fuentes": {
+   "emisor": [
+    "tools/emitir_diferencial_malla.py",
+    "Content/Python/jam/oracle_malla_facts.py",
+    "medidas/escalares.py"
+   ],
+   "referencia": [
+    "Content/Python/jam/ribbon_core.py"
+   ]
+  },
+  "huellas": {
+   "catalogo": "d8ee60a5864bef8917b3d6e30a7f989a3d82961d33ac876a89c25ae3dd0f50f2",
+   "configuracion": "696f136566e5cb7c70d311b5e9952450485877c22a282aa5ed8c33019ce2e850",
+   "emisor": "67ba55e32ad2908a2b1840e705b73f25c7bc327ed82ef0093905fd12b7403460",
+   "referencia": "a939ccf783008d54dfa3625deb4655f9f9ce35aece9f69825fdaf2a930b52181"
+  },
+  "raiz_fuentes": ".."
+ },
+ "medidas": [
+  "malla.cara_visible",
+  "malla.superficie_sin_vueltas"
+ ],
+ "mundos": 100,
+ "origen": "Brianholl/jam · cara visible de ribbon_core en UE 5.8.1"
+}
