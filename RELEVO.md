@@ -606,7 +606,26 @@ cercana a «vive en el canvas y no toca el nivel»; es un criterio PRESTADO y es
 en el código, para que se cambie ahí el día que el registro tenga un campo propio. Tampoco se cachea
 un nodo que falló: sería volver permanente un error hasta que alguien toque un parámetro.
 
-**Primer paso del preview SIN HORNEAR: el camino es viable y da el orden de magnitud esperado.**
+🔑 **EL PREVIEW SIN HORNEAR FUNCIONA — el live view deja de ser un problema de rendimiento.**
+`mesh.mostrar(M)` crea un `DynamicMeshActor` y le pasa la malla con `set_dynamic_mesh`, sin escribir
+nada en Content. Medido en UE 5.8.1 sobre la cadena real de «Borde de camino», la misma que
+horneando costaba 68,8 ms:
+
+| | ms |
+|---|---|
+| geometría + mostrar | **3,6 ms** — 19× más rápido que hornear |
+| **recocinar tras mover un slider** | **0,8 ms** |
+
+Con 0,8 ms el gesto del live view tiene más de 1000 fps de margen: **lo que queda es UI (debounce,
+display flag), no rendimiento.** El asset se escribe recién en Bake, que es cuando alguien decide
+quedarse con el resultado — como cocina Houdini.
+
+Detalles que costaron una corrida cada uno: la propiedad **sí** es `dynamic_mesh_component` (y
+`get_dynamic_mesh_component()` hace lo mismo); el fallo anterior estaba en la línea siguiente. Y se
+usa `set_dynamic_mesh` y NO `append_mesh` sobre la del componente: reemplazar es la semántica del
+preview, y acumular dejaría la malla anterior adentro en cada recocción.
+
+**(histórico)** El primer paso del preview sin hornear.
 Medido en UE 5.8.1: `DynamicMeshActor` existe en el binding y **se spawnea por clase en commandlet
 en 1,7 ms** —importante: `spawn_actor_from_object` devuelve None ahí, así que este camino SÍ se puede
 verificar headless, a diferencia de todo lo demás que coloca cosas—. Construir la malla, 0,2 ms.

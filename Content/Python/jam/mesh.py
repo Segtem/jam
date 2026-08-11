@@ -2322,3 +2322,36 @@ def uv_triangulos(malla, canal: int = 0) -> list:
         if len(tri) == 3:
             salida.append(tri)
     return salida
+
+
+def mostrar(source, *, location=None, name: str = "JamPreview") -> dict:
+    """Muestra una malla `M` en el nivel SIN hornearla a StaticMesh.
+
+    Es la pieza del live view. Medido en UE 5.8.1: hornear una cadena cuesta 68–257 ms y es el 99%
+    del Run, mientras construir la geometría cuesta 1–2 ms. Mostrarla con un `DynamicMeshComponent`
+    evita ese 99% — no por reusar trabajo, sino por no hacerlo: el asset recién se escribe en Bake,
+    que es cuando alguien decidió quedarse con el resultado. Es como cocina Houdini.
+
+    El actor queda marcado como transitorio para que un Preview no ensucie el nivel guardado.
+    """
+    malla = _dynamic_mesh(source)
+    if malla is None:
+        return {"error": "mesh_mostrar necesita una malla M válida."}
+
+    destino = location or unreal.Vector(0.0, 0.0, 0.0)
+    actor = unreal.EditorLevelLibrary.spawn_actor_from_class(unreal.DynamicMeshActor, destino)
+    if actor is None:
+        return {"error": "no se pudo crear el actor de preview."}
+
+    componente = actor.get_dynamic_mesh_component()
+    if componente is None:
+        unreal.EditorLevelLibrary.destroy_actor(actor)
+        return {"error": "el actor de preview no expone su DynamicMeshComponent."}
+
+    # `set_dynamic_mesh` y no `append_mesh` sobre el suyo: reemplazar es la semántica del preview,
+    # y acumular dejaría la malla anterior adentro en cada recocción del live view.
+    componente.set_dynamic_mesh(malla)
+    actor.set_actor_label(name)
+    contados = unreal.GeometryScript_MeshQueries.get_num_triangle_i_ds(malla)
+    return {"actor": actor, "triangulos": int(contados),
+            "info": f"PREVIEW ✓ — {contados} triángulos sin hornear"}
