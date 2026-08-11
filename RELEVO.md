@@ -72,8 +72,31 @@ sentido que los laterales) y después **no eran convexos** (un radio suelto por 
 estrellados, y sobre un cóncavo no valen ni el abanico ni la referencia). Son **1099 acuerdos / 4298
 veredictos**, **303/303 mutantes** y 11 dominios.
 
-⚠️ **EL CRASH DEL ARRASTRE SIGUE ABIERTO — tres intentos, y el tercero es un EXPERIMENTO, no un
-arreglo.** Brian lo reproduce arrastrando una ficha del ribbon al lienzo. Siempre cae igual:
+**EL CRASH DEL ARRASTRE ESTÁ RESUELTO, y lo resolvió un experimento, no un diagnóstico.** Brian
+confirmó que ya no rompe. Era nuestro: el `SWidgetSwitcher` de la ficha, que elegía la columna por
+ÍNDICE, caía en `DrawPrepass` con «Array index out of bounds: 254 into an array of size 2».
+
+Dos intentos de arreglar el índice fallaron —diferir la creación del nodo un frame, y cambiar el
+`[this]` crudo del lambda por un puntero débil con clamp; el segundo se verificó por timestamps, el
+crash de las 11:25:28 fue posterior al `.so` de las 11:23:33—. Lo que funcionó fue **quitar el
+índice**: dos columnas en un `SOverlay`, prendidas y apagadas por visibilidad. Sin índice no hay
+índice fuera de rango, y como era el único switcher de todo Jam la respuesta servía en las dos
+direcciones. Un test recorre `Source/` y falla si vuelve a aparecer `SNew(SWidgetSwitcher)`.
+
+**Segunda vuelta, por un bug que introdujo ese cambio**: con la visibilidad puesta como *atributo*
+(`Visibility_Lambda`), el nodo quedaba mostrando la columna compacta con el TAMAÑO de la normal y
+después el botón ya no lo devolvía. Invalidar no alcanza para que Slate reevalúe una visibilidad
+cacheada. Ahora las dos columnas se guardan en `ColumnaParams`/`ColumnaLetras` y `SetCompacto` les
+cambia la visibilidad **a mano**: explícito, sin índice y sin capturar `this` en ningún lambda. Son
+**871 tests** y las mutaciones —devolver el switcher, alternar una sola columna— discriminan.
+
+⚠️ **Quedan 17 lambdas `[this]` más en `SJamGraphNode.cpp`** con el mismo riesgo latente.
+
+**Lo que se aprendió del método, que vale más que el arreglo**: deducir la causa desde un stack sin
+poder reproducir el gesto falló DOS veces seguidas. Lo que destrabó fue dejar de intentar acertar y
+partir el problema en dos con un cambio cuyo resultado fuera informativo en ambas direcciones.
+
+**(histórico)** Antes de eso, el crash parecía un USE-AFTER-FREE. Brian lo reproduce arrastrando una ficha del ribbon al lienzo. Siempre cae igual:
 `TOneDynamicChildBase<…, TSlateAttribute<int>>::GetChildRefAt` dentro de `DrawPrepass`, con
 «Array index out of bounds: **254** into an array of size **2**» y, la última vez, además
 `SIGSEGV … write at 0x3`.

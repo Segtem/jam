@@ -278,6 +278,17 @@ public:
 private:
 	bool bDebugEnabled = false;
 	bool bCompacto = false;
+
+	/**
+	 * Las dos columnas centrales, para prender y apagar la que corresponde SIN un índice.
+	 *
+	 * Acá hubo un `SWidgetSwitcher` que elegía por índice y hacía caer el editor entero con
+	 * «Array index out of bounds» dentro de `DrawPrepass`. Se guardan los widgets y se les cambia
+	 * la visibilidad a mano: es explícito, no hay entero que pueda quedar fuera de rango y no hace
+	 * falta capturar `this` en un lambda que sobreviva al nodo.
+	 */
+	TSharedPtr<SWidget> ColumnaParams;
+	TSharedPtr<SWidget> ColumnaLetras;
 	bool bBypassed = false;
 	bool bCanBypass = false;
 	// Por cada param: cómo LEER su valor y cómo FIJARLO, sin que el resto del nodo sepa si el widget es

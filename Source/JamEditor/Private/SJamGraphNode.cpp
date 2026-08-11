@@ -538,24 +538,14 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 				SNew(SOverlay)
 				+ SOverlay::Slot()
 				[
-					SNew(SBox)
-					.Visibility_Lambda([Debil = TWeakPtr<SJamGraphNode>(SharedThis(this))]()
-					{
-						const TSharedPtr<SJamGraphNode> Vivo = Debil.Pin();
-						return (Vivo.IsValid() && !Vivo->IsCompacto())
-							? EVisibility::Visible : EVisibility::Collapsed;
-					})
+					SAssignNew(ColumnaParams, SBox)
+					.Visibility(bCompacto ? EVisibility::Collapsed : EVisibility::Visible)
 					[ ParamCol ]
 				]
 				+ SOverlay::Slot()
 				[
-					SNew(SBox)
-					.Visibility_Lambda([Debil = TWeakPtr<SJamGraphNode>(SharedThis(this))]()
-					{
-						const TSharedPtr<SJamGraphNode> Vivo = Debil.Pin();
-						return (Vivo.IsValid() && Vivo->IsCompacto())
-							? EVisibility::Visible : EVisibility::Collapsed;
-					})
+					SAssignNew(ColumnaLetras, SBox)
+					.Visibility(bCompacto ? EVisibility::Visible : EVisibility::Collapsed)
 					[ LetrasCol ]
 				]
 			]
@@ -783,8 +773,18 @@ void SJamGraphNode::SetCompacto(bool bEnabled)
 		return;
 	}
 	bCompacto = bEnabled;
-	// El switcher y el ancho de la columna leen `bCompacto` por atributo, así que no hay que
-	// reconstruir nada: los campos de valor siguen VIVOS detrás, con lo que hubieras tipeado.
+	// La visibilidad se cambia A MANO y no por atributo. Con un lambda de `Visibility` el nodo
+	// quedaba mostrando la columna compacta con el TAMAÑO de la normal, y después el botón ya no
+	// lo devolvía: invalidar no alcanza para que Slate reevalúe una visibilidad cacheada. Los
+	// campos de valor siguen VIVOS detrás, con lo que hubieras tipeado.
+	if (ColumnaParams.IsValid())
+	{
+		ColumnaParams->SetVisibility(bCompacto ? EVisibility::Collapsed : EVisibility::Visible);
+	}
+	if (ColumnaLetras.IsValid())
+	{
+		ColumnaLetras->SetVisibility(bCompacto ? EVisibility::Visible : EVisibility::Collapsed);
+	}
 	Invalidate(EInvalidateWidgetReason::LayoutAndVolatility);
 }
 

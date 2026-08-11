@@ -519,15 +519,30 @@ class IndiceDelSwitcherDelNodoEnElCppTests(unittest.TestCase):
         return "\n".join(linea for linea in bloque.splitlines()
                           if not linea.strip().startswith("//"))
 
-    def test_el_indice_no_captura_this_crudo(self):
-        """La regresión exacta: volver a `[this]` devuelve el use-after-free."""
-        self.assertNotIn("[this]", self.lambda_de_la_columna(),
-                         "la columna de la ficha volvió a capturar `this` crudo")
-
-    def test_el_indice_usa_un_puntero_debil(self):
+    def test_la_columna_no_se_elige_con_un_lambda(self):
+        """Con la visibilidad por atributo, el nodo quedaba mostrando la columna compacta con el
+        TAMAÑO de la normal, y el botón ya no lo devolvía: invalidar no alcanza para que Slate
+        reevalúe una visibilidad cacheada. Se prende y apaga a mano en `SetCompacto`."""
         cuerpo = self.lambda_de_la_columna()
-        self.assertIn("TWeakPtr<SJamGraphNode>", cuerpo)
-        self.assertIn("Debil.Pin()", cuerpo)
+        self.assertNotIn("Visibility_Lambda", cuerpo)
+        self.assertNotIn("[this]", cuerpo)
+
+    def test_las_dos_columnas_se_guardan_para_poder_alternarlas(self):
+        cuerpo = self.lambda_de_la_columna()
+        self.assertIn("SAssignNew(ColumnaParams", cuerpo)
+        self.assertIn("SAssignNew(ColumnaLetras", cuerpo)
+
+    def test_alternar_cambia_la_visibilidad_de_las_dos(self):
+        """Tocar una sola deja las dos visibles o las dos ocultas."""
+        from pathlib import Path
+
+        raiz = Path(__file__).resolve().parents[3]
+        cpp = (raiz / "Source" / "JamEditor" / "Private" / "SJamGraphNode.cpp").read_text(
+            encoding="utf-8")
+        inicio = cpp.index("void SJamGraphNode::SetCompacto")
+        cuerpo = cpp[inicio:cpp.index("\n}\n", inicio)]
+        self.assertIn("ColumnaParams->SetVisibility", cuerpo)
+        self.assertIn("ColumnaLetras->SetVisibility", cuerpo)
 
     def test_la_ficha_no_elige_su_columna_por_indice(self):
         """El experimento que discrimina de quién es el crash.
