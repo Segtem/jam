@@ -573,6 +573,20 @@ de pedir manos sin que nadie lo note.)*
 
 ## Lo próximo
 
+**0-bis. Decidir cómo se DEFINE una tool y cómo llega a la Dash Bar.** Brian pidió el relevamiento y
+está en [[2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0]]. Lo medido: una tool se declara
+en hasta CUATRO lugares —`REGISTRO`, nueve tablas paralelas indexadas por nombre, `ribbon.py` y
+`letras.py`— y la superficie se decide **en negativo** (`graph_only`, puesto en 93 de 113), así que
+una tool nueva aparece en la Dash Bar por olvido y no por decisión. `label` es opcional y falta en
+84 de 113, que es por qué el ribbon mezcla «Simplificar por triángulos» con `mesh_weld` crudo.
+Houdini, Grasshopper, Substance, Blender y el propio UE declaran cada tool en UN lugar con su firma,
+su nombre visible y su ubicación juntos; ninguno usa tablas laterales. La propuesta es mudar la
+verdad a un descriptor único, cambiar la superficie a positivo (`superficies={"dash","graph"}`) y
+—lo que hoy no existe— **un oráculo del registro**: label presente, categoría conocida, letras sin
+repetir, tipo en el vocabulario. Migración incremental, con un test que obligue sólo a las tools
+NUEVAS. Falta la decisión de Brian y una estimación honesta, que no sale hasta escribir los primeros
+diez descriptores.
+
 **0. Cerrar el residuo de la cinta: muestras con avance despreciable.** El pliegue por cruce ya está
 resuelto en el rango realista (ver «ESTADO DEL PLIEGUE» arriba). Quedan 7 de 20 en giros de 140°, y
 son otra cosa: el borde no retrocede, avanza casi nada —1,4 cm contra ~460 del otro lado— y con Z
