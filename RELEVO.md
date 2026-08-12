@@ -63,11 +63,26 @@ argumento: se implementó juzgar el bevel contra la dirección de avance de la e
 área bajó 5x —132.126 cm² → 23.753— **con el acuerdo intacto en -0,998**. El parche se revirtió: un
 remedio que angosta la cinta sin arreglar nada es peor que no tocar.
 
-En el bevel el defecto es el **ORDEN del abanico**, no el ancho: el cuadrilátero sale con el winding
-opuesto al de la tira, y de qué lado abre el abanico depende de hacia dónde dobla el recorrido — así
-que un orden de índices fijo no puede estar bien para los dos sentidos. Se arregla en la emisión de
-triángulos, que es el código más delicado del archivo (el del winding invertido), y pide verificación
-por el camino real. **Ese es el próximo corte, y ahora está nombrado con precisión.**
+**El bevel es un MOÑO, y ni angostar ni triangular lo arreglan.** Hay repro mínimo, sin corpus ni
+azar: tres puntos, esquina de 140°, `width=600` → 6 caras y **una sola** a `nz = -1,00` contra cinco
+a `+1,00`. Con la esquina a 100° no hay bevel y no hay cara invertida. Las dos hipótesis que parecían
+obvias se implementaron, se midieron y las dos son falsas:
+
+· **«el cuadrilátero está dado vuelta»** → se probó elegir el winding del bevel según el tramo sano
+vecino. No cambia nada: los DOS triángulos del bevel miran para lados opuestos **entre sí**, así que
+darlos vuelta juntos conserva la incoherencia.
+· **«está mal triangulado»** → se probó la otra diagonal. Idéntico, y cuál de las dos caras se
+invierte cambia con el sentido del giro.
+
+O sea que el moño es de los **cuatro puntos**, no de cómo se los une: con la sección a ancho completo
+a cada lado del pivote, las dos secciones del bevel se cruzan y **ninguna** triangulación de ese
+conjunto es coherente. ⚠️ Esto refuta lo que este mismo turno había escrito dos horas antes («se
+arregla en la emisión de triángulos»): era una deducción sin medir, encima de un diagnóstico recién
+corregido.
+
+**El próximo corte es aguas arriba, en el join de `offset_points`**: en una esquina más cerrada que
+~90° el borde INTERIOR tiene que pellizcarse en el pivote en vez de seguir a ancho completo. Es lo
+que hace un offset de polígono serio.
 
 Lo que este turno agrega es el método: **contar cuántos mundos quedan en rojo no alcanza para elegir
 un remedio.** Con la cuenta sola, el parche del bevel parecía progreso —bajó de 9 caras rojas a 8—

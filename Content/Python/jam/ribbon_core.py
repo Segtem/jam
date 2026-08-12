@@ -60,12 +60,23 @@ def _sin_pliegues(left, right, ejes_reales=None, margen: float = 0.98):
       de la esquina y el área bajó 5x —de 132.126 cm² a 23.753— con el acuerdo intacto en -0,998.
       O sea que ese remedio angosta la cinta sin arreglar nada.
 
-    En el bevel el defecto es el ORDEN del abanico, no el ancho: el cuadrilátero entre las dos
-    muestras sale con el winding opuesto al de la tira, y de qué lado abre el abanico depende de
-    hacia dónde dobla el recorrido — así que un orden de índices fijo no puede estar bien para los
-    dos sentidos. Se arregla en la emisión de triángulos, no acá, y toca el código más delicado del
-    archivo (ver `investiga_winding_ribbon_58.py`): pide corte propio y verificación por el camino
-    real. `malla.cara_visible` los sigue marcando en rojo mientras tanto.
+    **En el bevel el problema es un MOÑO, y no se arregla ni angostando ni triangulando.** Repro
+    mínimo, sin corpus ni azar (`tools/clasifica_caras_rojas_ribbon.py` lo imprime): tres puntos, una
+    esquina de 140°, `width=600`. Salen 6 caras y **una sola** queda a `nz = -1,00` contra cinco a
+    `+1,00`. Las dos hipótesis que parecían obvias se probaron y las dos son falsas:
+
+    · **«el cuadrilátero está dado vuelta»** — se implementó elegir el winding del bevel según el
+      tramo sano vecino. No cambia nada: los DOS triángulos del bevel miran para lados opuestos
+      entre sí, así que darlos vuelta juntos conserva la incoherencia.
+    · **«está mal triangulado»** — se probó partir el cuadrilátero por la otra diagonal. Idéntico
+      resultado, y cuál de las dos caras se invierte cambia con el sentido del giro.
+
+    O sea que el moño es de los CUATRO PUNTOS, no de cómo se los une: con la sección a ancho completo
+    a cada lado del pivote, las dos secciones del bevel se cruzan y ninguna triangulación de ese
+    conjunto es coherente. La corrección va aguas arriba, en el join de `offset_points`: en una
+    esquina más cerrada que ~90° el borde INTERIOR tiene que pellizcarse en el pivote en vez de
+    seguir a ancho completo. Eso es lo que hace un offset de polígono serio, y es el próximo corte.
+    `malla.cara_visible` los sigue marcando en rojo mientras tanto.
     """
     if ejes_reales is not None:
         # El eje VERDADERO de cada muestra. Con miters fuertes el punto medio entre bordes se aleja

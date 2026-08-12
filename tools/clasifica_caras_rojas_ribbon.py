@@ -81,3 +81,50 @@ for i in range(20):
 
 print()
 print("  reparto:", casos)
+
+
+# ---------------------------------------------------------------------------------------------
+# El repro MÍNIMO del bevel, sin corpus ni azar: tres puntos y una esquina.
+#
+# Vale más que las 20 tiradas para el que venga a arreglarlo — un caso que entra en tres líneas y
+# falla siempre es mejor punto de partida que una estadística sobre mundos aleatorios.
+def repro_minimo():
+    from jam import ribbon_core
+    from jam.curve_sampling_core import offset_points
+
+    print()
+    print("Repro mínimo del bevel: 3 puntos, una esquina, ancho 600.")
+    print("-" * 74)
+    for grados in (140.0, -140.0, 100.0):
+        ang = math.radians(grados)
+        pts = [(0.0, 0.0, 0.0), (400.0, 0.0, 0.0),
+               (400.0 + 400 * math.cos(ang), 400 * math.sin(ang), 0.0)]
+        construido = ribbon_core.ribbon_buffers(
+            pts, width=600.0, plane="xy", join="miter", miter_limit=2.0)
+        if "error" in construido:
+            print(f"  giro {grados:+.0f}°: {construido['error']}")
+            continue
+        vertices = construido["vertices"]
+        origins = offset_points(pts, side="left", distance=300.0, plane="xy",
+                                join="miter", miter_limit=2.0)["origins"]
+        hay_bevel = any(origins[i] == origins[i + 1] for i in range(len(origins) - 1))
+        nz = []
+        for tri in construido["triangles"]:
+            a, b, c = (vertices[i] for i in tri)
+            u = [c[k] - a[k] for k in range(3)]
+            v = [b[k] - a[k] for k in range(3)]
+            n = [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]]
+            largo = math.sqrt(sum(x * x for x in n)) or 1.0
+            nz.append(n[2] / largo)
+        malas = sum(1 for x in nz if x < 0)
+        print(f"  giro {grados:+.0f}°  bevel={'sí' if hay_bevel else 'no ':<3} "
+              f"caras: {' '.join(f'{x:+.2f}' for x in nz)}   ({malas} invertida(s))")
+    print()
+    print("  Sin bevel no hay cara invertida. Con bevel queda UNA, y cuál cambia con el sentido")
+    print("  del giro: los dos triángulos del cuadrilátero miran para lados opuestos entre sí.")
+    print("  Medido: ni elegir el winding por el vecino sano ni partir por la otra diagonal lo")
+    print("  cambian. El moño es de los cuatro puntos — la corrección va en el join de")
+    print("  `offset_points`: el borde interior tiene que pellizcarse en el pivote.")
+
+
+repro_minimo()
