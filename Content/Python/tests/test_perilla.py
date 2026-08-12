@@ -199,6 +199,60 @@ class LosDosLectoresDelSpecTests(unittest.TestCase):
                     encoding="utf-8")
                 self.assertIn('TEXT("unidad")', fuente)
 
+class ShiftAcomodaTests(unittest.TestCase):
+    """Con Shift apretado, la perilla salta de a 5°.
+
+    Pedido de Brian. «De a 5» tiene dos lecturas que eligen cosas distintas: caer en MÚLTIPLOS de 5
+    —45, 90, 135— o avanzar de a 5 desde donde se agarró —258,8 → 263,8—. Se eligió la primera,
+    porque la gracia de acomodar un ángulo es justamente sacarse el decimal feo de encima; la
+    segunda lo conserva para siempre.
+    """
+
+    def cuerpo(self, funcion: str) -> str:
+        fuente = codigo(KNOB)
+        desde = fuente.index(f"FReply SJamKnob::{funcion}")
+        resto = fuente[desde + 10:]
+        fin = resto.index("\nFReply SJamKnob::") if "\nFReply SJamKnob::" in resto else len(resto)
+        return fuente[desde:desde + 10 + fin]
+
+    def test_el_paso_es_de_CINCO_grados(self) -> None:
+        """Cinco divide a 45, 90 y 360: las posiciones que alguien busca a mano —los ejes y las
+        diagonales— caen todas adentro de la grilla."""
+        self.assertIn("constexpr float PasoConShift = 5.0f;", codigo(KNOB))
+
+    def test_acomoda_el_VALOR_y_no_el_avance(self) -> None:
+        """Redondear el avance conservaría el decimal de donde se agarró, que es lo que se quería
+        sacar. Se redondea el valor final contra la grilla absoluta."""
+        cuerpo = self.cuerpo("OnMouseMove")
+        self.assertIn("FMath::RoundToFloat(Nuevo / PasoConShift) * PasoConShift", cuerpo)
+        self.assertNotIn("RoundToFloat(Delta", cuerpo, "se está acomodando el avance, no el valor")
+
+    def test_se_pregunta_en_CADA_movimiento_y_no_al_agarrar(self) -> None:
+        """Para poder apretar y soltar Shift a mitad del arrastre: acercarse rápido y después
+        afinar es cómo se usa una perilla. Preguntándolo al agarrar, el modo quedaría congelado."""
+        self.assertIn("IsShiftDown()", self.cuerpo("OnMouseMove"))
+        self.assertNotIn("IsShiftDown()", self.cuerpo("OnMouseButtonDown"),
+                         "el modo se decide al agarrar: Shift dejaría de poder soltarse a mitad")
+
+    def test_sin_Shift_el_giro_sigue_siendo_continuo(self) -> None:
+        """La regresión que importa: acomodar SIEMPRE sacaría el medio grado, que es justo lo que
+        la perilla tiene que poder hacer cuando no se le pide lo contrario."""
+        cuerpo = self.cuerpo("OnMouseMove")
+        antes = cuerpo.index("float Nuevo = ValorAlAgarrar + Delta;")
+        acomoda = cuerpo.index("PasoConShift")
+        self.assertIn("if (Event.IsShiftDown())", cuerpo[antes:acomoda],
+                      "el acomodado no está detrás de la guarda de Shift")
+
+    def test_el_tooltip_lo_ANUNCIA(self) -> None:
+        """Un gesto con tecla que no está escrito en ningún lado no existe: nadie prueba Shift por
+        las dudas."""
+        nodo = codigo(NODO)
+        bloque = nodo[nodo.index('P.Unidad == TEXT("grados")'):]
+        bloque = bloque[:bloque.index('if (Key == TEXT("expr"))')]
+        self.assertIn("Shift", bloque)
+        self.assertIn("5", bloque)
+
+
 class ContrasteTests(unittest.TestCase):
     """La perilla tiene que VERSE sobre el cuerpo de la ficha.
 

@@ -598,7 +598,8 @@ nada.
 | 2.1 | Poner un nodo `place` (o `mesh_transform`) y mirar la fila **yaw** | Hay un **círculo con una aguja** al lado del campo de número. ⚠️ La primera vez NO aparecía: el spec se lee en dos lugares del C++ y la unidad se había agregado sólo a uno |
 | 2.2 | Arrastrar la perilla | La aguja **no salta** al tocarla, gira siguiendo el mouse, y el número se actualiza |
 | 2.3 | Salirse del círculo sin soltar el botón | Sigue girando (si se corta, falta la captura del mouse) |
-| 2.4 | Soltar y `Ctrl+Z` **una vez** | Deshace **el arrastre entero**, no el último grado |
+| 2.4 | Arrastrar **con Shift apretado** | Salta de a 5°, cayendo en múltiplos redondos (45, 90, 135). Soltar Shift **sin soltar el botón** vuelve al giro fino |
+| 2.5 | Soltar y `Ctrl+Z` **una vez** | Deshace **el arrastre entero**, no el último grado |
 
 ### 3 · Live view y ver un solo nodo (5 minutos — el de mayor rendimiento)
 

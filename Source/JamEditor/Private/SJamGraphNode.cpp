@@ -390,7 +390,8 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 						SNew(SJamKnob)
 						.Diameter(24.0f)
 						.ToolTipText(LOCTEXT("PerillaTip",
-							"arrastrá para girar; el campo sigue aceptando un valor exacto"))
+							"arrastrá para girar · Shift acomoda de a 5° · el campo sigue "
+							"aceptando un valor exacto"))
 						.Angle_Lambda([Field]()
 							{ return FCString::Atof(*Field->GetText().ToString()); })
 						.OnAngleChanged_Lambda([this, Field](float Grados)

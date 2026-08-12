@@ -4,6 +4,13 @@
 #include "Rendering/DrawElements.h"
 #include "Styling/AppStyle.h"
 
+namespace
+{
+	/** El salto con Shift apretado, en grados. Cinco divide a 45, 90 y 360, así que las posiciones
+	 *  que alguien busca a mano —los ejes y las diagonales— caen todas adentro de la grilla. */
+	constexpr float PasoConShift = 5.0f;
+}
+
 void SJamKnob::Construct(const FArguments& InArgs)
 {
 	Angle = InArgs._Angle;
@@ -57,7 +64,18 @@ FReply SJamKnob::OnMouseMove(const FGeometry& Geometry, const FPointerEvent& Eve
 	// pegar un salto de 360 en el valor.
 	while (Delta > 180.0f) { Delta -= 360.0f; }
 	while (Delta < -180.0f) { Delta += 360.0f; }
-	const float Nuevo = ValorAlAgarrar + Delta;
+	float Nuevo = ValorAlAgarrar + Delta;
+
+	// SHIFT acomoda a múltiplos de 5°. Se acomoda el VALOR y no el avance: la gracia de acomodar un
+	// ángulo es caer en números redondos —45, 90, 135—, y sumar de a 5 desde donde se agarró daría
+	// 263,8 partiendo de 258,8, que conserva el decimal feo que uno justamente quería sacarse.
+	//
+	// Se pregunta en CADA movimiento y no al agarrar, para poder apretar y soltar Shift a mitad del
+	// arrastre: es la única forma de acercarse rápido y después afinar, que es cómo se usa.
+	if (Event.IsShiftDown())
+	{
+		Nuevo = FMath::RoundToFloat(Nuevo / PasoConShift) * PasoConShift;
+	}
 	OnAngleChanged.ExecuteIfBound(Nuevo);
 	return FReply::Handled();
 }
