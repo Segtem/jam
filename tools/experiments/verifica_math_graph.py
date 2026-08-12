@@ -47,6 +47,15 @@ try:
         ("math_sin", "Seno"),
         ("math_cos", "Coseno"),
         ("math_tan", "Tangente"),
+        # Cuarto lote — inversas y tiempo (del tab Maths de Grasshopper: Trig y Time).
+        ("math_asin", "Arcoseno"),
+        ("math_acos", "Arcocoseno"),
+        ("math_atan", "Arcotangente"),
+        ("math_atan2", "Ángulo de un vector"),
+        ("time_construct", "Armar tiempo"),
+        ("time_horas", "Horas de"),
+        ("time_minutos", "Minutos de"),
+        ("time_segundos", "Segundos de"),
     ):
         exigir(verbo in spec, f"el spec no publicó {verbo}")
         exigir(spec[verbo]["label"] == etiqueta,
@@ -131,6 +140,31 @@ try:
     exigir(not rechazo_rango.get("ok"),
            f"Run aceptó un rango dado vuelta: {rechazo_rango}")
 
+    # Cuarto lote por el camino real: 1h30m45s, sacarle las horas → 1. Y el ángulo de (0,5),
+    # que es el caso donde `atan(y/x)` explotaría, en grados → 90.
+    reloj = JamGraph()
+    reloj.add("time_construct", {"horas": 1, "minutos": 30, "segundos": 45}, nid="dur")
+    reloj.add("time_horas", {}, nid="horas")
+    reloj.connect("dur", "horas", "total")
+    reloj.add("math_atan2", {"y": 5, "x": 0}, nid="rumbo")
+    reloj.add("math_degrees", {}, nid="grados")
+    reloj.connect("rumbo", "grados", "radianes")
+    compilado_reloj = json.loads(api.compile_graph_json(reloj.to_json()))
+    exigir(compilado_reloj.get("ok"), f"Compile del cuarto lote rojo: {compilado_reloj}")
+    corrida_reloj = json.loads(api.run_graph_json(reloj.to_json()))
+    exigir(corrida_reloj.get("ok"), f"Run del cuarto lote rojo: {corrida_reloj}")
+    inspeccion_reloj = api.inspect_json("horas", "", 10, "", False)
+    exigir("1" in inspeccion_reloj, f"el Inspector no muestra 1 hora: {inspeccion_reloj[:200]}")
+    inspeccion_rumbo = api.inspect_json("grados", "", 10, "", False)
+    exigir("90" in inspeccion_rumbo,
+           f"el Inspector no muestra 90° para el vector (0,5): {inspeccion_rumbo[:200]}")
+
+    # Y un rechazo del lote nuevo: un seno fuera de -1..1 no tiene ángulo.
+    imposible = JamGraph()
+    imposible.add("math_asin", {"seno": 2.0}, nid="angulo")
+    rechazo_arco = json.loads(api.run_graph_json(imposible.to_json()))
+    exigir(not rechazo_arco.get("ok"), f"Run aceptó un arcoseno fuera de dominio: {rechazo_arco}")
+
     compilado_lote = json.loads(api.compile_graph_json(lote.to_json()))
     exigir(compilado_lote.get("ok"), f"Compile lote rojo: {compilado_lote}")
     corrida_lote = json.loads(api.run_graph_json(lote.to_json()))
@@ -146,9 +180,9 @@ try:
     exigir(not rechazado.get("ok") and "negativo" in rechazado.get("report", ""),
            f"Compile aceptó raíz negativa: {rechazado}")
 
-    unreal.log("JAM_MATH_GRAPH_TEST TODO VERDE — 23 verbos en el spec + Compile + Run + "
+    unreal.log("JAM_MATH_GRAPH_TEST TODO VERDE — 31 verbos en el spec + Compile + Run + "
                "Inspector=40/2 y sin(45°)→71 + división por cero, raíz negativa y rango dado "
-               "vuelta rechazados")
+               "vuelta y arcoseno fuera de dominio rechazados + 1h30m45s→1h y (0,5)→90°")
 except Exception as exc:  # noqa: BLE001
     unreal.log_error(f"JAM_MATH_GRAPH_TEST ROJO — {type(exc).__name__}: {exc}")
 finally:

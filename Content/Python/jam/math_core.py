@@ -138,6 +138,62 @@ def _booleano(valor) -> bool:
     return str(valor).strip().lower() in ("1", "true", "si", "sí", "yes", "on", "verdadero")
 
 
+def _arco(nombre_pin: str, funcion, valor: float) -> float:
+    """Arcoseno/arcocoseno con el dominio verificado: fuera de -1..1 no existe ángulo.
+
+    `math.asin(2)` tira `ValueError` con un texto del intérprete que no nombra el pin. Acá el
+    diagnóstico dice DÓNDE está el problema, que es lo único accionable en un grafo de 30 nodos.
+    """
+    if not -1.0 <= valor <= 1.0:
+        raise ValorError(nombre_pin, "tiene que estar entre -1 y 1 para que exista el ángulo")
+    return funcion(valor)
+
+
+def _atan2(y: float, x: float) -> float:
+    """Ángulo del vector (x, y), con el CUADRANTE correcto y sin dividir por cero.
+
+    Es la que de verdad se usa para apuntar: `atan(y/x)` pierde el cuadrante —confunde arriba con
+    abajo— y explota cuando x es cero, que es justo el caso de mirar en vertical. El orden de los
+    pines es `y` primero, como en toda la matemática y como en `FMath::Atan2`.
+    """
+    return math.atan2(y, x)
+
+
+#: Un tiempo es SEGUNDOS, un `N` común, y no un tipo propio.
+#:
+#: Grasshopper tiene un tipo fecha/hora porque modela calendarios —salida del sol, estaciones—. Acá
+#: lo que se necesita son DURACIONES: cuánto dura una extracción, cada cuánto rota una patrulla. Un
+#: tipo nuevo obligaría a duplicar sumar, restar, interpolar y comparar; en segundos, todo eso ya
+#: funciona. Los cuatro verbos de abajo son sólo la traducción a algo que una persona pueda leer.
+SEGUNDOS_POR_HORA = 3600.0
+SEGUNDOS_POR_MINUTO = 60.0
+
+
+def _a_segundos(horas: float, minutos: float, segundos: float) -> float:
+    """Suma sin normalizar: 90 minutos son 90 minutos.
+
+    No se rechaza `minutos=90` ni se lo convierte a «1 hora 30» porque sumar es exactamente lo que
+    alguien quiere al escribir «dos horas y 90 minutos». Normalizar sería decidir por el otro.
+    """
+    return (horas * SEGUNDOS_POR_HORA + minutos * SEGUNDOS_POR_MINUTO + segundos)
+
+
+def _parte_del_tiempo(total: float, unidad: str) -> float:
+    """La hora, el minuto o el segundo de una duración en segundos.
+
+    Trunca hacia el CERO y no hacia abajo, para que una duración negativa —un contador que se pasó—
+    dé `-1 h 30 m` y no `-2 h 30 m`. Con `//` de Python pasaría lo segundo, que es correcto como
+    módulo euclídeo y absurdo leído como reloj.
+    """
+    signo = -1.0 if total < 0.0 else 1.0
+    resto = abs(float(total))
+    if unidad == "horas":
+        return signo * math.floor(resto / SEGUNDOS_POR_HORA)
+    if unidad == "minutos":
+        return signo * math.floor((resto % SEGUNDOS_POR_HORA) / SEGUNDOS_POR_MINUTO)
+    return signo * (resto % SEGUNDOS_POR_MINUTO)
+
+
 def _casi_igual(a: float, b: float, tolerancia: float) -> bool:
     """Igualdad de flotantes con tolerancia EXPLÍCITA y visible en el nodo.
 
@@ -374,6 +430,78 @@ VALORES: dict[str, dict] = {
         "out_label": "tangente",
         "operacion": _tangente,
         "doc": "tangente de un ángulo EN RADIANES; cerca del polo da números enormes y eso no es un error",
+    },
+    "math_asin": {
+        "label": "Arcoseno", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"seno": 0.0},
+        "tipos": {"seno": "N"},
+        "etiquetas_params": {"seno": "seno (Número)"},
+        "out_label": "radianes",
+        "operacion": lambda seno: _arco("seno", math.asin, seno),
+        "doc": "ángulo en radianes cuyo seno es el dado; fuera de -1..1 no existe y es error",
+    },
+    "math_acos": {
+        "label": "Arcocoseno", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"coseno": 1.0},
+        "tipos": {"coseno": "N"},
+        "etiquetas_params": {"coseno": "coseno (Número)"},
+        "out_label": "radianes",
+        "operacion": lambda coseno: _arco("coseno", math.acos, coseno),
+        "doc": "ángulo en radianes cuyo coseno es el dado; fuera de -1..1 no existe y es error",
+    },
+    "math_atan": {
+        "label": "Arcotangente", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"tangente": 0.0},
+        "tipos": {"tangente": "N"},
+        "etiquetas_params": {"tangente": "tangente (Número)"},
+        "out_label": "radianes",
+        "operacion": math.atan,
+        "doc": "ángulo en radianes cuya tangente es la dada; siempre entre -90° y 90°",
+    },
+    "math_atan2": {
+        "label": "Ángulo de un vector", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"y": 0.0, "x": 1.0},
+        "tipos": {"y": "N", "x": "N"},
+        "etiquetas_params": {"y": "y (Número)", "x": "x (Número)"},
+        "out_label": "radianes",
+        "operacion": _atan2,
+        "doc": "ángulo del vector (x, y) con el CUADRANTE correcto; es la que sirve para apuntar",
+    },
+    "time_construct": {
+        "label": "Armar tiempo", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"horas": 0.0, "minutos": 0.0, "segundos": 0.0},
+        "tipos": {"horas": "N", "minutos": "N", "segundos": "N"},
+        "etiquetas_params": {"horas": "horas (Número)", "minutos": "minutos (Número)", "segundos": "segundos (Número)"},
+        "out_label": "segundos",
+        "operacion": _a_segundos,
+        "doc": "horas, minutos y segundos a segundos totales; no normaliza: 90 minutos son 90 minutos",
+    },
+    "time_horas": {
+        "label": "Horas de", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"total": 0.0},
+        "tipos": {"total": "N"},
+        "etiquetas_params": {"total": "total (Número)"},
+        "out_label": "horas",
+        "operacion": lambda total: _parte_del_tiempo(total, "horas"),
+        "doc": "las horas enteras de una duración en segundos",
+    },
+    "time_minutos": {
+        "label": "Minutos de", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"total": 0.0},
+        "tipos": {"total": "N"},
+        "etiquetas_params": {"total": "total (Número)"},
+        "out_label": "minutos",
+        "operacion": lambda total: _parte_del_tiempo(total, "minutos"),
+        "doc": "los minutos de una duración, ya descontadas las horas",
+    },
+    "time_segundos": {
+        "label": "Segundos de", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"total": 0.0},
+        "tipos": {"total": "N"},
+        "etiquetas_params": {"total": "total (Número)"},
+        "out_label": "segundos",
+        "operacion": lambda total: _parte_del_tiempo(total, "segundos"),
+        "doc": "los segundos de una duración, ya descontados los minutos",
     },
     # ---- comparaciones: las ÚNICAS que producen un booleano ----
     # Hasta acá ningún nodo producía `B`, así que un condicional no tenía a qué cablearse: era un

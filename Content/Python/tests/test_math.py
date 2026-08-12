@@ -657,3 +657,85 @@ class InterruptorBooleanoTests(unittest.TestCase):
         g.connect("cerrar", "cono", "capped")
         plan = compilar(g)
         self.assertIs(plan.values_by_node["cerrar"], True)
+
+
+class AngulosInversosYTiempoTests(unittest.TestCase):
+    """Los dos grupos que Brian pidió mirando el tab Maths de Grasshopper: Trig y Time.
+
+    Del panel Trig faltaba lo que de verdad agrega capacidad —las inversas—; del panel Time,
+    horas/minutos/segundos. Las funciones recíprocas (Secante, Cosecante, Cotangente) NO se
+    agregaron a propósito: son `1/cos`, `1/sen` y `1/tan`, el grafo ya las puede escribir con
+    Dividir, y triplicarían el grupo sin capacidad nueva.
+    """
+
+    def evaluar(self, verbo, params):
+        return math_core.evaluar(verbo, params, {}, lambda *_a: None)
+
+    def test_las_inversas_deshacen_a_las_directas(self) -> None:
+        for angulo in (0.0, 0.3, 1.0, -0.7):
+            with self.subTest(angulo=angulo):
+                seno = self.evaluar("math_sin", {"radianes": angulo})
+                self.assertAlmostEqual(self.evaluar("math_asin", {"seno": seno}), angulo)
+
+    def test_fuera_del_dominio_falla_nombrando_el_pin(self) -> None:
+        """`math.asin(2)` tira un ValueError con texto del intérprete que no dice DÓNDE está el
+        problema, que es lo único accionable en un grafo de 30 nodos."""
+        for verbo, pin in (("math_asin", "seno"), ("math_acos", "coseno")):
+            with self.subTest(verbo=verbo):
+                with self.assertRaises(math_core.ValorError) as caso:
+                    self.evaluar(verbo, {pin: 2.0})
+                self.assertEqual(caso.exception.pin, pin)
+
+    def test_el_angulo_de_un_vector_conserva_el_CUADRANTE(self) -> None:
+        """Es la diferencia entre `atan2` y `atan(y/x)`: la segunda confunde arriba con abajo y
+        explota mirando en vertical, que es justo el caso de apuntar."""
+        casos = ((1, 1, 45.0), (1, -1, 135.0), (-1, -1, -135.0), (-1, 1, -45.0), (1, 0, 90.0))
+        for y, x, grados in casos:
+            with self.subTest(y=y, x=x):
+                radianes = self.evaluar("math_atan2", {"y": y, "x": x})
+                self.assertAlmostEqual(self.evaluar("math_degrees", {"radianes": radianes}), grados)
+
+    def test_el_angulo_de_un_vector_vertical_no_explota(self) -> None:
+        self.assertAlmostEqual(self.evaluar("math_atan2", {"y": 5, "x": 0}), math.pi / 2)
+
+    def test_armar_un_tiempo_no_normaliza(self) -> None:
+        """Sumar es exactamente lo que alguien quiere al escribir «dos horas y 90 minutos».
+        Normalizarlo a 3h30 sería decidir por el otro."""
+        self.assertEqual(self.evaluar("time_construct",
+                                      {"horas": 2, "minutos": 90, "segundos": 0}), 12600.0)
+        self.assertEqual(self.evaluar("time_construct",
+                                      {"horas": 1, "minutos": 30, "segundos": 45}), 5445.0)
+
+    def test_las_partes_de_una_duracion(self) -> None:
+        for unidad, esperado in (("horas", 1.0), ("minutos", 30.0), ("segundos", 45.0)):
+            with self.subTest(unidad=unidad):
+                self.assertEqual(self.evaluar(f"time_{unidad}", {"total": 5445.0}), esperado)
+
+    def test_una_duracion_negativa_se_lee_como_reloj_y_no_como_modulo(self) -> None:
+        """Con el `//` de Python, -5445 daría «-2 h 30 m»: correcto como módulo euclídeo y absurdo
+        leído como reloj. Truncar hacia el CERO da «-1 h 30 m», que es lo que dice un contador que
+        se pasó."""
+        self.assertEqual(self.evaluar("time_horas", {"total": -5445.0}), -1.0)
+        self.assertEqual(self.evaluar("time_minutos", {"total": -5445.0}), -30.0)
+        self.assertEqual(self.evaluar("time_segundos", {"total": -5445.0}), -45.0)
+
+    def test_ida_y_vuelta_por_el_ejecutor_real(self) -> None:
+        """Armar 1h30m45s y volver a sacarle las horas tiene que dar 1, encadenado."""
+        g = JamGraph()
+        g.add("time_construct", {"horas": 1, "minutos": 30, "segundos": 45}, nid="dur")
+        g.add("time_horas", {}, nid="h")
+        g.connect("dur", "h", "total")
+        plan = compilar(g)
+        self.assertEqual(plan.values_by_node["dur"], 5445.0)
+        self.assertEqual(plan.values_by_node["h"], 1.0)
+
+    def test_todos_estan_en_flow_y_en_el_ribbon(self) -> None:
+        grupos = {
+            "Trigonometría": ["math_asin", "math_acos", "math_atan", "math_atan2"],
+            "Tiempo": ["time_construct", "time_horas", "time_minutos", "time_segundos"],
+        }
+        for grupo, verbos in grupos.items():
+            for verbo in verbos:
+                with self.subTest(verbo=verbo):
+                    self.assertIn(verbo, flow.OPS_META)
+                    self.assertEqual(ribbon.grupo_de("Maths", verbo), grupo)

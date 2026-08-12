@@ -1209,6 +1209,40 @@ es— y los params viajan como TEXTO, así que sin conversión propia un interru
 leído prendido al abrir un `.jamgraph`, con el nodo dibujándose bien. 1024 tests, 2 mutaciones que
 discriminan.
 
+✅ **Y el tab Maths, mirando las capturas de `~/Dev/studies/rhino/`.** Brian pidió además
+horas/minutos/segundos, ángulos y matrices, y mandó a mirar las imágenes. Mirarlas cambió el plan.
+
+· **Trig** (18 componentes en la captura): ✅ hechas las tres INVERSAS más **`atan2`**, que es la que
+sirve para apuntar —`atan(y/x)` pierde el cuadrante y explota mirando en vertical—. Las recíprocas
+(Secante, Cosecante, Cotangente) **se saltearon a propósito**: son `1/cos`, `1/sen` y `1/tan`, el
+grafo ya las escribe con Dividir, y triplicarían el grupo sin capacidad nueva.
+· **Time** (8 componentes): ✅ Armar tiempo + Horas/Minutos/Segundos de. **Un tiempo es SEGUNDOS, un
+`N` común, y no un tipo propio**: GH tiene tipo fecha porque modela calendarios; acá se necesitan
+DURACIONES, y en segundos sumar/restar/interpolar/comparar ya funcionan. Gotcha fijado en test: con
+el `//` de Python, −5445 s daría «−2 h 30 m» —correcto como módulo euclídeo y absurdo leído como
+reloj—; truncando hacia el cero da «−1 h 30 m».
+· **Matrix** y **Domain**: ❌ pendientes. Matrices dependen del peldaño 1 (el tipo `V`). Domain es un
+modelo que vale copiar: GH apoya remap/includes/divide sobre un TIPO dominio en vez de tenerlos
+sueltos como nosotros.
+
+⚠️ **Y las capturas dejaron a la vista DOS LÍMITES del grafo, que no son verbos que faltan.**
+**(1) Ningún verbo tiene más de una salida** —medido sobre los 200—, así que todo el patrón
+*Deconstruct* de GH no se puede expresar. Por eso el tiempo se descompone con tres verbos en vez de
+uno: es honesto, pero no escala a matrices, donde nadie va a querer nueve verbos para nueve celdas.
+**(2) Los nodos de valor no admiten params que no sean números** (`evaluar` los pasa todos por
+`_numero`), así que tampoco se puede poner un desplegable. Multi-salida es lo que de verdad bloquea
+el peldaño de matrices.
+
+🎨 **El eje «vistoso» tiene nombre y orden.** `Params/Input.png` explica el pedido: GH tiene 25
+entradas donde **el cuerpo del nodo ES el control** —Control Knob, MD Slider, Digit Scroller, Value
+List, Calendar, **Clock**, Gradient, **Graph Mapper**, Colour Wheel—. Jam dibuja tres controles:
+spinbox, checkbox y desplegable; todo lo demás es una fila de texto. **La brecha de accesibilidad no
+es de vocabulario sino de Slate.** Orden de barato a caro: Value List → Digit Scroller → Control Knob
+→ Gradient → MD Slider → Graph Mapper (Jam ya tiene `graph_curve` como dato; le falta el widget).
+Lo mismo vale para el ICONO: los de GH son diagramas de la operación —el de Seno es una onda, el de
+Transponer es la grilla dada vuelta, el de Construct Time es un reloj—, y los 24 iconos nuevos de
+este turno siguen esa regla.
+
 Los peldaños siguientes, en orden: **1.** el tipo `V` y sus constructores (= Fase 2 de Math) ·
 **2.** Construir punto y `curve_line` · **3.** cerrar la polilínea con el interruptor · **4.** Line
 SDL y Move sobre curvas · **5.** Interpolate (curva que PASA por los puntos, distinta de

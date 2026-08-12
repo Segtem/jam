@@ -96,6 +96,70 @@ control. Son dos cosas distintas y el tutorial enseña la primera; hoy sólo ten
 se junta con lo que Jam ya hace bien (`mesh_ribbon` es un caso particular de esto), y donde va a
 volver a aparecer el moño del bevel de `ribbon_core` si no se resolvió antes.
 
+## El otro eje: el tab Maths completo, mirando las capturas
+
+Brian pidió además **horas/minutos/segundos, ángulos y matrices**, y mandó a mirar las capturas de
+`~/Dev/studies/rhino/`. Mirarlas cambió el plan en dos puntos que el catálogo de texto no mostraba.
+
+**Lo que se ve en `Maths/Trig.png`** (18 componentes): Seno, Coseno, Tangente, sus tres INVERSAS,
+las tres recíprocas (Secante, Cosecante, Cotangente), Sinc, Grados, Radianes, y un bloque de
+geometría de triángulos (Right/Triangle Trigonometry, Centroide, Circuncentro, Incentro,
+Ortocentro). ✅ Hecho 2026-08-12: las tres inversas más **`atan2`**, que es la que de verdad sirve
+para apuntar —`atan(y/x)` pierde el cuadrante y explota mirando en vertical—. **Las recíprocas se
+saltearon a propósito**: son `1/cos`, `1/sen` y `1/tan`, el grafo ya las escribe con Dividir, y
+triplicarían el grupo sin capacidad nueva. El bloque de triángulos es geometría, no aritmética, y va
+con los verbos de curva.
+
+**Lo que se ve en `Maths/Time.png`** (8 componentes): Construct Date, Construct Time, Deconstruct
+Date, Combine Date & Time, Date Range, Interpolate Date… ✅ Hecho: Armar tiempo + Horas/Minutos/
+Segundos de. **Decisión: un tiempo es SEGUNDOS, un `N` común, y no un tipo propio.** Grasshopper
+tiene tipo fecha/hora porque modela calendarios —salida del sol, estaciones—; acá lo que se necesita
+son DURACIONES (cuánto dura una extracción, cada cuánto rota una patrulla). Un tipo nuevo obligaría a
+duplicar sumar, restar, interpolar y comparar; en segundos todo eso ya funciona.
+
+**Lo que se ve en `Maths/Matrix.png`** (7 componentes): Construct, Deconstruct, Display, Invert,
+Transpose, Swap Columns, Swap Rows. ❌ Pendiente, y depende del peldaño 1 (el tipo `V`): una matriz
+es el paso siguiente al vector, no anterior.
+
+**Lo que se ve en `Maths/Domain.png`** (16 componentes): Construct/Deconstruct Domain, Bounds,
+Divide Domain, Includes, Remap Numbers, y las versiones 2D. ❌ Pendiente. Jam tiene `math_remap` y
+`series_remap` sueltos; GH los tiene apoyados sobre un TIPO dominio, y por eso puede preguntar
+«¿este número está adentro?» o «partime este rango en 8». Es el modelo más limpio y vale copiarlo.
+
+## ⚠️ Dos límites del grafo que las capturas dejaron a la vista
+
+**1. Ningún verbo de Jam tiene más de una salida.** Medido: los 200 verbos declaran un solo
+`out_name`. Todo el patrón **Deconstruct** de Grasshopper —Deconstruct Date, Matrix, Domain, Point,
+Vector— es un nodo con VARIAS salidas, y hoy no se puede expresar. Por eso el tiempo se
+descompone con tres verbos (`Horas de`, `Minutos de`, `Segundos de`) en vez de uno: es honesto, pero
+no escala a matrices, donde nadie va a querer nueve verbos para sacar nueve celdas. **Multi-salida es
+una capacidad del grafo, no un verbo que falta**, y bloquea de verdad el peldaño de matrices.
+
+**2. Los nodos de valor no admiten parámetros que no sean números.** `math_core.evaluar` pasa todos
+los params por `_numero`, así que un desplegable —«¿qué parte del tiempo querés?»— no se puede
+declarar en un nodo de Maths. Es la otra razón por la que el tiempo son tres verbos.
+
+## El eje «vistoso»: el cuerpo del nodo como widget
+
+`Params/Input.png` es la captura que explica el pedido de «nodos más accesibles vistosos». Grasshopper
+tiene 25 parámetros de entrada donde **el cuerpo del nodo ES el control**: Number Slider, **Control
+Knob** (una perilla), **MD Slider** (un pad 2D), **Digit Scroller**, **Value List**, **Calendar**,
+**Clock** (un reloj que se arrastra), Colour Picker/Swatch/Wheel, **Gradient**, **Graph Mapper** (una
+curva que se agarra con el mouse), Image Sampler.
+
+Jam hoy dibuja tres controles: spinbox, checkbox y desplegable. Todo lo demás es una fila de texto.
+**Esa es la brecha de accesibilidad, y no es de vocabulario sino de Slate**: un nodo «Armar tiempo»
+con tres spinboxes dice lo mismo que un reloj arrastrable, pero no se lee de un vistazo.
+
+Y lo mismo vale para el ICONO. Los de Grasshopper son diagramas de la operación —el de Seno es una
+onda seno, el de Transponer es la grilla dada vuelta, el de Construct Time es un reloj—, no símbolos
+arbitrarios. Los 24 iconos nuevos de este turno siguen esa regla: las inversas dibujan la curva
+REFLEJADA, y los cuatro de tiempo son relojes con la manecilla que corresponde.
+
+Orden propuesto para este eje, de más barato a más caro: **Value List** (desplegable con opciones
+visibles) → **Digit Scroller** → **Control Knob** → **Gradient** → **MD Slider** → **Graph Mapper**
+(Jam ya tiene `graph_curve` como dato; le falta el widget).
+
 ## Lo que NO se toma del tutorial
 
 Es de **NURBS**, y Jam produce mallas dinámicas de Geometry Script. Loft y Boundary Surface se van a
