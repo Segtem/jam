@@ -601,6 +601,16 @@ nada.
 | 2.4 | Arrastrar **con Shift apretado** | Salta de a 5°, cayendo en múltiplos redondos (45, 90, 135). Soltar Shift **sin soltar el botón** vuelve al giro fino |
 | 2.5 | Soltar y `Ctrl+Z` **una vez** | Deshace **el arrastre entero**, no el último grado |
 
+### 2-bis · El tirador de números (1 minuto, en el mismo nodo)
+
+| # | qué hacer | qué tiene que pasar |
+|---|---|---|
+| 2b.1 | En el mismo `place`, mirar la fila **x** (o `scale`, `sink`…) | Hay **tres rayitas verticales** a la derecha del campo |
+| 2b.2 | Arrastrarlas a los costados | El número sigue al mouse, un valor por píxel |
+| 2b.3 | Arrastrar con **Shift** | Se acomoda a enteros |
+| 2b.4 | Buscar una fila de un param `int` (`count`, `segments`, `sides`) y arrastrar | **Nunca** aparece un decimal |
+| 2b.5 | Escribir `=2*3` en un campo y **arrastrar su tirador** | **No hace nada**: no puede pisar una expresión. El campo sigue editable a mano |
+
 ### 3 · Live view y ver un solo nodo (5 minutos — el de mayor rendimiento)
 
 | # | qué hacer | qué tiene que pasar |

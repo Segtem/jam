@@ -1,6 +1,7 @@
 #include "SJamGraphNode.h"
 
 #include "SJamKnob.h"
+#include "SJamScrub.h"
 
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/SNullWidget.h"
@@ -380,6 +381,41 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 			//
 			// El campo es la ÚNICA fuente de verdad: la perilla lo lee para pintarse y lo escribe
 			// al arrastrar. Sin eso habría dos estados del mismo valor y uno se desincronizaría.
+			// TIRADOR para arrastrar un número (el «Digit Scroller» de Grasshopper). Jam tiene
+			// 505 params numéricos y todos se tipeaban: el campo es un cuadro de texto pelado. Eso
+			// no fue un descuido —cualquier param numérico puede llevar una expresión (`=radio * 2`)
+			// y un spinbox no puede contenerla— pero deja al usuario tecleando para probar un
+			// valor, que es lo contrario de tantear.
+			//
+			// Va AL LADO, como la perilla y como el desplegable de `expr`: el campo sigue aceptando
+			// expresiones y valores exactos, y el tirador agrega lo único que faltaba. No aparece
+			// donde ya hay perilla —un ángulo no necesita dos controles— ni donde el spec no dijo
+			// que el valor es un número.
+			const bool bNumerico = P.Type == TEXT("float") || P.Type == TEXT("int");
+			if (bNumerico && P.Unidad != TEXT("grados"))
+			{
+				Input = SNew(SHorizontalBox)
+					+ SHorizontalBox::Slot().FillWidth(1.0f).VAlign(VAlign_Center)[ Field ]
+					+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+					  .Padding(2.0f, 0.0f, 0.0f, 0.0f)
+					[
+						SNew(SJamScrub)
+						.Entero(P.Type == TEXT("int"))
+						.ToolTipText(LOCTEXT("TiradorTip",
+							"arrastrá para tantear · Shift acomoda a enteros · el campo sigue "
+							"aceptando expresiones («=radio * 2») y valores exactos"))
+						.TextoActual_Lambda([Field]() { return Field->GetText().ToString(); })
+						.OnValueChanged_Lambda([this, Field](float Valor)
+						{
+							Field->SetText(FText::FromString(
+								FString::SanitizeFloat(Valor, /*MinFractionalDigits*/ 0)));
+							OnParamLiveDelegate.ExecuteIfBound();
+						})
+						.OnValueCommitted_Lambda([this](float)
+							{ OnParamChangedDelegate.ExecuteIfBound(); })
+					];
+			}
+
 			if (P.Unidad == TEXT("grados"))
 			{
 				Input = SNew(SHorizontalBox)
