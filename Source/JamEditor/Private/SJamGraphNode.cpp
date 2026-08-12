@@ -81,6 +81,7 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 	OnDeleteSelectionDelegate = InArgs._OnDeleteSelection;
 	OnDragEndDelegate = InArgs._OnDragEnd;
 	OnParamChangedDelegate = InArgs._OnParamChanged;
+	OnParamLiveDelegate = InArgs._OnParamLive;
 	OnBypassChangedDelegate = InArgs._OnBypassChanged;
 	OnThumbnailOpenDelegate = InArgs._OnThumbnailOpen;
 	OnPedirVariablesDelegate = InArgs._OnPedirVariables;
@@ -247,7 +248,11 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 			Input = SNew(SSpinBox<float>)
 				.Style(&SpinStyle)
 				.Value_Lambda([Val]() { return *Val; })
-				.OnValueChanged_Lambda([Val](float V) { *Val = V; })
+				// Changed avisa POR FRAME y sólo lo escucha el live view; el historial se entera al
+				// soltar, abajo. Son dos avisos porque son dos preguntas distintas: «¿esto es un paso
+				// que se puede deshacer?» y «¿esto cambió lo que hay que mostrar?».
+				.OnValueChanged_Lambda([this, Val](float V)
+					{ *Val = V; OnParamLiveDelegate.ExecuteIfBound(); })
 				// Commit y no Changed: UN paso del historial por arrastre del slider, no por frame.
 				.OnValueCommitted_Lambda([this](float, ETextCommit::Type)
 					{ OnParamChangedDelegate.ExecuteIfBound(); })
@@ -268,7 +273,8 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 			Input = SNew(SSpinBox<float>)
 				.Style(&SpinStyle)
 				.Value_Lambda([H]() { return *H; })
-				.OnValueChanged_Lambda([H](float V) { *H = V; })
+				.OnValueChanged_Lambda([this, H](float V)
+					{ *H = V; OnParamLiveDelegate.ExecuteIfBound(); })
 				.OnValueCommitted_Lambda([this](float, ETextCommit::Type)
 					{ OnParamChangedDelegate.ExecuteIfBound(); })
 				.MinValue(TOptional<float>()).MaxValue(TOptional<float>())

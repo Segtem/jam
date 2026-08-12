@@ -539,6 +539,24 @@ Lo que **nadie ejerció con las manos** de este turno:
 
 ## Para las manos de Brian
 
+**⟳ LIVE VIEW — está construido y COMPILADO, y sólo falta que lo veas. Cinco gestos, cinco minutos.**
+
+Es lo único de todo el live view que no se puede verificar sin ojos: que se SIENTA continuo es
+precisamente lo que ninguna medición contesta.
+
+1. Abrí Jam ▸ Graph y armá `curve_bezier → mesh_ribbon → Ver sin hornear` (Mesh ▸ Hornear).
+2. Apretá **⟳ Live** en la barra de arriba (o Solución ▸ Live view). **Tiene que cocinar de una** y
+   aparecer la cinta en el viewport, sin que toques nada más.
+3. Agregá un nodo `number`, cableálo a `width` y **arrastrá su slider**. La cinta tiene que seguir
+   el arrastre, no saltar al soltar. Si va a tirones, el período está en `LiveDebounceSegundos`.
+4. Soltá el slider y apretá `Ctrl+Z` UNA vez: tiene que deshacer **el arrastre entero**, no el
+   último frame. Es la razón de que haya dos avisos separados y es lo más fácil de romper.
+5. Apagá **⟳ Live**: el grafo deja de correr solo y el output lo dice.
+
+Y el contraste que vale la pena sentir: cambiá el último nodo a `mesh_to_static` y arrastrá otra vez.
+Debería seguir andando —hornear quedó en ~35 ms— pero con un peso distinto. Ese contraste es el
+argumento entero de «Ver sin hornear».
+
 **Funciones del Graph — ocho gestos, quince minutos:**
 
 1. Abrí Jam ▸ Graph y armá una cadena de cuatro nodos Mesh.
@@ -572,6 +590,41 @@ Después, sin urgencia: subir `~/Dev/oracle/estudio/` a NotebookLM. Empezá por 
 de pedir manos sin que nadie lo note.)*
 
 ## Lo próximo
+
+**0-quinquies. ⟳ LIVE VIEW — CONSTRUIDO Y COMPILADO. Falta que Brian lo vea (ver «Para las manos»).**
+
+El gesto que faltaba: recocinar mientras se arrastra, sin apretar Run. Está en Slate C++, compila, y
+son **13 tests que leen el `.cpp` con 8 mutaciones que confirman que discriminan** (una por test, y
+el control sin mutar en verde).
+
+**La decisión de diseño, que era el nudo:** el slider avisaba con `OnValueCommitted` y no con
+`OnValueChanged`, deliberadamente —*«UN paso del historial por arrastre, no por frame»*—. Eso está
+bien para Undo y es exactamente lo contrario de lo que quiere un live view. **No se cambió ese aviso:
+se agregó un SEGUNDO**, `OnParamLive`, que dispara por frame y lo escucha sólo el live view. Un solo
+aviso no puede servir a los dos: o el Undo se llena de un paso por frame, o el live view sólo
+reacciona al soltar y deja de ser live.
+
+**El amortiguador:** un arrastre avisa decenas de veces por segundo y el grafo corre ocho
+(`LiveDebounceSegundos = 0.125f`). `PedirRecoccion` no cocina —levanta una bandera y se asegura de
+que haya UN temporizador, no uno por aviso—; el temporizador cocina si hay pendiente y **se apaga
+solo** cuando no queda nada. La bandera se baja ANTES de cocinar, para no comerse el aviso que
+llegue mientras el grafo corre —si no, al soltar quedaría mostrando el penúltimo valor—.
+
+**Arranca APAGADO**, y no por comodidad: correr el grafo tiene efectos en la escena, y prenderse solo
+sería que rozar un slider empiece a colocar cosas. Prenderlo cocina de una, para que no se confunda
+«prendido mostrando lo viejo» con «no anda».
+
+**Otra corazonada que la medición desarmó.** Iba a hacer un camino liviano para la recocción viva,
+saltándose miniaturas e inspector por caros. Medido (`mide_costo_recoccion_viva_58.py`): ejecutar el
+grafo 1,7 ms, miniaturas 1,8 ms, inspector 0,1 ms — **la vuelta completa cuesta 3,7 ms y entra 32
+veces en el presupuesto de 120 ms**. No hay camino liviano: el live view llama al mismo `RunGraph()`
+que el botón. Menos código por haber medido.
+
+⚠️ Lo que NO se hizo: nada de esto mira los verbos por nombre desde C++ —el spec viaja como dato y
+el C++ no conoce verbos—, así que el live view no sabe si la cadena hornea o muestra. Avisarlo queda
+para el tooltip, que es donde está.
+
+---
 
 **0-quater. Live view — el caché ARRANCÓ y el ahorro está medido: depende de DÓNDE se toca.**
 `cache_core` calcula la huella de cada nodo —`(verbo, params, huellas de sus entradas)`— y propaga

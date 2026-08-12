@@ -129,6 +129,14 @@ public:
 		    dropdown). Sin este aviso el editor no se entera de lo que tipeás: los valores viven en
 		    los widgets y `BuildJson` los lee recién cuando alguien los pide. */
 		SLATE_EVENT(FSimpleDelegate, OnParamChanged)
+		/** El valor está CAMBIANDO, todavía sin confirmar: cada frame de un arrastre de slider.
+		 *
+		 *  Va aparte de `OnParamChanged` a propósito. Ese avisa al soltar, porque un paso del
+		 *  historial es el arrastre entero y no cada frame. El live view necesita lo contrario:
+		 *  recocinar MIENTRAS se arrastra, que es lo que hace que la herramienta se sienta viva.
+		 *  Un solo aviso no puede servir a los dos: o el Undo se llena de basura, o el live view
+		 *  sólo reacciona al soltar y deja de ser live. */
+		SLATE_EVENT(FSimpleDelegate, OnParamLive)
 		/** Se prendió/apagó el bypass. A diferencia del flag de debug —que es de VISTA— apagar un
 		 *  nodo cambia lo que el grafo hace, así que es un paso del historial. */
 		SLATE_EVENT(FSimpleDelegate, OnBypassChanged)
@@ -247,6 +255,7 @@ private:
 	FSimpleDelegate OnDeleteSelectionDelegate;
 	FSimpleDelegate OnDragEndDelegate;
 	FSimpleDelegate OnParamChangedDelegate;
+	FSimpleDelegate OnParamLiveDelegate;
 	FSimpleDelegate OnBypassChangedDelegate;
 	FSimpleDelegate OnThumbnailOpenDelegate;
 	FOnPedirVariables OnPedirVariablesDelegate;

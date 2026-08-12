@@ -349,6 +349,19 @@ private:
 	void RefreshCabledPins();
 	void ValidateGraph();
 	void RunGraph();
+
+	// ---- live view: recocinar mientras se arrastra, como Houdini ----
+	/** Prende/apaga el live view. Apagado por omisión: un grafo que coloca cosas en la escena no
+	 *  debería empezar a hacerlo porque alguien rozó un slider. */
+	void AlternarLiveView();
+	bool EstaLiveView() const { return bLiveView; }
+	/** Anota que hay algo que recocinar. NO cocina: sólo levanta la bandera y se asegura de que el
+	 *  temporizador esté latiendo. Cocinar acá mismo cocinaría una vez POR FRAME del arrastre. */
+	void PedirRecoccion();
+	/** El latido del amortiguador. Cocina si hay algo pendiente y se apaga solo cuando no queda
+	 *  nada: un temporizador que sigue latiendo con el grafo quieto es trabajo puro. */
+	EActiveTimerReturnType CocinarSiHayPendiente(const double InTime, const float InDelta);
+
 	void BakePreview();
 	void DiscardPreview();
 	/** Aplica el envelope {report,nodes} de Compile o Run al output y a los estados de los nodos. */
@@ -560,6 +573,22 @@ private:
 	 *  muchas mutaciones internas que son UN solo paso para el usuario. */
 	bool bSinHistorial = false;
 	static constexpr int32 MaxHistorial = 50;
+
+	// ---- live view ----
+	/** Apagado por omisión, y la decisión no es de comodidad: correr el grafo tiene efectos en la
+	 *  escena. Que se prenda solo sería que rozar un slider empiece a colocar cosas. */
+	bool bLiveView = false;
+	bool bRecoccionPendiente = false;
+	/** El temporizador vive mientras haya movimiento y se apaga solo. Se guarda para no registrar
+	 *  uno nuevo por cada frame del arrastre: serían decenas latiendo a la vez. */
+	TWeakPtr<FActiveTimerHandle> TemporizadorLive;
+	/** Cada cuánto se recocina, como mucho, mientras alguien arrastra.
+	 *
+	 *  Medido en UE 5.8.1 (`mide_costo_recoccion_viva_58.py`): una vuelta entera —ejecutar el grafo,
+	 *  refrescar miniaturas e inspector— cuesta 3,7 ms sobre la cadena de prueba, así que el techo
+	 *  no lo pone el costo sino la percepción. 8 recocciones por segundo alcanzan para que un
+	 *  arrastre se lea como continuo, y dejan margen para grafos bastante más pesados que ese. */
+	static constexpr float LiveDebounceSegundos = 0.125f;
 
 	// Para el cable-fantasma: última posición del cursor (local a la capa de wires) + esa capa (para
 	// repintarla mientras se arrastra una conexión).

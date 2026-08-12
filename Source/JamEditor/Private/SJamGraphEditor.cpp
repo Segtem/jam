@@ -15,6 +15,7 @@
 #include "Widgets/Input/SEditableTextBox.h"
 #include "Widgets/Input/SComboBox.h"
 #include "Widgets/Input/SSpinBox.h"
+#include "Widgets/Input/SCheckBox.h"
 #include "Brushes/SlateDynamicImageBrush.h"
 #include "Widgets/Views/SListView.h"
 #include "Widgets/Views/SHeaderRow.h"
@@ -860,6 +861,23 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 			[
 				SNew(SButton).Text(LOCTEXT("Run", "▶ Run graph"))
 				.OnClicked_Lambda([this]() { RunGraph(); return FReply::Handled(); })
+			]
+			+ SHorizontalBox::Slot().AutoWidth().Padding(4.0f, 0.0f, 0.0f, 0.0f)
+			[
+				// El live view de Houdini: recocina mientras arrastrás, sin apretar Run.
+				SNew(SCheckBox)
+				.Style(FAppStyle::Get(), "ToggleButtonCheckbox")
+				.IsChecked_Lambda([this]()
+					{ return bLiveView ? ECheckBoxState::Checked : ECheckBoxState::Unchecked; })
+				.OnCheckStateChanged_Lambda([this](ECheckBoxState) { AlternarLiveView(); })
+				.ToolTipText(LOCTEXT("LiveViewTip",
+					"Live view: recocina el grafo mientras arrastrás un slider, sin apretar Run.\n"
+					"Conviene con «Ver sin hornear» al final de la cadena: mostrar cuesta 1,7 ms por "
+					"vuelta y hornear ~35 ms.\nArranca apagado porque correr el grafo tiene efectos "
+					"en la escena."))
+				[
+					SNew(STextBlock).Text(LOCTEXT("LiveView", "⟳ Live"))
+				]
 			]
 			+ SHorizontalBox::Slot().AutoWidth().Padding(4.0f, 0.0f, 0.0f, 0.0f)
 			[
@@ -2192,8 +2210,11 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At,
 		.OnInputClicked_Lambda([this, Id](const FString& Pin) { OnPinClicked(Id, Pin, false); })
 		.OnClicked_Lambda([this, Id](bool bShift, bool bCtrl) { ClickNode(Id, bShift, bCtrl); })
 		.OnDragEnd_Lambda([this]() { Marcar(); })
-		.OnParamChanged_Lambda([this]() { Marcar(); })
-		.OnBypassChanged_Lambda([this]() { Marcar(); })
+		// Confirmar un parámetro es un paso del historial Y algo que puede cambiar el resultado.
+		.OnParamChanged_Lambda([this]() { Marcar(); PedirRecoccion(); })
+		// Arrastrando: sólo recocina. Meter esto en el historial lo llenaría de un paso por frame.
+		.OnParamLive_Lambda([this]() { PedirRecoccion(); })
+		.OnBypassChanged_Lambda([this]() { Marcar(); PedirRecoccion(); })
 		.OnCompactoCambiado_Lambda([this, Id]()
 		{
 			// El ancho es del EDITOR, no del widget: lo leen los cables, el marquee y el encuadre.
@@ -4134,6 +4155,54 @@ void SJamGraphEditor::RunGraph()
 	RefrescarMiniaturas();
 }
 
+void SJamGraphEditor::AlternarLiveView()
+{
+	bLiveView = !bLiveView;
+	if (bLiveView)
+	{
+		// Cocinar de una al prender: si no, el live view queda «prendido» mostrando el resultado
+		// viejo hasta que alguien toque algo, y no habría forma de distinguirlo de que no anda.
+		PedirRecoccion();
+	}
+	else if (Output.IsValid())
+	{
+		Output->SetText(LOCTEXT("LiveOff",
+			"live view apagado — el grafo vuelve a correr sólo con Run."));
+	}
+}
+
+void SJamGraphEditor::PedirRecoccion()
+{
+	if (!bLiveView || Nodes.Num() == 0)
+	{
+		return;
+	}
+	bRecoccionPendiente = true;
+	// Un temporizador y no uno por aviso: durante un arrastre esto entra decenas de veces por
+	// segundo, y registrar uno cada vez dejaría todos latiendo en paralelo contra el mismo grafo.
+	if (!TemporizadorLive.IsValid())
+	{
+		TemporizadorLive = RegisterActiveTimer(LiveDebounceSegundos,
+			FWidgetActiveTimerDelegate::CreateSP(this, &SJamGraphEditor::CocinarSiHayPendiente));
+	}
+}
+
+EActiveTimerReturnType SJamGraphEditor::CocinarSiHayPendiente(const double, const float)
+{
+	if (!bRecoccionPendiente || !bLiveView)
+	{
+		// Nada que hacer: se apaga y suelta el handle. La próxima petición registra uno nuevo.
+		TemporizadorLive.Reset();
+		return EActiveTimerReturnType::Stop;
+	}
+	// Se baja la bandera ANTES de cocinar: lo que llegue mientras corre el grafo tiene que quedar
+	// anotado para la vuelta siguiente. Bajarla después se comería ese aviso y el live view se
+	// quedaría mostrando el penúltimo valor del arrastre.
+	bRecoccionPendiente = false;
+	RunGraph();
+	return EActiveTimerReturnType::Continue;
+}
+
 void SJamGraphEditor::BakePreview()
 {
 	const FString Result = OnBakePreview.IsBound()
@@ -4701,6 +4770,15 @@ void SJamGraphEditor::FillSolutionMenu(FMenuBuilder& MB)
 		FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::ValidateGraph)));
 	MB.AddMenuEntry(LOCTEXT("Recompute", "Run graph (recompute)"), FText::GetEmpty(), FSlateIcon(),
 		FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::RunGraph)));
+	MB.AddMenuEntry(LOCTEXT("LiveViewMenu", "Live view (recocinar al arrastrar)"),
+		LOCTEXT("LiveViewMenuTip",
+			"Recocina el grafo mientras movés un slider, sin apretar Run. Se marca cuando está "
+			"prendido; conviene con «Ver sin hornear» al final de la cadena."),
+		FSlateIcon(),
+		FUIAction(FExecuteAction::CreateSP(this, &SJamGraphEditor::AlternarLiveView),
+			FCanExecuteAction(),
+			FIsActionChecked::CreateSP(this, &SJamGraphEditor::EstaLiveView)),
+		NAME_None, EUserInterfaceActionType::ToggleButton);
 	MB.AddMenuSeparator();
 	MB.AddMenuEntry(LOCTEXT("BakeGraphPreview", "Bake / Confirm Preview"),
 		LOCTEXT("BakeGraphPreviewTip", "Fija el Preview creado por este Graph"), FSlateIcon(),
