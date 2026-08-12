@@ -1243,7 +1243,23 @@ Lo mismo vale para el ICONO: los de GH son diagramas de la operación —el de S
 Transponer es la grilla dada vuelta, el de Construct Time es un reloj—, y los 24 iconos nuevos de
 este turno siguen esa regla.
 
-Los peldaños siguientes, en orden: **1.** el tipo `V` y sus constructores (= Fase 2 de Math) ·
+✅ **PELDAÑO 1 HECHO: el tipo vector `V`.** Trece verbos (Construir, Unitario X/Y/Z, Componente
+X/Y/Z, Sumar, Escalar, Largo, Normalizar, Punto, Cruz), color de pin propio —índigo, lejos del azul
+de `P`— y **1045 tests** con 4 mutaciones que discriminan.
+
+**Se eligió tipo propio y no un `N[]` de tres, y la razón dejó de ser opinión al mirar el código:**
+la compatibilidad del Graph es por **letra exacta**, así que un tipo propio **regala la guarda sin
+escribir nada** — un número no entra en un pin de dirección y el Compile lo dice. Con `N[]` ese error
+se vería recién en la geometría, a diez nodos de la causa.
+
+Lo que hubo que enseñarle al cerebro: `evaluar` pasaba **todos** los params por `_numero`, lo cual
+alcanzaba mientras el único tipo fuera `N`; un vector así se aplasta a float y pierde dos componentes
+sin avisar. Ahora cada pin se coacciona según el tipo que **ya declaraba** — la tabla `tipos` existía
+y no se estaba consultando. El mismo mecanismo va a servir para matrices.
+
+Camino real: `JAM_MATH_GRAPH_TEST TODO VERDE — 37 verbos en el spec … N→V rechazado … |Z+X|→14,14`.
+
+Los peldaños siguientes, en orden:
 **2.** Construir punto y `curve_line` · **3.** cerrar la polilínea con el interruptor · **4.** Line
 SDL y Move sobre curvas · **5.** Interpolate (curva que PASA por los puntos, distinta de
 `curve_bezier`) · **6.** Ruled Surface y Loft.

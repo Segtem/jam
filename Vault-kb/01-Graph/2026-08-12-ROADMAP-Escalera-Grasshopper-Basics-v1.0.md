@@ -74,11 +74,29 @@ ficha y nunca se manejaban desde el lienzo. Gotcha que quedó fijado en test: `b
 Python es **True** —toda cadena no vacía lo es— y los params viajan como TEXTO, así que un
 interruptor apagado se habría leído prendido al abrir un `.jamgraph`, con el nodo dibujándose bien.
 
-**1. El tipo vector `V` y sus constructores.** Unit X/Y/Z, Construir vector, Descomponer, sumar,
-escalar, largo, normalizar, producto punto y cruz. Es la Fase 2 de Math y el desbloqueo de todo lo
-demás. Decidir antes: si `V` es un tipo propio o un `N[]` de tres — un `N[]` ahorra tipo y hace que
-todo lo de series funcione gratis, pero deja pasar cablear una serie de 7 números donde va una
-dirección, que es el error que un tipo existe para atajar.
+**1. El tipo vector `V` y sus constructores.** ✅ HECHO 2026-08-12. Trece verbos: Construir,
+Unitario X/Y/Z, Componente X/Y/Z, Sumar, Escalar, Largo, Normalizar, Producto punto y Producto cruz.
+
+**Se decidió TIPO PROPIO y no un `N[]` de tres**, y la razón dejó de ser una opinión al mirar el
+código: la compatibilidad del Graph es por **letra exacta** (`graph.py`), así que un tipo propio
+**regala la guarda sin escribir nada** — un número o una serie de siete no entran en un pin de
+dirección, y el Compile lo dice. Con `N[]` ese error se vería recién en la geometría, a diez nodos
+de la causa. Verificado por el camino real: `Compile aceptó un número donde va un vector` es un
+rechazo, no un pase.
+
+Lo que hubo que enseñarle al cerebro: `math_core.evaluar` pasaba **todos** los params por `_numero`,
+lo cual alcanzaba mientras el único tipo fuera `N`; un vector así se aplasta a float y pierde dos
+componentes sin avisar. Ahora cada pin se coacciona según el tipo que **ya declaraba** en `tipos` —
+la tabla existía y no se estaba consultando—. El mismo mecanismo va a servir para matrices.
+
+Dos decisiones que quedaron en test: **un número suelto NO es un vector** (`(n,n,n)` y `(n,0,0)` son
+las dos lecturas posibles y elegir una en silencio haría que la mitad de las veces apunte a otro
+lado) y **el vector cero no tiene dirección que normalizar** (devolver `(0,0,0)` propagaría «para
+ningún lado» y la pieza quedaría con su rotación anterior).
+
+El pin tiene color propio en `DataColor`: **índigo**, lejos del azul de `P` — un vector y un stream
+de puntos son las dos cosas que más se van a cablear cerca, y distinguirlas por un pelo de tono no
+es distinguirlas.
 
 **2. Construir punto y línea.** `point` (x,y,z → `P` de un punto) y `curve_line` (dos puntos → `S`).
 Hoy `pts_line` reparte puntos SOBRE un segmento, que es otra cosa: no se puede cablear el segmento

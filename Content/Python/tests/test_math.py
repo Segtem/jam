@@ -739,3 +739,99 @@ class AngulosInversosYTiempoTests(unittest.TestCase):
                 with self.subTest(verbo=verbo):
                     self.assertIn(verbo, flow.OPS_META)
                     self.assertEqual(ribbon.grupo_de("Maths", verbo), grupo)
+
+
+class TipoVectorTests(unittest.TestCase):
+    """Peldaño 1 de la escalera: el tipo `V`.
+
+    Es el que desbloquea Line SDL, Move con dirección y las matrices — y el que el tutorial de
+    Harmon necesita ya en su SEGUNDA figura (Unit X / Unit Z). Se eligió TIPO PROPIO y no un `N[]`
+    de tres: la compatibilidad del Graph es por letra exacta, así que un tipo propio regala la
+    guarda —un número o una serie de siete no entran en un pin de dirección— y un `N[]` la perdería
+    justo donde más duele, porque el error se vería recién en la geometría.
+    """
+
+    def evaluar(self, verbo, params):
+        return math_core.evaluar(verbo, params, {}, lambda *_a: None)
+
+    def test_un_vector_son_tres_numeros_finitos(self) -> None:
+        self.assertEqual(math_core._vector((1, 2, 3), "p"), (1.0, 2.0, 3.0))
+        self.assertEqual(math_core._vector("0,0,1", "p"), (0.0, 0.0, 1.0))
+        self.assertEqual(math_core._vector("1 2 3", "p"), (1.0, 2.0, 3.0))
+
+    def test_el_texto_es_el_caso_REAL_y_no_una_comodidad(self) -> None:
+        """Un pin `V` sin cable recibe lo que quedó guardado en el `.jamgraph`, que es TEXTO. Es el
+        mismo motivo por el que `_booleano` existe."""
+        self.assertEqual(math_core._vector("(0, 0, 1)", "p"), (0.0, 0.0, 1.0))
+
+    def test_un_numero_suelto_NO_es_un_vector(self) -> None:
+        """(n,n,n) y (n,0,0) son las dos lecturas posibles: elegir una en silencio haría que la
+        mitad de las veces apunte a otro lado."""
+        with self.assertRaises(math_core.ValorError) as caso:
+            math_core._vector("5", "direccion")
+        self.assertEqual(caso.exception.pin, "direccion")
+
+    def test_el_vector_cero_no_tiene_direccion(self) -> None:
+        """Devolver (0,0,0) propagaría «para ningún lado» adentro de una cadena que va a orientar
+        algo: la pieza queda con su rotación anterior y el síntoma aparece a diez nodos de la causa."""
+        with self.assertRaises(math_core.ValorError):
+            self.evaluar("vector_normalize", {"vector": (0, 0, 0)})
+
+    def test_los_unitarios_son_los_ejes_de_unreal(self) -> None:
+        self.assertEqual(self.evaluar("vector_unit_x", {"largo": 1}), (1.0, 0.0, 0.0))
+        self.assertEqual(self.evaluar("vector_unit_y", {"largo": 1}), (0.0, 1.0, 0.0))
+        self.assertEqual(self.evaluar("vector_unit_z", {"largo": 5}), (0.0, 0.0, 5.0))
+
+    def test_construir_medir_y_normalizar(self) -> None:
+        self.assertEqual(self.evaluar("vector_construct", {"x": 3, "y": 4, "z": 0}), (3.0, 4.0, 0.0))
+        self.assertEqual(self.evaluar("vector_length", {"vector": (3, 4, 0)}), 5.0)
+        self.assertEqual(self.evaluar("vector_normalize", {"vector": (3, 4, 0)}), (0.6, 0.8, 0.0))
+
+    def test_las_componentes_son_la_descomposicion(self) -> None:
+        """Tres verbos y no uno porque ningún verbo de Jam tiene más de una salida: el patrón
+        «Deconstruct» de Grasshopper no se puede expresar todavía."""
+        for verbo, esperado in (("vector_x", 3.0), ("vector_y", 4.0), ("vector_z", 5.0)):
+            with self.subTest(verbo=verbo):
+                self.assertEqual(self.evaluar(verbo, {"vector": (3, 4, 5)}), esperado)
+
+    def test_punto_y_cruz(self) -> None:
+        self.assertEqual(self.evaluar("vector_dot", {"a": (1, 0, 0), "b": (1, 0, 0)}), 1.0)
+        self.assertEqual(self.evaluar("vector_dot", {"a": (1, 0, 0), "b": (0, 1, 0)}), 0.0)
+        # X cruz Y da Z: la regla de la mano derecha, que es la de Unreal.
+        self.assertEqual(self.evaluar("vector_cross", {"a": (1, 0, 0), "b": (0, 1, 0)}), (0.0, 0.0, 1.0))
+
+    def test_el_producto_punto_de_unitarios_es_el_coseno(self) -> None:
+        a = self.evaluar("vector_normalize", {"vector": (1, 1, 0)})
+        coseno = self.evaluar("vector_dot", {"a": a, "b": (1, 0, 0)})
+        self.assertAlmostEqual(self.evaluar("math_degrees",
+                                            {"radianes": self.evaluar("math_acos",
+                                                                      {"coseno": coseno})}), 45.0)
+
+    def test_el_tipo_viaja_en_los_pines(self) -> None:
+        self.assertEqual(math_core.tipo_salida("vector_construct"), "V")
+        self.assertEqual(math_core.tipo_salida("vector_length"), "N")
+        self.assertEqual(math_core.tipo_param("vector_length", "vector"), "V")
+        self.assertEqual(math_core.tipo_param("vector_construct", "x"), "N")
+
+    def test_el_Graph_RECHAZA_cablear_un_numero_donde_va_un_vector(self) -> None:
+        """La razón entera de que `V` sea un tipo propio y no un `N[]`."""
+        g = JamGraph()
+        g.add("number", {"value": 5}, nid="n")
+        g.add("vector_length", {}, nid="largo")
+        g.connect("n", "largo", "vector")
+        with self.assertRaises(GraphValidationError):
+            compilar(g)
+
+    def test_una_cadena_de_vectores_por_el_ejecutor_real(self) -> None:
+        """Unitario Z por 10, sumarle X por 10, y medir: √200 ≈ 14,14."""
+        g = JamGraph()
+        g.add("vector_unit_z", {"largo": 10}, nid="arriba")
+        g.add("vector_unit_x", {"largo": 10}, nid="adelante")
+        g.add("vector_add", {}, nid="suma")
+        g.add("vector_length", {}, nid="largo")
+        g.connect("arriba", "suma", "a")
+        g.connect("adelante", "suma", "b")
+        g.connect("suma", "largo", "vector")
+        plan = compilar(g)
+        self.assertEqual(plan.values_by_node["suma"], (10.0, 0.0, 10.0))
+        self.assertAlmostEqual(plan.values_by_node["largo"], math.sqrt(200.0))

@@ -123,6 +123,54 @@ def _tangente(radianes: float) -> float:
 
 
 # Registro público. El orden sólo es de declaración; ``ribbon.py`` decide el orden visual.
+def _vector(valor, pin: str) -> tuple[float, float, float]:
+    """Un vector son TRES números finitos. Acepta lo que el sistema realmente le hace llegar.
+
+    Un pin `V` cableado recibe la tupla que produjo otro nodo, pero un pin `V` SIN cable recibe lo
+    que quedó guardado en el `.jamgraph`, que es TEXTO —el mismo motivo por el que `_booleano`
+    existe—. Se aceptan «0,0,1» y «0 0 1» porque son las dos formas en que alguien lo escribe.
+
+    No se acepta un número suelto: interpretarlo como (n, n, n) o como (n, 0, 0) son las dos
+    lecturas posibles y elegir una en silencio haría que la mitad de las veces apunte a otro lado.
+    """
+    if isinstance(valor, (tuple, list)):
+        partes = list(valor)
+    else:
+        texto = str(valor).strip().strip("()[]")
+        partes = [t for t in texto.replace(",", " ").split() if t]
+    if len(partes) != 3:
+        raise ValorError(pin, f"un vector son tres números; llegaron {len(partes)}: «{valor}»")
+    try:
+        salida = tuple(float(componente) for componente in partes)
+    except (TypeError, ValueError):
+        raise ValorError(pin, f"componente no numérica en «{valor}»") from None
+    if not all(math.isfinite(componente) for componente in salida):
+        raise ValorError(pin, f"las componentes tienen que ser finitas: «{valor}»")
+    return salida
+
+
+def _largo(v) -> float:
+    return math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2])
+
+
+def _normalizar(vector):
+    """Dirección de largo 1. El vector CERO no tiene dirección y es error, no (0,0,0).
+
+    Devolver el cero sería propagar «para ningún lado» adentro de una cadena que va a orientar algo:
+    la pieza queda con su rotación anterior y el síntoma aparece a diez nodos de la causa.
+    """
+    largo = _largo(vector)
+    if largo == 0.0:
+        raise ValorError("vector", "el vector cero no tiene dirección que normalizar")
+    return tuple(componente / largo for componente in vector)
+
+
+def _cruz(a, b):
+    return (a[1] * b[2] - a[2] * b[1],
+            a[2] * b[0] - a[0] * b[2],
+            a[0] * b[1] - a[1] * b[0])
+
+
 def _booleano(valor) -> bool:
     """Qué cuenta como «sí» cuando el valor llega desde el lienzo o desde un archivo.
 
@@ -503,6 +551,123 @@ VALORES: dict[str, dict] = {
         "operacion": lambda total: _parte_del_tiempo(total, "segundos"),
         "doc": "los segundos de una duración, ya descontados los minutos",
     },
+    "vector_construct": {
+        "label": "Construir vector", "cat": "Maths", "source": True, "out_name": "V",
+        "params": {"x": 0.0, "y": 0.0, "z": 0.0},
+        "tipos": {"x": "N", "y": "N", "z": "N"},
+        "etiquetas_params": {"x": "x (Número)", "y": "y (Número)", "z": "z (Número)"},
+        "out_label": "vector",
+        "operacion": lambda x, y, z: (x, y, z),
+        "doc": "tres números a un vector",
+    },
+    "vector_unit_x": {
+        "label": "Unitario X", "cat": "Maths", "source": True, "out_name": "V",
+        "params": {"largo": 1.0},
+        "tipos": {"largo": "N"},
+        "etiquetas_params": {"largo": "largo (Número)"},
+        "out_label": "vector",
+        "operacion": lambda largo: (largo, 0.0, 0.0),
+        "doc": "el eje X de Unreal (hacia adelante), escalado por el largo",
+    },
+    "vector_x": {
+        "label": "Componente X", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"vector": "0,0,1"},
+        "tipos": {"vector": "V"},
+        "etiquetas_params": {"vector": "vector (Vector)"},
+        "out_label": "x",
+        "operacion": lambda vector: vector[0],
+        "doc": "la componente X de un vector",
+    },
+    "vector_unit_y": {
+        "label": "Unitario Y", "cat": "Maths", "source": True, "out_name": "V",
+        "params": {"largo": 1.0},
+        "tipos": {"largo": "N"},
+        "etiquetas_params": {"largo": "largo (Número)"},
+        "out_label": "vector",
+        "operacion": lambda largo: (0.0, largo, 0.0),
+        "doc": "el eje Y de Unreal (hacia la derecha), escalado por el largo",
+    },
+    "vector_y": {
+        "label": "Componente Y", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"vector": "0,0,1"},
+        "tipos": {"vector": "V"},
+        "etiquetas_params": {"vector": "vector (Vector)"},
+        "out_label": "y",
+        "operacion": lambda vector: vector[1],
+        "doc": "la componente Y de un vector",
+    },
+    "vector_unit_z": {
+        "label": "Unitario Z", "cat": "Maths", "source": True, "out_name": "V",
+        "params": {"largo": 1.0},
+        "tipos": {"largo": "N"},
+        "etiquetas_params": {"largo": "largo (Número)"},
+        "out_label": "vector",
+        "operacion": lambda largo: (0.0, 0.0, largo),
+        "doc": "el eje Z de Unreal (hacia arriba), escalado por el largo",
+    },
+    "vector_z": {
+        "label": "Componente Z", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"vector": "0,0,1"},
+        "tipos": {"vector": "V"},
+        "etiquetas_params": {"vector": "vector (Vector)"},
+        "out_label": "z",
+        "operacion": lambda vector: vector[2],
+        "doc": "la componente Z de un vector",
+    },
+    "vector_add": {
+        "label": "Sumar vectores", "cat": "Maths", "source": True, "out_name": "V",
+        "params": {"a": "0,0,0", "b": "0,0,0"},
+        "tipos": {"a": "V", "b": "V"},
+        "etiquetas_params": {"a": "a (Vector)", "b": "b (Vector)"},
+        "out_label": "suma",
+        "operacion": lambda a, b: tuple(a[i] + b[i] for i in range(3)),
+        "doc": "suma dos vectores componente a componente",
+    },
+    "vector_scale": {
+        "label": "Escalar vector", "cat": "Maths", "source": True, "out_name": "V",
+        "params": {"vector": "0,0,1", "factor": 1.0},
+        "tipos": {"vector": "V", "factor": "N"},
+        "etiquetas_params": {"vector": "vector (Vector)", "factor": "factor (Número)"},
+        "out_label": "escalado",
+        "operacion": lambda vector, factor: tuple(c * factor for c in vector),
+        "doc": "estira o acorta un vector sin cambiarle la dirección",
+    },
+    "vector_length": {
+        "label": "Largo del vector", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"vector": "0,0,1"},
+        "tipos": {"vector": "V"},
+        "etiquetas_params": {"vector": "vector (Vector)"},
+        "out_label": "largo",
+        "operacion": _largo,
+        "doc": "cuánto mide un vector; en centímetros, como todo en Unreal",
+    },
+    "vector_normalize": {
+        "label": "Normalizar", "cat": "Maths", "source": True, "out_name": "V",
+        "params": {"vector": "0,0,1"},
+        "tipos": {"vector": "V"},
+        "etiquetas_params": {"vector": "vector (Vector)"},
+        "out_label": "dirección",
+        "operacion": _normalizar,
+        "doc": "la dirección de un vector, con largo 1; el vector cero es error",
+    },
+    "vector_dot": {
+        "label": "Producto punto", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"a": "0,0,1", "b": "0,0,1"},
+        "tipos": {"a": "V", "b": "V"},
+        "etiquetas_params": {"a": "a (Vector)", "b": "b (Vector)"},
+        "out_label": "punto",
+        "operacion": lambda a, b: sum(a[i] * b[i] for i in range(3)),
+        "doc": "cuánto apuntan dos vectores para el mismo lado; con unitarios es el coseno del ángulo",
+    },
+    "vector_cross": {
+        "label": "Producto cruz", "cat": "Maths", "source": True, "out_name": "V",
+        "params": {"a": "1,0,0", "b": "0,1,0"},
+        "tipos": {"a": "V", "b": "V"},
+        "etiquetas_params": {"a": "a (Vector)", "b": "b (Vector)"},
+        "out_label": "perpendicular",
+        "operacion": _cruz,
+        "doc": "un vector perpendicular a los dos; es como se saca una normal",
+    },
     # ---- comparaciones: las ÚNICAS que producen un booleano ----
     # Hasta acá ningún nodo producía `B`, así que un condicional no tenía a qué cablearse: era un
     # checkbox eligiendo rama, apenas mejor que recablear a mano. Estas son las que le dan sentido.
@@ -619,10 +784,17 @@ def evaluar(verbo: str, params: dict, tabla: dict, eval_expr: Callable) -> objec
             raise ValorPendiente()
         return _numero(valor, "expr", tabla, eval_expr)
 
-    argumentos = [
-        _numero(params.get(pin, meta["params"][pin]), pin, tabla, eval_expr)
-        for pin in meta["params"]
-    ]
+    # Cada pin se coacciona según el TIPO que declara. Antes iban todos por `_numero`, que
+    # alcanzaba mientras el único tipo fuera `N`; un vector aplastado a float pierde dos
+    # componentes sin avisar. La tabla `tipos` ya existía — sólo no se estaba consultando.
+    tipos = meta.get("tipos") or {}
+    argumentos = []
+    for pin in meta["params"]:
+        crudo = params.get(pin, meta["params"][pin])
+        if tipos.get(pin) == "V":
+            argumentos.append(_vector(crudo, pin))
+        else:
+            argumentos.append(_numero(crudo, pin, tabla, eval_expr))
     try:
         resultado = meta["operacion"](*argumentos)
     except ValorError:
@@ -634,6 +806,10 @@ def evaluar(verbo: str, params: dict, tabla: dict, eval_expr: Callable) -> objec
         # para el resto del sistema. Lo decide `out_name` y no una lista de verbos, así una
         # comparación nueva no necesita acordarse de tocar esto.
         return bool(resultado)
+    if meta.get("out_name") == "V":
+        # Mismo motivo que el booleano: `_numero` lo aplastaría. Lo decide `out_name`, así un verbo
+        # de vector nuevo no necesita acordarse de tocar esto.
+        return _vector(resultado, "resultado")
     return _numero(resultado, "resultado", tabla, eval_expr)
 
 

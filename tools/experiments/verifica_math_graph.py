@@ -8,11 +8,16 @@ embebido del motor. El veredicto queda en BotOO.log con el prefijo ``JAM_MATH_GR
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import unreal
 
 from jam import api
 from jam.graph import JamGraph
+
+
+#: La raíz del plugin, para poder leer el C++ y comprobar que el tipo tiene color de pin.
+RAIZ = Path("/home/workstation/Dev/jam")
 
 
 def exigir(condicion: bool, mensaje: str) -> None:
@@ -56,6 +61,13 @@ try:
         ("time_horas", "Horas de"),
         ("time_minutos", "Minutos de"),
         ("time_segundos", "Segundos de"),
+        # Quinto lote — el tipo vector (peldaño 1 de la escalera de Grasshopper Basics).
+        ("vector_construct", "Construir vector"),
+        ("vector_unit_z", "Unitario Z"),
+        ("vector_length", "Largo del vector"),
+        ("vector_normalize", "Normalizar"),
+        ("vector_dot", "Producto punto"),
+        ("vector_cross", "Producto cruz"),
     ):
         exigir(verbo in spec, f"el spec no publicó {verbo}")
         exigir(spec[verbo]["label"] == etiqueta,
@@ -165,6 +177,37 @@ try:
     rechazo_arco = json.loads(api.run_graph_json(imposible.to_json()))
     exigir(not rechazo_arco.get("ok"), f"Run aceptó un arcoseno fuera de dominio: {rechazo_arco}")
 
+    # Quinto lote: el tipo V por el camino real. Unitario Z*10 + Unitario X*10, medido → √200.
+    vectores = JamGraph()
+    vectores.add("vector_unit_z", {"largo": 10}, nid="arriba")
+    vectores.add("vector_unit_x", {"largo": 10}, nid="adelante")
+    vectores.add("vector_add", {}, nid="suma")
+    vectores.add("vector_length", {}, nid="largo")
+    vectores.connect("arriba", "suma", "a")
+    vectores.connect("adelante", "suma", "b")
+    vectores.connect("suma", "largo", "vector")
+    compilado_vec = json.loads(api.compile_graph_json(vectores.to_json()))
+    exigir(compilado_vec.get("ok"), f"Compile del tipo V rojo: {compilado_vec}")
+    corrida_vec = json.loads(api.run_graph_json(vectores.to_json()))
+    exigir(corrida_vec.get("ok"), f"Run del tipo V rojo: {corrida_vec}")
+    inspeccion_vec = api.inspect_json("largo", "", 10, "", False)
+    exigir("14.1" in inspeccion_vec, f"el Inspector no muestra 14,14: {inspeccion_vec[:200]}")
+
+    # Y la guarda que justifica que V sea un tipo propio: un número NO entra en un pin de dirección.
+    mal_cableado = JamGraph()
+    mal_cableado.add("number", {"value": 5}, nid="n")
+    mal_cableado.add("vector_length", {}, nid="largo")
+    mal_cableado.connect("n", "largo", "vector")
+    rechazo_tipo = json.loads(api.compile_graph_json(mal_cableado.to_json()))
+    exigir(not rechazo_tipo.get("ok"),
+           f"Compile aceptó un número donde va un vector: {rechazo_tipo}")
+
+    # El color del pin `V` tiene que existir en el C++: sin eso el cable sale gris neutro y el tipo
+    # deja de leerse en el canvas, que es la mitad de para qué sirve tener tipos.
+    color_cpp = (RAIZ / "Source" / "JamEditor" / "Private" / "SJamGraphEditor.cpp").read_text(
+        encoding="utf-8")
+    exigir('OutName == TEXT("V")' in color_cpp, "el tipo V no tiene color de pin en DataColor")
+
     compilado_lote = json.loads(api.compile_graph_json(lote.to_json()))
     exigir(compilado_lote.get("ok"), f"Compile lote rojo: {compilado_lote}")
     corrida_lote = json.loads(api.run_graph_json(lote.to_json()))
@@ -180,9 +223,9 @@ try:
     exigir(not rechazado.get("ok") and "negativo" in rechazado.get("report", ""),
            f"Compile aceptó raíz negativa: {rechazado}")
 
-    unreal.log("JAM_MATH_GRAPH_TEST TODO VERDE — 31 verbos en el spec + Compile + Run + "
+    unreal.log("JAM_MATH_GRAPH_TEST TODO VERDE — 37 verbos en el spec + Compile + Run + "
                "Inspector=40/2 y sin(45°)→71 + división por cero, raíz negativa y rango dado "
-               "vuelta y arcoseno fuera de dominio rechazados + 1h30m45s→1h y (0,5)→90°")
+               "vuelta, arcoseno fuera de dominio y N→V rechazados + 1h30m45s→1h, (0,5)→90° y |Z+X|→14,14")
 except Exception as exc:  # noqa: BLE001
     unreal.log_error(f"JAM_MATH_GRAPH_TEST ROJO — {type(exc).__name__}: {exc}")
 finally:
