@@ -43,13 +43,29 @@ def _sin_pliegues(left, right, ejes_reales=None, margen: float = 0.98):
     · Con giros de 140° y cintas más anchas que el paso quedan **7 de 20**. Pasar del punto medio al
       eje real bajó ese número de 11 a 7.
 
-    Lo que queda NO es el mismo defecto, y por eso no se sigue afinando acá: en esos casos el borde
-    interior **no retrocede**, avanza muy poco. Medido en el mundo 1 del corpus: el izquierdo avanza
-    1,4 cm mientras el derecho avanza ~460, y como cada muestra tiene su propia Z el triángulo casi
-    sin base queda casi vertical (`nz = -0,048`). Es una degeneración por avance despreciable, no un
-    pliegue por cruce. Atacarla pide un criterio propio —exigir avance mínimo proporcional al del
-    eje, o fusionar muestras casi coincidentes— y merece su corte, con su propia defensa de umbral.
-    `malla.cara_visible` los sigue marcando en rojo mientras tanto.
+    Lo que queda NO es el mismo defecto, y por eso no se sigue afinando acá. **Y son DOS defectos,
+    no uno: acá decía que era «degeneración por avance despreciable» y esa hipótesis se midió y es
+    falsa.** Clasificadas las 9 caras rojas por su geometría —área, avance del eje, avance de cada
+    borde—, ninguna es degenerada: la más chica tiene 3.203 cm². Se reparten así:
+
+    · **5 caras: avance desparejo entre bordes** —y 1 más que no entra en ninguna de las dos—. El
+      borde interior avanza poco al lado del eje (mundo 1: 21 cm contra 205 del eje y 410 del otro
+      borde). Esta familia sí es la que esta función ataca, y es donde un umbral de avance mínimo
+      tendría sentido, con su propia defensa.
+    · **3 caras: BEVEL, y ahí angostar no puede funcionar.** El eje no avanza nada entre las dos
+      muestras (`largo_eje` = 0,000) porque las dos caen sobre el mismo vértice, y los dos bordes se
+      apartan lo mismo en sentidos opuestos (822 y 822). **Angostar es una homotecia sobre ese
+      vértice**: escala los dos brazos por el mismo factor, así que achica el cuadrilátero sin poder
+      cambiar el signo de su normal. Medido: se probó juzgar el bevel contra la dirección de avance
+      de la esquina y el área bajó 5x —de 132.126 cm² a 23.753— con el acuerdo intacto en -0,998.
+      O sea que ese remedio angosta la cinta sin arreglar nada.
+
+    En el bevel el defecto es el ORDEN del abanico, no el ancho: el cuadrilátero entre las dos
+    muestras sale con el winding opuesto al de la tira, y de qué lado abre el abanico depende de
+    hacia dónde dobla el recorrido — así que un orden de índices fijo no puede estar bien para los
+    dos sentidos. Se arregla en la emisión de triángulos, no acá, y toca el código más delicado del
+    archivo (ver `investiga_winding_ribbon_58.py`): pide corte propio y verificación por el camino
+    real. `malla.cara_visible` los sigue marcando en rojo mientras tanto.
     """
     if ejes_reales is not None:
         # El eje VERDADERO de cada muestra. Con miters fuertes el punto medio entre bordes se aleja

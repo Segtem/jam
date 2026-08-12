@@ -47,12 +47,32 @@ representar al eje cuando un miter empuja un borde lejísimos.
 | giros ≤22° por muestra (realista) | 4/20 plegadas | **0/20** | **0/20** |
 | giros de 140°, cinta más ancha que el paso | 20/20 | 11/20 | **7/20** |
 
-**Los 7 que quedan NO son el mismo defecto**, y por eso no se siguió afinando: ahí el borde interior
-**no retrocede, avanza muy poco**. Medido en el mundo 1 del corpus, el izquierdo avanza 1,4 cm contra
-~460 del derecho, y como cada muestra lleva su propia Z el triángulo casi sin base queda casi vertical
-(`nz = -0,048`). Es una degeneración por avance despreciable; pide criterio y defensa de umbral
-propios —avance mínimo proporcional al del eje, o fusionar muestras casi coincidentes— y es el próximo
-corte. `malla.cara_visible` los marca en rojo mientras tanto: **no se afinó el algoritmo contra la
+**Los 7 que quedan NO son el mismo defecto** — y son DOS defectos, no uno. Decía acá que era «una
+degeneración por avance despreciable»: **se midió y esa hipótesis es falsa.**
+`tools/clasifica_caras_rojas_ribbon.py` describe cada cara roja por su geometría en vez de por su
+`nz`, y **ninguna es degenerada**: la más chica tiene 3.203 cm². El reparto de las 9:
+
+· **5 caras (+1 suelta): avance desparejo entre bordes.** El interior avanza 21 cm mientras el eje
+avanza 205 y el otro borde 410. Esa familia sí es la que `_sin_pliegues` ataca, y es donde un umbral
+de avance mínimo tendría sentido, con su propia defensa.
+· **3 caras: BEVEL, y ahí angostar NO PUEDE funcionar.** El eje no avanza nada entre las dos muestras
+(`largo_eje` = 0,000: las dos caen sobre el mismo vértice) y los dos bordes se apartan lo mismo en
+sentidos opuestos. **Angostar es una homotecia sobre ese vértice** — escala los dos brazos por el
+mismo factor, así que achica el cuadrilátero sin poder cambiarle el signo a la normal. No quedó como
+argumento: se implementó juzgar el bevel contra la dirección de avance de la esquina, se midió, y el
+área bajó 5x —132.126 cm² → 23.753— **con el acuerdo intacto en -0,998**. El parche se revirtió: un
+remedio que angosta la cinta sin arreglar nada es peor que no tocar.
+
+En el bevel el defecto es el **ORDEN del abanico**, no el ancho: el cuadrilátero sale con el winding
+opuesto al de la tira, y de qué lado abre el abanico depende de hacia dónde dobla el recorrido — así
+que un orden de índices fijo no puede estar bien para los dos sentidos. Se arregla en la emisión de
+triángulos, que es el código más delicado del archivo (el del winding invertido), y pide verificación
+por el camino real. **Ese es el próximo corte, y ahora está nombrado con precisión.**
+
+Lo que este turno agrega es el método: **contar cuántos mundos quedan en rojo no alcanza para elegir
+un remedio.** Con la cuenta sola, el parche del bevel parecía progreso —bajó de 9 caras rojas a 8—
+pero lo que arregló fue una cara de OTRA familia, por propagación del factor a sus vecinos. La
+clasificación por geometría es lo que lo delató. `malla.cara_visible` los marca en rojo mientras tanto: **no se afinó el algoritmo contra la
 medida a propósito.** En UE 5.8.1: `JAM_MESH_RIBBON_58 TODO VERDE` con los mismos 25 pares / 48 tris /
 UV0 0..5.91 de siempre, `mesh_extrude` y `curve_offset` —que comparte el núcleo tocado— verdes, cara
 de la cinta 48/48 a +Z y **19/19 tutoriales compilan**.
