@@ -98,14 +98,31 @@ El pin tiene color propio en `DataColor`: **índigo**, lejos del azul de `P` —
 de puntos son las dos cosas que más se van a cablear cerca, y distinguirlas por un pelo de tono no
 es distinguirlas.
 
-**2. Construir punto y línea.** `point` (x,y,z → `P` de un punto) y `curve_line` (dos puntos → `S`).
-Hoy `pts_line` reparte puntos SOBRE un segmento, que es otra cosa: no se puede cablear el segmento
-a nada que espere una curva.
+**2. Construir punto y línea.** ✅ HECHO 2026-08-12, y **el peldaño se achicó solo al llegar**. El
+tutorial arma la línea con dos «Construct Point»; en Jam **una posición ya es un `V`**, porque el
+tipo `P` no es un punto geométrico sino un stream de muestras de colocación —con semilla, escala y
+normal por muestra—. Así que el constructor de puntos ya existía con otro nombre
+(`vector_construct`) y lo único que faltaba era `curve_line`. Un segmento de largo cero es error y
+no una curva degenerada: todo lo que consume `S` —barrer, extruir, distribuir— necesita una
+dirección que ahí no existe.
 
-**3. Cerrar la polilínea.** Un parámetro de cierre en `curve_polyline`, cableado desde el
-interruptor del peldaño 0 — que es exactamente el gesto del tutorial para hacer un polígono.
+**3. Cerrar la polilínea.** ✅ HECHO. `curve_polyline` tiene `closed`, cableable desde el interruptor
+del peldaño 0. **Se repite el primer punto al final en vez de marcar una bandera**: todo lo que
+consume `S` recorre la lista de puntos, así que una bandera obligaría a que cada consumidor se
+acuerde de cerrar, y el que se olvide deja un polígono abierto por un lado sin que nada lo diga.
+Medido por el camino real: 4 puntos / 519,6 cm abierta → 5 puntos / 1039,2 cm cerrada.
 
-**4. Line SDL y Move sobre curvas.** Ya con `V`.
+**4. Line SDL.** ✅ HECHO. **La dirección se NORMALIZA antes de escalar**, así que el largo pedido es
+el largo que sale; sin eso una dirección `(0,0,2)` daría el doble de lo que dice el parámetro y el
+error sería invisible —la línea se ve bien, sólo que mide otra cosa—. Queda pendiente `Move` sobre
+curvas.
+
+⚠️ **Y estos tres peldaños destaparon un defecto del GRAFO que los 1053 tests puros no veían.** Un
+pin de dato OPCIONAL sin cable recibía `None`, y el valor **escrito en la ficha se perdía**: alguien
+tipea «0,0,500» en el extremo de una línea, ve el número en el nodo, y el verbo recibe nada. Es el
+peor tipo de silencio, porque la interfaz muestra un valor que no se está usando. Ahora un pin
+opcional sin cable **usa lo escrito** — que es además cómo funciona Grasshopper: toda entrada se
+puede tipear O cablear. Lo encontró la sonda del camino real, no los tests.
 
 **5. Interpolate.** Curva suave que PASA por los puntos, contra `curve_bezier` que los usa de
 control. Son dos cosas distintas y el tutorial enseña la primera; hoy sólo tenemos la segunda.

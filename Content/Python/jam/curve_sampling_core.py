@@ -12,8 +12,14 @@ import math
 from .fields import ScalarSeries
 
 
-def polyline_points(x, y, z) -> dict:
-    """Combina tres series ``N[]`` del mismo tamaño en una polilínea XYZ."""
+def polyline_points(x, y, z, *, closed: bool = False) -> dict:
+    """Combina tres series ``N[]`` del mismo tamaño en una polilínea XYZ.
+
+    Con ``closed`` repite el primer punto al final, que es como el tutorial de Grasshopper convierte
+    una polilínea en un POLÍGONO. Se repite el punto en vez de marcar una bandera porque todo lo que
+    consume `S` recorre la lista de puntos: una bandera obligaría a que cada consumidor se acuerde
+    de cerrar, y el que se olvide deja un polígono abierto por un lado sin que nada lo diga.
+    """
     series = (x, y, z)
     if any(not isinstance(item, ScalarSeries) for item in series):
         return {"error": "polyline necesita tres series N[] conectadas en x, y, z."}
@@ -30,9 +36,13 @@ def polyline_points(x, y, z) -> dict:
     points = tuple(tuple(float(value) for value in point) for point in points)
     if any(math.dist(a, b) < 1e-6 for a, b in zip(points, points[1:])):
         return {"error": "polyline no admite puntos consecutivos coincidentes."}
+    if closed:
+        if math.dist(points[0], points[-1]) < 1e-6:
+            return {"error": "polyline no puede cerrarse: el último punto ya coincide con el primero."}
+        points = points + (points[0],)
     length = sum(math.dist(a, b) for a, b in zip(points, points[1:]))
     return {"points": points, "length": length,
-            "info": f"{count} puntos · {length:.1f} cm"}
+            "info": f"{len(points)} puntos · {length:.1f} cm" + (" · cerrada" if closed else "")}
 
 
 def resample_points(points, *, count: int) -> dict:

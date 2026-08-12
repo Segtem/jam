@@ -269,7 +269,9 @@ class CurveSamplingGraphTests(unittest.TestCase):
         self.assertTrue(polyline["source"])
         self.assertEqual(
             {item["nombre"]: item["data_type"] for item in polyline["params"]},
-            {"x": "N[]", "y": "N[]", "z": "N[]"},
+            # `closed` no declara `data_type` porque no es un pin de DATO como las tres series: es
+            # un booleano del nodo, que se tilda a mano o se maneja desde el interruptor.
+            {"x": "N[]", "y": "N[]", "z": "N[]", "closed": ""},
         )
         self.assertEqual(polyline["out_name"], "S")
         self.assertEqual(polyline["grupo"], "Curvas")
@@ -358,3 +360,79 @@ class CurveSamplingGraphTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class LineaYPoligonoTests(unittest.TestCase):
+    """Peldaños 2, 3 y 4 de la escalera de Grasshopper Basics: Line, Line SDL y cerrar la polilínea.
+
+    El peldaño 2 se achicó solo al llegar acá. El tutorial construye un punto con «Construct Point»
+    y con él arma la línea; en Jam **una posición ya es un `V`**, porque el tipo `P` no es un punto
+    geométrico sino un stream de muestras de colocación —con semilla, escala y normal por muestra—.
+    Así que el constructor de puntos ya existía con otro nombre (`vector_construct`) y lo único que
+    faltaba era la línea.
+    """
+
+    def test_la_linea_es_el_segmento_entre_dos_posiciones(self) -> None:
+        resultado = curve.line((0, 0, 0), (0, 0, 300))
+        self.assertEqual(resultado["curve"].points, ((0.0, 0.0, 0.0), (0.0, 0.0, 300.0)))
+        self.assertIn("300.0 cm", resultado["info"])
+
+    def test_dos_puntos_coincidentes_no_son_una_linea(self) -> None:
+        """No es una curva degenerada: es dos veces el mismo punto, y todo lo que consume `S`
+        —barrer, extruir, distribuir— necesita una dirección que ahí no existe."""
+        self.assertIn("coinciden", curve.line((1, 1, 1), (1, 1, 1))["error"])
+
+    def test_line_sdl_NORMALIZA_la_direccion(self) -> None:
+        """Sin normalizar, una dirección `(0,0,2)` daría el doble de lo que dice el parámetro y el
+        error sería invisible: la línea se ve bien, sólo que mide otra cosa."""
+        for direccion in ((0, 0, 1), (0, 0, 2), (0, 0, 17)):
+            with self.subTest(direccion=direccion):
+                resultado = curve.line_sdl((0, 0, 0), direccion, 300.0)
+                self.assertAlmostEqual(resultado["curve"].points[1][2], 300.0)
+
+    def test_line_sdl_sin_direccion_es_error(self) -> None:
+        self.assertIn("no apunta", curve.line_sdl((0, 0, 0), (0, 0, 0), 100.0)["error"])
+
+    def test_cerrar_la_polilinea_repite_el_primer_punto(self) -> None:
+        """Es el gesto del tutorial para volver un polígono una polilínea. Se repite el punto en vez
+        de marcar una bandera porque todo lo que consume `S` recorre la lista: una bandera obligaría
+        a que cada consumidor se acuerde de cerrar, y el que se olvide deja un polígono abierto sin
+        que nada lo diga."""
+        serie = lambda nombre, *v: fields.ScalarSeries(tuple(float(x) for x in v), nombre)
+        polyline_points = curve_sampling_core.polyline_points
+        abierta = polyline_points(serie("x", 0, 100, 100), serie("y", 0, 0, 100), serie("z", 0, 0, 0))
+        cerrada = polyline_points(serie("x", 0, 100, 100), serie("y", 0, 0, 100),
+                                  serie("z", 0, 0, 0), closed=True)
+        self.assertEqual(len(abierta["points"]), 3)
+        self.assertEqual(len(cerrada["points"]), 4)
+        self.assertEqual(cerrada["points"][0], cerrada["points"][-1])
+        self.assertGreater(cerrada["length"], abierta["length"])
+        self.assertIn("cerrada", cerrada["info"])
+
+    def test_una_polilinea_que_ya_cierra_no_se_cierra_dos_veces(self) -> None:
+        serie = lambda nombre, *v: fields.ScalarSeries(tuple(float(x) for x in v), nombre)
+        polyline_points = curve_sampling_core.polyline_points
+        repetida = polyline_points(serie("x", 0, 100, 0), serie("y", 0, 0, 0),
+                                   serie("z", 0, 0, 0), closed=True)
+        self.assertIn("ya coincide", repetida["error"])
+
+    def test_el_interruptor_puede_manejar_el_cierre(self) -> None:
+        """La razón de ser del peldaño 3: que el booleano del peldaño 0 se pueda cablear acá."""
+        g = graph.JamGraph()
+        g.add("boolean", {"value": True}, nid="cerrar")
+        g.add("curve_polyline", {}, nid="poli")
+        g.connect("cerrar", "poli", "closed")
+        # Que el cable exista no prueba nada: lo que importa es que el Graph lo ACEPTE. Si el pin
+        # rechazara el booleano, el peldaño 3 no serviría para lo que se hizo.
+        diagnosticos = graph.diagnosticar(g) if hasattr(graph, "diagnosticar") else {}
+        problemas = [m for ms in diagnosticos.values() for m in ms if "closed" in m]
+        self.assertEqual(problemas, [], f"el pin `closed` rechazó el interruptor: {problemas}")
+
+    def test_la_linea_por_direccion_encadena_con_los_vectores(self) -> None:
+        """Line SDL es el peldaño 4 y sólo tenía sentido con el tipo `V` del peldaño 1."""
+        g = graph.JamGraph()
+        g.add("vector_unit_z", {"largo": 1}, nid="arriba")
+        g.add("curve_line_sdl", {"largo": 250}, nid="linea")
+        g.connect("arriba", "linea", "direccion")
+        plan = graph.compilar(g)
+        self.assertIn("linea", plan.order)

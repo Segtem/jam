@@ -1259,6 +1259,28 @@ y no se estaba consultando. El mismo mecanismo va a servir para matrices.
 
 Camino real: `JAM_MATH_GRAPH_TEST TODO VERDE — 37 verbos en el spec … N→V rechazado … |Z+X|→14,14`.
 
+✅ **PELDAÑOS 2, 3 y 4 HECHOS: Línea, polígono y Línea por dirección.** 1053 tests, 3 mutaciones que
+discriminan, `JAM_LINEA_58 TODO VERDE` por el camino real.
+
+**El peldaño 2 se achicó solo al llegar**: el tutorial arma la línea con dos «Construct Point», pero
+en Jam **una posición ya es un `V`** —el tipo `P` es un stream de muestras de colocación, no un punto
+geométrico—, así que el constructor ya existía con otro nombre y sólo faltaba `curve_line`.
+
+**El polígono repite el primer punto en vez de marcar una bandera**: todo lo que consume `S` recorre
+la lista de puntos, así que una bandera obligaría a que cada consumidor se acuerde de cerrar, y el
+que se olvide deja un polígono abierto sin que nada lo diga. Medido: 4 puntos / 519,6 cm abierta →
+5 puntos / 1039,2 cm cerrada. **Line SDL normaliza la dirección** antes de escalar, para que el largo
+pedido sea el que sale.
+
+⚠️ **Y destaparon un defecto del GRAFO que los 1053 tests puros no veían.** Un pin de dato OPCIONAL
+sin cable recibía `None` y **el valor escrito en la ficha se perdía**: alguien tipea «0,0,500» en el
+extremo de una línea, lo ve en el nodo, y el verbo recibe nada. El peor tipo de silencio, porque la
+interfaz muestra un valor que no se usa. Ahora un pin opcional sin cable **usa lo escrito**, como en
+Grasshopper: toda entrada se puede tipear O cablear. **Lo encontró la sonda del camino real.**
+
+⚠️ Y un rojo que era del TEST: la sonda barría con `mesh_ribbon` una línea vertical en el plano `xy`,
+donde mide cero, y el motor la rechazaba con razón. El código estaba bien.
+
 Los peldaños siguientes, en orden:
 **2.** Construir punto y `curve_line` · **3.** cerrar la polilínea con el interruptor · **4.** Line
 SDL y Move sobre curvas · **5.** Interpolate (curva que PASA por los puntos, distinta de

@@ -152,14 +152,56 @@ def points_of(value, *, samples: int = 16) -> tuple[tuple[float, float, float], 
     return paths[0].points if len(paths) == 1 else ()
 
 
-def polyline(*, x=None, y=None, z=None) -> dict:
+def polyline(*, x=None, y=None, z=None, closed: bool = False) -> dict:
     """Construye una curva ``S`` juntando tres series ``N[]`` como coordenadas XYZ."""
     from . import curve_sampling_core
 
-    result = curve_sampling_core.polyline_points(x, y, z)
+    result = curve_sampling_core.polyline_points(x, y, z, closed=bool(closed))
     if "error" in result:
         return result
     return {"curve": CurvePath(result["points"]), "info": result["info"]}
+
+
+def line(desde, hasta) -> dict:
+    """La curva `S` más simple: el segmento entre dos posiciones.
+
+    Toma vectores porque en Jam una POSICIÓN es un `V`. El tipo `P` no sirve para esto: es un stream
+    de muestras de colocación —con semilla, escala y normal por muestra— y no un punto geométrico.
+    Esa distinción hace que el «Construct Point» del tutorial de Grasshopper ya exista acá con otro
+    nombre: es `vector_construct`.
+    """
+    desde = tuple(float(componente) for componente in desde)
+    hasta = tuple(float(componente) for componente in hasta)
+    if any(not math.isfinite(componente) for componente in desde + hasta):
+        return {"error": "curve_line recibió una coordenada no finita."}
+    largo = math.dist(desde, hasta)
+    if largo < 1e-6:
+        # Un segmento de largo cero no es una curva degenerada: es dos veces el mismo punto, y todo
+        # lo que consume `S` —barrer, extruir, distribuir— necesita una dirección que ahí no existe.
+        return {"error": "curve_line necesita dos puntos distintos; los dos que llegaron coinciden."}
+    return {"curve": CurvePath((desde, hasta)), "info": f"2 puntos · {largo:.1f} cm"}
+
+
+def line_sdl(origen, direccion, largo: float) -> dict:
+    """Segmento desde un origen, en una dirección, con un largo dado (el «Line SDL» del tutorial).
+
+    La dirección se NORMALIZA antes de escalar, así que el largo pedido es el largo que sale. Sin
+    eso, una dirección `(0,0,2)` daría el doble de lo que dice el parámetro y el error sería
+    invisible: la línea se ve bien, sólo que mide otra cosa.
+    """
+    direccion = tuple(float(componente) for componente in direccion)
+    modulo = math.sqrt(sum(componente * componente for componente in direccion))
+    if modulo < 1e-12:
+        return {"error": "curve_line_sdl necesita una dirección; el vector cero no apunta a ningún lado."}
+    try:
+        largo = float(largo)
+    except (TypeError, ValueError):
+        return {"error": "el largo de curve_line_sdl tiene que ser un número."}
+    if not math.isfinite(largo) or largo == 0.0:
+        return {"error": "el largo de curve_line_sdl tiene que ser finito y distinto de cero."}
+    origen = tuple(float(componente) for componente in origen)
+    hasta = tuple(origen[i] + direccion[i] / modulo * largo for i in range(3))
+    return line(origen, hasta)
 
 
 def resample(value, *, count: int = 24, samples: int = 32) -> dict:

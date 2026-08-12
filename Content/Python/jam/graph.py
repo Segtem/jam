@@ -706,9 +706,20 @@ def ejecutar_detalle(g: JamGraph, plan: GraphPlan | None = None,
         kw, _desc = dsl.coaccionar(verb, {k: str(v) for k, v in plan.params.get(nid, {}).items()})
         if info.get("asset_argument"):
             kw["asset"] = asset_argument
+        opcionales_dato = set(info.get("optional_data_params", ()))
         for pin in info.get("data_params", {}):
             origen_dato = data_sources.get((nid, pin))
-            kw[pin] = runtime_outputs.get(origen_dato) if origen_dato is not None else None
+            if origen_dato is not None:
+                kw[pin] = runtime_outputs.get(origen_dato)
+            elif pin in opcionales_dato and str(n.get("params", {}).get(pin, "")).strip():
+                # Un pin OPCIONAL sin cable usa lo que está ESCRITO en la ficha. Sin esto el campo
+                # es un adorno mudo: alguien escribe «0,0,500» en el extremo de una línea, ve el
+                # número en el nodo, y el verbo recibe `None` — el peor tipo de silencio, porque la
+                # interfaz muestra un valor que no se está usando. Es además cómo funciona
+                # Grasshopper: toda entrada se puede tipear O cablear.
+                kw[pin] = n["params"][pin]
+            else:
+                kw[pin] = None
         # ---- caché: un nodo limpio no se vuelve a cocinar ----
         huella_nodo = huellas.get(nid) if almacen is not None else None
         guardado = (almacen.obtener(huella_nodo)

@@ -959,13 +959,32 @@ def t_series_remap(series_input, *, source_min=0.0, source_max=1.0,
     return f"REMAP N[] ✓ — {result['info']}"
 
 
-def t_curve_polyline(_input=None, *, x=None, y=None, z=None) -> str:
+def t_curve_polyline(_input=None, *, x=None, y=None, z=None, closed=False) -> str:
     from . import curve
-    result = curve.polyline(x=x, y=y, z=z)
+    result = curve.polyline(x=x, y=y, z=z, closed=bool(closed))
     if "error" in result:
         raise RuntimeError(result["error"])
     _RUNTIME_DATA_OUTPUTS["curve_polyline"] = result["curve"]
     return f"POLYLINE S ✓ — {result['info']}"
+
+
+def t_curve_line(_input=None, *, desde="0,0,0", hasta="0,0,300") -> str:
+    from . import curve, math_core
+    result = curve.line(math_core._vector(desde, "desde"), math_core._vector(hasta, "hasta"))
+    if "error" in result:
+        raise RuntimeError(result["error"])
+    _RUNTIME_DATA_OUTPUTS["curve_line"] = result["curve"]
+    return f"LINE S ✓ — {result['info']}"
+
+
+def t_curve_line_sdl(_input=None, *, origen="0,0,0", direccion="0,0,1", largo=300.0) -> str:
+    from . import curve, math_core
+    result = curve.line_sdl(math_core._vector(origen, "origen"),
+                            math_core._vector(direccion, "direccion"), largo)
+    if "error" in result:
+        raise RuntimeError(result["error"])
+    _RUNTIME_DATA_OUTPUTS["curve_line_sdl"] = result["curve"]
+    return f"LINE SDL S ✓ — {result['info']}"
 
 
 def t_curve_resample(curve_input, *, count=24, samples=32) -> str:
@@ -2163,11 +2182,31 @@ REGISTRO = {
                      "doc": "remapea cada valor de N[] entre dos dominios; puede limitar o extrapolar"},
     "curve_polyline": {"fn": t_curve_polyline, "label": "Polilínea", "cat": "Mesh",
                        "graph_only": True,
-                       "params": {"x": "", "y": "", "z": ""},
+                       "params": {"x": "", "y": "", "z": "", "closed": False},
                        "data_params": {"x": "N[]", "y": "N[]", "z": "N[]"},
                        "etiquetas_params": {"x": "coordenadas X", "y": "coordenadas Y",
-                                             "z": "coordenadas Z"},
-                       "doc": "combina tres series N[] del mismo largo como puntos XYZ de una polilínea S"},
+                                             "z": "coordenadas Z", "closed": "cerrada"},
+                       "doc": "combina tres series N[] del mismo largo como puntos XYZ de una polilínea S; "
+                              "«cerrada» repite el primer punto al final y la vuelve un polígono"},
+    "curve_line": {"fn": t_curve_line, "label": "Línea", "cat": "Mesh", "graph_only": True,
+                   "params": {"desde": "0,0,0", "hasta": "0,0,300"},
+                   "data_params": {"desde": "V", "hasta": "V"},
+                   # Los dos extremos se pueden CABLEAR o escribir. Sin esto el Graph exigiría un
+                   # cable para cada uno, y la línea más simple del tutorial —del origen hacia
+                   # arriba— necesitaría dos nodos de vector para existir.
+                   "optional_data_params": ("desde", "hasta"),
+                   "etiquetas_params": {"desde": "desde (Vector)", "hasta": "hasta (Vector)"},
+                   "doc": "el segmento entre dos posiciones, como curva S"},
+    "curve_line_sdl": {"fn": t_curve_line_sdl, "label": "Línea por dirección", "cat": "Mesh",
+                       "graph_only": True,
+                       "params": {"origen": "0,0,0", "direccion": "0,0,1", "largo": 300.0},
+                       "data_params": {"origen": "V", "direccion": "V"},
+                       "optional_data_params": ("origen", "direccion"),
+                       "etiquetas_params": {"origen": "origen (Vector)",
+                                            "direccion": "dirección (Vector)",
+                                            "largo": "largo (Número)"},
+                       "doc": "segmento desde un origen en una dirección; la dirección se normaliza, "
+                              "así que el largo pedido es el largo que sale"},
     "curve_resample": {"fn": t_curve_resample, "label": "Remuestrear curva", "cat": "Mesh",
                        "graph_only": True,
                        "params": {"count": 24, "samples": 32},
@@ -2630,7 +2669,8 @@ CATEGORIAS = ["Content", "Place", "Scatter", "Mass", "Create", "Mesh", "Edit",
 # `source` significa sin pin gordo `in`; una fuente todavía puede tener un pin de parámetro `asset`.
 GRAPH_SOURCES = {"asset", "pick", "create_spline", "gizmo", "ghost", "pivot", "pivot_set",
                  "mass_config",
-                 "curve_bezier", "mesh_triangle", "mesh_quad", "mesh_grid", "mesh_cylinder",
+                 "curve_bezier", "curve_line", "curve_line_sdl",
+                 "mesh_triangle", "mesh_quad", "mesh_grid", "mesh_cylinder",
                  "mesh_cone", "mesh_sphere", "graph_curve", "series_range", "curve_polyline",
                  "mesh_box", "mesh_capsule", "mesh_torus", "mesh_disc",
                  "mesh_round_rect", "mesh_stairs", "mesh_stairs_curved", "mesh_sphere_box",
@@ -2648,7 +2688,8 @@ GRAPH_NO_ASSET = {"mesh_preview", "asset", "pick", "create_spline", "pivot_set",
                   # `scatter` genera PUNTOS: no toca ningún asset. Lo usaba sólo para
                   # medir huellas, y eso ahora pasa al colocar.
                   "scatter",
-                  "curve_bezier", "mesh_triangle", "mesh_quad", "mesh_grid", "mesh_cylinder",
+                  "curve_bezier", "curve_line", "curve_line_sdl",
+                  "mesh_triangle", "mesh_quad", "mesh_grid", "mesh_cylinder",
                   "mesh_cone", "mesh_sphere", "mesh_ribbon", "mesh_pipe", "mesh_pipe_profile",
                   "mesh_box", "mesh_capsule", "mesh_torus", "mesh_disc",
                   "mesh_round_rect", "mesh_stairs", "mesh_stairs_curved",
@@ -2716,7 +2757,8 @@ GRAPH_OUT_NAMES = {"brush": "P", "mesh_preview": "", "reroute_mesh": "M", "rerou
                    "material_wind": "A", "material_build": "A",
                    "material_node": "MT", "material_connect": "MT", "material_output": "MT",
                    "material_call": "MT", "material_function": "A", "material_instance": "A",
-                   "curve_bezier": "S", "curve_child": "S", "curve_noise": "S", "curve_frames": "F",
+                   "curve_bezier": "S", "curve_line": "S", "curve_line_sdl": "S",
+                   "curve_child": "S", "curve_noise": "S", "curve_frames": "F",
                    "curve_polyline": "S", "curve_resample": "S", "curve_smooth": "S",
                    "curve_fuse_collinear": "S", "curve_subdivide": "S",
                    "curve_offset": "S",
