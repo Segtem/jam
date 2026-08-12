@@ -600,7 +600,7 @@ def ejecutar_detalle(g: JamGraph, plan: GraphPlan | None = None,
     que `cache_core.es_cacheable` acepta —los que producen un dato transitorio—: saltear uno que
     spawnea dejaría la escena sin sus actores, y eso se diagnostica como «a veces no aparece».
     """
-    from . import cache_core, dsl, tools
+    from . import cache_core, display_core, dsl, tools
     try:
         plan = plan or compilar(g)
     except GraphValidationError as exc:
@@ -636,9 +636,20 @@ def ejecutar_detalle(g: JamGraph, plan: GraphPlan | None = None,
         [list(a) for a in g.edges]) if almacen is not None else {}
     reusados = []
 
+    # ---- recorte por display flag ----
+    # Marcar un nodo significa «esto es lo que quiero ver», así que el grafo corre SÓLO lo que hace
+    # falta para producirlo. Sin ningún marcado, `permitidos` es todo y esto no cambia nada.
+    marcas, permitidos = display_core.recorte(g.nodes, [list(a) for a in g.edges])
+
     for nid in plan.order:
         n = g.nodes[nid]
         verb = n["verb"]
+
+        # Aguas abajo de lo que se está mirando: no corre, y se DICE que no corrió. Un nodo que se
+        # apaga en silencio es indistinguible de uno roto, y el usuario buscaría el bug donde no está.
+        if nid not in permitidos:
+            por_nodo[nid] = {"estado": "omitido", "texto": "no corre: sólo se está viendo otro nodo"}
+            continue
 
         # nodos de VALOR: no ejecutan verbo; aportan su valor (y lo muestran en el nodo).
         if verb in VALOR_KINDS:
@@ -741,6 +752,9 @@ def ejecutar_detalle(g: JamGraph, plan: GraphPlan | None = None,
 
     if marcados:
         lineas.append(_dibujar_marcados(marcados))
+    if marcas:
+        lineas.append(display_core.resumen(
+            marcas, len(display_core.omitidos(g.nodes, permitidos))))
     return "\n".join(lineas), por_nodo
 
 

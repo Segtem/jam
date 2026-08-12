@@ -305,6 +305,49 @@ class FlagPorNodoTests(unittest.TestCase):
         # Informa el fallo del dibujo en vez de tirar la excepción hacia arriba.
         self.assertIn("DEBUG ✗", reporte)
 
+    # ---- ver SÓLO el marcado (Houdini / Substance) ----
+    # Antes el flag SUMABA: dibujaba el nodo marcado y el grafo corría igual de punta a punta. Ver
+    # una parte obligaba a soportar el resto —incluido lo que coloca actores u hornea assets—.
+
+    @staticmethod
+    def _estados(marcados):
+        import json
+        from jam import graph
+        doc = {"nodes": {
+            "pts": {"verb": "pts_line", "params": {"count": "4"}, "x": 0, "y": 0,
+                    "debug": "pts" in marcados},
+            "mv": {"verb": "move", "params": {"dx": "50"}, "x": 300, "y": 0,
+                   "debug": "mv" in marcados}},
+            "edges": [["pts", "out", "mv", "in"]]}
+        return graph.ejecutar_detalle(graph.JamGraph.from_json(json.dumps(doc)))
+
+    def test_marcar_el_de_arriba_deja_de_correr_el_de_abajo(self):
+        reporte, por_nodo = self._estados({"pts"})
+        self.assertNotIn("MOVE P ✓", reporte)
+        self.assertEqual(por_nodo["mv"]["estado"], "omitido")
+
+    def test_el_omitido_DICE_que_no_corrio_en_vez_de_desaparecer(self):
+        """Un nodo que se apaga en silencio es indistinguible de uno roto, y el usuario buscaría
+        el problema donde no está."""
+        _reporte, por_nodo = self._estados({"pts"})
+        self.assertIn("mv", por_nodo)
+        self.assertIn("otro nodo", por_nodo["mv"]["texto"])
+
+    def test_el_reporte_anuncia_el_corte_y_como_deshacerlo(self):
+        reporte, _ = self._estados({"pts"})
+        self.assertIn("SOLO ▸ pts", reporte)
+        self.assertIn("◉", reporte)
+
+    def test_marcar_el_de_abajo_corre_los_dos(self):
+        """Lo que lo alimenta tiene que correr o no habría nada que mostrar."""
+        reporte, por_nodo = self._estados({"mv"})
+        self.assertIn("PTS LINE P ✓", reporte)
+        self.assertNotEqual(por_nodo["pts"]["estado"], "omitido")
+
+    def test_sin_marcar_nada_no_se_omite_nadie(self):
+        _reporte, por_nodo = self._estados(set())
+        self.assertNotIn("omitido", [v["estado"] for v in por_nodo.values()])
+
 
 class InspectorTests(unittest.TestCase):
     """El panel de inspección: los datos del último Run, por nodo — el spreadsheet de Jam."""

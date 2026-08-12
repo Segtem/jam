@@ -553,6 +553,15 @@ precisamente lo que ninguna medición contesta.
    último frame. Es la razón de que haya dos avisos separados y es lo más fácil de romper.
 5. Apagá **⟳ Live**: el grafo deja de correr solo y el output lo dice.
 
+**◉ VER SÓLO UN NODO — tres gestos más, encima de lo anterior:**
+
+6. Con la misma cadena, apretá el **◉** del nodo del medio (`mesh_ribbon`). Tiene que quedar en
+   escena **sólo esa cinta**, y el nodo terminal ponerse **gris con `–`**: no corrió a propósito.
+   El output dice `SOLO ▸ …` y cuántos quedaron afuera.
+7. Apretá el **◉** de OTRO nodo: el primero tiene que apagarse solo. El flag se mueve, no se suma.
+8. Con **⟳ Live** prendido, arrastrá un slider mientras mirás un nodo del medio: tenés que ver
+   actualizarse ESE nodo, sin que el terminal coloque nada. Ese es el gesto entero de Houdini.
+
 Y el contraste que vale la pena sentir: cambiá el último nodo a `mesh_to_static` y arrastrá otra vez.
 Debería seguir andando —hornear quedó en ~35 ms— pero con un peso distinto. Ese contraste es el
 argumento entero de «Ver sin hornear».
@@ -590,6 +599,51 @@ Después, sin urgencia: subir `~/Dev/oracle/estudio/` a NotebookLM. Empezá por 
 de pedir manos sin que nadie lo note.)*
 
 ## Lo próximo
+
+**0-sexies. ◉ VER SÓLO EL NODO MARCADO — CONSTRUIDO Y COMPILADO, verificado por el camino real.**
+
+Pedido de Brian: *«ver solo el nodo que esté marcado como visible, como hace Houdini o Substance
+Designer»*. El flag ya existía y ya dibujaba — lo que **no** hacía era lo que él pidió: **sólo**.
+Sumaba. El nodo marcado se dibujaba ADEMÁS de todo lo que el grafo hiciera igual, así que ver una
+parte obligaba a soportar el resto, incluido lo que coloca actores u hornea assets.
+
+Lo que faltaba es el **recorte**, y vive en `display_core.py` (cerebro puro): marcar un nodo pasa a
+significar «esto es lo que quiero ver», y corre sólo lo que hace falta para producirlo —el nodo y
+todos sus ancestros—. Lo de aguas abajo no corre.
+
+**Probado por el camino real** (`verifica_solo_visible_58.py`, TODO VERDE), que era el único lugar
+donde se podía demostrar de verdad:
+
+| display flag en… | qué queda en el nivel |
+|---|---|
+| nada marcado | `prev_JamPreviewSolo` — el actor del terminal |
+| **el nodo del medio** | **`prev_JamDebug_viz` y nada más** — el terminal NO colocó lo suyo |
+| el terminal | los dos |
+
+**Decisiones que valen releer:**
+
+· **Se recorta la EJECUCIÓN, no la validación.** Compile sigue mirando el grafo entero, así que un
+error aguas abajo se sigue viendo aunque ahora no corra. Esconder errores sería un precio altísimo
+por ver una parte.
+· **Con varios marcados corre la UNIÓN de sus ancestros**, y se dibujan todos. Elegir uno solo
+necesitaría un desempate arbitrario —¿el último?, ¿el de más abajo?— y rompería los diagramas
+guardados que ya tienen dos marcados. La unión no necesita desempate.
+· **El flag se MUEVE, no se acumula** (regla de Houdini): prender uno apaga el anterior. Sin eso,
+«ver sólo esto» pasaría a significar «ver esto y aquello».
+· **El nodo omitido lo DICE**: estado propio `omitido`, con glifo `–` y gris, distinto de «todavía
+no corrió». Un nodo que se apaga en silencio es indistinguible de uno roto, y se buscaría el
+problema donde no está. El reporte además anuncia el corte y **cómo deshacerlo**.
+· **Se integra con el live view**: mover el flag pide recocción, así que marcás un nodo y lo ves.
+
+15 tests puros + 5 de integración por el ejecutor + 5 que leen el `.cpp`, con **7 mutaciones que
+confirman que discriminan**.
+
+⚠️ **Y un assert que casi pasa por verde siendo malo.** La primera versión de la sonda contaba
+actores: marcando el nodo del medio quedaba 1 actor igual que sin marcar, así que «hay menos
+actores» daba ROJO aunque el recorte andaba perfecto — era OTRO actor. **Contar no discrimina; hay
+que preguntar por identidad.** Quedó en las trampas de `AGENTS.md`.
+
+---
 
 **0-quinquies. ⟳ LIVE VIEW — CONSTRUIDO Y COMPILADO. Falta que Brian lo vea (ver «Para las manos»).**
 

@@ -350,6 +350,13 @@ private:
 	void ValidateGraph();
 	void RunGraph();
 
+	/** Se movió el display flag de un nodo: apaga el de los demás y vuelve a cocinar.
+	 *
+	 *  Vive en el editor porque las dos cosas son de alcance global. La exclusividad es la regla de
+	 *  Houdini —el flag se mueve, no se acumula—, y sin ella «ver sólo esto» pasaría a significar
+	 *  «ver esto y aquello». */
+	void SoloVerNodo(const FString& Id);
+
 	// ---- live view: recocinar mientras se arrastra, como Houdini ----
 	/** Prende/apaga el live view. Apagado por omisión: un grafo que coloca cosas en la escena no
 	 *  debería empezar a hacerlo porque alguien rozó un slider. */

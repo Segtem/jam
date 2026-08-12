@@ -137,6 +137,10 @@ public:
 		 *  Un solo aviso no puede servir a los dos: o el Undo se llena de basura, o el live view
 		 *  sólo reacciona al soltar y deja de ser live. */
 		SLATE_EVENT(FSimpleDelegate, OnParamLive)
+		/** Se movió el display flag. Lo resuelve el EDITOR y no el nodo, porque las dos cosas que
+		 *  hay que hacer son de alcance global: apagar el flag de los demás —el de Houdini se mueve,
+		 *  no se acumula— y volver a correr, ya que marcar cambia QUÉ nodos corren. */
+		SLATE_EVENT(FSimpleDelegate, OnDebugChanged)
 		/** Se prendió/apagó el bypass. A diferencia del flag de debug —que es de VISTA— apagar un
 		 *  nodo cambia lo que el grafo hace, así que es un paso del historial. */
 		SLATE_EVENT(FSimpleDelegate, OnBypassChanged)
@@ -256,6 +260,7 @@ private:
 	FSimpleDelegate OnDragEndDelegate;
 	FSimpleDelegate OnParamChangedDelegate;
 	FSimpleDelegate OnParamLiveDelegate;
+	FSimpleDelegate OnDebugChangedDelegate;
 	FSimpleDelegate OnBypassChangedDelegate;
 	FSimpleDelegate OnThumbnailOpenDelegate;
 	FOnPedirVariables OnPedirVariablesDelegate;

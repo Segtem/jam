@@ -82,6 +82,7 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 	OnDragEndDelegate = InArgs._OnDragEnd;
 	OnParamChangedDelegate = InArgs._OnParamChanged;
 	OnParamLiveDelegate = InArgs._OnParamLive;
+	OnDebugChangedDelegate = InArgs._OnDebugChanged;
 	OnBypassChangedDelegate = InArgs._OnBypassChanged;
 	OnThumbnailOpenDelegate = InArgs._OnThumbnailOpen;
 	OnPedirVariablesDelegate = InArgs._OnPedirVariables;
@@ -583,6 +584,8 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 					if (ResultState == TEXT("aviso")) { return LOCTEXT("VeredictoAviso", "corrió, pero algo hay que mirar"); }
 					if (ResultState == TEXT("warn"))  { return LOCTEXT("VeredictoWarn", "el oráculo dice REVISAR: el resultado no sirve"); }
 					if (ResultState == TEXT("error")) { return LOCTEXT("VeredictoError", "reventó: no hay resultado"); }
+					if (ResultState == TEXT("omitido")) { return LOCTEXT("VeredictoOmitido",
+						"no corrió: se está viendo otro nodo (apagá su ◉ para correr todo)"); }
 					return LOCTEXT("VeredictoNada", "todavía no corrió");
 				})
 				.Font(FCoreStyle::GetDefaultFontStyle("Bold", 12))
@@ -693,6 +696,10 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 				{
 					// El flag lo lee `BuildJson` al serializar, así que alcanza con guardarlo acá.
 					bDebugEnabled = !bDebugEnabled;
+					// Pero ahora marcar RECORTA lo que corre, así que el editor tiene que enterarse:
+					// es él quien apaga los otros —el display flag de Houdini se MUEVE, no se
+					// acumula— y quien vuelve a cocinar si el live view está prendido.
+					OnDebugChangedDelegate.ExecuteIfBound();
 					return FReply::Handled();
 				})
 				[
@@ -1020,6 +1027,10 @@ FString SJamGraphNode::StateGlyph() const
 	if (ResultState == TEXT("aviso")) { return TEXT("▲"); }
 	if (ResultState == TEXT("warn"))  { return TEXT("✗"); }   // el oráculo dice REVISAR
 	if (ResultState == TEXT("error")) { return TEXT("!"); }   // reventó: no hay resultado
+	// Omitido: no corrió porque se está viendo OTRO nodo. Necesita glifo propio y no quedar como
+	// «sin veredicto»: son dos cosas distintas —uno nunca corrió, el otro fue excluido a propósito—
+	// y sin distinguirlas el usuario no puede saber si su nodo está roto o simplemente apagado.
+	if (ResultState == TEXT("omitido")) { return TEXT("–"); }
 	return FString();   // todavía no corrió: no hay veredicto que mostrar
 }
 
@@ -1030,6 +1041,7 @@ FLinearColor SJamGraphNode::StateColor() const
 	if (ResultState == TEXT("aviso")) { return FLinearColor(0.80f, 0.68f, 0.10f, 1.0f); }
 	if (ResultState == TEXT("warn"))  { return FLinearColor(0.85f, 0.48f, 0.03f, 1.0f); }
 	if (ResultState == TEXT("error")) { return FLinearColor(0.80f, 0.12f, 0.12f, 1.0f); }
+	if (ResultState == TEXT("omitido")) { return FLinearColor(0.45f, 0.44f, 0.42f, 1.0f); }   // gris: fuera del recorte
 	return FLinearColor(0.24f, 0.24f, 0.23f, 1.0f);   // neutro: contorno oscuro del componente
 }
 

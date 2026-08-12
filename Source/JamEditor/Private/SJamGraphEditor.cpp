@@ -2215,6 +2215,7 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At,
 		// Arrastrando: sólo recocina. Meter esto en el historial lo llenaría de un paso por frame.
 		.OnParamLive_Lambda([this]() { PedirRecoccion(); })
 		.OnBypassChanged_Lambda([this]() { Marcar(); PedirRecoccion(); })
+		.OnDebugChanged_Lambda([this, Id]() { SoloVerNodo(Id); })
 		.OnCompactoCambiado_Lambda([this, Id]()
 		{
 			// El ancho es del EDITOR, no del widget: lo leen los cables, el marquee y el encuadre.
@@ -4153,6 +4154,35 @@ void SJamGraphEditor::RunGraph()
 	RefreshInspector();
 	// Y cada nodo muestra lo que produjo, como en Substance Designer.
 	RefrescarMiniaturas();
+}
+
+void SJamGraphEditor::SoloVerNodo(const FString& Id)
+{
+	// El nodo ya se prendió o apagó solo; acá se resuelve lo que es de alcance global.
+	const FGNode* Marcado = nullptr;
+	for (const FGNode& N : Nodes)
+	{
+		if (N.Id == Id && N.Widget.IsValid() && N.Widget->IsDebugEnabled())
+		{
+			Marcado = &N;
+			break;
+		}
+	}
+	if (Marcado)
+	{
+		// El display flag de Houdini se MUEVE: prender uno apaga el anterior. Acumularlos haría que
+		// «ver sólo esto» significara «ver esto y aquello», que es justamente lo que no se quería.
+		for (FGNode& N : Nodes)
+		{
+			if (N.Id != Id && N.Widget.IsValid())
+			{
+				N.Widget->SetDebugEnabled(false);
+			}
+		}
+	}
+	Marcar();
+	// Mover el flag cambia QUÉ nodos corren, así que es un cambio de resultado y no sólo de vista.
+	PedirRecoccion();
 }
 
 void SJamGraphEditor::AlternarLiveView()
