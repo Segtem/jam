@@ -2068,7 +2068,12 @@ void SJamGraphEditor::RebuildLearnTab()
 				// aparece recién al reabrir el tab no se lee como progreso.
 				RebuildTabContent();
 				return FReply::Handled();
-			});
+			})
+		// El contenido va ADENTRO del botón. Sin este bloque el `SButton` se construye vacío, mide
+		// cero y no dibuja nada: quedan el encabezado y el nombre del grupo, y ninguna ficha. Los
+		// 13 tests de este tab pasaban igual, porque miran el catálogo y las reglas del `.cpp` y
+		// ninguno mira el árbol de widgets. Lo encontró Brian en dos minutos con una captura.
+		[ Contenido ];
 	};
 
 	// ---- el camino ----

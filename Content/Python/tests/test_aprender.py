@@ -145,5 +145,49 @@ class ReglasDeSlateTests(unittest.TestCase):
                                  "el C++ nombra un tutorial del camino: el orden volvió al código")
 
 
+class BotonesConContenidoTests(unittest.TestCase):
+    """Un `SButton` sin contenido mide CERO y no dibuja nada.
+
+    Es el defecto que rompió esta pantalla el mismo día que se escribió: las fichas se armaban en un
+    `SHorizontalBox` que nunca se metía adentro del botón, así que quedaron el encabezado y los
+    nombres de grupo, y ninguna ficha. **Los 13 tests de acá arriba pasaban igual**, porque miran el
+    catálogo y las reglas del `.cpp` y ninguno mira el árbol de widgets. Lo encontró Brian en dos
+    minutos con una captura de pantalla.
+
+    Este test es lo más cerca que se puede estar de verlo sin abrir el editor: un botón tiene que
+    tener un slot `[ … ]` o un `.Text(…)`. No hay ningún caso legítimo de botón vacío.
+    """
+
+    def botones_vacios(self) -> list[int]:
+        fuente = re.sub(r"/\*.*?\*/", "", SLATE.read_text(encoding="utf-8"), flags=re.S)
+        fuente = "\n".join(l for l in fuente.splitlines() if not l.strip().startswith("//"))
+        # Las CAPTURAS de lambda son `[...]` seguidas de `(`. Contarlas como contenido haría que
+        # cualquier botón con `OnClicked_Lambda` pareciera lleno, que es justo el caso a detectar.
+        fuente = re.sub(r"\[[^\[\]]*\]\s*(?=\()", "@CAPTURA@", fuente)
+        malos = []
+        for m in re.finditer(r"SNew\(SButton\)", fuente):
+            i, profundidad, tiene = m.end(), 0, False
+            while i < len(fuente):
+                c = fuente[i]
+                if c in "({":
+                    profundidad += 1
+                elif c in ")}":
+                    profundidad -= 1
+                elif c == "[" and profundidad == 0:
+                    tiene = True
+                elif c == ";" and profundidad == 0:
+                    break
+                if profundidad == 0 and fuente.startswith(".Text(", i):
+                    tiene = True
+                i += 1
+            if not tiene:
+                malos.append(fuente[:m.start()].count("\n") + 1)
+        return malos
+
+    def test_ningun_boton_del_editor_queda_sin_contenido(self) -> None:
+        vacios = self.botones_vacios()
+        self.assertEqual(vacios, [],
+                         f"botones que no dibujan nada, en las líneas {vacios} de SJamGraphEditor.cpp")
+
 if __name__ == "__main__":
     unittest.main()

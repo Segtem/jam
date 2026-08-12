@@ -604,7 +604,21 @@ primero: la ficha tiene que quedar con ✓ **en el acto** y el encabezado pasar 
 próximo paso va en negrita. Y lo que hay que juzgar con los ojos, que ninguna medición contesta: si
 el camino se lee de un vistazo y si los seis pasos son los seis correctos.
 
-13 tests (catálogo + reglas leídas del `.cpp`) con **5 mutaciones que discriminan**. C++ recompilado.
+⚠️ **Y salió roto la primera vez, con los 13 tests en verde.** El `SButton` de cada ficha se
+construía **sin contenido**: armé el `SHorizontalBox` y nunca se lo metí adentro, así que cada botón
+medía cero y no dibujaba nada. Quedaron el encabezado y los nombres de grupo, y ninguna ficha. Los
+tests miraban el catálogo y las reglas del `.cpp`, y **ninguno miraba el árbol de widgets**. Lo
+encontró Brian en dos minutos con una captura.
+
+Quedó un test nuevo que lo ataja sin abrir el editor: **ningún `SNew(SButton)` del editor puede
+quedar sin un slot `[…]` ni un `.Text(…)`** — no hay botón vacío legítimo. Escribirlo tuvo su propia
+corrección: la primera versión marcaba 8 botones sanos porque cortaba en cualquier `;` de adentro de
+un lambda, y la segunda marcaba 5 porque contaba `.Text(...)` como «sin contenido». La versión que
+quedó da CERO falsos positivos sobre el archivo entero y marca exactamente la línea cuando se
+reintroduce el bug.
+
+14 tests (catálogo + reglas del `.cpp` + botones con contenido) con **6 mutaciones que discriminan**.
+C++ recompilado.
 
 
 
