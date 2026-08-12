@@ -36,6 +36,59 @@ def superficies_de(info: dict) -> frozenset[str]:
     return frozenset({"graph"} if info.get("graph_only") else {"dash", "graph"})
 
 
+#: Los tipos de entrada que una línea de consola SÍ puede dar.
+#:
+#: `A` es un asset: se nombra y listo (`drop SM_Barrel`). `""` es no necesitar ninguna. Todos los
+#: demás —`M` una malla dinámica, `S` una curva, `P` puntos, `F` frames, `MT` un grafo de material—
+#: son valores que nacen y mueren adentro de una corrida del Graph: no tienen nombre que escribir.
+TIPOS_QUE_LA_CONSOLA_PUEDE_DAR = ("", "A")
+
+
+def cable_que_falta(info: dict) -> str:
+    """El tipo de entrada que este verbo sólo puede recibir por un CABLE, o `""` si no necesita.
+
+    Contesta la pregunta que le faltaba a la consola: `mesh_extrude` está en el registro, así que
+    hoy la consola lo acepta, le resuelve un asset cualquiera de la biblioteca y se lo pasa donde
+    iba una malla. Lo que sale es «biblioteca vacía» o un error de tipo — dos mensajes que mandan a
+    buscar el problema donde no está.
+
+    **Se DERIVA, no se declara.** Los dos datos ya están en el registro y los calcula el motor de
+    tools: `min_inputs` (cuántos cables exige) e `in_name` (de qué tipo). Etiquetar a mano los 166
+    verbos sería inventar 166 oportunidades de equivocarse, y el que agregue el 167 no se enteraría.
+    Si algún día hace falta una lista curada de qué luce bien en la consola —distinto de qué PUEDE
+    correr—, eso es una superficie declarada y va en `superficies_de`, no acá.
+
+    No juzga si el verbo es ÚTIL en la consola: `mesh_box` construye una malla que no va a ningún
+    lado y aun así se deja pasar, porque contesta con la verdad («BOX M ✓ 12 triángulos») en vez de
+    fallar raro. Acá sólo se ataja lo que es demostrablemente imposible.
+    """
+    if int(info.get("min_inputs", 0) or 0) < 1:
+        return ""
+    tipo = str(info.get("in_name", "") or "")
+    return "" if tipo in TIPOS_QUE_LA_CONSOLA_PUEDE_DAR else tipo
+
+
+def corre_en_consola(info: dict) -> bool:
+    """¿Esta tool puede correr como una línea escrita, sin canvas?"""
+    return not cable_que_falta(info)
+
+
+def acepta_asset_como_entrada(info: dict) -> bool:
+    """¿El slot de entrada de este verbo admite un asset?
+
+    La consola tiene una convención vieja y cómoda: el token suelto de la línea es un asset y se le
+    pasa al verbo como primer argumento. Anda mientras ese slot sea de assets. Cuando NO lo es, el
+    asset entra donde iba otra cosa, y como es un string el verbo lo itera letra por letra: eso es
+    lo que hacía que `scatter SM_Rock count=20` —el ejemplo que encabeza el docstring del DSL—
+    muriera con `'str' object has no attribute 'pos'`.
+
+    En esos casos el verbo corre SIN entrada (que es justo lo que significa `min_inputs` 0) y el
+    asset queda para el paso que sí lo necesita: en `scatter` lo usa el `place` que la consola le
+    compone atrás, que es quien pone las piedras.
+    """
+    return str(info.get("in_name", "") or "") in TIPOS_QUE_LA_CONSOLA_PUEDE_DAR
+
+
 def auditar(registro: dict, *, categorias_ribbon=None, tipos_conocidos=None) -> list[str]:
     """El oráculo del registro: devuelve los defectos de declaración, uno por línea.
 

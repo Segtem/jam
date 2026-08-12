@@ -824,7 +824,7 @@ def _h_descartar(widget=None, *, owner: str | None = None) -> str:
 def ejecutar_dsl(linea: str, widget=None) -> str:
     """Corre una línea de DSL. Los verbos de spawn pasan por preview (Confirmar/Descartar los
     resuelven). `widget` se ignora (compat con la firma que llama el C++)."""
-    from . import dsl, menu, tools
+    from . import dsl, menu, registro_core, tools
     r = dsl.parsear(linea)
     verbo = r["verbo"]
     if not verbo:
@@ -869,8 +869,18 @@ def ejecutar_dsl(linea: str, widget=None) -> str:
         asset = _resolver_asset(pedido)
         if pedido and asset is None:
             return f"asset «{pedido}» no encontrado en la biblioteca."
-        return tools.REGISTRO[verbo]["fn"](asset, **kw)
+        entrada = asset if registro_core.acepta_asset_como_entrada(tools.REGISTRO[verbo]) else None
+        return tools.REGISTRO[verbo]["fn"](entrada, **kw)
     if verbo in tools.REGISTRO:
+        # Un verbo de grafo NO es un comando: le falta el cable. Sin este corte la consola le
+        # resolvía un asset cualquiera de la biblioteca y se lo pasaba donde iba una malla, así que
+        # el usuario leía «biblioteca vacía» o un error de tipo — dos mensajes que mandan a buscar
+        # el problema donde no está. Ver `registro_core.cable_que_falta`.
+        falta = registro_core.cable_que_falta(tools.REGISTRO[verbo])
+        if falta:
+            return (f"«{verbo}» es un verbo de grafo: necesita una entrada {falta} y ese dato sólo "
+                    f"llega por un cable.\nAbrilo en Jam ▸ Graph y cableale lo que produce {falta}. "
+                    f"«help» lista lo que sí corre acá.")
         asset = _resolver_asset(r["asset"])
         if r["asset"] and asset is None:
             return f"asset «{r['asset']}» no encontrado en la biblioteca."
@@ -879,7 +889,12 @@ def ejecutar_dsl(linea: str, widget=None) -> str:
         kw, desconocidos = dsl.coaccionar(verbo, r["params"])
         fn = tools.REGISTRO[verbo]["fn"]
 
-        def _correr(_w, _verbo=verbo, _fn=fn, _kw=kw, _asset=asset):
+        # El asset va al slot de entrada SÓLO si ese slot admite un asset. Ver
+        # `registro_core.acepta_asset_como_entrada`: sin esto, `scatter SM_Rock` le metía la ruta
+        # donde iban los puntos y el verbo la iteraba letra por letra.
+        entrada = asset if registro_core.acepta_asset_como_entrada(tools.REGISTRO[verbo]) else None
+
+        def _correr(_w, _verbo=verbo, _fn=fn, _kw=kw, _asset=asset, _entrada=entrada):
             """Un COMANDO es «hacelo ahora»; un grafo es una descripción.
 
             Los verbos que ahora producen PUNTOS (P) describen dónde iría algo y no colocan nada —
@@ -887,7 +902,7 @@ def ejecutar_dsl(linea: str, widget=None) -> str:
             desde la Dash Bar escribir «scatter SM_Rock» tiene que poner piedras. Acá, en el único
             lugar por donde pasan todos los comandos, se compone lo que en el grafo son dos nodos.
             """
-            texto = _fn(_asset, **_kw)
+            texto = _fn(_entrada, **_kw)
             if not tools.necesita_instanciar(_verbo):
                 return texto
             puntos = tools.dato_producido_runtime(_verbo)

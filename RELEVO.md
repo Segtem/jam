@@ -973,18 +973,49 @@ preview sin hornear hasta Bake, (4) display flag para ver un nodo del medio.
 commandlet), así que el Run real es MÁS caro, no menos; falta medirlo con GUI. El viaje C++→Python
 es ruido al lado de esto.
 
-**0-ter. La consola estilo Rhino: viva y al día, con dos huecos.** Brian preguntó si el norte
-original —escribir `place box` y que funcione— seguía actualizado. **Sí, y es la parte mejor
-mantenida del sistema: parsea 165 de 165 verbos**, porque `dsl.py` lee `tools.REGISTRO` directo y
-agregar un verbo lo habilita en la consola sin tocar el DSL. Tiene dos entradas vivas: `jam.api.run`
-dentro del editor y `tools/jam.py`, un REPL con Python pelado FUERA de Unreal por TCP. Lo que falta:
-(1) **no respeta las superficies** —acepta los 145 verbos que sólo viven en el Graph, y
-`mesh_extrude` como comando suelto no tiene sentido porque no hay cable del que venga—; ahora que
-existe `registro_core.superficies_de`, la consola debería ser una tercera superficie (`"cli"`) y
-contestar «eso es un verbo de grafo» en vez de fallar raro; y (2) **no se encontró la caja de
-comandos en Slate** —los `SEditableTextBox` que hay son de nodos y comentarios—. Ojo que (2) es un
-NO-HALLAZGO, no una certeza: se buscó por nombre y puede estar bajo otro. Confirmarlo es mirar el
-panel.
+✅ **0-ter. La consola estilo Rhino: los dos huecos, CERRADOS.** El norte original —escribir
+`place box` y que funcione— sigue vigente y es la parte mejor mantenida del sistema, porque `dsl.py`
+lee `tools.REGISTRO` directo. Tenía dos huecos declarados y ninguno de los dos sigue abierto.
+
+**(1) No respetaba las superficies: arreglado, y el criterio se DERIVA.** La consola aceptaba los
+166 verbos, incluidos los 86 que sólo tienen sentido con un cable, y `mesh_extrude` como comando
+suelto terminaba en «biblioteca vacía» o en un error de tipo — dos mensajes que mandan a mirar
+donde el problema no está. Ahora contesta:
+
+    «mesh_extrude» es un verbo de grafo: necesita una entrada M y ese dato sólo llega por un cable.
+    Abrilo en Jam ▸ Graph y cableale lo que produce M. «help» lista lo que sí corre acá.
+
+El plan anterior era declarar una tercera superficie `"cli"` en las 166 entradas. **No hizo falta y
+era peor**: los dos datos ya están en el registro y los calcula el motor de tools —`min_inputs`
+(cuántos cables exige) e `in_name` (de qué tipo)—, así que `registro_core.cable_que_falta` lo
+deriva. Etiquetar a mano 166 verbos sería inventar 166 oportunidades de equivocarse, y el que
+agregue el 167 no se enteraría. Si alguna vez hace falta una lista CURADA —qué luce bien en la
+consola, distinto de qué puede correr—, eso sí es superficie declarada y va en `superficies_de`.
+El corte parte el registro en 80 que corren y 86 que no, y `help` dejó de ofrecer los que no andan
+(dice cuántos son y dónde viven: esconderlos sin decirlo sería otra mentira).
+
+**(2) La caja de comandos en Slate SÍ existe** — era un falso negativo. Es `CmdBox`, un
+`SEditableTextBox` en la Dash Bar (`JamEditorModule.cpp:1242`) cableado a `RunCommand` →
+`jam.panel.ejecutar_dsl`, **con historial ↑/↓**. La búsqueda anterior miró los `SEditableTextBox` de
+nodos y comentarios y no llegó a este. Estaba bien declarado como NO-HALLAZGO y no como certeza; lo
+que faltaba era mirar. O sea que este arreglo cae en un camino que Brian usa con las manos, no en
+una API.
+
+⚠️ **Y la sonda del camino real destapó otro bug, el más caro de los dos:** `scatter SM_Rock
+count=20` —**el ejemplo que encabeza el docstring del DSL**— moría con `'str' object has no
+attribute 'pos'`. La consola le pasa el token suelto al verbo como primer argumento, que anda
+mientras ese slot sea de assets; el de `scatter` es de PUNTOS, así que le entraba la ruta como
+string y el verbo la iteraba **letra por letra**. Ahora el asset entra al slot de entrada sólo si
+ese slot admite un asset (`registro_core.acepta_asset_como_entrada`); si no, el verbo corre sin
+entrada —que es exactamente lo que significa `min_inputs` 0— y el asset queda para el `place` que la
+consola le compone atrás, que es quien pone las piedras. Medido por el camino real: 5 puntos.
+
+Es la diferencia entre probar el criterio y probar la consola: los 20 tests puros pasaban en verde
+con este bug vivo, porque el corte que fijan está en `registro_core` y el bug estaba en
+`panel.ejecutar_dsl`. Lo encontró correr la línea de verdad.
+
+20 tests puros con **8 mutaciones que confirman que discriminan**, más
+`verifica_consola_superficie_58.py` por el camino real (TODO VERDE).
 
 **0-bis. Seguir la migración del registro. La base YA ESTÁ, con physics como primer target.**
 `registro_core.superficies_de` decide dónde se ve una tool **en positivo** (`superficies=("dash",

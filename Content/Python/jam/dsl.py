@@ -71,11 +71,26 @@ def coaccionar(verbo: str, params: dict) -> tuple[dict, list[str]]:
 
 
 def ayuda() -> str:
-    """Texto de ayuda generado desde el registro (siempre en sync con las herramientas reales)."""
+    """Texto de ayuda generado desde el registro (siempre en sync con las herramientas reales).
+
+    Lista SÓLO lo que corre acá. Listaba los 166 verbos, de los cuales 86 necesitan un cable y no
+    pueden funcionar escritos: una ayuda que ofrece lo que no anda es peor que una ayuda corta,
+    porque el que la lee culpa a lo que escribió. Los del Graph se cuentan al final, para que se
+    sepa que existen y dónde viven.
+    """
+    from . import registro_core
+
     lineas = ["Jam DSL — un comando por línea:"]
+    de_grafo = 0
     for nombre, info in tools.REGISTRO.items():
+        if not registro_core.corre_en_consola(info):
+            de_grafo += 1
+            continue
         ps = " ".join(f"{k}=" for k in info["params"])
         lineas.append(f"  {nombre:<14}{ps:<34}— {info['doc']}")
+    if de_grafo:
+        lineas.append(f"  ({de_grafo} verbos más viven sólo en el Graph: necesitan un cable de "
+                      "entrada. Jam ▸ Graph.)")
     lineas += [
         "  verify                                       — corre el oráculo de espacio sobre el nivel",
         "  confirm / discard                            — fija o borra el preview activo",
