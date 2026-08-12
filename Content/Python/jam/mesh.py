@@ -711,6 +711,60 @@ def ribbon(source, *, width: float = 360.0, plane: str = "xy", join: str = "mite
     }
 
 
+def loft(sources, *, samples: int = 16, uv_scale: float = 200.0,
+         material_id: int = 0, curve_samples: int = 32) -> dict:
+    """Tiende una superficie M entre DOS O MÁS curvas S (el «Loft» y el «Ruled Surface» del tutorial).
+
+    Recibe una lista de entradas porque en el canvas se cablean varias curvas al mismo pin, como en
+    `mesh_merge`. El orden de los cables es el orden de las filas, y por lo tanto de qué lado mira
+    la superficie: invertir dos cables la da vuelta, igual que en Grasshopper.
+    """
+    from . import curve, loft_core
+
+    try:
+        material_id = int(material_id)
+        curve_samples = int(curve_samples)
+    except (TypeError, ValueError, OverflowError):
+        return {"error": "material_id y curve_samples de mesh_loft deben ser enteros."}
+    if material_id < 0 or material_id > 1023:
+        return {"error": "material_id de mesh_loft debe estar entre 0 y 1023."}
+
+    entradas = sources if isinstance(sources, (list, tuple)) else [sources]
+    curvas = []
+    for entrada in entradas:
+        for path in curve.paths_of(entrada, samples=curve_samples):
+            curvas.append(path.points)
+    if len(curvas) < 2:
+        return {"error": "mesh_loft necesita al menos dos curvas S; cableá otra al mismo pin."}
+
+    built = loft_core.loft_buffers(curvas, samples=samples, uv_scale=uv_scale)
+    if "error" in built:
+        return built
+
+    result = _new_mesh()
+    buffers = unreal.GeometryScriptSimpleMeshBuffers()
+    buffers.set_editor_property(
+        "vertices", [unreal.Vector(*vertex) for vertex in built["vertices"]])
+    buffers.set_editor_property(
+        "triangles", [unreal.IntVector(*triangle) for triangle in built["triangles"]])
+    buffers.set_editor_property(
+        "normals", [unreal.Vector(*normal) for normal in built["normals"]])
+    buffers.set_editor_property(
+        "uv0", [unreal.Vector2D(*uv) for uv in built["uv0"]])
+    unreal.GeometryScript_MeshEdits.append_buffers_to_mesh(result, buffers,
+                                                          material_id=material_id)
+    aviso = (f" · {built['invertidas']} curva(s) dadas vuelta para que el recorrido coincida"
+             if built["invertidas"] else "")
+    return {
+        "mesh": result,
+        "info": (_info(result) + f" · {built['filas']} curvas × {int(samples)} muestras"
+                 + f" · UV0 hasta {built['length_u'] / float(uv_scale):.2f} U"
+                 + f" · Material ID {material_id}" + aviso),
+        "invertidas": built["invertidas"],
+        "material_id": material_id,
+    }
+
+
 def extrude(source, *, distance: float = 300.0, direction_x: float = 0.0,
             direction_y: float = 0.0, direction_z: float = 1.0,
             uv_scale: float = 100.0) -> dict:

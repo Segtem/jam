@@ -33,7 +33,7 @@ GRUPOS: dict[str, list[tuple[str, list[str]]]] = {
                     "curve_branches", "curve_noise", "graph_curve"]),
         ("Frames", ["curve_frames", "distribute_frames", "transform_frames",
                     "branch_from_frames", "points_to_frames"]),
-        ("Barrido", ["mesh_ribbon", "mesh_pipe", "mesh_pipe_profile", "mesh_revolve", "mesh_along_curve"]),
+        ("Barrido", ["mesh_ribbon", "mesh_loft", "mesh_pipe", "mesh_pipe_profile", "mesh_revolve", "mesh_along_curve"]),
         ("Modelar", ["mesh_extrude"]),
         ("Copias", ["copy_mesh_to_frames", "copy_asset_selection", "choose_asset",
                     "asset_set", "mesh_leaf"]),

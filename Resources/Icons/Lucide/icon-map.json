@@ -129,6 +129,7 @@
  "mesh_from_asset": "jam-mesh-from-asset",
  "mesh_grid": "jam-grid",
  "mesh_leaf": "jam-leaf",
+ "mesh_loft": "jam-mesh-loft",
  "mesh_material": "jam-mesh-material",
  "mesh_merge": "jam-mesh-merge",
  "mesh_noise": "jam-mesh-noise",

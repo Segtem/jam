@@ -1598,6 +1598,13 @@ def t_mesh_merge(mesh_inputs) -> str:
     return _mesh_output("mesh_merge", mesh.merge(mesh_inputs), "MERGE M")
 
 
+def t_mesh_loft(curve_inputs, *, samples=16, uv_scale=200.0, material_id=0) -> str:
+    from . import mesh
+    return _mesh_output("mesh_loft", mesh.loft(
+        curve_inputs, samples=int(samples), uv_scale=float(uv_scale),
+        material_id=int(material_id)), "LOFT M")
+
+
 def t_mesh_normals(mesh_input, *, angle_weighted=True, area_weighted=True) -> str:
     from . import mesh
     result = mesh.normals(mesh_input, angle_weighted=bool(angle_weighted),
@@ -2539,6 +2546,15 @@ REGISTRO = {
         "doc": "mide vacío, huecos de IDs, bordes ambiguos, cierre, componentes, UV y materiales; informa y "
                       "deja pasar M sin tocarla. «máx. componentes» en 0 = sin límite",
     },
+    "mesh_loft": {"fn": t_mesh_loft, "label": "Tender entre curvas", "cat": "Mesh",
+                  "graph_only": True,
+                  "params": {"samples": 16, "uv_scale": 200.0, "material_id": 0},
+                  "etiquetas_params": {"samples": "muestras (Número)",
+                                       "uv_scale": "escala UV (Número)",
+                                       "material_id": "material (Número)"},
+                  "doc": "tiende una superficie entre dos o más curvas cableadas al mismo pin; "
+                         "con dos curvas es el reglado, con más es el loft. El ORDEN de los cables "
+                         "decide de qué lado mira"},
     "mesh_merge":  {"fn": t_mesh_merge, "cat": "Mesh", "graph_only": True, "params": {},
                      "doc": "combina dos o más mallas M en una salida"},
     "mesh_normals": {"fn": t_mesh_normals, "cat": "Mesh", "graph_only": True,
@@ -2714,7 +2730,7 @@ GRAPH_NO_ASSET = {"mesh_preview", "asset", "pick", "create_spline", "pivot_set",
                   "mesh_round_rect", "mesh_stairs", "mesh_stairs_curved",
                   "mesh_sphere_box", "mesh_revolve", "curve_polyline", "curve_resample",
                   "curve_smooth", "curve_fuse_collinear", "curve_subdivide", "curve_offset",
-                  "mesh_transform", "mesh_extrude", "mesh_merge", "graph_curve", "series_range", "series_remap",
+                  "mesh_transform", "mesh_extrude", "mesh_merge", "mesh_loft", "graph_curve", "series_range", "series_remap",
                   "curve_child", "curve_frames", "distribute_frames", "transform_frames",
                   "branch_from_frames",
                   "asset_set", "choose_asset", "curve_branches", "mesh_leaf",
@@ -2749,6 +2765,7 @@ GRAPH_IN_NAMES = {"reroute_mesh": "M", "reroute_asset": "A", "reroute_points": "
                   "mesh_copy_skeletal": "A", "mesh_ribbon": "S", "mesh_pipe": "S", "mesh_pipe_profile": "S",
                   "mesh_revolve": "S",
                   "mesh_along_curve": "S", "copy_mesh_to_frames": "F", "mesh_leaf": "S",
+                  "mesh_loft": "S",
                   "copy_asset_selection": "AF",
                   "hism_output": "AF", "mesh_transform": "M", "mesh_extrude": "M", "mesh_color": "M",
                   "mesh_uv_scale": "M", "mesh_material": "M", "mesh_bark": "M", "mesh_noise": "M",
@@ -2793,7 +2810,7 @@ GRAPH_OUT_NAMES = {"brush": "P", "mesh_preview": "", "reroute_mesh": "M", "rerou
                    "mesh_stairs_curved": "M", "mesh_sphere_box": "M", "mesh_revolve": "M",
                    "mesh_from_asset": "M", "mesh_copy_static": "M",
                    "mesh_copy_skeletal": "M", "mesh_ribbon": "M", "mesh_pipe": "M", "mesh_pipe_profile": "M",
-                   "mesh_along_curve": "M",
+                   "mesh_along_curve": "M", "mesh_loft": "M",
                    "copy_mesh_to_frames": "M", "mesh_leaf": "M",
                    "copy_asset_selection": "M",
                    "hism_output": "H", "mesh_transform": "M", "mesh_extrude": "M", "mesh_color": "M",
@@ -2942,10 +2959,10 @@ def _registrar_ops_flow() -> list[str]:
     return registradas
 
 
-GRAPH_ARITY = {"mesh_merge": -1, "asset_set": -1}
+GRAPH_ARITY = {"mesh_merge": -1, "asset_set": -1, "mesh_loft": -1}
 # `material_node` tiene pin de entrada MT pero el PRIMER nodo de una cadena no tiene de dónde
 # venir: con el mínimo en 1 haría falta un verbo `material_new` de puro trámite en el canvas.
-GRAPH_MIN_INPUTS = {"mesh_merge": 2, "asset_set": 2, "material_node": 0, "scatter": 0,
+GRAPH_MIN_INPUTS = {"mesh_merge": 2, "asset_set": 2, "mesh_loft": 2, "material_node": 0, "scatter": 0,
                     "material_call": 0, "material_instance": 0}
 OPS_FLOW_EN_GRAPH = _registrar_ops_flow()
 NODOS_MATERIAL_EN_GRAPH = _registrar_nodos_material()

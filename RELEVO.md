@@ -1297,7 +1297,30 @@ Toma la MISMA entrada que `curve_polyline` a propósito: se cambia un nodo por e
 Medido por el camino real: `POLYLINE 4 puntos` contra `INTERPOLATE 25 puntos por 4 de control`, y la
 curva suave se barre con `mesh_ribbon` igual que una recta. 1053 → 1059 tests, 3 mutaciones.
 
-Los peldaños que quedan: **6.** Ruled Surface y Loft · y `Move` sobre curvas, suelto del peldaño 4.
+✅ **PELDAÑO 6 HECHO — y con eso la escalera está COMPLETA salvo `Move` sobre curvas.**
+`mesh_loft`, «Tender entre curvas», es **un solo verbo para Ruled Surface y Loft**: GH los separa
+porque el reglado es más barato en NURBS, pero en una malla son las mismas filas de cuadriláteros y
+dos nodos que hacen lo mismo obligan a elegir sin criterio. Recibe N cables en el mismo pin
+(`GRAPH_ARITY = -1`, como `mesh_merge`).
+
+**El winding se IMPORTA de `ribbon_core` en vez de reescribirse** — es el código que costó el
+tutorial invisible—, y un test compara las dos superficies cara por cara. ⚠️ Pero ese test compara
+dos buffers NUESTROS entre sí: si los dos estuvieran dados vuelta seguiría verde. Por eso
+`verifica_loft_58.py` construye la malla de verdad y se la da a **`malla.cara_visible`**, la medida
+que encontró el winding invertido de `mesh_ribbon` con 790 tests en verde. **14 caras, acuerdo
+mínimo +1,000, cero en rojo**, con la cadena entera corriendo: vector → línea → dos curvas →
+superficie.
+
+Dos decisiones del patrón «degradar explícito e informar»: una curva recorrida al REVÉS se endereza
+sola y se avisa (se decide MIDIENDO si invertirla acorta los travesaños, no suponiendo cómo la
+dibujó el usuario); y **dos curvas superpuestas son error**, no una superficie de área cero —el
+mismo problema que el moño del bevel, atajado antes de emitirlo—. Las curvas se remuestrean por
+longitud de ARCO, no por índice.
+
+1059 → 1068 tests, 4 mutaciones que discriminan. **El moño del bevel no reapareció**: el loft no
+hace offset, recibe las curvas ya trazadas. Sigue esperando en `offset_points`.
+
+Lo único que queda de la escalera: **`Move` sobre curvas**.
 
 ⚠️ El tutorial es de **NURBS** y Jam produce mallas de Geometry Script: Loft y Boundary se van a
 implementar como triangulación. La escalera aporta el ORDEN y el vocabulario, no la representación —

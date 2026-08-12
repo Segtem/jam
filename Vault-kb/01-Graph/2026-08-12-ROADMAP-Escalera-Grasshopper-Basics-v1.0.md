@@ -52,9 +52,9 @@ manda a construir algo que ya existe.
 | | Sine | ✅ `math_sin` (Fase 1 de Math) |
 | Superficies | Plane Surface | ≈ `mesh_grid` |
 | | Box 2Pt / Center Box | ≈ `mesh_box` (por tamaño, no por dos puntos) |
-| | **Boundary Surfaces** | ❌ **falta** |
-| | **Ruled Surface** | ❌ **falta** |
-| | **Loft** | ❌ **falta** |
+| | **Boundary Surfaces** | ❌ falta (superficie desde un contorno cerrado) |
+| | **Ruled Surface** | ✅ `mesh_loft` con dos curvas (peldaño 6) |
+| | **Loft** | ✅ `mesh_loft` con tres o más (peldaño 6) |
 | | Extrude | ✅ `mesh_extrude` |
 
 ## Lo que la escalera enseña sobre nuestro hueco
@@ -147,9 +147,39 @@ arranca y termina con una planchada visible. Toma la MISMA entrada que `curve_po
 para poder cambiar un nodo por el otro sin recablear y ver la diferencia. Medido por el camino real:
 las mismas 4 muestras dan `POLYLINE 4 puntos` contra `INTERPOLATE 25 puntos por 4 de control`.
 
-**6. Superficies regladas: Ruled Surface y Loft.** Dos curvas → malla. Es el paso donde la escalera
-se junta con lo que Jam ya hace bien (`mesh_ribbon` es un caso particular de esto), y donde va a
-volver a aparecer el moño del bevel de `ribbon_core` si no se resolvió antes.
+**6. Superficies regladas: Ruled Surface y Loft.** ✅ HECHO 2026-08-12, en **un solo verbo**:
+`mesh_loft`, «Tender entre curvas». Grasshopper los separa porque el reglado entre dos curvas es más
+barato de resolver en NURBS; en una malla la diferencia desaparece —son las mismas filas de
+cuadriláteros— y dos nodos que hacen lo mismo obligan a elegir entre ellos sin ningún criterio. Con
+dos curvas es el reglado, con más es el loft. Recibe N cables en el mismo pin (`GRAPH_ARITY = -1`,
+como `mesh_merge`), que es la forma en que GH recibe su lista de curvas.
+
+**El winding se IMPORTA de `ribbon_core`, no se reescribe.** Es el código que ya costó un tutorial
+invisible y una sesión entera de diagnóstico: si el loft se dibujara con su propia regla podría
+quedar dado vuelta sin que nada lo relacione con la cinta. Un test compara las dos superficies cara
+por cara sobre la misma geometría.
+
+⚠️ Pero ese test compara **dos buffers nuestros entre sí**: si los dos estuvieran dados vuelta,
+seguiría verde. Por eso `verifica_loft_58.py` construye la malla de verdad y se la da a
+**`malla.cara_visible`** —la medida que en su primer uso encontró que `mesh_ribbon` entregaba el
+winding invertido con 790 tests en verde—. Resultado: **14 caras, acuerdo mínimo +1,000, cero en
+rojo**, y la cadena entera de la escalera corriendo de punta a punta (vector → línea → dos curvas →
+superficie).
+
+**Dos decisiones más, ambas del patrón «degradar explícito e informar»:**
+· Una curva recorrida al REVÉS se endereza sola y se avisa en el reporte (`N curva(s) dadas vuelta`).
+Dos curvas trazadas en direcciones distintas son un caso normal, no un error, y pedirle al usuario
+que las redibuje sería cobrarle un problema que la herramienta ve sola. Se decide MIDIENDO —si
+invertir la segunda acorta los travesaños, van en sentidos opuestos—, no suponiendo.
+· **Dos curvas superpuestas son un error**, no una superficie de área cero: cada cuadrilátero sería
+un triángulo degenerado y sus normales las decidiría el redondeo. Es el mismo problema que el moño
+del bevel, atajado antes de emitirlo.
+
+Y las curvas se remuestrean **por longitud de arco**, no por índice: una de 3 puntos y otra de 40
+tienden parejo en vez de amontonar la superficie donde la segunda tenía más detalle.
+
+**El moño del bevel no reapareció acá** porque el loft no hace offset: recibe las curvas ya
+trazadas. Sigue esperando en `offset_points`, que es de donde sale.
 
 ## El otro eje: el tab Maths completo, mirando las capturas
 
