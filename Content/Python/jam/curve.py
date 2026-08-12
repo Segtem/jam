@@ -204,6 +204,23 @@ def line_sdl(origen, direccion, largo: float) -> dict:
     return line(origen, hasta)
 
 
+def interpolate(*, x=None, y=None, z=None, segments: int = 8) -> dict:
+    """Curva suave que PASA por los puntos de tres series ``N[]`` (el «Interpolate» del tutorial).
+
+    Misma entrada que `polyline` a propósito: así se puede cambiar un nodo por el otro sin recablear
+    y ver la diferencia entre unir los puntos con rectas y pasarlos con una curva.
+    """
+    from . import curve_sampling_core
+
+    armado = curve_sampling_core.polyline_points(x, y, z)
+    if "error" in armado:
+        return {"error": armado["error"].replace("polyline", "interpolate")}
+    suave = curve_sampling_core.catmull_rom(armado["points"], segments=segments)
+    if "error" in suave:
+        return suave
+    return {"curve": CurvePath(suave["points"]), "info": suave["info"]}
+
+
 def resample(value, *, count: int = 24, samples: int = 32) -> dict:
     """Remuestrea cada recorrido de ``S`` por longitud y conserva su metadata de TreeGen."""
     from . import curve_sampling_core

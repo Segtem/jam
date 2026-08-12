@@ -968,6 +968,15 @@ def t_curve_polyline(_input=None, *, x=None, y=None, z=None, closed=False) -> st
     return f"POLYLINE S ✓ — {result['info']}"
 
 
+def t_curve_interpolate(_input=None, *, x=None, y=None, z=None, segments=8) -> str:
+    from . import curve
+    result = curve.interpolate(x=x, y=y, z=z, segments=int(segments))
+    if "error" in result:
+        raise RuntimeError(result["error"])
+    _RUNTIME_DATA_OUTPUTS["curve_interpolate"] = result["curve"]
+    return f"INTERPOLATE S ✓ — {result['info']}"
+
+
 def t_curve_line(_input=None, *, desde="0,0,0", hasta="0,0,300") -> str:
     from . import curve, math_core
     result = curve.line(math_core._vector(desde, "desde"), math_core._vector(hasta, "hasta"))
@@ -2188,6 +2197,16 @@ REGISTRO = {
                                              "z": "coordenadas Z", "closed": "cerrada"},
                        "doc": "combina tres series N[] del mismo largo como puntos XYZ de una polilínea S; "
                               "«cerrada» repite el primer punto al final y la vuelve un polígono"},
+    "curve_interpolate": {"fn": t_curve_interpolate, "label": "Interpolar puntos", "cat": "Mesh",
+                          "graph_only": True,
+                          "params": {"x": "", "y": "", "z": "", "segments": 8},
+                          "data_params": {"x": "N[]", "y": "N[]", "z": "N[]"},
+                          "etiquetas_params": {"x": "coordenadas X", "y": "coordenadas Y",
+                                               "z": "coordenadas Z",
+                                               "segments": "tramos (Número)"},
+                          "doc": "curva suave que PASA por los puntos, a diferencia de Bézier que "
+                                 "los usa de control; parametrización centrípeta para que no se "
+                                 "haga un rulo con puntos desparejos"},
     "curve_line": {"fn": t_curve_line, "label": "Línea", "cat": "Mesh", "graph_only": True,
                    "params": {"desde": "0,0,0", "hasta": "0,0,300"},
                    "data_params": {"desde": "V", "hasta": "V"},
@@ -2669,7 +2688,7 @@ CATEGORIAS = ["Content", "Place", "Scatter", "Mass", "Create", "Mesh", "Edit",
 # `source` significa sin pin gordo `in`; una fuente todavía puede tener un pin de parámetro `asset`.
 GRAPH_SOURCES = {"asset", "pick", "create_spline", "gizmo", "ghost", "pivot", "pivot_set",
                  "mass_config",
-                 "curve_bezier", "curve_line", "curve_line_sdl",
+                 "curve_bezier", "curve_line", "curve_line_sdl", "curve_interpolate",
                  "mesh_triangle", "mesh_quad", "mesh_grid", "mesh_cylinder",
                  "mesh_cone", "mesh_sphere", "graph_curve", "series_range", "curve_polyline",
                  "mesh_box", "mesh_capsule", "mesh_torus", "mesh_disc",
@@ -2688,7 +2707,7 @@ GRAPH_NO_ASSET = {"mesh_preview", "asset", "pick", "create_spline", "pivot_set",
                   # `scatter` genera PUNTOS: no toca ningún asset. Lo usaba sólo para
                   # medir huellas, y eso ahora pasa al colocar.
                   "scatter",
-                  "curve_bezier", "curve_line", "curve_line_sdl",
+                  "curve_bezier", "curve_line", "curve_line_sdl", "curve_interpolate",
                   "mesh_triangle", "mesh_quad", "mesh_grid", "mesh_cylinder",
                   "mesh_cone", "mesh_sphere", "mesh_ribbon", "mesh_pipe", "mesh_pipe_profile",
                   "mesh_box", "mesh_capsule", "mesh_torus", "mesh_disc",
@@ -2758,6 +2777,7 @@ GRAPH_OUT_NAMES = {"brush": "P", "mesh_preview": "", "reroute_mesh": "M", "rerou
                    "material_node": "MT", "material_connect": "MT", "material_output": "MT",
                    "material_call": "MT", "material_function": "A", "material_instance": "A",
                    "curve_bezier": "S", "curve_line": "S", "curve_line_sdl": "S",
+                   "curve_interpolate": "S",
                    "curve_child": "S", "curve_noise": "S", "curve_frames": "F",
                    "curve_polyline": "S", "curve_resample": "S", "curve_smooth": "S",
                    "curve_fuse_collinear": "S", "curve_subdivide": "S",

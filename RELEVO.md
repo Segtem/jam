@@ -1281,9 +1281,23 @@ Grasshopper: toda entrada se puede tipear O cablear. **Lo encontró la sonda del
 ⚠️ Y un rojo que era del TEST: la sonda barría con `mesh_ribbon` una línea vertical en el plano `xy`,
 donde mide cero, y el motor la rechazaba con razón. El código estaba bien.
 
-Los peldaños que quedan: **5.** Interpolate —curva que PASA por los puntos, distinta de
-`curve_bezier`, que los usa de control— · **6.** Ruled Surface y Loft · y `Move` sobre curvas, que
-quedó suelto del peldaño 4.
+✅ **PELDAÑO 5 HECHO: Interpolar puntos.** La curva que PASA por los puntos, contra `curve_bezier`
+que los usa de control. Quien dibuja el recorrido de un camino quiere lo primero.
+
+**La parametrización centrípeta está MEDIDA, no citada.** La uniforme —la que aparece primero en
+cualquier búsqueda— se pasa de largo y hace rulos con puntos desparejos, que es el caso de alguien
+marcando esquinas a ojo. Con la misma rutina y cambiando una sola variable, sobre el caso clásico:
+
+| parametrización | se sale de la caja | retrocesos (rulo) |
+|---|---|---|
+| uniforme (`alpha=0`) | **2,89 cm** | **11** |
+| centrípeta (`alpha=0,5`) | **0,00 cm** | **0** |
+
+Toma la MISMA entrada que `curve_polyline` a propósito: se cambia un nodo por el otro sin recablear.
+Medido por el camino real: `POLYLINE 4 puntos` contra `INTERPOLATE 25 puntos por 4 de control`, y la
+curva suave se barre con `mesh_ribbon` igual que una recta. 1053 → 1059 tests, 3 mutaciones.
+
+Los peldaños que quedan: **6.** Ruled Surface y Loft · y `Move` sobre curvas, suelto del peldaño 4.
 
 ⚠️ El tutorial es de **NURBS** y Jam produce mallas de Geometry Script: Loft y Boundary se van a
 implementar como triangulación. La escalera aporta el ORDEN y el vocabulario, no la representación —

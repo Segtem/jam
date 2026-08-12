@@ -19,6 +19,7 @@
  "curve_child": "jam-curve-child",
  "curve_frames": "jam-curve-frames",
  "curve_fuse_collinear": "jam-curve-fuse-collinear",
+ "curve_interpolate": "jam-curve-interpolate",
  "curve_line": "jam-curve-line",
  "curve_line_sdl": "jam-curve-line-sdl",
  "curve_noise": "jam-curve-noise",

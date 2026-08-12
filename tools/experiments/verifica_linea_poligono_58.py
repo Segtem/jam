@@ -101,5 +101,41 @@ for cerrada in (False, True):
     exigir(("cerrada" in reporte) == cerrada,
            f"el reporte dice si está cerrada (cerrada={cerrada})")
 
+log("-" * 78)
+log("Peldaño 5 — Interpolar: la MISMA entrada que la polilínea, cambiando sólo el verbo.")
+
+
+def por_los_puntos(verbo):
+    g = JamGraph()
+    g.add("series_range", {"count": 4, "start": 0.0, "end": 300.0}, nid="serie")
+    g.add(verbo, {}, nid="curva")
+    g.connect("serie", "curva", "x")
+    g.connect("serie", "curva", "y")
+    g.connect("serie", "curva", "z")
+    return g
+
+
+reportes = {}
+for verbo in ("curve_polyline", "curve_interpolate"):
+    g = por_los_puntos(verbo)
+    compilado_c = json.loads(api.compile_graph_json(g.to_json()))
+    exigir(compilado_c.get("ok"), f"Compile de {verbo}: {compilado_c}")
+    corrida_c = json.loads(api.run_graph_json(g.to_json()))
+    exigir(corrida_c.get("ok"), f"Run de {verbo}: {corrida_c}")
+    reportes[verbo] = corrida_c.get("report", "")
+    log(f"  {verbo}: {reportes[verbo].splitlines()[1][:96]}")
+
+exigir("INTERPOLATE" in reportes["curve_interpolate"],
+       "el verbo nuevo se identifica en el reporte")
+exigir("de control" in reportes["curve_interpolate"],
+       "y dice cuántos puntos de control tenía, que es lo que lo distingue de la polilínea")
+
+# Y encadenado con lo del peldaño 3: una curva suave se puede barrer igual que una recta.
+suave = por_los_puntos("curve_interpolate")
+suave.add("mesh_ribbon", {"width": 80.0}, nid="cinta")
+suave.connect("curva", "cinta", "in")
+corrida_suave = json.loads(api.run_graph_json(suave.to_json()))
+exigir(corrida_suave.get("ok"), f"barrer una curva interpolada: {corrida_suave}")
+
 log("=" * 78)
 log("JAM_LINEA_58 TODO VERDE" if not FALLAS else f"JAM_LINEA_58 ROJO — {len(FALLAS)}")

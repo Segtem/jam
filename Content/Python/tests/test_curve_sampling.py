@@ -436,3 +436,68 @@ class LineaYPoligonoTests(unittest.TestCase):
         g.connect("arriba", "linea", "direccion")
         plan = graph.compilar(g)
         self.assertIn("linea", plan.order)
+
+
+class InterpolarPuntosTests(unittest.TestCase):
+    """Peldaño 5: la curva que PASA por los puntos, contra Bézier que los usa de control.
+
+    Quien dibuja el recorrido de un camino quiere lo primero: puso el punto donde quiere que pase
+    el camino. Que Jam tuviera sólo lo segundo era el hueco.
+    """
+
+    CONTROL = ((0.0, 0.0, 0.0), (100.0, 0.0, 0.0), (100.0, 100.0, 0.0), (0.0, 100.0, 0.0))
+
+    def test_la_curva_PASA_por_todos_los_puntos(self) -> None:
+        """La propiedad que la define, y la única que la distingue de `curve_bezier`."""
+        salida = curve_sampling_core.catmull_rom(self.CONTROL, segments=8)
+        for punto in self.CONTROL:
+            with self.subTest(punto=punto):
+                cerca = min(math.dist(punto, q) for q in salida["points"])
+                self.assertLess(cerca, 1e-9, f"la curva no pasa por {punto}")
+
+    def test_la_parametrizacion_CENTRIPETA_no_hace_rulos(self) -> None:
+        """El motivo de elegir `alpha=0,5` y no la uniforme, que es la que aparece primero en
+        cualquier búsqueda. Medido sobre el caso clásico —dos puntos muy juntos y después un salto
+        largo, que es lo que pasa cuando alguien marca esquinas a ojo—: la uniforme se sale 2,89 cm
+        de la caja de los puntos y retrocede 11 veces en un recorrido que sólo va hacia +X.
+        """
+        control = ((0.0, 0.0, 0.0), (10.0, 0.0, 0.0), (11.0, 0.0, 0.0), (200.0, 0.0, 0.0))
+        xs = [p[0] for p in curve_sampling_core.catmull_rom(control, segments=16)["points"]]
+        self.assertLessEqual(max(xs), 200.0 + 1e-9, "la curva se pasa de largo del último punto")
+        self.assertGreaterEqual(min(xs), -1e-9, "la curva se pasa por detrás del primero")
+        retrocesos = sum(1 for a, b in zip(xs, xs[1:]) if b < a - 1e-9)
+        self.assertEqual(retrocesos, 0, f"la curva retrocede {retrocesos} veces: hay un rulo")
+
+    def test_los_extremos_no_salen_planchados(self) -> None:
+        """Los puntos fantasma son REFLEJADOS y no repetidos: repetir da tangente cero y la curva
+        arranca con una planchada visible."""
+        salida = curve_sampling_core.catmull_rom(self.CONTROL, segments=8)["points"]
+        primero, segundo = salida[0], salida[1]
+        self.assertGreater(math.dist(primero, segundo), 1e-6)
+
+    def test_mas_tramos_es_mas_suave_pero_los_de_control_no_se_mueven(self) -> None:
+        pocos = curve_sampling_core.catmull_rom(self.CONTROL, segments=2)
+        muchos = curve_sampling_core.catmull_rom(self.CONTROL, segments=16)
+        self.assertLess(len(pocos["points"]), len(muchos["points"]))
+        for punto in self.CONTROL:
+            self.assertLess(min(math.dist(punto, q) for q in muchos["points"]), 1e-9)
+
+    def test_rechaza_lo_que_no_es_una_curva(self) -> None:
+        self.assertIn("dos puntos", curve_sampling_core.catmull_rom([(0, 0, 0)])["error"])
+        self.assertIn("coincidentes",
+                      curve_sampling_core.catmull_rom([(0, 0, 0), (0, 0, 0)])["error"])
+        self.assertIn("segments",
+                      curve_sampling_core.catmull_rom(self.CONTROL, segments=0)["error"])
+
+    def test_toma_la_MISMA_entrada_que_la_polilinea(self) -> None:
+        """A propósito: así se cambia un nodo por el otro sin recablear, y se ve la diferencia entre
+        unir los puntos con rectas y pasarlos con una curva."""
+        serie = lambda nombre, *v: fields.ScalarSeries(tuple(float(x) for x in v), nombre)
+        recta = curve.polyline(x=serie("x", 0, 100, 100), y=serie("y", 0, 0, 100),
+                               z=serie("z", 0, 0, 0))
+        suave = curve.interpolate(x=serie("x", 0, 100, 100), y=serie("y", 0, 0, 100),
+                                  z=serie("z", 0, 0, 0), segments=8)
+        self.assertEqual(len(recta["curve"].points), 3)
+        self.assertGreater(len(suave["curve"].points), 3)
+        # La suave es más larga: dobla en vez de hacer esquina.
+        self.assertGreater(suave["curve"].length, recta["curve"].length * 0.9)

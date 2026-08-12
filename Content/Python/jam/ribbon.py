@@ -27,6 +27,7 @@ GRUPOS: dict[str, list[tuple[str, list[str]]]] = {
                         "mesh_quad", "mesh_round_rect", "mesh_grid", "mesh_triangle",
                         "mesh_stairs", "mesh_stairs_curved"]),
         ("Curvas", ["curve_line", "curve_line_sdl", "curve_bezier", "curve_polyline",
+                    "curve_interpolate",
                     "curve_fuse_collinear",
                     "curve_subdivide", "curve_smooth", "curve_resample", "curve_offset", "curve_child",
                     "curve_branches", "curve_noise", "graph_curve"]),

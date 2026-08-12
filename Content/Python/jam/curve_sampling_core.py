@@ -45,6 +45,73 @@ def polyline_points(x, y, z, *, closed: bool = False) -> dict:
             "info": f"{len(points)} puntos · {length:.1f} cm" + (" · cerrada" if closed else "")}
 
 
+def catmull_rom(points, *, segments: int = 8) -> dict:
+    """Curva suave que PASA por todos los puntos dados (el «Interpolate» del tutorial).
+
+    Es lo contrario de `curve_bezier`, que usa sus puntos como CONTROL y no toca ninguno salvo los
+    extremos. Quien dibuja el recorrido de un camino quiere lo primero: puso el punto donde quiere
+    que pase el camino.
+
+    **Parametrización centrípeta (`alpha = 0.5`), no uniforme.** Con la uniforme —la versión que
+    aparece primero en cualquier búsqueda— la curva se pasa de largo y hasta se hace un rulo cuando
+    los puntos están desparejos, que es exactamente el caso de alguien marcando esquinas a ojo. La
+    centrípeta tiene demostrado que no se cruza consigo misma ni forma cúspides (Yuksel et al.), y
+    el costo es una raíz cuadrada por segmento.
+
+    Los extremos usan puntos FANTASMA reflejados en vez de repetir el primero y el último: repetir
+    da tangente cero y la curva arranca y termina con una planchada visible.
+    """
+    puntos = [tuple(float(c) for c in punto) for punto in points]
+    if len(puntos) < 2:
+        return {"error": "interpolate necesita al menos dos puntos."}
+    try:
+        segments = int(segments)
+    except (TypeError, ValueError):
+        return {"error": "segments de interpolate tiene que ser un entero."}
+    if segments < 1 or segments > 64:
+        return {"error": "segments de interpolate debe estar entre 1 y 64."}
+    if any(not all(math.isfinite(c) for c in punto) for punto in puntos):
+        return {"error": "interpolate recibió una coordenada no finita."}
+    if any(math.dist(a, b) < 1e-6 for a, b in zip(puntos, puntos[1:])):
+        return {"error": "interpolate no admite puntos consecutivos coincidentes."}
+    if (len(puntos) - 1) * segments + 1 > 4096:
+        return {"error": "interpolate no puede producir más de 4096 puntos."}
+
+    def reflejo(cerca, lejos):
+        return tuple(2.0 * cerca[i] - lejos[i] for i in range(3))
+
+    extendidos = [reflejo(puntos[0], puntos[1])] + puntos + [reflejo(puntos[-1], puntos[-2])]
+
+    def tiempo(t, a, b):
+        # La distancia a la potencia alpha=0.5 es lo que vuelve centrípeta la parametrización.
+        return t + math.sqrt(math.dist(a, b))
+
+    salida = []
+    for i in range(len(puntos) - 1):
+        p0, p1, p2, p3 = extendidos[i:i + 4]
+        t0 = 0.0
+        t1 = tiempo(t0, p0, p1)
+        t2 = tiempo(t1, p1, p2)
+        t3 = tiempo(t2, p2, p3)
+        if t1 == t2:
+            continue
+        for paso in range(segments):
+            t = t1 + (t2 - t1) * (paso / segments)
+            def mezcla(a, b, ta, tb):
+                factor = (t - ta) / (tb - ta)
+                return tuple(a[k] + (b[k] - a[k]) * factor for k in range(3))
+            a1 = mezcla(p0, p1, t0, t1)
+            a2 = mezcla(p1, p2, t1, t2)
+            a3 = mezcla(p2, p3, t2, t3)
+            b1 = mezcla(a1, a2, t0, t2)
+            b2 = mezcla(a2, a3, t1, t3)
+            salida.append(mezcla(b1, b2, t1, t2))
+    salida.append(puntos[-1])
+    largo = sum(math.dist(a, b) for a, b in zip(salida, salida[1:]))
+    return {"points": tuple(salida), "length": largo,
+            "info": f"{len(salida)} puntos por {len(puntos)} de control · {largo:.1f} cm"}
+
+
 def resample_points(points, *, count: int) -> dict:
     """Muestrea una polilínea a distancias uniformes, incluidos sus dos extremos."""
     try:

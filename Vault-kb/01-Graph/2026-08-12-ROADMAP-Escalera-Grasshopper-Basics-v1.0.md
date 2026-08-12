@@ -32,21 +32,24 @@ La escalera es: **punto → línea → polilínea → curva → superficie**. Ca
 
 No de memoria: los 200 verbos de `tools.REGISTRO` + `flow.OPS_META` + `math_core.VALORES`.
 
+Esta tabla se mantiene **al día**: es la que se mira para saber qué falta, y una fila desactualizada
+manda a construir algo que ya existe.
+
 | peldaño | componente del tutorial | en Jam |
 |---|---|---|
 | Puntos | Number Slider | ✅ `number` |
 | | Panel | ✅ el Inspector |
-| | **Construct Point** (x,y,z → punto) | ❌ **falta** |
-| | Point / Boolean Toggle (Params) | ⚠️ `boolean` **recién hecho**; falta el contenedor Point |
-| Líneas | **Line** (dos puntos) | ⚠️ `pts_line` reparte N puntos sobre el segmento, no lo produce como curva |
-| | **Line SDL** (origen + dirección + largo) | ❌ **falta** (y necesita vectores) |
-| | **Unit X / Unit Z** | ❌ **falta el TIPO vector** |
-| | Move | ⚠️ `move` para puntos, `mesh_transform` para mallas; no para curvas |
+| | **Construct Point** (x,y,z → punto) | ✅ **es `vector_construct`** — en Jam una posición es un `V` |
+| | Boolean Toggle | ✅ `boolean` (peldaño 0) |
+| Líneas | **Line** (dos puntos) | ✅ `curve_line` (peldaño 2) |
+| | **Line SDL** (origen + dirección + largo) | ✅ `curve_line_sdl` (peldaño 4) |
+| | **Unit X / Unit Z** | ✅ `vector_unit_x/y/z` (peldaño 1) |
+| | Move | ⚠️ `move` para puntos, `mesh_transform` para mallas; **falta para curvas** |
 | Polilíneas | Polyline | ✅ `curve_polyline` |
-| | cerrar con Boolean → polígono | ⚠️ `curve_polyline` **no tiene** parámetro de cierre |
-| Curvas | **Interpolate** (curva por puntos de control) | ❌ **falta** — `curve_bezier` es otra cosa |
+| | cerrar con Boolean → polígono | ✅ `closed`, cableable desde el interruptor (peldaño 3) |
+| Curvas | **Interpolate** (curva que PASA por los puntos) | ✅ `curve_interpolate` (peldaño 5) |
 | | Range | ✅ `series_range` |
-| | Sine | ✅ `math_sin` (Fase 1 de Math, 2026-08-12) |
+| | Sine | ✅ `math_sin` (Fase 1 de Math) |
 | Superficies | Plane Surface | ≈ `mesh_grid` |
 | | Box 2Pt / Center Box | ≈ `mesh_box` (por tamaño, no por dos puntos) |
 | | **Boundary Surfaces** | ❌ **falta** |
@@ -124,8 +127,25 @@ peor tipo de silencio, porque la interfaz muestra un valor que no se está usand
 opcional sin cable **usa lo escrito** — que es además cómo funciona Grasshopper: toda entrada se
 puede tipear O cablear. Lo encontró la sonda del camino real, no los tests.
 
-**5. Interpolate.** Curva suave que PASA por los puntos, contra `curve_bezier` que los usa de
-control. Son dos cosas distintas y el tutorial enseña la primera; hoy sólo tenemos la segunda.
+**5. Interpolate.** ✅ HECHO 2026-08-12. Curva suave que PASA por los puntos, contra `curve_bezier`
+que los usa de control. Quien dibuja el recorrido de un camino quiere lo primero: puso el punto donde
+quiere que pase el camino.
+
+**Parametrización centrípeta (`alpha = 0,5`), y la razón está MEDIDA, no citada.** La uniforme —la
+versión que aparece primero en cualquier búsqueda— se pasa de largo y hace rulos cuando los puntos
+están desparejos, que es exactamente el caso de alguien marcando esquinas a ojo. Comparadas las dos
+sobre el caso clásico (dos puntos muy juntos y después un salto largo), con la MISMA rutina y
+cambiando una sola variable:
+
+| parametrización | se sale de la caja | retrocesos (rulo) |
+|---|---|---|
+| uniforme (`alpha=0`) | **2,89 cm** | **11** |
+| centrípeta (`alpha=0,5`) | **0,00 cm** | **0** |
+
+Los extremos usan puntos fantasma **reflejados** y no repetidos: repetir da tangente cero y la curva
+arranca y termina con una planchada visible. Toma la MISMA entrada que `curve_polyline` a propósito,
+para poder cambiar un nodo por el otro sin recablear y ver la diferencia. Medido por el camino real:
+las mismas 4 muestras dan `POLYLINE 4 puntos` contra `INTERPOLATE 25 puntos por 4 de control`.
 
 **6. Superficies regladas: Ruled Surface y Loft.** Dos curvas → malla. Es el paso donde la escalera
 se junta con lo que Jam ya hace bien (`mesh_ribbon` es un caso particular de esto), y donde va a
