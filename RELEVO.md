@@ -610,6 +610,8 @@ nada.
 | 2b.3 | Arrastrar con **Shift** | Se acomoda a enteros |
 | 2b.4 | Buscar una fila de un param `int` (`count`, `segments`, `sides`) y arrastrar | **Nunca** aparece un decimal |
 | 2b.5 | Escribir `=2*3` en un campo y **arrastrar su tirador** | **No hace nada**: no puede pisar una expresión. El campo sigue editable a mano |
+| 2b.6 | Escribir `=PI * 200`, `=φ * 100`, `=5/9` en campos numéricos | Resuelven. También `π`, `τ`, `TAU`, `E`, `EULER`, `PHI` |
+| 2b.7 | Escribir `=radioo * 2` con una variable llamada `radio` | El error dice **`no conozco «radioo» · ¿querías decir radio?`**, no «expresión sin resolver» a secas |
 
 ### 3 · Live view y ver un solo nodo (5 minutos — el de mayor rendimiento)
 

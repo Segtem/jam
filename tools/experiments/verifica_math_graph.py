@@ -241,6 +241,24 @@ try:
         encoding="utf-8")
     exigir('OutName == TEXT("D")' in color_dominio, "el tipo D no tiene color de pin en DataColor")
 
+    # Séptimo lote: las constantes con nombre en un param, por el camino real. Un radio de 100 con
+    # `=PI * 2` de altura da 628,3, y `=φ * 100` da 161,8.
+    constantes = JamGraph()
+    constantes.add("mesh_cylinder", {"radius": "=PHI * 100", "height": "=PI * 200"}, nid="cilindro")
+    compilado_const = json.loads(api.compile_graph_json(constantes.to_json()))
+    exigir(compilado_const.get("ok"), f"Compile con constantes rojo: {compilado_const}")
+    corrida_const = json.loads(api.run_graph_json(constantes.to_json()))
+    exigir(corrida_const.get("ok"), f"Run con constantes rojo: {corrida_const}")
+
+    # Y el mensaje cuando NO resuelve: tiene que decir QUÉ no conoce, no sólo que algo falló.
+    roto = JamGraph()
+    roto.add("mesh_cylinder", {"radius": "=radioo * 2"}, nid="cilindro")
+    fallo = json.loads(api.compile_graph_json(roto.to_json()))
+    exigir(not fallo.get("ok"), f"Compile aceptó una expresión rota: {fallo}")
+    texto_fallo = json.dumps(fallo, ensure_ascii=False)
+    exigir("no conozco" in texto_fallo and "radioo" in texto_fallo,
+           f"el error no nombra lo que no conoce: {texto_fallo[:220]}")
+
     compilado_lote = json.loads(api.compile_graph_json(lote.to_json()))
     exigir(compilado_lote.get("ok"), f"Compile lote rojo: {compilado_lote}")
     corrida_lote = json.loads(api.run_graph_json(lote.to_json()))
@@ -259,7 +277,7 @@ try:
     unreal.log("JAM_MATH_GRAPH_TEST TODO VERDE — 40 verbos en el spec + Compile + Run + "
                "Inspector=40/2 y sin(45°)→71 + división por cero, raíz negativa y rango dado "
                "vuelta, arcoseno fuera de dominio, N→V y N→D rechazados + 1h30m45s→1h, (0,5)→90°, "
-               "|Z+X|→14,14 y 45° en 0..360 → 0,125")
+               "|Z+X|→14,14, 45° en 0..360 → 0,125 y las constantes PI/φ en un param")
 except Exception as exc:  # noqa: BLE001
     unreal.log_error(f"JAM_MATH_GRAPH_TEST ROJO — {type(exc).__name__}: {exc}")
 finally:

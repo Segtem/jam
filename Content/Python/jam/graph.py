@@ -230,6 +230,19 @@ def _acepta_ademas(verb: str, pin: str, registro: dict) -> dict:
     return dict(registro.get(verb, {}).get("in_accepts", {}))
 
 
+def _por_que_fallo(texto: str, expresion: str, tabla: dict) -> str:
+    """El mensaje de una expresión que no resolvió, con la CAUSA adentro.
+
+    Decía sólo «expresión sin resolver: «…»», así que `=PI * 3` —una constante que no existía— y
+    `=radioo * 2` —una letra de más— daban exactamente el mismo texto. Con eso no se puede saber si
+    el error está en la idea o en el tipeo, que es lo único que hace falta saber para arreglarlo.
+    """
+    from .flow import diagnosticar_expresion
+
+    causa = diagnosticar_expresion(expresion, tabla)
+    return f"expresión sin resolver: «{texto}» — {causa}" if causa else f"expresión sin resolver: «{texto}»"
+
+
 def _resolver_parametro(valor, default, tabla: dict):
     """Resuelve expresión + tipo sin defaults silenciosos. Devuelve `(valor, error_o_None)`."""
     from .flow import _es_numero, _eval_expr
@@ -240,12 +253,12 @@ def _resolver_parametro(valor, default, tabla: dict):
         if texto.startswith("="):
             resuelto = _eval_expr(texto[1:], tabla)
             if resuelto is None:
-                return None, f"expresión sin resolver: «{texto}»"
+                return None, _por_que_fallo(texto, texto[1:], tabla)
         elif isinstance(default, (int, float)) and not isinstance(default, bool) \
                 and texto and not _es_numero(texto):
             resuelto = _eval_expr(texto, tabla)
             if resuelto is None:
-                return None, f"expresión sin resolver: «{texto}»"
+                return None, _por_que_fallo(texto, texto, tabla)
     try:
         if isinstance(default, bool):
             if isinstance(resuelto, bool):

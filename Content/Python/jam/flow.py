@@ -563,7 +563,7 @@ _FUNCS: dict = {
     "sin": _math.sin, "cos": _math.cos, "tan": _math.tan, "atan": _math.atan,
     "asin": _math.asin, "acos": _math.acos, "sqrt": _math.sqrt, "exp": _math.exp,
     "log": _math.log, "floor": _math.floor, "ceil": _math.ceil,
-    "radians": _math.radians, "degrees": _math.degrees, "pi": _math.pi, "e": _math.e,
+    "radians": _math.radians, "degrees": _math.degrees,
     "abs": abs, "min": min, "max": max, "round": round, "pow": pow,
     "clamp": lambda x, a, b: a if x < a else (b if x > b else x),
     "lerp": lambda a, b, t: a + (b - a) * t,
@@ -575,6 +575,84 @@ _FUNCS: dict = {
     "step": lambda edge, x: 0.0 if x < edge else 1.0,
     "smoothstep": _smoothstep,
 }
+
+
+#: Constantes con nombre, en las grafías con que la gente las escribe.
+#:
+#: Estaban sólo `pi` y `e` en minúscula, así que `=PI * 3` fallaba con «expresión sin resolver» y
+#: nadie podía adivinar por qué. Se aceptan la mayúscula, la minúscula y el símbolo: quien viene de
+#: una calculadora escribe `PI`, quien viene de Python escribe `pi`, y quien viene de un plano
+#: escribe `π`. Las tres son la misma constante y ninguna es más correcta.
+#:
+#: ⚠️ Las variables del grafo GANAN sobre estas constantes (`ns.update(tabla)` va después), así que
+#: alguien que llame `PHI` a un número suyo obtiene el suyo. Es lo correcto: lo que uno define en su
+#: propio grafo manda sobre lo que trae la herramienta.
+CONSTANTES: dict = {
+    "PI": _math.pi, "pi": _math.pi, "π": _math.pi,
+    # τ = 2π, la vuelta entera. Aparece en cualquier cuenta de circunferencia y ahorra el «* 2».
+    "TAU": _math.tau, "tau": _math.tau, "τ": _math.tau,
+    "E": _math.e, "e": _math.e, "EULER": _math.e, "euler": _math.e,
+    # φ = (1+√5)/2, la proporción áurea. La usan los repartos en espiral —el ángulo de 137,5° que
+    # ya aparece por default en `rotate_per_index` es 360°/φ².
+    "PHI": (1.0 + _math.sqrt(5.0)) / 2.0, "phi": (1.0 + _math.sqrt(5.0)) / 2.0,
+    "φ": (1.0 + _math.sqrt(5.0)) / 2.0,
+}
+_FUNCS.update(CONSTANTES)
+
+
+def nombres_disponibles(tabla: dict) -> tuple[list[str], list[str], list[str]]:
+    """`(variables, constantes, funciones)` que una expresión puede usar ahora mismo."""
+    constantes = sorted(CONSTANTES)
+    funciones = sorted(k for k in _FUNCS if k not in CONSTANTES)
+    return sorted(tabla), constantes, funciones
+
+
+def diagnosticar_expresion(expr, tabla: dict) -> str:
+    """POR QUÉ no resolvió una expresión, con el nombre exacto y qué sí existe.
+
+    Antes todas las fallas decían «expresión sin resolver», así que `=PI * 3` —una constante que no
+    existía— y `=radioo * 2` —un nombre mal tipeado— daban el MISMO mensaje. Con eso no se puede
+    saber si el error está en la idea o en una letra, que es lo único que uno necesita saber.
+    """
+    ns = dict(_FUNCS)
+    ns.update(tabla)
+    try:
+        # La MISMA conversión que hace `_eval_expr`, no sólo el `eval`: sin el `float` de afuera,
+        # una expresión que da un complejo —`i` sería el caso— resolvería acá y fallaría allá, y el
+        # diagnóstico diría que está bien algo que no anda.
+        valor = float(eval(str(expr), {"__builtins__": {}}, ns))  # noqa: S307
+    except NameError as exc:
+        import difflib
+        nombre = str(exc).split("'")[1] if "'" in str(exc) else str(exc)
+        variables, constantes, funciones = nombres_disponibles(tabla)
+        # Se buscan parecidos primero entre las VARIABLES: si alguien tipeó mal un nombre suyo,
+        # ofrecerle una función es ruido. Y el corte es alto (0,75) porque una sugerencia mala es
+        # peor que ninguna — con 0,6, «altura» sugería «saturate», que manda a mirar otra cosa.
+        cerca = (difflib.get_close_matches(nombre, variables, n=2, cutoff=0.75)
+                 or difflib.get_close_matches(nombre, constantes + funciones, n=2, cutoff=0.75))
+        partes = [f"no conozco «{nombre}»"]
+        if cerca:
+            partes.append(f"¿querías decir {' o '.join(cerca)}?")
+        # El inventario va SIEMPRE, haya sugerencia o no: es la parte accionable del mensaje —qué
+        # se puede usar ahora, o qué hacer si no hay nada—.
+        partes.append(f"variables del grafo: {', '.join(variables)}" if variables
+                      else "todavía no hay variables (agregá un nodo «number» y ponele nombre)")
+        return " · ".join(partes)
+    except ZeroDivisionError:
+        return "división por cero"
+    except SyntaxError:
+        return "no se entiende como cuenta"
+    except TypeError as exc:
+        # El caso típico: una función con la cantidad de argumentos equivocada, o un valor que no
+        # es un número real —`i` daría un complejo, y un parámetro tiene que ser un real finito—.
+        return f"tipos que no se pueden operar ({exc})"
+    except (ValueError, ArithmeticError) as exc:
+        return f"la cuenta no da un número real ({exc})"
+    if not _math.isfinite(valor):
+        return "da infinito o NaN, que no sirve como valor de un parámetro"
+    # Resolvió. Quien llama sólo pregunta cuando falló, así que devolver vacío es decir «acá no hay
+    # nada que explicar» en vez de inventar una causa.
+    return ""
 
 
 def _eval_expr(expr, tabla: dict):
