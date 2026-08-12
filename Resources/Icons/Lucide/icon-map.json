@@ -1,6 +1,7 @@
 {
  "asset": "jam-asset",
  "asset_set": "jam-asset-set",
+ "boolean": "jam-boolean",
  "branch_from_frames": "jam-branch-from-frames",
  "brush": "jam-brush",
  "choose_asset": "jam-choose-asset",

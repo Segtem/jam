@@ -123,6 +123,21 @@ def _tangente(radianes: float) -> float:
 
 
 # Registro público. El orden sólo es de declaración; ``ribbon.py`` decide el orden visual.
+def _booleano(valor) -> bool:
+    """Qué cuenta como «sí» cuando el valor llega desde el lienzo o desde un archivo.
+
+    El canvas y los `.jamgraph` guardan los params como TEXTO, así que un interruptor prendido puede
+    llegar como `True`, `"true"` o `"1"`. La conversión de Python no sirve: `bool("false")` es
+    **True**, porque toda cadena no vacía lo es. Un interruptor apagado que se lee prendido al abrir
+    el archivo es de los defectos más difíciles de ver, porque el nodo se dibuja bien.
+    """
+    if isinstance(valor, bool):
+        return valor
+    if isinstance(valor, (int, float)):
+        return bool(valor)
+    return str(valor).strip().lower() in ("1", "true", "si", "sí", "yes", "on", "verdadero")
+
+
 def _casi_igual(a: float, b: float, tolerancia: float) -> bool:
     """Igualdad de flotantes con tolerancia EXPLÍCITA y visible en el nodo.
 
@@ -147,6 +162,12 @@ VALORES: dict[str, dict] = {
         "params": {"name": "t", "value": ""},
         "tipos": {"name": "T", "value": "T"},
         "doc": "variable de texto con nombre para anclas, assets y modos",
+    },
+    "boolean": {
+        "label": "Interruptor", "cat": "Params", "source": True, "out_name": "B",
+        "params": {"name": "b", "value": False},
+        "tipos": {"name": "T", "value": "B"},
+        "doc": "variable booleana con nombre: sí/no para manejar un parámetro desde el lienzo",
     },
     "math_add": {
         "label": "Sumar", "cat": "Maths", "source": True, "out_name": "N",
@@ -456,6 +477,10 @@ def evaluar(verbo: str, params: dict, tabla: dict, eval_expr: Callable) -> objec
         return str(params.get("value", ""))
     if verbo == "number":
         return _numero(params.get("value", 0.0), "value", tabla, eval_expr)
+    if verbo == "boolean":
+        # No pasa por `_numero`: lo aplastaría a 1.0/0.0 y dejaría de ser booleano para el resto
+        # del sistema — el mismo motivo por el que las comparaciones se saltean esa conversión.
+        return _booleano(params.get("value", False))
     if verbo == "math":
         expr = str(params.get("expr", "0"))
         valor = eval_expr(expr, {

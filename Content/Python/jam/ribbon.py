@@ -74,7 +74,7 @@ GRUPOS: dict[str, list[tuple[str, list[str]]]] = {
     "Transform": [("Mover", ["move", "rotate_pts", "scale_pts", "jitter"])],
     "Combine": [("Unir", ["merge", "weave"])],
     "Display": [("Ver", ["info"])],
-    "Params": [("Valores", ["number", "text"])],
+    "Params": [("Valores", ["number", "text", "boolean"])],
     "Maths": [
         ("Aritmética", ["math_add", "math_subtract", "math_multiply", "math_divide"]),
         ("Signo", ["math_negate", "math_absolute"]),

@@ -612,3 +612,48 @@ class RangoMezclaRedondeoYAngulosTests(unittest.TestCase):
         self.assertEqual(plan.values_by_node["mapa"], 50.0)
         self.assertEqual(plan.values_by_node["sat"], 1.0)
         self.assertEqual(plan.values_by_node["red"], 1.0)
+
+
+class InterruptorBooleanoTests(unittest.TestCase):
+    """El literal booleano: peldaño 0 de la escalera de Grasshopper Basics.
+
+    El hueco medido antes de existir: **43 verbos con 70 parámetros booleanos y CERO nodos capaces
+    de producir un booleano**. Las comparaciones producían `B` pero no había de dónde sacar un «sí»
+    constante, así que esos 70 parámetros sólo se podían tocar a mano en cada ficha, nunca manejar
+    desde el lienzo. Es el «Boolean Toggle» que el tutorial usa para cerrar una polilínea.
+    """
+
+    def evaluar(self, valor):
+        return math_core.evaluar("boolean", {"value": valor}, {}, lambda *_a: None)
+
+    def test_produce_un_booleano_de_verdad_y_no_un_numero(self) -> None:
+        self.assertEqual(math_core.tipo_salida("boolean"), "B")
+        self.assertIs(self.evaluar(True), True)
+        self.assertIs(self.evaluar(False), False)
+
+    def test_el_texto_falso_NO_es_verdadero(self) -> None:
+        """`bool("false")` en Python es True, porque toda cadena no vacía lo es. El canvas y los
+        `.jamgraph` guardan los params como TEXTO, así que sin esta conversión un interruptor
+        apagado se leería prendido al abrir el archivo — y el nodo se dibujaría bien igual."""
+        self.assertIs(self.evaluar("false"), False)
+        self.assertIs(self.evaluar("False"), False)
+        self.assertIs(self.evaluar("0"), False)
+        self.assertIs(bool("false"), True)
+
+    def test_las_formas_de_decir_que_si(self) -> None:
+        for texto in ("true", "True", "1", "si", "sí", "yes", "on", "verdadero"):
+            with self.subTest(texto=texto):
+                self.assertIs(self.evaluar(texto), True)
+
+    def test_esta_en_flow_y_en_el_ribbon_con_sus_hermanos(self) -> None:
+        self.assertIn("boolean", flow.OPS_META)
+        self.assertEqual(ribbon.grupo_de("Params", "boolean"), "Valores")
+
+    def test_maneja_un_parametro_booleano_de_otro_nodo(self) -> None:
+        """La razón de existir: cablearlo a uno de los 70 params booleanos del registro."""
+        g = JamGraph()
+        g.add("boolean", {"value": True}, nid="cerrar")
+        g.add("mesh_cone", {"base_radius": 50.0}, nid="cono")
+        g.connect("cerrar", "cono", "capped")
+        plan = compilar(g)
+        self.assertIs(plan.values_by_node["cerrar"], True)

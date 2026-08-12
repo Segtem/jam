@@ -1183,6 +1183,41 @@ núcleo**: con `_limitar` intercambiando los pines la sonda pasa a rojo con `lim
 
 ⚠️ Falta ejercerlos con **gestos** en Datos → Maths, como los dos lotes anteriores.
 
+**2-bis. LA ESCALERA DE GRASSHOPPER BASICS, en paso para los verbos.** Brian trajo
+[An Introduction to Grasshopper](https://baharmon.github.io/basics) (Brendan Harmon) y pidió ponerla
+como paso de los verbos, igual que la Fase 1 de Math fue la escalera de los escalares. Está escrita
+en [[2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0|su propio roadmap]], con la auditoría
+**medida** contra los 200 verbos del registro (no de memoria).
+
+Sirve mejor que el catálogo de los 11 tabs que ya teníamos: ese es un **mapa** de todo el
+vocabulario, esto es un **camino** —punto → línea → polilínea → curva → superficie—, el orden en que
+alguien que nunca vio un grafo llega a modelar una superficie. Un catálogo dice qué falta; una
+escalera dice **en qué orden importa**.
+
+**Lo que la escalera revela y el catálogo no**: los tres faltantes grandes —Unit X/Z, Line SDL,
+Loft— **no son verbos sueltos, son un TIPO que no tenemos**. Jam maneja N, T, B, P, S, F, M, A… y
+ningún **vector**. Sin `V` no hay dirección que cablear. Eso coincide exactamente con la Fase 2 de
+Math (vectores), que quedó desbloqueada hoy: la escalera lo confirma desde afuera, porque el vector
+aparece en la SEGUNDA figura del tutorial.
+
+✅ **Peldaño 0 hecho: el interruptor booleano.** El hueco medido: **43 verbos con 70 parámetros
+booleanos y CERO nodos capaces de producir un booleano** — las comparaciones producían `B` pero no
+había de dónde sacar un «sí» constante, así que esos 70 params sólo se tocaban a mano en cada ficha
+y nunca se manejaban desde el lienzo. Es el «Boolean Toggle» con el que el tutorial cierra una
+polilínea. ⚠️ Gotcha fijado en test: **`bool("false")` en Python es `True`** —toda cadena no vacía lo
+es— y los params viajan como TEXTO, así que sin conversión propia un interruptor apagado se habría
+leído prendido al abrir un `.jamgraph`, con el nodo dibujándose bien. 1024 tests, 2 mutaciones que
+discriminan.
+
+Los peldaños siguientes, en orden: **1.** el tipo `V` y sus constructores (= Fase 2 de Math) ·
+**2.** Construir punto y `curve_line` · **3.** cerrar la polilínea con el interruptor · **4.** Line
+SDL y Move sobre curvas · **5.** Interpolate (curva que PASA por los puntos, distinta de
+`curve_bezier`) · **6.** Ruled Surface y Loft.
+
+⚠️ El tutorial es de **NURBS** y Jam produce mallas de Geometry Script: Loft y Boundary se van a
+implementar como triangulación. La escalera aporta el ORDEN y el vocabulario, no la representación —
+y conviene saberlo porque «Loft» va a significar algo distinto acá que en Rhino.
+
 **3. Después de certificar la base, Fase 7 del Graph — bypass (`D`) y comentarios (`C`).**
 
 **4. Reemplazar de verdad los verificadores escritos a mano** de Jam (`vault.py`, `relevo.py`). Están
