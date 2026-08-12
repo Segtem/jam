@@ -4079,6 +4079,9 @@ FLinearColor SJamGraphEditor::DataColor(const FString& OutName)
 	// Índigo claro, lejos del azul de `P`: un vector y un stream de puntos son las dos cosas que
 	// más se van a cablear cerca, y distinguirlas por un pelo de tono no es distinguirlas.
 	if (OutName == TEXT("V")) { return FLinearColor(0.42f, 0.42f, 0.82f, 1.0f); }   // índigo (vector)
+	// Trigo: la FAMILIA ámbar son los números —`N` escalar, `N[]` serie, `D` rango—, y adentro de
+	// esa familia lo que distingue es la saturación. Un dominio es dos números, no un color nuevo.
+	if (OutName == TEXT("D")) { return FLinearColor(0.72f, 0.62f, 0.30f, 1.0f); }   // trigo (dominio)
 	// Cobre, no el dorado del tab Shader: ése cae a un pelo del dorado de `S` (spline) y dos cables
 	// distintos no se pueden distinguir por un pelo.
 	if (OutName == TEXT("MT")) { return FLinearColor(0.55f, 0.24f, 0.10f, 1.0f); }  // cobre (grafo de material)

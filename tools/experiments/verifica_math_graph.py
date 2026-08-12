@@ -68,6 +68,10 @@ try:
         ("vector_normalize", "Normalizar"),
         ("vector_dot", "Producto punto"),
         ("vector_cross", "Producto cruz"),
+        # Sexto lote — el tipo dominio (el panel Domain del tab Maths).
+        ("domain_construct", "Armar dominio"),
+        ("domain_length", "Largo del dominio"),
+        ("domain_includes", "¿Está adentro?"),
     ):
         exigir(verbo in spec, f"el spec no publicó {verbo}")
         exigir(spec[verbo]["label"] == etiqueta,
@@ -130,8 +134,7 @@ try:
     trigo.add("number", {"value": 45}, nid="grados")
     trigo.add("math_radians", {}, nid="rad")
     trigo.add("math_sin", {}, nid="seno")
-    trigo.add("math_remap", {"desde_min": 0, "desde_max": 1,
-                             "hasta_min": 0, "hasta_max": 100}, nid="escala")
+    trigo.add("math_remap", {"origen": "0,1", "destino": "0,100"}, nid="escala")
     trigo.add("math_round", {}, nid="redondeo")
     trigo.connect("grados", "rad", "grados")
     trigo.connect("rad", "seno", "radianes")
@@ -208,6 +211,36 @@ try:
         encoding="utf-8")
     exigir('OutName == TEXT("V")' in color_cpp, "el tipo V no tiene color de pin en DataColor")
 
+    # Sexto lote: el dominio 0..360, preguntar si 45 cae adentro y normalizarlo a 0..1 → 0,125.
+    rango = JamGraph()
+    rango.add("domain_construct", {"desde": 0, "hasta": 360}, nid="vuelta")
+    rango.add("domain_includes", {"valor": 45}, nid="adentro")
+    rango.add("math_remap", {"valor": 45, "destino": "0,1"}, nid="normalizado")
+    rango.connect("vuelta", "adentro", "dominio")
+    rango.connect("vuelta", "normalizado", "origen")
+    compilado_rango = json.loads(api.compile_graph_json(rango.to_json()))
+    exigir(compilado_rango.get("ok"), f"Compile del tipo D rojo: {compilado_rango}")
+    corrida_rango = json.loads(api.run_graph_json(rango.to_json()))
+    exigir(corrida_rango.get("ok"), f"Run del tipo D rojo: {corrida_rango}")
+    inspeccion_rango = api.inspect_json("normalizado", "", 10, "", False)
+    exigir("0.125" in inspeccion_rango,
+           f"el Inspector no muestra 0,125 para 45° normalizado: {inspeccion_rango[:200]}")
+
+    # Y la guarda que justifica el tipo: con cuatro números sueltos, cruzar origen y destino
+    # compilaba y devolvía un número plausible. Con el tipo puesto, un número NO entra en un pin
+    # de rango.
+    cruzado = JamGraph()
+    cruzado.add("number", {"value": 5}, nid="n")
+    cruzado.add("domain_length", {}, nid="largo")
+    cruzado.connect("n", "largo", "dominio")
+    rechazo_dominio = json.loads(api.compile_graph_json(cruzado.to_json()))
+    exigir(not rechazo_dominio.get("ok"),
+           f"Compile aceptó un número donde va un dominio: {rechazo_dominio}")
+
+    color_dominio = (RAIZ / "Source" / "JamEditor" / "Private" / "SJamGraphEditor.cpp").read_text(
+        encoding="utf-8")
+    exigir('OutName == TEXT("D")' in color_dominio, "el tipo D no tiene color de pin en DataColor")
+
     compilado_lote = json.loads(api.compile_graph_json(lote.to_json()))
     exigir(compilado_lote.get("ok"), f"Compile lote rojo: {compilado_lote}")
     corrida_lote = json.loads(api.run_graph_json(lote.to_json()))
@@ -223,9 +256,10 @@ try:
     exigir(not rechazado.get("ok") and "negativo" in rechazado.get("report", ""),
            f"Compile aceptó raíz negativa: {rechazado}")
 
-    unreal.log("JAM_MATH_GRAPH_TEST TODO VERDE — 37 verbos en el spec + Compile + Run + "
+    unreal.log("JAM_MATH_GRAPH_TEST TODO VERDE — 40 verbos en el spec + Compile + Run + "
                "Inspector=40/2 y sin(45°)→71 + división por cero, raíz negativa y rango dado "
-               "vuelta, arcoseno fuera de dominio y N→V rechazados + 1h30m45s→1h, (0,5)→90° y |Z+X|→14,14")
+               "vuelta, arcoseno fuera de dominio, N→V y N→D rechazados + 1h30m45s→1h, (0,5)→90°, "
+               "|Z+X|→14,14 y 45° en 0..360 → 0,125")
 except Exception as exc:  # noqa: BLE001
     unreal.log_error(f"JAM_MATH_GRAPH_TEST ROJO — {type(exc).__name__}: {exc}")
 finally:

@@ -83,6 +83,8 @@ GRUPOS: dict[str, list[tuple[str, list[str]]]] = {
         ("Resto y potencia", ["math_modulo", "math_power", "math_sqrt"]),
         ("Rango", ["math_min", "math_max", "math_clamp", "math_saturate"]),
         ("Mezcla", ["math_lerp", "math_remap"]),
+        ("Dominio", ["domain_construct", "domain_min", "domain_max", "domain_length",
+                     "domain_includes"]),
         ("Redondeo", ["math_floor", "math_ceil", "math_round"]),
         ("Trigonometría", ["math_radians", "math_degrees", "math_sin", "math_cos",
                           "math_tan", "math_asin", "math_acos", "math_atan",

@@ -524,21 +524,27 @@ class RangoMezclaRedondeoYAngulosTests(unittest.TestCase):
         self.assertEqual(self.evaluar("math_lerp", {"desde": 0.1, "hasta": 0.3, "factor": 1.0}), 0.3)
 
     def test_remapear(self) -> None:
+        """Toma DOS DOMINIOS y no cuatro números sueltos. Con los cuatro, dos pines eran del rango
+        de origen y dos del de destino sin nada que lo dijera: cablear el máximo de uno en el mínimo
+        del otro era un error de un pin de distancia y sin síntoma, porque el número que sale sigue
+        siendo plausible."""
         self.assertEqual(self.evaluar("math_remap", {
-            "valor": 5, "desde_min": 0, "desde_max": 10,
-            "hasta_min": 0, "hasta_max": 100}), 50)
-        # Fuera del rango de origen se extrapola, igual que interpolar.
+            "valor": 5, "origen": (0, 10), "destino": (0, 100)}), 50)
+        # Fuera del dominio de origen se extrapola, igual que interpolar.
         self.assertEqual(self.evaluar("math_remap", {
-            "valor": 20, "desde_min": 0, "desde_max": 10,
-            "hasta_min": 0, "hasta_max": 100}), 200)
+            "valor": 20, "origen": (0, 10), "destino": (0, 100)}), 200)
+
+    def test_un_destino_al_reves_da_vuelta_el_rango(self) -> None:
+        """La capacidad que un rango partido en números sueltos no tenía nombre para expresar."""
+        self.assertEqual(self.evaluar("math_remap", {
+            "valor": 0.25, "origen": (0, 1), "destino": (100, 0)}), 75.0)
 
     def test_un_origen_vacio_al_remapear_es_error(self) -> None:
         """Todo el origen es un punto: no hay proporción que calcular y devolver el mínimo del
         destino sería inventar una respuesta."""
         with self.assertRaises(math_core.ValorError) as caso:
-            self.evaluar("math_remap", {"valor": 5, "desde_min": 2, "desde_max": 2,
-                                        "hasta_min": 0, "hasta_max": 100})
-        self.assertEqual(caso.exception.pin, "desde_max")
+            self.evaluar("math_remap", {"valor": 5, "origen": (2, 2), "destino": (0, 100)})
+        self.assertEqual(caso.exception.pin, "origen")
 
     def test_piso_y_techo_con_negativos(self) -> None:
         """El caso donde la intuición falla: piso se ALEJA del cero y techo se le acerca."""
@@ -602,8 +608,7 @@ class RangoMezclaRedondeoYAngulosTests(unittest.TestCase):
         """Por el ejecutor de verdad y no verbo por verbo: remapear 5 de 0..10 a 0..100, saturar
         eso a 0..1 y redondearlo tiene que dar 1."""
         g = JamGraph()
-        g.add("math_remap", {"valor": 5, "desde_min": 0, "desde_max": 10,
-                             "hasta_min": 0, "hasta_max": 100}, nid="mapa")
+        g.add("math_remap", {"valor": 5, "origen": "0,10", "destino": "0,100"}, nid="mapa")
         g.add("math_saturate", {}, nid="sat")
         g.add("math_round", {}, nid="red")
         g.connect("mapa", "sat", "valor")
@@ -835,3 +840,87 @@ class TipoVectorTests(unittest.TestCase):
         plan = compilar(g)
         self.assertEqual(plan.values_by_node["suma"], (10.0, 0.0, 10.0))
         self.assertAlmostEqual(plan.values_by_node["largo"], math.sqrt(200.0))
+
+
+class TipoDominioTests(unittest.TestCase):
+    """El tipo `D`: un rango con nombre, en vez de dos números sueltos que hay que no cruzar.
+
+    Del tab Maths de Grasshopper, el panel Domain. Lo que lo justifica no son verbos nuevos sino lo
+    que ARREGLA: Jam tenía cuatro verbos cargando un rango cada uno —`math_remap` con cuatro pines,
+    `math_clamp`, `series_range`, `series_remap` con otros cuatro— y ninguno compartía nada. Con los
+    pines sueltos, cablear el máximo del origen en el mínimo del destino es un error de un pin de
+    distancia y **sin síntoma**, porque el número que sale sigue siendo plausible.
+    """
+
+    def evaluar(self, verbo, params):
+        return math_core.evaluar(verbo, params, {}, lambda *_a: None)
+
+    def test_un_dominio_son_dos_numeros(self) -> None:
+        self.assertEqual(math_core._dominio((0, 100), "p"), (0.0, 100.0))
+        self.assertEqual(math_core._dominio("0,100", "p"), (0.0, 100.0))
+        self.assertEqual(math_core._dominio("0 100", "p"), (0.0, 100.0))
+
+    def test_un_numero_suelto_no_es_un_dominio(self) -> None:
+        with self.assertRaises(math_core.ValorError) as caso:
+            math_core._dominio("5", "rango")
+        self.assertEqual(caso.exception.pin, "rango")
+
+    def test_un_dominio_AL_REVES_es_valido(self) -> None:
+        """Remapear hacia un destino invertido es exactamente cómo se da vuelta un rango. Rechazarlo
+        sacaría una capacidad real para prevenir un error que no existe: nadie escribe «de 100 a 0»
+        sin querer."""
+        self.assertEqual(math_core._dominio("100,0", "p"), (100.0, 0.0))
+        self.assertEqual(self.evaluar("domain_length", {"dominio": (100, 0)}), 100.0)
+
+    def test_armar_y_desarmar(self) -> None:
+        """Dos verbos para desarmar y no uno con dos salidas: ningún verbo de Jam tiene más de una
+        salida todavía. Es el mismo límite que obliga a `time_horas`/`time_minutos`."""
+        self.assertEqual(self.evaluar("domain_construct", {"desde": 0, "hasta": 360}), (0.0, 360.0))
+        self.assertEqual(self.evaluar("domain_min", {"dominio": (0, 360)}), 0.0)
+        self.assertEqual(self.evaluar("domain_max", {"dominio": (0, 360)}), 360.0)
+
+    def test_esta_adentro_INCLUYE_los_extremos(self) -> None:
+        """Incluirlos es lo que hace que sirva para partir un recorrido en tramos sin que el punto
+        de la juntura se caiga de los dos lados."""
+        for valor, esperado in ((0, True), (45, True), (360, True), (-1, False), (361, False)):
+            with self.subTest(valor=valor):
+                self.assertIs(self.evaluar("domain_includes",
+                                           {"dominio": (0, 360), "valor": valor}), esperado)
+
+    def test_esta_adentro_no_se_confunde_con_un_dominio_al_reves(self) -> None:
+        self.assertIs(self.evaluar("domain_includes", {"dominio": (360, 0), "valor": 45}), True)
+
+    def test_el_tipo_viaja_en_los_pines(self) -> None:
+        self.assertEqual(math_core.tipo_salida("domain_construct"), "D")
+        self.assertEqual(math_core.tipo_salida("domain_length"), "N")
+        self.assertEqual(math_core.tipo_salida("domain_includes"), "B")
+        self.assertEqual(math_core.tipo_param("math_remap", "origen"), "D")
+
+    def test_el_Graph_RECHAZA_un_numero_donde_va_un_dominio(self) -> None:
+        """La razón entera de que sea un tipo: con cuatro números sueltos, cruzarlos compilaba."""
+        g = JamGraph()
+        g.add("number", {"value": 5}, nid="n")
+        g.add("domain_length", {}, nid="largo")
+        g.connect("n", "largo", "dominio")
+        with self.assertRaises(GraphValidationError):
+            compilar(g)
+
+    def test_una_cadena_de_dominios_por_el_ejecutor_real(self) -> None:
+        """Armar 0..360, preguntar si 45 está adentro, y remapear 45 a 0..1."""
+        g = JamGraph()
+        g.add("domain_construct", {"desde": 0, "hasta": 360}, nid="vuelta")
+        g.add("domain_includes", {"valor": 45}, nid="adentro")
+        g.add("math_remap", {"valor": 45, "destino": "0,1"}, nid="normalizado")
+        g.connect("vuelta", "adentro", "dominio")
+        g.connect("vuelta", "normalizado", "origen")
+        plan = compilar(g)
+        self.assertEqual(plan.values_by_node["vuelta"], (0.0, 360.0))
+        self.assertIs(plan.values_by_node["adentro"], True)
+        self.assertAlmostEqual(plan.values_by_node["normalizado"], 0.125)
+
+    def test_todos_estan_en_flow_y_en_el_ribbon(self) -> None:
+        for verbo in ("domain_construct", "domain_min", "domain_max", "domain_length",
+                      "domain_includes"):
+            with self.subTest(verbo=verbo):
+                self.assertIn(verbo, flow.OPS_META)
+                self.assertEqual(ribbon.grupo_de("Maths", verbo), "Dominio")

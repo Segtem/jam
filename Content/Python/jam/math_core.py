@@ -242,6 +242,55 @@ def _parte_del_tiempo(total: float, unidad: str) -> float:
     return signo * (resto % SEGUNDOS_POR_MINUTO)
 
 
+def _dominio(valor, pin: str) -> tuple[float, float]:
+    """Un dominio son DOS números: desde y hasta. Acepta tupla o texto («0,100»).
+
+    Igual que `_vector`, el texto es el caso real y no una comodidad: un pin `D` sin cable recibe lo
+    que quedó guardado en el `.jamgraph`.
+
+    **Se admite un dominio al revés** (`100,0`) a propósito. Remapear hacia un destino invertido es
+    exactamente cómo se da vuelta un rango —lo que estaba arriba queda abajo—, y rechazarlo sacaría
+    una capacidad real para prevenir un error que no existe: nadie escribe «de 100 a 0» sin querer.
+    """
+    if isinstance(valor, (tuple, list)):
+        partes = list(valor)
+    else:
+        texto = str(valor).strip().strip("()[]")
+        partes = [t for t in texto.replace(",", " ").split() if t]
+    if len(partes) != 2:
+        raise ValorError(pin, f"un dominio son dos números —desde y hasta—; llegaron {len(partes)}: «{valor}»")
+    try:
+        salida = (float(partes[0]), float(partes[1]))
+    except (TypeError, ValueError):
+        raise ValorError(pin, f"extremo no numérico en «{valor}»") from None
+    if not all(math.isfinite(componente) for componente in salida):
+        raise ValorError(pin, f"los extremos tienen que ser finitos: «{valor}»")
+    return salida
+
+
+def _adentro(dominio, valor: float) -> bool:
+    """¿El número cae adentro del dominio? Con los extremos INCLUIDOS.
+
+    Incluirlos es lo que hace que `includes` sirva para partir un recorrido en tramos sin que el
+    punto de la juntura se caiga de los dos lados.
+    """
+    bajo, alto = min(dominio), max(dominio)
+    return bajo <= valor <= alto
+
+
+def _remapear_dominios(valor: float, origen, destino) -> float:
+    """Lleva un número de un dominio a otro. Un origen VACÍO es error.
+
+    Si los dos extremos del origen son iguales no hay proporción que calcular: todo el origen es un
+    punto. Devolver el mínimo del destino sería inventar una respuesta para una pregunta que no la
+    tiene.
+    """
+    ancho = origen[1] - origen[0]
+    if ancho == 0.0:
+        raise ValorError("origen", "el dominio de origen no puede ser vacío")
+    return destino[0] + (valor - origen[0]) * (destino[1] - destino[0]) / ancho
+
+
 def _casi_igual(a: float, b: float, tolerancia: float) -> bool:
     """Igualdad de flotantes con tolerancia EXPLÍCITA y visible en el nodo.
 
@@ -400,12 +449,18 @@ VALORES: dict[str, dict] = {
     },
     "math_remap": {
         "label": "Remapear", "cat": "Maths", "source": True, "out_name": "N",
-        "params": {"valor": 0.0, "desde_min": 0.0, "desde_max": 1.0, "hasta_min": 0.0, "hasta_max": 100.0},
-        "tipos": {"valor": "N", "desde_min": "N", "desde_max": "N", "hasta_min": "N", "hasta_max": "N"},
-        "etiquetas_params": {"valor": "valor (Número)", "desde_min": "desde mín (Número)", "desde_max": "desde máx (Número)", "hasta_min": "hasta mín (Número)", "hasta_max": "hasta máx (Número)"},
+        # Dos DOMINIOS y no cuatro números sueltos. Con los cuatro, dos de los pines eran del rango
+        # de origen y dos del de destino sin nada que lo dijera, así que cablear el máximo de uno
+        # en el mínimo del otro era un error de un pin de distancia y sin síntoma: el número que
+        # sale sigue siendo plausible. Con el tipo puesto, el Compile lo rechaza.
+        "params": {"valor": 0.0, "origen": "0,1", "destino": "0,100"},
+        "tipos": {"valor": "N", "origen": "D", "destino": "D"},
+        "etiquetas_params": {"valor": "valor (Número)", "origen": "origen (Dominio)",
+                             "destino": "destino (Dominio)"},
         "out_label": "remapeado",
-        "operacion": _remapear,
-        "doc": "lleva un número de un rango a otro; un rango de origen vacío es error",
+        "operacion": _remapear_dominios,
+        "doc": "lleva un número de un dominio a otro; un origen vacío es error y un destino al "
+               "revés da vuelta el rango",
     },
     "math_floor": {
         "label": "Piso", "cat": "Maths", "source": True, "out_name": "N",
@@ -668,6 +723,51 @@ VALORES: dict[str, dict] = {
         "operacion": _cruz,
         "doc": "un vector perpendicular a los dos; es como se saca una normal",
     },
+    "domain_construct": {
+        "label": "Armar dominio", "cat": "Maths", "source": True, "out_name": "D",
+        "params": {"desde": 0.0, "hasta": 1.0},
+        "tipos": {"desde": "N", "hasta": "N"},
+        "etiquetas_params": {"desde": "desde (Número)", "hasta": "hasta (Número)"},
+        "out_label": "dominio",
+        "operacion": lambda desde, hasta: (desde, hasta),
+        "doc": "dos números a un rango; al revés (100,0) también vale y sirve para dar vuelta",
+    },
+    "domain_min": {
+        "label": "Desde", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"dominio": "0,1"},
+        "tipos": {"dominio": "D"},
+        "etiquetas_params": {"dominio": "dominio (Dominio)"},
+        "out_label": "desde",
+        "operacion": lambda dominio: dominio[0],
+        "doc": "el extremo inicial de un dominio",
+    },
+    "domain_max": {
+        "label": "Hasta", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"dominio": "0,1"},
+        "tipos": {"dominio": "D"},
+        "etiquetas_params": {"dominio": "dominio (Dominio)"},
+        "out_label": "hasta",
+        "operacion": lambda dominio: dominio[1],
+        "doc": "el extremo final de un dominio",
+    },
+    "domain_length": {
+        "label": "Largo del dominio", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"dominio": "0,1"},
+        "tipos": {"dominio": "D"},
+        "etiquetas_params": {"dominio": "dominio (Dominio)"},
+        "out_label": "largo",
+        "operacion": lambda dominio: abs(dominio[1] - dominio[0]),
+        "doc": "cuánto abarca un dominio; siempre positivo, aunque esté al revés",
+    },
+    "domain_includes": {
+        "label": "¿Está adentro?", "cat": "Maths", "source": True, "out_name": "B",
+        "params": {"dominio": "0,1", "valor": 0.5},
+        "tipos": {"dominio": "D", "valor": "N"},
+        "etiquetas_params": {"dominio": "dominio (Dominio)", "valor": "valor (Número)"},
+        "out_label": "adentro",
+        "operacion": _adentro,
+        "doc": "verdadero si el número cae en el dominio, con los extremos incluidos",
+    },
     # ---- comparaciones: las ÚNICAS que producen un booleano ----
     # Hasta acá ningún nodo producía `B`, así que un condicional no tenía a qué cablearse: era un
     # checkbox eligiendo rama, apenas mejor que recablear a mano. Estas son las que le dan sentido.
@@ -793,6 +893,8 @@ def evaluar(verbo: str, params: dict, tabla: dict, eval_expr: Callable) -> objec
         crudo = params.get(pin, meta["params"][pin])
         if tipos.get(pin) == "V":
             argumentos.append(_vector(crudo, pin))
+        elif tipos.get(pin) == "D":
+            argumentos.append(_dominio(crudo, pin))
         else:
             argumentos.append(_numero(crudo, pin, tabla, eval_expr))
     try:
@@ -806,6 +908,8 @@ def evaluar(verbo: str, params: dict, tabla: dict, eval_expr: Callable) -> objec
         # para el resto del sistema. Lo decide `out_name` y no una lista de verbos, así una
         # comparación nueva no necesita acordarse de tocar esto.
         return bool(resultado)
+    if meta.get("out_name") == "D":
+        return _dominio(resultado, "resultado")
     if meta.get("out_name") == "V":
         # Mismo motivo que el booleano: `_numero` lo aplastaría. Lo decide `out_name`, así un verbo
         # de vector nuevo no necesita acordarse de tocar esto.

@@ -1387,6 +1387,35 @@ anterior: `Unitario X → Línea por dirección → Mover curva (con Unitario Z)
 cinco nodos, `MOVE S ✓ movida 200.0 cm` y `LOFT M ✓ 14 triángulos`. Es lo que el tutorial de Harmon
 enseña a hacer en Rhino, con nodos de Jam sobre mallas de Geometry Script. **1073 tests.**
 
+✅ **DOMAIN HECHO — el tipo `D`, y lo que arregla no son verbos nuevos.** Jam tenía **cuatro verbos
+cargando un rango cada uno** —`math_remap` con cuatro pines de rango, `math_clamp`, `series_range`,
+`series_remap` con otros cuatro— y ninguno compartía nada. Con los pines sueltos, **cablear el máximo
+del origen en el mínimo del destino es un error de un pin de distancia y sin síntoma**, porque el
+número que sale sigue siendo plausible. Ahora `math_remap` toma dos DOMINIOS y pasó de 5 pines a 3, y
+el Compile rechaza un número donde va un rango.
+
+Cinco verbos: Armar dominio, Desde, Hasta, Largo, ¿Está adentro? — con dos decisiones fijadas en
+test: **un dominio AL REVÉS es válido** (remapear a un destino invertido es exactamente cómo se da
+vuelta un rango; rechazarlo sacaría una capacidad real para prevenir un error que nadie comete), y
+**«está adentro» incluye los extremos** (es lo que permite partir un recorrido en tramos sin que el
+punto de la juntura se caiga de los dos lados). Color de pin **trigo**: la familia ámbar son los
+números —`N` escalar, `N[]` serie, `D` rango— y adentro de la familia distingue la saturación.
+
+⚠️ **Dos bugs que sólo apareció el camino real, con 1098 tests en verde.** (1) El default de
+`math_remap` quedó guardado como `'"0,1"'` —las comillas ADENTRO del texto— al generar el registro,
+así que el nodo fallaba con «extremo no numérico» apenas se lo ponía sin cablear. (2) La cadena vieja
+de la sonda seguía usando los cuatro pines. Los tests puros pasaban porque construyen los params a
+mano y nunca leen el default del registro.
+
+⚠️ **Sin migrar a propósito**: `series_range` y `series_remap` siguen con sus rangos sueltos porque
+los usan **tres tutoriales** (`Cylinder-Strip`, `Series-Range-Remap`, `Preparar-una-curva`) y
+cambiarles la firma rompe diagramas guardados. `math_remap` sí se pudo unificar porque se había
+agregado el mismo día y no lo usaba nadie. Migrarlos pide decidir antes qué pasa con los `.jamgraph`
+viejos.
+
+1088 → 1098 tests, 4 mutaciones que discriminan. Camino real: `40 verbos en el spec … N→D rechazado
+… 45° en 0..360 → 0,125`.
+
 Lo que sigue del pedido de Brian, en orden de bloqueo: **Domain** (el modelo que vale copiar de GH:
 remap/includes/divide apoyados sobre un TIPO en vez de sueltos) · **Matrix**, que espera a la
 multi-salida · y todo el eje **vistoso** (Value List → Digit Scroller → Control Knob → Gradient →
