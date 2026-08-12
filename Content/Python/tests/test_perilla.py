@@ -146,5 +146,58 @@ class ReglasDeSlateTests(unittest.TestCase):
         self.assertNotIn("FMath::Clamp(Nuevo", fuente, "el valor se acotó: se perdieron las vueltas")
 
 
+class LosDosLectoresDelSpecTests(unittest.TestCase):
+    """El spec de una ficha se lee en DOS lugares del C++, y se desfasaron dos veces.
+
+    · `LoadSpec` (`JamEditorModule.cpp`) lee todas las tools al arrancar, y es de ahí que el Graph
+      recibe las suyas.
+    · `JamLeerParamsDeFicha` (`SJamGraphEditor.cpp`) las lee cuando se instala una función EN VIVO.
+
+    El docstring del segundo dice que existe porque «había TRES lectores de ficha escritos a mano y
+    sólo el primero leía `params`», con la consecuencia de que una función instalada en vivo perdía
+    sus perillas hasta reiniciar — «el peor síntoma posible (funciona a veces)».
+
+    Y volvió a pasar dos veces: la perilla de ángulos se agregó sólo al segundo lector, así que no
+    aparecía en ningún nodo del Graph (**lo encontró Brian con una captura de un `place`**); y
+    `etiquetas_opciones` estaba sólo en el primero, así que una función instalada en vivo mostraba
+    los valores crudos de sus desplegables en vez de las etiquetas humanas.
+
+    Este test compara qué campos del JSON lee cada uno. No prueba que los usen bien —para eso están
+    los otros— pero sí que ninguno se olvide de uno.
+    """
+
+    #: `params` es la LLAVE CONTENEDORA de la lista, no un campo del parámetro: el lector del Graph
+    #: la abre adentro de la misma función y el del módulo, un scope más arriba.
+    CONTENEDOR = {"params"}
+
+    def campos_leidos(self, texto: str) -> set:
+        return set(re.findall(
+            r'(?:TryGet|Get)(?:String|Array|Number|Bool)Field\(TEXT\("([^"]+)"\)', texto))
+
+    def test_los_dos_lectores_leen_los_MISMOS_campos(self) -> None:
+        modulo = (RAIZ / "Source" / "JamEditor" / "Private" / "JamEditorModule.cpp").read_text(
+            encoding="utf-8")
+        editor = (RAIZ / "Source" / "JamEditor" / "Private" / "SJamGraphEditor.cpp").read_text(
+            encoding="utf-8")
+
+        bloque_modulo = modulo[modulo.index("FJamParam P;"):modulo.index("T.Params.Add(P);")]
+        bloque_editor = editor[editor.index("static void JamLeerParamsDeFicha"):]
+        bloque_editor = bloque_editor[:bloque_editor.index("\n}")]
+
+        a = self.campos_leidos(bloque_modulo) - self.CONTENEDOR
+        b = self.campos_leidos(bloque_editor) - self.CONTENEDOR
+        self.assertEqual(a, b,
+                         f"los dos lectores del spec se desfasaron · sólo LoadSpec: {sorted(a - b)} "
+                         f"· sólo JamLeerParamsDeFicha: {sorted(b - a)}")
+
+    def test_los_dos_leen_la_unidad(self) -> None:
+        """El campo que faltaba, nombrado: sin él en `LoadSpec`, la perilla no aparece en NINGÚN
+        nodo del Graph, porque de ahí salen sus tools."""
+        for archivo in ("JamEditorModule.cpp", "SJamGraphEditor.cpp"):
+            with self.subTest(archivo=archivo):
+                fuente = (RAIZ / "Source" / "JamEditor" / "Private" / archivo).read_text(
+                    encoding="utf-8")
+                self.assertIn('TEXT("unidad")', fuente)
+
 if __name__ == "__main__":
     unittest.main()

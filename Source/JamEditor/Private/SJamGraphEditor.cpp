@@ -89,6 +89,14 @@ static void JamLeerParamsDeFicha(const TSharedPtr<FJsonObject>& Ficha, TArray<FJ
 				P.Options.Add(MakeShared<FString>(OV->AsString()));
 			}
 		}
+		const TArray<TSharedPtr<FJsonValue>>* Labels = nullptr;
+		if (PO->TryGetArrayField(TEXT("etiquetas_opciones"), Labels) && Labels != nullptr)
+		{
+			for (const TSharedPtr<FJsonValue>& LV : *Labels)
+			{
+				P.OptionLabels.Add(MakeShared<FString>(LV->AsString()));
+			}
+		}
 		Destino.Add(MoveTemp(P));
 	}
 }
