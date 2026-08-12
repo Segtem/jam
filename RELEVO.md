@@ -574,137 +574,72 @@ Lo que **nadie ejerció con las manos** de este turno:
 
 ## Para las manos de Brian
 
-**🎛️ LA PERILLA DE ÁNGULOS — el primer peldaño del eje «vistoso», y hay que verla.**
+Todo lo de acá abajo está **construido, compilado y con tests en verde**, y lo único que falta es
+que alguien lo mire. No es opcional ni es prolijidad: esta misma semana la pantalla de Aprender salió
+**en blanco** con 13 tests en verde, y `math_remap` fallaba con su propio valor por defecto con 1098
+tests pasando. Las dos cosas fueron obvias a los dos minutos de uso e invisibles para todo lo demás.
 
-Jam tiene **~50 parámetros que son rotaciones** —yaw/pitch/roll, ángulos de rama, `start_angle`,
-`degrees`— y todos se editaban tipeando. Un ángulo no es una cantidad cualquiera: es una DIRECCIÓN, y
-una aguja dice hacia dónde apunta de un vistazo mientras que «137.5» hay que imaginárselo.
+**Están en orden: de lo más barato a lo más largo. Se puede parar en cualquier punto.** Y el
+resultado útil de cada gesto es «esto está mal» o «esto no se entiende» — no hace falta diagnosticar
+nada.
 
-· **Acompaña al número, no lo reemplaza.** Mismo criterio que el desplegable de variables de `expr`:
-una perilla sola sacaría la capacidad de escribir 137,5 exacto y te dejaría peleando con el mouse por
-medio grado. Es además la postura de riesgo correcta para un widget dibujado a mano — si la aguja
-pinta mal, el campo sigue funcionando.
-· **Gira por DELTA**, así que al tocarla la aguja no salta a donde está el mouse: eso es un selector,
-no una perilla. Y **captura el mouse**, porque el círculo mide 24 px y sin capturar se soltaría a
-mitad de gesto siempre.
-· **El valor no se acota ni se envuelve**: un yaw de 720° son dos vueltas y significa algo distinto
-de 0° en cuanto se acumula o se anima. La AGUJA muestra el resto de 360; el número, todo.
-· Avisa **por frame** al girar (alimenta el live view) y **una vez al soltar** (un paso de historial
-por arrastre), igual que los sliders.
+### 1 · Aprender (30 segundos, no hay que armar nada)
 
-**Gestos (dos minutos):** poné un `mesh_transform` o un `place` y mirá `yaw` — tiene que haber un
-círculo con una aguja al lado del campo. Arrastralo: la aguja sigue el mouse sin saltar, el número se
-actualiza, y al soltar `Ctrl+Z` deshace **el arrastre entero**. Con ⟳ Live prendido, la malla debería
-girar mientras arrastrás.
+| # | qué hacer | qué tiene que pasar |
+|---|---|---|
+| 1.1 | Abrir Jam ▸ Graph ▸ pestaña **Aprender** | Arriba dice `TU CAMINO · paso 1 de 6` y se ven **seis fichas numeradas**; abajo `MÁS TUTORIALES` con las otras trece en dos filas |
+| 1.2 | Abrir la ficha **1 · Primeros pasos** | Queda con **✓ verde en el acto** y el encabezado pasa a `paso 2 de 6` |
+| 1.3 | Mirar el camino completo | **La pregunta que sólo contestás vos:** ¿esos seis son los seis correctos, y en ese orden? |
 
-12 tests con **5 mutaciones que discriminan**. C++ recompilado.
+### 2 · La perilla de ángulos (1 minuto)
 
+| # | qué hacer | qué tiene que pasar |
+|---|---|---|
+| 2.1 | Poner un nodo `place` (o `mesh_transform`) y mirar la fila **yaw** | Hay un **círculo con una aguja** al lado del campo de número |
+| 2.2 | Arrastrar la perilla | La aguja **no salta** al tocarla, gira siguiendo el mouse, y el número se actualiza |
+| 2.3 | Salirse del círculo sin soltar el botón | Sigue girando (si se corta, falta la captura del mouse) |
+| 2.4 | Soltar y `Ctrl+Z` **una vez** | Deshace **el arrastre entero**, no el último grado |
 
+### 3 · Live view y ver un solo nodo (5 minutos — el de mayor rendimiento)
 
-**📚 APRENDER ES AHORA UN CAMINO — y es lo primero que conviene mirar, porque es una pantalla.**
+| # | qué hacer | qué tiene que pasar |
+|---|---|---|
+| 3.1 | Armar `curve_bezier → mesh_ribbon → Ver sin hornear` | — |
+| 3.2 | Apretar **⟳ Live** en la barra de arriba | **Cocina sola** y aparece la cinta, sin tocar Run |
+| 3.3 | Agregar un `number`, cablearlo a `width` y arrastrar su slider | La cinta **sigue el arrastre**, no salta al soltar |
+| 3.4 | Soltar y `Ctrl+Z` una vez | Deshace **el arrastre entero** |
+| 3.5 | Apagar **⟳ Live** | Deja de correr solo y el Output lo dice |
+| 3.6 | Apretar el **◉** del nodo del medio (`mesh_ribbon`) | Queda en escena **sólo esa cinta**; el nodo final se pone **gris con `–`** y el Output dice `SOLO ▸ …` |
+| 3.7 | Apretar el **◉** de otro nodo | El primero **se apaga solo** (el flag se mueve, no se suma) |
+| 3.8 | Con ⟳ Live prendido, arrastrar un slider mirando el nodo del medio | Se actualiza **ese** nodo y el final no coloca nada. Ese es el gesto entero de Houdini |
 
-Brian: *«está con iconos grandes y texto largo y al final se muestran en una lista infinita para
-recorrer»*. Era literal: los 19 tutoriales se dibujaban en **una sola fila horizontal**, con insignia
-de 42 px y título debajo, así que la tira se iba de largo — 19 puertas del mismo tamaño diciendo que
-daba igual por cuál entrar. Y no daba igual.
+### 4 · La escalera nueva de verbos (3 minutos)
 
-Eligió **camino con progreso** sobre las otras dos opciones (lecciones corregidas por el oráculo, o
-sólo arreglar la presentación). Lo que hay ahora:
+| # | qué hacer | qué tiene que pasar |
+|---|---|---|
+| 4.1 | Armar `Unitario X → Línea por dirección → Mover curva → Tender entre curvas` | Sale una superficie entre los dos rieles |
+| 4.2 | Mirar la paleta Maths | Están los grupos **Vector, Dominio, Tiempo, Trigonometría, Rango, Mezcla, Redondeo** |
 
-· **TU CAMINO · paso N de 6** — seis tutoriales ordenados, cada uno estrenando UNA idea y usando la
-del anterior: **malla → dato → curva → superficie → sólido → material**. Cada ficha dice en una línea
-POR QUÉ está ahí («Barrer una curva: tu primera superficie de verdad»).
-· **Progreso**: lo que ya abriste queda con ✓ verde, el próximo va en negrita, y el encabezado dice
-por dónde vas. Se guarda en el ini del EDITOR y no en el del proyecto: es de la persona, no del
-juego, y el progreso de uno no tiene por qué aparecerle a otro en un diff.
-· **MÁS TUTORIALES**: los otros 13, agrupados por tema y en **dos filas por grupo** — el cambio que
-mata la tira infinita, porque la altura del ribbon sobraba mientras el ancho se acababa.
-· Insignia de **20 px** y no 42, título en una línea, y el texto largo en el tooltip: en el camino se
-lee el nombre, no el dibujo.
+### 5 · Funciones del Graph (15 minutos — el más largo, dejarlo para el final)
 
-**El orden vive en el manifiesto** (`paso` en `examples.json`), no en el C++: reordenar lo que
-alguien aprende primero no debería necesitar recompilar. Un test lo custodia — falla si el `.cpp`
-nombra un tutorial del camino.
+| # | qué hacer | qué tiene que pasar |
+|---|---|---|
+| 5.1 | Armar una cadena de cuatro nodos Mesh | — |
+| 5.2 | Seleccionar los dos del medio y `Ctrl+G` | Pide un **nombre** antes de reemplazarlos |
+| 5.3 | Abrir **Funciones** | La ficha muestra ese nombre, no `Fn: Función XXXXX-XXXX` |
+| 5.4 | **Editar**: renombrar los nodos de borde y elegir tipos | El selector dice `Número (N)`, `Malla dinámica (M)`…, no códigos sueltos. Al guardar, la instancia muestra `nombre (Tipo)` |
+| 5.5 | **Nombre**: renombrar la función | Las llamadas existentes se conservan |
+| 5.6 | Agregar una segunda instancia en serie y cablearla | Los pines nombrados aceptan los cables |
+| 5.7 | Intentar eliminarla mientras el canvas la usa | **Se niega**. Quitando las dos llamadas, se deja eliminar |
+| 5.8 | Compile sobre una función conservada | Verde, listando nodos `f1__…`/`f2__…` |
 
-**Gestos (dos minutos):** abrí Jam ▸ Graph ▸ Aprender. Tiene que decir «paso 1 de 6». Abrí el
-primero: la ficha tiene que quedar con ✓ **en el acto** y el encabezado pasar a «paso 2 de 6». El
-próximo paso va en negrita. Y lo que hay que juzgar con los ojos, que ninguna medición contesta: si
-el camino se lee de un vistazo y si los seis pasos son los seis correctos.
+---
 
-⚠️ **Y salió roto la primera vez, con los 13 tests en verde.** El `SButton` de cada ficha se
-construía **sin contenido**: armé el `SHorizontalBox` y nunca se lo metí adentro, así que cada botón
-medía cero y no dibujaba nada. Quedaron el encabezado y los nombres de grupo, y ninguna ficha. Los
-tests miraban el catálogo y las reglas del `.cpp`, y **ninguno miraba el árbol de widgets**. Lo
-encontró Brian en dos minutos con una captura.
-
-Quedó un test nuevo que lo ataja sin abrir el editor: **ningún `SNew(SButton)` del editor puede
-quedar sin un slot `[…]` ni un `.Text(…)`** — no hay botón vacío legítimo. Escribirlo tuvo su propia
-corrección: la primera versión marcaba 8 botones sanos porque cortaba en cualquier `;` de adentro de
-un lambda, y la segunda marcaba 5 porque contaba `.Text(...)` como «sin contenido». La versión que
-quedó da CERO falsos positivos sobre el archivo entero y marca exactamente la línea cuando se
-reintroduce el bug.
-
-14 tests (catálogo + reglas del `.cpp` + botones con contenido) con **6 mutaciones que discriminan**.
-C++ recompilado.
-
-
-
-**⟳ LIVE VIEW — está construido y COMPILADO, y sólo falta que lo veas. Cinco gestos, cinco minutos.**
-
-Es lo único de todo el live view que no se puede verificar sin ojos: que se SIENTA continuo es
-precisamente lo que ninguna medición contesta.
-
-1. Abrí Jam ▸ Graph y armá `curve_bezier → mesh_ribbon → Ver sin hornear` (Mesh ▸ Hornear).
-2. Apretá **⟳ Live** en la barra de arriba (o Solución ▸ Live view). **Tiene que cocinar de una** y
-   aparecer la cinta en el viewport, sin que toques nada más.
-3. Agregá un nodo `number`, cableálo a `width` y **arrastrá su slider**. La cinta tiene que seguir
-   el arrastre, no saltar al soltar. Si va a tirones, el período está en `LiveDebounceSegundos`.
-4. Soltá el slider y apretá `Ctrl+Z` UNA vez: tiene que deshacer **el arrastre entero**, no el
-   último frame. Es la razón de que haya dos avisos separados y es lo más fácil de romper.
-5. Apagá **⟳ Live**: el grafo deja de correr solo y el output lo dice.
-
-**◉ VER SÓLO UN NODO — tres gestos más, encima de lo anterior:**
-
-6. Con la misma cadena, apretá el **◉** del nodo del medio (`mesh_ribbon`). Tiene que quedar en
-   escena **sólo esa cinta**, y el nodo terminal ponerse **gris con `–`**: no corrió a propósito.
-   El output dice `SOLO ▸ …` y cuántos quedaron afuera.
-7. Apretá el **◉** de OTRO nodo: el primero tiene que apagarse solo. El flag se mueve, no se suma.
-8. Con **⟳ Live** prendido, arrastrá un slider mientras mirás un nodo del medio: tenés que ver
-   actualizarse ESE nodo, sin que el terminal coloque nada. Ese es el gesto entero de Houdini.
-
-Y el contraste que vale la pena sentir: cambiá el último nodo a `mesh_to_static` y arrastrá otra vez.
-Debería seguir andando —medido con el editor andando: **17,7 ms mostrando contra 47,7 horneando**—
-pero con un peso distinto. Ese contraste es el argumento entero de «Ver sin hornear», y ojo que es
-2,7x y no el «129x» que decía antes: ese número era de commandlet (ver **0-septies**).
-
-**Funciones del Graph — ocho gestos, quince minutos:**
-
-1. Abrí Jam ▸ Graph y armá una cadena de cuatro nodos Mesh.
-2. Seleccioná los dos del medio y apretá `Ctrl+G`: debe pedir un nombre antes de reemplazarlos.
-3. Abrí **Funciones**: la ficha debe mostrar ese nombre, no `Fn: Función XXXXX-XXXX`.
-4. Tocá **Editar**, renombrá los nodos de borde y elegí sus tipos; el selector debe decir
-   `Número (N)`, `Malla dinámica (M)`, etc., no códigos sueltos. Guardá. La instancia debe mostrar
-   `nombre (Tipo)` en entradas y salidas.
-5. Tocá **Nombre** y renombrá la función: las llamadas existentes deben conservarse.
-6. Agregá una segunda instancia en serie y tendé sus cables por los pines nombrados.
-7. Intentá eliminarla mientras el canvas la usa: debe negarse. Quitá ambas llamadas y eliminála.
-8. Repetí con una función conservada y Compile: tiene que dar verde y listar nodos
-   `f1__…`/`f2__…` (el nombre exacto del primer id puede variar).
-
-En el primer intento manual, `Ctrl+G` sí guardó el preset pero Slate mostró «respuesta ilegible»:
-`preset.guardar` había escrito un log antes del JSON y `ExecPythonCapture` los concatenó. El borde C++
-ahora imprime `JAMCOLLAPSE:` y recorta desde la última aparición antes de deserializar; el contrato
-está atado en `test_funcion.py`, discriminó al mutarlo y el plugin recompiló. Falta repetir el gesto
-con el binario nuevo. Quedó como artefacto válido de ese intento el preset local
-`funcion-072657-271.json`; no se borró automáticamente.
-
-El primer intento de **+ Nueva función** también reveló un crash distinto: las lambdas del modal
-capturaban `Campo` y `Dialogo` por valor dentro del mismo `SAssignNew`, congelando dos punteros nulos.
-El stack cayó antes de Python. Ahora se capturan por referencia durante la vida modal; el test
-discriminó con el código roto, el plugin recompiló y Brian creó **Sumar dos números** por la UI real.
-
-Después, sin urgencia: subir `~/Dev/oracle/estudio/` a NotebookLM. Empezá por `00-esencia.md`,
-`08-los-numeros.md` y `07-el-diario.md`.
+**Qué se juega en cada bloque, por si querés priorizar:** el **3** es el que decide si el live view
+«se siente» —eso ninguna medición lo contesta—; el **1.3** es una decisión de producto que es tuya y
+de nadie más; el **2** y el **4** son sobre todo comprobar que lo dibujado aparece; el **5** venía de
+antes y tiene un gesto (`Ctrl+G`) que ya falló una vez y se arregló sin volver a probarse con el
+binario nuevo.
 
 *(Esta sección es obligatoria y no se borra cuando está vacía: si se pudiera omitir, un turno dejaría
 de pedir manos sin que nadie lo note.)*
