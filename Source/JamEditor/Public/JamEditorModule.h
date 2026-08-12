@@ -36,6 +36,12 @@ struct FJamParam
 	/** Letra del pin para el modo COMPACTO (una o dos, ej. `X`, `SX`). La calcula `jam.letras` y
 	 *  viaja en el spec: la regla vive una sola vez, del lado que está testeado. */
 	FString Letra;
+	/** «grados» si el parámetro es un ÁNGULO. La ficha le suma una PERILLA al lado del número: un
+	 *  ángulo es una dirección, no una cantidad, y una aguja dice hacia dónde apunta de un vistazo
+	 *  mientras que «137.5» hay que imaginárselo. Lo declara `tools.PARAMS_ANGULARES` y viaja en el
+	 *  spec, porque derivarlo del nombre acá daría falsos positivos que importan (`angle_weighted`
+	 *  es un booleano, `target_triangles` sólo comparte letras). */
+	FString Unidad;
 	/** Si viene con valores, el param se dibuja como LISTA (anclas, modos…) y no como texto libre. */
 	TArray<TSharedPtr<FString>> Options;
 	/** Etiquetas humanas paralelas a Options. El valor persistido sigue siendo el de Options. */

@@ -1,5 +1,7 @@
 #include "SJamGraphNode.h"
 
+#include "SJamKnob.h"
+
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/SNullWidget.h"
 #include "Widgets/SOverlay.h"
@@ -365,6 +367,45 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 			//
 			// Es un botón AL LADO y no un dropdown que reemplace el campo: `expr` acepta
 			// expresiones enteras (`radio * 2`), y cambiarlo por una lista cerrada sacaría eso.
+			// PERILLA para los ángulos (el «Control Knob» de Grasshopper). Jam tiene ~50
+			// parámetros que son rotaciones —yaw/pitch/roll, ángulos de rama, `start_angle`— y
+			// todos se editaban tipeando. Un ángulo es una DIRECCIÓN, no una cantidad: la aguja
+			// dice hacia dónde apunta de un vistazo y «137.5» hay que imaginárselo.
+			//
+			// Va AL LADO del campo y no en su lugar, por el mismo motivo por el que el desplegable
+			// de variables no reemplaza a `expr`: una perilla sola sacaría la capacidad de escribir
+			// 137,5 exacto y dejaría al usuario peleando con el mouse por medio grado. Es además la
+			// postura de riesgo correcta para un widget dibujado a mano — si la aguja pinta mal, el
+			// número sigue funcionando.
+			//
+			// El campo es la ÚNICA fuente de verdad: la perilla lo lee para pintarse y lo escribe
+			// al arrastrar. Sin eso habría dos estados del mismo valor y uno se desincronizaría.
+			if (P.Unidad == TEXT("grados"))
+			{
+				Input = SNew(SHorizontalBox)
+					+ SHorizontalBox::Slot().FillWidth(1.0f).VAlign(VAlign_Center)[ Field ]
+					+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+					  .Padding(3.0f, 0.0f, 0.0f, 0.0f)
+					[
+						SNew(SJamKnob)
+						.Diameter(24.0f)
+						.ToolTipText(LOCTEXT("PerillaTip",
+							"arrastrá para girar; el campo sigue aceptando un valor exacto"))
+						.Angle_Lambda([Field]()
+							{ return FCString::Atof(*Field->GetText().ToString()); })
+						.OnAngleChanged_Lambda([this, Field](float Grados)
+						{
+							Field->SetText(FText::FromString(
+								FString::Printf(TEXT("%.1f"), Grados)));
+							// Por frame: el live view recocina mientras se gira.
+							OnParamLiveDelegate.ExecuteIfBound();
+						})
+						// Al soltar: UN paso de historial por arrastre, como los sliders.
+						.OnAngleCommitted_Lambda([this](float)
+							{ OnParamChangedDelegate.ExecuteIfBound(); })
+					];
+			}
+
 			if (Key == TEXT("expr"))
 			{
 				Input = SNew(SHorizontalBox)

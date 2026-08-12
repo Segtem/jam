@@ -80,6 +80,7 @@ static void JamLeerParamsDeFicha(const TSharedPtr<FJsonObject>& Ficha, TArray<FJ
 		if (!PO->TryGetStringField(TEXT("tipo"), P.Type)) { P.Type = TEXT("str"); }
 		PO->TryGetStringField(TEXT("data_type"), P.DataType);
 		PO->TryGetStringField(TEXT("letra"), P.Letra);
+		PO->TryGetStringField(TEXT("unidad"), P.Unidad);
 		const TArray<TSharedPtr<FJsonValue>>* Opts = nullptr;
 		if (PO->TryGetArrayField(TEXT("opciones"), Opts) && Opts != nullptr)
 		{
@@ -2320,6 +2321,7 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At,
 		FJamNodeParam Param(P.Name, Value, P.Type, Opts, OptionLabels,
 			DataType, DataColor(DataType));
 		Param.Label = P.Label;
+		Param.Unidad = P.Unidad;
 		Params.Add(MoveTemp(Param));
 		Node.PinNames.Add(P.Name);
 	}

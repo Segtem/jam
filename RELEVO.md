@@ -574,6 +574,33 @@ Lo que **nadie ejerció con las manos** de este turno:
 
 ## Para las manos de Brian
 
+**🎛️ LA PERILLA DE ÁNGULOS — el primer peldaño del eje «vistoso», y hay que verla.**
+
+Jam tiene **~50 parámetros que son rotaciones** —yaw/pitch/roll, ángulos de rama, `start_angle`,
+`degrees`— y todos se editaban tipeando. Un ángulo no es una cantidad cualquiera: es una DIRECCIÓN, y
+una aguja dice hacia dónde apunta de un vistazo mientras que «137.5» hay que imaginárselo.
+
+· **Acompaña al número, no lo reemplaza.** Mismo criterio que el desplegable de variables de `expr`:
+una perilla sola sacaría la capacidad de escribir 137,5 exacto y te dejaría peleando con el mouse por
+medio grado. Es además la postura de riesgo correcta para un widget dibujado a mano — si la aguja
+pinta mal, el campo sigue funcionando.
+· **Gira por DELTA**, así que al tocarla la aguja no salta a donde está el mouse: eso es un selector,
+no una perilla. Y **captura el mouse**, porque el círculo mide 24 px y sin capturar se soltaría a
+mitad de gesto siempre.
+· **El valor no se acota ni se envuelve**: un yaw de 720° son dos vueltas y significa algo distinto
+de 0° en cuanto se acumula o se anima. La AGUJA muestra el resto de 360; el número, todo.
+· Avisa **por frame** al girar (alimenta el live view) y **una vez al soltar** (un paso de historial
+por arrastre), igual que los sliders.
+
+**Gestos (dos minutos):** poné un `mesh_transform` o un `place` y mirá `yaw` — tiene que haber un
+círculo con una aguja al lado del campo. Arrastralo: la aguja sigue el mouse sin saltar, el número se
+actualiza, y al soltar `Ctrl+Z` deshace **el arrastre entero**. Con ⟳ Live prendido, la malla debería
+girar mientras arrastrás.
+
+12 tests con **5 mutaciones que discriminan**. C++ recompilado.
+
+
+
 **📚 APRENDER ES AHORA UN CAMINO — y es lo primero que conviene mirar, porque es una pantalla.**
 
 Brian: *«está con iconos grandes y texto largo y al final se muestran en una lista infinita para

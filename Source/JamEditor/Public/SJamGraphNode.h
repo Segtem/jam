@@ -19,6 +19,7 @@ struct FJamNodeParam
 	TArray<FString> Options;  // dominio cerrado (enum) → dropdown en vez de texto libre
 	TArray<FString> OptionLabels; // presentación humana; Options conserva el valor serializado
 	FString DataType;         // tipo del cable esperado: N/N[]/T/B/A/A[]/AF/H/S/F/P/M
+	FString Unidad;           // «grados» ⇒ la fila suma una perilla junto al número
 	/** Letra del pin en modo compacto (`X`, `SX`…). Viene del spec, la calcula `jam.letras`. */
 	FString Letra;
 	FLinearColor PinColor = FLinearColor(0.28f, 0.30f, 0.34f, 1.0f);

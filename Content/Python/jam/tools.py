@@ -3005,6 +3005,48 @@ for _nombre, _info in REGISTRO.items():
     _info["out_name"] = GRAPH_OUT_NAMES.get(_nombre, "A")
 
 
+#: Los parámetros que son un ÁNGULO EN GRADOS, y por eso la ficha les dibuja una perilla.
+#:
+#: Se DECLARA en vez de derivarse del nombre porque derivarlo da falsos positivos que
+#: importan: `optimize_rotation` y `angle_weighted` son booleanos, `target_triangles` y
+#: `triangulos` sólo comparten letras —«tri-ANGLE-s», «tri-ANGUL-os»—, y esos dos se
+#: colaron igual en la primera curación: los sacó el test, no la lectura. Un control que
+#: aparece donde no va enseña una
+#: mentira sobre el parámetro.
+#:
+#: Los de `math_sin/cos/tan` quedan afuera a propósito: miden en RADIANES, y convertirlos
+#: para la aguja agregaría un camino de ida y vuelta cuyo único consumidor son tres
+#: verbos. Para pasar de grados a radianes ya está `math_radians`, que es un nodo visible.
+PARAMS_ANGULARES = {
+    "branch_from_frames": ("angle", "angle_jitter",),
+    "copy_asset_selection": ("asset_pitch", "asset_roll", "asset_yaw",),
+    "copy_mesh_to_frames": ("asset_pitch", "asset_roll", "asset_yaw",),
+    "curve_branches": ("angle", "angle_jitter", "rotate_per_index",),
+    "curve_child": ("angle",),
+    "curve_frames": ("angle_offset",),
+    "curve_fuse_collinear": ("angle_tolerance",),
+    "distribute_frames": ("angle_jitter", "angle_offset", "rotate_per_index",),
+    "hism_output": ("asset_pitch", "asset_roll", "asset_yaw",),
+    "math_radians": ("grados",),
+    "mesh_along_curve": ("angle_offset", "rotation_jitter",),
+    "mesh_disc": ("end_angle", "start_angle",),
+    "mesh_leaf": ("angle_offset", "asset_pitch", "asset_roll", "asset_yaw", "rotate_per_index", "rotation_jitter",),
+    "mesh_pipe": ("profile_rotation",),
+    "mesh_pipe_profile": ("profile_rotation",),
+    "mesh_revolve": ("degrees",),
+    "mesh_stairs_curved": ("curve_angle",),
+    "mesh_transform": ("pitch", "roll", "yaw",),
+    "mesh_uv_box": ("pitch", "roll", "yaw",),
+    "place": ("yaw",),
+    "spline": ("jitter_yaw",),
+    "transform_frames": ("pitch", "pitch_jitter", "roll", "roll_jitter", "yaw", "yaw_jitter",),
+}
+
+
+def unidad_de(verbo: str, pin: str) -> str:
+    """`"grados"` si ese parámetro es un ángulo; `""` si es una cantidad cualquiera."""
+    return "grados" if pin in PARAMS_ANGULARES.get(verbo, ()) else ""
+
 def spec_json(*, include_graph_only: bool = False) -> str:
     """El registro como JSON (categoría/verbo/doc/params) para que la Dash Bar en C++ se arme sola.
     Agregar una herramienta a REGISTRO la hace aparecer en su sección sin tocar C++."""
@@ -3057,7 +3099,11 @@ def spec_json(*, include_graph_only: bool = False) -> str:
                         "default": str(v), "tipo": tipo(v),
                         "data_type": info.get("data_params", {}).get(k, ""),
                         "letra": letras.get(k, "?"),
-                        "opciones": opciones.get(k, [])}
+                        "opciones": opciones.get(k, []),
+                        # `unidad` = «grados» ⇒ la ficha suma una PERILLA al lado del número. Un
+                        # ángulo es una dirección, no una cantidad: la aguja dice hacia dónde
+                        # apunta de un vistazo y «137.5» hay que imaginárselo.
+                        "unidad": unidad_de(nombre, k)}
                        for k, v in info["params"].items()],
         })
     return json.dumps({"categorias": CATEGORIAS, "tools": salida}, ensure_ascii=True)
