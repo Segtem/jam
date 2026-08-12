@@ -85,6 +85,17 @@ int32 SJamKnob::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometr
 		return LayerId;
 	}
 
+	// La TINTA de la ficha, la misma que su texto (`JamInk` en SJamGraphNode.cpp). El cuerpo del
+	// nodo es gris claro —(0.76, 0.77, 0.78)— así que un aro gris medio a media transparencia
+	// prácticamente no existe: la primera versión se dibujaba en (0.55, 0.55, 0.58) al 55% y de la
+	// perilla sólo se veía la aguja, un guioncito suelto al lado del campo. Contra ese fondo, lo
+	// estructural va en tinta oscura, igual que las letras.
+	//
+	// Medido, no elegido a ojo: el aro viejo daba **1,17:1** contra el cuerpo de la ficha y éste da
+	// **4,45:1**. El mínimo para un control de interfaz es 3:1 (WCAG 1.4.11, «Non-text Contrast»),
+	// y el alfa CUENTA — mezclar 55% de gris medio con el fondo es casi el fondo.
+	const FLinearColor Tinta(0.10f, 0.10f, 0.11f, 0.95f);
+
 	auto Lineas = [&](const TArray<FVector2D>& Puntos, const FLinearColor& C, float Grosor)
 	{
 		FSlateDrawElement::MakeLines(OutDrawElements, LayerId + 1,
@@ -99,13 +110,13 @@ int32 SJamKnob::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometr
 		const float T = (2.0f * PI * i) / Segmentos;
 		Aro.Add(Centro + FVector2D(FMath::Sin(T), -FMath::Cos(T)) * Radio);
 	}
-	Lineas(Aro, FLinearColor(0.55f, 0.55f, 0.58f, 0.55f), 1.0f);
+	Lineas(Aro, Tinta, 1.4f);
 
 	// La marca del cero, arriba: sin una referencia fija la aguja no dice de dónde mide.
 	TArray<FVector2D> Cero;
 	Cero.Add(Centro + FVector2D(0.0f, -Radio));
 	Cero.Add(Centro + FVector2D(0.0f, -Radio * 0.62f));
-	Lineas(Cero, FLinearColor(0.55f, 0.55f, 0.58f, 0.75f), 1.0f);
+	Lineas(Cero, Tinta, 1.4f);
 
 	// La aguja. Se dibuja el RESTO de 360 —dos vueltas apuntan igual que ninguna— mientras el
 	// número del costado sigue diciendo el valor entero, que es lo que distingue 720 de 0.
@@ -114,7 +125,7 @@ int32 SJamKnob::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometr
 	TArray<FVector2D> Aguja;
 	Aguja.Add(Centro);
 	Aguja.Add(Centro + FVector2D(FMath::Sin(Radianes), -FMath::Cos(Radianes)) * (Radio * 0.86f));
-	Lineas(Aguja, Color, 2.0f);
+	Lineas(Aguja, Color, 2.4f);
 
 	return LayerId + 1;
 }

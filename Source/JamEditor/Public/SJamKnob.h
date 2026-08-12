@@ -29,7 +29,10 @@ public:
 	SLATE_BEGIN_ARGS(SJamKnob)
 		: _Angle(0.0f)
 		, _Diameter(26.0f)
-		, _Color(FLinearColor(0.82f, 0.46f, 0.10f, 1.0f))
+		// Ámbar OSCURO y no el del pin `N`. El ámbar saturado se lee lindo sobre la insignia
+		// oscura de un icono, pero contra el cuerpo gris claro de la ficha da 1,46:1 — por debajo
+		// del 3:1 que pide WCAG para un control—. Éste da 3,61:1 y sigue siendo ámbar.
+		, _Color(FLinearColor(0.32f, 0.15f, 0.02f, 1.0f))
 	{}
 		/** Grados actuales. Se lee en cada pintada: la perilla no guarda estado propio. */
 		SLATE_ATTRIBUTE(float, Angle)

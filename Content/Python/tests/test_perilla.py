@@ -199,5 +199,65 @@ class LosDosLectoresDelSpecTests(unittest.TestCase):
                     encoding="utf-8")
                 self.assertIn('TEXT("unidad")', fuente)
 
+class ContrasteTests(unittest.TestCase):
+    """La perilla tiene que VERSE sobre el cuerpo de la ficha.
+
+    La primera versión no se veía: el aro iba en gris medio a 55% de alfa sobre un cuerpo gris claro
+    —**1,17:1**— así que de la perilla sólo asomaba la aguja, un guioncito suelto al lado del campo.
+    Brian lo reportó con una captura.
+
+    El umbral no es una opinión: **3:1 es el mínimo de WCAG 1.4.11 («Non-text Contrast») para un
+    control de interfaz**, y es el mismo criterio con el que se juzga cualquier botón. Se mide sobre
+    los valores LINEALES —que es como Slate declara sus colores— y **contando el alfa**, porque
+    mezclar 55% de gris con el fondo es casi el fondo: ignorarlo fue justamente el error.
+    """
+
+    #: El cuerpo de la ficha, de `SJamGraphNode.cpp`.
+    FICHA = (0.76, 0.77, 0.78)
+    MINIMO = 3.0
+
+    def luminancia(self, c) -> float:
+        return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
+
+    def contraste(self, color, alfa) -> float:
+        mezclado = tuple(color[i] * alfa + self.FICHA[i] * (1 - alfa) for i in range(3))
+        a, b = self.luminancia(mezclado), self.luminancia(self.FICHA)
+        return (max(a, b) + 0.05) / (min(a, b) + 0.05)
+
+    def colores(self, texto: str):
+        """Todos los `FLinearColor(r, g, b, a)` literales de un archivo."""
+        # `FLinearColor(...)` y también `FLinearColor Tinta(...)`: la segunda forma es una
+        # declaración con nombre y el patrón sin ella se saltea justo el color del aro, que es el
+        # que había quedado invisible.
+        patron = (r"FLinearColor(?:\s+\w+)?\(([\d.]+)f,\s*([\d.]+)f,\s*"
+                  r"([\d.]+)f(?:,\s*([\d.]+)f)?\)")
+        for m in re.finditer(patron, texto):
+            r, g, b = (float(m.group(i)) for i in (1, 2, 3))
+            yield (r, g, b), float(m.group(4)) if m.group(4) else 1.0
+
+    def test_el_cuerpo_de_la_ficha_sigue_siendo_el_que_se_midio(self) -> None:
+        """Si el fondo cambia, todos los contrastes de abajo dejan de significar lo que dicen."""
+        nodo = (RAIZ / "Source" / "JamEditor" / "Private" / "SJamGraphNode.cpp").read_text(
+            encoding="utf-8")
+        self.assertIn("FLinearColor(0.76f, 0.77f, 0.78f, 1.0f)", nodo,
+                      "cambió el cuerpo de la ficha: hay que volver a medir la perilla")
+
+    def test_todo_lo_que_dibuja_la_perilla_se_ve(self) -> None:
+        fuentes = {
+            "SJamKnob.cpp": (RAIZ / "Source" / "JamEditor" / "Private" / "SJamKnob.cpp"),
+            "SJamKnob.h": (RAIZ / "Source" / "JamEditor" / "Public" / "SJamKnob.h"),
+        }
+        vistos = 0
+        for nombre, ruta in fuentes.items():
+            for color, alfa in self.colores(ruta.read_text(encoding="utf-8")):
+                vistos += 1
+                with self.subTest(archivo=nombre, color=color, alfa=alfa):
+                    ratio = self.contraste(color, alfa)
+                    self.assertGreaterEqual(
+                        ratio, self.MINIMO,
+                        f"{color} al {alfa:.0%} da {ratio:.2f}:1 contra la ficha; "
+                        f"el mínimo para un control es {self.MINIMO}:1")
+        self.assertGreater(vistos, 1, "no se encontró ningún color: el patrón dejó de matchear")
+
 if __name__ == "__main__":
     unittest.main()
