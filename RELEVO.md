@@ -563,8 +563,9 @@ precisamente lo que ninguna medición contesta.
    actualizarse ESE nodo, sin que el terminal coloque nada. Ese es el gesto entero de Houdini.
 
 Y el contraste que vale la pena sentir: cambiá el último nodo a `mesh_to_static` y arrastrá otra vez.
-Debería seguir andando —hornear quedó en ~35 ms— pero con un peso distinto. Ese contraste es el
-argumento entero de «Ver sin hornear».
+Debería seguir andando —medido con el editor andando: **17,7 ms mostrando contra 47,7 horneando**—
+pero con un peso distinto. Ese contraste es el argumento entero de «Ver sin hornear», y ojo que es
+2,7x y no el «129x» que decía antes: ese número era de commandlet (ver **0-septies**).
 
 **Funciones del Graph — ocho gestos, quince minutos:**
 
@@ -599,6 +600,70 @@ Después, sin urgencia: subir `~/Dev/oracle/estudio/` a NotebookLM. Empezá por 
 de pedir manos sin que nadie lo note.)*
 
 ## Lo próximo
+
+**0-septies. LA MITAD DE LOS NÚMEROS DEL LIVE VIEW ERAN DEL COMMANDLET. Corregidos, y una regla
+nueva.**
+
+Se fue a cerrar «los 30 a 80 ms que quedan sobre la mesa» de la sobrescritura y lo que apareció fue
+más grande: **un commandlet `-run=pythonscript` no tickea nunca**, así que cualquier costo que
+espere al render thread se mide con un plazo que no existe en el editor de verdad. Todas las sondas
+de Jam corren así.
+
+**El mecanismo, dicho por el motor.** Pisar una ruta staged termina en `NewObject` con un nombre
+ocupado, y `StaticAllocateObject` (`UObjectGlobals.cpp:3707`) tiene que destruir el objeto viejo:
+
+    // Wait for the object's asynchronous cleanup to finish.
+    while (!Obj->IsReadyForFinishDestroy()) { FPlatformProcess::Sleep(0); }
+    …
+    "Gamethread hitch waiting for resource cleanup on a UObject (%s) overwrite took %6.2fms.
+     Fix the higher level code so that this does not happen."
+
+Headless esa espera cuesta ~85 ms **y no se cura con tiempo** —dormir 400 ms entre vueltas no la
+baja: no espera un plazo, espera que le bombeen el render thread—. Con el loop del editor andando se
+resuelve sola entre corrida y corrida: **las dos ranuras quedan en ~2,9 ms**. Los 30-80 ms no
+estaban sobre la mesa.
+
+**La tabla del live view, corregida.** Mismo grafo, mismas seis vueltas, `mide_recoccion_58.py`:
+
+| recocción del mismo grafo | commandlet | **editor andando** |
+|---|---|---|
+| cadena sin terminal (el piso) | 1,4 ms | **1,8 ms** |
+| `mesh_preview` (ver sin hornear) | 1,7 ms | **17,7 ms** |
+| `mesh_to_static` (hornear) | 215,2 ms | **47,7 ms** |
+| ventaja de no hornear | «129x» | **2,7x** |
+
+**La conclusión sobrevive y el titular no**: ver sin hornear sigue siendo más barato y las dos caen
+holgadas debajo de los 100 ms, pero **el 129x era del modo de medición** y estaba escrito en el
+docstring de `mesh.mostrar`, acá y en el informe. Ya está corregido en los tres lados.
+
+**Lo que NO era artefacto, y por eso el ping-pong se sostiene:** el borrado. Re-medido con el editor
+vivo, `delete_asset` cuesta **156,4 ms** (headless daba 142,3), `delete_loaded_asset` 166,6 y
+renombrar 85,1 — igual o peor con el editor andando. La complejidad de las dos ranuras está bien
+pagada; lo que no hacía falta era seguir buscándole los 30-80 ms.
+
+**Tres trampas nuevas en `AGENTS.md`**, y las tres las pisé en esta misma tanda:
+· **medir headless algo que espera al render thread** — la receta que sí sirve es
+  `UnrealEditor … -RenderOffScreen -ExecCmds="py <script>,QUIT_EDITOR"` (sin `-run=`), que tickea y
+  no abre ventana; ojo que `-ExecCmds` separa por **comas**, no por `;`;
+· **un control que toca el estado compartido no controla nada** — intercalé una serie de «mirar»
+  para controlar la deriva y quedó en 250 ms por vuelta contra 1,3 medida sola. Es la trampa de
+  «alternar A/B» que ya estaba escrita, pisada otra vez **por usarla de control**;
+· **medir crecimiento sobre una serie que alterna** — «primeras cinco contra últimas cinco» sobre
+  90/9 ms dio «hay deriva» y «baja un 40%» sobre los mismos datos sanos. Separar por la variable que
+  alterna antes de resumir, y anotar la condición de cada vuelta en vez de deducirla por la paridad.
+
+Y una cuarta que salió al final: con el editor andando la vuelta completa rebota entre 30 y 70 ms
+por trabajo de fondo del editor, así que **crecimiento y deriva se preguntan contra el PISO** (el
+mínimo) y no contra la mediana — el ruido sólo puede sumar. La primera versión de esos asserts dio
+rojo sobre datos sanos.
+
+⚠️ **Queda una deuda que esto abre**: `mide_ahorro_cache_58.py`, `mide_latencia_run_58.py`,
+`mide_costo_recoccion_viva_58.py` y `verifica_verbo_preview_58.py` siguen midiendo headless. Sus
+conclusiones cualitativas probablemente aguanten, pero **ninguna de sus magnitudes está confirmada**
+con el loop andando, y ahora se sabe que la diferencia puede ser de 10x en cualquier dirección.
+`mide_recoccion_58.py` ya se niega a correr en commandlet; las otras todavía no.
+
+---
 
 **0-sexies. ◉ VER SÓLO EL NODO MARCADO — CONSTRUIDO Y COMPILADO, verificado por el camino real.**
 
@@ -728,6 +793,11 @@ conserva** —si N falla, el Preview de N-1 sigue entero en su ruta— y aun as�
 plena interacción. Sobrescribir cuesta 21 ms contra 147 de borrar+crear. La basura queda acotada a
 un asset por destino, y Discard/Bake la barren en una pasada de carpeta.
 
+⚠️ Las dos cifras del título son de **commandlet**, en los dos lados. Con el loop del editor andando
+la recocción que hornea da **47,7 ms**; el estado pre-ping-pong nunca se midió así, con lo cual la
+mejora está confirmada en su MECANISMO —no se borra un asset de 156 ms en plena interacción— pero el
+«215 → 35» como par de números no es del editor de verdad. Ver **0-septies**.
+
 Medido por el camino real (`verifica_pingpong_58.py`, TODO VERDE): **215,2 → 49,9 ms** de mediana
 (4,3×; con la instrumentación puesta bajó a 32 ms), la ruta alterna entre exactamente dos ranuras,
 la tercera vuelta pisa la primera, **Bake promueve UN solo asset final** —el riesgo propio de tener
@@ -741,13 +811,10 @@ Bake barran la ranura sobrante. Más 3 tests de recuperación tras reload: con d
 memoria no puede decir cuál vale, así que se sella cada una con `_ASSET_META_SERIE` y gana la más
 reciente — sin eso, Bake promovería las dos y de un Preview saldrían dos assets.
 
-⚠️ **Dos cosas quedan medidas y sin explicar.** Sobrescribir una ruta ocupada cuesta 37–86 ms contra
-5 de estrenarla, y **el costo crece vuelta a vuelta**. Un costo creciente parecía acumulación adentro
-del paquete —que habría sido un bug de correctitud mío—, así que se midió: `verifica_sobrescritura_58.py`
-da TODO VERDE, el asset en disco tiene la geometría de la última cocción, se devuelve el mismo objeto
-y no quedan assets extra. **Sobrescribir es correcto; de dónde sale el costo creciente sigue sin
-saberse.** Y una de las dos ranuras resulta consistentemente más cara que la otra dentro de una misma
-sesión, pero cuál cambia entre sesiones. Ahí hay entre 30 y 80 ms más para alguien que quiera seguir.
+✅ **Las dos cosas que quedaban sin explicar: RESUELTAS, y no había nada que arreglar.** Decía acá
+que sobrescribir una ruta ocupada costaba 37–86 ms, que **el costo crecía vuelta a vuelta** y que una
+ranura salía más cara que la otra sin saberse cuál ni por qué. De eso, lo único cierto era el reparto
+desparejo. Ver `investiga_costo_sobrescritura_58.py` y el punto **0-septies** de acá abajo.
 
 **Sin tocar:** `mesh.to_static` es el único escritor que pisa la ranura en vez de borrarla. `nanite`
 y `fracture` siguen borrando y pagan los 142 ms — no es una regresión, es que no se midió si sus

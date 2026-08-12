@@ -15,6 +15,21 @@ Los tres defectos que arrastraban las mediciones previas, y cómo se corrigen ac
     tandas para que cada una empiece igual.
 
 Lo que se mide es lo que el usuario va a sentir al arrastrar un slider.
+
+⚠️ **Y por eso hay que correrla con el editor ANDANDO, no en commandlet.** Un cuarto defecto se
+descubrió después, y era el más caro de todos: `-run=pythonscript` no tickea nunca, así que headless
+el actor del preview no se spawnea de verdad y el horneado no espera los fences de render. Las dos
+tablas, mismo grafo y mismas seis vueltas:
+
+| recocción del mismo grafo | commandlet | editor andando |
+|---|---|---|
+| cadena sin terminal (el piso) | 1,4 ms | **1,8 ms** |
+| `mesh_preview` (ver sin hornear) | 1,7 ms | **17,7 ms** |
+| `mesh_to_static` (hornear) | 215,2 ms | **47,7 ms** |
+| ventaja de no hornear | «129x» | **2,7x** |
+
+La conclusión sobrevive —ver sin hornear es más barato y las dos caen debajo de los 100 ms— pero el
+129x era del modo de medición. La sonda ahora se niega si la corren headless.
 """
 import json
 import statistics
@@ -73,8 +88,24 @@ def tanda(terminal, etiqueta):
     return statistics.median(tiempos)
 
 
+def midiendo_headless() -> bool:
+    """¿Esto corre en un commandlet, que no tickea nunca?
+
+    No es un detalle de invocación: cambia el veredicto. Los mismos tres terminales dieron
+    1,4 / 1,7 / 215,2 ms en `-run=pythonscript` y 1,8 / 17,7 / 47,7 con el loop del editor andando
+    —«129x» contra «2,7x»—, porque headless ni el actor del preview se spawnea de verdad ni el
+    horneado espera los fences de render que sí espera el editor. Se pregunta por la línea de
+    comandos y no por adivinanza.
+    """
+    linea = str(getattr(unreal.SystemLibrary, "get_command_line", lambda: "")())
+    return "-run=" in linea
+
+
 log("=" * 78)
 log(f"Recocción del mismo grafo, {VUELTAS} vueltas por terminal (ms por vuelta)")
+exigir(not midiendo_headless(),
+       "corriendo con el loop del editor andando (si no, estos números no valen: "
+       'UnrealEditor … -RenderOffScreen -ExecCmds="py <script>,QUIT_EDITOR")')
 log("-" * 78)
 piso = tanda(None, "sin terminal")
 horno = tanda("mesh_to_static", "hornear")

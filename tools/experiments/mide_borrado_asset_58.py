@@ -9,6 +9,11 @@ Si hay una forma más barata de sacar el asset de en medio, el arreglo es cambia
 rediseñar el staging. Vale descartarlo antes de tocar la semántica transaccional del Preview, que es
 una propiedad que alguien diseñó a propósito.
 
+✅ **Y el costo NO es artefacto del commandlet**, que es la duda que hundió otros números de esta
+misma tanda. Re-medido con el loop del editor andando: `delete_asset` **156,4 ms** (headless 142,3),
+`delete_loaded_asset` 166,6 (156), renombrar 85,1 (82,8). Es igual o peor con el editor vivo, así
+que el ping-pong de ranuras —que existe para no pagarlo en plena interacción— está bien fundado.
+
 ⚠️ La primera versión de esta sonda daba `delete_asset` = **0.0 ms**. Componía la ruta del asset con
 el nombre visible de cada método —espacios y paréntesis adentro—, así que la ruta era inválida, el
 asset nunca se creaba, y lo que medía era borrar la nada. Faltaba el control: **exigir que el asset

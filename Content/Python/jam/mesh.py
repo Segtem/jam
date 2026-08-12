@@ -2328,13 +2328,20 @@ def mostrar(source, *, location=None, name: str = "JamPreview") -> dict:
     """Muestra una malla `M` en el nivel SIN hornearla a StaticMesh.
 
     Es la pieza del live view. Medido en UE 5.8.1 recocinando el mismo grafo seis veces seguidas
-    (`mide_recoccion_58.py`): **1.7 ms por vuelta contra 215 ms horneando**, 129x.
+    (`mide_recoccion_58.py`) **con el loop del editor andando**: **17,7 ms por vuelta contra 47,7
+    horneando**, 2,7x, las dos debajo de los 100 ms que se sienten instantáneos.
 
-    Lo caro no resultó ser hornear sino DESHACER lo horneado: escribir el StaticMesh cuesta ~38 ms,
-    pero borrar el asset que dejó la vuelta anterior cuesta ~157 ms, y una recocción paga las dos
-    cosas. Mostrar con un `DynamicMeshComponent` no paga ninguna: no hay asset que escribir ni que
-    borrar. El asset recién se escribe en Bake, que es cuando alguien decidió quedarse con el
-    resultado. Es la cocina de Houdini.
+    ⚠️ Acá decía «1,7 ms contra 215, 129x». Los dos números eran de un commandlet
+    `-run=pythonscript`, que no tickea: ahí ni el actor se spawnea de verdad —el preview salía
+    barato por trabajo que no ocurrió— ni el horneado cobra igual. **La ventaja es real y la
+    magnitud era del modo de medición.**
+
+    Lo caro de hornear no es escribir sino DESHACER lo escrito: el StaticMesh cuesta ~3 ms y borrar
+    el asset de la vuelta anterior **156** (medido con el editor andando, así que no es artefacto).
+    Por eso el staging usa dos ranuras y no borra en plena interacción. Mostrar con un
+    `DynamicMeshComponent` no paga ninguna de las dos: no hay asset que escribir ni que borrar. El
+    asset recién se escribe en Bake, que es cuando alguien decidió quedarse con el resultado. Es la
+    cocina de Houdini.
 
     El actor queda marcado como transitorio para que un Preview no ensucie el nivel guardado.
     """
