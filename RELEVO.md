@@ -1180,12 +1180,15 @@ repetir, tipo en el vocabulario. Migración incremental, con un test que obligue
 NUEVAS. Falta la decisión de Brian y una estimación honesta, que no sale hasta escribir los primeros
 diez descriptores.
 
-**0. Cerrar el residuo de la cinta: muestras con avance despreciable.** El pliegue por cruce ya está
-resuelto en el rango realista (ver «ESTADO DEL PLIEGUE» arriba). Quedan 7 de 20 en giros de 140°, y
-son otra cosa: el borde no retrocede, avanza casi nada —1,4 cm contra ~460 del otro lado— y con Z
-propia por muestra el triángulo casi sin base queda casi vertical. Pide su propio criterio y su
-defensa de umbral: exigir avance mínimo proporcional al del eje, o fusionar muestras casi
-coincidentes. `malla.cara_visible` ya lo juzga, así que el corte llega con oráculo puesto.
+**0. Cerrar el residuo de la cinta — y el corte NO es donde decía acá.** Esta entrada pedía «exigir
+avance mínimo o fusionar muestras casi coincidentes». **Se midió y esa hipótesis es falsa**: ninguna
+de las 9 caras rojas es degenerada (la más chica tiene 3.203 cm²), y son DOS familias, no una — 5+1
+de avance desparejo y **3 de bevel**. En el bevel el problema es un MOÑO de los cuatro puntos: se
+probó angostar (es una homotecia sobre el vértice, no puede cambiar el signo) y se probó la otra
+diagonal, las dos se implementaron, se midieron y se revirtieron. **El corte va aguas arriba, en el
+join de `offset_points`**: en una esquina más cerrada que ~90° el borde interior tiene que
+pellizcarse en el pivote en vez de seguir a ancho completo. Repro mínimo de tres puntos en
+`tools/clasifica_caras_rojas_ribbon.py`; `malla.cara_visible` ya lo juzga.
 
 **Siguiente corte de la Fase 4 de
 [[2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0|MassEntity en Jam]]: variación o señal ambiental.** La
