@@ -1416,10 +1416,30 @@ viejos.
 1088 → 1098 tests, 4 mutaciones que discriminan. Camino real: `40 verbos en el spec … N→D rechazado
 … 45° en 0..360 → 0,125`.
 
-Lo que sigue del pedido de Brian, en orden de bloqueo: **Domain** (el modelo que vale copiar de GH:
-remap/includes/divide apoyados sobre un TIPO en vez de sueltos) · **Matrix**, que espera a la
-multi-salida · y todo el eje **vistoso** (Value List → Digit Scroller → Control Knob → Gradient →
-MD Slider → Graph Mapper).
+**MULTI-SALIDA: medida y planificada, NO empezada — a propósito.**
+[[2026-08-12-PLAN-Multi-Salida-En-El-Graph-v1.0|El plan está escrito]] con el radio de explosión
+contado, no estimado: **79 usos de `out_name` en el cerebro y 33 de `OutName` en el C++**, más el
+caché y el dibujo del nodo. Eso es reescribir el ejecutor del que depende todo lo demás, y empezarlo
+al final de una sesión larga deja el peor estado posible: un ejecutor a medio migrar.
+
+Dos hallazgos del plan que cambian el cálculo para el que lo tome:
+· ✅ **No hay migración de formato.** Las aristas YA llevan el pin de origen —`(origen, origen_pin,
+destino, destino_pin)`— y los `.jamgraph` lo guardan; lo único que pasa es que `compilar` rechaza
+todo `origen_pin` que no sea `"out"`. El riesgo más caro no existe.
+· El corte seguro es **aditivo con salida principal**: un verbo sin `outs` se comporta exactamente
+como hoy, así que los 79 usos no se tocan. N salidas iguales —el modelo de GH— obligaría a decidir
+en 79 lugares cuál es «la del nodo», porque casi ninguno pregunta para cablear: preguntan el color,
+la letra del modo compacto, el caché, el spec.
+
+⚠️ **Y una corrección a mi propio ranking: «Value List» ya existe.** 24 verbos tienen desplegable
+(`opciones`) y el nodo dibuja `SComboButton`. Lo que NO existe es para los nodos de VALOR, porque
+`math_core.evaluar` coacciona todos los params a número — el segundo límite que dejaron a la vista
+las capturas. Agregarlo hoy sería una capacidad **sin consumidor**: ningún verbo de Maths necesita
+un modo. Queda anotado y no construido, que es la regla de esta casa.
+
+Lo que queda del pedido de Brian: **Matrix** (bloqueado por multi-salida) y el resto del eje vistoso
+—Digit Scroller, **Control Knob** (que con los ángulos de hoy sería expresivo de verdad), Gradient,
+MD Slider, **Graph Mapper** (Jam ya tiene `graph_curve` como dato; le falta el widget)—.
 
 ⚠️ El tutorial es de **NURBS** y Jam produce mallas de Geometry Script: Loft y Boundary se van a
 implementar como triangulación. La escalera aporta el ORDEN y el vocabulario, no la representación —
