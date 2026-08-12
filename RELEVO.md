@@ -1281,10 +1281,9 @@ Grasshopper: toda entrada se puede tipear O cablear. **Lo encontró la sonda del
 ⚠️ Y un rojo que era del TEST: la sonda barría con `mesh_ribbon` una línea vertical en el plano `xy`,
 donde mide cero, y el motor la rechazaba con razón. El código estaba bien.
 
-Los peldaños siguientes, en orden:
-**2.** Construir punto y `curve_line` · **3.** cerrar la polilínea con el interruptor · **4.** Line
-SDL y Move sobre curvas · **5.** Interpolate (curva que PASA por los puntos, distinta de
-`curve_bezier`) · **6.** Ruled Surface y Loft.
+Los peldaños que quedan: **5.** Interpolate —curva que PASA por los puntos, distinta de
+`curve_bezier`, que los usa de control— · **6.** Ruled Surface y Loft · y `Move` sobre curvas, que
+quedó suelto del peldaño 4.
 
 ⚠️ El tutorial es de **NURBS** y Jam produce mallas de Geometry Script: Loft y Boundary se van a
 implementar como triangulación. La escalera aporta el ORDEN y el vocabulario, no la representación —
