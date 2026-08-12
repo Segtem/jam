@@ -8,6 +8,20 @@ Saltearlas «porque seguro pesan» sería adivinar. Se mide cada parte por su en
 que llama Slate— y recién con eso se decide qué entra en el presupuesto de una vuelta.
 
 Presupuesto: para que un arrastre se sienta continuo, la vuelta entera tiene que caber en ~120 ms.
+
+⚠️ **Corre sólo con el loop del editor andando** —se niega si no—, porque headless daba números que
+no son de nadie: `run_graph` 1,7 ms contra los 20,1 reales. Las dos tablas:
+
+| parte de la vuelta | commandlet | **editor andando** |
+|---|---|---|
+| ejecutar el grafo | 1,7 ms | **20,1 ms** |
+| miniaturas | 1,8 ms | **1,7 ms** |
+| inspector | 0,1 ms | **0,1 ms** |
+| vuelta completa | 3,7 ms | **22,0 ms** |
+
+**La decisión que sostiene esta sonda sale REFORZADA**: los accesorios eran la mitad de la vuelta
+headless (1,9 de 3,7) y son el 8% de la de verdad (1,8 de 22,0). No hay que saltearlos en vivo, y la
+vuelta entera entra seis veces en el presupuesto.
 """
 import json
 import statistics
@@ -58,11 +72,24 @@ def cronometrar(fn, vueltas=VUELTAS):
     return statistics.median(tiempos), None
 
 
+def midiendo_headless() -> bool:
+    """¿Commandlet, que no tickea? Entonces estos números no son de nadie.
+
+    Se pregunta por la línea de comandos y no por adivinanza. Medido: `run_graph` da 1,7 ms headless
+    y 20,1 con el loop andando, porque headless el actor del preview no se spawnea de verdad.
+    """
+    linea = str(getattr(unreal.SystemLibrary, "get_command_line", lambda: "")())
+    return "-run=" in linea
+
+
 panel._descartar_preview("graph")
 api.run_graph(cadena(300.0))  # calentamiento
 
 log("=" * 78)
 log("Las tres partes de un Run del Graph, por su entrada real:")
+exigir(not midiendo_headless(),
+       "corriendo con el loop del editor andando (si no, estos números no valen: "
+       'UnrealEditor … -RenderOffScreen -ExecCmds="py <script>,QUIT_EDITOR")')
 log("-" * 78)
 
 ms_run, err = cronometrar(lambda v: api.run_graph(cadena(320.0 + v * 10.0)))
@@ -92,11 +119,16 @@ log("-" * 78)
 exigir(ms_run is not None and ms_run < PRESUPUESTO_MS,
        f"ejecutar el grafo solo entra en el presupuesto ({ms_run:.1f}ms)")
 if ms_thumbs is not None and ms_run is not None:
-    caro = completo > PRESUPUESTO_MS
-    log(f"  → refrescar miniaturas e inspector cuesta {completo - ms_run:.1f}ms, "
-        f"{(completo - ms_run) / max(ms_run, 0.01):.0f}x lo que cuesta cocinar.")
-    exigir(caro or True, "medido: la decisión de saltearlos en vivo ya no es una corazonada")
-    log(f"  → una vuelta completa {'NO entra' if caro else 'entra'} en {PRESUPUESTO_MS:.0f}ms "
-        f"({completo:.1f}ms)")
+    accesorios = completo - ms_run
+    log(f"  → refrescar miniaturas e inspector cuesta {accesorios:.1f}ms: "
+        f"{accesorios / max(completo, 0.01) * 100:.0f}% de la vuelta y "
+        f"{accesorios / max(PRESUPUESTO_MS, 0.01) * 100:.0f}% del presupuesto.")
+    # Acá había un `exigir(caro or True, …)`: un assert que NO PUEDE FALLAR, escrito como si
+    # hubiera verificado algo. La afirmación que de verdad sostiene la decisión —no hacer un
+    # camino liviano aparte— es que la vuelta ENTERA entra en el presupuesto; esa sí es
+    # falsable, y es la que se pregunta.
+    exigir(completo < PRESUPUESTO_MS,
+           f"la vuelta completa —cocinar Y refrescar— entra en {PRESUPUESTO_MS:.0f}ms "
+           f"({completo:.1f}ms), así que no hace falta un camino liviano aparte")
 
 log("JAM_VIVA_58 TODO VERDE" if not FALLAS else f"JAM_VIVA_58 ROJO — {len(FALLAS)}")

@@ -7,6 +7,19 @@ horneado se cobrara en la corrida del preview; y una sola vuelta no distingue co
 
 Acá cada terminal corre su propia tanda, con calentamiento descartado y mediana de varias vueltas.
 Ver `mide_recoccion_58.py`, que mide la cadencia del live view con el mismo cuidado.
+
+⚠️ **Y una CUARTA confusión, encontrada después: el commandlet.** `-run=pythonscript` no tickea, así
+que headless el actor del preview no se spawnea de verdad y el veredicto salía inflado. La sonda se
+niega si la corren así. Mismo grafo, mismas cuatro vueltas:
+
+| Run del Graph | commandlet | **editor andando** |
+|---|---|---|
+| `mesh_preview` (ver sin hornear) | 2,3 ms | **20,4 ms** |
+| `mesh_to_static` (hornear) | 213,4 ms | **75,7 ms** |
+| ventaja | «93x» | **4x** |
+
+El veredicto que esta sonda firma —ver sin hornear es más rápido— sobrevive entero; lo que no
+sobrevive es la magnitud, y era la que se citaba.
 """
 import json, statistics, time
 import unreal
@@ -17,6 +30,10 @@ FALLAS = []
 def exigir(c, d):
     log(("  OK   " if c else "  FALLA") + f" · {d}")
     if not c: FALLAS.append(d)
+
+def midiendo_headless() -> bool:
+    """¿Commandlet, que no tickea? Se pregunta por la línea de comandos, no por adivinanza."""
+    return "-run=" in str(getattr(unreal.SystemLibrary, "get_command_line", lambda: "")())
 
 def cadena(ultimo):
     return json.dumps({"schema_version": 1, "nodes": {
@@ -30,6 +47,9 @@ def cadena(ultimo):
         "edges": [["eje", "out", "cinta", "in"], ["cinta", "out", "fin", "in"]]})
 
 log("=" * 70)
+exigir(not midiendo_headless(),
+       "corriendo con el loop del editor andando (si no, estos números no valen: "
+       'UnrealEditor … -RenderOffScreen -ExecCmds="py <script>,QUIT_EDITOR")')
 medianas = {}
 for ultimo in ("mesh_preview", "mesh_to_static"):
     g_json = cadena(ultimo)

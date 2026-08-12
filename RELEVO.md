@@ -657,11 +657,35 @@ por trabajo de fondo del editor, así que **crecimiento y deriva se preguntan co
 mínimo) y no contra la mediana — el ruido sólo puede sumar. La primera versión de esos asserts dio
 rojo sobre datos sanos.
 
-⚠️ **Queda una deuda que esto abre**: `mide_ahorro_cache_58.py`, `mide_latencia_run_58.py`,
-`mide_costo_recoccion_viva_58.py` y `verifica_verbo_preview_58.py` siguen midiendo headless. Sus
-conclusiones cualitativas probablemente aguanten, pero **ninguna de sus magnitudes está confirmada**
-con el loop andando, y ahora se sabe que la diferencia puede ser de 10x en cualquier dirección.
-`mide_recoccion_58.py` ya se niega a correr en commandlet; las otras todavía no.
+✅ **La deuda que esto abría: SALDADA.** Las cuatro sondas que quedaban midiendo headless se
+volvieron a correr con el loop andando. **Las cuatro conclusiones sobreviven; dos de las cuatro
+magnitudes no.**
+
+| sonda | commandlet | editor andando | conclusión |
+|---|---|---|---|
+| `mide_costo_recoccion_viva` (vuelta viva) | 3,7 ms | **22,0 ms** | sobrevive, y REFORZADA |
+| `verifica_verbo_preview` (ventaja de no hornear) | «93x» | **4x** | sobrevive, magnitud no |
+| `mide_latencia_run` (compile · Run) | 0,1-0,3 · 167-498 ms | **0,2 · 258-539** | igual en los dos |
+| `mide_ahorro_cache` (sucio 7/7, 7/7, 1/11) | 359/420/612 ms | **260/327/327** | idéntica |
+
+**La que más importa salió reforzada.** `mide_costo_recoccion_viva` es la que decidió no hacer un
+camino liviano aparte para la recocción viva: miniaturas e inspector eran la MITAD de la vuelta
+headless (1,9 de 3,7) y son el **8%** de la de verdad (1,8 de 22,0). La decisión estaba bien tomada
+por razones que el número headless casi no sostenía.
+
+Y las dos que no cambiaron **no cambiaron por un motivo**, no por suerte: en `mide_latencia_run` el
+costo lo domina escribir assets, que se paga igual en los dos modos; y el reparto de sucio de
+`mide_ahorro_cache` lo decide `cache_core`, que es cerebro puro y no toca el motor. Se anota porque
+«no cambió» sólo vale si alguien lo midió.
+
+**Las dos sondas cuyo veredicto depende del modo ahora se NIEGAN en commandlet** (probado en las dos
+direcciones); las otras dos lo declaran en su docstring con las dos columnas.
+
+⚠️ **Y apareció un assert que no podía fallar**: `exigir(caro or True, …)` en
+`mide_costo_recoccion_viva`, escrito como si hubiera verificado algo. Reemplazado por la afirmación
+que de verdad sostiene la decisión y sí es falsable —que la vuelta ENTERA entre en el presupuesto—.
+Barrido el resto del árbol (`or True`, `exigir(True…)`, `assertTrue(True)`) en sondas, tests y
+cerebro: **era el único**.
 
 ---
 

@@ -15,6 +15,12 @@ mover la curva base.
 resultó ser la fuente (`curve_bezier` tiene nueve coordenadas). O sea que midió el PEOR caso, no el
 típico. Para medir el gesto real habría que tomar el nodo sin consumidores.
 
+✅ **Confirmada en los DOS modos.** Con el loop del editor andando los tres tutoriales dan 260,5 /
+327,1 / 327,5 ms (headless 359 / 420 / 612 — o sea que el editor vivo sale más BARATO) y **el
+reparto de sucio es idéntico**: 7/7, 7/7 y 1/11. Tenía que serlo, porque quién se ensucia lo decide
+`cache_core`, que es cerebro puro y no toca el motor; lo que cambia entre modos son los milisegundos.
+Se anota porque «no cambió» sólo vale si alguien lo midió.
+
 Se corre el grafo entero y después el mismo grafo truncado nodo a nodo: la diferencia es lo que
 cuesta cada paso. Con eso se puede decir cuánto se ahorra al tocar un parámetro del final —el gesto
 típico del live view— en vez de suponerlo.

@@ -4,6 +4,11 @@ Mide por separado lo que hoy está mezclado: compilar (cerebro puro), construir 
 (Geometry Script) y juzgar (el oráculo). Sin eso, «hacer caché» sería optimizar a ciegas.
 
 Se usan tutoriales REALES como caso típico, no un grafo de laboratorio.
+
+✅ **Confirmada en los DOS modos**, que en esta tanda no fue lo habitual: otras sondas cambiaban 10x
+entre el commandlet y el editor andando. Acá no. Con el loop andando: compile 0,2 ms (headless
+0,1-0,3) y Run 258,7-539,0 ms (headless 167-498). Se anota porque «no cambió» sólo vale si alguien
+lo midió: el costo acá está dominado por escribir assets, que se paga igual en los dos modos.
 """
 import json, os, statistics, time
 import unreal
