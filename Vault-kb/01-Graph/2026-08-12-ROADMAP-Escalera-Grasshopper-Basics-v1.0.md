@@ -4,7 +4,7 @@ tipo: ROADMAP
 version: "1.0"
 date: 2026-08-12
 updated: 2026-08-12
-status: en-progreso
+status: completo
 area: 01-Graph
 tags:
   - jam
@@ -44,7 +44,7 @@ manda a construir algo que ya existe.
 | Líneas | **Line** (dos puntos) | ✅ `curve_line` (peldaño 2) |
 | | **Line SDL** (origen + dirección + largo) | ✅ `curve_line_sdl` (peldaño 4) |
 | | **Unit X / Unit Z** | ✅ `vector_unit_x/y/z` (peldaño 1) |
-| | Move | ⚠️ `move` para puntos, `mesh_transform` para mallas; **falta para curvas** |
+| | Move | ✅ `curve_move` — ya estaban `move` (puntos) y `mesh_transform` (mallas) |
 | Polilíneas | Polyline | ✅ `curve_polyline` |
 | | cerrar con Boolean → polígono | ✅ `closed`, cableable desde el interruptor (peldaño 3) |
 | Curvas | **Interpolate** (curva que PASA por los puntos) | ✅ `curve_interpolate` (peldaño 5) |
@@ -180,6 +180,24 @@ tienden parejo en vez de amontonar la superficie donde la segunda tenía más de
 
 **El moño del bevel no reapareció acá** porque el loft no hace offset: recibe las curvas ya
 trazadas. Sigue esperando en `offset_points`, que es de donde sale.
+
+**7. `Move` sobre curvas.** ✅ HECHO 2026-08-12, y con eso **la escalera está completa**. Jam ya
+tenía `move` para puntos y `mesh_transform` para mallas; las curvas quedaban sin forma de correrse
+de lugar, así que armar dos rieles paralelos para un loft obligaba a escribir dos veces las mismas
+coordenadas con un offset a mano. Conserva la METADATA de cada recorrido —semilla, escala, índices
+de TreeGen—: una curva movida sigue siendo la misma curva en otro lado, y perder su semilla haría
+que la rama que cuelga de ella salga distinta después de moverla, que es de los efectos más
+desconcertantes posibles porque mover no debería cambiar la forma de nada.
+
+## La escalera, corriendo entera
+
+`verifica_loft_58.py` la recorre de punta a punta en un solo grafo, cada peldaño usando el anterior:
+
+    Unitario X → Línea por dirección → Mover curva (con Unitario Z) → Tender entre curvas
+
+Cinco nodos, `MOVE S ✓ — movida 200.0 cm` y `LOFT M ✓ — 14 triángulos · 2 curvas × 8 muestras`. Eso
+es exactamente lo que el tutorial de Harmon enseña a hacer en Rhino, hecho con nodos de Jam sobre
+mallas de Geometry Script.
 
 ## El otro eje: el tab Maths completo, mirando las capturas
 

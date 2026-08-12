@@ -221,6 +221,36 @@ def interpolate(*, x=None, y=None, z=None, segments: int = 8) -> dict:
     return {"curve": CurvePath(suave["points"]), "info": suave["info"]}
 
 
+def move(value, desplazamiento, *, samples: int = 32) -> dict:
+    """Mueve una curva ``S`` por un vector (el «Move» del tutorial, del lado de las curvas).
+
+    Conserva la metadata de cada recorrido —semilla, escala, índices de TreeGen— con `replace`: una
+    curva movida sigue siendo la misma curva en otro lado, y perder su semilla haría que la rama
+    que cuelga de ella salga distinta después de moverla, que es de los efectos más desconcertantes
+    posibles.
+
+    Mueve TODAS las curvas de un conjunto por igual. Mover una sola de un set requeriría decir cuál,
+    y para eso está separarlas antes.
+    """
+    desplazamiento = tuple(float(componente) for componente in desplazamiento)
+    if any(not math.isfinite(componente) for componente in desplazamiento):
+        return {"error": "curve_move recibió un desplazamiento no finito."}
+    paths = paths_of(value, samples=samples)
+    if not paths:
+        return {"error": "curve_move necesita una curva S válida."}
+    output = [
+        replace(path, points=tuple(
+            tuple(punto[eje] + desplazamiento[eje] for eje in range(3)) for punto in path.points))
+        for path in paths
+    ]
+    result = output[0] if len(output) == 1 and not isinstance(value, CurveSet) \
+        else CurveSet(tuple(output))
+    distancia = math.sqrt(sum(c * c for c in desplazamiento))
+    suffix = f" · {len(output)} curvas" if len(output) > 1 else ""
+    return {"curve": result,
+            "info": f"movida {distancia:.1f} cm{suffix}"}
+
+
 def resample(value, *, count: int = 24, samples: int = 32) -> dict:
     """Remuestrea cada recorrido de ``S`` por longitud y conserva su metadata de TreeGen."""
     from . import curve_sampling_core

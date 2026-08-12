@@ -996,6 +996,15 @@ def t_curve_line_sdl(_input=None, *, origen="0,0,0", direccion="0,0,1", largo=30
     return f"LINE SDL S ✓ — {result['info']}"
 
 
+def t_curve_move(curve_input, *, desplazamiento="0,0,100") -> str:
+    from . import curve, math_core
+    result = curve.move(curve_input, math_core._vector(desplazamiento, "desplazamiento"))
+    if "error" in result:
+        raise RuntimeError(result["error"])
+    _RUNTIME_DATA_OUTPUTS["curve_move"] = result["curve"]
+    return f"MOVE S ✓ — {result['info']}"
+
+
 def t_curve_resample(curve_input, *, count=24, samples=32) -> str:
     from . import curve
     result = curve.resample(curve_input, count=int(count), samples=int(samples))
@@ -2233,6 +2242,13 @@ REGISTRO = {
                                             "largo": "largo (Número)"},
                        "doc": "segmento desde un origen en una dirección; la dirección se normaliza, "
                               "así que el largo pedido es el largo que sale"},
+    "curve_move": {"fn": t_curve_move, "label": "Mover curva", "cat": "Mesh",
+                   "graph_only": True,
+                   "params": {"desplazamiento": "0,0,100"},
+                   "data_params": {"desplazamiento": "V"},
+                   "optional_data_params": ("desplazamiento",),
+                   "etiquetas_params": {"desplazamiento": "mover (Vector)"},
+                   "doc": "mueve una curva por un vector, conservando su metadata"},
     "curve_resample": {"fn": t_curve_resample, "label": "Remuestrear curva", "cat": "Mesh",
                        "graph_only": True,
                        "params": {"count": 24, "samples": 32},
@@ -2728,7 +2744,8 @@ GRAPH_NO_ASSET = {"mesh_preview", "asset", "pick", "create_spline", "pivot_set",
                   "mesh_cone", "mesh_sphere", "mesh_ribbon", "mesh_pipe", "mesh_pipe_profile",
                   "mesh_box", "mesh_capsule", "mesh_torus", "mesh_disc",
                   "mesh_round_rect", "mesh_stairs", "mesh_stairs_curved",
-                  "mesh_sphere_box", "mesh_revolve", "curve_polyline", "curve_resample",
+                  "mesh_sphere_box", "mesh_revolve", "curve_polyline", "curve_move",
+                  "curve_resample",
                   "curve_smooth", "curve_fuse_collinear", "curve_subdivide", "curve_offset",
                   "mesh_transform", "mesh_extrude", "mesh_merge", "mesh_loft", "graph_curve", "series_range", "series_remap",
                   "curve_child", "curve_frames", "distribute_frames", "transform_frames",
@@ -2756,7 +2773,7 @@ GRAPH_IN_NAMES = {"reroute_mesh": "M", "reroute_asset": "A", "reroute_points": "
                   "mass_spec": "F", "mass_spawn": "MS", "mass_inspect": "MH", "mass_clear": "MH",
                   "points_to_frames": "P", "debug": "*", "curve_child": "S", "curve_noise": "S", "curve_frames": "S", "distribute_frames": "F",
                   "series_remap": "N[]",
-                  "curve_resample": "S", "curve_smooth": "S",
+                  "curve_move": "S", "curve_resample": "S", "curve_smooth": "S",
                   "curve_fuse_collinear": "S", "curve_subdivide": "S",
                   "curve_offset": "S",
                   "transform_frames": "F", "branch_from_frames": "F", "curve_branches": "S",
@@ -2796,7 +2813,7 @@ GRAPH_OUT_NAMES = {"brush": "P", "mesh_preview": "", "reroute_mesh": "M", "rerou
                    "curve_bezier": "S", "curve_line": "S", "curve_line_sdl": "S",
                    "curve_interpolate": "S",
                    "curve_child": "S", "curve_noise": "S", "curve_frames": "F",
-                   "curve_polyline": "S", "curve_resample": "S", "curve_smooth": "S",
+                   "curve_polyline": "S", "curve_move": "S", "curve_resample": "S", "curve_smooth": "S",
                    "curve_fuse_collinear": "S", "curve_subdivide": "S",
                    "curve_offset": "S",
                    "distribute_frames": "F", "transform_frames": "F",

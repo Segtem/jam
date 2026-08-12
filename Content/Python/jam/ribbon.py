@@ -29,7 +29,7 @@ GRUPOS: dict[str, list[tuple[str, list[str]]]] = {
         ("Curvas", ["curve_line", "curve_line_sdl", "curve_bezier", "curve_polyline",
                     "curve_interpolate",
                     "curve_fuse_collinear",
-                    "curve_subdivide", "curve_smooth", "curve_resample", "curve_offset", "curve_child",
+                    "curve_subdivide", "curve_smooth", "curve_move", "curve_resample", "curve_offset", "curve_child",
                     "curve_branches", "curve_noise", "graph_curve"]),
         ("Frames", ["curve_frames", "distribute_frames", "transform_frames",
                     "branch_from_frames", "points_to_frames"]),

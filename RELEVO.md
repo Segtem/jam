@@ -1320,7 +1320,26 @@ longitud de ARCO, no por índice.
 1059 → 1068 tests, 4 mutaciones que discriminan. **El moño del bevel no reapareció**: el loft no
 hace offset, recibe las curvas ya trazadas. Sigue esperando en `offset_points`.
 
-Lo único que queda de la escalera: **`Move` sobre curvas**.
+✅ **Y `Move` sobre curvas cierra la escalera: está COMPLETA.** Jam ya tenía `move` para puntos y
+`mesh_transform` para mallas; las curvas quedaban sin forma de correrse, así que armar dos rieles
+para un loft obligaba a escribir dos veces las coordenadas con un offset a mano. **Conserva la
+metadata** —semilla, escala, índices de TreeGen—: mover no debería cambiar la forma de nada, y
+perder la semilla haría que la rama que cuelga de la curva salga distinta después de moverla.
+
+⚠️ **Una mutación destapó un hueco en MI test**: mover sólo la primera curva de un conjunto pasaba
+en verde, porque el test comprobaba que todas las que quedaban estuvieran bien movidas pero no que
+no se perdiera ninguna. Ahora pregunta por la CANTIDAD primero. Es el valor de mutar: el hueco
+estaba en el test, no en el código.
+
+**La escalera corre entera en un solo grafo** (`verifica_loft_58.py`), cada peldaño usando el
+anterior: `Unitario X → Línea por dirección → Mover curva (con Unitario Z) → Tender entre curvas` —
+cinco nodos, `MOVE S ✓ movida 200.0 cm` y `LOFT M ✓ 14 triángulos`. Es lo que el tutorial de Harmon
+enseña a hacer en Rhino, con nodos de Jam sobre mallas de Geometry Script. **1073 tests.**
+
+Lo que sigue del pedido de Brian, en orden de bloqueo: **Domain** (el modelo que vale copiar de GH:
+remap/includes/divide apoyados sobre un TIPO en vez de sueltos) · **Matrix**, que espera a la
+multi-salida · y todo el eje **vistoso** (Value List → Digit Scroller → Control Knob → Gradient →
+MD Slider → Graph Mapper).
 
 ⚠️ El tutorial es de **NURBS** y Jam produce mallas de Geometry Script: Loft y Boundary se van a
 implementar como triangulación. La escalera aporta el ORDEN y el vocabulario, no la representación —

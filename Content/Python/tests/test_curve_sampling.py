@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import dataclasses
 import json
 import math
 import sys
@@ -501,3 +502,53 @@ class InterpolarPuntosTests(unittest.TestCase):
         self.assertGreater(len(suave["curve"].points), 3)
         # La suave es más larga: dobla en vez de hacer esquina.
         self.assertGreater(suave["curve"].length, recta["curve"].length * 0.9)
+
+
+class MoverCurvaTests(unittest.TestCase):
+    """Lo último que le faltaba a la escalera: el «Move» del tutorial, del lado de las curvas.
+
+    Jam ya tenía `move` para puntos y `mesh_transform` para mallas; las curvas quedaban sin forma de
+    correrse de lugar, así que armar dos rieles paralelos para un loft obligaba a escribir dos veces
+    las mismas coordenadas con un offset a mano.
+    """
+
+    def recta(self):
+        return curve.line((0.0, 0.0, 0.0), (300.0, 0.0, 0.0))["curve"]
+
+    def test_mueve_todos_los_puntos_por_igual(self) -> None:
+        movida = curve.move(self.recta(), (0.0, 0.0, 100.0))
+        self.assertEqual(movida["curve"].points, ((0.0, 0.0, 100.0), (300.0, 0.0, 100.0)))
+        self.assertIn("100.0 cm", movida["info"])
+
+    def test_conserva_la_METADATA_de_la_curva(self) -> None:
+        """Una curva movida sigue siendo la misma curva en otro lado. Perder su semilla haría que
+        la rama que cuelga de ella salga distinta después de moverla — de los efectos más
+        desconcertantes posibles, porque mover no debería cambiar la forma de nada."""
+        original = dataclasses.replace(self.recta(), seed=1234, scale=2.5)
+        movida = curve.move(original, (10.0, 0.0, 0.0))["curve"]
+        self.assertEqual(movida.seed, 1234)
+        self.assertEqual(movida.scale, 2.5)
+
+    def test_mueve_todas_las_curvas_de_un_conjunto(self) -> None:
+        conjunto = curve.CurveSet((self.recta(), curve.line((0.0, 50.0, 0.0),
+                                                            (300.0, 50.0, 0.0))["curve"]))
+        movido = curve.move(conjunto, (0.0, 0.0, 25.0))["curve"]
+        self.assertIsInstance(movido, curve.CurveSet)
+        # La CANTIDAD primero: sin esto, mover sólo la primera curva y descartar el resto pasaba el
+        # test —todas las que quedaban estaban bien movidas—. Lo destapó una mutación.
+        self.assertEqual(len(movido.paths), len(conjunto.paths))
+        for path in movido.paths:
+            for punto in path.points:
+                self.assertEqual(punto[2], 25.0)
+
+    def test_un_desplazamiento_no_finito_es_error(self) -> None:
+        self.assertIn("no finito", curve.move(self.recta(), (0.0, float("inf"), 0.0))["error"])
+
+    def test_dos_rieles_para_un_loft_salen_de_mover_uno(self) -> None:
+        """El uso que lo justifica: el peldaño 6 necesita dos curvas, y hasta ahora había que
+        escribir las coordenadas dos veces con el offset a mano."""
+        riel = self.recta()
+        otro = curve.move(riel, (0.0, 0.0, 200.0))["curve"]
+        self.assertEqual(len(riel.points), len(otro.points))
+        for a, b in zip(riel.points, otro.points):
+            self.assertEqual(b[2] - a[2], 200.0)

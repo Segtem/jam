@@ -95,5 +95,29 @@ hechos_reves = oracle_malla_facts.hechos(
 exigir(not [c for c in hechos_reves["cara_malla"] if float(c["acuerdo"]) <= 0.0],
        "y la superficie enderezada sale coherente (sin enderezar saldría cruzada en X)")
 
+log("-" * 78)
+log("Y la escalera ENTERA, con el último peldaño: un solo riel movido hace el segundo.")
+completa = JamGraph()
+completa.add("vector_unit_x", {"largo": 1}, nid="eje")
+completa.add("curve_line_sdl", {"origen": "0,0,0", "largo": 500}, nid="riel")
+completa.add("vector_unit_z", {"largo": 200}, nid="arriba")
+completa.add("curve_move", {}, nid="riel2")
+completa.add("mesh_loft", {"samples": 8}, nid="superficie")
+completa.connect("eje", "riel", "direccion")
+completa.connect("riel", "riel2", "in")
+completa.connect("arriba", "riel2", "desplazamiento")
+completa.connect("riel", "superficie", "in")
+completa.connect("riel2", "superficie", "in")
+compilado_c = json.loads(api.compile_graph_json(completa.to_json()))
+exigir(compilado_c.get("ok"), f"Compile de la escalera entera: {compilado_c}")
+corrida_c = json.loads(api.run_graph_json(completa.to_json()))
+exigir(corrida_c.get("ok"), f"Run de la escalera entera: {corrida_c}")
+for linea in corrida_c.get("report", "").splitlines():
+    if "riel2" in linea or "superficie" in linea:
+        log(f"  {linea[:110]}")
+exigir("MOVE S" in corrida_c.get("report", ""), "el riel se movió con un vector cableado")
+exigir("LOFT M" in corrida_c.get("report", ""),
+       "y la superficie se tendió entre el riel y su copia movida")
+
 log("=" * 78)
 log("JAM_LOFT_58 TODO VERDE" if not FALLAS else f"JAM_LOFT_58 ROJO — {len(FALLAS)}")
