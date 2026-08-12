@@ -253,6 +253,39 @@ La suite completa pasó de 547 a **552 tests**. Dos mutaciones deliberadas discr
 lectura de `seccion` en Slate. C++ compiló en UE 5.8.1; falta ejercer los cinco nodos con gestos en
 **Datos → Maths**.
 
+## Avance 2026-08-12 — Rango, Mezcla, Redondeo, Trigonometría y las comparaciones que faltaban
+
+El tercer lote cierra la **Fase 1**: 16 verbos —Mínimo, Máximo, Limitar, Saturar, Interpolar,
+Remapear, Piso, Techo, Redondear, Grados↔radianes, Seno, Coseno, Tangente, Mayor o igual y Menor o
+igual—, cada uno con su icono propio y su grupo en el ribbon (Rango, Mezcla, Redondeo,
+Trigonometría, Comparar). El registro sigue siendo el mismo `math_core`, así que Flow y Graph los
+consumen sin tocar nada más.
+
+Lo que se decidió, que es lo que vale releer:
+
+· **Redondear aleja el medio del CERO, no al par.** `round()` de Python da 0 para 0,5 y 2 para 2,5:
+  correcto para estadística, desconcertante en un grafo, y como el error no es constante se ve como
+  «a veces redondea mal». Acá 0,5 da 1, igual que `FMath::RoundHalfFromZero`.
+· **Un rango dado vuelta en Limitar es ERROR**, no algo que se acomoda intercambiando los pines. Un
+  cable mal conectado que sigue produciendo números plausibles no tiene síntoma hasta que alguien
+  mira la geometría.
+· **Interpolar NO acota el factor**: 1,5 extrapola a propósito. Para acotar está Saturar, que se ve
+  en el grafo. Y usa `desde + (hasta-desde)*factor` para que el factor 1 dé EXACTAMENTE el destino.
+· **Remapear con origen vacío es error**: no hay proporción que calcular y devolver el mínimo del
+  destino sería inventar una respuesta.
+· **La tangente cerca del polo da números enormes y eso no es un error**: ese punto exacto no se
+  alcanza en flotantes y poner un umbral inventaría un límite que la matemática no tiene.
+· Seno, coseno y tangente van **en radianes**, con la conversión explícita como verbo aparte.
+
+Suite de 1005 a **1019 tests**, con **5 mutaciones** que discriminan (redondeo al par, rango que se
+acomoda solo, factor acotado, origen vacío que inventa, saturar que no acota). Camino real:
+`JAM_MATH_GRAPH_TEST TODO VERDE — 23 verbos en el spec + Compile + Run + Inspector=40/2 y
+sin(45°)→71 + división por cero, raíz negativa y rango dado vuelta rechazados`. El rechazo del rango
+también se verificó **mutando el núcleo**: con `_limitar` intercambiando los pines, la sonda pasa a
+rojo con `Run aceptó un rango dado vuelta … limite = 3`.
+
+⚠️ Falta ejercer los 16 nodos con **gestos** en Datos → Maths, como los dos lotes anteriores.
+
 ## Oracle y frontera
 
 La exactitud aritmética pertenece primero a tests deterministas del cerebro; no hace falta inventar

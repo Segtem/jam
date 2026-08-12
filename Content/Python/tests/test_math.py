@@ -483,3 +483,132 @@ class VariablesParaElDesplegableTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RangoMezclaRedondeoYAngulosTests(unittest.TestCase):
+    """El tercer lote de la Fase 1: Rango, Mezcla, Redondeo, Trigonometría y las dos comparaciones
+    que faltaban. Lo que se fija acá no es «que la suma sume» sino las DECISIONES: qué pasa en los
+    bordes, dónde se falla y con qué pin."""
+
+    def evaluar(self, verbo, params):
+        return math_core.evaluar(verbo, params, {}, lambda *_a: None)
+
+    def test_rango(self) -> None:
+        self.assertEqual(self.evaluar("math_min", {"a": 3, "b": 7}), 3)
+        self.assertEqual(self.evaluar("math_max", {"a": 3, "b": 7}), 7)
+        self.assertEqual(self.evaluar("math_clamp", {"valor": 9, "minimo": 0, "maximo": 5}), 5)
+        self.assertEqual(self.evaluar("math_clamp", {"valor": -9, "minimo": 0, "maximo": 5}), 0)
+        self.assertEqual(self.evaluar("math_clamp", {"valor": 3, "minimo": 0, "maximo": 5}), 3)
+
+    def test_un_rango_dado_vuelta_es_error_y_no_se_acomoda_solo(self) -> None:
+        """Intercambiar mínimo y máximo en silencio deja pasar un cable mal conectado produciendo
+        números plausibles: no hay síntoma hasta que alguien mira la geometría."""
+        with self.assertRaises(math_core.ValorError) as caso:
+            self.evaluar("math_clamp", {"valor": 3, "minimo": 5, "maximo": 0})
+        self.assertEqual(caso.exception.pin, "minimo")
+
+    def test_saturar_es_limitar_a_cero_uno(self) -> None:
+        for entrada, esperado in ((-2, 0.0), (0.25, 0.25), (5, 1.0)):
+            with self.subTest(entrada=entrada):
+                self.assertEqual(self.evaluar("math_saturate", {"valor": entrada}), esperado)
+
+    def test_interpolar_NO_acota_el_factor(self) -> None:
+        """Extrapolar es útil y acotarlo en silencio se la sacaría a quien la busca; para acotar
+        está `math_saturate`, que se ve en el grafo."""
+        self.assertEqual(self.evaluar("math_lerp", {"desde": 0, "hasta": 10, "factor": 0.5}), 5)
+        self.assertEqual(self.evaluar("math_lerp", {"desde": 0, "hasta": 10, "factor": 1.5}), 15)
+        self.assertEqual(self.evaluar("math_lerp", {"desde": 0, "hasta": 10, "factor": -1}), -10)
+
+    def test_interpolar_llega_EXACTO_al_destino(self) -> None:
+        """Con `desde*(1-f) + hasta*f` el factor 1 puede errarle por redondeo. Con esta forma, no."""
+        self.assertEqual(self.evaluar("math_lerp", {"desde": 0.1, "hasta": 0.3, "factor": 1.0}), 0.3)
+
+    def test_remapear(self) -> None:
+        self.assertEqual(self.evaluar("math_remap", {
+            "valor": 5, "desde_min": 0, "desde_max": 10,
+            "hasta_min": 0, "hasta_max": 100}), 50)
+        # Fuera del rango de origen se extrapola, igual que interpolar.
+        self.assertEqual(self.evaluar("math_remap", {
+            "valor": 20, "desde_min": 0, "desde_max": 10,
+            "hasta_min": 0, "hasta_max": 100}), 200)
+
+    def test_un_origen_vacio_al_remapear_es_error(self) -> None:
+        """Todo el origen es un punto: no hay proporción que calcular y devolver el mínimo del
+        destino sería inventar una respuesta."""
+        with self.assertRaises(math_core.ValorError) as caso:
+            self.evaluar("math_remap", {"valor": 5, "desde_min": 2, "desde_max": 2,
+                                        "hasta_min": 0, "hasta_max": 100})
+        self.assertEqual(caso.exception.pin, "desde_max")
+
+    def test_piso_y_techo_con_negativos(self) -> None:
+        """El caso donde la intuición falla: piso se ALEJA del cero y techo se le acerca."""
+        self.assertEqual(self.evaluar("math_floor", {"valor": -2.1}), -3)
+        self.assertEqual(self.evaluar("math_ceil", {"valor": -2.9}), -2)
+        self.assertEqual(self.evaluar("math_floor", {"valor": 2.9}), 2)
+        self.assertEqual(self.evaluar("math_ceil", {"valor": 2.1}), 3)
+
+    def test_redondear_aleja_el_medio_del_cero_y_NO_al_par(self) -> None:
+        """`round()` de Python redondea el medio al par: `round(0.5)` da 0 y `round(2.5)` da 2. Es
+        correcto para estadística y desconcertante en un grafo, y encima el error no es constante,
+        así que se ve como «a veces redondea mal». Acá 0,5 da 1."""
+        self.assertEqual(self.evaluar("math_round", {"valor": 0.5}), 1)
+        self.assertEqual(self.evaluar("math_round", {"valor": 1.5}), 2)
+        self.assertEqual(self.evaluar("math_round", {"valor": 2.5}), 3)
+        self.assertEqual(self.evaluar("math_round", {"valor": -0.5}), -1)
+        self.assertEqual(self.evaluar("math_round", {"valor": -2.5}), -3)
+        self.assertNotEqual(self.evaluar("math_round", {"valor": 2.5}), round(2.5))
+
+    def test_angulos_van_en_radianes_y_la_conversion_es_explicita(self) -> None:
+        self.assertAlmostEqual(self.evaluar("math_radians", {"grados": 180}), math.pi)
+        self.assertAlmostEqual(self.evaluar("math_degrees", {"radianes": math.pi}), 180)
+        self.assertAlmostEqual(self.evaluar("math_sin", {"radianes": math.pi / 2}), 1.0)
+        self.assertAlmostEqual(self.evaluar("math_cos", {"radianes": 0}), 1.0)
+        self.assertAlmostEqual(self.evaluar("math_tan", {"radianes": math.pi / 4}), 1.0)
+
+    def test_la_tangente_cerca_del_polo_da_un_numero_enorme_y_NO_es_error(self) -> None:
+        """En π/2 la tangente no existe, pero ese punto exacto no se alcanza en flotantes: lo que
+        llega son valores cercanos donde la tangente realmente vale millones. Un umbral que los
+        rechazara inventaría un límite que la matemática no tiene."""
+        enorme = self.evaluar("math_tan", {"radianes": math.pi / 2})
+        self.assertGreater(abs(enorme), 1e15)
+        self.assertTrue(math.isfinite(enorme))
+
+    def test_las_comparaciones_nuevas_producen_booleano(self) -> None:
+        for verbo in ("compare_greater_equal", "compare_less_equal"):
+            with self.subTest(verbo=verbo):
+                self.assertEqual(math_core.tipo_salida(verbo), "B")
+        self.assertTrue(self.evaluar("compare_greater_equal", {"a": 3, "b": 3}))
+        self.assertFalse(self.evaluar("compare_greater", {"a": 3, "b": 3}))
+        self.assertTrue(self.evaluar("compare_less_equal", {"a": 3, "b": 3}))
+        self.assertFalse(self.evaluar("compare_less", {"a": 3, "b": 3}))
+
+    def test_todo_el_lote_esta_en_flow_y_en_el_ribbon(self) -> None:
+        """Un verbo que existe en el registro pero no en el ribbon no se puede agregar con el mouse:
+        queda escrito y no existe para el que usa la herramienta."""
+        grupos = {
+            "Rango": ["math_min", "math_max", "math_clamp", "math_saturate"],
+            "Mezcla": ["math_lerp", "math_remap"],
+            "Redondeo": ["math_floor", "math_ceil", "math_round"],
+            "Trigonometría": ["math_radians", "math_degrees", "math_sin", "math_cos", "math_tan"],
+            "Comparar": ["compare_greater_equal", "compare_less_equal"],
+        }
+        for grupo, verbos in grupos.items():
+            for verbo in verbos:
+                with self.subTest(verbo=verbo):
+                    self.assertIn(verbo, flow.OPS_META)
+                    self.assertEqual(ribbon.grupo_de("Maths", verbo), grupo)
+
+    def test_el_lote_resuelve_encadenado_en_el_Graph(self) -> None:
+        """Por el ejecutor de verdad y no verbo por verbo: remapear 5 de 0..10 a 0..100, saturar
+        eso a 0..1 y redondearlo tiene que dar 1."""
+        g = JamGraph()
+        g.add("math_remap", {"valor": 5, "desde_min": 0, "desde_max": 10,
+                             "hasta_min": 0, "hasta_max": 100}, nid="mapa")
+        g.add("math_saturate", {}, nid="sat")
+        g.add("math_round", {}, nid="red")
+        g.connect("mapa", "sat", "valor")
+        g.connect("sat", "red", "valor")
+        plan = compilar(g)
+        self.assertEqual(plan.values_by_node["mapa"], 50.0)
+        self.assertEqual(plan.values_by_node["sat"], 1.0)
+        self.assertEqual(plan.values_by_node["red"], 1.0)

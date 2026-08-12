@@ -56,6 +56,72 @@ def _raiz_cuadrada(radicando: float) -> float:
     return math.sqrt(radicando)
 
 
+def _limitar(valor: float, minimo: float, maximo: float) -> float:
+    """Acota un número a un rango. Un rango dado vuelta es un ERROR, no algo que se acomoda solo.
+
+    La alternativa —intercambiar `minimo` y `maximo` en silencio— hace que un cable mal conectado
+    siga produciendo números plausibles, que es la peor forma de fallar: no hay síntoma hasta que
+    alguien mira la geometría y no entiende. Falla nombrando el pin responsable.
+    """
+    if minimo > maximo:
+        raise ValorError("minimo", "no puede ser mayor que el máximo")
+    return maximo if valor > maximo else (minimo if valor < minimo else valor)
+
+
+def _interpolar(desde: float, hasta: float, factor: float) -> float:
+    """Mezcla dos números. El factor NO se acota a 0..1 a propósito.
+
+    Extrapolar es útil —`factor` 1.5 continúa la recta más allá del destino, que es como se
+    exageran transiciones— y acotarlo en silencio le sacaría esa capacidad a quien la busca. Para
+    acotarlo está `math_saturate`, que se ve en el grafo.
+
+    La forma es `desde + (hasta - desde) * factor` y no `desde*(1-f) + hasta*f`: la primera devuelve
+    EXACTAMENTE `hasta` cuando el factor es 1, y la segunda puede errarle por redondeo.
+    """
+    return desde + (hasta - desde) * factor
+
+
+def _remapear(valor: float, desde_min: float, desde_max: float,
+              hasta_min: float, hasta_max: float) -> float:
+    """Lleva un número de un rango a otro. Un rango de origen vacío es un error.
+
+    Si `desde_min` y `desde_max` son iguales no hay proporción que calcular: todo el origen es un
+    solo punto. Devolver el mínimo del destino sería inventar una respuesta para una pregunta que no
+    la tiene.
+    """
+    ancho = desde_max - desde_min
+    if ancho == 0.0:
+        raise ValorError("desde_max", "el rango de origen no puede ser vacío")
+    return hasta_min + (valor - desde_min) * (hasta_max - hasta_min) / ancho
+
+
+def _redondear(valor: float) -> float:
+    """Redondeo al entero más cercano, con el medio ALEJÁNDOSE del cero.
+
+    `round()` de Python redondea el medio al par —`round(0.5)` es 0 y `round(1.5)` es 2—, que es
+    correcto para estadística y desconcertante en un grafo: quien escribe 0,5 espera 1. Peor, el
+    error no es constante, así que se ve como «a veces redondea mal».
+
+    Acá el medio se aleja del cero, que es la convención que la gente aprende en la escuela y la que
+    usan `FMath::RoundHalfFromZero` de Unreal y la mayoría de las calculadoras.
+    """
+    return math.floor(valor + 0.5) if valor >= 0.0 else math.ceil(valor - 0.5)
+
+
+def _tangente(radianes: float) -> float:
+    """Tangente. Cerca del polo devuelve un número enorme y eso NO es un error.
+
+    En π/2 la tangente no existe, pero en flotantes ese punto exacto no se alcanza casi nunca: lo
+    que llega son valores cercanos, donde la tangente REALMENTE vale millones. Poner un umbral para
+    rechazarlos sería inventar un límite que la matemática no tiene y romper usos legítimos.
+    Lo que sí se ataja es que el resultado deje de ser finito.
+    """
+    resultado = math.tan(radianes)
+    if not math.isfinite(resultado):
+        raise ValorError("radianes", "la tangente no es finita en ese ángulo")
+    return resultado
+
+
 # Registro público. El orden sólo es de declaración; ``ribbon.py`` decide el orden visual.
 def _casi_igual(a: float, b: float, tolerancia: float) -> bool:
     """Igualdad de flotantes con tolerancia EXPLÍCITA y visible en el nodo.
@@ -162,6 +228,132 @@ VALORES: dict[str, dict] = {
         "operacion": _raiz_cuadrada,
         "doc": "raíz cuadrada real; un radicando negativo es error",
     },
+    "math_min": {
+        "label": "Mínimo", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"a": 0.0, "b": 0.0},
+        "tipos": {"a": "N", "b": "N"},
+        "etiquetas_params": {"a": "a (Número)", "b": "b (Número)"},
+        "out_label": "menor",
+        "operacion": min,
+        "doc": "el menor de dos números",
+    },
+    "math_max": {
+        "label": "Máximo", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"a": 0.0, "b": 0.0},
+        "tipos": {"a": "N", "b": "N"},
+        "etiquetas_params": {"a": "a (Número)", "b": "b (Número)"},
+        "out_label": "mayor",
+        "operacion": max,
+        "doc": "el mayor de dos números",
+    },
+    "math_clamp": {
+        "label": "Limitar", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"valor": 0.0, "minimo": 0.0, "maximo": 1.0},
+        "tipos": {"valor": "N", "minimo": "N", "maximo": "N"},
+        "etiquetas_params": {"valor": "valor (Número)", "minimo": "mínimo (Número)", "maximo": "máximo (Número)"},
+        "out_label": "limitado",
+        "operacion": _limitar,
+        "doc": "acota un número a un rango; un rango dado vuelta es error, no se acomoda solo",
+    },
+    "math_saturate": {
+        "label": "Saturar", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"valor": 0.0},
+        "tipos": {"valor": "N"},
+        "etiquetas_params": {"valor": "valor (Número)"},
+        "out_label": "0..1",
+        "operacion": lambda valor: _limitar(valor, 0.0, 1.0),
+        "doc": "acota un número a 0..1; el caso tan común que merece su propio nodo",
+    },
+    "math_lerp": {
+        "label": "Interpolar", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"desde": 0.0, "hasta": 1.0, "factor": 0.5},
+        "tipos": {"desde": "N", "hasta": "N", "factor": "N"},
+        "etiquetas_params": {"desde": "desde (Número)", "hasta": "hasta (Número)", "factor": "factor (Número)"},
+        "out_label": "mezcla",
+        "operacion": _interpolar,
+        "doc": "mezcla dos números; el factor NO se acota, así que 1.5 extrapola a propósito",
+    },
+    "math_remap": {
+        "label": "Remapear", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"valor": 0.0, "desde_min": 0.0, "desde_max": 1.0, "hasta_min": 0.0, "hasta_max": 100.0},
+        "tipos": {"valor": "N", "desde_min": "N", "desde_max": "N", "hasta_min": "N", "hasta_max": "N"},
+        "etiquetas_params": {"valor": "valor (Número)", "desde_min": "desde mín (Número)", "desde_max": "desde máx (Número)", "hasta_min": "hasta mín (Número)", "hasta_max": "hasta máx (Número)"},
+        "out_label": "remapeado",
+        "operacion": _remapear,
+        "doc": "lleva un número de un rango a otro; un rango de origen vacío es error",
+    },
+    "math_floor": {
+        "label": "Piso", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"valor": 0.0},
+        "tipos": {"valor": "N"},
+        "etiquetas_params": {"valor": "valor (Número)"},
+        "out_label": "piso",
+        "operacion": lambda valor: float(math.floor(valor)),
+        "doc": "el entero más cercano hacia abajo; con negativos se aleja del cero (-2.1 da -3)",
+    },
+    "math_ceil": {
+        "label": "Techo", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"valor": 0.0},
+        "tipos": {"valor": "N"},
+        "etiquetas_params": {"valor": "valor (Número)"},
+        "out_label": "techo",
+        "operacion": lambda valor: float(math.ceil(valor)),
+        "doc": "el entero más cercano hacia arriba; con negativos se acerca al cero (-2.9 da -2)",
+    },
+    "math_round": {
+        "label": "Redondear", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"valor": 0.0},
+        "tipos": {"valor": "N"},
+        "etiquetas_params": {"valor": "valor (Número)"},
+        "out_label": "redondeado",
+        "operacion": _redondear,
+        "doc": "al entero más cercano, con el medio ALEJÁNDOSE del cero: 0.5 da 1, no 0",
+    },
+    "math_radians": {
+        "label": "Grados a radianes", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"grados": 0.0},
+        "tipos": {"grados": "N"},
+        "etiquetas_params": {"grados": "grados (Número)"},
+        "out_label": "radianes",
+        "operacion": math.radians,
+        "doc": "convierte grados a radianes, que es lo que consumen seno, coseno y tangente",
+    },
+    "math_degrees": {
+        "label": "Radianes a grados", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"radianes": 0.0},
+        "tipos": {"radianes": "N"},
+        "etiquetas_params": {"radianes": "radianes (Número)"},
+        "out_label": "grados",
+        "operacion": math.degrees,
+        "doc": "convierte radianes a grados, que es como se piensan las rotaciones en el editor",
+    },
+    "math_sin": {
+        "label": "Seno", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"radianes": 0.0},
+        "tipos": {"radianes": "N"},
+        "etiquetas_params": {"radianes": "radianes (Número)"},
+        "out_label": "seno",
+        "operacion": math.sin,
+        "doc": "seno de un ángulo EN RADIANES; para grados, encadenar «Grados a radianes»",
+    },
+    "math_cos": {
+        "label": "Coseno", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"radianes": 0.0},
+        "tipos": {"radianes": "N"},
+        "etiquetas_params": {"radianes": "radianes (Número)"},
+        "out_label": "coseno",
+        "operacion": math.cos,
+        "doc": "coseno de un ángulo EN RADIANES; para grados, encadenar «Grados a radianes»",
+    },
+    "math_tan": {
+        "label": "Tangente", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"radianes": 0.0},
+        "tipos": {"radianes": "N"},
+        "etiquetas_params": {"radianes": "radianes (Número)"},
+        "out_label": "tangente",
+        "operacion": _tangente,
+        "doc": "tangente de un ángulo EN RADIANES; cerca del polo da números enormes y eso no es un error",
+    },
     # ---- comparaciones: las ÚNICAS que producen un booleano ----
     # Hasta acá ningún nodo producía `B`, así que un condicional no tenía a qué cablearse: era un
     # checkbox eligiendo rama, apenas mejor que recablear a mano. Estas son las que le dan sentido.
@@ -180,6 +372,24 @@ VALORES: dict[str, dict] = {
         "out_label": "a < b",
         "operacion": lambda a, b: a < b,
         "doc": "verdadero cuando a es estrictamente menor que b",
+    },
+    "compare_greater_equal": {
+        "label": "Mayor o igual", "cat": "Maths", "source": True, "out_name": "B",
+        "params": {"a": 0.0, "b": 0.0},
+        "tipos": {"a": "N", "b": "N"},
+        "etiquetas_params": {"a": "a (Número)", "b": "b (Número)"},
+        "out_label": "a ≥ b",
+        "operacion": lambda a, b: a >= b,
+        "doc": "verdadero cuando a es mayor que b o igual",
+    },
+    "compare_less_equal": {
+        "label": "Menor o igual", "cat": "Maths", "source": True, "out_name": "B",
+        "params": {"a": 0.0, "b": 0.0},
+        "tipos": {"a": "N", "b": "N"},
+        "etiquetas_params": {"a": "a (Número)", "b": "b (Número)"},
+        "out_label": "a ≤ b",
+        "operacion": lambda a, b: a <= b,
+        "doc": "verdadero cuando a es menor que b o igual",
     },
     "compare_equal": {
         "label": "Igual a", "cat": "Maths", "source": True, "out_name": "B",

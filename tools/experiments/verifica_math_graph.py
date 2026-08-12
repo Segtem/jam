@@ -32,11 +32,26 @@ try:
         ("math_modulo", "Módulo"),
         ("math_power", "Potencia"),
         ("math_sqrt", "Raíz cuadrada"),
+        # Tercer lote — Rango, Mezcla, Redondeo y Trigonometría.
+        ("math_min", "Mínimo"),
+        ("math_max", "Máximo"),
+        ("math_clamp", "Limitar"),
+        ("math_saturate", "Saturar"),
+        ("math_lerp", "Interpolar"),
+        ("math_remap", "Remapear"),
+        ("math_floor", "Piso"),
+        ("math_ceil", "Techo"),
+        ("math_round", "Redondear"),
+        ("math_radians", "Grados a radianes"),
+        ("math_degrees", "Radianes a grados"),
+        ("math_sin", "Seno"),
+        ("math_cos", "Coseno"),
+        ("math_tan", "Tangente"),
     ):
         exigir(verbo in spec, f"el spec no publicó {verbo}")
         exigir(spec[verbo]["label"] == etiqueta,
                f"{verbo} publicó etiqueta {spec[verbo]['label']!r}")
-        exigir(spec[verbo]["out_label"] == "resultado", f"{verbo} perdió out_label")
+        exigir(bool(spec[verbo]["out_label"]), f"{verbo} perdió out_label")
         exigir(spec[verbo]["seccion"] == "Datos", f"{verbo} quedó fuera de Datos")
 
     # (7 + 3) × 4 = 40; cada operando entra por un cable de parámetro real.
@@ -88,6 +103,34 @@ try:
     lote.connect("absoluto", "potencia", "base")
     lote.connect("potencia", "modulo", "valor")
     lote.connect("modulo", "raiz", "radicando")
+    # Tercer lote por el camino real: 45° → radianes → seno → remapeado a 0..100 → redondeado.
+    # sin(45°) = 0,7071 ⇒ 70,71 ⇒ 71. Encadenado, no verbo por verbo.
+    trigo = JamGraph()
+    trigo.add("number", {"value": 45}, nid="grados")
+    trigo.add("math_radians", {}, nid="rad")
+    trigo.add("math_sin", {}, nid="seno")
+    trigo.add("math_remap", {"desde_min": 0, "desde_max": 1,
+                             "hasta_min": 0, "hasta_max": 100}, nid="escala")
+    trigo.add("math_round", {}, nid="redondeo")
+    trigo.connect("grados", "rad", "grados")
+    trigo.connect("rad", "seno", "radianes")
+    trigo.connect("seno", "escala", "valor")
+    trigo.connect("escala", "redondeo", "valor")
+    compilado_trigo = json.loads(api.compile_graph_json(trigo.to_json()))
+    exigir(compilado_trigo.get("ok"), f"Compile del lote nuevo rojo: {compilado_trigo}")
+    corrida_trigo = json.loads(api.run_graph_json(trigo.to_json()))
+    exigir(corrida_trigo.get("ok"), f"Run del lote nuevo rojo: {corrida_trigo}")
+    inspector_trigo = api.inspect_json("redondeo", "", 10, "", False)
+    exigir("71" in inspector_trigo,
+           f"el Inspector no muestra 71 para sin(45°) remapeado: {inspector_trigo[:200]}")
+
+    # Y un rechazo del lote nuevo: rango dado vuelta. Que falle es la mitad del contrato.
+    torcido = JamGraph()
+    torcido.add("math_clamp", {"valor": 3, "minimo": 5, "maximo": 0}, nid="limite")
+    rechazo_rango = json.loads(api.run_graph_json(torcido.to_json()))
+    exigir(not rechazo_rango.get("ok"),
+           f"Run aceptó un rango dado vuelta: {rechazo_rango}")
+
     compilado_lote = json.loads(api.compile_graph_json(lote.to_json()))
     exigir(compilado_lote.get("ok"), f"Compile lote rojo: {compilado_lote}")
     corrida_lote = json.loads(api.run_graph_json(lote.to_json()))
@@ -103,8 +146,9 @@ try:
     exigir(not rechazado.get("ok") and "negativo" in rechazado.get("report", ""),
            f"Compile aceptó raíz negativa: {rechazado}")
 
-    unreal.log("JAM_MATH_GRAPH_TEST TODO VERDE — spec + Compile + Run + "
-               "Inspector=40/2 + división por cero y raíz negativa rechazadas")
+    unreal.log("JAM_MATH_GRAPH_TEST TODO VERDE — 23 verbos en el spec + Compile + Run + "
+               "Inspector=40/2 y sin(45°)→71 + división por cero, raíz negativa y rango dado "
+               "vuelta rechazados")
 except Exception as exc:  # noqa: BLE001
     unreal.log_error(f"JAM_MATH_GRAPH_TEST ROJO — {type(exc).__name__}: {exc}")
 finally:

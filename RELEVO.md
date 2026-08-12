@@ -1158,11 +1158,30 @@ UE 5.8.1. La primera matriz automatizable está en
 [[2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0|la certificación 5.8.1]]; quedan las fronteras
 manuales y GUI que enumera el informe.
 
-**2. Completar los verbos escalares de la Fase 1 de
-[[2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0|Math]].** La primera entrega
-Sumar/Restar/Multiplicar/Dividir ya quedó verde también con gestos: función, Biblioteca, Run,
-Inspector, persistencia y ABM. Siguen Signo, Resto/Potencia, Rango, Mezcla, Redondeo, Ángulos y
-Comparación; vectores y matrices esperan esa base.
+✅ **2. La Fase 1 de [[2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0|Math]] está
+COMPLETA.** El tercer lote agregó los 16 que faltaban —Rango (Mínimo, Máximo, Limitar, Saturar),
+Mezcla (Interpolar, Remapear), Redondeo (Piso, Techo, Redondear), Trigonometría (Grados↔radianes,
+Seno, Coseno, Tangente) y las dos comparaciones que faltaban (Mayor o igual, Menor o igual)—, cada
+uno con icono propio y grupo en el ribbon. **Vectores y matrices ya no están bloqueados.**
+
+Las decisiones, que es lo que hay que releer antes de tocarlos:
+
+· **Redondear aleja el medio del CERO, no al par.** `round()` de Python da 0 para 0,5 y 2 para 2,5:
+correcto para estadística y desconcertante en un grafo, y como el error no es constante se ve como
+«a veces redondea mal».
+· **Un rango dado vuelta en Limitar es ERROR**, no algo que se acomoda intercambiando los pines: un
+cable mal conectado que sigue dando números plausibles no tiene síntoma hasta que alguien mira la
+geometría.
+· **Interpolar NO acota el factor** —1,5 extrapola a propósito—; para acotar está Saturar, que se ve
+en el grafo. **Remapear con origen vacío es error.** **La tangente cerca del polo da números enormes
+y eso no es un error**: poner un umbral inventaría un límite que la matemática no tiene.
+
+1005 → **1019 tests**, 5 mutaciones que discriminan, y camino real verde: `JAM_MATH_GRAPH_TEST TODO
+VERDE — 23 verbos en el spec + Compile + Run + Inspector=40/2 y sin(45°)→71 + división por cero,
+raíz negativa y rango dado vuelta rechazados`. El rechazo del rango se verificó **mutando el
+núcleo**: con `_limitar` intercambiando los pines la sonda pasa a rojo con `limite = 3`.
+
+⚠️ Falta ejercerlos con **gestos** en Datos → Maths, como los dos lotes anteriores.
 
 **3. Después de certificar la base, Fase 7 del Graph — bypass (`D`) y comentarios (`C`).**
 
