@@ -1,166 +1,169 @@
 {
-	"_comentario": [
-		"El catálogo del tab Aprender. Vive al lado de los .jamgraph y NO en el C++: agregar un",
-		"tutorial es soltar un archivo acá y sumarle una línea, sin recompilar el plugin — el mismo",
-		"trato que icon-map.json.",
-		"",
-		"`grupo` es el panel del ribbon (se dibujan en el orden en que aparecen acá).",
-		"`icono` es el nombre del SVG en Resources/Icons/Lucide, sin extensión.",
-		"`mensaje` es lo que dice el Output al cargarlo: tiene que decir QUÉ HACER después, porque",
-		"un grafo cargado que nadie corre parece que no hizo nada."
-	],
-	"ejemplos": [
-		{
-			"archivo": "Primeros-pasos.jamgraph",
-			"titulo": "Primeros pasos",
-			"grupo": "Empezar",
-			"icono": "jam-ej-primeros-pasos",
-			"doc": "La cadena mínima de Jam, en cuatro nodos: una caja (M) se suaviza, se hornea como StaticMesh (A) y se coloca en el nivel.\nMirá los colores de los cables: cian es malla procedural, verde es asset. Un verbo sólo se enchufa donde el tipo coincide.",
-			"mensaje": "Primeros pasos cargado. Ahora: Compile (verifica sin tocar la escena) y después Run graph — la caja aparece en el nivel."
-		},
-		{
-			"archivo": "TreeGen-Stylized-Pine.jamgraph",
-			"titulo": "Pino procedural",
-			"grupo": "Árboles",
-			"icono": "jam-ej-pino",
-			"doc": "Un pino low-poly hecho con primitivas: cuatro conos movidos y unidos en una sola malla.\nEs el ejemplo para ver cómo `mesh_merge` junta partes y cómo `mesh_transform` las ubica sin tocar el original.",
-			"mensaje": "Ejemplo cargado: pino procedural. Compile y después Run graph para previsualizarlo."
-		},
-		{
-			"archivo": "TreeGen-Branched-Tree.jamgraph",
-			"titulo": "Árbol ramificado",
-			"grupo": "Árboles",
-			"icono": "jam-ej-ramificado",
-			"doc": "Curvas Bézier barridas con `mesh_pipe`, con radio decreciente hacia la punta.\nAcá aparece el tipo S (spline): por el cable ya no viaja geometría sino la línea que la genera.",
-			"mensaje": "Ejemplo cargado: árbol ramificado TreeGen. Compile y después Run graph para previsualizarlo."
-		},
-		{
-			"archivo": "TreeGen-Curve-Frames.jamgraph",
-			"titulo": "Frames sobre la curva",
-			"grupo": "Árboles",
-			"icono": "jam-ej-frames",
-			"doc": "El flow S → F → ramas → malla. Un frame es una posición CON orientación, y es lo que decide hacia dónde sale cada rama.\nSi te interesa cómo Jam reparte cosas a lo largo de algo, este es el ejemplo.",
-			"mensaje": "Ejemplo cargado: flow modular de frames y ramas. Compile y después Run graph para ver el preview."
-		},
-		{
-			"archivo": "TreeGen-Two-Level.jamgraph",
-			"titulo": "Árbol de dos niveles",
-			"grupo": "Árboles",
-			"icono": "jam-ej-dos-niveles",
-			"doc": "La réplica completa de TreeGen: tronco → ramas → ramitas → follaje.\nEl follaje sale como HISM aparte (tipo H), que es lo que permite miles de hojas sin miles de actores.",
-			"mensaje": "Ejemplo cargado: árbol de dos niveles. Compile y después Run graph; el follaje sale como HISM aparte."
-		},
-		{
-			"archivo": "Prueba-MassEntity.jamgraph",
-			"titulo": "Primera población MassEntity",
-			"grupo": "Simulación",
-			"icono": "jam-mass-probe",
-			"doc": "Una curva produce 37 frames F y MassEntity crea una entidad real por frame con FTransformFragment. La sonda comprueba cantidad, arquetipo y posición, destruye las 37 entidades y deja pasar el mismo F.\nEs una prueba del núcleo: todavía no crea una población persistente, representación visual, traits de MassGameplay ni comportamiento.",
-			"mensaje": "Prueba MassEntity cargada. Compile y Run graph; el nodo debe informar 37 entidades, un arquetipo, transforms conservados y limpieza completa."
-		},
-		{
-			"archivo": "Poblacion-MassEntity-Temporal.jamgraph",
-			"titulo": "Población MassEntity temporal",
-			"grupo": "Simulación",
-			"icono": "jam-mass-spawn",
-			"doc": "Una curva produce 37 frames F, Receta los vuelve MS y Crear población entrega un MH vivo que Inspeccionar mide sin destruir.\nRun reemplaza la población Preview anterior; Discard la destruye. Bake la conserva sólo durante la vida del mundo: MH nunca se serializa en el Graph.",
-			"mensaje": "Población Mass temporal cargada. Compile y Run graph; repetí Run para probar reemplazo, o usá Bake/Discard para decidir su ciclo de vida."
-		},
-		{
-			"archivo": "Poblacion-MassGameplay-Ambiental.jamgraph",
-			"titulo": "Población MassGameplay ambiental",
-			"grupo": "Simulación",
-			"icono": "jam-mass-spawn",
-			"doc": "El config espacial distribuido por Jam se valida como MC y gobierna una receta MS de 37 frames. Crear población usa un AJamMassSpawner real y entrega un MH inspeccionable.\nLa representación ambiental estacionaria usa ISM en High/Medium/Low y desaparece en Off; todavía no navega ni ejecuta comportamiento.",
-			"mensaje": "Población MassGameplay cargada. Compile y Run graph; Inspeccionar debe informar 37 entidades vivas y Discard debe liberarlas."
-		},
-		{
-			"archivo": "Poblacion-Mass-LOD-Presupuestado.jamgraph",
-			"titulo": "Población Mass con presupuesto LOD",
-			"grupo": "Simulación",
-			"icono": "jam-mass-spawn",
-			"doc": "Cuatro entidades cercanas compiten por un máximo independiente de una plaza High, una Medium y una Low. Mass degrada el excedente hasta Off, sin que Jam ordene entidades a mano.\nEl nodo Configuración exige que el asset medido tenga los tres topes y deja Off ilimitado como sumidero.",
-			"mensaje": "Población Mass presupuestada cargada. Compile y Run graph; el MC debe informar máximos LOD (1, 1, 1, 2147483647)."
-		},
-		{
-			"archivo": "Patrulla-Mass-Ambiental.jamgraph",
-			"titulo": "Patrulla Mass ambiental",
-			"grupo": "Simulación",
-			"icono": "jam-mass-spawn",
-			"doc": "Ocho entidades reciben una patrulla autónoma de vaivén sobre el eje de cada frame. El processor conserva el origen, limita el recorrido a 25 cm y cuenta cada reversión.\nUsa ISM dinámica para que la representación siga los transforms; no necesita ZoneGraph, StateTree ni actores.",
-			"mensaje": "Patrulla Mass cargada. Compile y Run graph; el MC debe informar 800 cm/s, radio 25 cm y patrulla dinámica válida."
-		},
-		{
-			"archivo": "Debug-Playground.jamgraph",
-			"titulo": "Banco de pruebas de Debug",
-			"grupo": "Ver el dato",
-			"icono": "jam-ej-debug",
-			"doc": "El mismo nodo Debug conectado a cinco tipos distintos: puntos, frames, curva, serie y malla.\nEs el ejemplo para aprender a MIRAR lo que viaja por un cable en vez de adivinarlo.",
-			"mensaje": "Ejemplo cargado: banco de pruebas de Debug. Compile y después Run graph — cada carril dibuja un tipo distinto."
-		},
-		{
-			"archivo": "Terreno-con-ruido.jamgraph",
-			"titulo": "Terreno con ruido",
-			"grupo": "Formas procedurales",
-			"icono": "jam-mesh-noise",
-			"doc": "Una grilla subdividida deformada por Perlin 3D nativo de UE 5.8. Cambiá amplitud, frecuencia y seed para leer cómo cada parámetro altera la forma.\nReimplementa como Graph el ejemplo de heightfield de ProceduralMeshDemos; no depende de assets externos.",
-			"mensaje": "Terreno con ruido cargado. Ahora: Compile y después Run graph para generar y colocar la malla."
-		},
-		{
-			"archivo": "Cylinder-Strip.jamgraph",
-			"titulo": "Cylinder Strip continuo",
-			"grupo": "Formas procedurales",
-			"icono": "jam-curve-resample",
-			"doc": "Tres series N[] forman una polilínea S; Smooth reduce sus quiebres, Resample reparte 31 puntos por longitud y Pipe barre un único perfil continuo.\nParte del ejemplo Cylinder Strip de ProceduralMeshDemos, pero hace visibles los datos y evita sus cilindros independientes con juntas abiertas.",
-			"mensaje": "Cylinder Strip cargado. Compile y después Run graph; cambiá Smooth, cantidad de muestras y miter limit para estudiar el recorrido y sus juntas."
-		},
-		{
-			"archivo": "Preparar-una-curva.jamgraph",
-			"titulo": "Preparar una curva",
-			"grupo": "Formas procedurales",
-			"icono": "jam-curve-fuse-collinear",
-			"doc": "Una recta con siete puntos pasa por cuatro operaciones distintas: Fuse la reduce a sus dos extremos, Subdivide inserta tres puntos por tramo, Smooth cambia la forma sin cambiar el conteo y Resample elige trece muestras por longitud.\nUsá el Inspector y Debug para distinguir quitar, insertar, suavizar y redistribuir puntos antes de generar una malla.",
-			"mensaje": "Preparar una curva cargado. Compile y Run graph; inspeccioná la cadena 7→2→5→5→13 y después doblá un punto para ver qué conserva cada verbo."
-		},
-		{
-			"archivo": "Borde-de-camino.jamgraph",
-			"titulo": "Borde de camino",
-			"grupo": "Formas procedurales",
-			"icono": "jam-curve-offset",
-			"doc": "Una Bézier define el eje; Resample fija su densidad, Offset la desplaza 180 cm a la izquierda en XY y Ribbon genera una calzada de 360 cm con UV longitudinal.\nEs el primer bloque de una carretera modular: el eje sigue siendo dato S y lado, ancho, plano, unión y límite de miter quedan editables.",
-			"mensaje": "Borde de camino cargado. Compile y Run graph; cambiá left/right, ancho, distancia y miter para estudiar la calzada."
-		},
-		{
-			"archivo": "Muro-sobre-spline.jamgraph",
-			"titulo": "Muro sobre spline",
-			"grupo": "Formas procedurales",
-			"icono": "jam-mesh-extrude",
-			"doc": "Una Bézier se vuelve una planta de 30 cm con Ribbon; Extrude levanta esa superficie abierta 300 cm en Z y cose su contorno como un sólido.\nSeparar planta M y altura M permite reutilizar la misma extrusión para muros, losas y espesor de caminos sin inventar un generador monolítico.",
-			"mensaje": "Muro sobre spline cargado. Compile y Run graph; cambiá ancho, altura, dirección y escala UV lateral para estudiar el sólido."
-		},
-		{
-			"archivo": "Series-Range-Remap.jamgraph",
-			"titulo": "Rango y Remap",
-			"grupo": "Ver el dato",
-			"icono": "jam-series-remap",
-			"doc": "Range crea once valores N[] entre −1 y 1; Remap los lleva a 0..100 y Debug dibuja la serie como geometría.\nEs el ejemplo mínimo para entender que por un cable también puede viajar una lista numérica, no sólo una malla.",
-			"mensaje": "Rango y Remap cargado. Ahora: Compile y después Run graph para dibujar la serie en el Preview."
-		},
-		{
-			"archivo": "Primer-material.jamgraph",
-			"titulo": "Primer material",
-			"grupo": "Materiales",
-			"icono": "jam-ej-primer-material",
-			"doc": "Un material armado ficha por ficha con la paleta del tab Shader —un color y una rugosidad— horneado, y puesto sobre una caja.\nMirá el cable COBRE: por ahí no viaja un material sino el GRAFO que lo describe; recién Build lo convierte en asset. Y ese asset entra por el pin A de Mesh Material, sin copiar rutas a mano.",
-			"mensaje": "Primer material cargado. Compile y después Run graph: se crea M_MiPrimerMaterial y aparece una caja pintada con él. El veredicto del Build dice cuánto cuesta el shader."
-		},
-		{
-			"archivo": "UVs-para-texturar.jamgraph",
-			"titulo": "UVs para texturar",
-			"grupo": "Materiales",
-			"icono": "jam-ej-uvs",
-			"doc": "Proyección cúbica + empaquetado, la cadena con la que se despliega cualquier cosa dura y facetada.\nLo que hay que mirar es el VEREDICTO en el Output: la proyección deja las islas encimadas (5× su caja) y fuera del 0..1; empaquetar las separa y las mete adentro. Unas UVs se juzgan por esos números, no mirando el checker.",
-			"mensaje": "UVs cargado. Compile y después Run graph — leé el Output: cada paso informa densidad, aprovechamiento y si algo quedó encimado o fuera del 0..1."
-		}
-	]
+ "_comentario": "Catálogo de tutoriales del tab «Aprender». Agregar uno es soltar el .jamgraph acá y sumarle una línea: no hace falta recompilar el plugin. · `paso` (1..N) pone al tutorial en EL CAMINO, que es la ruta recomendada y ordenada; los que no lo tienen quedan en «Más tutoriales», agrupados por tema. El camino estrena una idea por paso y cada uno usa la del anterior —malla → dato → curva → superficie → sólido → material—, así que reordenarlo es reordenar lo que alguien aprende primero. · `porque` es la razón del paso en UNA línea: es lo que se lee en la ficha, mientras que `doc` es el texto largo del tooltip.",
+ "ejemplos": [
+  {
+   "archivo": "Primeros-pasos.jamgraph",
+   "titulo": "Primeros pasos",
+   "grupo": "Empezar",
+   "icono": "jam-ej-primeros-pasos",
+   "doc": "La cadena mínima de Jam, en cuatro nodos: una caja (M) se suaviza, se hornea como StaticMesh (A) y se coloca en el nivel.\nMirá los colores de los cables: cian es malla procedural, verde es asset. Un verbo sólo se enchufa donde el tipo coincide.",
+   "mensaje": "Primeros pasos cargado. Ahora: Compile (verifica sin tocar la escena) y después Run graph — la caja aparece en el nivel.",
+   "paso": 1,
+   "porque": "La cadena mínima: una malla, horneada y puesta en el nivel."
+  },
+  {
+   "archivo": "TreeGen-Stylized-Pine.jamgraph",
+   "titulo": "Pino procedural",
+   "grupo": "Árboles",
+   "icono": "jam-ej-pino",
+   "doc": "Un pino low-poly hecho con primitivas: cuatro conos movidos y unidos en una sola malla.\nEs el ejemplo para ver cómo `mesh_merge` junta partes y cómo `mesh_transform` las ubica sin tocar el original.",
+   "mensaje": "Ejemplo cargado: pino procedural. Compile y después Run graph para previsualizarlo."
+  },
+  {
+   "archivo": "TreeGen-Branched-Tree.jamgraph",
+   "titulo": "Árbol ramificado",
+   "grupo": "Árboles",
+   "icono": "jam-ej-ramificado",
+   "doc": "Curvas Bézier barridas con `mesh_pipe`, con radio decreciente hacia la punta.\nAcá aparece el tipo S (spline): por el cable ya no viaja geometría sino la línea que la genera.",
+   "mensaje": "Ejemplo cargado: árbol ramificado TreeGen. Compile y después Run graph para previsualizarlo."
+  },
+  {
+   "archivo": "TreeGen-Curve-Frames.jamgraph",
+   "titulo": "Frames sobre la curva",
+   "grupo": "Árboles",
+   "icono": "jam-ej-frames",
+   "doc": "El flow S → F → ramas → malla. Un frame es una posición CON orientación, y es lo que decide hacia dónde sale cada rama.\nSi te interesa cómo Jam reparte cosas a lo largo de algo, este es el ejemplo.",
+   "mensaje": "Ejemplo cargado: flow modular de frames y ramas. Compile y después Run graph para ver el preview."
+  },
+  {
+   "archivo": "TreeGen-Two-Level.jamgraph",
+   "titulo": "Árbol de dos niveles",
+   "grupo": "Árboles",
+   "icono": "jam-ej-dos-niveles",
+   "doc": "La réplica completa de TreeGen: tronco → ramas → ramitas → follaje.\nEl follaje sale como HISM aparte (tipo H), que es lo que permite miles de hojas sin miles de actores.",
+   "mensaje": "Ejemplo cargado: árbol de dos niveles. Compile y después Run graph; el follaje sale como HISM aparte."
+  },
+  {
+   "archivo": "Prueba-MassEntity.jamgraph",
+   "titulo": "Primera población MassEntity",
+   "grupo": "Simulación",
+   "icono": "jam-mass-probe",
+   "doc": "Una curva produce 37 frames F y MassEntity crea una entidad real por frame con FTransformFragment. La sonda comprueba cantidad, arquetipo y posición, destruye las 37 entidades y deja pasar el mismo F.\nEs una prueba del núcleo: todavía no crea una población persistente, representación visual, traits de MassGameplay ni comportamiento.",
+   "mensaje": "Prueba MassEntity cargada. Compile y Run graph; el nodo debe informar 37 entidades, un arquetipo, transforms conservados y limpieza completa."
+  },
+  {
+   "archivo": "Poblacion-MassEntity-Temporal.jamgraph",
+   "titulo": "Población MassEntity temporal",
+   "grupo": "Simulación",
+   "icono": "jam-mass-spawn",
+   "doc": "Una curva produce 37 frames F, Receta los vuelve MS y Crear población entrega un MH vivo que Inspeccionar mide sin destruir.\nRun reemplaza la población Preview anterior; Discard la destruye. Bake la conserva sólo durante la vida del mundo: MH nunca se serializa en el Graph.",
+   "mensaje": "Población Mass temporal cargada. Compile y Run graph; repetí Run para probar reemplazo, o usá Bake/Discard para decidir su ciclo de vida."
+  },
+  {
+   "archivo": "Poblacion-MassGameplay-Ambiental.jamgraph",
+   "titulo": "Población MassGameplay ambiental",
+   "grupo": "Simulación",
+   "icono": "jam-mass-spawn",
+   "doc": "El config espacial distribuido por Jam se valida como MC y gobierna una receta MS de 37 frames. Crear población usa un AJamMassSpawner real y entrega un MH inspeccionable.\nLa representación ambiental estacionaria usa ISM en High/Medium/Low y desaparece en Off; todavía no navega ni ejecuta comportamiento.",
+   "mensaje": "Población MassGameplay cargada. Compile y Run graph; Inspeccionar debe informar 37 entidades vivas y Discard debe liberarlas."
+  },
+  {
+   "archivo": "Poblacion-Mass-LOD-Presupuestado.jamgraph",
+   "titulo": "Población Mass con presupuesto LOD",
+   "grupo": "Simulación",
+   "icono": "jam-mass-spawn",
+   "doc": "Cuatro entidades cercanas compiten por un máximo independiente de una plaza High, una Medium y una Low. Mass degrada el excedente hasta Off, sin que Jam ordene entidades a mano.\nEl nodo Configuración exige que el asset medido tenga los tres topes y deja Off ilimitado como sumidero.",
+   "mensaje": "Población Mass presupuestada cargada. Compile y Run graph; el MC debe informar máximos LOD (1, 1, 1, 2147483647)."
+  },
+  {
+   "archivo": "Patrulla-Mass-Ambiental.jamgraph",
+   "titulo": "Patrulla Mass ambiental",
+   "grupo": "Simulación",
+   "icono": "jam-mass-spawn",
+   "doc": "Ocho entidades reciben una patrulla autónoma de vaivén sobre el eje de cada frame. El processor conserva el origen, limita el recorrido a 25 cm y cuenta cada reversión.\nUsa ISM dinámica para que la representación siga los transforms; no necesita ZoneGraph, StateTree ni actores.",
+   "mensaje": "Patrulla Mass cargada. Compile y Run graph; el MC debe informar 800 cm/s, radio 25 cm y patrulla dinámica válida."
+  },
+  {
+   "archivo": "Debug-Playground.jamgraph",
+   "titulo": "Banco de pruebas de Debug",
+   "grupo": "Ver el dato",
+   "icono": "jam-ej-debug",
+   "doc": "El mismo nodo Debug conectado a cinco tipos distintos: puntos, frames, curva, serie y malla.\nEs el ejemplo para aprender a MIRAR lo que viaja por un cable en vez de adivinarlo.",
+   "mensaje": "Ejemplo cargado: banco de pruebas de Debug. Compile y después Run graph — cada carril dibuja un tipo distinto."
+  },
+  {
+   "archivo": "Terreno-con-ruido.jamgraph",
+   "titulo": "Terreno con ruido",
+   "grupo": "Formas procedurales",
+   "icono": "jam-mesh-noise",
+   "doc": "Una grilla subdividida deformada por Perlin 3D nativo de UE 5.8. Cambiá amplitud, frecuencia y seed para leer cómo cada parámetro altera la forma.\nReimplementa como Graph el ejemplo de heightfield de ProceduralMeshDemos; no depende de assets externos.",
+   "mensaje": "Terreno con ruido cargado. Ahora: Compile y después Run graph para generar y colocar la malla."
+  },
+  {
+   "archivo": "Cylinder-Strip.jamgraph",
+   "titulo": "Cylinder Strip continuo",
+   "grupo": "Formas procedurales",
+   "icono": "jam-curve-resample",
+   "doc": "Tres series N[] forman una polilínea S; Smooth reduce sus quiebres, Resample reparte 31 puntos por longitud y Pipe barre un único perfil continuo.\nParte del ejemplo Cylinder Strip de ProceduralMeshDemos, pero hace visibles los datos y evita sus cilindros independientes con juntas abiertas.",
+   "mensaje": "Cylinder Strip cargado. Compile y después Run graph; cambiá Smooth, cantidad de muestras y miter limit para estudiar el recorrido y sus juntas."
+  },
+  {
+   "archivo": "Preparar-una-curva.jamgraph",
+   "titulo": "Preparar una curva",
+   "grupo": "Formas procedurales",
+   "icono": "jam-curve-fuse-collinear",
+   "doc": "Una recta con siete puntos pasa por cuatro operaciones distintas: Fuse la reduce a sus dos extremos, Subdivide inserta tres puntos por tramo, Smooth cambia la forma sin cambiar el conteo y Resample elige trece muestras por longitud.\nUsá el Inspector y Debug para distinguir quitar, insertar, suavizar y redistribuir puntos antes de generar una malla.",
+   "mensaje": "Preparar una curva cargado. Compile y Run graph; inspeccioná la cadena 7→2→5→5→13 y después doblá un punto para ver qué conserva cada verbo.",
+   "paso": 3,
+   "porque": "El tipo curva y las operaciones que la preparan."
+  },
+  {
+   "archivo": "Borde-de-camino.jamgraph",
+   "titulo": "Borde de camino",
+   "grupo": "Formas procedurales",
+   "icono": "jam-curve-offset",
+   "doc": "Una Bézier define el eje; Resample fija su densidad, Offset la desplaza 180 cm a la izquierda en XY y Ribbon genera una calzada de 360 cm con UV longitudinal.\nEs el primer bloque de una carretera modular: el eje sigue siendo dato S y lado, ancho, plano, unión y límite de miter quedan editables.",
+   "mensaje": "Borde de camino cargado. Compile y Run graph; cambiá left/right, ancho, distancia y miter para estudiar la calzada.",
+   "paso": 4,
+   "porque": "Barrer una curva: tu primera superficie de verdad."
+  },
+  {
+   "archivo": "Muro-sobre-spline.jamgraph",
+   "titulo": "Muro sobre spline",
+   "grupo": "Formas procedurales",
+   "icono": "jam-mesh-extrude",
+   "doc": "Una Bézier se vuelve una planta de 30 cm con Ribbon; Extrude levanta esa superficie abierta 300 cm en Z y cose su contorno como un sólido.\nSeparar planta M y altura M permite reutilizar la misma extrusión para muros, losas y espesor de caminos sin inventar un generador monolítico.",
+   "mensaje": "Muro sobre spline cargado. Compile y Run graph; cambiá ancho, altura, dirección y escala UV lateral para estudiar el sólido.",
+   "paso": 5,
+   "porque": "Levantar esa superficie a un sólido cerrado."
+  },
+  {
+   "archivo": "Series-Range-Remap.jamgraph",
+   "titulo": "Rango y Remap",
+   "grupo": "Ver el dato",
+   "icono": "jam-series-remap",
+   "doc": "Range crea once valores N[] entre −1 y 1; Remap los lleva a 0..100 y Debug dibuja la serie como geometría.\nEs el ejemplo mínimo para entender que por un cable también puede viajar una lista numérica, no sólo una malla.",
+   "mensaje": "Rango y Remap cargado. Ahora: Compile y después Run graph para dibujar la serie en el Preview.",
+   "paso": 2,
+   "porque": "El dato que viaja por los cables, y cómo mirarlo."
+  },
+  {
+   "archivo": "Primer-material.jamgraph",
+   "titulo": "Primer material",
+   "grupo": "Materiales",
+   "icono": "jam-ej-primer-material",
+   "doc": "Un material armado ficha por ficha con la paleta del tab Shader —un color y una rugosidad— horneado, y puesto sobre una caja.\nMirá el cable COBRE: por ahí no viaja un material sino el GRAFO que lo describe; recién Build lo convierte en asset. Y ese asset entra por el pin A de Mesh Material, sin copiar rutas a mano.",
+   "mensaje": "Primer material cargado. Compile y después Run graph: se crea M_MiPrimerMaterial y aparece una caja pintada con él. El veredicto del Build dice cuánto cuesta el shader.",
+   "paso": 6,
+   "porque": "Pintar lo que hiciste."
+  },
+  {
+   "archivo": "UVs-para-texturar.jamgraph",
+   "titulo": "UVs para texturar",
+   "grupo": "Materiales",
+   "icono": "jam-ej-uvs",
+   "doc": "Proyección cúbica + empaquetado, la cadena con la que se despliega cualquier cosa dura y facetada.\nLo que hay que mirar es el VEREDICTO en el Output: la proyección deja las islas encimadas (5× su caja) y fuera del 0..1; empaquetar las separa y las mete adentro. Unas UVs se juzgan por esos números, no mirando el checker.",
+   "mensaje": "UVs cargado. Compile y después Run graph — leé el Output: cada paso informa densidad, aprovechamiento y si algo quedó encimado o fuera del 0..1."
+  }
+ ]
 }

@@ -213,11 +213,61 @@ struct FJamExample
 	FString Group;
 	FString Icon;
 	FString Message;
+	/** 1..N si el tutorial forma parte del CAMINO (la ruta ordenada); 0 si es de los otros.
+	 *  Vive en el manifiesto y no acá para que reordenar lo que alguien aprende primero no
+	 *  necesite recompilar el plugin. */
+	int32 Paso = 0;
+	/** La razón del paso en UNA línea. `Doc` es el texto largo, que va al tooltip. */
+	FString Why;
 };
 
 // El nombre del tab. No sale del spec de verbos porque no es una categoría de verbos: no hay
 // ningún `FJamTool` con esta categoría, y sus fichas CARGAN un grafo en vez de crear un nodo.
 static const TCHAR* JamLearnTab = TEXT("Aprender");
+
+// ---- el progreso: qué tutoriales ya abrió esta persona ----
+// Va al ini del editor y no al proyecto: es de la PERSONA, no del juego. Dos personas en el mismo
+// repo aprenden por su cuenta, y el progreso de una no tiene por qué aparecerle a la otra en un
+// diff. Guardar una lista de archivos y no un contador permite además reordenar el camino sin que
+// el progreso quede sin sentido — el paso 3 de ayer puede ser el 4 de mañana.
+static const TCHAR* JamAprenderSeccion = TEXT("JamAprender");
+static const TCHAR* JamAprenderClave = TEXT("Vistos");
+
+static TSet<FString>& JamVistos()
+{
+	static TSet<FString> Vistos = []()
+	{
+		TSet<FString> Salida;
+		FString Guardado;
+		if (GConfig && GConfig->GetString(JamAprenderSeccion, JamAprenderClave, Guardado,
+		                                 GEditorPerProjectIni))
+		{
+			TArray<FString> Partes;
+			Guardado.ParseIntoArray(Partes, TEXT("|"), true);
+			for (const FString& Parte : Partes)
+			{
+				Salida.Add(Parte.TrimStartAndEnd());
+			}
+		}
+		return Salida;
+	}();
+	return Vistos;
+}
+
+static void JamMarcarVisto(const FString& Archivo)
+{
+	if (Archivo.IsEmpty() || JamVistos().Contains(Archivo))
+	{
+		return;
+	}
+	JamVistos().Add(Archivo);
+	if (GConfig)
+	{
+		GConfig->SetString(JamAprenderSeccion, JamAprenderClave,
+			*FString::Join(JamVistos().Array(), TEXT("|")), GEditorPerProjectIni);
+		GConfig->Flush(false, GEditorPerProjectIni);
+	}
+}
 
 static const TArray<FJamExample>& JamExamples()
 {
@@ -263,6 +313,8 @@ static const TArray<FJamExample>& JamExamples()
 			(*Objeto)->TryGetStringField(TEXT("grupo"), E.Group);
 			(*Objeto)->TryGetStringField(TEXT("icono"), E.Icon);
 			(*Objeto)->TryGetStringField(TEXT("mensaje"), E.Message);
+			(*Objeto)->TryGetStringField(TEXT("porque"), E.Why);
+			(*Objeto)->TryGetNumberField(TEXT("paso"), E.Paso);
 			if (!E.File.IsEmpty())
 			{
 				Salida.Add(MoveTemp(E));
@@ -1904,10 +1956,14 @@ void SJamGraphEditor::RebuildTabContent()
 
 void SJamGraphEditor::RebuildLearnTab()
 {
-	// Mismo dibujo que un tab de verbos —fichas con icono, agrupadas, con el nombre del panel
-	// abajo— para que se sienta parte del mismo ribbon y no una pantalla aparte. Las diferencias
-	// son dos: la ficha CARGA un grafo en vez de crear un nodo, y el título va debajo del icono,
-	// porque acá el nombre sí importa (un tutorial se elige por su nombre, un verbo por su firma).
+	// Antes: los 19 tutoriales en UNA fila horizontal, con insignia de 42 px y título debajo. La
+	// tira se iba de largo y había que recorrerla entera para ver qué había, con 19 puertas del
+	// mismo tamaño diciendo que daba igual por cuál entrar. Y no daba igual.
+	//
+	// Ahora Aprender es un CAMINO: seis pasos ordenados que estrenan una idea cada uno y usan la
+	// del anterior, con el progreso marcado y el próximo señalado. Los otros trece quedan abajo,
+	// agrupados por tema, para cuando alguien busca algo puntual. El orden vive en el manifiesto
+	// (`paso`), no acá: reordenar lo que se aprende primero no debería necesitar recompilar.
 	const TArray<FJamExample>& Ejemplos = JamExamples();
 	if (Ejemplos.Num() == 0)
 	{
@@ -1919,70 +1975,178 @@ void SJamGraphEditor::RebuildLearnTab()
 		return;
 	}
 
+	TArray<const FJamExample*> Camino;
 	TArray<FString> Orden;
 	TMap<FString, TArray<const FJamExample*>> PorGrupo;
 	for (const FJamExample& E : Ejemplos)
 	{
+		if (E.Paso > 0)
+		{
+			Camino.Add(&E);
+			continue;
+		}
 		if (!PorGrupo.Contains(E.Group))
 		{
 			Orden.Add(E.Group);
 		}
 		PorGrupo.FindOrAdd(E.Group).Add(&E);
 	}
+	Camino.Sort([](const FJamExample& A, const FJamExample& B) { return A.Paso < B.Paso; });
 
-	for (int32 Indice = 0; Indice < Orden.Num(); ++Indice)
+	// El próximo paso es el PRIMERO sin marcar, no el siguiente al último marcado: quien saltea el
+	// 3 y hace el 4 tiene el 3 pendiente, y decirle que va por el 5 sería mentirle.
+	const FJamExample* Proximo = nullptr;
+	int32 Hechos = 0;
+	for (const FJamExample* E : Camino)
 	{
-		TSharedRef<SHorizontalBox> Fila = SNew(SHorizontalBox);
-		for (const FJamExample* E : PorGrupo[Orden[Indice]])
+		if (JamVistos().Contains(E->File)) { ++Hechos; }
+		else if (Proximo == nullptr) { Proximo = E; }
+	}
+
+	const FLinearColor ColorCamino = CategoryColor(JamLearnTab);
+	const FLinearColor Tenue(0.62f, 0.62f, 0.66f, 1.0f);
+
+	// ---- la ficha compacta, la misma para el camino y para el resto ----
+	auto Ficha = [this, &ColorCamino, &Tenue](const FJamExample* E, bool bEnElCamino,
+	                                          bool bEsProximo) -> TSharedRef<SWidget>
+	{
+		const FString Archivo = E->File;
+		const FString Mensaje = E->Message;
+		const bool bVisto = JamVistos().Contains(Archivo);
+		// El número del paso, un tilde si ya lo hiciste, o nada. Es lo único que distingue a las
+		// fichas entre sí de un vistazo, así que va primero y no al final.
+		const FString Marca = bVisto ? TEXT("✓")
+			: (bEnElCamino ? FString::Printf(TEXT("%d"), E->Paso) : FString());
+		// Una línea por ficha: el «porqué» si lo tiene, y si no el título solo. El texto largo
+		// (`doc`) queda en el tooltip, que es donde se lee cuando se lo busca y no antes.
+		const FString Subtitulo = bEnElCamino ? E->Why : FString();
+
+		TSharedRef<SHorizontalBox> Contenido = SNew(SHorizontalBox);
+		if (!Marca.IsEmpty())
 		{
-			const FString Archivo = E->File;
-			const FString Mensaje = E->Message;
-			Fila->AddSlot().AutoWidth().Padding(2.0f, 0.0f)
+			Contenido->AddSlot().AutoWidth().VAlign(VAlign_Center).Padding(0.0f, 0.0f, 4.0f, 0.0f)
 			[
-				SNew(SButton)
-				.ToolTipText(FText::FromString(FString::Printf(
-					TEXT("%s\n\n%s"), *E->Title, *E->Doc)))
-				.ContentPadding(FMargin(3.0f))
-				.OnClicked_Lambda([this, Archivo, Mensaje]()
-				{
-					LoadBundledExample(Archivo, FText::FromString(Mensaje));
-					return FReply::Handled();
-				})
-				[
-					SNew(SVerticalBox)
-					+ SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center)
-					[ MakeBadge(CategoryColor(JamLearnTab), TEXT("EJ"), 42.0f, JamIconPath(E->Icon)) ]
-					+ SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center).Padding(0.0f, 2.0f, 0.0f, 0.0f)
-					[
-						SNew(STextBlock)
-						.Text(FText::FromString(E->Title))
-						.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
-					]
-				]
+				SNew(STextBlock)
+				.Text(FText::FromString(Marca))
+				.Font(FCoreStyle::GetDefaultFontStyle("Bold", 9))
+				.ColorAndOpacity(FSlateColor(bVisto ? FLinearColor(0.36f, 0.68f, 0.42f, 1.0f)
+				                                    : ColorCamino))
 			];
 		}
+		// 20 px y no 42: en el camino el nombre es lo que se lee, no el dibujo.
+		Contenido->AddSlot().AutoWidth().VAlign(VAlign_Center)
+		[ MakeBadge(ColorCamino, TEXT("EJ"), 20.0f, JamIconPath(E->Icon)) ];
+
+		TSharedRef<SVerticalBox> Textos = SNew(SVerticalBox);
+		Textos->AddSlot().AutoHeight()
+		[
+			SNew(STextBlock)
+			.Text(FText::FromString(E->Title))
+			.Font(FCoreStyle::GetDefaultFontStyle(bEsProximo ? "Bold" : "Regular", 9))
+		];
+		if (!Subtitulo.IsEmpty())
+		{
+			Textos->AddSlot().AutoHeight()
+			[
+				SNew(STextBlock)
+				.Text(FText::FromString(Subtitulo))
+				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 7))
+				.ColorAndOpacity(FSlateColor(Tenue))
+			];
+		}
+		Contenido->AddSlot().AutoWidth().VAlign(VAlign_Center).Padding(5.0f, 0.0f, 2.0f, 0.0f)
+		[ Textos ];
+
+		return SNew(SButton)
+			.ToolTipText(FText::FromString(FString::Printf(TEXT("%s\n\n%s"), *E->Title, *E->Doc)))
+			.ContentPadding(FMargin(4.0f, 3.0f))
+			.OnClicked_Lambda([this, Archivo, Mensaje]()
+			{
+				JamMarcarVisto(Archivo);
+				LoadBundledExample(Archivo, FText::FromString(Mensaje));
+				// Redibujar para que el tilde y el «próximo» se muevan en el acto: un progreso que
+				// aparece recién al reabrir el tab no se lee como progreso.
+				RebuildTabContent();
+				return FReply::Handled();
+			});
+	};
+
+	// ---- el camino ----
+	if (Camino.Num() > 0)
+	{
+		TSharedRef<SHorizontalBox> FilaCamino = SNew(SHorizontalBox);
+		for (const FJamExample* E : Camino)
+		{
+			FilaCamino->AddSlot().AutoWidth().Padding(2.0f, 0.0f)
+			[ Ficha(E, true, E == Proximo) ];
+		}
+
+		const FString Encabezado = (Proximo == nullptr)
+			? FString::Printf(TEXT("TU CAMINO · los %d pasos, hechos"), Camino.Num())
+			: FString::Printf(TEXT("TU CAMINO · paso %d de %d"), Hechos + 1, Camino.Num());
 
 		TabContentBox->AddSlot().AutoWidth().Padding(3.0f, 0.0f)
 		[
 			SNew(SVerticalBox)
-			+ SVerticalBox::Slot().AutoHeight()[ Fila ]
-			+ SVerticalBox::Slot().AutoHeight().Padding(0.0f, 2.0f, 0.0f, 0.0f).HAlign(HAlign_Center)
+			+ SVerticalBox::Slot().AutoHeight().Padding(0.0f, 0.0f, 0.0f, 2.0f)
 			[
 				SNew(STextBlock)
-				.Text(FText::FromString(Orden[Indice]))
-				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 7))
-				.ColorAndOpacity(FSlateColor(FLinearColor(0.62f, 0.62f, 0.66f, 1.0f)))
+				.Text(FText::FromString(Encabezado))
+				.Font(FCoreStyle::GetDefaultFontStyle("Bold", 7))
+				.ColorAndOpacity(FSlateColor(ColorCamino))
 			]
+			+ SVerticalBox::Slot().AutoHeight()[ FilaCamino ]
 		];
-
-		if (Indice + 1 < Orden.Num())
-		{
-			TabContentBox->AddSlot().AutoWidth().Padding(2.0f, 2.0f)
-			[
-				SNew(SSeparator).Orientation(Orient_Vertical).Thickness(1.0f)
-			];
-		}
 	}
+
+	if (Orden.Num() == 0)
+	{
+		return;
+	}
+
+	TabContentBox->AddSlot().AutoWidth().Padding(4.0f, 2.0f)
+	[ SNew(SSeparator).Orientation(Orient_Vertical).Thickness(1.0f) ];
+
+	// ---- el resto, en DOS filas por grupo para que entren a lo alto en vez de a lo largo ----
+	// Es el cambio que mata la tira infinita: la altura del ribbon es fija y sobraba, mientras el
+	// ancho se acababa. Con dos filas la misma cantidad de fichas ocupa la mitad de largo.
+	TSharedRef<SHorizontalBox> FilaGrupos = SNew(SHorizontalBox);
+	for (const FString& Grupo : Orden)
+	{
+		TSharedRef<SVerticalBox> Columna = SNew(SVerticalBox);
+		TSharedRef<SHorizontalBox> Arriba = SNew(SHorizontalBox);
+		TSharedRef<SHorizontalBox> Abajo = SNew(SHorizontalBox);
+		const TArray<const FJamExample*>& Delgrupo = PorGrupo[Grupo];
+		for (int32 i = 0; i < Delgrupo.Num(); ++i)
+		{
+			const TSharedRef<SHorizontalBox> Destino = (i % 2 == 0) ? Arriba : Abajo;
+			Destino->AddSlot().AutoWidth().Padding(1.0f, 1.0f)
+			[ Ficha(Delgrupo[i], false, false) ];
+		}
+		Columna->AddSlot().AutoHeight()[ Arriba ];
+		Columna->AddSlot().AutoHeight()[ Abajo ];
+		Columna->AddSlot().AutoHeight().Padding(0.0f, 1.0f, 0.0f, 0.0f).HAlign(HAlign_Center)
+		[
+			SNew(STextBlock)
+			.Text(FText::FromString(Grupo))
+			.Font(FCoreStyle::GetDefaultFontStyle("Regular", 7))
+			.ColorAndOpacity(FSlateColor(Tenue))
+		];
+		FilaGrupos->AddSlot().AutoWidth().Padding(3.0f, 0.0f)[ Columna ];
+	}
+
+	TabContentBox->AddSlot().AutoWidth().Padding(3.0f, 0.0f)
+	[
+		SNew(SVerticalBox)
+		+ SVerticalBox::Slot().AutoHeight().Padding(0.0f, 0.0f, 0.0f, 2.0f)
+		[
+			SNew(STextBlock)
+			.Text(LOCTEXT("MasTutoriales", "MÁS TUTORIALES"))
+			.Font(FCoreStyle::GetDefaultFontStyle("Bold", 7))
+			.ColorAndOpacity(FSlateColor(Tenue))
+		]
+		+ SVerticalBox::Slot().AutoHeight()[ FilaGrupos ]
+	];
 }
 
 const FJamTool* SJamGraphEditor::FindTool(const FString& Verb) const

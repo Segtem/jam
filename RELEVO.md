@@ -574,6 +574,40 @@ Lo que **nadie ejerció con las manos** de este turno:
 
 ## Para las manos de Brian
 
+**📚 APRENDER ES AHORA UN CAMINO — y es lo primero que conviene mirar, porque es una pantalla.**
+
+Brian: *«está con iconos grandes y texto largo y al final se muestran en una lista infinita para
+recorrer»*. Era literal: los 19 tutoriales se dibujaban en **una sola fila horizontal**, con insignia
+de 42 px y título debajo, así que la tira se iba de largo — 19 puertas del mismo tamaño diciendo que
+daba igual por cuál entrar. Y no daba igual.
+
+Eligió **camino con progreso** sobre las otras dos opciones (lecciones corregidas por el oráculo, o
+sólo arreglar la presentación). Lo que hay ahora:
+
+· **TU CAMINO · paso N de 6** — seis tutoriales ordenados, cada uno estrenando UNA idea y usando la
+del anterior: **malla → dato → curva → superficie → sólido → material**. Cada ficha dice en una línea
+POR QUÉ está ahí («Barrer una curva: tu primera superficie de verdad»).
+· **Progreso**: lo que ya abriste queda con ✓ verde, el próximo va en negrita, y el encabezado dice
+por dónde vas. Se guarda en el ini del EDITOR y no en el del proyecto: es de la persona, no del
+juego, y el progreso de uno no tiene por qué aparecerle a otro en un diff.
+· **MÁS TUTORIALES**: los otros 13, agrupados por tema y en **dos filas por grupo** — el cambio que
+mata la tira infinita, porque la altura del ribbon sobraba mientras el ancho se acababa.
+· Insignia de **20 px** y no 42, título en una línea, y el texto largo en el tooltip: en el camino se
+lee el nombre, no el dibujo.
+
+**El orden vive en el manifiesto** (`paso` en `examples.json`), no en el C++: reordenar lo que
+alguien aprende primero no debería necesitar recompilar. Un test lo custodia — falla si el `.cpp`
+nombra un tutorial del camino.
+
+**Gestos (dos minutos):** abrí Jam ▸ Graph ▸ Aprender. Tiene que decir «paso 1 de 6». Abrí el
+primero: la ficha tiene que quedar con ✓ **en el acto** y el encabezado pasar a «paso 2 de 6». El
+próximo paso va en negrita. Y lo que hay que juzgar con los ojos, que ninguna medición contesta: si
+el camino se lee de un vistazo y si los seis pasos son los seis correctos.
+
+13 tests (catálogo + reglas leídas del `.cpp`) con **5 mutaciones que discriminan**. C++ recompilado.
+
+
+
 **⟳ LIVE VIEW — está construido y COMPILADO, y sólo falta que lo veas. Cinco gestos, cinco minutos.**
 
 Es lo único de todo el live view que no se puede verificar sin ojos: que se SIENTA continuo es
