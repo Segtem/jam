@@ -186,7 +186,47 @@ def _tipo_default(pin: str, default) -> str:
     return "T"
 
 
-def _tipo_salida(verb: str, registro: dict) -> str | None:
+def salidas_extra(verb: str, registro: dict) -> tuple:
+    """Las salidas de un verbo ADEMÁS de la principal. Vacío para casi todos, y eso es el punto.
+
+    Contrato de cada una: `(pin, tipo, etiqueta, rebanada)`.
+
+    · `pin` es el nombre que viaja en la arista como `origen_pin`. `"out"` está reservado para la
+      principal, así que una salida extra no puede llamarse así.
+    · `rebanada` es un invocable que recibe el resultado YA CALCULADO del nodo y devuelve la parte
+      que le toca a ese pin. **No es un cómputo aparte**: el nodo corre UNA vez y las salidas extra
+      se sirven de su resultado. Si cada pin recalculara, un Deconstruct de tres salidas ejecutaría
+      el nodo tres veces, y para un verbo que escribe assets eso sería catastrófico y silencioso.
+
+    Que sea un invocable —y no un índice o el nombre de un campo— es a propósito: `operacion` en
+    `math_core` ya es un lambda, así que ésta es la misma idiom y no inventa un mini-lenguaje de
+    accesores que después habría que extender para dicts, atributos e índices.
+
+    **El diseño es ADITIVO**: un verbo sin `outs` se comporta exactamente como antes de que esto
+    existiera. Es la propiedad que hace seguro el cambio, y hay un test que la fija.
+    """
+    if verb in VALOR_KINDS:
+        from .math_core import salidas_extra as extra_valor
+        return extra_valor(verb)
+    info = registro.get(verb)
+    return tuple(info.get("outs", ())) if info else ()
+
+
+def _rebanada(verb: str, pin: str, registro: dict):
+    for nombre, _tipo, _etiqueta, corte in salidas_extra(verb, registro):
+        if nombre == pin:
+            return corte
+    return None
+
+
+def _tipo_salida(verb: str, registro: dict, pin: str = PIN_OUT) -> str | None:
+    """El tipo que sale por `pin`. El default `out` conserva la firma histórica: los llamadores que
+    sólo saben de una salida siguen preguntando lo mismo y recibiendo lo mismo."""
+    if pin != PIN_OUT:
+        for nombre, tipo, _etiqueta, _corte in salidas_extra(verb, registro):
+            if nombre == pin:
+                return tipo
+        return None
     if verb in VALOR_KINDS:
         from .math_core import tipo_salida
         return tipo_salida(verb)
@@ -350,10 +390,17 @@ def compilar(g: JamGraph, *, registro: dict | None = None, resolver_asset=None,
             continue
         if origen == destino:
             error(origen, "un nodo no puede conectarse a sí mismo")
-        if origen_pin != PIN_OUT:
-            error(origen, f"pin de salida desconocido: «{origen_pin}»")
+        verb_origen = g.nodes[origen].get("verb", "")
+        if origen_pin != PIN_OUT and _rebanada(verb_origen, origen_pin, registro) is None:
+            # El nombre del pin va ADENTRO del error: con varias salidas, «pin desconocido» a secas
+            # obliga a adivinar cuál de los cables es. Y se listan las que sí hay, porque el que se
+            # equivocó de nombre casi siempre quería una de ésas.
+            hay = ", ".join(f"«{n}»" for n, _t, _e, _c in salidas_extra(verb_origen, registro))
+            error(origen, f"pin de salida desconocido: «{origen_pin}»"
+                          + (f" — este verbo tiene «out», {hay}" if hay
+                             else " — este verbo sólo tiene «out»"))
             continue
-        tipo_out = _tipo_salida(g.nodes[origen].get("verb", ""), registro)
+        tipo_out = _tipo_salida(verb_origen, registro, origen_pin)
         tipo_in = _tipo_entrada(g.nodes[destino].get("verb", ""), destino_pin, registro)
         if tipo_out is None:
             error(origen, "la salida no declara un tipo válido")
@@ -373,14 +420,13 @@ def compilar(g: JamGraph, *, registro: dict | None = None, resolver_asset=None,
 
     # Un tipo extra puede exigir compañía: A[] en `place` sin `points` no significa nada, y elegir
     # una variante al azar para colocar UNA sería inventar lo que el usuario no dijo.
-    for origen, _op, destino, destino_pin in valid_edges:
+    for origen, origen_pin, destino, destino_pin in valid_edges:
         verb_destino = g.nodes[destino].get("verb", "")
-        pedidos = _acepta_ademas(verb_destino, destino_pin, registro).get(
-            _tipo_salida(g.nodes[origen].get("verb", ""), registro))
+        tipo_origen = _tipo_salida(g.nodes[origen].get("verb", ""), registro, origen_pin)
+        pedidos = _acepta_ademas(verb_destino, destino_pin, registro).get(tipo_origen)
         for companero in pedidos or ():
             if (destino, companero) not in entradas:
-                error(destino, f"con {_tipo_salida(g.nodes[origen].get('verb', ''), registro)} "
-                               f"hace falta un cable en «{companero}»")
+                error(destino, f"con {tipo_origen} hace falta un cable en «{companero}»")
 
     for (nid, pin), cantidad in entradas.items():
         info = registro.get(g.nodes[nid].get("verb", ""), {})
@@ -473,11 +519,13 @@ def compilar(g: JamGraph, *, registro: dict | None = None, resolver_asset=None,
     input_assets: dict[str, str | None] = {}
     output_assets: dict[str, str | None] = {}
     if orden:
-        main_sources: dict[str, list[str]] = {}
+        # Se guarda el pin de ORIGEN junto al nodo: con salidas extra, «de dónde viene» ya no es
+        # sólo qué nodo, y preguntarle el tipo sin el pin devolvería el de la salida principal.
+        main_sources: dict[str, list[tuple[str, str]]] = {}
         asset_sources: dict[str, str] = {}
-        for origen, _ap, destino, destino_pin in valid_edges:
+        for origen, origen_pin, destino, destino_pin in valid_edges:
             if destino_pin == PIN_IN:
-                main_sources.setdefault(destino, []).append(origen)
+                main_sources.setdefault(destino, []).append((origen, origen_pin))
             elif destino_pin == PIN_ASSET:
                 asset_sources[destino] = origen
 
@@ -521,7 +569,7 @@ def compilar(g: JamGraph, *, registro: dict | None = None, resolver_asset=None,
                         asset = str(local).strip()
                         necesita_resolver = True
                 if not asset:
-                    for origen in main_sources.get(nid, []):
+                    for origen, _op in main_sources.get(nid, []):
                         if output_assets.get(origen):
                             asset = output_assets[origen]
                             break
@@ -529,8 +577,8 @@ def compilar(g: JamGraph, *, registro: dict | None = None, resolver_asset=None,
                 # una ruta. Exigir acá una ruta única sería pedirle al Compile que elija la variante.
                 extra = _acepta_ademas(verb, PIN_IN, registro)
                 por_coleccion = extra and any(
-                    _tipo_salida(g.nodes[o].get("verb", ""), registro) in extra
-                    for o in main_sources.get(nid, []))
+                    _tipo_salida(g.nodes[o].get("verb", ""), registro, op) in extra
+                    for o, op in main_sources.get(nid, []))
                 if not asset and not por_coleccion and info.get("asset_required", False):
                     error(nid, "requiere asset explícito: cable Asset/Pick, campo asset o entrada A")
 
@@ -631,16 +679,33 @@ def ejecutar_detalle(g: JamGraph, plan: GraphPlan | None = None,
     runtime_outputs: dict[str, object] = {}
     marcados: list[tuple[str, object]] = []
     _ULTIMA_CORRIDA.clear()
-    main_sources: dict[str, list[str]] = {}
-    asset_sources: dict[str, str] = {}
-    data_sources: dict[tuple[str, str], str] = {}
-    for origen, _origen_pin, destino, destino_pin in g.edges:
+    main_sources: dict[str, list[tuple[str, str]]] = {}
+    asset_sources: dict[str, tuple[str, str]] = {}
+    data_sources: dict[tuple[str, str], tuple[str, str]] = {}
+    for origen, origen_pin, destino, destino_pin in g.edges:
         if destino_pin == PIN_ASSET:
-            asset_sources[destino] = origen
+            asset_sources[destino] = (origen, origen_pin)
         elif destino_pin == PIN_IN:
-            main_sources.setdefault(destino, []).append(origen)
+            main_sources.setdefault(destino, []).append((origen, origen_pin))
         else:
-            data_sources[(destino, destino_pin)] = origen
+            data_sources[(destino, destino_pin)] = (origen, origen_pin)
+
+    def valor_por_el_cable(fuente):
+        """Lo que viaja por un cable: el resultado del nodo, o la REBANADA que le toca a su pin.
+
+        `runtime_outputs` sigue guardando UN valor por nodo —el principal—, así que un nodo con
+        salidas extra corre una sola vez y cada pin se sirve de ese resultado. Guardar un valor por
+        (nodo, pin) habría sido la otra opción y es peor: obliga a que el ejecutor sepa de antemano
+        qué pines se van a leer, y deja el caché guardando lo mismo repartido en pedazos.
+        """
+        if fuente is None:
+            return None
+        origen, origen_pin = fuente
+        principal = runtime_outputs.get(origen)
+        if origen_pin == PIN_OUT or principal is None:
+            return principal
+        corte = _rebanada(g.nodes.get(origen, {}).get("verb", ""), origen_pin, tools.REGISTRO)
+        return corte(principal) if corte is not None else None
 
     # Las huellas se calculan una vez, antes del recorrido: cuestan microsegundos y el que las pide
     # necesita el mapa entero para decidir qué reusar.
@@ -685,18 +750,18 @@ def ejecutar_detalle(g: JamGraph, plan: GraphPlan | None = None,
         entrada = asset
         asset_argument = None
         if info.get("asset_argument"):
-            asset_argument = runtime_outputs.get(origen_asset) if origen_asset is not None else asset
-            valores_main = [runtime_outputs[origen] for origen in main_sources.get(nid, [])
-                            if runtime_outputs.get(origen) is not None]
+            asset_argument = valor_por_el_cable(origen_asset) if origen_asset is not None else asset
+            valores_main = [v for v in map(valor_por_el_cable, main_sources.get(nid, []))
+                            if v is not None]
             if info.get("aridad") == -1:
                 entrada = valores_main
             elif valores_main:
                 entrada = valores_main[0]
-        elif origen_asset is not None and runtime_outputs.get(origen_asset) is not None:
-            entrada = runtime_outputs[origen_asset]
+        elif origen_asset is not None and valor_por_el_cable(origen_asset) is not None:
+            entrada = valor_por_el_cable(origen_asset)
         elif origen_asset is None:
-            valores_main = [runtime_outputs[origen] for origen in main_sources.get(nid, [])
-                            if runtime_outputs.get(origen) is not None]
+            valores_main = [v for v in map(valor_por_el_cable, main_sources.get(nid, []))
+                            if v is not None]
             if info.get("aridad") == -1:
                 entrada = valores_main
             elif valores_main:
@@ -723,7 +788,7 @@ def ejecutar_detalle(g: JamGraph, plan: GraphPlan | None = None,
         for pin in info.get("data_params", {}):
             origen_dato = data_sources.get((nid, pin))
             if origen_dato is not None:
-                kw[pin] = runtime_outputs.get(origen_dato)
+                kw[pin] = valor_por_el_cable(origen_dato)
             elif pin in opcionales_dato and str(n.get("params", {}).get(pin, "")).strip():
                 # Un pin OPCIONAL sin cable usa lo que está ESCRITO en la ficha. Sin esto el campo
                 # es un adorno mudo: alguien escribe «0,0,500» en el extremo de una línea, ve el

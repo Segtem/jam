@@ -773,6 +773,19 @@
       "updated": "2026-08-09"
      },
      {
+      "area": "03-Mesh-y-materiales",
+      "carpeta": "03-Mesh-y-materiales",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-13",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-13-ROADMAP-Modelado-Japones-Como-Medidas-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-13"
+     },
+     {
       "area": "04-Ejecucion-y-pruebas",
       "carpeta": "04-Ejecucion-y-pruebas",
       "carpeta_conocida": true,
@@ -2145,6 +2158,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "origen": "2026-08-13-ROADMAP-Modelado-Japones-Como-Medidas-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-25-PLAN-Tipado-Cardinalidad-Conexiones-Graph-v1.0",
       "origen": "2026-07-25-INFORME-Auditoria-Proactiva-Jam-v1.0",
       "resuelve": true
@@ -3489,6 +3507,19 @@
       "tipo_declarado": "ROADMAP",
       "tipo_en_nombre": "ROADMAP",
       "updated": "2026-08-09"
+     },
+     {
+      "area": "03-Mesh-y-materiales",
+      "carpeta": "03-Mesh-y-materiales",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-13",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-13-ROADMAP-Modelado-Japones-Como-Medidas-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-13"
      },
      {
       "area": "04-Ejecucion-y-pruebas",
@@ -4863,6 +4894,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "origen": "2026-08-13-ROADMAP-Modelado-Japones-Como-Medidas-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-25-PLAN-Tipado-Cardinalidad-Conexiones-Graph-v1.0",
       "origen": "2026-07-25-INFORME-Auditoria-Proactiva-Jam-v1.0",
       "resuelve": true
@@ -6207,6 +6243,19 @@
       "tipo_declarado": "ROADMAP",
       "tipo_en_nombre": "ROADMAP",
       "updated": "2026-08-09"
+     },
+     {
+      "area": "03-Mesh-y-materiales",
+      "carpeta": "03-Mesh-y-materiales",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-13",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-13-ROADMAP-Modelado-Japones-Como-Medidas-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-13"
      },
      {
       "area": "04-Ejecucion-y-pruebas",
@@ -7578,6 +7627,11 @@
      {
       "destino": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
       "origen": "2026-08-09-ROADMAP-Verbos-Y-Ejemplos-PMG-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "origen": "2026-08-13-ROADMAP-Modelado-Japones-Como-Medidas-v1.0",
       "resuelve": true
      },
      {
@@ -8927,6 +8981,19 @@
       "updated": "2026-08-09"
      },
      {
+      "area": "03-Mesh-y-materiales",
+      "carpeta": "03-Mesh-y-materiales",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-13",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-13-ROADMAP-Modelado-Japones-Como-Medidas-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-13"
+     },
+     {
       "area": "04-Ejecucion-y-pruebas",
       "carpeta": "04-Ejecucion-y-pruebas",
       "carpeta_conocida": true,
@@ -10296,6 +10363,11 @@
      {
       "destino": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
       "origen": "2026-08-09-ROADMAP-Verbos-Y-Ejemplos-PMG-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "origen": "2026-08-13-ROADMAP-Modelado-Japones-Como-Medidas-v1.0",
       "resuelve": true
      },
      {
@@ -11645,6 +11717,19 @@
       "updated": "2026-08-09"
      },
      {
+      "area": "03-Mesh-y-materiales",
+      "carpeta": "03-Mesh-y-materiales",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-13",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-13-ROADMAP-Modelado-Japones-Como-Medidas-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-13"
+     },
+     {
       "area": "04-Ejecucion-y-pruebas",
       "carpeta": "04-Ejecucion-y-pruebas",
       "carpeta_conocida": true,
@@ -13017,6 +13102,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "origen": "2026-08-13-ROADMAP-Modelado-Japones-Como-Medidas-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-25-PLAN-Tipado-Cardinalidad-Conexiones-Graph-v1.0",
       "origen": "2026-07-25-INFORME-Auditoria-Proactiva-Jam-v1.0",
       "resuelve": true
@@ -14361,6 +14451,19 @@
       "tipo_declarado": "ROADMAP",
       "tipo_en_nombre": "ROADMAP",
       "updated": "2026-08-09"
+     },
+     {
+      "area": "03-Mesh-y-materiales",
+      "carpeta": "03-Mesh-y-materiales",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-13",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-13-ROADMAP-Modelado-Japones-Como-Medidas-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-13"
      },
      {
       "area": "04-Ejecucion-y-pruebas",
@@ -15740,6 +15843,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "origen": "2026-08-13-ROADMAP-Modelado-Japones-Como-Medidas-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-25-PLAN-Tipado-Cardinalidad-Conexiones-Graph-v1.0",
       "origen": "2026-07-25-INFORME-Auditoria-Proactiva-Jam-v1.0",
       "resuelve": true
@@ -17084,6 +17192,19 @@
       "tipo_declarado": "ROADMAP",
       "tipo_en_nombre": "ROADMAP",
       "updated": "2026-08-09"
+     },
+     {
+      "area": "03-Mesh-y-materiales",
+      "carpeta": "03-Mesh-y-materiales",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-13",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-13-ROADMAP-Modelado-Japones-Como-Medidas-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-13"
      },
      {
       "area": "04-Ejecucion-y-pruebas",
@@ -18458,6 +18579,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "origen": "2026-08-13-ROADMAP-Modelado-Japones-Como-Medidas-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-25-PLAN-Tipado-Cardinalidad-Conexiones-Graph-v1.0",
       "origen": "2026-07-25-INFORME-Auditoria-Proactiva-Jam-v1.0",
       "resuelve": true
@@ -19802,6 +19928,19 @@
       "tipo_declarado": "ROADMAP",
       "tipo_en_nombre": "ROADMAP",
       "updated": "2026-08-09"
+     },
+     {
+      "area": "03-Mesh-y-materiales",
+      "carpeta": "03-Mesh-y-materiales",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-13",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-13-ROADMAP-Modelado-Japones-Como-Medidas-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-13"
      },
      {
       "area": "04-Ejecucion-y-pruebas",
@@ -21189,6 +21328,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "origen": "2026-08-13-ROADMAP-Modelado-Japones-Como-Medidas-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-25-PLAN-Tipado-Cardinalidad-Conexiones-Graph-v1.0",
       "origen": "2026-07-25-INFORME-Auditoria-Proactiva-Jam-v1.0",
       "resuelve": true
@@ -22525,6 +22669,19 @@
       "tipo_declarado": "ROADMAP",
       "tipo_en_nombre": "ROADMAP",
       "updated": "2026-08-09"
+     },
+     {
+      "area": "03-Mesh-y-materiales",
+      "carpeta": "03-Mesh-y-materiales",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-13",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-13-ROADMAP-Modelado-Japones-Como-Medidas-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-13"
      },
      {
       "area": "04-Ejecucion-y-pruebas",
@@ -23907,6 +24064,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "origen": "2026-08-13-ROADMAP-Modelado-Japones-Como-Medidas-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-25-PLAN-Tipado-Cardinalidad-Conexiones-Graph-v1.0",
       "origen": "2026-07-25-INFORME-Auditoria-Proactiva-Jam-v1.0",
       "resuelve": true
@@ -25271,6 +25433,19 @@
       "updated": "2026-08-09"
      },
      {
+      "area": "03-Mesh-y-materiales",
+      "carpeta": "03-Mesh-y-materiales",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-13",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-13-ROADMAP-Modelado-Japones-Como-Medidas-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-13"
+     },
+     {
       "area": "04-Ejecucion-y-pruebas",
       "carpeta": "04-Ejecucion-y-pruebas",
       "carpeta_conocida": true,
@@ -26645,6 +26820,11 @@
      {
       "destino": "2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0",
       "origen": "2026-08-09-ROADMAP-Verbos-Y-Ejemplos-PMG-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "origen": "2026-08-13-ROADMAP-Modelado-Japones-Como-Medidas-v1.0",
       "resuelve": true
      },
      {
@@ -27994,6 +28174,19 @@
       "updated": "2026-08-09"
      },
      {
+      "area": "03-Mesh-y-materiales",
+      "carpeta": "03-Mesh-y-materiales",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-13",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-13-ROADMAP-Modelado-Japones-Como-Medidas-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-13"
+     },
+     {
       "area": "04-Ejecucion-y-pruebas",
       "carpeta": "04-Ejecucion-y-pruebas",
       "carpeta_conocida": true,
@@ -29366,6 +29559,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "origen": "2026-08-13-ROADMAP-Modelado-Japones-Como-Medidas-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-25-PLAN-Tipado-Cardinalidad-Conexiones-Graph-v1.0",
       "origen": "2026-07-25-INFORME-Auditoria-Proactiva-Jam-v1.0",
       "resuelve": true
@@ -29976,7 +30174,7 @@
    "catalogo": "99372ef74c544a44c24bbbe91d0dd050320a7a0e37d88ea94e6cf2d0de34f79c",
    "configuracion": "407a21668fb6d1cc90b20875fa7e2a1044832d4f2e47f759f46e63edcb27e073",
    "emisor": "0c28471abddabcb59c5a0e4dc2d8818a750dba69100b83fc10bb8c963f162865",
-   "referencia": "4a123a92478ff4a1cc25e2302e4966d277820b206c50fb888e35d20d18db860d"
+   "referencia": "9032032b205e469503023fef6dc14ff1c515226b5efe514bd94c6930f3936437"
   },
   "raiz_fuentes": ".."
  },

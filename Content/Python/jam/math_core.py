@@ -730,6 +730,13 @@ VALORES: dict[str, dict] = {
         "etiquetas_params": {"desde": "desde (Número)", "hasta": "hasta (Número)"},
         "out_label": "dominio",
         "operacion": lambda desde, hasta: (desde, hasta),
+        # El «Deconstruct Domain» de Grasshopper, sin un nodo aparte: el mismo nodo que arma el rango
+        # ofrece sus dos extremos. `domain_min` y `domain_max` siguen existiendo y no se tocan —
+        # borrarlos rompería los diagramas guardados que ya los usan.
+        "outs": (
+            ("desde", "N", "desde", lambda d: d[0]),
+            ("hasta", "N", "hasta", lambda d: d[1]),
+        ),
         "doc": "dos números a un rango; al revés (100,0) también vale y sirve para dar vuelta",
     },
     "domain_min": {
@@ -837,6 +844,17 @@ def tipo_salida(verbo: str) -> str | None:
 def tipo_param(verbo: str, pin: str) -> str | None:
     meta = VALORES.get(verbo)
     return meta.get("tipos", {}).get(pin) if meta else None
+
+
+# El nombre del pin de salida principal. Se repite acá en vez de importarlo de `graph` porque
+# `graph` importa este módulo: traerlo de allá cerraría el ciclo.
+PIN_SALIDA = "out"
+
+
+def salidas_extra(verbo: str) -> tuple:
+    """Las salidas ADEMÁS de la principal, o vacío. Ver `graph.salidas_extra` para el contrato."""
+    meta = VALORES.get(verbo)
+    return tuple(meta.get("outs", ())) if meta else ()
 
 
 def _numero(valor, pin: str, tabla: dict, eval_expr: Callable) -> float:
@@ -951,6 +969,23 @@ def _por_que_no_resolvio(nodo: dict, campo_verbo: str, tabla: dict) -> str:
             f"disponibles: {hay}")
 
 
+def _rebanar(nodos: dict, origen: str, origen_pin: str, valor, campo_verbo: str):
+    """El valor que sale por `origen_pin`. `out` es el resultado entero; una salida extra, su parte.
+
+    Un pin que no existe devuelve `None` en vez de levantar: acá ya pasó el preflight del consumidor
+    —Compile rechaza los pines desconocidos con el nombre adentro—, así que llegar con uno inválido
+    significa que alguien llamó a `resolver` sin validar, y volarle la resolución entera a los demás
+    nodos por eso sería peor que dejar este solo sin valor.
+    """
+    if origen_pin == PIN_SALIDA:
+        return valor
+    for nombre, _tipo, _etiqueta, corte in salidas_extra(
+            nodos.get(origen, {}).get(campo_verbo, "")):
+        if nombre == origen_pin:
+            return corte(valor)
+    return None
+
+
 def resolver(nodos: dict, enlaces: list[tuple[str, str, str, str]], *, campo_verbo: str,
              eval_expr: Callable) -> tuple[dict, dict, dict[str, list[str]]]:
     """Resuelve el sub-DAG de valores de Graph o Flow.
@@ -962,9 +997,12 @@ def resolver(nodos: dict, enlaces: list[tuple[str, str, str, str]], *, campo_ver
     valor_nodos = {
         nid: nodo for nid, nodo in nodos.items() if nodo.get(campo_verbo) in VALORES
     }
+    # El pin de ORIGEN viaja junto al nodo: un verbo con salidas extra sirve una rebanada distinta
+    # por pin, y quedarse sólo con el nodo entregaría siempre la salida principal — un dominio
+    # entero donde el cable pedía su extremo, sin que nada avise.
     fuentes = {
-        (destino, destino_pin): origen
-        for origen, _origen_pin, destino, destino_pin in enlaces
+        (destino, destino_pin): (origen, origen_pin)
+        for origen, origen_pin, destino, destino_pin in enlaces
         if destino_pin != "in"
     }
     tabla: dict[str, object] = {}
@@ -984,12 +1022,14 @@ def resolver(nodos: dict, enlaces: list[tuple[str, str, str, str]], *, campo_ver
             })
             pendiente = False
             for pin in defaults:
-                origen = fuentes.get((nid, pin))
-                if origen is not None:
+                fuente = fuentes.get((nid, pin))
+                if fuente is not None:
+                    origen, origen_pin = fuente
                     if origen not in por_nodo:
                         pendiente = True
                         break
-                    efectivos[pin] = por_nodo[origen]
+                    efectivos[pin] = _rebanar(nodos, origen, origen_pin, por_nodo[origen],
+                                              campo_verbo)
             if pendiente:
                 continue
 

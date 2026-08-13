@@ -164,7 +164,7 @@ def validar_cuerpo(cuerpo: JamGraph, biblio: dict[str, JamGraph] | None = None) 
             registro[sintetico] = {
                 "source": es_entrada, "aridad": 0 if es_entrada else 1,
                 "in_name": "" if es_entrada else tipo,
-                "out_name": tipo, "asset_required": False, "asset_pin": False,
+                "out_name": tipo, "outs": [], "asset_required": False, "asset_pin": False,
                 "asset_row": False, "params": {"name": "", "type": "*"},
             }
             copia["verb"] = sintetico
@@ -185,7 +185,7 @@ def herramientas(cuerpos: dict[str, JamGraph] | None = None) -> list[dict]:
                 "hay que cablear; con un valor, la entrada pasa a ser una perilla editable en la "
                 "ficha de la herramienta (y se puede cablear igual: el cable manda sobre el campo)",
          "source": True, "aridad": 0,
-         "in_name": "", "out_name": "*", "asset_pin": False, "asset_row": False,
+         "in_name": "", "out_name": "*", "outs": [], "asset_pin": False, "asset_row": False,
          "params": [
              {"nombre": "name", "default": "entrada", "tipo": "str", "data_type": "T",
               "opciones": []},
@@ -204,7 +204,7 @@ def herramientas(cuerpos: dict[str, JamGraph] | None = None) -> list[dict]:
          ]},
         {"verbo": "output", "cat": "Funciones", "seccion": "Funciones", "grupo": "Firma",
          "doc": "salida nombrada del cuerpo de una función", "source": False, "aridad": 1,
-         "in_name": "*", "out_name": "", "asset_pin": False, "asset_row": False,
+         "in_name": "*", "out_name": "", "outs": [], "asset_pin": False, "asset_row": False,
          "params": [
              {"nombre": "name", "default": "salida", "tipo": "str", "data_type": "T",
               "opciones": []},
@@ -258,7 +258,7 @@ def herramienta(funcion_id: str, nombre: str, cuerpo: JamGraph,
         "entrada_seleccion": entrada_de_seleccion(f) or "",
         "doc": f"función «{nombre}» — se expande inline antes de Compile",
         "source": not pines, "aridad": 0 if not pines else 1,
-        "in_name": "", "out_name": "", "asset_pin": False, "asset_row": False,
+        "in_name": "", "out_name": "", "outs": [], "asset_pin": False, "asset_row": False,
         "inputs": pines, "outputs": f["salidas"],
         "params": [{"nombre": e["name"], "label": e["name"], "default": e["default"],
                     "tipo": _tipo_de_control(e["tipo"], e["default"]),

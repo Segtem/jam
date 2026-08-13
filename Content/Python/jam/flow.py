@@ -167,6 +167,12 @@ def spec_json() -> str:
             "in_name": "" if m.get("source", False) else "P",
             "out_name": m.get("out_name", out_names.get(kind, "P")),
             "out_label": m.get("out_label", ""),
+            # Igual que en `tools.spec_json`: las salidas EXTRA viajan para que la ficha dibuje un
+            # nub por cada una. La rebanada no viaja —es un invocable del cerebro—. Y va acá además
+            # de en `tools.py` porque el spec del canvas se arma juntando LOS DOS: tocar uno solo
+            # ya dejó una unidad a medio publicar y la perilla de ángulos no aparecía.
+            "outs": [{"pin": pin, "tipo": tipo_pin, "label": etiqueta}
+                     for pin, tipo_pin, etiqueta, _corte in m.get("outs", ())],
             "params": [{"nombre": k, "label": m.get("etiquetas_params", {}).get(k, k),
                         "default": str(v), "tipo": tipo(v),
                         "opciones": ops_val.get(k, [])} for k, v in m["params"].items()],
@@ -753,8 +759,28 @@ class FlowValidationError(ValueError):
         super().__init__(detalle or "flow inválido")
 
 
-def _tipo_salida(kind: str) -> str:
-    """Tipo público del pin `out`, compartido con el spec que consume Slate."""
+def _salidas_extra(kind: str) -> tuple:
+    """Las salidas de un nodo ADEMÁS de `out`. Ver `graph.salidas_extra` para el contrato.
+
+    ⚠️ Flow valida por su cuenta —tiene su propio preflight paralelo al de `graph.compilar`— y un
+    grafo de puros nodos de valor entra por ACÁ, no por el otro. Enseñarle multi-salida a `graph` y
+    no a este lado dejaba el Compile rechazando «pin de salida desconocido: desde» con los tests
+    puros en verde, porque los tests llamaban a `compilar` directo. Lo encontró la sonda del camino
+    real, que es el único lugar donde las dos mitades se ejercen juntas.
+    """
+    if kind in VALOR_KINDS:
+        from .math_core import salidas_extra
+        return salidas_extra(kind)
+    return ()
+
+
+def _tipo_salida(kind: str, pin: str = PIN_OUT) -> str:
+    """Tipo público de un pin de salida, compartido con el spec que consume Slate."""
+    if pin != PIN_OUT:
+        for nombre, tipo, _etiqueta, _corte in _salidas_extra(kind):
+            if nombre == pin:
+                return tipo
+        return ""
     if kind in VALOR_KINDS:
         from .math_core import tipo_salida
         return tipo_salida(kind)
@@ -906,12 +932,15 @@ class Flow:
                 continue
             if origen == destino:
                 error(origen, "un nodo no puede conectarse a sí mismo")
-            if origen_pin != PIN_OUT:
-                error(origen, f"pin de salida desconocido: «{origen_pin}»")
-
             kind_origen = self.nodos[origen].get("kind", "")
             kind_destino = self.nodos[destino].get("kind", "")
-            tipo_origen = _tipo_salida(kind_origen)
+            if origen_pin != PIN_OUT and not any(
+                    n == origen_pin for n, _t, _e, _c in _salidas_extra(kind_origen)):
+                hay = ", ".join(f"«{n}»" for n, _t, _e, _c in _salidas_extra(kind_origen))
+                error(origen, f"pin de salida desconocido: «{origen_pin}»"
+                              + (f" — este nodo tiene «out», {hay}" if hay
+                                 else " — este nodo sólo tiene «out»"))
+            tipo_origen = _tipo_salida(kind_origen, origen_pin)
             if destino_pin == PIN_STREAM_IN:
                 streams_por_nodo[destino] += 1
                 tipo_destino = "P"

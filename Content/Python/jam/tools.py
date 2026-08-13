@@ -3093,6 +3093,12 @@ def spec_json(*, include_graph_only: bool = False) -> str:
             "asset_pin": info["asset_pin"],
             "asset_row": info["asset_row"],
             "out_name": info["out_name"],
+            # Salidas ADEMÁS de la principal, para que la ficha dibuje un nub por cada una. Casi
+            # siempre vacío, y ahí el C++ hace exactamente lo de siempre: un solo nub «out». La
+            # rebanada no viaja —es un invocable y vive en el cerebro—; Slate sólo necesita saber
+            # qué pines existen, de qué tipo son y cómo se llaman.
+            "outs": [{"pin": pin, "tipo": tipo_pin, "label": etiqueta}
+                     for pin, tipo_pin, etiqueta, _corte in info.get("outs", ())],
             # `opciones` → la UI dibuja una LISTA en vez de un campo de texto (anclas, modos…)
             "params": [{"nombre": k,
                         "label": info.get("etiquetas_params", {}).get(k, k),
