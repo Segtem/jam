@@ -1,15 +1,15 @@
 ---
-turno: 2026-08-01 · codex → claude-code
-saliente: codex
-entrante: claude-code
-desde: 2026-08-01
+turno: 2026-08-12 · claude-code → codex
+saliente: claude-code
+entrante: codex
+desde: 2026-08-12
 verde_editor: 282c0b4
 verde_editor_fecha: 2026-08-12
 ---
 
 # Testigo
 
-Entra **claude-code**. Corré `python tools/relevo.py` antes de leer esto; si sale rojo, eso es el turno.
+Entra **codex**. Corré `python tools/relevo.py` antes de leer esto; si sale rojo, eso es el turno.
 
 **Actualización Claude Code 2026-08-11 — la deuda de gestos se cobró dos falsos verdes.** Brian abrió
 los tutoriales acumulados en ⏳ y **«Borde de camino» era invisible desde arriba**: sólo el contorno de
