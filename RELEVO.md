@@ -3,7 +3,7 @@ turno: 2026-08-01 · codex → claude-code
 saliente: codex
 entrante: claude-code
 desde: 2026-08-01
-verde_editor: a3880de
+verde_editor: 282c0b4
 verde_editor_fecha: 2026-08-12
 ---
 
