@@ -357,6 +357,45 @@
       "updated": "2026-08-04"
      },
      {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-11",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-11"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-12",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-12-PLAN-Multi-Salida-En-El-Graph-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-12"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-12",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-12"
+     },
+     {
       "area": "02-TreeGen",
       "carpeta": "02-TreeGen",
       "carpeta_conocida": true,
@@ -1228,6 +1267,31 @@
      {
       "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
       "origen": "2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
+      "origen": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "origen": "2026-08-12-PLAN-Multi-Salida-En-El-Graph-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-03-ROADMAP-Catalogo-Matematico-Ampliado-v1.0",
+      "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
       "resuelve": true
      },
      {
@@ -2351,6 +2415,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
       "destino": "2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0",
       "origen": "README",
       "resuelve": true
@@ -2996,6 +3065,45 @@
       "area": "01-Graph",
       "carpeta": "01-Graph",
       "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-04",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-04"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-12",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-12-PLAN-Multi-Salida-En-El-Graph-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-12"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-12",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-12"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
       "fecha_en_nombre": "",
       "frontmatter_completo": true,
       "nombre": "archivo-sin-convencion",
@@ -3003,7 +3111,7 @@
       "sigue_convencion": false,
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "",
-      "updated": "2026-08-04"
+      "updated": "2026-08-11"
      },
      {
       "area": "02-TreeGen",
@@ -3876,6 +3984,31 @@
      },
      {
       "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
+      "origen": "2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "origen": "2026-08-12-PLAN-Multi-Salida-En-El-Graph-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-03-ROADMAP-Catalogo-Matematico-Ampliado-v1.0",
+      "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
       "origen": "archivo-sin-convencion",
       "resuelve": true
      },
@@ -5000,9 +5133,14 @@
       "resuelve": true
      },
      {
-      "destino": "2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0",
+      "destino": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
       "origen": "README",
       "resuelve": false
+     },
+     {
+      "destino": "2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0",
+      "origen": "README",
+      "resuelve": true
      },
      {
       "destino": "2026-08-03-ROADMAP-Catalogo-Matematico-Ampliado-v1.0",
@@ -5650,9 +5788,48 @@
       "nombre": "2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0",
       "nombre_es_ascii": true,
       "sigue_convencion": true,
-      "tipo_declarado": "PLAN",
+      "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-08-04"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-11",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-11"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-12",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-12-PLAN-Multi-Salida-En-El-Graph-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-12"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-12",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-12"
      },
      {
       "area": "02-TreeGen",
@@ -6526,6 +6703,31 @@
      {
       "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
       "origen": "2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
+      "origen": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "origen": "2026-08-12-PLAN-Multi-Salida-En-El-Graph-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-03-ROADMAP-Catalogo-Matematico-Ampliado-v1.0",
+      "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
       "resuelve": true
      },
      {
@@ -7645,6 +7847,11 @@
      },
      {
       "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -8301,7 +8508,46 @@
       "sigue_convencion": true,
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-04"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-11",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
       "updated": "2020-01-01"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-12",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-12-PLAN-Multi-Salida-En-El-Graph-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-12"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-12",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-12"
      },
      {
       "area": "02-TreeGen",
@@ -9175,6 +9421,31 @@
      {
       "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
       "origen": "2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
+      "origen": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "origen": "2026-08-12-PLAN-Multi-Salida-En-El-Graph-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-03-ROADMAP-Catalogo-Matematico-Ampliado-v1.0",
+      "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
       "resuelve": true
      },
      {
@@ -10294,6 +10565,11 @@
      },
      {
       "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -10940,7 +11216,7 @@
       "updated": "2026-08-03"
      },
      {
-      "area": "99-Inventada",
+      "area": "01-Graph",
       "carpeta": "01-Graph",
       "carpeta_conocida": true,
       "fecha_en_nombre": "2026-08-04",
@@ -10951,6 +11227,45 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-08-04"
+     },
+     {
+      "area": "99-Inventada",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-11",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-11"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-12",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-12-PLAN-Multi-Salida-En-El-Graph-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-12"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-12",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-12"
      },
      {
       "area": "02-TreeGen",
@@ -11824,6 +12139,31 @@
      {
       "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
       "origen": "2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
+      "origen": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "origen": "2026-08-12-PLAN-Multi-Salida-En-El-Graph-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-03-ROADMAP-Catalogo-Matematico-Ampliado-v1.0",
+      "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
       "resuelve": true
      },
      {
@@ -12943,6 +13283,11 @@
      },
      {
       "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -13602,6 +13947,45 @@
       "updated": "2026-08-04"
      },
      {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-11",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-11"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-12",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-12-PLAN-Multi-Salida-En-El-Graph-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-12"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-12",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-12"
+     },
+     {
       "area": "02-TreeGen",
       "carpeta": "02-TreeGen",
       "carpeta_conocida": true,
@@ -14476,9 +14860,34 @@
       "resuelve": true
      },
      {
+      "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
+      "origen": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "documento-que-no-existe",
-      "origen": "2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0",
+      "origen": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
       "resuelve": false
+     },
+     {
+      "destino": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "origen": "2026-08-12-PLAN-Multi-Salida-En-El-Graph-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-03-ROADMAP-Catalogo-Matematico-Ampliado-v1.0",
+      "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "resuelve": true
      },
      {
       "destino": "2026-07-26-INFORME-Graph-Tab-Mesh-Verbos-Malla-v1.0",
@@ -15597,6 +16006,11 @@
      },
      {
       "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -16248,12 +16662,51 @@
       "carpeta_conocida": true,
       "fecha_en_nombre": "2026-08-04",
       "frontmatter_completo": true,
-      "nombre": "2026-08-04-INFORME-Ación-Comentarios-Y-Grupos-Graph-v1.0",
-      "nombre_es_ascii": false,
+      "nombre": "2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0",
+      "nombre_es_ascii": true,
       "sigue_convencion": true,
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-08-04"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-11",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-11-INFORME-Ación-Definicion-De-Tools-Y-Superficies-v1.0",
+      "nombre_es_ascii": false,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-11"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-12",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-12-PLAN-Multi-Salida-En-El-Graph-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-12"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-12",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-12"
      },
      {
       "area": "02-TreeGen",
@@ -17126,7 +17579,32 @@
      },
      {
       "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
-      "origen": "2026-08-04-INFORME-Ación-Comentarios-Y-Grupos-Graph-v1.0",
+      "origen": "2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
+      "origen": "2026-08-11-INFORME-Ación-Definicion-De-Tools-Y-Superficies-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "origen": "2026-08-12-PLAN-Multi-Salida-En-El-Graph-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-03-ROADMAP-Catalogo-Matematico-Ampliado-v1.0",
+      "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
       "resuelve": true
      },
      {
@@ -18250,9 +18728,14 @@
       "resuelve": true
      },
      {
-      "destino": "2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0",
+      "destino": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
       "origen": "README",
       "resuelve": false
+     },
+     {
+      "destino": "2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0",
+      "origen": "README",
+      "resuelve": true
      },
      {
       "destino": "2026-08-03-ROADMAP-Catalogo-Matematico-Ampliado-v1.0",
@@ -18905,6 +19388,45 @@
       "updated": "2026-08-04"
      },
      {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-11",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-11"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-12",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-12-PLAN-Multi-Salida-En-El-Graph-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-12"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-12",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-12"
+     },
+     {
       "area": "02-TreeGen",
       "carpeta": "02-TreeGen",
       "carpeta_conocida": true,
@@ -19415,14 +19937,14 @@
       "area": "01-Graph",
       "carpeta": "",
       "carpeta_conocida": false,
-      "fecha_en_nombre": "2026-08-04",
+      "fecha_en_nombre": "2026-08-11",
       "frontmatter_completo": true,
-      "nombre": "2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0",
+      "nombre": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
       "nombre_es_ascii": true,
       "sigue_convencion": true,
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
-      "updated": "2026-08-04"
+      "updated": "2026-08-11"
      }
     ],
     "enlace": [
@@ -19789,6 +20311,31 @@
      {
       "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
       "origen": "2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
+      "origen": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "origen": "2026-08-12-PLAN-Multi-Salida-En-El-Graph-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-03-ROADMAP-Catalogo-Matematico-Ampliado-v1.0",
+      "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
       "resuelve": true
      },
      {
@@ -20862,8 +21409,8 @@
       "resuelve": true
      },
      {
-      "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
-      "origen": "2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0",
+      "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
+      "origen": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
       "resuelve": true
      },
      {
@@ -20913,6 +21460,11 @@
      },
      {
       "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -21559,6 +22111,45 @@
       "updated": "2026-08-03"
      },
      {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-04",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-04"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-12",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-12-PLAN-Multi-Salida-En-El-Graph-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-12"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-12",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-12"
+     },
+     {
       "area": "02-TreeGen",
       "carpeta": "02-TreeGen",
       "carpeta_conocida": true,
@@ -22069,14 +22660,14 @@
       "area": "01-Graph",
       "carpeta": "99-Inventada",
       "carpeta_conocida": false,
-      "fecha_en_nombre": "2026-08-04",
+      "fecha_en_nombre": "2026-08-11",
       "frontmatter_completo": true,
-      "nombre": "2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0",
+      "nombre": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
       "nombre_es_ascii": true,
       "sigue_convencion": true,
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
-      "updated": "2026-08-04"
+      "updated": "2026-08-11"
      }
     ],
     "enlace": [
@@ -22438,6 +23029,31 @@
      {
       "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
       "origen": "2026-08-03-ROADMAP-Catalogo-Matematico-Ampliado-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
+      "origen": "2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "origen": "2026-08-12-PLAN-Multi-Salida-En-El-Graph-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-03-ROADMAP-Catalogo-Matematico-Ampliado-v1.0",
+      "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
       "resuelve": true
      },
      {
@@ -23511,8 +24127,8 @@
       "resuelve": true
      },
      {
-      "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
-      "origen": "2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0",
+      "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
+      "origen": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
       "resuelve": true
      },
      {
@@ -23562,6 +24178,11 @@
      },
      {
       "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -24221,6 +24842,45 @@
       "updated": "2026-08-04"
      },
      {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-11",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-11"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-12",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-12-PLAN-Multi-Salida-En-El-Graph-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-12"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-12",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-12"
+     },
+     {
       "area": "02-TreeGen",
       "carpeta": "02-TreeGen",
       "carpeta_conocida": true,
@@ -24455,19 +25115,6 @@
       "updated": "2026-07-27"
      },
      {
-      "area": "01-Graph",
-      "carpeta": "02-TreeGen",
-      "carpeta_conocida": true,
-      "fecha_en_nombre": "2026-08-04",
-      "frontmatter_completo": true,
-      "nombre": "2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0",
-      "nombre_es_ascii": true,
-      "sigue_convencion": true,
-      "tipo_declarado": "INFORME",
-      "tipo_en_nombre": "INFORME",
-      "updated": "2026-08-04"
-     },
-     {
       "area": "02-TreeGen",
       "carpeta": "02-TreeGen",
       "carpeta_conocida": true,
@@ -24479,6 +25126,19 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-08-09"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "02-TreeGen",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-11",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-11"
      },
      {
       "area": "03-Mesh-y-materiales",
@@ -25108,6 +25768,31 @@
       "resuelve": true
      },
      {
+      "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
+      "origen": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "origen": "2026-08-12-PLAN-Multi-Salida-En-El-Graph-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-03-ROADMAP-Catalogo-Matematico-Ampliado-v1.0",
+      "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-07-26-INFORME-Graph-Tab-Mesh-Verbos-Malla-v1.0",
       "origen": "2026-07-26-GUIA-Ejemplo-Graph-Pino-Procedural-v1.0",
       "resuelve": true
@@ -25773,11 +26458,6 @@
       "resuelve": true
      },
      {
-      "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
-      "origen": "2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0",
-      "resuelve": true
-     },
-     {
       "destino": "2026-07-27-INFORME-TreeGen-Auditoria-Blueprints-Flow-Real-v1.0",
       "origen": "2026-08-09-INFORME-Biblioteca-Ejemplos-Malla-Procedural-v1.0",
       "resuelve": true
@@ -25815,6 +26495,11 @@
      {
       "destino": "2026-08-09-ROADMAP-Verbos-Y-Ejemplos-PMG-v1.0",
       "origen": "2026-08-09-INFORME-Biblioteca-Ejemplos-Malla-Procedural-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
+      "origen": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
       "resuelve": true
      },
      {
@@ -26229,6 +26914,11 @@
      },
      {
       "destino": "2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
       "origen": "README",
       "resuelve": true
      },
@@ -26879,13 +27569,52 @@
       "carpeta": "01-Graph",
       "carpeta_conocida": true,
       "fecha_en_nombre": "2026-08-04",
-      "frontmatter_completo": false,
+      "frontmatter_completo": true,
       "nombre": "2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0",
       "nombre_es_ascii": true,
       "sigue_convencion": true,
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-08-04"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-11",
+      "frontmatter_completo": false,
+      "nombre": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-11"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-12",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-12-PLAN-Multi-Salida-En-El-Graph-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "PLAN",
+      "tipo_en_nombre": "PLAN",
+      "updated": "2026-08-12"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-12",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "ROADMAP",
+      "tipo_en_nombre": "ROADMAP",
+      "updated": "2026-08-12"
      },
      {
       "area": "02-TreeGen",
@@ -27759,6 +28488,31 @@
      {
       "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
       "origen": "2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
+      "origen": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "origen": "2026-08-12-PLAN-Multi-Salida-En-El-Graph-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0",
+      "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-08-03-ROADMAP-Catalogo-Matematico-Ampliado-v1.0",
+      "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
       "resuelve": true
      },
      {
@@ -28882,6 +29636,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
+      "origen": "README",
+      "resuelve": true
+     },
+     {
       "destino": "2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0",
       "origen": "README",
       "resuelve": true
@@ -29217,7 +29976,7 @@
    "catalogo": "99372ef74c544a44c24bbbe91d0dd050320a7a0e37d88ea94e6cf2d0de34f79c",
    "configuracion": "407a21668fb6d1cc90b20875fa7e2a1044832d4f2e47f759f46e63edcb27e073",
    "emisor": "0c28471abddabcb59c5a0e4dc2d8818a750dba69100b83fc10bb8c963f162865",
-   "referencia": "4dff0afee508d26f5206f1702d52e53f388b554420999cf1bc6a3705355263df"
+   "referencia": "4a123a92478ff4a1cc25e2302e4966d277820b206c50fb888e35d20d18db860d"
   },
   "raiz_fuentes": ".."
  },
