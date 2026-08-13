@@ -174,6 +174,14 @@ def veredicto_del_oraculo():
     """(informe, None) con las medidas del vendor, o (None, motivo) si no se puede calcular.
 
     Nunca levanta: el verificador a mano tiene que seguir funcionando aunque el vendor falte.
+
+    ⚠️ `hechos()` recibe la RAÍZ del repo, no el vault: adentro hace `raiz / "Vault-kb"`. Pasarle
+    `VAULT` daba `Vault-kb/Vault-kb`, que no existe, así que `rglob` no devolvía nada y el oráculo
+    evaluaba **cero documentos y cero enlaces**. Todas sus medidas cuentan defectos, y sobre el
+    conjunto vacío ninguna puede contar más de cero: la sombra salía verde sin haber mirado nada, y
+    el informe decía «las dos implementaciones coinciden» sobre 70 documentos que jamás vio. Lo
+    destapó un enlace roto de verdad: el verificador a mano lo encontró y la sombra no. Por eso el
+    contador de entidades entra abajo en el veredicto — un cero acá es tan sospechoso como un rojo.
     """
     try:
         raiz = VAULT.parent
@@ -182,8 +190,11 @@ def veredicto_del_oraculo():
         from emitir_hechos_vault import hechos
         from oracle_metalenguaje import Motor
 
+        datos = hechos(raiz)
+        if not datos.get("documento"):
+            return None, "el emisor no encontró ni un documento — la sombra no mide nada"
         motor = Motor.desde_proyecto(raiz / "medidas", confiar_escalares=True)
-        return motor.evaluar(hechos(VAULT)), None
+        return motor.evaluar(datos), None
     except Exception as e:  # noqa: BLE001
         return None, f"{type(e).__name__}: {e}"
 
