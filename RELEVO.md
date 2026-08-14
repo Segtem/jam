@@ -659,6 +659,71 @@ de pedir manos sin que nadie lo note.)*
 
 ## Lo próximo
 
+**0-nonies. ✅ MULTI-SALIDA: EL CEREBRO ESTÁ HECHO. Falta Slate, y con Slate llega Matrix.**
+
+Un verbo puede declarar `outs` —`(pin, tipo, etiqueta, rebanada)`— además de su salida principal.
+`domain_construct` la estrena con sus dos extremos; `domain_min`/`domain_max` **no se tocaron**,
+porque borrarlos rompería diagramas guardados. 1148 → **1173 tests**, **8/8 mutantes muertos**,
+`JAM_MULTISALIDA_58 TODO VERDE` en UE 5.8.1 y **19/19 tutoriales** compilando.
+
+**El diseño es ADITIVO y ésa es toda la seguridad**: un verbo sin `outs` se comporta exactamente
+como antes. La rebanada es un **invocable** y no un índice ni el nombre de un campo — `operacion` ya
+es un lambda en la misma tabla, así que no hubo que inventar un mini-lenguaje de accesores. El nodo
+corre **una** vez y cada pin se sirve de su resultado: con un verbo que escribe assets, una
+ejecución por pin sería catastrófica y silenciosa.
+
+**Dos correcciones al plan, medidas al implementarlo:**
+· El radio de explosión era MENOR de lo estimado: de los 79 `out_name` del cerebro, **64 son
+  DECLARACIONES** en la tabla de `math_core` y sólo ~15 son consumidores.
+· Y el plan no contaba un lugar: **`flow.py` valida por su cuenta.**
+
+⚠️ **La sonda del camino real lo encontró con 22 tests puros en VERDE.** Un grafo de puros nodos de
+valor **no entra por `graph.compilar`**: entra por el preflight de `flow.py`, una validación
+paralela con su propio `_tipo_salida`. Enseñarle multi-salida a un lado dejaba el Compile
+rechazando «pin de salida desconocido: desde» mientras los tests —que llamaban a `compilar`
+directo— seguían pasando. Es la trampa ya escrita: **llamar a la función es el ATAJO**. Ahora hay
+tests que entran por `api.compile_graph_json`, que es la puerta que usa el editor.
+
+⚠️ **Y una mutación destapó otro hueco de MIS tests**: neutralizar `valor_por_el_cable` —el reparto
+de cables del ejecutor— dejaba los 20 tests en verde, porque todos pasaban por nodos de valor. El
+camino del ejecutor, que es **el que va a usar Matrix**, no estaba cubierto.
+
+⚠️ Un test que exigía «el nodo corre una sola vez» salió rojo con 2, y el **control** mostró que un
+nodo de valor se evalúa dos veces **siempre** (punto fijo de `math_core.resolver`), aun solo en el
+grafo. Exigir el absoluto habría fijado en un test una propiedad ajena. Se pregunta contra el
+control: leer dos salidas no puede costar más que leer una.
+
+**Lo que sigue, en orden:** (1) el nub por salida en `SJamGraphNode` —el spec ya publica `outs`, y
+por eso **todo** verbo lo publica aunque sea vacío: sin la clave el C++ tendría que distinguir «no
+hay» de «no vino»—; (2) las tres decisiones que el plan dejó abiertas y que recién ahora se pueden
+contestar mirando el dibujo (dónde van los nubs, el modo compacto con tres letras, el caché);
+(3) **Matrix**, que es el consumidor por el que se hizo todo esto.
+
+---
+
+**0-octies. ✅ LA SOMBRA DEL VAULT SALÍA VERDE SIN MIRAR NADA.**
+
+`veredicto_del_oraculo` le pasaba `VAULT` a `hechos()`, que adentro hace `raiz / "Vault-kb"`: la
+ruta quedaba en `Vault-kb/Vault-kb`, que no existe, así que el emisor devolvía **0 documentos y 0
+enlaces**. Todas las medidas cuentan defectos y sobre el vacío ninguna puede contar más de cero, así
+que la sombra imprimía «las dos implementaciones coinciden» sobre **70 documentos que jamás vio**.
+
+Lo destapó un enlace roto de verdad: el verificador a mano lo encontró y la sombra no. **Es el falso
+verde que el modo sombra existe para detectar, y estaba adentro del modo sombra** — o sea que el
+paso 4 de esta lista (reemplazar los verificadores a mano) habría reemplazado uno que funciona por
+uno que lee un directorio vacío.
+
+Ahora la sombra se **niega** si el emisor no encuentra ni un documento. Queda como trampa permanente
+en `AGENTS.md`: **todo verificador tiene que publicar cuántas entidades midió**, porque un cero ahí
+es indistinguible de un verde. Y de paso se corrigió la receta de `-ExecCmds` en esa misma tabla,
+que decía `;` donde va **coma** — mal justo en el archivo que lee el agente entrante.
+
+⚠️ **`CLAUDE.md` está desactualizado**: dice que el proyecto host es `JamUE57/JamUE57.uproject` y ese
+proyecto **ya no existe**. El host real es `/home/workstation/Dev/games/BotOO/BotOO.uproject`, que
+es donde vive el symlink `Plugins/Jam`.
+
+---
+
 **0-septies. LA MITAD DE LOS NÚMEROS DEL LIVE VIEW ERAN DEL COMMANDLET. Corregidos, y una regla
 nueva.**
 

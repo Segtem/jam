@@ -4,7 +4,7 @@ tipo: PLAN
 version: "1.0"
 date: 2026-08-12
 updated: 2026-08-12
-status: propuesto
+status: parcial
 area: 01-Graph
 tags:
   - jam
@@ -14,6 +14,20 @@ tags:
 ---
 
 # Multi-salida en el Graph: el patrón Deconstruct
+
+> ✅ **El CEREBRO está hecho** (2026-08-13, commit `0adae42`): declaración, Compile, ejecutor, los
+> dos preflight y el spec. `domain_construct` estrena la capacidad con sus dos extremos. 1173 tests,
+> 8/8 mutantes muertos, `JAM_MULTISALIDA_58 TODO VERDE` y 19/19 tutoriales.
+> ❌ **Falta Slate**: la ficha sigue dibujando UN nub. Y con Slate llega Matrix, que es el consumidor
+> por el que se hizo todo esto.
+>
+> **Dos correcciones al plan, medidas al implementarlo:**
+> · El radio de explosión era MENOR: de los 79 `out_name` del cerebro, **64 son declaraciones** en la
+>   tabla de `math_core` y sólo ~15 son consumidores. El corte aditivo no tocó ninguno.
+> · Y había un lugar que el plan NO contaba: **`flow.py` valida por su cuenta**, con un preflight
+>   paralelo al de `graph.compilar` y su propio `_tipo_salida`. Un grafo de puros nodos de valor
+>   entra por ahí. Enseñarle multi-salida a un solo lado dejó el Compile rojo con todos los tests
+>   puros en verde, y lo encontró la sonda del camino real.
 
 **Ningún verbo de Jam puede tener más de una salida.** Los 200 declaran un solo `out_name`, y el
 compilador rechaza cualquier arista cuyo pin de origen no sea `"out"`. Eso deja afuera todo el patrón
