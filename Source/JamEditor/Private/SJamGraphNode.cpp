@@ -204,7 +204,11 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 			+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
 			[
 				SNew(STextBlock)
-				.Text(FText::FromString(InArgs._OutputLabel))
+				// Con filas de salida el nub del header se apaga, así que su rótulo también: una
+				// palabra sin pin al lado se lee como una salida que no se puede cablear. Cada fila
+				// trae su propio «nombre (Tipo)».
+				.Text(FText::FromString(InArgs._OutputPins.Num() == 0
+					? InArgs._OutputLabel : FString()))
 				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 7))
 				.ColorAndOpacity(FSlateColor(FLinearColor(0.12f, 0.13f, 0.14f, 1.0f)))
 			])

@@ -83,7 +83,26 @@ struct FJamTool
 	/** Firma dinámica de `fn:<nombre>`. Vacíos = contrato clásico de un solo `in`/`out`. */
 	TArray<FPin> InputPins;
 	TArray<FPin> OutputPins;
+	/** Salidas ADEMÁS de `out` — el patrón Deconstruct de Grasshopper. Casi siempre vacío, y ahí el
+	    nodo dibuja exactamente lo de siempre: un solo nub. Distinto de `OutputPins`, que REEMPLAZA
+	    la salida principal en una función; éstas la ACOMPAÑAN, así que el pin `out` sigue estando y
+	    los diagramas guardados que lo cablean no cambian de significado. */
+	TArray<FPin> SalidasExtra;
 	TArray<FJamParam> Params;
+
+	/** El tipo que sale por `Pin`, mirando LAS DOS listas y cayendo a `out`.
+	    Existe para que no haya dos búsquedas parecidas: había una en `OutputDataTypeFor` y otra en
+	    la validación de aristas al cargar, las dos mirando sólo `OutputPins`. Con multi-salida eso
+	    devolvía tipo vacío para «desde»/«hasta» y el cable se rechazaba en una de las dos mitades
+	    según por dónde entrara — el mismo patrón de «el spec se lee en dos lugares». */
+	FString TipoDeSalida(const FString& Pin) const
+	{
+		if (const FPin* P = OutputPins.FindByPredicate(
+			[&Pin](const FPin& X) { return X.Name == Pin; })) { return P->Type; }
+		if (const FPin* P = SalidasExtra.FindByPredicate(
+			[&Pin](const FPin& X) { return X.Name == Pin; })) { return P->Type; }
+		return Pin == TEXT("out") ? OutName : FString();
+	}
 };
 
 /** Una carpeta del proyecto con mallas: ruta + nombre corto + cuántas tiene (árbol de Content). */

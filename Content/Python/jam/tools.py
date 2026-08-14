@@ -3097,7 +3097,7 @@ def spec_json(*, include_graph_only: bool = False) -> str:
             # siempre vacío, y ahí el C++ hace exactamente lo de siempre: un solo nub «out». La
             # rebanada no viaja —es un invocable y vive en el cerebro—; Slate sólo necesita saber
             # qué pines existen, de qué tipo son y cómo se llaman.
-            "outs": [{"pin": pin, "tipo": tipo_pin, "label": etiqueta}
+            "outs": [{"name": pin, "tipo": tipo_pin, "label": etiqueta}
                      for pin, tipo_pin, etiqueta, _corte in info.get("outs", ())],
             # `opciones` → la UI dibuja una LISTA en vez de un campo de texto (anclas, modos…)
             "params": [{"nombre": k,

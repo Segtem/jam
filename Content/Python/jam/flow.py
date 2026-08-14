@@ -171,7 +171,7 @@ def spec_json() -> str:
             # nub por cada una. La rebanada no viaja —es un invocable del cerebro—. Y va acá además
             # de en `tools.py` porque el spec del canvas se arma juntando LOS DOS: tocar uno solo
             # ya dejó una unidad a medio publicar y la perilla de ángulos no aparecía.
-            "outs": [{"pin": pin, "tipo": tipo_pin, "label": etiqueta}
+            "outs": [{"name": pin, "tipo": tipo_pin, "label": etiqueta}
                      for pin, tipo_pin, etiqueta, _corte in m.get("outs", ())],
             "params": [{"nombre": k, "label": m.get("etiquetas_params", {}).get(k, k),
                         "default": str(v), "tipo": tipo(v),

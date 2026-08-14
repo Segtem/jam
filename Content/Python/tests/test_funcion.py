@@ -294,8 +294,18 @@ class SlateContratoTests(unittest.TestCase):
         self.assertIn("OnOutputClickedDelegate.ExecuteIfBound(Nombre)", nodo)
         # `in`/`out` son nombres legales de firma: la búsqueda dinámica tiene que ganarles a los
         # pines clásicos del header, que en una función están vacíos.
-        self.assertLess(editor.index("T->OutputPins.FindByPredicate"),
-                        editor.index('if (Pin == TEXT("out")) { return T->OutName; }'))
+        #
+        # La del lado de SALIDA se mudó a `FJamTool::TipoDeSalida` (en el .h) cuando entró
+        # multi-salida: había DOS búsquedas parecidas —`OutputDataTypeFor` y la validación de
+        # aristas al cargar— y las dos miraban sólo `OutputPins`, así que un pin extra habría
+        # devuelto tipo vacío en una de las dos según por dónde entrara. El invariante no cambió,
+        # cambió dónde vive; se comprueba ahí para que el orden quede fijado en un solo lugar.
+        cabecera = (self.RAIZ / "Source/JamEditor/Public/JamEditorModule.h").read_text()
+        self.assertIn("FString TipoDeSalida(const FString& Pin) const", cabecera)
+        self.assertLess(cabecera.index("OutputPins.FindByPredicate"),
+                        cabecera.index('return Pin == TEXT("out") ? OutName : FString();'))
+        self.assertLess(cabecera.index("OutputPins.FindByPredicate"),
+                        cabecera.index("SalidasExtra.FindByPredicate"))
         self.assertLess(editor.index("T->InputPins.FindByPredicate"),
                         editor.index('if (Pin == TEXT("in"))'))
 

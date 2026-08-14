@@ -55,8 +55,8 @@ spec = {item["verbo"]: item for item in json.loads(api.spec_all())["tools"]}
 
 exigir("domain_construct" in spec, "el spec trae «Armar dominio»")
 outs = spec.get("domain_construct", {}).get("outs")
-exigir(outs == [{"pin": "desde", "tipo": "N", "label": "desde"},
-                {"pin": "hasta", "tipo": "N", "label": "hasta"}],
+exigir(outs == [{"name": "desde", "tipo": "N", "label": "desde"},
+                {"name": "hasta", "tipo": "N", "label": "hasta"}],
        f"«Armar dominio» publica sus dos salidas extra: {outs}")
 
 sin_clave = [v for v, item in spec.items() if "outs" not in item]
@@ -146,6 +146,21 @@ rm = corrida(m)
 exigir(rm.get("ok"), f"Run de vector → línea → cinta: {rm}")
 exigir("RIBBON" in rm.get("report", "").upper(),
        f"la cinta se construyó: {rm.get('report', '')[:160]}")
+
+log("-" * 78)
+log("8 · El contrato que consume Slate: los pines vienen con la MISMA forma que inputs/outputs.")
+# El C++ los lee con el mismo `LeerPines`, que exige `name` + `tipo`. Si el Python publicara `pin`
+# en vez de `name`, el parser no levantaría ninguno y el nodo se dibujaría con un solo nub — sin
+# error, sin log, simplemente sin los pines. Por eso se mide la FORMA y no sólo que la clave exista.
+for salida in spec.get("domain_construct", {}).get("outs", []):
+    exigir(set(salida) == {"name", "tipo", "label"},
+           f"la salida extra trae name/tipo/label y nada más: {salida}")
+    exigir(bool(salida.get("name")) and bool(salida.get("tipo")),
+           f"con nombre y tipo no vacíos: {salida}")
+
+# Y que ninguna extra se llame «out»: taparía la principal en el dibujo y en el cableado.
+exigir(all(s.get("name") != "out" for item in spec.values() for s in item.get("outs", [])),
+       "ninguna salida extra se llama «out» en todo el spec")
 
 log("=" * 78)
 log("JAM_MULTISALIDA_58 TODO VERDE" if not FALLAS

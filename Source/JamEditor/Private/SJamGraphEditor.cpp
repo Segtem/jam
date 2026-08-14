@@ -2346,6 +2346,21 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At,
 		NamedOutputs.Add(FJamNodePin{P.Name, P.Type, DataName(P.Type), DataColor(P.Type)});
 		Node.OutputPinNames.Add(P.Name);
 	}
+	// Multi-salida: las extras ACOMPAÑAN a `out`, no la reemplazan. Por eso la principal se agrega
+	// acá PRIMERA y explícita — el nub del header se apaga solo cuando hay filas de salida, así que
+	// sin esta línea `domain_construct` perdería su pin `out` y todo diagrama guardado que lo cablea
+	// se quedaría sin origen. Es lo contrario de `OutputPins`, que en una función SÍ reemplaza.
+	if (T->OutputPins.Num() == 0 && T->SalidasExtra.Num() > 0)
+	{
+		NamedOutputs.Add(FJamNodePin{TEXT("out"), T->OutName, DataName(T->OutName),
+			DataColor(T->OutName)});
+		Node.OutputPinNames.Add(TEXT("out"));
+		for (const FJamTool::FPin& P : T->SalidasExtra)
+		{
+			NamedOutputs.Add(FJamNodePin{P.Name, P.Type, DataName(P.Type), DataColor(P.Type)});
+			Node.OutputPinNames.Add(P.Name);
+		}
+	}
 
 	const FString Id = Node.Id;
 	// Nodos FUENTE (producen el dato, no lo reciben): sin pin de entrada, convención de Grasshopper.
@@ -2905,6 +2920,7 @@ void SJamGraphEditor::ColapsarSeleccion()
 	};
 	LeerPines(TEXT("inputs"), Tool.InputPins);
 	LeerPines(TEXT("outputs"), Tool.OutputPins);
+	LeerPines(TEXT("outs"), Tool.SalidasExtra);
 	JamLeerParamsDeFicha(*ToolObj, Tool.Params);   // las perillas de la función
 	if (Tool.Verb.IsEmpty())
 	{
@@ -3005,6 +3021,7 @@ bool SJamGraphEditor::AplicarRespuestaFuncion(const FString& Res, bool bCargarCu
 	};
 	LeerPines(TEXT("inputs"), Tool.InputPins);
 	LeerPines(TEXT("outputs"), Tool.OutputPins);
+	LeerPines(TEXT("outs"), Tool.SalidasExtra);
 	JamLeerParamsDeFicha(*ToolObj, Tool.Params);   // las perillas de la función
 	if (Tool.Verb.IsEmpty()) { return false; }
 
@@ -3664,13 +3681,7 @@ FString SJamGraphEditor::OutputDataTypeFor(const FString& NodeId, const FString&
 	const FGNode* N = Nodes.FindByPredicate([&NodeId](const FGNode& X) { return X.Id == NodeId; });
 	const FJamTool* T = N ? FindTool(N->Verb) : nullptr;
 	if (T == nullptr) { return FString(); }
-	if (const FJamTool::FPin* P = T->OutputPins.FindByPredicate(
-		[&Pin](const FJamTool::FPin& X) { return X.Name == Pin; }))
-	{
-		return P->Type;
-	}
-	if (Pin == TEXT("out")) { return T->OutName; }
-	return FString();
+	return T->TipoDeSalida(Pin);
 }
 
 FString SJamGraphEditor::InputDataTypeFor(const FString& NodeId, const FString& Pin) const
@@ -5219,12 +5230,7 @@ bool SJamGraphEditor::LoadGraphJson(const FString& Json, bool bConservarEdicionF
 			FString OutType;
 			if (FromTool)
 			{
-				if (const FJamTool::FPin* Pin = FromTool->OutputPins.FindByPredicate(
-					[&FromPin](const FJamTool::FPin& P) { return P.Name == FromPin; }))
-				{
-					OutType = Pin->Type;
-				}
-				else if (FromPin == TEXT("out")) { OutType = FromTool->OutName; }
+				OutType = FromTool->TipoDeSalida(FromPin);
 			}
 			FString InType;
 			if (ToTool)

@@ -877,6 +877,9 @@ void FJamEditorModule::LoadSpec(bool bIncludeFlow)
 		};
 		LeerPines(TEXT("inputs"), T.InputPins);
 		LeerPines(TEXT("outputs"), T.OutputPins);
+		// Multi-salida. Va en LOS TRES lugares donde se parsea el spec: leerlo en uno solo deja
+		// la mitad de los nodos sin sus pines extra, según por dónde se los haya creado.
+		LeerPines(TEXT("outs"), T.SalidasExtra);
 		const TArray<TSharedPtr<FJsonValue>>* Ps = nullptr;
 		if (O->TryGetArrayField(TEXT("params"), Ps) && Ps)
 		{

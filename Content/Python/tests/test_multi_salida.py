@@ -322,9 +322,11 @@ class ElSpecLasPublica(unittest.TestCase):
     def test_el_spec_trae_las_salidas_extra_del_dominio(self):
         spec = json.loads(api.spec_all())
         porverbo = {t["verbo"]: t for t in spec["tools"]}
+        # La clave es `name`, no `pin`: es la MISMA forma que ya usan `inputs`/`outputs` en el
+        # spec, así que el C++ los lee con el mismo `LeerPines` en vez de una segunda ruta paralela.
         self.assertEqual(porverbo["domain_construct"]["outs"],
-                         [{"pin": "desde", "tipo": "N", "label": "desde"},
-                          {"pin": "hasta", "tipo": "N", "label": "hasta"}])
+                         [{"name": "desde", "tipo": "N", "label": "desde"},
+                          {"name": "hasta", "tipo": "N", "label": "hasta"}])
 
     def test_todos_los_demas_publican_una_lista_vacia(self):
         # Vacía y PRESENTE: si la clave faltara, el C++ tendría que distinguir «no hay» de «no vino»
@@ -339,7 +341,49 @@ class ElSpecLasPublica(unittest.TestCase):
         spec = json.loads(api.spec_all())
         porverbo = {t["verbo"]: t for t in spec["tools"]}
         for salida in porverbo["domain_construct"]["outs"]:
-            self.assertEqual(set(salida), {"pin", "tipo", "label"})
+            self.assertEqual(set(salida), {"name", "tipo", "label"})
+
+
+class ElCppDibujaLosNubs(unittest.TestCase):
+    """Lo que Slate tiene que hacer, leído del `.cpp`. No reemplaza mirarlo con los ojos."""
+
+    from pathlib import Path
+    RAIZ = Path(__file__).resolve().parents[3]
+
+    def cpp(self, rel):
+        return (self.RAIZ / rel).read_text(encoding="utf-8")
+
+    def test_los_TRES_lugares_que_parsean_el_spec_leen_outs(self):
+        # El spec se parsea en tres sitios distintos. Leerlo en uno solo deja la mitad de los nodos
+        # sin sus pines extra según por dónde se los haya creado — es la trampa que ya costó que la
+        # perilla de ángulos no apareciera, con la unidad agregada a un solo lado.
+        modulo = self.cpp("Source/JamEditor/Private/JamEditorModule.cpp")
+        editor = self.cpp("Source/JamEditor/Private/SJamGraphEditor.cpp")
+        self.assertEqual(modulo.count('LeerPines(TEXT("outs")'), 1)
+        self.assertEqual(editor.count('LeerPines(TEXT("outs")'), 2)
+
+    def test_la_salida_principal_se_agrega_PRIMERA_y_explicita(self):
+        # Las extras ACOMPAÑAN a `out`, no la reemplazan. El nub del header se apaga solo cuando hay
+        # filas de salida, así que sin esta línea `domain_construct` perdería su pin `out` y todo
+        # diagrama guardado que lo cablea se quedaría sin origen.
+        editor = self.cpp("Source/JamEditor/Private/SJamGraphEditor.cpp")
+        self.assertIn("T->OutputPins.Num() == 0 && T->SalidasExtra.Num() > 0", editor)
+        principal = editor.index('NamedOutputs.Add(FJamNodePin{TEXT("out"), T->OutName')
+        extras = editor.index("for (const FJamTool::FPin& P : T->SalidasExtra)")
+        self.assertLess(principal, extras, "«out» va primera: su fila es la de arriba")
+
+    def test_el_rotulo_del_header_se_apaga_cuando_hay_filas_de_salida(self):
+        # Una palabra sin nub al lado se lee como una salida que no se puede cablear.
+        nodo = self.cpp("Source/JamEditor/Private/SJamGraphNode.cpp")
+        self.assertIn("InArgs._OutputPins.Num() == 0\n\t\t\t\t\t? InArgs._OutputLabel : FString()",
+                      nodo)
+
+    def test_el_tipo_de_salida_se_busca_en_UN_solo_lugar(self):
+        # Antes había dos búsquedas parecidas en el .cpp; ahora las dos llaman al mismo helper.
+        editor = self.cpp("Source/JamEditor/Private/SJamGraphEditor.cpp")
+        self.assertEqual(editor.count("TipoDeSalida("), 2)
+        self.assertNotIn("OutputPins.FindByPredicate", editor,
+                         "la búsqueda de salida vive en FJamTool::TipoDeSalida, no suelta acá")
 
 
 if __name__ == "__main__":
