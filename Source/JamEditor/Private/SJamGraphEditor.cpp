@@ -2406,8 +2406,10 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At,
 		.OnDragEnd_Lambda([this]() { Marcar(); })
 		// Confirmar un parámetro es un paso del historial Y algo que puede cambiar el resultado.
 		.OnParamChanged_Lambda([this]() { Marcar(); PedirRecoccion(); })
-		// Arrastrando: sólo recocina. Meter esto en el historial lo llenaría de un paso por frame.
-		.OnParamLive_Lambda([this]() { PedirRecoccion(); })
+		// Arrastrando: sólo recocina, y `false` dice que el gesto SIGUE en curso — el que decide si
+		// se puede cocinar sin trabar el mouse es `PedirRecoccion`, con lo que costó la vuelta
+		// anterior. Meter esto en el historial lo llenaría de un paso por frame.
+		.OnParamLive_Lambda([this]() { PedirRecoccion(/*bFinDeGesto=*/false); })
 		.OnBypassChanged_Lambda([this]() { Marcar(); PedirRecoccion(); })
 		.OnDebugChanged_Lambda([this, Id]() { SoloVerNodo(Id); })
 		.OnCompactoCambiado_Lambda([this, Id]()
@@ -4403,36 +4405,57 @@ void SJamGraphEditor::AlternarLiveView()
 	}
 }
 
-void SJamGraphEditor::PedirRecoccion()
+void SJamGraphEditor::PedirRecoccion(const bool bFinDeGesto)
 {
 	if (!bLiveView || Nodes.Num() == 0)
 	{
 		return;
 	}
 	bRecoccionPendiente = true;
+	// EL ARRASTRE MANDA. Mientras alguien mueve la perilla o el tirador, el grafo se cocina sólo si
+	// la última vuelta entró en el presupuesto. Si no entra, el pedido queda anotado y lo cobra el
+	// soltar: es preferible ver el resultado 60 ms después de soltar que no poder mover la aguja.
+	//
+	// La primera vuelta de un gesto SIEMPRE corre, aunque todavía no sepamos qué cuesta: es la que
+	// mide. Sale un tirón al empezar a arrastrar un grafo pesado y después el arrastre queda suave,
+	// y en el siguiente arrastre ya no hay ni ese tirón porque la medición se conserva. Suponer
+	// «caro» de entrada le sacaría el vivo a los grafos que sí lo pueden pagar; suponer «barato» es
+	// lo que estaba y es el bug.
+	if (!bFinDeGesto && SegundosUltimaCoccion > LiveDebounceSegundos)
+	{
+		return;
+	}
 	// Un temporizador y no uno por aviso: durante un arrastre esto entra decenas de veces por
 	// segundo, y registrar uno cada vez dejaría todos latiendo en paralelo contra el mismo grafo.
 	if (!TemporizadorLive.IsValid())
 	{
-		TemporizadorLive = RegisterActiveTimer(LiveDebounceSegundos,
+		TemporizadorLive = RegisterActiveTimer(
+			bFinDeGesto ? LiveAsentarSegundos : LiveDebounceSegundos,
 			FWidgetActiveTimerDelegate::CreateSP(this, &SJamGraphEditor::CocinarSiHayPendiente));
 	}
 }
 
 EActiveTimerReturnType SJamGraphEditor::CocinarSiHayPendiente(const double, const float)
 {
+	// Siempre de un solo tiro: el temporizador se suelta acá y lo vuelve a armar el pedido
+	// siguiente. Con `Continue` seguía latiendo después del gesto, y sobre todo seguía disparando
+	// mientras el arrastre estaba en curso — que es la mitad del bug de la perilla trabada.
+	TemporizadorLive.Reset();
 	if (!bRecoccionPendiente || !bLiveView)
 	{
-		// Nada que hacer: se apaga y suelta el handle. La próxima petición registra uno nuevo.
-		TemporizadorLive.Reset();
 		return EActiveTimerReturnType::Stop;
 	}
 	// Se baja la bandera ANTES de cocinar: lo que llegue mientras corre el grafo tiene que quedar
 	// anotado para la vuelta siguiente. Bajarla después se comería ese aviso y el live view se
 	// quedaría mostrando el penúltimo valor del arrastre.
 	bRecoccionPendiente = false;
+	const double Inicio = FPlatformTime::Seconds();
 	RunGraph();
-	return EActiveTimerReturnType::Continue;
+	// Lo que decide la política de la próxima vuelta. Se mide SIEMPRE, incluso cuando la cocción
+	// viene de soltar: un grafo que se abarató —alguien borró el nodo que horneaba— tiene que poder
+	// volver a verse en vivo sin reabrir el panel.
+	SegundosUltimaCoccion = FPlatformTime::Seconds() - Inicio;
+	return EActiveTimerReturnType::Stop;
 }
 
 void SJamGraphEditor::BakePreview()

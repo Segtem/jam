@@ -364,7 +364,10 @@ private:
 	bool EstaLiveView() const { return bLiveView; }
 	/** Anota que hay algo que recocinar. NO cocina: sólo levanta la bandera y se asegura de que el
 	 *  temporizador esté latiendo. Cocinar acá mismo cocinaría una vez POR FRAME del arrastre. */
-	void PedirRecoccion();
+	/** @param bFinDeGesto  true cuando el aviso viene de SOLTAR (commit del widget, texto tipeado,
+	 *                      checkbox, bypass). Ése siempre cocina; los de arrastre, sólo si el grafo
+	 *                      entra en el presupuesto. */
+	void PedirRecoccion(bool bFinDeGesto = true);
 	/** El latido del amortiguador. Cocina si hay algo pendiente y se apaga solo cuando no queda
 	 *  nada: un temporizador que sigue latiendo con el grafo quieto es trabajo puro. */
 	EActiveTimerReturnType CocinarSiHayPendiente(const double InTime, const float InDelta);
@@ -591,11 +594,26 @@ private:
 	TWeakPtr<FActiveTimerHandle> TemporizadorLive;
 	/** Cada cuánto se recocina, como mucho, mientras alguien arrastra.
 	 *
-	 *  Medido en UE 5.8.1 (`mide_costo_recoccion_viva_58.py`): una vuelta entera —ejecutar el grafo,
-	 *  refrescar miniaturas e inspector— cuesta 3,7 ms sobre la cadena de prueba, así que el techo
-	 *  no lo pone el costo sino la percepción. 8 recocciones por segundo alcanzan para que un
-	 *  arrastre se lea como continuo, y dejan margen para grafos bastante más pesados que ese. */
+	 *  ⚠️ El comentario que estaba acá decía que «el techo no lo pone el costo sino la percepción»,
+	 *  apoyado en los 3,7 ms de `mide_costo_recoccion_viva_58.py`. **Esa premisa era falsa y por eso
+	 *  este código tenía un bug que Brian reportó: arrastrar la perilla se trababa.** Dos errores
+	 *  encadenados: los 3,7 ms eran del COMMANDLET (con el editor andando son 22,0) y, sobre todo,
+	 *  medían la vuelta viva — pero el live view no llama a esa vuelta, llama a `RunGraph()`, que es
+	 *  el Run PÚBLICO completo: ida y vuelta a Python, inspector y miniaturas. `mide_latencia_run`
+	 *  lo midió en **258–539 ms** con el editor andando. Contra un temporizador de 125 ms, cada
+	 *  cocción tarda de 2 a 4 veces más que el intervalo entre pedidos: el game thread cocinaba sin
+	 *  parar y el mouse no llegaba nunca a mover la aguja. */
 	static constexpr float LiveDebounceSegundos = 0.125f;
+	/** Lo que se espera después de SOLTAR antes de cocinar. Corto: es el tiempo que separa «solté»
+	 *  de «ya lo estoy viendo», y de paso junta en una sola cocción el commit del widget con
+	 *  cualquier aviso que llegue pegado. */
+	static constexpr float LiveAsentarSegundos = 0.06f;
+	/** Cuánto tardó la última cocción, en segundos. Es lo que decide si el grafo puede permitirse
+	 *  correr DURANTE el arrastre o sólo al soltar: un grafo de pura matemática entra holgado y se
+	 *  sigue viendo en vivo; uno que cocina malla no entra, y ahí el arrastre manda. La política es
+	 *  MEDIDA por grafo y no elegida de antemano, porque «caro» y «barato» dependen del diagrama que
+	 *  tenga la persona adelante, no de un número que podamos fijar acá. */
+	double SegundosUltimaCoccion = 0.0;
 
 	// Para el cable-fantasma: última posición del cursor (local a la capa de wires) + esa capa (para
 	// repintarla mientras se arrastra una conexión).

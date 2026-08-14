@@ -57,7 +57,9 @@ class DosAvisosDistintosTests(unittest.TestCase):
         vivo = re.search(r"\.OnParamLive_Lambda\(\[this\]\(\)\s*\{([^}]*)\}", fuente)
         self.assertIsNotNone(vivo, "el editor tiene que escuchar OnParamLive")
         self.assertNotIn("Marcar()", vivo.group(1))
-        self.assertIn("PedirRecoccion()", vivo.group(1))
+        # `false` = el gesto SIGUE en curso. Es lo que le permite a `PedirRecoccion` no cocinar
+        # mientras alguien arrastra un grafo caro; sin el argumento volvería el bug de la perilla.
+        self.assertIn("PedirRecoccion(false)", vivo.group(1))
 
     def test_confirmar_un_parametro_SI_marca_historial_y_ademas_recocina(self):
         fuente = codigo(EDITOR_CPP)
@@ -73,7 +75,7 @@ class AmortiguadorTests(unittest.TestCase):
     def test_pedir_recoccion_no_cocina_sino_que_levanta_una_bandera(self):
         """Cocinar en el aviso sería cocinar una vez POR FRAME, que es justo lo que se evita."""
         fuente = codigo(EDITOR_CPP)
-        cuerpo = fuente.split("void SJamGraphEditor::PedirRecoccion()")[1].split("\n}")[0]
+        cuerpo = fuente.split("void SJamGraphEditor::PedirRecoccion(")[1].split("\n}")[0]
         self.assertIn("bRecoccionPendiente = true", cuerpo)
         self.assertNotIn("RunGraph()", cuerpo)
 
@@ -81,16 +83,22 @@ class AmortiguadorTests(unittest.TestCase):
         """Sin esta guarda, un arrastre deja decenas de temporizadores latiendo sobre el mismo
         grafo, y cada uno lo corre entero."""
         fuente = codigo(EDITOR_CPP)
-        cuerpo = fuente.split("void SJamGraphEditor::PedirRecoccion()")[1].split("\n}")[0]
+        cuerpo = fuente.split("void SJamGraphEditor::PedirRecoccion(")[1].split("\n}")[0]
         self.assertIn("if (!TemporizadorLive.IsValid())", cuerpo)
 
-    def test_el_temporizador_se_apaga_solo_cuando_no_queda_nada(self):
-        """Un temporizador que sigue latiendo con el grafo quieto es trabajo por nada, para siempre."""
+    def test_el_temporizador_es_de_UN_SOLO_TIRO(self):
+        """Cocina una vez y se suelta; lo vuelve a armar el pedido siguiente.
+
+        ⚠️ Antes devolvía `Continue` y ésa era la mitad del bug que Brian reportó: el temporizador
+        seguía disparando cada 125 ms MIENTRAS el arrastre estaba en curso, y como cada vuelta de
+        `RunGraph` cuesta 258–539 ms, el game thread no paraba nunca de cocinar y la perilla no se
+        podía mover. Un temporizador que se apaga y se re-arma sólo corre cuando alguien pidió algo.
+        """
         fuente = codigo(EDITOR_CPP)
         cuerpo = fuente.split("EActiveTimerReturnType SJamGraphEditor::CocinarSiHayPendiente")[1]
         cuerpo = cuerpo.split("\n}")[0]
         self.assertIn("EActiveTimerReturnType::Stop", cuerpo)
-        self.assertIn("EActiveTimerReturnType::Continue", cuerpo)
+        self.assertNotIn("EActiveTimerReturnType::Continue", cuerpo)
         self.assertIn("TemporizadorLive.Reset()", cuerpo)
 
     def test_la_bandera_se_baja_ANTES_de_cocinar(self):
@@ -102,12 +110,92 @@ class AmortiguadorTests(unittest.TestCase):
         self.assertLess(cuerpo.index("bRecoccionPendiente = false"), cuerpo.index("RunGraph()"))
 
     def test_el_periodo_deja_al_menos_seis_recocciones_por_segundo(self):
-        """Debajo de eso un arrastre se lee a saltos. Medido: la vuelta entera cuesta 3,7 ms, así
-        que el techo lo pone la percepción y no el costo."""
+        """Debajo de eso un arrastre se lee a saltos.
+
+        ⚠️ La justificación que estaba acá —«la vuelta entera cuesta 3,7 ms, así que el techo lo
+        pone la percepción y no el costo»— era FALSA por partida doble: esos 3,7 ms eran del
+        commandlet (22,0 con el editor andando) y además medían la vuelta viva, no `RunGraph()`, que
+        es lo que el live view realmente llama y cuesta 258–539 ms. El período sigue siendo el mismo
+        número, pero ahora es un TECHO de cadencia, no una promesa: quien decide si se cocina
+        durante el arrastre es `SegundosUltimaCoccion`."""
         header = EDITOR_H.read_text(encoding="utf-8")
         m = re.search(r"LiveDebounceSegundos\s*=\s*([0-9.]+)f", header)
         self.assertIsNotNone(m, "el período del amortiguador tiene que ser una constante nombrada")
         self.assertLessEqual(float(m.group(1)), 1.0 / 6.0)
+
+
+class ElArrastreMandaTests(unittest.TestCase):
+    """El bug que reportó Brian: arrastrar la perilla o el tirador se trababa.
+
+    La causa no era la cadencia sino la PREMISA. El live view llama a `RunGraph()` —el Run público
+    entero: ida y vuelta a Python, inspector y miniaturas—, medido en **258–539 ms** con el editor
+    andando, contra un temporizador de 125 ms. Cada cocción tardaba de 2 a 4 veces más que el
+    intervalo entre pedidos, así que el game thread cocinaba sin parar y los eventos del mouse no
+    llegaban a mover la aguja.
+
+    El arreglo no elige de antemano entre «vivo» y «al soltar»: lo decide **midiendo** cuánto costó
+    la vuelta anterior de ESE grafo. Uno de pura matemática entra en el presupuesto y se sigue
+    viendo en vivo; uno que cocina malla no entra, y ahí el arrastre manda y se cocina al soltar.
+    """
+
+    def cuerpo_pedir(self):
+        return codigo(EDITOR_CPP).split("void SJamGraphEditor::PedirRecoccion(")[1].split("\n}")[0]
+
+    def test_un_aviso_de_arrastre_no_cocina_si_la_vuelta_anterior_no_entro(self):
+        cuerpo = self.cuerpo_pedir()
+        self.assertIn("if (!bFinDeGesto && SegundosUltimaCoccion > LiveDebounceSegundos)", cuerpo)
+        # Y sale ANTES de armar el temporizador: si saliera después, quedaría uno armado igual.
+        self.assertLess(cuerpo.index("SegundosUltimaCoccion > LiveDebounceSegundos"),
+                        cuerpo.index("RegisterActiveTimer"))
+
+    def test_soltar_cocina_SIEMPRE_por_caro_que_sea(self):
+        """Es la garantía que hace que el arreglo no sea «a veces no se actualiza»."""
+        cuerpo = self.cuerpo_pedir()
+        # La guarda que saltea sólo puede disparar con `!bFinDeGesto`.
+        self.assertIn("!bFinDeGesto &&", cuerpo)
+        self.assertNotRegex(cuerpo, r"if\s*\(\s*SegundosUltimaCoccion\s*>")
+
+    def test_el_pedido_pendiente_sobrevive_al_salteo(self):
+        """Saltear la cocción NO puede perder el pedido: lo tiene que cobrar el soltar. Por eso la
+        bandera se levanta antes de la guarda y no después."""
+        cuerpo = self.cuerpo_pedir()
+        self.assertLess(cuerpo.index("bRecoccionPendiente = true"),
+                        cuerpo.index("!bFinDeGesto &&"))
+
+    def test_soltar_espera_menos_que_arrastrar(self):
+        """Al soltar se cocina enseguida; durante el arrastre, a lo sumo cada `LiveDebounce`."""
+        cuerpo = self.cuerpo_pedir()
+        self.assertIn("bFinDeGesto ? LiveAsentarSegundos : LiveDebounceSegundos", cuerpo)
+        header = EDITOR_H.read_text(encoding="utf-8")
+        asentar = float(re.search(r"LiveAsentarSegundos\s*=\s*([0-9.]+)f", header).group(1))
+        debounce = float(re.search(r"LiveDebounceSegundos\s*=\s*([0-9.]+)f", header).group(1))
+        self.assertLess(asentar, debounce)
+        # Y que se note como respuesta al gesto, no como otro arrastre: menos de un décimo.
+        self.assertLess(asentar, 0.1)
+
+    def test_el_costo_se_mide_alrededor_de_RunGraph(self):
+        cuerpo = codigo(EDITOR_CPP).split(
+            "EActiveTimerReturnType SJamGraphEditor::CocinarSiHayPendiente")[1].split("\n}")[0]
+        self.assertLess(cuerpo.index("const double Inicio = FPlatformTime::Seconds()"),
+                        cuerpo.index("RunGraph()"))
+        self.assertLess(cuerpo.index("RunGraph()"),
+                        cuerpo.index("SegundosUltimaCoccion = FPlatformTime::Seconds() - Inicio"))
+
+    def test_el_costo_se_mide_TAMBIEN_cuando_la_coccion_viene_de_soltar(self):
+        """Un grafo que se abarató —alguien borró el nodo que horneaba— tiene que poder volver a
+        verse en vivo sin reabrir el panel. Si la medición sólo corriera durante el arrastre, el
+        grafo quedaría marcado como caro para siempre."""
+        cuerpo = codigo(EDITOR_CPP).split(
+            "EActiveTimerReturnType SJamGraphEditor::CocinarSiHayPendiente")[1].split("\n}")[0]
+        self.assertEqual(cuerpo.count("SegundosUltimaCoccion ="), 1,
+                         "una sola asignación, sin condicionarla al tipo de pedido")
+        self.assertNotIn("if (bFinDeGesto", cuerpo)
+
+    def test_la_primera_vuelta_de_un_gesto_corre_aunque_no_se_sepa_que_cuesta(self):
+        """Arranca en cero, así que la guarda no dispara hasta haber medido una vez. Suponer «caro»
+        de entrada le sacaría el vivo a los grafos que sí lo pueden pagar."""
+        header = EDITOR_H.read_text(encoding="utf-8")
+        self.assertRegex(header, r"double\s+SegundosUltimaCoccion\s*=\s*0\.0\s*;")
 
 
 class ApagadoPorOmisionTests(unittest.TestCase):
@@ -131,7 +219,7 @@ class ApagadoPorOmisionTests(unittest.TestCase):
 
     def test_un_grafo_vacio_no_dispara_el_temporizador(self):
         fuente = codigo(EDITOR_CPP)
-        cuerpo = fuente.split("void SJamGraphEditor::PedirRecoccion()")[1].split("\n}")[0]
+        cuerpo = fuente.split("void SJamGraphEditor::PedirRecoccion(")[1].split("\n}")[0]
         self.assertIn("Nodes.Num() == 0", cuerpo)
 
 
