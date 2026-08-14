@@ -17,13 +17,21 @@ import json
 import sys
 import types
 import unittest
+from pathlib import Path
 
 _unreal_fake = sys.modules.setdefault("unreal", types.ModuleType("unreal"))
 if not hasattr(_unreal_fake, "TopLevelAssetPath"):
     _unreal_fake.TopLevelAssetPath = lambda package, name: (package, name)
 
-from jam import api, graph as G, math_core
-from jam.graph import GraphValidationError, JamGraph
+from jam import api, flow, graph as G, math_core, tools  # noqa: E402
+from jam.graph import GraphValidationError, JamGraph  # noqa: E402
+
+
+RAIZ = Path(__file__).resolve().parents[3]
+
+#: La identidad 4×4, como ejemplo de un valor COMPUESTO largo. No es un test de matrices: lo que
+#: se prueba acá es que un valor resuelto nunca se lea como sin resolver, sea del tipo que sea.
+I = math_core._IDENTIDAD
 
 
 class SalidasExtraDeclaradas(unittest.TestCase):
@@ -85,7 +93,7 @@ class DosSalidasCableadas(unittest.TestCase):
         _rep, por_nodo = G.ejecutar_detalle(g, G.compilar(g))
         # 10 + 90: si las dos salidas entregaran lo mismo daría 20 o 180, y si entregaran el
         # dominio entero no resolvería. Es el assert que distingue las tres cosas de una vez.
-        self.assertIn("100.0", por_nodo["suma"]["texto"])
+        self.assertIn("= 100", por_nodo["suma"]["texto"])
 
     def test_las_dos_salidas_no_son_intercambiables(self):
         # Cruzar los cables tiene que dar el MISMO número acá (la suma es conmutativa), así que la
@@ -96,7 +104,7 @@ class DosSalidasCableadas(unittest.TestCase):
         g.connect("dom", "resta", "minuendo", origen_pin="hasta")
         g.connect("dom", "resta", "sustraendo", origen_pin="desde")
         _rep, por_nodo = G.ejecutar_detalle(g, G.compilar(g))
-        self.assertIn("80.0", por_nodo["resta"]["texto"])
+        self.assertIn("= 80", por_nodo["resta"]["texto"])
 
     def test_la_salida_principal_sigue_dando_el_dominio_entero(self):
         g = JamGraph()
@@ -104,7 +112,7 @@ class DosSalidasCableadas(unittest.TestCase):
         g.add("domain_length", {}, nid="largo")
         g.connect("dom", "largo", "dominio")  # sin origen_pin: la principal
         _rep, por_nodo = G.ejecutar_detalle(g, G.compilar(g))
-        self.assertIn("80.0", por_nodo["largo"]["texto"])
+        self.assertIn("= 80", por_nodo["largo"]["texto"])
 
     def _evaluaciones(self, g):
         """Cuántas veces se evalúa `domain_construct` al correr `g`."""
@@ -256,7 +264,7 @@ class PorLaPUERTAPublica(unittest.TestCase):
     """Por `api.compile_graph_json`, que es por donde entra el editor.
 
     ⚠️ Estos tests nacieron de un rojo del camino real con los 22 puros en VERDE. Un grafo de puros
-    nodos de valor **no entra por `graph.compilar`**: entra por el preflight de `flow.py`, que es una
+    nodos de valor **no entra por `G.compilar`**: entra por el preflight de `flow.py`, que es una
     validación PARALELA con su propio `_tipo_salida`. Enseñarle multi-salida a un lado y no al otro
     dejaba el Compile rechazando «pin de salida desconocido: desde» mientras los tests que llamaban
     a `compilar` directo seguían pasando. Llamar a la función es el ATAJO; la puerta pública es el
@@ -305,11 +313,11 @@ class LoAditivo(unittest.TestCase):
         g.add("math_multiply", {"a": 0.0, "b": 2.0}, nid="doble")
         g.connect("n", "doble", "a")
         _rep, por_nodo = G.ejecutar_detalle(g, G.compilar(g))
-        self.assertIn("60.0", por_nodo["doble"]["texto"])
+        self.assertIn("= 60", por_nodo["doble"]["texto"])
 
     def test_los_verbos_viejos_del_dominio_siguen_andando(self):
         # Borrarlos rompería diagramas guardados; la capacidad nueva no los reemplaza todavía.
-        for verbo, esperado in (("domain_min", "10.0"), ("domain_max", "90.0")):
+        for verbo, esperado in (("domain_min", "= 10"), ("domain_max", "= 90")):
             g = JamGraph()
             g.add("domain_construct", {"desde": 10.0, "hasta": 90.0}, nid="dom")
             g.add(verbo, {}, nid="extremo")
@@ -347,8 +355,7 @@ class ElSpecLasPublica(unittest.TestCase):
 class ElCppDibujaLosNubs(unittest.TestCase):
     """Lo que Slate tiene que hacer, leído del `.cpp`. No reemplaza mirarlo con los ojos."""
 
-    from pathlib import Path
-    RAIZ = Path(__file__).resolve().parents[3]
+    RAIZ = RAIZ
 
     def cpp(self, rel):
         return (self.RAIZ / rel).read_text(encoding="utf-8")
@@ -410,6 +417,102 @@ class ElCppDibujaLosNubs(unittest.TestCase):
         self.assertNotIn("OutputPins.FindByPredicate", editor,
                          "la búsqueda de salida vive en FJamTool::TipoDeSalida, no suelta acá")
 
+
+class ElCableLlevaLaREBANADATests(unittest.TestCase):
+    """El defecto que destapó traer matrices: había CUATRO rutas que reparten cables y sólo dos
+    rebanaban.
+
+    Un cable desde `domain_construct.desde` a un parámetro numérico de una tool entregaba el valor
+    entero del nodo —`(10.0, 90.0)` en vez de `10.0`—, con el Compile en verde y la tupla llegando
+    hasta adentro del verbo. Las pruebas de multi-salida no lo veían porque pasaban todas por nodos
+    de valor, que sí rebanaban.
+    """
+
+    def compilar(self, doc: dict):
+        return G.compilar(G.JamGraph.from_json(json.dumps(doc)))
+
+    def test_una_salida_extra_llega_REBANADA_al_param_de_una_tool(self):
+        plan = self.compilar({
+            "nodes": {"d": {"verb": "domain_construct", "params": {"desde": 10, "hasta": 90}},
+                      "p": {"verb": "pts_line", "params": {}}},
+            "edges": [["d", "desde", "p", "count"]]})
+        self.assertEqual(plan.params["p"]["count"], 10.0)
+
+    def test_la_salida_principal_sigue_llegando_entera(self):
+        """La propiedad que hace seguro todo esto: un verbo sin salidas extra no cambió en nada."""
+        plan = self.compilar({
+            "nodes": {"n": {"verb": "number", "params": {"value": 7}},
+                      "p": {"verb": "pts_line", "params": {}}},
+            "edges": [["n", "out", "p", "count"]]})
+        self.assertEqual(plan.params["p"]["count"], 7.0)
+
+    def test_tambien_por_el_preflight_de_flow(self):
+        """Flow valida y reparte por su cuenta: es la cuarta ruta, y tenía el mismo agujero."""
+        f = flow.Flow()
+        f.nodos = {"d": {"kind": "domain_construct", "params": {"desde": 10, "hasta": 90}},
+                   "g": {"kind": "pts_grid", "params": {}}}
+        f.enlaces = [("d", "hasta", "g", "count_x")]
+        params = f.params_efectivos("g", *f._valores_resueltos())
+        self.assertEqual(params["count_x"], 90.0)
+
+    def test_por_la_puerta_QUE_USA_EL_EDITOR(self):
+        """`api.compile_graph_json` es por donde entra el Compile de verdad. Llamar a `compilar`
+        directo es el ATAJO: fue el que dejó pasar el preflight paralelo de `flow`."""
+        reporte = json.loads(api.compile_graph_json(json.dumps({
+            "nodes": {"d": {"verb": "domain_construct", "params": {"desde": 10, "hasta": 90}},
+                      "s": {"verb": "math_add", "params": {}}},
+            "edges": [["d", "desde", "s", "a"], ["d", "hasta", "s", "b"]]})))
+        self.assertEqual(reporte.get("errors") or reporte.get("diagnostics") or {}, {},
+                         f"el Compile rechazó un grafo válido: {reporte}")
+
+
+class LoQueElNodoDICEQueTieneTests(unittest.TestCase):
+    """⚠️ Lo destapó la sonda de matrices, y es ANTERIOR a las matrices.
+
+    El panel decidía el texto de un nodo de valor por el TIPO de Python: número, texto, y **todo lo
+    demás al saco de «(sin resolver)»**. Un vector, un dominio o una matriz resueltos perfectamente
+    se dibujaban como si no hubieran resuelto, con el estado del nodo en «ok» al mismo tiempo.
+
+    Es el silencio que esta casa ya tiene nombrado: *lo hizo* leído como *no hizo nada*. La pregunta
+    correcta es si RESOLVIÓ, no de qué tipo es; el tipo sólo decide cuánto se escribe.
+    """
+
+    def test_un_valor_resuelto_NUNCA_se_lee_como_sin_resolver(self):
+        for valor in (0.0, 7.0, "hola", (1.0, 2.0), (1.0, 2.0, 3.0), I, True, False):
+            with self.subTest(valor=valor):
+                self.assertNotIn("sin resolver", math_core.texto_de_valor(valor))
+
+    def test_lo_unico_que_se_lee_como_sin_resolver_es_lo_que_no_resolvio(self):
+        self.assertEqual(math_core.texto_de_valor(None), "(sin resolver)")
+
+    def test_una_matriz_no_escribe_dieciseis_numeros_adentro_del_nodo(self):
+        """No entran, y el valor completo sigue estando en el inspector."""
+        texto = math_core.texto_de_valor(I)
+        self.assertEqual(texto, "16 números")
+        self.assertLess(len(texto), 20)
+
+    def test_un_vector_SI_se_escribe_entero(self):
+        self.assertEqual(math_core.texto_de_valor((1.0, 2.5, -3.0)), "(1, 2.5, -3)")
+
+    def test_no_se_escribe_el_ruido_binario_del_float(self):
+        """`repr` de 0.1+0.2 es «0.30000000000000004» y eso terminaba adentro del nodo."""
+        self.assertEqual(math_core.texto_de_valor(0.1 + 0.2), "0.3")
+
+    def test_una_distancia_de_mapa_no_sale_en_notacion_cientifica(self):
+        """Con `.4g` —lo que usaba el panel de Flow— 12345 cm se mostraba «1.234e+04»."""
+        self.assertEqual(math_core.texto_de_valor(12345.0), "12345")
+
+    def test_el_Graph_y_el_panel_de_Flow_arman_el_texto_en_UN_solo_lugar(self):
+        """Los dos dibujan el mismo nodo: con el formato en dos lados, el valor se leería distinto
+        según por qué botón se corrió."""
+        for rel in ("Content/Python/jam/graph.py", "Content/Python/jam/panel.py"):
+            fuente = (RAIZ / rel).read_text(encoding="utf-8")
+            with self.subTest(archivo=rel):
+                self.assertIn("texto_de_valor(", fuente)
+                sin_comentar = "\n".join(l for l in fuente.splitlines()
+                                         if not l.lstrip().startswith("#"))
+                self.assertNotIn('= (sin resolver)', sin_comentar,
+                                 "el texto volvió a decidirse acá en vez de en `texto_de_valor`")
 
 if __name__ == "__main__":
     unittest.main()

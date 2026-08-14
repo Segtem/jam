@@ -640,6 +640,26 @@ nada.
 diagrama guardado con un dominio se quede sin origen. Los tests lo fijan leyendo el `.cpp`, pero
 que los tres nubs se vean y se puedan agarrar con el mouse no lo contesta ninguna medición.
 
+### 3-ter · Matrices: un nodo con CINCO salidas (3 minutos — lo más nuevo)
+
+El gesto 3-bis ya lo hiciste y salió bien. Éste es el mismo mecanismo llevado a su consumidor real:
+`Descomponer matriz` tiene **cinco** pines de salida, no tres.
+
+| # | qué hacer | qué tiene que pasar |
+|---|---|---|
+| 3t.1 | Abrir **Datos ▸ Maths** y buscar el grupo **Matriz** | Once fichas nuevas, con iconos de grilla entre corchetes. Ninguna cae al final del tab, sueltas de sus parientes |
+| 3t.2 | Poner **Matriz de traslación** y escribirle `10,20,30` | Su nub de salida dice `matriz (matriz)` — **no** `(MX)`. La letra cruda del protocolo es un defecto, y ya pasó dos veces |
+| 3t.3 | Cablearla a un **Descomponer matriz** | Del lado derecho hay **CINCO** nubs: `traslación`, `escala`, `eje X`, `eje Y`, `eje Z`. Los cinco se tienen que poder agarrar con el mouse |
+| 3t.4 | Cablear `traslación` a un **Largo del vector** y correr | Dice **37.4166**. Es √(10²+20²+30²) |
+| 3t.5 | Mirar el cuerpo del nodo de la matriz | Dice `16 números`, no `(sin resolver)`. Ver abajo por qué importa |
+| 3t.6 | Agregar **Matriz de rotación** (eje `0,0,1`, ángulo 90) y **Multiplicar matrices**, con la rotación en `a` y la traslación en `b` | Compila. `a × b` aplica primero `b`: es la convención, y está escrita en el `doc` del verbo |
+| 3t.7 | Poner **Invertir matriz** sobre una **Matriz de escala** con `1,1,0` | **Se niega**, y el nodo dice «la matriz es singular (determinante 0): no tiene inversa». Devolver identidad ahí sería el defecto más caro de la familia |
+
+**Lo que se juega acá:** que cinco nubs entren en un nodo y se puedan distinguir y agarrar es lo
+único que ninguna medición contesta. Si a los cinco les falta aire, la respuesta es la decisión que
+quedó abierta en 3-bis —si los nubs se quedan donde están o suben como en Grasshopper— y ahora hay
+un caso donde importa de verdad.
+
 ### 4 · La escalera nueva de verbos (3 minutos)
 
 | # | qué hacer | qué tiene que pasar |
@@ -672,6 +692,86 @@ binario nuevo.
 de pedir manos sin que nadie lo note.)*
 
 ## Lo próximo
+
+**0-decies. ✅ MATRICES 4×4 — el consumidor por el que se hizo multi-salida. Y en el camino se
+destapó un FALSO VERDE que llevaba desde que multi-salida existe.**
+
+Once verbos en `Maths ▸ Matriz`, tipo `MX` propio, y `matrix_decompose` con **cinco** salidas de una
+sola cuenta. **1237 tests**, **13/13 mutantes muertos**, `JAM_MATRICES_58 TODO VERDE` en UE 5.8.1 +
+`JAM_MULTISALIDA_58`, `JAM_FUNCION_TEST` y los 19/19 tutoriales verdes.
+
+⚠️ **HABÍA CUATRO RUTAS QUE REPARTEN LO QUE VIAJA POR UN CABLE Y MULTI-SALIDA SE LE ENSEÑÓ A DOS.**
+Un cable de `domain_construct.desde` a `pts_line.count` le entregaba al verbo el dominio **entero**,
+`(10.0, 90.0)` en vez de `10.0`. Y no fallaba: `dsl.coaccionar` hace `str()` de los params, no
+reconoce `«(3.0, 90.0)»` como número y **descarta el parámetro en silencio**, así que la línea corría
+con su default de 10. **Compile verde, Run verde, número equivocado.** El turno anterior lo había
+mirado —encontró el preflight paralelo de `flow.py` con la sonda del camino real— pero midió las
+rutas de VALOR, y ésta alimenta los params de las TOOLS. Las cuatro:
+
+| ruta | quién la usa | ¿rebanaba? |
+|---|---|---|
+| `math_core.resolver` | cable de nodo de valor a nodo de valor | sí |
+| `graph.ejecutar_detalle` | el ejecutor, en Run | sí |
+| `graph.compilar` → `param_sources` | **params de las tools** | ❌ tiraba el pin de origen |
+| `flow._param_wires` | el preflight paralelo de Flow | ❌ lo mismo |
+
+Ahora las cuatro pasan por **`graph._valor_del_pin`** (con su gemelo en `flow`, porque `graph`
+importa `flow` y al revés sería círculo), que es la única definición de «qué sale por este pin».
+La trampa quedó en `AGENTS.md` con las cuatro nombradas.
+
+⚠️ **Y un segundo defecto, ANTERIOR a las matrices y visible en cualquier diagrama con un dominio:**
+el panel elegía el texto del nodo por el TIPO de Python —número, texto, y **todo lo demás** al saco
+de `(sin resolver)`—. Un vector, un dominio o una matriz resueltos perfectos se dibujaban como si no
+hubieran resuelto, con el estado del nodo en «ok» al mismo tiempo. Es el silencio que esta casa ya
+tiene nombrado: *lo hizo* leído como *no hizo nada*. Ahora hay `math_core.texto_de_valor`, una sola
+definición para Graph y Flow, que pregunta si RESOLVIÓ y deja al tipo decidir sólo cuánto se escribe
+(un vector entra en el nodo; una matriz dice «16 números» y el valor completo queda en el inspector).
+De paso el Graph pasó de escribir el `repr` crudo del float —`0.30000000000000004`— a `.6g`, y el
+panel de Flow de `.4g`, con el que **12345 cm se mostraba «1.234e+04»**.
+
+**El diseño de multi-salida creció una pieza: `corte_principal`.** `matrix_decompose` es el primer
+verbo cuyo resultado guardado **no es lo que muestra ningún pin, ni siquiera el principal**: calcula
+los cinco vectores juntos, y `out` se sirve la traslación. Sin eso, o el pin `out` decía «vector» y
+entregaba cinco, o cada pin recalculaba la descomposición. Y la validación por pin va **adentro de
+`evaluar`**, no en el corte: `_rebanar` corre FUERA del `try` de `resolver`, así que un corte que
+levante allá no cuelga del nodo culpable — voltea la resolución del grafo entero.
+
+**Dos desvíos del plan del vault, medidos al implementarlo** (el doc ya quedó actualizado):
+· **Sólo 4×4, no 3×3.** Un `V` de Jam es 3D, así que una 3×3 sería «la 4×4 sin traslación»: cada
+  verbo duplicado sin capacidad nueva, y la regla de no promoción silenciosa obligaría a nodos de
+  conversión entre dos tipos que nunca se encuentran. Lo que de verdad da una 3×3 —transformar una
+  dirección ignorando la traslación— ya lo da `matrix_transform_direction`.
+· **Descomponer da EJES, no ángulos de Euler.** Un trío de ángulos exige fijar un orden de
+  aplicación y elegirlo en silencio hace que la mitad de las cadenas oriente para otro lado. Los
+  tres ejes dicen lo mismo sin convención que memorizar, y son lo que se cablea para orientar algo.
+
+**La convención vive en UN solo lugar** (arriba de `_matriz`, en `math_core`): almacenamiento por
+FILAS, vectores COLUMNA, traslación en la última COLUMNA, y por lo tanto `a × b` aplica primero `b`.
+⚠️ **Unreal usa la opuesta** (vectores fila, traslación en la última fila): la traducción es una
+transposición y va en `ue.py`, que es el único adaptador. Todavía **no hay ningún consumidor en
+`ue.py`** — las matrices hoy son puro cerebro, y ése es el próximo corte si Brian las quiere aplicar
+a algo de la escena.
+
+Se niegan, con el motivo adentro: invertir una singular (devolver identidad sería el defecto
+silencioso más caro de la familia), descomponer una con proyección, una con un eje de escala 0, y
+una que ESPEJA — repartir el determinante negativo entre escalas negativas admite tres respuestas y
+elegir una callada es peor que negarse.
+
+⚠️ **Dos mutantes sobrevivieron a la primera pasada y los dos eran huecos míos:** (1) neutralizar
+`math_core._rebanar` dejaba todo verde porque los tests entraban por `graph._valor_del_pin` —el
+mismo atajo de siempre, ahora con TRES implementaciones del mismo reparto—; (2) cambiarle la clave a
+un icono en el generador no rompía nada, porque el `.svg` viejo seguía en disco y el mapa lo seguía
+encontrando. De ahí salieron dos tests nuevos: el generador de iconos tiene que coincidir con lo
+commiteado, y **no puede haber dos `jam-*.svg` con el mismo dibujo** (los nombres seguían siendo
+distintos, así que la unicidad por nombre no veía nada — pero en el ribbon, que sólo muestra el
+icono, eran el mismo verbo).
+
+**Lo que sigue:** (1) el gesto **3-ter** de «Para las manos» — cinco nubs en un nodo es lo único que
+ninguna medición contesta, y es el caso donde la decisión abierta sobre dónde van los nubs importa
+de verdad; (2) `ue.py` si las matrices tienen que llegar a la escena; (3) el resto del eje vistoso
+—Gradient, MD Slider, Graph Mapper—.
+
+---
 
 **0-nonies. ✅ MULTI-SALIDA: EL CEREBRO ESTÁ HECHO. Falta Slate, y con Slate llega Matrix.**
 

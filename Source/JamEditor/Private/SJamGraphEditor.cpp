@@ -4102,6 +4102,11 @@ FLinearColor SJamGraphEditor::DataColor(const FString& OutName)
 	// Índigo claro, lejos del azul de `P`: un vector y un stream de puntos son las dos cosas que
 	// más se van a cablear cerca, y distinguirlas por un pelo de tono no es distinguirlas.
 	if (OutName == TEXT("V")) { return FLinearColor(0.42f, 0.42f, 0.82f, 1.0f); }   // índigo (vector)
+	// Misma FAMILIA que el vector y por el mismo criterio que la familia ámbar (`N`/`N[]`/`D`): lo
+	// que separa a dos tipos parientes es la luminosidad, no un tono nuevo. Una matriz es lo que le
+	// pasa a un vector, así que inventarle un color propio la desemparentaría de lo único que
+	// transforma.
+	if (OutName == TEXT("MX")) { return FLinearColor(0.22f, 0.22f, 0.54f, 1.0f); }  // índigo oscuro (matriz)
 	// Trigo: la FAMILIA ámbar son los números —`N` escalar, `N[]` serie, `D` rango—, y adentro de
 	// esa familia lo que distingue es la saturación. Un dominio es dos números, no un color nuevo.
 	if (OutName == TEXT("D")) { return FLinearColor(0.72f, 0.62f, 0.30f, 1.0f); }   // trigo (dominio)
@@ -4140,6 +4145,7 @@ FString SJamGraphEditor::DataName(const FString& Type)
 	// agregar uno a medias es invisible hasta que alguien mira la ficha.
 	if (Type == TEXT("V"))   { return TEXT("vector"); }
 	if (Type == TEXT("D"))   { return TEXT("rango"); }
+	if (Type == TEXT("MX"))  { return TEXT("matriz"); }
 	if (Type == TEXT("*"))   { return TEXT("dato"); }
 	return Type;
 }

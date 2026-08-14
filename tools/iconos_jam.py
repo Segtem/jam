@@ -32,6 +32,8 @@ M = "#50C8CE"      # malla
 NUM = "#EAB559"    # N (número)
 TEXTO = "#BF95D4"  # T (texto)
 MATERIAL = "#C48659"  # MT (grafo de material, todavía sin hornear)
+VEC = "#ADADEA"    # V (vector)
+MATRIZ = "#8181C2"  # MX (matriz 4×4) — la misma familia índigo del vector, un escalón más oscura
 TINTA = "#2A2E33"  # trazo neutro para lo estructural
 
 CABECERA = (
@@ -111,6 +113,50 @@ def pesado(x, y, peso, color=P):
 
 def fila(xs, y, color=P, r=1.7):
     return "".join(punto(x, y, color, r) for x in xs)
+
+
+#: Cuánto sobresale un corchete a cada lado de la grilla. Fijo y no proporcional: así el ancho real
+#: de una matriz dibujada es `lado + 2 * VUELO_CORCHETE`, una cuenta y no una estimación.
+VUELO_CORCHETE = 3.2
+
+
+def matriz(x, y, lado=9.0, color=MATRIZ, corchetes=True):
+    """Una matriz se dibuja como lo que ES: una grilla de celdas entre corchetes.
+
+    `x` es el borde izquierdo de la GRILLA; los corchetes sobresalen `VUELO_CORCHETE` a cada lado.
+
+    Los corchetes no son decoración — son lo que la separa de la grilla de un mapa o de las facetas
+    de una malla, que ya usan rectángulos divididos. Se apagan sólo cuando entran dos matrices en el
+    mismo icono, donde no hay ancho para los cuatro y el par ya se lee como par.
+    """
+    p = lado / 3.0
+    gancho = VUELO_CORCHETE - 1.2
+    piezas = [f'<rect x="{x}" y="{y}" width="{lado}" height="{lado}" rx="0.6" '
+              f'stroke="{color}" stroke-width="1.3" fill="{color}" fill-opacity="0.18"/>',
+              f'<path d="M{x + p:.2f} {y}v{lado}M{x + 2 * p:.2f} {y}v{lado}'
+              f'M{x} {y + p:.2f}h{lado}M{x} {y + 2 * p:.2f}h{lado}" '
+              f'stroke="{color}" stroke-width="0.8" stroke-opacity="0.85"/>']
+    if corchetes:
+        piezas.append(
+            f'<path d="M{x - 1.2} {y - 1.2}h-{gancho}v{lado + 2.4}h{gancho}'
+            f'M{x + lado + 1.2} {y - 1.2}h{gancho}v{lado + 2.4}h-{gancho}" '
+            f'stroke="{color}" stroke-width="1.3"/>')
+    return "".join(piezas)
+
+
+def vector(x0, y0, x1, y1, color=VEC, ancho=1.8, punta=3.2):
+    """Un vector es una flecha con punta: la misma que ya usan los iconos de `V`.
+
+    `punta` se achica cuando entran varias flechas juntas: con la punta de tamaño único, las tres
+    de `decompose` se fundían en una mancha y dejaban de contarse como tres.
+    """
+    import math as _m
+    ang = _m.atan2(y1 - y0, x1 - x0)
+    a1 = (x1 - punta * _m.cos(ang - 0.45), y1 - punta * _m.sin(ang - 0.45))
+    a2 = (x1 - punta * _m.cos(ang + 0.45), y1 - punta * _m.sin(ang + 0.45))
+    return (f'<path d="M{x0} {y0}L{x1} {y1}" stroke="{color}" stroke-width="{ancho}"/>'
+            f'<path d="M{a1[0]:.1f} {a1[1]:.1f}L{x1} {y1}L{a2[0]:.1f} {a2[1]:.1f}" '
+            f'stroke="{color}" stroke-width="{ancho}"/>')
 
 
 def svg(*piezas) -> str:
@@ -547,6 +593,53 @@ ICONOS = {
                       flecha(12, 8, 14.5, 8),
                       malla("M16 4h6v4h-6z", M), malla("M16 9h3v4h-3z", M),
                       malla("M20 9h2v4h-2z", M), malla("M16 14h6v3h-6z", M)),
+    # ── matrices 4×4 ──────────────────────────────────────────────────────────────
+    # La grilla entre corchetes es la matriz; lo que la acompaña dice QUÉ se le hace. Los que la
+    # producen llevan a la derecha lo que entró (un vector), los que la consumen lo llevan saliendo.
+    # Sola y centrada: la matriz es TODO el icono, y lo que la marca va adentro o encima.
+    "jam-matrix-identity": svg(matriz(7.6, 7.5),
+                               # En TINTA y no en el color de la matriz: sobre el relleno índigo al
+                               # 18 %, tres puntos del MISMO color se pierden y la identidad se ve
+                               # igual que una matriz cualquiera, que es justo lo que la distingue.
+                               punto(9.1, 9.0, TINTA, 1.1), punto(12.1, 12.0, TINTA, 1.1),
+                               punto(15.1, 15.0, TINTA, 1.1)),
+    "jam-matrix-transpose": svg(matriz(8.6, 8.6, 8.0),
+                                curva("M9.0 9.0l7.2 7.2", TINTA, 0.9),
+                                vector(9.2, 5.4, 16.2, 5.4, TINTA, 1.2, 2.2),
+                                vector(5.4, 9.2, 5.4, 16.2, TINTA, 1.2, 2.2)),
+    "jam-matrix-inverse": svg(matriz(7.6, 7.5),
+                              curva("M5.4 6.6a9 9 0 0 1 13.2 0", TINTA, 1.3),
+                              curva("M18.6 17.4a9 9 0 0 1-13.2 0", TINTA, 1.3),
+                              curva("M3.6 7.4l1.8-2.4 2.4 1.8", TINTA, 1.3),
+                              curva("M20.4 16.6l-1.8 2.4-2.4-1.8", TINTA, 1.3)),
+    # Las que PRODUCEN una matriz: entra un vector por la izquierda.
+    "jam-matrix-translation": svg(matriz(10.6, 7.5), vector(1.5, 12, 6.4, 12)),
+    "jam-matrix-scale-matrix": svg(matriz(10.6, 7.5),
+                                   vector(4.0, 12, 6.9, 12), vector(4.0, 12, 1.1, 12)),
+    # El eje es un VECTOR y el giro una vuelta alrededor: dos cosas separables, y son exactamente
+    # los dos parámetros del verbo. El arco es un círculo y no una elipse — achatado sale garabato.
+    "jam-matrix-rotation": svg(matriz(11.0, 7.5),
+                               vector(5.4, 18.4, 5.4, 6.2, VEC, 1.6, 2.8),
+                               curva("M2.2 12.6a3.2 3.2 0 1 0 6.4 0", TINTA, 1.3),
+                               curva("M7.0 11.0l1.6 1.6-1.6 1.6", TINTA, 1.3)),
+    # Dos matrices no entran con corchetes: se apagan y el par sigue leyéndose como par.
+    "jam-matrix-multiply": svg(matriz(1.6, 8.4, 6.6, corchetes=False),
+                               matriz(15.8, 8.4, 6.6, corchetes=False),
+                               curva("M10.4 10.4l3 3.2M13.4 10.4l-3 3.2", TINTA, 1.4)),
+    # Las que CONSUMEN una matriz: sale por la derecha lo que produce, con su color de tipo.
+    "jam-matrix-determinant": svg(matriz(4.4, 8.5, 7.0), flecha(15.2, 12, 18.4, 12),
+                                  punto(21.0, 12, NUM, 1.9)),
+    "jam-matrix-transform-point": svg(matriz(4.4, 8.5, 7.0), flecha(15.2, 12, 18.4, 12),
+                                      punto(21.0, 12, P, 1.9)),
+    "jam-matrix-transform-direction": svg(matriz(4.4, 8.5, 7.0),
+                                          vector(14.6, 15.4, 21.8, 8.6)),
+    # Tres flechas PARALELAS, no un abanico ni un gizmo: a 24 px cualquier terna que comparta
+    # origen se funde en una mancha de tres puntas, y lo que hay que poder hacer con este icono es
+    # CONTAR las salidas. Paralelas y separadas se cuentan de un vistazo.
+    "jam-matrix-decompose": svg(matriz(4.0, 8.7, 6.6),
+                                vector(15.0, 7.4, 22.2, 7.4, VEC, 1.5, 2.2),
+                                vector(15.0, 12.0, 22.2, 12.0, VEC, 1.5, 2.2),
+                                vector(15.0, 16.6, 22.2, 16.6, VEC, 1.5, 2.2)),
     "jam-ej-debug": svg(punto(5, 6, P, 1.5), frame(5, 13, F, 3.2), curva("M4 20h5", S, 1.5),
                         curva("M13 4v16", TINTA, 1.0),
                         f'<circle cx="18" cy="12" r="4.5" stroke="{TINTA}" stroke-width="1.4"/>',

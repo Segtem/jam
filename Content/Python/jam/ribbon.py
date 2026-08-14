@@ -92,6 +92,12 @@ GRUPOS: dict[str, list[tuple[str, list[str]]]] = {
         ("Vector", ["vector_construct", "vector_unit_x", "vector_unit_y", "vector_unit_z",
                    "vector_x", "vector_y", "vector_z", "vector_add", "vector_scale",
                    "vector_length", "vector_normalize", "vector_dot", "vector_cross"]),
+        # El orden es el de uso: primero se ARMA una transformación, después se la COMBINA, y recién
+        # al final se la aplica a algo o se la vuelve a abrir.
+        ("Matriz", ["matrix_identity", "matrix_translation", "matrix_rotation",
+                    "matrix_scale_matrix", "matrix_multiply", "matrix_inverse",
+                    "matrix_transpose", "matrix_determinant", "matrix_transform_point",
+                    "matrix_transform_direction", "matrix_decompose"]),
         ("Tiempo", ["time_construct", "time_horas", "time_minutos", "time_segundos"]),
         ("Comparar", ["compare_greater", "compare_greater_equal", "compare_less",
                       "compare_less_equal", "compare_equal"]),

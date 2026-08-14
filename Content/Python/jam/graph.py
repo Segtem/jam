@@ -219,6 +219,35 @@ def _rebanada(verb: str, pin: str, registro: dict):
     return None
 
 
+def corte_principal(verb: str, registro: dict):
+    """La rebanada que le toca al pin `out`, o `None` si es el resultado entero.
+
+    Casi siempre es `None` y ése es el caso normal. La excepción es un verbo cuyo resultado NO se
+    muestra tal cual por ningún pin —`matrix_decompose` calcula cinco vectores de una vez—: ahí el
+    valor guardado es la tupla completa y hasta el pin principal se sirve una parte.
+
+    La alternativa era que el pin principal devolviera la tupla entera, y con eso el tipo declarado
+    de `out` sería una mentira: diría «vector» y entregaría cinco.
+    """
+    if verb in VALOR_KINDS:
+        from .math_core import corte_principal as principal_valor
+        return principal_valor(verb)
+    return (registro.get(verb) or {}).get("corte_principal")
+
+
+def _valor_del_pin(verb: str, pin: str, valor, registro: dict):
+    """Lo que sale por `pin` de un nodo cuyo resultado ya es `valor`.
+
+    Es la ÚNICA definición de «qué viaja por este cable», y existe porque hasta hoy había tres
+    respuestas distintas repartidas —el resolvedor de valores, el ejecutor y los params de las
+    tools— y la tercera no rebanaba: se olvidaba del pin de origen y mandaba el valor entero.
+    """
+    if valor is None:
+        return None
+    corte = corte_principal(verb, registro) if pin == PIN_OUT else _rebanada(verb, pin, registro)
+    return corte(valor) if corte is not None else (valor if pin == PIN_OUT else None)
+
+
 def _tipo_salida(verb: str, registro: dict, pin: str = PIN_OUT) -> str | None:
     """El tipo que sale por `pin`. El default `out` conserva la firma histórica: los llamadores que
     sólo saben de una salida siguen preguntando lo mismo y recibiendo lo mismo."""
@@ -452,7 +481,12 @@ def compilar(g: JamGraph, *, registro: dict | None = None, resolver_asset=None,
         else:
             nombres[nombre] = nid
 
-    param_sources = {(b, bp): a for a, _ap, b, bp in valid_edges if bp != PIN_IN}
+    # Se guarda el pin de ORIGEN, no sólo el nodo. Tirarlo era un falso verde: un cable desde una
+    # salida extra —`domain_construct.desde`— le entregaba al parámetro de una tool el valor
+    # ENTERO del nodo, `(10.0, 90.0)` en vez de `10.0`. Compile salía verde y el número llegaba
+    # como tupla hasta adentro del verbo. El ejecutor y el resolvedor de valores ya rebanaban;
+    # esta tercera ruta —la que alimenta los params de las tools— no.
+    param_sources = {(b, bp): (a, ap) for a, ap, b, bp in valid_edges if bp != PIN_IN}
     from .flow import _eval_expr
     from .math_core import resolver as resolver_valores
     tabla, valores_por_nodo, errores_valor = resolver_valores(
@@ -495,17 +529,19 @@ def compilar(g: JamGraph, *, registro: dict | None = None, resolver_asset=None,
         # perfil de `branch_from_frames`, donde no conectar nada significa «sin modulación».
         opcionales = set(registro[verb].get("optional_data_params", ()))
         for pin, default in defaults.items():
-            origen = param_sources.get((nid, pin))
+            fuente = param_sources.get((nid, pin))
             if pin in data_params:
-                if origen is None and pin not in opcionales:
+                if fuente is None and pin not in opcionales:
                     error(nid, f"requiere conexión {data_params[pin]} en «{pin}»")
                 # El objeto rico se inyecta durante Run; Compile sólo valida existencia y tipo.
                 continue
-            if origen is not None:
+            if fuente is not None:
+                origen, origen_pin = fuente
                 if origen not in valores_por_nodo:
                     error(nid, f"el cable de «{pin}» no produjo un valor")
                     continue
-                valor = valores_por_nodo[origen]
+                valor = _valor_del_pin(g.nodes.get(origen, {}).get("verb", ""), origen_pin,
+                                       valores_por_nodo[origen], registro)
                 fallo = None
             else:
                 valor, fallo = _resolver_parametro(crudos.get(pin, default), default, tabla)
@@ -701,11 +737,8 @@ def ejecutar_detalle(g: JamGraph, plan: GraphPlan | None = None,
         if fuente is None:
             return None
         origen, origen_pin = fuente
-        principal = runtime_outputs.get(origen)
-        if origen_pin == PIN_OUT or principal is None:
-            return principal
-        corte = _rebanada(g.nodes.get(origen, {}).get("verb", ""), origen_pin, tools.REGISTRO)
-        return corte(principal) if corte is not None else None
+        return _valor_del_pin(g.nodes.get(origen, {}).get("verb", ""), origen_pin,
+                              runtime_outputs.get(origen), tools.REGISTRO)
 
     # Las huellas se calculan una vez, antes del recorrido: cuestan microsegundos y el que las pide
     # necesita el mapa entero para decidir qué reusar.
@@ -733,12 +766,20 @@ def ejecutar_detalle(g: JamGraph, plan: GraphPlan | None = None,
         if verb in VALOR_KINDS:
             nombre = str(n.get("params", {}).get("name") or nid)
             v = plan.values_by_node.get(nid)
-            txt = f"{nombre} = {v}" if v is not None else f"{nombre} = (sin resolver)"
-            lineas.append(f"[{nid}·{verb}] {txt}")
-            por_nodo[nid] = {"estado": "ok" if v is not None else "warn", "texto": txt}
             if v is not None:
                 runtime_outputs[nid] = v
                 _ULTIMA_CORRIDA[nid] = v
+            # Lo que se MUESTRA es lo que sale por el pin principal, no el valor crudo guardado: con
+            # `corte_principal` los dos dejan de ser lo mismo, y el nodo estaría diciendo «traslación»
+            # arriba de una tupla de cinco vectores.
+            v = _valor_del_pin(verb, PIN_OUT, v, tools.REGISTRO)
+            # El mismo texto que arma el panel de Flow, y por la misma razón: los dos dibujan el
+            # mismo nodo, y si el formato viviera en dos lados el valor se leería distinto según
+            # por qué botón se corrió.
+            from .math_core import texto_de_valor
+            txt = f"{nombre} = {texto_de_valor(v)}"
+            lineas.append(f"[{nid}·{verb}] {txt}")
+            por_nodo[nid] = {"estado": "ok" if v is not None else "warn", "texto": txt}
             continue
 
         info = tools.REGISTRO[verb]  # el Compile ya garantizó que existe

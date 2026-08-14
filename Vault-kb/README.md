@@ -1,6 +1,6 @@
 # Vault-kb de Jam
 
-67 documentos en 5 carpetas. Nomenclatura
+70 documentos en 5 carpetas. Nomenclatura
 `AAAA-MM-DD-TIPO-Nombre-vX.X.md` — la explica
 [[2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0|la guía de convención]].
 La carpeta es la taxonomía: cada doc vive en una sola y su `area:` lo dice.
@@ -25,8 +25,10 @@ Este índice y las reglas los verifica `tools/vault.py`.
 
 ## Graph — el editor de nodos
 
-`01-Graph/` · 19 documentos
+`01-Graph/` · 21 documentos
 
+- [[2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0|La escalera de Grasshopper Basics como paso de los verbos]] · *completo*
+- [[2026-08-12-PLAN-Multi-Salida-En-El-Graph-v1.0|Multi-salida en el Graph: el patrón Deconstruct]] · *parcial*
 - [[2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0|Cómo se define una tool y cómo llega a la Dash Bar]] · *relevamiento*
 - [[2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0|Comentarios y grupos en el Graph]] · *implementado*
 - [[2026-08-03-ROADMAP-Catalogo-Matematico-Ampliado-v1.0|Catálogo matemático ampliado de Jam]] · *en-progreso*
@@ -73,8 +75,9 @@ Este índice y las reglas los verifica `tools/vault.py`.
 
 ## Mesh y materiales
 
-`03-Mesh-y-materiales/` · 10 documentos
+`03-Mesh-y-materiales/` · 11 documentos
 
+- [[2026-08-13-ROADMAP-Modelado-Japones-Como-Medidas-v1.0|El modelado japonés como medidas, no como gestos]] · *propuesto*
 - [[2026-08-09-ROADMAP-Verbos-Y-Ejemplos-PMG-v1.0|Roadmap de verbos y ejemplos de malla procedural]] · *en-implementacion*
 - [[2026-08-09-INFORME-GitHub-Procedural-Mesh-Generation-v1.0|GitHub como corpus de verbos de malla procedural]] · *en-implementacion*
 - [[2026-08-04-INFORME-Soldar-Bordes-Y-Diagnostico-De-Malla-v1.0|Soldar bordes (mesh_weld) y el diagnóstico de malla que mentía]] · *implementado*

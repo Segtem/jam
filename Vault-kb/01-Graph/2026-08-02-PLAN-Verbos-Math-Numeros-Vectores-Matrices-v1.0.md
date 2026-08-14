@@ -130,6 +130,8 @@ llama **Multiplicar componentes** y no comparte verbo con escalar ni con product
 
 ## Fase 4 — matrices
 
+> **Implementada el 2026-08-14, con dos desvíos deliberados.** Lo que se construyó y por qué difiere está en el avance del final; esta sección se conserva como el plan tal como se escribió.
+
 La representación serializada es una lista plana en orden de filas y la documentación fija la
 convención de composición antes de conectar con Unreal. El adaptador `ue.py` será el único lugar que
 convierta entre el valor puro de Jam y tipos del motor.
@@ -285,6 +287,79 @@ también se verificó **mutando el núcleo**: con `_limitar` intercambiando los 
 rojo con `Run aceptó un rango dado vuelta … limite = 3`.
 
 ⚠️ Falta ejercer los 16 nodos con **gestos** en Datos → Maths, como los dos lotes anteriores.
+
+## Avance 2026-08-14 — Fase 4: matrices 4×4, y el falso verde que destaparon
+
+Once verbos en `Maths ▸ Matriz`, tipo `MX` propio y `matrix_decompose` con **cinco** salidas de una
+sola cuenta. 1237 tests del cerebro, 13/13 mutantes muertos y `JAM_MATRICES_58 TODO VERDE` en
+UE 5.8.1, con `JAM_MULTISALIDA_58` y `JAM_FUNCION_TEST` verdes como regresión.
+
+**Los verbos.** Producen matriz: Identidad, Matriz de traslación, Matriz de rotación (eje + ángulo en
+grados, mano derecha), Matriz de escala, Multiplicar matrices, Invertir matriz, Transponer. Consumen
+matriz: Determinante (`→ N`), Transformar punto (`→ V`), Transformar dirección (`→ V`) y Descomponer
+matriz (`→ V` + cuatro salidas extra `V`).
+
+**La convención, fijada en un solo lugar** —arriba de `_matriz`, en `math_core.py`— porque una matriz
+mal leída no falla: transforma mal. Almacenamiento por **filas**, vectores **columna**, traslación en
+la última **columna**, y por lo tanto `a × b` aplica **primero `b`**. Unreal usa la convención
+opuesta; la traducción es una transposición y vive en `ue.py`, que es el único adaptador. Hoy
+**ningún consumidor de `ue.py` usa matrices**: son puro cerebro.
+
+### Dos desvíos del plan, con su defensa
+
+**Sólo 4×4, no 3×3.** Un `V` de Jam es 3D, así que una `MX3` sería exactamente «la 4×4 sin
+traslación»: cada verbo se duplicaría sin capacidad nueva, y la regla de no promoción silenciosa
+—que este mismo plan fija— obligaría además a nodos de conversión entre dos tipos que nunca se
+encuentran. Lo que de verdad da una 3×3, transformar una dirección ignorando la traslación, ya lo da
+**Transformar dirección**. Si aparece un consumidor real de 3×3, se agrega; hoy sería vocabulario sin
+caso.
+
+**Descomponer devuelve EJES, no ángulos de Euler.** El plan pedía «descomponer una 4×4 con fallo
+explícito». Un trío de ángulos exige fijar un orden de aplicación, y elegirlo en silencio hace que la
+mitad de las cadenas oriente para otro lado — el mismo error de convención que este plan evita en
+todo lo demás. Los tres ejes normalizados dicen exactamente lo mismo sin nada que memorizar, y son lo
+que se cablea para orientar una pieza. Las cinco salidas son `traslación` (la principal), `escala`,
+`eje X`, `eje Y` y `eje Z`.
+
+También quedó **sin construir el «armar por filas/columnas»**: un pin `MX` sin cable acepta los
+dieciséis números como texto —con comas, espacios o cuatro renglones—, así que escribir una matriz a
+mano ya se puede sin un verbo aparte.
+
+### Lo que se niega, y por qué no devuelve un valor de consuelo
+
+- **Invertir una singular** es error. Devolver identidad sería el defecto silencioso más caro de la
+  familia: la cadena sigue corriendo, nada queda transformado, y el síntoma aparece diez nodos
+  después de la causa.
+- **Descomponer una matriz con proyección** (última fila ≠ `0 0 0 1`) es error: no es afín.
+- **Un eje con escala 0** es error: ese eje no tiene dirección.
+- **Una matriz que espeja** (determinante negativo) es error. Tres ejes unitarios formarían una terna
+  derecha, así que devolverlos perdería el volteo sin decirlo; repartir el signo entre escalas
+  negativas admite tres respuestas distintas y elegir una callada es peor que negarse.
+
+### El falso verde que destapó esta fase
+
+Multi-salida existía desde el 2026-08-12, y había **cuatro rutas que reparten lo que viaja por un
+cable**: `math_core.resolver`, `graph.ejecutar_detalle`, `graph.compilar` (los params de las tools) y
+`flow._param_wires`. Se le había enseñado a las dos primeras. Un cable de `domain_construct.desde` a
+`pts_line.count` le entregaba al verbo el dominio **entero**, `(10.0, 90.0)` en vez de `10.0`, y no
+fallaba: `dsl.coaccionar` hace `str()` de los params, no reconoce esa tupla como número y **descarta
+el parámetro en silencio**, con lo que la línea corría con su default. Compile verde, Run verde,
+número equivocado. Ahora las cuatro pasan por `graph._valor_del_pin`, la única definición de qué sale
+por un pin.
+
+Y un segundo defecto, **anterior a las matrices**: el panel elegía el texto de un nodo de valor por
+el tipo de Python del resultado —número, texto, y todo lo demás a `(sin resolver)`—, así que un
+vector, un dominio o una matriz resueltos perfectos se dibujaban como si no hubieran resuelto, con el
+estado del nodo en «ok» al mismo tiempo. `math_core.texto_de_valor` es ahora la única definición para
+Graph y Flow: pregunta si resolvió, y el tipo sólo decide cuánto se escribe.
+
+### La pieza nueva del diseño: `corte_principal`
+
+`matrix_decompose` es el primer verbo cuyo resultado guardado **no es lo que muestra ningún pin, ni
+siquiera el principal**. Calcula los cinco vectores juntos y `out` se sirve la traslación. Sin eso,
+o el pin principal declaraba «vector» y entregaba cinco, o cada pin recalculaba la descomposición.
+La validación por pin va **adentro de `evaluar`** y no en el corte, porque el corte corre fuera del
+`try` de `resolver`: un error allá no colgaría del nodo culpable, voltearía la resolución entera.
 
 ## Oracle y frontera
 

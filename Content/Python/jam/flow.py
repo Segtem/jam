@@ -774,6 +774,25 @@ def _salidas_extra(kind: str) -> tuple:
     return ()
 
 
+def _valor_del_pin(kind: str, pin: str, valor):
+    """Lo que sale por `pin` de un nodo de Flow cuyo resultado ya es `valor`.
+
+    Gemelo de `graph._valor_del_pin` para el otro preflight. No se importa el del Graph porque
+    `graph` importa `flow` y la dependencia iría en círculo; el contrato —el mismo par de tablas de
+    `math_core`— sí es único.
+    """
+    if valor is None or kind not in VALOR_KINDS:
+        return valor if pin == PIN_OUT else None
+    from .math_core import corte_principal
+    if pin == PIN_OUT:
+        principal = corte_principal(kind)
+        return principal(valor) if principal is not None else valor
+    for nombre, _tipo, _etiqueta, corte in _salidas_extra(kind):
+        if nombre == pin:
+            return corte(valor)
+    return None
+
+
 def _tipo_salida(kind: str, pin: str = PIN_OUT) -> str:
     """Tipo público de un pin de salida, compartido con el spec que consume Slate."""
     if pin != PIN_OUT:
@@ -862,12 +881,18 @@ class Flow:
         return [a for a, ap, b, bp in self.enlaces if b == nid and bp == PIN_STREAM_IN]
 
     def _param_wires(self, nid: str) -> dict:
-        """{ pin_de_parámetro: origen } de los cables que entran a un PARÁMETRO de `nid` (no al stream).
-        Si un parámetro recibe varios cables, gana el último (como reconectar en GH)."""
+        """{ pin_de_parámetro: (origen, pin_de_origen) } de los cables que entran a un PARÁMETRO de
+        `nid` (no al stream). Si un parámetro recibe varios cables, gana el último (como reconectar
+        en GH).
+
+        El pin de ORIGEN viaja junto al nodo: sin él, un cable que sale de una salida extra entrega
+        el valor entero del nodo —`(10.0, 90.0)` en vez de `10.0`— y el preflight no ve nada raro.
+        Es el mismo agujero que tenía el compilador del Graph, en la cuarta ruta que reparte cables.
+        """
         out: dict = {}
         for a, ap, b, bp in self.enlaces:
             if b == nid and bp not in (PIN_STREAM_IN,):
-                out[bp] = a
+                out[bp] = (a, ap)
         return out
 
     def validar(self, ops: dict | None = None) -> dict[str, list[str]]:
@@ -1025,9 +1050,10 @@ class Flow:
         nodo = self.nodos[nid]
         params = _resolver_params(nodo["params"], variables,
                                   OPS_META.get(nodo["kind"], {}).get("params"))
-        for pin, origen in self._param_wires(nid).items():
+        for pin, (origen, origen_pin) in self._param_wires(nid).items():
             if escalar_de.get(origen) is not None:
-                params[pin] = escalar_de[origen]
+                params[pin] = _valor_del_pin(self.nodos.get(origen, {}).get("kind", ""),
+                                             origen_pin, escalar_de[origen])
         return params
 
     def escalares_de_valor(self, variables: dict) -> dict:

@@ -966,7 +966,7 @@ def ejecutar_flow_json(g_json: str, widget=None, *, owner: str = "graph") -> str
     stream que produjo: verde = pasó puntos, naranja = quedó vacío (el filtro comió todo)."""
     import json
 
-    from . import flow, graph, scatter
+    from . import flow, graph, math_core, scatter
 
     f = flow.Flow.from_json(g_json)
     caja: dict = {}
@@ -1023,12 +1023,7 @@ def ejecutar_flow_json(g_json: str, widget=None, *, owner: str = "graph") -> str
                 # incorrectamente como un stream vacío de «0 puntos»).
                 val = f.resultados.get(nid, {}).get("value")
                 nombre = nodo["params"].get("name") or nid
-                if isinstance(val, (int, float)):
-                    txt = f"{nombre} = {val:.4g}"
-                elif isinstance(val, str):
-                    txt = f"{nombre} = {val}"
-                else:
-                    txt = f"{nombre} = (sin resolver)"
+                txt = f"{nombre} = {math_core.texto_de_valor(val)}"
                 estado = "ok" if val is not None else "warn"
             elif kind == "info":
                 # Display: muestra las stats que midió el nodo (cantidad + caja).

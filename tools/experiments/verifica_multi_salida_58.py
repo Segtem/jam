@@ -65,8 +65,10 @@ exigir(not sin_clave,
        f"distinguir «no hay» de «no vino» ({len(sin_clave)} sin ella: {sin_clave[:5]})")
 
 con_extra = sorted(v for v, item in spec.items() if item.get("outs"))
-exigir(con_extra == ["domain_construct"],
-       f"y hoy la declara UNO solo: {con_extra}")
+# «Armar dominio» la estrenó; «Descomponer matriz» es el consumidor por el que se hizo, y el que
+# demuestra que el mecanismo no estaba atado a DOS salidas: publica cuatro extras.
+exigir(con_extra == ["domain_construct", "matrix_decompose"],
+       f"y hoy la declaran exactamente esos dos: {con_extra}")
 
 log("-" * 78)
 log("2 · Compile acepta una arista cuyo pin de origen no es «out».")

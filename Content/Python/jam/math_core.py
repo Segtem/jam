@@ -171,6 +171,202 @@ def _cruz(a, b):
             a[0] * b[1] - a[1] * b[0])
 
 
+# ---------------------------------------------------------------------------------------------
+# Matrices 4×4
+# ---------------------------------------------------------------------------------------------
+#
+# CONVENCIÓN, fijada acá y en un solo lugar porque una matriz mal leída no falla: transforma mal.
+#
+# · **Almacenamiento por FILAS** (row-major): los 16 números se leen fila por fila.
+# · **Vectores COLUMNA**: transformar es `M · v`, así que la traslación vive en la última COLUMNA
+#   (índices 3, 7, 11) y la última FILA de una matriz afín es `0 0 0 1`.
+# · Por lo tanto `a × b` aplica **primero `b` y después `a`**, que es el orden de la notación
+#   matemática y el opuesto al que uno lee de izquierda a derecha. Está dicho en el `doc` del verbo
+#   porque es EL error clásico y no lo atrapa ningún test del usuario.
+# · La imagen del eje X —`M · (1,0,0,0)`— es la primera COLUMNA. De ahí sale `matrix_decompose`.
+#
+# ⚠️ Unreal usa la convención opuesta (vectores FILA, traslación en la última fila). La traducción
+# es una transposición y va en `ue.py`, que es el único adaptador — acá adentro no entra.
+#
+# Sólo hay 4×4 y no 3×3. Un `V` de Jam es 3D, así que una 3×3 sería exactamente «la 4×4 sin
+# traslación»: cada verbo se duplicaría sin capacidad nueva, y la regla de no promoción silenciosa
+# obligaría además a nodos de conversión entre dos tipos que nunca se encuentran. Lo que de verdad
+# da una 3×3 —transformar una dirección ignorando la traslación— ya lo da `matrix_transform_direction`.
+
+_IDENTIDAD = (1.0, 0.0, 0.0, 0.0,
+              0.0, 1.0, 0.0, 0.0,
+              0.0, 0.0, 1.0, 0.0,
+              0.0, 0.0, 0.0, 1.0)
+
+
+def _matriz(valor, pin: str) -> tuple:
+    """Una matriz son DIECISÉIS números finitos, por filas. Mismo contrato que `_vector`.
+
+    Un pin `MX` cableado recibe la tupla que produjo otro nodo; uno SIN cable recibe lo que quedó
+    guardado en el `.jamgraph`, que es TEXTO. Se aceptan comas y espacios, y los saltos de línea,
+    porque dieciséis números escritos en una sola tira son ilegibles y alguien los va a acomodar en
+    cuatro renglones.
+    """
+    if isinstance(valor, (tuple, list)):
+        partes = list(valor)
+    else:
+        texto = str(valor).strip().strip("()[]")
+        partes = [t for t in texto.replace(",", " ").split() if t]
+    if len(partes) != 16:
+        raise ValorError(pin, f"una matriz son dieciséis números; llegaron {len(partes)}: «{valor}»")
+    try:
+        salida = tuple(float(c) for c in partes)
+    except (TypeError, ValueError):
+        raise ValorError(pin, f"componente no numérica en «{valor}»") from None
+    if not all(math.isfinite(c) for c in salida):
+        raise ValorError(pin, f"las componentes tienen que ser finitas: «{valor}»")
+    return salida
+
+
+def _mx_por_mx(a, b):
+    """`a · b`: aplica primero `b`. Ver la convención de arriba."""
+    return tuple(sum(a[fila * 4 + k] * b[k * 4 + col] for k in range(4))
+                 for fila in range(4) for col in range(4))
+
+
+def _mx_transponer(m):
+    return tuple(m[col * 4 + fila] for fila in range(4) for col in range(4))
+
+
+def _mx_determinante(m) -> float:
+    """Expansión por cofactores de la primera fila, con los menores 3×3 escritos a mano.
+
+    Se prefiere a un desarrollo genérico porque es la misma cuenta que usa `_mx_inversa`: si las dos
+    salieran de rutinas distintas podrían discrepar justo en el borde singular, que es el único
+    lugar donde el determinante importa.
+    """
+    def menor(f, c):
+        filas = [i for i in range(4) if i != f]
+        cols = [j for j in range(4) if j != c]
+        a, b, cc = (tuple(m[i * 4 + j] for j in cols) for i in filas)
+        return (a[0] * (b[1] * cc[2] - b[2] * cc[1])
+                - a[1] * (b[0] * cc[2] - b[2] * cc[0])
+                + a[2] * (b[0] * cc[1] - b[1] * cc[0]))
+
+    return sum(((-1) ** c) * m[c] * menor(0, c) for c in range(4))
+
+
+def _mx_inversa(m):
+    """La inversa por adjunta. Una matriz singular es ERROR, no la identidad.
+
+    Devolver identidad ante una singular es el defecto silencioso más caro de esta familia: la
+    cadena sigue corriendo, todo queda sin transformar, y el síntoma aparece a diez nodos de la
+    causa. El determinante se compara contra cero exacto porque cualquier umbral inventado acá
+    tendría que depender de la escala de la matriz, y no hay un valor defendible.
+    """
+    det = _mx_determinante(m)
+    if det == 0.0:
+        raise ValorError("matriz", "la matriz es singular (determinante 0): no tiene inversa")
+
+    def cofactor(f, c):
+        filas = [i for i in range(4) if i != f]
+        cols = [j for j in range(4) if j != c]
+        a, b, cc = (tuple(m[i * 4 + j] for j in cols) for i in filas)
+        menor = (a[0] * (b[1] * cc[2] - b[2] * cc[1])
+                 - a[1] * (b[0] * cc[2] - b[2] * cc[0])
+                 + a[2] * (b[0] * cc[1] - b[1] * cc[0]))
+        return ((-1) ** (f + c)) * menor
+
+    # Adjunta = traspuesta de la matriz de cofactores: por eso los índices salen cambiados.
+    salida = tuple(cofactor(col, fila) / det for fila in range(4) for col in range(4))
+    if not all(math.isfinite(c) for c in salida):
+        raise ValorError("matriz", "la inversa desborda: la matriz está casi degenerada")
+    return salida
+
+
+def _mx_traslacion(desplazamiento):
+    d = desplazamiento
+    return (1.0, 0.0, 0.0, d[0],
+            0.0, 1.0, 0.0, d[1],
+            0.0, 0.0, 1.0, d[2],
+            0.0, 0.0, 0.0, 1.0)
+
+
+def _mx_escala(escala):
+    s = escala
+    return (s[0], 0.0, 0.0, 0.0,
+            0.0, s[1], 0.0, 0.0,
+            0.0, 0.0, s[2], 0.0,
+            0.0, 0.0, 0.0, 1.0)
+
+
+def _mx_rotacion(eje, grados: float):
+    """Rodrigues alrededor de un eje cualquiera, en grados y por la regla de la mano derecha.
+
+    El eje se normaliza acá: sin normalizar, el largo se cuela como una escala y la «rotación»
+    deforma. `_normalizar` ya se niega ante el vector cero, que es el caso sin dirección.
+    """
+    x, y, z = _normalizar(eje)
+    radianes = math.radians(grados)
+    c, s = math.cos(radianes), math.sin(radianes)
+    t = 1.0 - c
+    return (t * x * x + c,     t * x * y - s * z, t * x * z + s * y, 0.0,
+            t * x * y + s * z, t * y * y + c,     t * y * z - s * x, 0.0,
+            t * x * z - s * y, t * y * z + s * x, t * z * z + c,     0.0,
+            0.0,               0.0,               0.0,               1.0)
+
+
+def _mx_punto(m, punto):
+    """Transforma un PUNTO: entra con w = 1, así que la traslación cuenta.
+
+    Se divide por la w resultante en vez de asumir 1: una matriz de proyección da w ≠ 1 y asumirla
+    devolvería coordenadas escaladas mal sin avisar. Con una matriz afín la división es por 1.
+    """
+    x, y, z = punto
+    w = m[12] * x + m[13] * y + m[14] * z + m[15]
+    if w == 0.0:
+        raise ValorError("matriz", "el punto cae en el infinito de esta matriz (w = 0)")
+    return tuple((m[f * 4] * x + m[f * 4 + 1] * y + m[f * 4 + 2] * z + m[f * 4 + 3]) / w
+                 for f in range(3))
+
+
+def _mx_direccion(m, direccion):
+    """Transforma una DIRECCIÓN: entra con w = 0, así que la traslación NO cuenta.
+
+    Mover un mundo entero no cambia hacia dónde apunta una normal. Usar `_mx_punto` para una
+    dirección es el error que deja las normales desplazadas y la iluminación rota.
+    """
+    x, y, z = direccion
+    return tuple(m[f * 4] * x + m[f * 4 + 1] * y + m[f * 4 + 2] * z for f in range(3))
+
+
+def _mx_partes(m) -> tuple:
+    """Descompone una matriz AFÍN en traslación, escala y sus tres ejes. Ver `matrix_decompose`.
+
+    Devuelve `(traslación, escala, ejeX, ejeY, ejeZ)` — cinco vectores, y de ahí salen la salida
+    principal y las cuatro extras. La cuenta se hace UNA vez: cada pin se sirve de esta tupla.
+
+    No se descompone en ángulos de Euler a propósito. Un trío de ángulos exige fijar un orden de
+    aplicación, y elegirlo en silencio hace que la mitad de las cadenas oriente para otro lado. Los
+    tres ejes dicen exactamente lo mismo sin ninguna convención que memorizar, y son lo que se
+    cablea para orientar algo.
+    """
+    if (m[12], m[13], m[14], m[15]) != (0.0, 0.0, 0.0, 1.0):
+        raise ValorError(
+            "matriz",
+            "no es afín (su última fila no es 0 0 0 1): tiene proyección y no se descompone")
+    columnas = [(m[0], m[4], m[8]), (m[1], m[5], m[9]), (m[2], m[6], m[10])]
+    escala = tuple(_largo(c) for c in columnas)
+    for nombre, largo in zip("XYZ", escala):
+        if largo == 0.0:
+            raise ValorError("matriz", f"la escala en {nombre} es 0: ese eje no tiene dirección")
+    # Determinante de la parte 3×3: negativo significa que la matriz ESPEJA. Tres ejes unitarios no
+    # pueden representar un espejo —formarían una terna derecha—, así que devolverlos sería perder
+    # el volteo sin decirlo. El signo se reparte entre escalas negativas de una forma que no es
+    # única: son tres repartos posibles y elegir uno callado es peor que negarse.
+    if sum(columnas[0][i] * _cruz(columnas[1], columnas[2])[i] for i in range(3)) < 0.0:
+        raise ValorError(
+            "matriz",
+            "la matriz espeja (determinante negativo): no se descompone en ejes y escalas positivas")
+    ejes = tuple(tuple(c / largo for c in col) for col, largo in zip(columnas, escala))
+    return ((m[3], m[7], m[11]), escala) + ejes
+
+
 def _booleano(valor) -> bool:
     """Qué cuenta como «sí» cuando el valor llega desde el lienzo o desde un archivo.
 
@@ -266,6 +462,19 @@ def _dominio(valor, pin: str) -> tuple[float, float]:
     if not all(math.isfinite(componente) for componente in salida):
         raise ValorError(pin, f"los extremos tienen que ser finitos: «{valor}»")
     return salida
+
+
+#: Cómo se coacciona cada TIPO, tanto al entrar por un pin como al salir. Un tipo que no figure acá
+#: cae a `_numero`, que aplasta a un float cualquier cosa compuesta **sin avisar**: un vector pierde
+#: dos componentes y una matriz catorce. Era una cadena de `if`/`elif` repetida en la entrada y en
+#: la salida; agregar un tipo pedía acordarse de los dos lados, y olvidarse de uno no falla —
+#: transforma mal. `test_matrix` exige que todo tipo en uso tenga su entrada.
+COACCION: dict[str, Callable] = {
+    "B": lambda valor, _pin: _booleano(valor),
+    "V": _vector,
+    "D": _dominio,
+    "MX": _matriz,
+}
 
 
 def _adentro(dominio, valor: float) -> bool:
@@ -723,6 +932,116 @@ VALORES: dict[str, dict] = {
         "operacion": _cruz,
         "doc": "un vector perpendicular a los dos; es como se saca una normal",
     },
+    # ---- matrices 4×4: la convención está arriba, junto a `_matriz`, y en un solo lugar ----
+    "matrix_identity": {
+        "label": "Identidad", "cat": "Maths", "source": True, "out_name": "MX",
+        "params": {}, "tipos": {}, "etiquetas_params": {},
+        "out_label": "matriz",
+        "operacion": lambda: _IDENTIDAD,
+        "doc": "la matriz que no hace nada; es el punto de partida de toda cadena de transformaciones",
+    },
+    "matrix_translation": {
+        "label": "Matriz de traslación", "cat": "Maths", "source": True, "out_name": "MX",
+        "params": {"traslación": "0,0,0"},
+        "tipos": {"traslación": "V"},
+        "etiquetas_params": {"traslación": "traslación (Vector)"},
+        "out_label": "matriz",
+        "operacion": _mx_traslacion,
+        "doc": "mover; en centímetros, como todo en Unreal",
+    },
+    "matrix_scale_matrix": {
+        "label": "Matriz de escala", "cat": "Maths", "source": True, "out_name": "MX",
+        "params": {"escala": "1,1,1"},
+        "tipos": {"escala": "V"},
+        "etiquetas_params": {"escala": "escala (Vector)"},
+        "out_label": "matriz",
+        "operacion": _mx_escala,
+        "doc": "estirar por eje; una escala 0 deja la matriz singular y sin inversa",
+    },
+    "matrix_rotation": {
+        "label": "Matriz de rotación", "cat": "Maths", "source": True, "out_name": "MX",
+        "params": {"eje": "0,0,1", "ángulo": 0.0},
+        "tipos": {"eje": "V", "ángulo": "N"},
+        "etiquetas_params": {"eje": "eje (Vector)", "ángulo": "ángulo (Número)"},
+        "out_label": "matriz",
+        "operacion": _mx_rotacion,
+        "doc": "girar alrededor de un eje cualquiera, en GRADOS y por la regla de la mano derecha",
+    },
+    "matrix_multiply": {
+        "label": "Multiplicar matrices", "cat": "Maths", "source": True, "out_name": "MX",
+        "params": {"a": _IDENTIDAD, "b": _IDENTIDAD},
+        "tipos": {"a": "MX", "b": "MX"},
+        "etiquetas_params": {"a": "a (Matriz)", "b": "b (Matriz)"},
+        "out_label": "matriz",
+        "operacion": _mx_por_mx,
+        "doc": "encadena dos transformaciones; NO es conmutativa y «a × b» aplica primero b",
+    },
+    "matrix_transpose": {
+        "label": "Transponer", "cat": "Maths", "source": True, "out_name": "MX",
+        "params": {"matriz": _IDENTIDAD},
+        "tipos": {"matriz": "MX"},
+        "etiquetas_params": {"matriz": "matriz (Matriz)"},
+        "out_label": "matriz",
+        "operacion": _mx_transponer,
+        "doc": "da vuelta filas por columnas; en una rotación pura es lo mismo que invertirla",
+    },
+    "matrix_determinant": {
+        "label": "Determinante", "cat": "Maths", "source": True, "out_name": "N",
+        "params": {"matriz": _IDENTIDAD},
+        "tipos": {"matriz": "MX"},
+        "etiquetas_params": {"matriz": "matriz (Matriz)"},
+        "out_label": "determinante",
+        "operacion": _mx_determinante,
+        "doc": "cuánto agranda el volumen; cero significa que aplasta y no tiene inversa",
+    },
+    "matrix_inverse": {
+        "label": "Invertir matriz", "cat": "Maths", "source": True, "out_name": "MX",
+        "params": {"matriz": _IDENTIDAD},
+        "tipos": {"matriz": "MX"},
+        "etiquetas_params": {"matriz": "matriz (Matriz)"},
+        "out_label": "matriz",
+        "operacion": _mx_inversa,
+        "doc": "la transformación que deshace la otra; una matriz singular es error, no identidad",
+    },
+    "matrix_transform_point": {
+        "label": "Transformar punto", "cat": "Maths", "source": True, "out_name": "V",
+        "params": {"matriz": _IDENTIDAD, "punto": "0,0,0"},
+        "tipos": {"matriz": "MX", "punto": "V"},
+        "etiquetas_params": {"matriz": "matriz (Matriz)", "punto": "punto (Vector)"},
+        "out_label": "punto",
+        "operacion": _mx_punto,
+        "doc": "lleva una POSICIÓN por la matriz; la traslación cuenta",
+    },
+    "matrix_transform_direction": {
+        "label": "Transformar dirección", "cat": "Maths", "source": True, "out_name": "V",
+        "params": {"matriz": _IDENTIDAD, "dirección": "0,0,1"},
+        "tipos": {"matriz": "MX", "dirección": "V"},
+        "etiquetas_params": {"matriz": "matriz (Matriz)", "dirección": "dirección (Vector)"},
+        "out_label": "dirección",
+        "operacion": _mx_direccion,
+        "doc": "lleva una DIRECCIÓN por la matriz; la traslación NO cuenta — es la que usan las normales",
+    },
+    "matrix_decompose": {
+        "label": "Descomponer matriz", "cat": "Maths", "source": True, "out_name": "V",
+        "params": {"matriz": _IDENTIDAD},
+        "tipos": {"matriz": "MX"},
+        "etiquetas_params": {"matriz": "matriz (Matriz)"},
+        "out_label": "traslación",
+        "operacion": _mx_partes,
+        # El resultado son los CINCO vectores; ningún pin muestra la tupla entera, ni siquiera el
+        # principal. Es lo que permite calcular la descomposición una sola vez sin que el tipo de
+        # `out` mienta: dice «vector» y entrega un vector, no cinco.
+        "corte_principal": lambda p: p[0],
+        # El «Deconstruct» que multi-salida existe para poder escribir: cinco vectores de UNA sola
+        # cuenta, en vez de cinco verbos que recalcularían la descomposición cinco veces.
+        "outs": (
+            ("escala", "V", "escala", lambda p: p[1]),
+            ("eje_x", "V", "eje X", lambda p: p[2]),
+            ("eje_y", "V", "eje Y", lambda p: p[3]),
+            ("eje_z", "V", "eje Z", lambda p: p[4]),
+        ),
+        "doc": "abre una matriz afín en traslación, escala y sus tres ejes; sin ángulos de Euler",
+    },
     "domain_construct": {
         "label": "Armar dominio", "cat": "Maths", "source": True, "out_name": "D",
         "params": {"desde": 0.0, "hasta": 1.0},
@@ -857,6 +1176,43 @@ def salidas_extra(verbo: str) -> tuple:
     return tuple(meta.get("outs", ())) if meta else ()
 
 
+def texto_de_valor(valor) -> str:
+    """Lo que un nodo de valor MUESTRA. Una sola definición para Graph y para Flow.
+
+    ⚠️ Lo encontró la sonda de matrices: el panel decidía el texto por el TIPO de Python —número,
+    texto, y todo lo demás al saco de «(sin resolver)»—, así que un vector, un dominio o una matriz
+    resueltos perfectamente se dibujaban como si no hubieran resuelto. El estado del nodo decía «ok»
+    y la palabra decía lo contrario. Es el peor silencio que hay acá: *lo hizo* leído como *no hizo
+    nada*, el mismo que motivó que `place` diga las coordenadas.
+
+    La pregunta correcta es si RESOLVIÓ, no de qué tipo es. Lo único que sigue decidiendo por tipo
+    es cuánto se escribe: un vector entra en el nodo y una matriz de dieciséis no, así que de ésa se
+    dice cuántos números tiene. El valor completo queda igual en el inspector.
+    """
+    if valor is None:
+        return "(sin resolver)"
+    if isinstance(valor, bool):
+        return "sí" if valor else "no"
+    if isinstance(valor, (int, float)):
+        # `.6g` y no `.4g`: con cuatro cifras, 12345 cm —una distancia de mapa perfectamente
+        # común— se muestra como «1.234e+04». Y tampoco el `repr` crudo, que arrastra el ruido
+        # binario del float y escribe «0.30000000000000004» adentro de un nodo.
+        return f"{valor:.6g}"
+    if isinstance(valor, str):
+        return valor
+    if isinstance(valor, (tuple, list)):
+        if len(valor) <= 4 and all(isinstance(c, (int, float)) for c in valor):
+            return "(" + ", ".join(f"{c:.6g}" for c in valor) + ")"
+        return f"{len(valor)} números"
+    return str(valor)
+
+
+def corte_principal(verbo: str):
+    """La rebanada del pin `out`, o `None` si sale el resultado entero. Ver `graph.corte_principal`."""
+    meta = VALORES.get(verbo)
+    return meta.get("corte_principal") if meta else None
+
+
 def _numero(valor, pin: str, tabla: dict, eval_expr: Callable) -> float:
     """Literal o expresión → número finito. Una referencia ausente queda pendiente otra pasada."""
     original = valor
@@ -909,30 +1265,36 @@ def evaluar(verbo: str, params: dict, tabla: dict, eval_expr: Callable) -> objec
     argumentos = []
     for pin in meta["params"]:
         crudo = params.get(pin, meta["params"][pin])
-        if tipos.get(pin) == "V":
-            argumentos.append(_vector(crudo, pin))
-        elif tipos.get(pin) == "D":
-            argumentos.append(_dominio(crudo, pin))
-        else:
-            argumentos.append(_numero(crudo, pin, tabla, eval_expr))
+        coaccion = COACCION.get(tipos.get(pin))
+        argumentos.append(coaccion(crudo, pin) if coaccion
+                          else _numero(crudo, pin, tabla, eval_expr))
     try:
         resultado = meta["operacion"](*argumentos)
     except ValorError:
         raise
     except (ArithmeticError, ValueError) as exc:
         raise ValorError("resultado", str(exc)) from exc
-    if meta.get("out_name") == "B":
-        # Un booleano NO pasa por `_numero`: lo aplastaría a 1.0/0.0 y dejaría de ser un booleano
-        # para el resto del sistema. Lo decide `out_name` y no una lista de verbos, así una
-        # comparación nueva no necesita acordarse de tocar esto.
-        return bool(resultado)
-    if meta.get("out_name") == "D":
-        return _dominio(resultado, "resultado")
-    if meta.get("out_name") == "V":
-        # Mismo motivo que el booleano: `_numero` lo aplastaría. Lo decide `out_name`, así un verbo
-        # de vector nuevo no necesita acordarse de tocar esto.
-        return _vector(resultado, "resultado")
-    return _numero(resultado, "resultado", tabla, eval_expr)
+    # La salida se coacciona por `out_name` y no por una lista de verbos, así un verbo nuevo de un
+    # tipo que ya existe no necesita acordarse de tocar esto.
+    #
+    # Con `corte_principal` el valor guardado NO es lo que muestra ningún pin —`matrix_decompose`
+    # guarda los cinco vectores juntos—, así que coaccionarlo entero fallaría. En su lugar se valida
+    # el corte de CADA pin contra el tipo que declara. Tiene que pasar acá adentro: `_rebanar` corre
+    # fuera del `try` de `resolver`, así que un corte que levante allá no cuelga del nodo culpable —
+    # voltea la resolución de todo el grafo.
+    principal = meta.get("corte_principal")
+    if principal is None:
+        coaccion = COACCION.get(meta.get("out_name"))
+        return (coaccion(resultado, "resultado") if coaccion
+                else _numero(resultado, "resultado", tabla, eval_expr))
+    coaccion = COACCION.get(meta.get("out_name"))
+    if coaccion:
+        coaccion(principal(resultado), "out")
+    for nombre, tipo, _etiqueta, corte in meta.get("outs", ()):
+        coaccion = COACCION.get(tipo)
+        if coaccion:
+            coaccion(corte(resultado), nombre)
+    return resultado
 
 
 def _por_que_no_resolvio(nodo: dict, campo_verbo: str, tabla: dict) -> str:
@@ -977,10 +1339,11 @@ def _rebanar(nodos: dict, origen: str, origen_pin: str, valor, campo_verbo: str)
     significa que alguien llamó a `resolver` sin validar, y volarle la resolución entera a los demás
     nodos por eso sería peor que dejar este solo sin valor.
     """
+    verbo = nodos.get(origen, {}).get(campo_verbo, "")
     if origen_pin == PIN_SALIDA:
-        return valor
-    for nombre, _tipo, _etiqueta, corte in salidas_extra(
-            nodos.get(origen, {}).get(campo_verbo, "")):
+        principal = corte_principal(verbo)
+        return principal(valor) if principal is not None else valor
+    for nombre, _tipo, _etiqueta, corte in salidas_extra(verbo):
         if nombre == origen_pin:
             return corte(valor)
     return None
