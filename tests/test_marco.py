@@ -2,24 +2,78 @@
 
 from __future__ import annotations
 
+import importlib
 import sys
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 
 RAIZ = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ))
 
-import catalogos.escalares  # noqa: F401,E402  registra las escalares del catálogo base
 from nucleo.marco import hechos_de_casos, hechos_de_uso  # noqa: E402
 from nucleo.medida import cargar  # noqa: E402
 
 
 MID = "dominio.ordinaria"
 CATALOGO = {MID: object()}
-FIJADA = cargar(RAIZ / "catalogos" / "meta" / "meta.toda_medida_esta_fijada.json")
+
+
+def setUpModule() -> None:
+    """Registra las escalares del catálogo base DENTRO de la suite, no al importar el módulo.
+
+    Como `import catalogos.escalares` al tope, el decorador `@escalar` corría durante el
+    descubrimiento: un mutante en `escalar()`, `_registro()` o `_contrato_de_escalar()` rompía la
+    importación del archivo de test y el arnés lo reportaba como «error» en vez de «muerte». Once
+    mutantes de `nucleo/algebra.py` quedaban sin veredicto por esto. Acá el fallo es del test.
+    """
+    importlib.import_module("catalogos.escalares")
+
+
+def _fijada():
+    """Se carga DENTRO del test, nunca al importar el módulo.
+
+    Cuando esto era `FIJADA = cargar(...)` a nivel de módulo, leer una medida real —con su expansión
+    de macros y su validación de álgebra— ocurría durante el **descubrimiento** de la suite. Un
+    mutante que rompiera cualquier función de ese camino hacía fallar la importación del módulo de
+    test, y el arnés lo reportaba como «error» en vez de «muerte».
+
+    Lo grave no era perder esas muertes: era que el veredicto dependía de **cómo se particionara la
+    ronda**. Mutando `nucleo/macro.py` sola daba 80/80; la misma mutación dentro de la ronda completa
+    daba 63 errores de arnés, porque ahí `tests.test_marco` entraba en la carga prioritaria. Un
+    resultado que cambia según cómo se corta la corrida no es una medición.
+    """
+    return cargar(RAIZ / "catalogos" / "meta" / "meta.toda_medida_esta_fijada.json")
+
+
+class _MedidaFalsa:
+    """Stub mínimo: sólo lo que `hechos_de_casos` le pide a una medida real."""
+
+    def __init__(self, ok: bool) -> None:
+        self._ok = ok
+
+    def evaluar(self, evidencia: dict) -> SimpleNamespace:
+        return SimpleNamespace(ok=self._ok)
 
 
 class HechosDeCasosTests(unittest.TestCase):
+    def test_esperado_ok_compara_la_etiqueta_no_el_resultado(self) -> None:
+        """Cuando la medida SÍ existe, `esperado_ok` tiene que salir de la etiqueta del caso —
+        no del resultado de la medida, que es independiente y viene fijo en `True` acá."""
+        catalogo = {"dominio.existe": _MedidaFalsa(True)}
+        casos = [
+            {"id": "coincide", "medida": "dominio.existe", "etiqueta": "verde_correcto",
+             "evidencia": {}},
+            {"id": "no_coincide", "medida": "dominio.existe", "etiqueta": "falso_verde",
+             "evidencia": {}},
+        ]
+        filas = {f["id"]: f for f in hechos_de_casos(catalogo, casos)["caso"]}
+
+        self.assertTrue(filas["coincide"]["esperado_ok"])
+        self.assertTrue(filas["coincide"]["dio_ok"])
+        self.assertFalse(filas["no_coincide"]["esperado_ok"])
+        self.assertTrue(filas["no_coincide"]["dio_ok"])
+
     def test_distingue_sin_medida_id_desconocido_y_estado_del_hueco(self) -> None:
         casos = [
             {"id": "abierto", "medida": None, "etiqueta": "falso_verde",
@@ -46,7 +100,7 @@ class HechosDeCasosTests(unittest.TestCase):
 class TodaMedidaEstaFijadaTests(unittest.TestCase):
     def _evaluar(self, mutantes=(), **politica):
         evidencia = hechos_de_uso(CATALOGO, [], list(mutantes), **politica)
-        return evidencia["medida_en_uso"][0], FIJADA.evaluar(evidencia)
+        return evidencia["medida_en_uso"][0], _fijada().evaluar(evidencia)
 
     def test_una_medida_ordinaria_con_CERO_mutantes_no_pasa_vacuamente(self) -> None:
         uso, veredicto = self._evaluar()
