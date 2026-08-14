@@ -3,7 +3,7 @@ turno: 2026-08-12 · claude-code → codex
 saliente: claude-code
 entrante: codex
 desde: 2026-08-12
-verde_editor: b25473c
+verde_editor: 83cd6bf
 verde_editor_fecha: 2026-08-13
 ---
 
@@ -626,6 +626,20 @@ nada.
 | 3.7 | Apretar el **◉** de otro nodo | El primero **se apaga solo** (el flag se mueve, no se suma) |
 | 3.8 | Con ⟳ Live prendido, arrastrar un slider mirando el nodo del medio | Se actualiza **ese** nodo y el final no coloca nada. Ese es el gesto entero de Houdini |
 
+### 3-bis · Multi-salida: un nodo con tres pines de salida (2 minutos — lo más nuevo)
+
+| # | qué hacer | qué tiene que pasar |
+|---|---|---|
+| 3b.1 | Poner un nodo **Armar dominio** (Datos ▸ Maths ▸ Dominio) | Del lado derecho hay **TRES nubs**, no uno: `dominio (Rango)`, `desde (Número)` y `hasta (Número)` |
+| 3b.2 | Mirar el rótulo del header | **No** dice «dominio» arriba a la derecha: cada fila trae su propio nombre. Si aparece una palabra sin nub al lado, está mal |
+| 3b.3 | Cablear `desde` y `hasta` a los dos pines de un **Sumar** | Los dos cables enganchan. Con 10 y 90 el Run tiene que decir **100** |
+| 3b.4 | Cablear el nub de arriba (`dominio`) a un **Largo del dominio** | Sigue funcionando: la salida principal no se fue a ninguna parte |
+| 3b.5 | Guardar, cerrar y reabrir el diagrama | Los tres cables vuelven donde estaban |
+
+**Lo que se juega acá:** que la salida principal siga estando es lo único que impide que todo
+diagrama guardado con un dominio se quede sin origen. Los tests lo fijan leyendo el `.cpp`, pero
+que los tres nubs se vean y se puedan agarrar con el mouse no lo contesta ninguna medición.
+
 ### 4 · La escalera nueva de verbos (3 minutos)
 
 | # | qué hacer | qué tiene que pasar |
@@ -693,11 +707,36 @@ nodo de valor se evalúa dos veces **siempre** (punto fijo de `math_core.resolve
 grafo. Exigir el absoluto habría fijado en un test una propiedad ajena. Se pregunta contra el
 control: leer dos salidas no puede costar más que leer una.
 
-**Lo que sigue, en orden:** (1) el nub por salida en `SJamGraphNode` —el spec ya publica `outs`, y
-por eso **todo** verbo lo publica aunque sea vacío: sin la clave el C++ tendría que distinguir «no
-hay» de «no vino»—; (2) las tres decisiones que el plan dejó abiertas y que recién ahora se pueden
-contestar mirando el dibujo (dónde van los nubs, el modo compacto con tres letras, el caché);
-(3) **Matrix**, que es el consumidor por el que se hizo todo esto.
+✅ **Y SLATE TAMBIÉN: el nodo dibuja un nub por salida.** Resultó mucho más chico de lo previsto,
+porque **el dibujo de varias salidas ya existía** — lo trajo la firma dinámica de las funciones
+(`OutputPins` + filas `nombre (Tipo)`). Lo que faltaba era alimentarlo desde el spec.
+
+**La diferencia que importa, y es la razón de una línea explícita:** en una función `OutputPins`
+**reemplaza** la salida principal; acá las extras la **acompañan**. El nub del header se apaga solo
+en cuanto hay filas de salida, así que sin agregar «out» primera y a mano, `domain_construct` habría
+perdido su pin principal y **todo diagrama guardado que lo cablea se habría quedado sin origen**.
+
+El Python publica `name` y no `pin`: es la misma forma que ya usan `inputs`/`outputs`, así que el
+C++ los lee con el mismo `LeerPines` en vez de una segunda ruta paralela. Si la clave no coincidiera,
+el parser no levantaría ningún pin y el nodo se dibujaría con un solo nub — **sin error y sin log**.
+Por eso la sonda mide la FORMA del pin, no sólo que la clave esté.
+
+⚠️ **El spec se parsea en TRES lugares** (uno en `JamEditorModule.cpp`, dos en `SJamGraphEditor.cpp`)
+y `outs` se lee en los tres. Y había **dos búsquedas parecidas del tipo de salida** que miraban sólo
+`OutputPins`: un pin extra habría devuelto tipo vacío en una de las dos según por dónde entrara.
+Ahora las dos llaman a `FJamTool::TipoDeSalida` y un test exige que no quede ninguna suelta.
+
+**1177 tests**, 8/8 mutantes del cerebro y 4/4 del C++, y `JAM_MULTISALIDA_58 TODO VERDE` +
+19/19 tutoriales + `JAM_FUNCION_TEST TODO VERDE` (importaba: este cambio toca el mismo código que
+dibuja las firmas).
+
+⏳ **Falta que Brian lo mire** — el gesto **3-bis** de «Para las manos». Que los tres nubs se vean y
+se puedan agarrar con el mouse no lo contesta ningún test.
+
+**Lo que sigue:** (1) el gesto 3-bis; (2) las tres decisiones que el plan dejó abiertas y que recién
+ahora se pueden contestar mirando el dibujo (el modo compacto con tres letras, el caché, y si los
+nubs van donde quedaron o arriba como en GH); (3) **Matrix**, que es el consumidor por el que se
+hizo todo esto y el que va a pedir que las salidas extra no sean sólo dos.
 
 ---
 
