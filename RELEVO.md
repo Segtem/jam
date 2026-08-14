@@ -542,7 +542,10 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 | oracle sobre Jam | `python vendor/oracle/tools/diferencial.py --proyecto medidas --confiar-escalares` | **1099 acuerdos · 4298 veredictos estables** (11 dominios: `malla` y `malla_solidos`) |
 | » mutación de medidas | `python vendor/oracle/tools/mutar.py --proyecto medidas --confiar-escalares` | **303/303 mutantes muertos** |
 | Sólidos en UE 5.8.1 | `tools/experiments/verifica_malla_solidos_58.py` | **caja 2.520.000 exacto · esfera y muro cerrados y positivos · caja invertida negativa · TODO VERDE** |
-| » tests de oracle | `cd vendor/oracle && python -m unittest discover -s tests -t . -q` | **339 OK** |
+| » tests de oracle | `cd vendor/oracle && python -m unittest discover -s tests -t . -q` | **391 OK** (eran 339 antes del subtree del 2026-08-14) |
+| » oracle sobre sí mismo, tras el subtree | `cd vendor/oracle && python tools/aceptacion.py` y `tools/cifras.py` | **27 rojos · 12 verdes · 0 huecos** · `CIFRAS OK` |
+| » su matriz de mutación de código | `python tools/mutar_codigo.py --objetivo <cada uno de los 16>` | **16/16 en VERDE · 1230 muertos + 1 equivalente = los 1231 sitios publicados** |
+| » y Jam con el motor nuevo | el diferencial y la mutación de arriba, con el subtree ya traído | **mismos 1099 acuerdos y 303/303** — el criterio de falsación de `oracle` sigue del lado bueno |
 | **Cerebro de Jam, corte matrices (el de este turno)** | mismo comando de siempre | **1237 OK**, 0.70 s |
 | » ¿discriminan? | 13 mutaciones a mano sobre el cerebro y los iconos, con `.bak` y `__pycache__` limpio entre una y otra | **13/13 muertos**; dos sobrevivieron la primera vuelta y de ahí salieron dos tests nuevos |
 | Matrices 4×4 en UE 5.8.1 | `tools/experiments/verifica_matrices_58.py` en editor completo | **11 verbos en el spec · 4 salidas extra · descomposición aritmética exacta · singular y espejo rechazadas · `JAM_MATRICES_58 TODO VERDE`** |
@@ -753,9 +756,20 @@ la agenda corta es ésta:**
 | **C** | **El eje vistoso**: Gradient, MD Slider, Graph Mapper | Pedido de Brian; `graph_curve` ya existe como dato y le falta sólo el widget | punto **2** del roadmap largo |
 | — | *(el moño del bevel, aguas arriba en el join de `offset_points`)* | Medido y acotado, **sin arreglar**. Está en rojo a propósito: no se afinó el algoritmo contra la medida | «ESTADO DEL PLIEGUE», arriba |
 
-**Lo que NO conviene tomar sin hablarlo con Brian:** `~/Dev/oracle` tiene trabajo sin commitear desde
-el 2026-08-03 esperando una decisión suya, y por eso `vendor/oracle` está atrás del upstream local.
-Es el único hilo del proyecto que no depende de código.
+**✅ El hilo de `oracle` quedó cerrado el 2026-08-14.** Tenía trabajo sin commitear desde el
+2026-08-03; se verificó entero, se commiteó arriba (`Segtem/oracle@515c723`), se empujó y se trajo
+por subtree. **Los dos repos están al día y empujados.** Lo que entró: las cifras del README
+generadas por `tools/cifras.py` con el CI fallando si vencen, `defmacro` en datos
+(`nucleo/macros/*.json`) y la composición de medidas **rechazada** en `DECISION-002` con su
+disparador de reversión escrito. Lo que queda en `vendor/oracle/PLAN-LENGUAJE.md`: (e.1) propiedades
+metamórficas y (b) reificación mecánica del catálogo.
+
+⚠️ **Y ahí hay un experimento que le toca a Jam, no a `oracle`.** El criterio de falsación del
+metalenguaje está escrito en su propio plan y es mecánico: *«si conectar Jam exige tocar
+`nucleo/algebra.py`, la apuesta está perdiendo»*. Medido el 2026-08-14 con el motor nuevo, que tocó
+`algebra`, `medida`, `proyecto` y `motor`: los 11 dominios de Jam dan **1099 acuerdos y 303/303
+mutantes, idénticos**, sin tocar una línea del núcleo. Vale la pena volver a mirarlo cada vez que Jam
+gane un dominio — es la única medición del proyecto que no se puede sastrear escribiendo más medidas.
 
 **0-decies-bis. ⚠️ DEFECTO ABIERTO, encontrado el 2026-08-14 mirando la captura de Brian
 (`Reference/Dominio.png`): las filas de salida muestran el ID del pin, no su etiqueta.**
