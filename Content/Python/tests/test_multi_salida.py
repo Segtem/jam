@@ -378,6 +378,31 @@ class ElCppDibujaLosNubs(unittest.TestCase):
         self.assertIn("InArgs._OutputPins.Num() == 0\n\t\t\t\t\t? InArgs._OutputLabel : FString()",
                       nodo)
 
+    def test_todo_tipo_con_COLOR_tiene_tambien_NOMBRE(self):
+        """Las dos tablas tienen que cubrir los mismos tipos.
+
+        ⚠️ Lo encontró preparar el gesto de Brian, no un test: `V` (vector) y `D` (dominio) —los dos
+        tipos más nuevos— estaban en `DataColor` y **no** en `DataName`, así que sus pines mostraban
+        la letra cruda del protocolo, «dirección (V)» y «dominio (D)». Es justo lo que `DataName`
+        existe para evitar: su propio comentario dice que un punto de color no es una etiqueta y que
+        «la que dice qué entra es la palabra». Agregar un tipo a medias no rompe nada, no loguea
+        nada, y sólo se ve mirando la ficha.
+        """
+        import re
+        editor = self.cpp("Source/JamEditor/Private/SJamGraphEditor.cpp")
+
+        def tipos(funcion, variable):
+            cuerpo = editor[editor.index(f"SJamGraphEditor::{funcion}"):]
+            cuerpo = cuerpo[:cuerpo.index("\n}\n")]
+            return set(re.findall(variable + r' == TEXT\("([^"]+)"\)', cuerpo))
+
+        con_color = tipos("DataColor", "OutName")
+        con_nombre = tipos("DataName", "Type")
+        self.assertEqual(con_color - con_nombre, set(),
+                         "tipos con color y sin nombre: el pin mostraría la letra del protocolo")
+        self.assertEqual(con_nombre - con_color, set(),
+                         "tipos con nombre y sin color")
+
     def test_el_tipo_de_salida_se_busca_en_UN_solo_lugar(self):
         # Antes había dos búsquedas parecidas en el .cpp; ahora las dos llaman al mismo helper.
         editor = self.cpp("Source/JamEditor/Private/SJamGraphEditor.cpp")

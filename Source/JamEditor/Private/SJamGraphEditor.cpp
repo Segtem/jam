@@ -4132,6 +4132,12 @@ FString SJamGraphEditor::DataName(const FString& Type)
 	if (Type == TEXT("B"))   { return TEXT("bool"); }
 	if (Type == TEXT("MT"))  { return TEXT("material"); }
 	if (Type == TEXT("H"))   { return TEXT("HISM"); }
+	// Los dos tipos más nuevos. Estaban en `DataColor` y NO acá, así que sus pines mostraban la
+	// letra cruda del protocolo —«dirección (V)», «dominio (D)»— que es exactamente lo que esta
+	// función existe para evitar. Un test exige ahora que las dos tablas cubran los mismos tipos:
+	// agregar uno a medias es invisible hasta que alguien mira la ficha.
+	if (Type == TEXT("V"))   { return TEXT("vector"); }
+	if (Type == TEXT("D"))   { return TEXT("rango"); }
 	if (Type == TEXT("*"))   { return TEXT("dato"); }
 	return Type;
 }
