@@ -3,8 +3,8 @@ turno: 2026-08-12 · claude-code → codex
 saliente: claude-code
 entrante: codex
 desde: 2026-08-12
-verde_editor: 83cd6bf
-verde_editor_fecha: 2026-08-13
+verde_editor: d207caf
+verde_editor_fecha: 2026-08-14
 ---
 
 # Testigo
