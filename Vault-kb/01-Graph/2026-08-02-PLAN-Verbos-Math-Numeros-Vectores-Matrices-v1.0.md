@@ -371,3 +371,15 @@ Oracle seguirá midiendo el resultado observable después de la expansión norma
 Relacionado: [[2026-07-25-PLAN-Tipado-Cardinalidad-Conexiones-Graph-v1.0|tipado y cardinalidad del
 Graph]], [[2026-07-29-INFORME-Funciones-Graph-Firma-v1.0|funciones con firma explícita]] y
 [[2026-08-03-ROADMAP-Catalogo-Matematico-Ampliado-v1.0|el catálogo matemático ampliado]].
+
+## Estado de las cuatro fases, al 2026-08-14
+
+| fase | estado |
+|---|---|
+| 1 · aritmética escalar | ✅ implementada (2026-08-02, ampliada el 2026-08-03 y el 2026-08-12) |
+| 2 · series numéricas | ❌ **la única que queda.** `series_range` y `series_remap` existen como TOOLS, pero los agregadores del plan —Sumar serie, Producto, Promedio, Mediana, Mínimo, Máximo, Longitud, Desviación estándar— no están en el registro de valores. Contado, no recordado: `math_core.VALORES` y `flow.OPS_META` no tienen ninguno |
+| 3 · vectores | ✅ implementada (2026-08-12, trece verbos y el tipo `V`) |
+| 4 · matrices | ✅ implementada (2026-08-14, once verbos y el tipo `MX`), con los dos desvíos declarados arriba |
+
+Por eso el `status` del documento sigue en `en-progreso` aunque la fase más difícil esté cerrada: la
+que falta es la más fácil y la más aburrida, y marcarlo `implementado` la haría desaparecer.

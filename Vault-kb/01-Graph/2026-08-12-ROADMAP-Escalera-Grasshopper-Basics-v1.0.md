@@ -221,15 +221,22 @@ son DURACIONES (cuánto dura una extracción, cada cuánto rota una patrulla). U
 duplicar sumar, restar, interpolar y comparar; en segundos todo eso ya funciona.
 
 **Lo que se ve en `Maths/Matrix.png`** (7 componentes): Construct, Deconstruct, Display, Invert,
-Transpose, Swap Columns, Swap Rows. ❌ Pendiente, y depende del peldaño 1 (el tipo `V`): una matriz
-es el paso siguiente al vector, no anterior.
+Transpose, Swap Columns, Swap Rows. ✅ **Hecho el 2026-08-14** (once verbos, tipo `MX` propio) — ver
+el `## Avance 2026-08-14` al final. Dependía del peldaño 1 (el tipo `V`) y de multi-salida, y las dos
+dependencias eran reales: una matriz es el paso siguiente al vector, no anterior.
 
 **Lo que se ve en `Maths/Domain.png`** (16 componentes): Construct/Deconstruct Domain, Bounds,
-Divide Domain, Includes, Remap Numbers, y las versiones 2D. ❌ Pendiente. Jam tiene `math_remap` y
+Divide Domain, Includes, Remap Numbers, y las versiones 2D. ✅ **Hecho el 2026-08-12**: el tipo `D`
+con Armar dominio / Desde / Hasta / Largo / ¿Está adentro?, y `math_remap` reescrito para tomar dos
+DOMINIOS en vez de cuatro números sueltos (de 5 pines a 3). Jam tenía `math_remap` y
 `series_remap` sueltos; GH los tiene apoyados sobre un TIPO dominio, y por eso puede preguntar
 «¿este número está adentro?» o «partime este rango en 8». Es el modelo más limpio y vale copiarlo.
 
 ## ⚠️ Dos límites del grafo que las capturas dejaron a la vista
+
+> **Los dos cayeron. El 1 entero, el 2 a medias** — ver el `## Avance 2026-08-14` al final. Se dejan
+> escritos como estaban porque son el mejor ejemplo de para qué sirve mirar las capturas: los dos
+> límites los encontró la comparación con una herramienta ajena, no el uso de la propia.
 
 **1. Ningún verbo de Jam tiene más de una salida.** Medido: los 200 verbos declaran un solo
 `out_name`. Todo el patrón **Deconstruct** de Grasshopper —Deconstruct Date, Matrix, Domain, Point,
@@ -272,3 +279,49 @@ que en Rhino, y quien venga de Rhino va a esperar lo otro.
 
 Relacionado: [[2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0|verbos de Math]] ·
 [[2026-08-03-ROADMAP-Catalogo-Matematico-Ampliado-v1.0|catálogo matemático ampliado]].
+
+## Avance 2026-08-14 — cayeron los dos límites y se cerró el peldaño de matrices
+
+Dos días después de escribir esta escalera, los dos peldaños que quedaban en ❌ están hechos y los
+dos límites que las capturas habían dejado a la vista se cerraron —uno entero, el otro a medias—.
+
+**El límite 1 (una sola salida por verbo) cayó entero.** Un verbo puede declarar `outs` además de su
+salida principal, y el corte es **aditivo**: un verbo sin `outs` se comporta exactamente como antes.
+El detalle vive en [[2026-08-12-PLAN-Multi-Salida-En-El-Graph-v1.0|el plan de multi-salida]], que
+además documenta el falso verde que destapó — había **cuatro** rutas que reparten lo que viaja por un
+cable y la capacidad se le había enseñado a dos.
+
+**El límite 2 cayó a medias, y la mitad que queda es la que importa menos.** Los nodos de valor **ya
+aceptan params que no son números**: `math_core` tiene una tabla `COACCION` y un param puede
+declararse `B`, `V`, `D` o `MX`, con coerción desde texto (`"10,20,30"` es un vector válido). Lo que
+sigue sin poder declararse en un nodo de valor es un **desplegable** (`opciones`), que las tools sí
+tienen. Y esa mitad no se construyó a propósito: sería una capacidad **sin consumidor** — ningún
+verbo de Maths necesita hoy un modo. Queda anotado y no construido, que es la regla de esta casa.
+
+**El peldaño de matrices, entonces.** Once verbos en `Maths ▸ Matriz`, tipo `MX` propio y
+`matrix_decompose` con cinco salidas. Comparado contra las 7 componentes de `Maths/Matrix.png`:
+
+| Grasshopper | Jam | nota |
+|---|---|---|
+| Construct Matrix | `matrix_identity` · `matrix_translation` · `matrix_scale_matrix` · `matrix_rotation` | GH arma por celdas; acá se arma por lo que la matriz **significa** |
+| Deconstruct Matrix | `matrix_decompose` | cinco salidas: traslación, escala y los tres ejes |
+| Invert Matrix | `matrix_inverse` | **se niega** ante una singular, con el motivo adentro |
+| Transpose Matrix | `matrix_transpose` | |
+| — | `matrix_multiply` · `matrix_determinant` · `matrix_transform_point` · `matrix_transform_direction` | no están en la captura y son los que de verdad se usan |
+| Display Matrix | ❌ | es un visor, no aritmética: va con el eje vistoso |
+| Swap Columns / Swap Rows | ❌ **a propósito** | son edición por celdas de una matriz vista como grilla; acá una matriz es una transformación |
+
+**Dos desvíos del plan, medidos al implementarlo:**
+· **Sólo 4×4, no 3×3.** Un `V` de Jam es 3D, así que una 3×3 sería «la 4×4 sin traslación»: cada
+  verbo duplicado sin capacidad nueva. Lo que de verdad da una 3×3 —transformar una dirección
+  ignorando la traslación— ya lo da `matrix_transform_direction`.
+· **Descomponer da EJES, no ángulos de Euler.** Un trío de ángulos exige fijar un orden de aplicación
+  y elegirlo en silencio hace que la mitad de las cadenas oriente para otro lado.
+
+⚠️ **La convención está fijada en un solo lugar** (arriba de `_matriz`, en `math_core.py`):
+almacenamiento por FILAS, vectores COLUMNA, traslación en la última COLUMNA, y por lo tanto `a × b`
+aplica primero `b`. **Unreal usa la opuesta**, así que la transposición va en `ue.py` — donde todavía
+no hay ningún consumidor: las matrices son hoy puro cerebro.
+
+**Del eje vistoso ya cayó el Control Knob** (la perilla de ángulos, con captura del mouse, Shift a 5°
+y un solo `Ctrl+Z` por arrastre). Quedan Gradient, MD Slider y Graph Mapper.

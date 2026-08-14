@@ -12,9 +12,19 @@ memoria de nadie.
 python tools/relevo.py          # ¿en qué turno estoy y llegó verde?
 ```
 
-Después leé **`RELEVO.md`** entero. Es corto a propósito. La sección **«No toques esto»** te ahorra
-un día; la de **«Frontera de verificación»** te dice qué está sin probar, o sea sobre qué **no**
-conviene construir todavía.
+Después leé **`RELEVO.md`**. **Ya no es corto** —acumula el historial de decisiones de todos los
+turnos— así que tiene orden de lectura, y las cuatro primeras cosas alcanzan para empezar a trabajar:
+
+1. el **encabezado del «Testigo»**, que dice en una línea por dónde empezar y qué pasó en el turno
+   anterior;
+2. la **agenda corta** al principio de «Lo próximo» (la tabla A/B/C) — el resto de esa sección es
+   historial, de lo más nuevo a lo más viejo, y se lee cuando hace falta;
+3. **«No toques esto»**, que te ahorra un día;
+4. **«Frontera de verificación»**, que te dice qué está sin probar — o sea sobre qué **no** conviene
+   construir todavía.
+
+**«Para las manos de Brian» no es opcional y no se borra cuando está vacía**: es lo único que ninguna
+medición contesta, y el turno que no deja gestos anotados deja de pedir manos sin que nadie lo note.
 
 ## Qué es Jam
 
@@ -59,7 +69,7 @@ puntos ciegos. Todo lo demás está en
 **El cerebro es puro y el adaptador es fino.**
 
 - `Content/Python/jam/*.py` — cerebro. **Cero `import unreal`.** Por eso se puede testear sin motor,
-  y por eso los 489 tests corren en 0.3 s.
+  y por eso los **1237 tests corren en 0.7 s**.
 - `Content/Python/jam/ue.py` — **el único** adaptador al motor.
 - `Source/JamEditor/` — C++ de Slate (paneles, Graph). La lógica sigue en Python; el C++ la llama
   con `ExecPythonCommandEx`.
@@ -169,11 +179,14 @@ redistribuir, nunca relicenciar CC0. Los repos van privados.
 | Confiar en `cProfile` para ubicar costo del MOTOR | Sólo ve marcos de Python: el tiempo adentro de una llamada del binding queda sumado al `tottime` de la función que la hizo, sin desglose. Medido: el perfil decía «`to_static` 49,8 ms» y adentro eran 44 de `create_new_static_mesh_asset_from_mesh`. Sirve para saber QUÉ función, no QUÉ llamada. Y envolver el binding para cronometrarlo tampoco se puede: `TypeError: cannot set attribute of immutable type 'EditorAssetLibrary'`. Queda instrumentar el `.py` propio, con `.bak` y revirtiendo después. |
 | Cronometrar los tramos que uno sospecha | Sólo encuentra lo que ya sospechabas. Medido: los cuatro tramos elegidos a mano explicaban **0,7 ms de 156**. Un perfilador no elige: `cProfile` alrededor del camino real puso la causa en una línea. Si la suma de los tramos no cierra con el total, la causa está afuera de lo que mediste. |
 | Un `TSharedPtr` a algo que retiene UObjects (`FAssetThumbnailPool`, `FAssetThumbnail`) como miembro del módulo | Assert al cerrar el editor: `Index >= 0` en `UObjectArray.h`. **`ShutdownModule()` NO alcanza** — se intentó y el crash volvió igual: `FEngineLoop::Exit()` corre `GEngine->PreExit()` (que destruye los subsistemas de `GEditor`) **antes** de `FModuleManager::UnloadModulesAtShutdown()`, así que destructor y `ShutdownModule()` son igual de tarde. Hay que soltarlos en `FEditorDelegates::OnEditorPreExit`, que dispara antes de `PreExit()`; dejar la liberación también en `ShutdownModule()`, idempotente, cubre hot-reload y deshabilitar el plugin, donde `OnEditorPreExit` nunca dispara. |
+| Dibujar el ID de un pin donde va su ETIQUETA | Un pin tiene dos nombres: el del **protocolo** (`out`, `eje_x`, `D`, `MX`), que viaja en las aristas y en los presets, y el **visible** (`dominio`, `eje X`, `rango`, `matriz`). Cada vez que la presentación toma el primero, la persona lee un identificador. Ya pasó **dos veces con el mismo nodo**: los pines de tipo mostraban la letra cruda (`05272b9`), y las filas de salida de un nodo multi-salida muestran el ID (`out (rango)` en vez de `dominio`) porque `out_label` sólo alimenta el nub del header, que se apaga cuando hay filas. La regla: si una struct de presentación tiene un solo campo de nombre, ese campo es el **ID**, y falta el otro. |
+| Pasarle a Unreal una matriz de Jam tal cual | **Las convenciones son OPUESTAS y una matriz mal leída no falla: transforma mal.** Jam almacena por FILAS con vectores COLUMNA y la traslación en la última COLUMNA, así que `a × b` aplica primero `b`; Unreal usa vectores FILA con la traslación en la última FILA. La traducción es una transposición y va **en `ue.py`**, que es el único adaptador — no en el cerebro, que tiene la convención escrita en un solo lugar (arriba de `_matriz`, en `math_core.py`). Hoy no hay ningún consumidor en `ue.py`: el primero que lo escriba es el que paga esta trampa. |
+| Devolver un valor «razonable» cuando la cuenta no tiene respuesta | La inversa de una matriz singular no es la identidad, y una que espeja no se descompone en escalas positivas. Devolver algo plausible deja todo andando y todo transformando mal — el defecto más caro es el que no se nota. Se levanta `ValorError` con el motivo adentro; el nodo lo muestra y el Compile queda rojo. |
 
 ## Dónde está escrito lo demás
 
 - **`RELEVO.md`** — el turno actual. Siempre vigente, siempre uno solo.
-- **`Vault-kb/`** — 48 documentos en 5 carpetas (`00-Proceso`, `01-Graph`, `02-TreeGen`,
+- **`Vault-kb/`** — 70 documentos en 5 carpetas (`00-Proceso`, `01-Graph`, `02-TreeGen`,
   `03-Mesh-y-materiales`, `04-Ejecucion-y-pruebas`). Nomenclatura `AAAA-MM-DD-TIPO-Nombre-vX.X.md`,
   y **el `area:` de cada doc tiene que ser su carpeta** — lo verifica `tools/vault.py`. Empezá por
   `Vault-kb/README.md`, que es el índice generado (no se edita a mano).

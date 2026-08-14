@@ -153,3 +153,41 @@ arreglar lo que Brian haya encontrado → recién ahí, el roadmap.
   «lo próximo» del primer testigo
 - [[2026-07-29-INFORME-Docking-Paneles-Nomad-Tabs-v1.0|Docking: los paneles son nomad tabs]] — el
   último trabajo del turno que cierra
+
+## Avance 2026-08-14 — el testigo dejó de ser corto, y hay que decidirlo
+
+Esta guía dice dos cosas sobre `RELEVO.md` que **hoy son falsas**, y conviene que estén escritas acá
+antes de que alguien las lea como si rigieran:
+
+- *«Se reescribe cada turno»* — no: **se acumula**. Cada turno agrega un párrafo arriba del «Testigo»
+  y una entrada `0-*` en «Lo próximo», y no se saca nada.
+- *«Corto a propósito: un testigo que no se lee de una sentada no se lee»* — medido el 2026-08-14:
+  **1788 líneas y 22.499 palabras**. De ésas, unas **1450 son historial**: 482 líneas de
+  «Actualización …» encabezando el testigo y 967 de entradas `0-*` en «Lo próximo».
+
+La acumulación no fue descuido: cada párrafo se agregó porque el turno siguiente lo necesitaba, y
+varias veces lo necesitó de verdad —el estado del pliegue de la cinta, la historia de los tres
+diagnósticos equivocados del crash de Slate—. El problema no es que se haya guardado; es **dónde**.
+Esta misma guía dice que el vault guarda historia y la raíz el ahora.
+
+**Lo que se hizo por ahora** (2026-08-14, turno de las matrices): en vez de podar, se le dio al
+testigo un **orden de lectura explícito** — un encabezado que dice en una línea por dónde empezar,
+una **agenda corta A/B/C** al principio de «Lo próximo», y `AGENTS.md` apuntando a las cuatro cosas
+que alcanzan para arrancar. Con eso el que entra lee ~80 líneas y trabaja; el resto queda como
+material de consulta.
+
+**Lo que NO se hizo, y por qué.** Partir el archivo —historial al vault, testigo en la raíz— es el
+arreglo de fondo, y **no se hizo a propósito**: esta misma guía dice que *el último día del turno es
+para cerrar, no para abrir frente nuevo*, y mover 1450 líneas de contexto load-bearing el día del
+relevo es exactamente el frente que no conviene abrir. Queda como decisión para un turno que empiece
+con ella, con dos condiciones que valen más que la prolijidad:
+
+1. **Nada se borra: se mueve** a un informe del vault, con enlace desde el testigo. Lo que hoy vive
+   ahí ya salvó turnos enteros.
+2. El corte se hace por **vigencia**, no por antigüedad. «ESTADO DEL PLIEGUE» tiene tres semanas y
+   sigue siendo lo primero que hay que leer antes de tocar `ribbon_core`; una «Actualización» de un
+   frente cerrado y verificado, no.
+
+Mientras tanto, la regla operativa para el que escribe un testigo: **lo nuevo va arriba, y lo que se
+agrega tiene que ganarse el lugar contestando «¿esto cambia lo que el próximo turno va a hacer?»**.
+Si sólo cuenta lo que pasó, va al vault.

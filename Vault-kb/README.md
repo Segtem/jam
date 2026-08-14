@@ -28,7 +28,7 @@ Este índice y las reglas los verifica `tools/vault.py`.
 `01-Graph/` · 21 documentos
 
 - [[2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0|La escalera de Grasshopper Basics como paso de los verbos]] · *completo*
-- [[2026-08-12-PLAN-Multi-Salida-En-El-Graph-v1.0|Multi-salida en el Graph: el patrón Deconstruct]] · *parcial*
+- [[2026-08-12-PLAN-Multi-Salida-En-El-Graph-v1.0|Multi-salida en el Graph: el patrón Deconstruct]] · *implementado*
 - [[2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0|Cómo se define una tool y cómo llega a la Dash Bar]] · *relevamiento*
 - [[2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0|Comentarios y grupos en el Graph]] · *implementado*
 - [[2026-08-03-ROADMAP-Catalogo-Matematico-Ampliado-v1.0|Catálogo matemático ampliado de Jam]] · *en-progreso*

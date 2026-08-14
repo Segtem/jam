@@ -1,8 +1,8 @@
 ---
-turno: 2026-08-12 · claude-code → codex
+turno: 2026-08-14 · claude-code → codex
 saliente: claude-code
 entrante: codex
-desde: 2026-08-12
+desde: 2026-08-14
 verde_editor: d207caf
 verde_editor_fecha: 2026-08-14
 ---
@@ -10,6 +10,31 @@ verde_editor_fecha: 2026-08-14
 # Testigo
 
 Entra **codex**. Corré `python tools/relevo.py` antes de leer esto; si sale rojo, eso es el turno.
+
+⚠️ **Este archivo ya no se lee entero de una sentada** —1788 líneas, y unas 1450 son historial
+acumulado turno a turno—. **No hace falta:** con estas cuatro cosas se arranca a trabajar —el bloque
+de acá abajo, la **agenda A/B/C** al principio de «Lo próximo», **«No toques esto»** y **«Frontera de
+verificación»**—. El resto es material de consulta, ordenado de lo más nuevo a lo más viejo. Por qué
+quedó así y qué decisión hay pendiente al respecto, en el avance del 2026-08-14 de
+`Vault-kb/00-Proceso/2026-07-29-GUIA-Relevo-Claude-Codex-v1.0.md`.
+
+**Por dónde empezar, en una línea:** todo llegó verde y **no hay nada roto esperándote**. Las tres
+cosas que dejo sobre la mesa, en orden de rendimiento: (1) **`ue.py` para matrices** —hoy son puro
+cerebro sin un solo consumidor en el adaptador, y sin eso no llegan a la escena—; (2) **Fase 7 del
+Graph**, bypass `D` y comentarios `C`; (3) el resto del **eje vistoso** (Gradient, MD Slider, Graph
+Mapper). El detalle de las tres está en «Lo próximo». Lo único que espera manos y no código es el
+gesto **3-ter**.
+
+**Actualización Claude Code 2026-08-14 — matrices 4×4, y un falso verde que llevaba tres turnos.**
+Se cerró Matrix, que era el consumidor por el que se había hecho multi-salida: once verbos en
+`Maths ▸ Matriz`, tipo `MX` propio y `matrix_decompose` con **cinco** salidas de una sola cuenta.
+En el camino aparecieron **dos defectos reales, los dos silenciosos**: un cable desde una salida
+extra hacia el parámetro de una **tool** entregaba el valor ENTERO —`(10.0, 90.0)` en vez de
+`10.0`—, y como `dsl.coaccionar` no reconoce la tupla, **descartaba el parámetro sin decir nada** y
+la tool corría con su default; y el panel elegía el texto del nodo por el **tipo de Python**, así que
+cualquier vector, dominio o matriz resuelto se dibujaba «(sin resolver)» con el estado en «ok». El
+diagnóstico completo, las cuatro rutas de cables y los dos desvíos del plan del vault están en
+**«Lo próximo · 0-decies»**, que es lo primero que conviene leer de este archivo.
 
 **Actualización Claude Code 2026-08-11 — la deuda de gestos se cobró dos falsos verdes.** Brian abrió
 los tutoriales acumulados en ⏳ y **«Borde de camino» era invisible desde arriba**: sólo el contorno de
@@ -507,7 +532,7 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 | Validar malla M → M | `tools/experiments/verifica_mesh_validate_58.py` en `UnrealEditor-Cmd` | **esfera cerrada verde · grilla abierta naranja · identidad M · TODO VERDE** |
 | Copiar Static/Skeletal A → M | `tools/experiments/verifica_mesh_copy_58.py` en `UnrealEditor-Cmd` | **Sphere 266 verts/1 material · Quinn 43.761/2 · alias compatible · TODO VERDE** |
 | Uniform Remesh | `tools/experiments/investiga_remesh_determinismo_58.py` × 2 procesos | **16/16 mismo hash · 486 verts/968 tris; sigue experimental por contrato de Epic** |
-| Vault (modo sombra) | `python tools/vault.py` | **58 docs · las dos implementaciones coinciden** |
+| Vault (modo sombra) | `python tools/vault.py` | **70 docs · las dos implementaciones coinciden** |
 | Motor | sonda headless + gestos reales de función/ventana | **ABM + Compile de cuerpo + ventana Wayland interactiva · TODO VERDE** |
 | Nanite→Fracture | `tools/experiments/verifica_nanite_fracture_58.py` en editor GUI | **2/2 materiales distintos + GC Nanite · TODO VERDE; cierre 139** |
 | UE 5.8.1 | APIs + ejemplos + material/UV + PCG real | **103 símbolos + 84 métodos · 8/8 ejemplos · material/UV verde · 287 HISM** |
@@ -518,8 +543,20 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 | » mutación de medidas | `python vendor/oracle/tools/mutar.py --proyecto medidas --confiar-escalares` | **303/303 mutantes muertos** |
 | Sólidos en UE 5.8.1 | `tools/experiments/verifica_malla_solidos_58.py` | **caja 2.520.000 exacto · esfera y muro cerrados y positivos · caja invertida negativa · TODO VERDE** |
 | » tests de oracle | `cd vendor/oracle && python -m unittest discover -s tests -t . -q` | **339 OK** |
+| **Cerebro de Jam, corte matrices (el de este turno)** | mismo comando de siempre | **1237 OK**, 0.70 s |
+| » ¿discriminan? | 13 mutaciones a mano sobre el cerebro y los iconos, con `.bak` y `__pycache__` limpio entre una y otra | **13/13 muertos**; dos sobrevivieron la primera vuelta y de ahí salieron dos tests nuevos |
+| Matrices 4×4 en UE 5.8.1 | `tools/experiments/verifica_matrices_58.py` en editor completo | **11 verbos en el spec · 4 salidas extra · descomposición aritmética exacta · singular y espejo rechazadas · `JAM_MATRICES_58 TODO VERDE`** |
+| » y la REGRESIÓN del cable | misma sonda, sección 6 | **`domain_construct.desde → pts_line.count` da 3 puntos, no el default de 10** (antes salía verde con el número equivocado) |
+| Multi-salida en UE 5.8.1 | `tools/experiments/verifica_multi_salida_58.py` en editor completo | **`JAM_MULTISALIDA_58 TODO VERDE`; los dos verbos con `outs` son `domain_construct` y `matrix_decompose`** |
+| Funciones con firma | `tools/experiments/verifica_funcion_graph.py` en editor completo | **`JAM_FUNCION_TEST TODO VERDE`** |
+| Tutoriales tras matrices | `tools/experiments/verifica_ejemplos.py` en editor completo | **19/19 compilan · TODO VERDE** |
 
-El campo `verde_editor` apunta al checkpoint `4eaf0c7`, verificado en UE 5.8.1 con MS/MH,
+El campo `verde_editor` apunta hoy al checkpoint **`d207caf` (2026-08-14)**: matrices, multi-salida,
+funciones y los 19/19 tutoriales, todos medidos en UE 5.8.1 sobre ese código. Desde ahí no se tocó
+nada de `VIVO` (`Source/`, `init_unreal.py`, `jam/`, `oraculo/`) — por eso `relevo.py` lo da vigente,
+y por eso el commit siguiente es de pura documentación.
+
+El checkpoint anterior era `4eaf0c7`, verificado en UE 5.8.1 con MS/MH,
 Preview/Discard/Bake/Clear, cambio real de mapa y cierre PIE verde/discriminado. También conserva la evidencia previa de placement,
 snap, scatter, spline, physics, reemplazo y espacio sobre actores reales. Las verificaciones previas de Graph interactivo y
 ribbon jerárquico siguen documentadas en sus respectivos cortes. `VIVO` distingue la
@@ -542,6 +579,10 @@ equivalentes en masa para pintar verde**: bajan escribiendo tests o justificando
 Lo anterior de Slate quedó **cerrado** el 2026-07-29: Brian confirmó marquee, historial,
 portapapeles, docking y alinear. La Fase 5 nueva compiló y pasó por Unreal headless, pero nadie ejerció
 todavía su gesto ni miró sus pines en el panel; ésa es la nueva frontera.
+
+**La frontera de HOY, en una línea:** lo único de este turno que ninguna medición contesta es si
+**cinco nubs entran en un nodo** y se pueden distinguir y agarrar (gesto **3-ter**). Todo lo demás de
+matrices está medido en el motor por el camino real.
 
 Lo que **nadie ejerció con las manos** de este turno:
 
@@ -570,6 +611,10 @@ Lo que **nadie ejerció con las manos** de este turno:
 | El Preview anterior ya no es piso (barril flotando) | **nadie** | ⏳ 753 tests + guardián; **la sonda 5.8.1 NO se pudo correr** (editor abierto) |
 | El paquete de estudio subido a NotebookLM | Brian | ⏳ generado, sin abrir |
 | Que el informe del modo sombra de `vault.py` se lea bien | Brian | ⏳ |
+| Multi-salida: los TRES nubs de «Armar dominio» (gesto 3-bis) | Brian | ✅ 2026-08-13: se ven, se agarran y los cables sobreviven a guardar/reabrir |
+| **Matrices: los CINCO nubs de «Descomponer matriz» (gesto 3-ter)** | Brian | ⏳ **lo único pendiente de este turno.** Cerebro, Slate, iconos y sonda 5.8.1 verdes; falta que entren y se puedan agarrar |
+| Los iconos nuevos del grupo Matriz en el ribbon | Brian | ⏳ dibujados dentro del lienzo 0..24 y sin dos iguales (hay test); falta juzgarlos a tamaño de ficha |
+| Que un nodo de valor compuesto ya NO diga «(sin resolver)» | Brian | ⏳ arreglado y con test; el gesto 3t.5 lo mira de paso |
 | Todo lo demás de `oracle` | ✅ sus propias herramientas, el diferencial y la mutación | verificado |
 
 ## Para las manos de Brian
@@ -626,11 +671,14 @@ nada.
 | 3.7 | Apretar el **◉** de otro nodo | El primero **se apaga solo** (el flag se mueve, no se suma) |
 | 3.8 | Con ⟳ Live prendido, arrastrar un slider mirando el nodo del medio | Se actualiza **ese** nodo y el final no coloca nada. Ese es el gesto entero de Houdini |
 
-### 3-bis · Multi-salida: un nodo con tres pines de salida (2 minutos — lo más nuevo)
+### 3-bis · Multi-salida: un nodo con tres pines de salida (✅ hecho el 2026-08-13)
+
+*Queda escrito porque es la regresión de 3-ter: si algún día los cinco nubs de la matriz se rompen,
+esto es lo que hay que volver a mirar primero.*
 
 | # | qué hacer | qué tiene que pasar |
 |---|---|---|
-| 3b.1 | Poner un nodo **Armar dominio** (Datos ▸ Maths ▸ Dominio) | Del lado derecho hay **TRES nubs**, no uno: `dominio (Rango)`, `desde (Número)` y `hasta (Número)` |
+| 3b.1 | Poner un nodo **Armar dominio** (Datos ▸ Maths ▸ Dominio) | Del lado derecho hay **TRES nubs**, no uno. ✅ Confirmado por Brian, y su captura quedó en `Reference/Dominio.png` — de ahí salió el defecto 0-decies-bis: la fila de arriba dice `out (rango)` y tendría que decir `dominio` |
 | 3b.2 | Mirar el rótulo del header | **No** dice «dominio» arriba a la derecha: cada fila trae su propio nombre. Si aparece una palabra sin nub al lado, está mal |
 | 3b.3 | Cablear `desde` y `hasta` a los dos pines de un **Sumar** | Los dos cables enganchan. Con 10 y 90 el Run tiene que decir **100** |
 | 3b.4 | Cablear el nub de arriba (`dominio`) a un **Largo del dominio** | Sigue funcionando: la salida principal no se fue a ninguna parte |
@@ -640,7 +688,7 @@ nada.
 diagrama guardado con un dominio se quede sin origen. Los tests lo fijan leyendo el `.cpp`, pero
 que los tres nubs se vean y se puedan agarrar con el mouse no lo contesta ninguna medición.
 
-### 3-ter · Matrices: un nodo con CINCO salidas (3 minutos — lo más nuevo)
+### 3-ter · Matrices: un nodo con CINCO salidas (3 minutos — **lo más nuevo y lo único pendiente**)
 
 El gesto 3-bis ya lo hiciste y salió bien. Éste es el mismo mecanismo llevado a su consumidor real:
 `Descomponer matriz` tiene **cinco** pines de salida, no tres.
@@ -649,7 +697,7 @@ El gesto 3-bis ya lo hiciste y salió bien. Éste es el mismo mecanismo llevado 
 |---|---|---|
 | 3t.1 | Abrir **Datos ▸ Maths** y buscar el grupo **Matriz** | Once fichas nuevas, con iconos de grilla entre corchetes. Ninguna cae al final del tab, sueltas de sus parientes |
 | 3t.2 | Poner **Matriz de traslación** y escribirle `10,20,30` | Su nub de salida dice `matriz (matriz)` — **no** `(MX)`. La letra cruda del protocolo es un defecto, y ya pasó dos veces |
-| 3t.3 | Cablearla a un **Descomponer matriz** | Del lado derecho hay **CINCO** nubs: `traslación`, `escala`, `eje X`, `eje Y`, `eje Z`. Los cinco se tienen que poder agarrar con el mouse |
+| 3t.3 | Cablearla a un **Descomponer matriz** | Del lado derecho hay **CINCO** nubs y los cinco se tienen que poder agarrar con el mouse. ⚠️ **Los nombres van a estar feos** —`out`, `escala`, `eje_x`, `eje_y`, `eje_z` en vez de `traslación`, `escala`, `eje X`…—: es un defecto ya encontrado y especificado (0-decies-bis), lo vi en tu captura del dominio. **No lo reportes, ya está anotado**; lo que sí importa acá es si los cinco ENTRAN y se agarran |
 | 3t.4 | Cablear `traslación` a un **Largo del vector** y correr | Dice **37.4166**. Es √(10²+20²+30²) |
 | 3t.5 | Mirar el cuerpo del nodo de la matriz | Dice `16 números`, no `(sin resolver)`. Ver abajo por qué importa |
 | 3t.6 | Agregar **Matriz de rotación** (eje `0,0,1`, ángulo 90) y **Multiplicar matrices**, con la rotación en `a` y la traslación en `b` | Compila. `a × b` aplica primero `b`: es la convención, y está escrita en el `doc` del verbo |
@@ -692,6 +740,64 @@ binario nuevo.
 de pedir manos sin que nadie lo note.)*
 
 ## Lo próximo
+
+**Esta sección crece por arriba y no se poda: las entradas `0-*` son el historial de decisiones, de
+la más nueva a la más vieja, y las numeradas `1..5` son el roadmap largo. Para el turno que entra,
+la agenda corta es ésta:**
+
+| # | qué | por qué ahora | dónde está el detalle |
+|---|---|---|---|
+| **A0** | **Las filas de salida de un nodo multi-salida muestran el ID del pin, no su etiqueta** | Defecto **confirmado leyendo el `.cpp`**, chico y acotado, y **deja ilegible el gesto 3-ter** que espera Brian. Es media hora, y es lo único que degrada algo que ya está en sus manos | acá abajo, «0-decies-bis» |
+| **A** | **`ue.py` para matrices** | Hoy son puro cerebro con **cero consumidores** en el adaptador: una capacidad completa que no llega a la escena. ⚠️ La convención de Jam es la OPUESTA a la de Unreal — la transposición va ahí y en ningún otro lado | 0-decies, último párrafo de la convención |
+| **B** | **Fase 7 del Graph** — bypass (`D`) y comentarios (`C`) | Es lo que queda del roadmap de accesibilidad, y no depende de nada abierto | punto **3** del roadmap largo |
+| **C** | **El eje vistoso**: Gradient, MD Slider, Graph Mapper | Pedido de Brian; `graph_curve` ya existe como dato y le falta sólo el widget | punto **2** del roadmap largo |
+| — | *(el moño del bevel, aguas arriba en el join de `offset_points`)* | Medido y acotado, **sin arreglar**. Está en rojo a propósito: no se afinó el algoritmo contra la medida | «ESTADO DEL PLIEGUE», arriba |
+
+**Lo que NO conviene tomar sin hablarlo con Brian:** `~/Dev/oracle` tiene trabajo sin commitear desde
+el 2026-08-03 esperando una decisión suya, y por eso `vendor/oracle` está atrás del upstream local.
+Es el único hilo del proyecto que no depende de código.
+
+**0-decies-bis. ⚠️ DEFECTO ABIERTO, encontrado el 2026-08-14 mirando la captura de Brian
+(`Reference/Dominio.png`): las filas de salida muestran el ID del pin, no su etiqueta.**
+
+Brian dejó la captura del gesto 3-bis y ahí está, a la vista. Su «Armar dominio» dice:
+
+    out (rango)          ← tendría que decir «dominio»
+    desde (número)
+    hasta (número)
+
+`out` es el identificador del protocolo, igual que la `D` que el commit `05272b9` sacó de los pines
+de tipo. **Es el mismo defecto una fila más abajo**, y no lo vi porque en `domain_construct` las dos
+salidas extra tienen el nombre IGUAL a su etiqueta (`desde`/`desde`), así que las únicas dos filas
+que podían delatarlo se veían bien.
+
+**Confirmado leyendo el código, no deducido.** En `SJamGraphEditor.cpp:2353` la salida principal se
+agrega como `FJamNodePin{TEXT("out"), …}`, y la fila se dibuja con `Name (TypeLabel)`
+(`SJamGraphNode.cpp:560`). El `out_label` del verbo —`"dominio"`— sólo alimenta el nub del **header**,
+que se apaga justamente cuando hay filas de salida. O sea: **la etiqueta existe, se declara bien en
+el cerebro y el dibujo no la consulta.**
+
+⚠️ **En matrices es peor**, y por eso vale media hora antes que el resto. `matrix_decompose` declara
+`out_label = "traslación"` y extras etiquetadas `eje X`, `eje Y`, `eje Z`, pero sus pines se llaman
+`out`, `eje_x`, `eje_y`, `eje_z`. Contra lo que el gesto 3-ter le pide a Brian que vea:
+
+| lo que dice el gesto | lo que va a ver de verdad |
+|---|---|
+| `traslación` | `out (vector)` |
+| `escala` | `escala (vector)` ✅ |
+| `eje X` · `eje Y` · `eje Z` | `eje_x (vector)` · `eje_y (vector)` · `eje_z (vector)` |
+
+**El arreglo** es darle a `FJamNodePin` un `Label` que caiga en `Name` cuando esté vacío, llenarlo
+con `T->OutLabel` para la principal y con el `label` de cada `FPin` para las extras, y usarlo sólo
+para el TEXTO — el `Name` sigue siendo lo que viaja en `OnOutputClicked` y en las aristas, que es el
+contrato. Va con un test que lee el `.cpp`, como `test_paleta.py`.
+
+**Por qué no lo arreglé yo**, habiéndolo encontrado: toca `Source/`, y eso invalida `verde_editor`.
+Arreglarlo bien es C++ + test + rebuild + volver a correr las sondas en el motor, y arrancar eso al
+cerrar el turno deja el peor estado posible — que es la regla que esta misma casa tiene escrita.
+Queda entero, medido y con el arreglo especificado, que es la forma en que sí se pasa.
+
+---
 
 **0-decies. ✅ MATRICES 4×4 — el consumidor por el que se hizo multi-salida. Y en el camino se
 destapó un FALSO VERDE que llevaba desde que multi-salida existe.**
@@ -1616,8 +1722,8 @@ la letra del modo compacto, el caché, el spec.
 las capturas. Agregarlo hoy sería una capacidad **sin consumidor**: ningún verbo de Maths necesita
 un modo. Queda anotado y no construido, que es la regla de esta casa.
 
-Lo que queda del pedido de Brian: **Matrix** (bloqueado por multi-salida) y el resto del eje vistoso
-—Digit Scroller, **Control Knob** (que con los ángulos de hoy sería expresivo de verdad), Gradient,
+Lo que queda del pedido de Brian: ~~**Matrix**~~ **✅ hecho el 2026-08-14** (ver 0-decies) y el resto
+del eje vistoso —Digit Scroller, ~~**Control Knob**~~ **✅ hecho: la perilla de ángulos**, Gradient,
 MD Slider, **Graph Mapper** (Jam ya tiene `graph_curve` como dato; le falta el widget)—.
 
 ⚠️ El tutorial es de **NURBS** y Jam produce mallas de Geometry Script: Loft y Boundary se van a
@@ -1663,11 +1769,53 @@ path, que es el olor de `bridge.py`. **Yo movería.**
   tomada «antes» ya contiene lo que acabás de tipear y un `Ctrl+Z` deshace dos cosas.
 - **Los ids de nodo no se renumeran al cargar.** Se rompió una vez: el oráculo y el inspector
   referencian nodos por id.
+- **No borres los verbos que multi-salida volvió redundantes.** `domain_min`, `domain_max`,
+  `vector_x/y/z`, `time_horas/minutos/segundos` existen sólo porque un verbo no podía tener dos
+  salidas, y ahora puede — pero **borrarlos rompe todo diagrama guardado que los use**. La capacidad
+  primero; la limpieza, cuando haya con qué migrar.
+- **La convención de matrices se declara en UN solo lugar** (arriba de `_matriz`, en `math_core.py`):
+  filas, vectores columna, traslación en la última columna. Repetirla en otro archivo es cómo
+  empiezan a divergir. ⚠️ **Unreal usa la opuesta** y la transposición va en `ue.py`.
+- **El reparto de lo que sale por un pin es `_valor_del_pin`, y nada más.** Hay cuatro rutas que
+  reparten cables (ver `AGENTS.md`); si volvés a escribir el reparto en una de ellas, la próxima
+  capacidad se le va a enseñar otra vez sólo a la mitad.
 - El resto de las trampas permanentes, en `AGENTS.md`.
 
 ## Lo que aprendí este turno
 
 Lo durable está en `AGENTS.md`, en el vault y en el corpus de `oracle`. Acá el resumen de por qué.
+
+*(2026-08-14, el turno de las matrices — lo de arriba de la lista es lo más nuevo.)*
+
+- **Una capacidad nueva no se le enseña a UNA ruta: se le enseña a todas las que hacen lo mismo.**
+  Multi-salida se le enseñó a dos de las cuatro que reparten cables, y las otras dos quedaron
+  entregando el valor entero. Ninguna falló: la de las tools **descartaba el parámetro en silencio**
+  y corría con el default. La cura no fue arreglar las dos que faltaban sino que las cuatro pasen por
+  **una sola definición** de «qué sale por este pin» — mientras haya tres copias del mismo reparto, el
+  siguiente cambio va a enseñárselo a dos otra vez.
+- **Los mutantes que sobreviven señalan el atajo, no el hueco.** Neutralicé `math_core._rebanar` y
+  todo siguió verde: los tests entraban por `graph._valor_del_pin`. Es la trampa de siempre —verificar
+  por el camino real— pero con una vuelta nueva: **cuando la misma regla está implementada tres
+  veces, el atajo aparece solo**, aunque cada test esté bien escrito.
+- **Un display no es un valor.** La sonda comparaba contra el número exacto lo que había leído del
+  texto del nodo, que se escribe con `.6g`. Cuatro secciones en rojo con el código impecable. La
+  tolerancia de una medición es la del instrumento con que se leyó.
+- **La pregunta de un nodo es si RESOLVIÓ, no de qué tipo es.** Formatear por tipo de Python mandó
+  todo lo compuesto al saco de «(sin resolver)» con el estado en «ok» al lado. El tipo puede decidir
+  CUÁNTO se escribe; nunca si hubo respuesta.
+- **Un icono no está verificado hasta que se renderiza y se mira.** Los tests fijaban nombre, clave y
+  lienzo 0..24, y tres iconos igual eran manchas ilegibles. Lo que sí capturó una medida fue algo que
+  el ojo no ve: **dos dibujos idénticos con nombres distintos** — en el ribbon, que sólo muestra el
+  icono, eran el mismo verbo.
+- **Una captura de Brian es un instrumento de medición, y hay que tratarla como tal.** Dejó
+  `Reference/Dominio.png` para decir «el gesto 3-bis salió bien», y salió bien. Mirándola en serio
+  antes de commitearla apareció un defecto que **1237 tests, 13 mutantes y tres sondas en el motor no
+  ven**: la fila de salida dice `out` en vez de `dominio`. Ninguna medición automática mira lo que
+  una persona LEE. La regla que sale de acá: cuando llega una captura, no se archiva — se lee entera,
+  incluido lo que no se pidió.
+- **Negarse es la capacidad, no la falta de una.** Invertir una matriz singular devolviendo identidad
+  sería el defecto más caro de la familia: todo sigue andando y todo transforma mal. Lo mismo con
+  descomponer una que espeja — hay tres respuestas posibles y elegir una callada es peor que parar.
 
 - **Un verificador que reporta roto lo que está bien es peor que ninguno**: enseña a ignorarlo. Es el
   caso `008` del corpus, y en un solo día lo cometí **tres veces** escribiendo medidas nuevas.
