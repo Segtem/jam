@@ -5,9 +5,11 @@ puede fallar. Este archivo existe para que no queden. Cada bloque `<!-- <nombre>
 README lo produce una función de acá, y `main()` sin `--actualizar` falla si alguno venció.
 
 La deriva no es hipotética: el corte anterior publicaba «2202 líneas de núcleo», «106 negativas» y
-una proporción de «trece a uno» cuando ya iban 2654, 150 y 16,2. Justamente la proporción es el
-criterio de falsación declarado del proyecto —si no baja, el lenguaje no valió la pena—, y era el
-número que nadie estaba midiendo.
+una proporción de «trece a uno» cuando ya iban 2654, 150 y 16,2. La proporción era además el número
+que el proyecto publicaba como criterio de falsación, y el que nadie estaba midiendo — las dos cosas
+a la vez. Desde el 2026-08-24 ya no es un criterio sino una cifra de costo (el proyecto está en
+estado EXPERIMENTAL, sin condición de cierre), pero sigue custodiada acá por el mismo motivo por el
+que se empezó a generar: una cifra publicada a mano es una afirmación que nadie ejercita.
 """
 
 from __future__ import annotations
@@ -28,24 +30,47 @@ NUCLEO = "nucleo"
 
 
 def _fuentes_del_nucleo() -> list[Path]:
-    return sorted(p for p in (RAIZ / NUCLEO).glob("*.py") if p.name != "__init__.py")
+    """RECURSIVO, y es el punto. Con `glob("*.py")` bastaba con poner un módulo en un subpaquete de
+    `nucleo/` para que dejara de contar en el numerador y de aparecer en la mutación de código:
+    cuatrocientas líneas de lenguaje escondidas moviendo un archivo una carpeta más adentro. Es la
+    misma trampa que el numerador ya evita contando `nucleo/macros/*.json` junto con el `.py`, y no
+    había motivo para que no aplicara también a los subpaquetes."""
+    return sorted(p for p in (RAIZ / NUCLEO).rglob("*.py")
+                  if p.name != "__init__.py" and "__pycache__" not in p.parts)
 
 
 def _lenguaje() -> list[Path]:
     """Todo lo que ES el lenguaje, no importa en qué archivo esté escrito.
 
-    La biblioteca estándar de macros vive en `nucleo/macros/*.json` desde que dejó de ser un
-    diccionario de Python. Si el numerador contara sólo `.py`, mover código a datos «mejoraría» la
-    proporción sin que el lenguaje encogiera un gramo — que es exactamente el sastreo contra el que
-    esta medición existe. Se cuenta lo uno y lo otro.
+    La biblioteca estándar de macros vive en `nucleo/macros/` desde que dejó de ser un diccionario
+    de Python. Si el numerador contara sólo `.py`, mover código a datos «mejoraría» la proporción
+    sin que el lenguaje encogiera un gramo — que es exactamente el sastreo contra el que esta
+    medición existe. Se cuenta lo uno y lo otro.
+
+    Y se cuentan **todos los formatos**, no sólo `.json`: cuando las tres macros base pasaron a
+    `.oracle`, un `glob("*.json")` a mano las dejó caer del numerador sin una queja. Bajar la
+    proporción renombrando archivos es el mismo sastreo con otra ropa, así que el inventario de
+    formatos es UNO y vive en `nucleo/macro.py`.
     """
-    return _fuentes_del_nucleo() + sorted((RAIZ / NUCLEO / "macros").glob("*.json"))
+    from nucleo.macro import EXTENSIONES_DE_MACRO
+
+    macros = sorted(p for p in (RAIZ / NUCLEO / "macros").rglob("*")
+                    if p.suffix in EXTENSIONES_DE_MACRO and p.is_file())
+    if not macros:
+        raise SystemExit(
+            f"no hay macros en {NUCLEO}/macros: la biblioteca estándar del lenguaje no puede "
+            "desaparecer del numerador en silencio")
+    return _fuentes_del_nucleo() + macros
 
 
 def _medidas_universales() -> list[Path]:
     """Las medidas que Oracle publica: catálogo base más los perfiles empaquetados."""
-    return sorted((RAIZ / "catalogos").glob("*/*.json")) + sorted(
-        (RAIZ / "perfiles").glob("*/catalogos/*/*.json"))
+    from nucleo.medida import rutas_de_catalogo
+
+    return rutas_de_catalogo(
+        RAIZ / "catalogos",
+        *sorted((RAIZ / "perfiles").glob("*/catalogos")),
+    )
 
 
 def _lineas(rutas: list[Path]) -> int:
@@ -76,7 +101,8 @@ def negativas() -> str:
 
 
 def escala() -> str:
-    """El costo del lenguaje contra lo escrito en él — el criterio de falsación del proyecto."""
+    """El costo del lenguaje contra lo escrito en él. Una cifra de COSTO, no un veredicto: el
+    proyecto está en estado EXPERIMENTAL y no tiene criterio de cierre."""
     lineas_nucleo = _lineas(_lenguaje())
     negativas_ = _negativas(_fuentes_del_nucleo())
 
@@ -86,8 +112,9 @@ def escala() -> str:
     # publicado, que ya están validadas: la rama `if datos and isinstance(...) else "?"` que había
     # acá era inalcanzable —la mutación la marcó, dos veces— y además convertía un catálogo roto en
     # una categoría silenciosa en vez de un error. Si un archivo no tiene forma de medida, que grite.
-    formas = Counter(
-        json.loads(m.read_text(encoding="utf-8"))[0] for m in medidas)
+    from nucleo.medida import cargar_fuente_medida
+
+    formas = Counter(cargar_fuente_medida(m)[0] for m in medidas)
     por_macro = sum(cantidad for forma, cantidad in formas.items() if forma != "medida")
 
     # Decimal con coma: el README está en español y `16.2` se lee como otra cifra.
@@ -163,7 +190,9 @@ def cifras() -> str:
     catalogo = cargar_catalogo(catalogos_a_cargar(proy), macros=macros_del_proyecto(proy))
     evidencia = mutar_medidas(catalogo, cli_medidas.casos(proy, catalogo))
     mutantes_medida = evidencia["mutante"]
-    muertos_medida = sum(fila["murio"] for fila in mutantes_medida)
+    muertos_medida = sum(
+        1 for fila in mutantes_medida
+        if fila["detecciones_conductuales"] or fila["rechazos_del_algebra"])
 
     por_objetivo = {
         nombre: len(sitios_de(ruta, RAIZ))
@@ -183,37 +212,63 @@ BLOQUES = {"cifras": cifras, "escala": escala, "corpus": corpus, "negativas": ne
            "deteccion": deteccion}
 
 
-def actualizar(contenido: str, nombre: str, bloque: str) -> str:
+def actualizar(contenido: str, nombre: str, bloque: str, ruta: str = "README.md") -> str:
     inicio = f"<!-- {nombre}:inicio -->"
     fin = f"<!-- {nombre}:fin -->"
     antes, separador, resto = contenido.partition(inicio)
     if not separador:
-        raise ValueError(f"falta {inicio} en README.md")
+        raise ValueError(f"falta {inicio} en {ruta}")
     _viejo, separador, despues = resto.partition(fin)
     if not separador:
-        raise ValueError(f"falta {fin} en README.md")
+        raise ValueError(f"falta {fin} en {ruta}")
     return f"{antes}{inicio}\n{bloque}\n{fin}{despues}"
 
 
-def render(contenido: str) -> str:
-    """Aplica todos los bloques declarados. Un bloque ausente en el README es un error, no un salto:
-    borrar la marca no puede ser la manera de librarse de la medición."""
+def render(contenido: str, ruta: str = "README.md") -> str:
+    """Aplica los bloques que el documento declara con sus marcas.
+
+    Un bloque **marcado** que no se puede generar es un error, no un salto: borrar la marca no puede
+    ser la manera de librarse de la medición. Pero no todo documento publica todas las cifras, así
+    que un bloque que el documento no marca simplemente no le aplica.
+    """
     for nombre, generar in BLOQUES.items():
-        contenido = actualizar(contenido, nombre, generar())
+        if f"<!-- {nombre}:inicio -->" not in contenido:
+            continue
+        contenido = actualizar(contenido, nombre, generar(), ruta=ruta)
     return contenido
+
+
+# Todo documento VERSIONADO que publique cifras se custodia acá. Sólo versionado, y el test
+# `test_solo_se_custodian_documentos_versionados` lo hace cumplir: `estudio/` estuvo un rato en esta
+# lista y era un error que las siete verificaciones locales no podían ver, porque la carpeta existe
+# en el disco de quien la generó y está en `.gitignore`. En un checkout limpio —el CI— reventaba.
+#
+# Custodiar un artefacto generado además no sirve: `estudio/` y `ORACLE-PARA-NOTEBOOKLM.md` salen de
+# `tools/estudio.py`, así que una cifra vencida ahí es un síntoma de que la fuente venció, y la
+# fuente es el README, que sí está acá. Se arregla regenerando, no vigilando la copia.
+DOCUMENTOS = ("README.md",)
 
 
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
-    ruta = RAIZ / "README.md"
-    previo = ruta.read_text(encoding="utf-8")
-    esperado = render(previo)
-    if "--actualizar" in argv:
-        ruta.write_text(esperado, encoding="utf-8")
-        print("README.md actualizado")
+    actualizar_todo = "--actualizar" in argv
+    vencidos = []
+    for nombre in DOCUMENTOS:
+        ruta = RAIZ / nombre
+        previo = ruta.read_text(encoding="utf-8")
+        esperado = render(previo, ruta=nombre)
+        if actualizar_todo:
+            if previo != esperado:
+                ruta.write_text(esperado, encoding="utf-8")
+                print(f"{nombre} actualizado")
+            continue
+        if previo != esperado:
+            vencidos.append(nombre)
+    if actualizar_todo:
         return 0
-    if previo != esperado:
-        print("README.md tiene cifras vencidas; ejecutá `python tools/cifras.py --actualizar`")
+    if vencidos:
+        print(f"cifras vencidas en {', '.join(vencidos)}; "
+              "ejecutá `python tools/cifras.py --actualizar`")
         return 1
     print("CIFRAS OK")
     for nombre, generar in BLOQUES.items():

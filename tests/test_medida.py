@@ -22,7 +22,9 @@ class ContratoMedidaTests(unittest.TestCase):
         m = modulo_medida()
         base = m.ClasificacionMeta()
         self.assertEqual(base.relaciones_del_lenguaje,
-                         frozenset({"medida", "caso", "medida_en_uso"}))
+                         frozenset({"medida", "caso", "medida_en_uso",
+                                    "paso", "nodo", "producto", "equivalencia",
+                                    "paso_de_medida", "fuente", "termino", "requiere"}))
         self.assertEqual(base.prefijos_meta, ("meta.",))
 
         invalidas = (
@@ -86,9 +88,92 @@ class ContratoMedidaTests(unittest.TestCase):
                 ["unir", ["de", "primera", "a"], ["de", "segunda", "b"]],
             ]), "primera"),
         )
-        hechos = m.como_hechos([objeto for objeto, _esperada in casos])
-        self.assertEqual([hecho["relacion"] for hecho in hechos],
+        self.assertEqual([m.relaciones_de_medida(objeto)[0] if m.relaciones_de_medida(objeto)
+                          else "" for objeto, _esperada in casos],
                          [esperada for _objeto, esperada in casos])
+
+    def test_como_hechos_sigue_siendo_lista_y_cuelga_relaciones_estructurales(self) -> None:
+        m = modulo_medida()
+        medida = m.Medida.de_datos([
+            "medida", "d.con_requiere",
+            ["desde", ["unir", ["de", "pieza", "p"], ["de", "marca", "q"]],
+             ["donde", ["==", ["campo", "p", "id"], ["campo", "q", "pieza"]]]],
+            ["resumen", "contar", 1],
+            ["umbral", "<=", 0, "una razón"],
+            ["requiere", "marca"],
+            ["alcance", "NO ve otro dominio"],
+        ])
+        hechos = m.como_hechos([medida])
+
+        self.assertIsInstance(hechos, list)
+        self.assertEqual(hechos[0]["agregado"], "contar")
+        self.assertEqual(hechos[0]["comparador"], "<=")
+        self.assertEqual(hechos[0]["pasos"], 2)
+        self.assertTrue(hechos[0]["declara_requiere"])
+        self.assertEqual(hechos.por_relacion["requiere"],
+                         [{"medida": "d.con_requiere", "indice": 0, "relacion": "marca"}])
+        self.assertEqual(
+            sorted((f["relacion"], f["alias"]) for f in hechos.por_relacion["fuente"]),
+            [("marca", "q"), ("pieza", "p")])
+        self.assertTrue(any(t["cabeza"] == "requiere"
+                            for t in hechos.por_relacion["termino"]))
+
+    def test_como_hechos_marca_si_el_umbral_es_flotante(self) -> None:
+        m = modulo_medida()
+        con_flotante = m.Medida.de_datos([
+            "medida", "d.flotante",
+            ["desde", ["de", "pieza", "p"]],
+            ["resumen", "contar", 1],
+            ["umbral", "<=", 0.5, "una razón"],
+            ["alcance", "NO ve"],
+        ])
+        con_entero = m.Medida.de_datos([
+            "medida", "d.entero",
+            ["desde", ["de", "pieza", "p"]],
+            ["resumen", "contar", 1],
+            ["umbral", "<=", 0, "una razón"],
+            ["alcance", "NO ve"],
+        ])
+        hechos = {h["id"]: h for h in m.como_hechos([con_flotante, con_entero])}
+        self.assertTrue(hechos["d.flotante"]["umbral_es_flotante"])
+        self.assertFalse(hechos["d.entero"]["umbral_es_flotante"])
+
+    def test_el_umbral_de_igualdad_sobre_flotante_carga_y_lo_juzga_la_medida(self) -> None:
+        m = modulo_medida()
+        medida = m.Medida.de_datos([
+            "medida", "d.igual_flotante",
+            ["desde", ["de", "pieza", "p"]],
+            ["resumen", "contar", 1],
+            ["umbral", "==", 0.3, "una razón"],
+            ["alcance", "NO ve"],
+        ])
+        hechos = m.como_hechos([medida])
+        self.assertTrue(hechos[0]["umbral_es_flotante"])
+        self.assertEqual(hechos[0]["comparador"], "==")
+
+    def test_evaluar_y_aplicables_despliegan_relaciones_derivadas(self) -> None:
+        m = modulo_medida()
+        fuente = m.Medida.de_datos([
+            "medida", "d.con_requiere",
+            ["desde", ["de", "pieza", "p"]],
+            ["resumen", "contar", 1],
+            ["umbral", "<=", 0, "una razón"],
+            ["requiere", "pieza"],
+            ["alcance", "NO ve otra cosa"],
+        ])
+        jueza = m.Medida.de_datos([
+            "medida", "meta.ve_terminos",
+            ["desde", ["de", "termino", "t"],
+             ["donde", ["==", ["campo", "t", "cabeza"], "requiere"]]],
+            ["resumen", "contar", 1],
+            ["umbral", ">=", 1, "una razón"],
+            ["requiere", "termino"],
+            ["alcance", "NO ve semántica del requisito"],
+        ])
+        evidencia = {"medida": m.como_hechos([fuente])}
+
+        self.assertEqual(m.medidas_aplicables([jueza], evidencia), [jueza])
+        self.assertTrue(jueza.evaluar(evidencia).ok)
 
     def test_las_juezas_se_seleccionan_por_relaciones_y_no_por_ids_conocidos(self) -> None:
         m = modulo_medida()

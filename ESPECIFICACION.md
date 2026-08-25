@@ -1,6 +1,9 @@
 # Especificación del álgebra
 
-Versión `0.3`. **Escrita para ser rota**: el criterio de si sirve está al final, y es comprobable.
+Versión `0.3`, declarada de forma **legible por máquina** en `nucleo/version.py`
+(`VERSION_ALGEBRA`). Esta prosa la cita, no la define: la define el dato, y la regla de qué cambio
+sube qué parte del número está en §0. **Escrita para ser rota**: el criterio de si sirve está al
+final, y es comprobable.
 
 > **Qué cambió respecto de `0.1`, y por qué.** La implementación encontró dos cosas.
 > **(a)** El acceso a datos pasó a ser **explícito** (`["campo", alias, nombre]`, `["hecho", alias]`)
@@ -18,6 +21,34 @@ medida lo necesite.** Es lo único que evita que esto se vuelva el proyecto que 
 
 ---
 
+## 0. La versión del lenguaje
+
+La versión es un dato, no una frase. Vive en `nucleo/version.py` como `VERSION_ALGEBRA`, con la
+forma `MAYOR.MENOR` (dos enteros). Sin una regla que diga qué cambio sube qué parte, el número es
+decorativo; con ella, la incompatibilidad se detecta en vez de descubrirse.
+
+**`MENOR` sube** cuando el álgebra **gana** algo sin cambiar el significado de lo que ya valía: un
+nodo opcional nuevo (`requiere`), un operador nuevo (`agrupar`, `unir`), un agregado nuevo, una
+escalar declarada nueva, una relación de traza nueva. Quien no usa lo nuevo queda exactamente igual;
+quien *implementa el álgebra completo* —una referencia independiente— quedó incompleto y tiene que
+volver a verificarse. De `0.2` a `0.3` subió la menor (entraron `agrupar`, `requiere` y `clave`).
+
+**`MAYOR` sube** cuando cambia el **significado o el contrato** de algo que ya existía: la semántica
+de un operador (qué hace `min`/`max` con booleanos), la forma canónica de una medida, una validación
+que hacía cargar lo que ahora se rechaza, o quitar/renombrar un operador. Eso rompe a todo
+consumidor, use o no la parte cambiada. De `0.3` a `1.0`, y la menor vuelve a `0`.
+
+**Cómo se comprueba.** El núcleo publica lo que implementa. Un proyecto puede declarar en
+`oracle.json` la versión que necesita (`"algebra": "0.3"`); si no es compatible, la carga falla
+cerrado con un mensaje que dice cuál hay y cuál se pidió, y quien no la declara sigue funcionando.
+La compatibilidad es la del párrafo anterior: misma `MAYOR` y `MENOR` al menos tan nueva como la
+pedida. Una implementación de referencia, en cambio, declara contra qué versión se escribió y el
+arnés del diferencial la compara con la del núcleo antes de emitir un fixture: la referencia se fija
+a una versión **exacta**, porque un agregado puede no romper a un consumidor y sí a un evaluador que
+no conoce el nodo nuevo.
+
+---
+
 ## 1. Hechos y relaciones (L0)
 
 Un **hecho** es un registro de campos escalares. Una **relación** es una bolsa nombrada de hechos del
@@ -26,7 +57,8 @@ mismo tipo. La evidencia es un mapa de relaciones:
 ```json
 {
   "pieza":   [{"id": "Muro_A", "x": 100, "y": 100, "ex": 200, "ey": 25}],
-  "mutante": [{"id": "firma_por_id", "apunta_a": "funcion._orden_visual", "murio": false}]
+  "mutante": [{"id": "firma_por_id", "apunta_a": "funcion._orden_visual",
+               "detecciones_conductuales": 0, "rechazos_del_algebra": 0}]
 }
 ```
 
@@ -35,8 +67,24 @@ específico de cada dominio y vive con el productor, no acá.
 
 La multiplicidad cuenta y el orden de almacenamiento no. Dos apariciones idénticas son dos hechos:
 `contar` devuelve 2, `suma` usa ambas y un producto conserva ambas. Oracle no deduplica porque no
-puede inventar una identidad genérica; la unicidad, cuando importa, se produce o se mide con una
-clave explícita.
+puede inventar una identidad genérica.
+
+Un dominio que SÍ conoce su identidad puede **declarar una clave de unicidad** para una relación,
+poniendo a la cabeza de su lista de hechos un nodo `["clave", [<campo>, …]]`:
+
+```json
+{
+  "pieza": [["clave", ["id"]],
+             {"id": "Muro_A", "x": 100}, {"id": "Muro_B", "x": 300}]
+}
+```
+
+La clave es **opcional** y se valida **antes de medir**, fail-closed: si dos hechos repiten la clave
+declarada, la evaluación levanta un error que nombra la clave responsable y la fila que la viola — no
+un veredicto verde, no un error genérico. Un campo de la clave ausente en un hecho también es error:
+una identidad a medias no se puede comprobar, y un nulo implícito la dejaría sin comprobar en
+silencio. Sin el nodo, la relación es exactamente la bolsa de siempre, y la multiplicidad intencional
+sigue siendo expresable sin declarar nada.
 
 ## 2. Una medida es un dato
 
@@ -50,11 +98,30 @@ clave explícita.
   ["alcance", "solape de AABB. NO ve la malla real, ni oclusión, ni si quedó flotando"]]
 ```
 
+**La forma canónica admite un nodo opcional `requiere`, y va antes de `alcance`:**
+
+```json
+["medida", "<id>", <tubería>, <resumen>, <umbral>,
+  ["requiere", "<relación>", …],
+  ["alcance", "<qué NO ve>"]]
+```
+
+Es el espejo de `alcance`: uno declara qué NO ve la medida, el otro **qué NECESITA ver para
+concluir**. Si alguna de las relaciones listadas viene vacía, la evaluación no mide: devuelve
+`SIN EVIDENCIA`, que no es verde y tampoco es un rojo del mundo. Existe porque el álgebra no puede
+expresarlo —un agregado sobre cero filas da `0` y un umbral `<= 0` lo lee como éxito— y la ausencia
+total salía verde justo cuando el mundo estaba peor; el caso completo está en §8.
+
+Una medida sin el nodo se comporta exactamente como antes y su forma canónica **no cambia**: son seis
+elementos, no siete. Un evaluador tiene que aceptar las dos longitudes.
+
 Una medida real, del catálogo que ya corre — sin `unir`, que todavía no tiene usuario:
 
 ```json
 ["medida", "proceso.test_con_mutante_que_lo_mata",
-  ["desde", ["de", "mutante", "m"], ["donde", ["==", ["campo", "m", "murio"], false]]],
+  ["desde", ["de", "mutante", "m"],
+    ["donde", ["y", ["==", ["campo", "m", "detecciones_conductuales"], 0],
+                    ["==", ["campo", "m", "rechazos_del_algebra"], 0]]]],
   ["resumen", "contar", 1],
   ["umbral", "<=", 0, "un mutante que sobrevive es un test que no discrimina…"],
   ["alcance", "cuenta mutantes DECLARADOS que sobrevivieron. NO ve los que nadie escribió…"]]
@@ -71,7 +138,8 @@ La mutación de medidas cubre un denominador explícito: umbral y filtros comple
 puede sustituirse por otra relación nombrada en la misma medida; comparadores, lógicos y booleanos de
 expresiones; un agregado alternativo por sitio; y referencias de campo sustituibles dentro del mismo
 alias o espacio derivado. Los ids incluyen la ruta JSON del sitio. No muta nombres de UDF, aridades,
-defensas ni alcances: las dos primeras fallan al cargar y las dos últimas se miden en L2.
+defensas ni alcances: las dos primeras fallan al cargar, y las dos últimas fallan al cargar **y**
+además quedan reificadas como medidas de L2 (§4).
 
 **Los testigos no se declaran.** Son las filas que sobrevivieron al último `donde`. Declararlos
 aparte obliga a recorrer los datos dos veces y a mantener dos definiciones de lo mismo sincronizadas
@@ -80,8 +148,16 @@ a mano — el error concreto que motivó esta especificación (ver
 
 ## 3. Los operadores
 
-Cinco. Cada uno toma relaciones y devuelve una relación: **eso es la clausura**, y es lo que permite
-que una medida consuma la salida de otra sin ningún caso especial.
+Cinco. Cuatro toman relaciones y devuelven una relación: **eso es la clausura**, y es lo que permite
+encadenarlos en cualquier orden sin un solo caso especial. `resumen` es el que la rompe a propósito,
+porque colapsa a un escalar: por eso va último y una sola vez, y por eso **la clausura es sobre
+filas, no sobre medidas**.
+
+Conviene decirlo fuerte, porque la versión corta de esta frase engañaba: una medida termina en un
+escalar y un umbral, y ahí se acaba. **Ninguna medida puede consumir los testigos ni el veredicto de
+otra**, y eso no es una limitación pendiente sino una decisión tomada y registrada en
+[`DECISION-002`](DECISION-002-SIN-COMPOSICION-DE-MEDIDAS.md). Las preguntas que esa decisión deja
+afuera —«¿qué medidas comparten testigos?»— se responden en L2, midiendo el catálogo como relación.
 
 | Operador | Forma | Qué hace |
 |---|---|---|
@@ -147,7 +223,7 @@ Como una medida es un hecho, `medida` es una relación más y las medidas sobre 
 normales:
 
 ```json
-["medida", "meta.umbral_sin_defensa",
+["medida", "meta.ningun_umbral_sin_defensa",
   ["desde", ["de", "medida", "m"], ["donde", ["==", ["campo", "m", "porque"], ""]]],
   ["resumen", "contar", 1],
   ["umbral", "<=", 0, "un número que nadie puede discutir es una métrica esperando a volverse objetivo"],
@@ -156,6 +232,13 @@ normales:
 
 Ese `alcance` es el ejemplo de por qué el campo es obligatorio: la medida es útil y es
 superficialísima, y decirlo evita que se lea como más de lo que es.
+
+Tres reglas que antes eran `raise` de `nucleo/medida.py` quedaron reificadas así, como medidas del
+catálogo base: `meta.ningun_umbral_sin_defensa`, `meta.ninguna_medida_sin_alcance` y
+`meta.ningun_umbral_flotante_de_igualdad`. Las dos primeras conservan el `raise` de carga además de
+la medida — son contratos fail-closed, y la medida las vuelve inspeccionables y discutibles —; la
+tercera sólo vive en la medida y en `algebra.comparar`, porque un umbral `== 3.14` está bien formado
+y su rechazo es un juicio, no un contrato. La distinción completa está en `INFORME.md`.
 
 ## 5. Modo simulación — ✅ IMPLEMENTADO
 
@@ -240,8 +323,21 @@ operadores es la única prueba de que el juego chico alcanzaba.
   ["donde", ["==", ["col","reales"], 0]]
   ```
 
-  Queda un límite, declarado en el `alcance` de la medida que lo usa: si la relación del lado derecho
-  está **vacía**, no hay pares y por lo tanto no hay grupos. Sin resolver, y es honesto decirlo.
+  Quedaba un límite, y era peor de lo que la palabra «límite» sugiere: si la relación del lado
+  derecho está **vacía**, no hay pares, no hay grupos, el agregado sobre cero filas da `0` y un
+  umbral `<= 0` lo lee como éxito. La medida **se ponía más verde cuanto peor estaba el mundo** —con
+  un importador señalaba los módulos muertos; con ninguno, verde—. Declararlo en el `alcance` lo
+  volvía visible sin cerrarlo, y esta sección lo llamaba RESUELTO tres líneas después de admitirlo
+  (ver [`043-ausencia-total-sale-verde`](corpus/proceso/)).
+
+  **Cerrado con `requiere`, y no con un operador.** No era expresable con los cinco: sin join no hay
+  correlación, y `DECISION-002` prohíbe que una medida consuma la salida de otra. `["requiere",
+  <relación>, …]` es un nodo opcional de la medida y el espejo exacto de `alcance` —uno declara qué
+  NO ve, el otro qué NECESITA ver—; el evaluador comprueba la precondición **antes** de medir y
+  emite `SIN EVIDENCIA`, que no es verde ni un rojo del mundo. El álgebra queda intacta.
+
+  El caso general que esto expone: **un agregado sobre cero filas es indistinguible de un agregado
+  que dio cero**, y sólo la medida sabe cuál de las dos cosas es.
 - **Recursión.** ✅ **RESUELTA, y fuera del álgebra.** «Alcanzable desde» no se expresa con los
   operadores, y es la pared que hizo falta `WITH RECURSIVE` en SQL. Un operador `cierre` habría sido
   recursión en un lenguaje que se mantiene chico a propósito, con **un solo usuario**. La salida es
@@ -255,10 +351,12 @@ operadores es la única prueba de que el juego chico alcanzaba.
   BFS para que ningún sensor tenga que reimplementarlo — que era el otro riesgo, acumular la misma
   función en cada dominio. No es una evasión: es la misma línea que separa el sensor del juez en todo
   lo demás.
-- **Igualdad de flotantes.** ✅ **RESUELTA negándose.** No hizo falta cambiar la forma de `umbral`:
-  **la igualdad exacta sobre flotantes levanta un error**, tanto dentro de una expresión como en el
-  umbral final. `0.1 + 0.2` no es `0.3`, y una medida que compare así diría verde sin que nadie se
-  entere. Los umbrales y resultados numéricos también tienen que ser finitos y de tipos compatibles.
+- **Igualdad de flotantes.** ✅ **RESUELTA negándose — y la prohibición ahora es L2.** El `raise`
+  de carga que prohibía `==` sobre flotante en el umbral final se retiró: una medida con `== 0.3`
+  está bien formada y se carga. El juicio de que es una mala idea vive en dos lugares: `algebra.comparar`
+  sigue fallando cerrado al EVALUAR (la medida no puede producir un verde), y la política
+  `meta.ningun_umbral_flotante_de_igualdad` la vuelve inspeccionable en L2, con su `porque`, su
+  `alcance`, casos de corpus en las dos polaridades y la mutación probándola.
 
   La igualdad exacta sólo tiene sentido sobre cosas que se **cuentan** o se **nombran** —enteros,
   booleanos, textos—, y ahí sigue permitida. Sobre cosas que se **miden** hace falta una tolerancia,
