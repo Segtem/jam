@@ -14,10 +14,11 @@ from unittest import mock
 
 from nucleo.diferencial import Procedencia, crear_frescura
 from nucleo.fixtures import cargar_fixtures, evidencias as evidencias_fixture
+from nucleo.macro import EXTENSIONES_DE_MACRO
 from nucleo.medida import Medida
 from nucleo import algebra
-from nucleo.proyecto import (EscalaresInvalidas, Proyecto, escalares_del_proyecto,
-                             sin_bandera)
+from nucleo.proyecto import (ConfiguracionProyecto, EscalaresInvalidas, Proyecto, ProyectoInvalido,
+                             configuracion, escalares_del_proyecto, sin_bandera)
 
 def setUpModule() -> None:
     """Importa las herramientas DENTRO de la suite, no al descubrirla.
@@ -94,6 +95,39 @@ class CorpusL0Tests(unittest.TestCase):
                      {"medida": None, "estado_sin_medida": "resuelto"},
                      {"medida": None, "estado_sin_medida": "inventado", "resuelto": "x"}):
             self.assertTrue(revisar_estado_sin_medida("caso", caso))
+
+
+class ClaveEnElCorpus(unittest.TestCase):
+    """El validador L0 del corpus y el del álgebra leen el MISMO contrato.
+
+    Escritos por separado divergen —es el caso `012`— y acá la divergencia tenía una consecuencia
+    concreta: un caso que declaraba una clave era rechazado como «no es un hecho», así que el
+    mecanismo no se podía fijar con casos. En este proyecto todo lo demás se fija con casos.
+    """
+
+    def test_una_relacion_puede_declarar_su_clave(self) -> None:
+        self.assertEqual(
+            revisar_evidencia("caso", {"pieza": [["clave", ["id"]], {"id": "a"}]}), [])
+
+    def test_una_clave_mal_declarada_se_denuncia_como_clave(self) -> None:
+        for malo in ([], [1], ["id", "id"], ["  "]):
+            with self.subTest(malo=malo):
+                fallas = revisar_evidencia("caso", {"pieza": [["clave", malo], {"id": "a"}]})
+                self.assertTrue(fallas)
+                self.assertIn("clave", fallas[0])
+
+    def test_una_fila_que_no_es_hecho_sigue_denunciandose_como_fila(self) -> None:
+        """El nodo `clave` sólo vale a la cabeza: en otra posición es una fila mal formada."""
+        fallas = revisar_evidencia("caso", {"pieza": [{"id": "a"}, ["clave", ["id"]]]})
+        self.assertTrue(fallas)
+        self.assertIn("no es un hecho", fallas[0])
+
+    def test_el_validador_del_corpus_no_reimplementa_la_regla(self) -> None:
+        """Si el corpus tuviera su propia copia, este test se cae al cambiar una sola de las dos."""
+        from nucleo import algebra
+        from tools import corpus as cli
+
+        self.assertIs(cli.separar_clave, algebra.separar_clave)
 
 
 class ContratoDiferencialTests(unittest.TestCase):
@@ -786,19 +820,38 @@ class CifrasDelReadme(unittest.TestCase):
         """Recalcula el cociente por otra vía: si la fórmula se afloja, esto se cae."""
         from tools import cifras as cli
 
+        # `rglob`, igual que el numerador: un módulo dentro de un subpaquete de `nucleo/` es
+        # lenguaje lo mismo que uno suelto, y contarlo sólo si está en la raíz convertía «mover el
+        # archivo una carpeta más adentro» en una manera de sacar código del criterio de falsación.
         lineas_lenguaje = sum(
             len(p.read_text(encoding="utf-8").splitlines())
-            for p in list((RAIZ / "nucleo").glob("*.py"))
-                   + list((RAIZ / "nucleo" / "macros").glob("*.json"))
-            if p.name != "__init__.py")
+            for p in list((RAIZ / "nucleo").rglob("*.py"))
+                   + [x for x in (RAIZ / "nucleo" / "macros").iterdir()
+                      if x.suffix in EXTENSIONES_DE_MACRO and x.is_file()]
+            if p.name != "__init__.py" and "__pycache__" not in p.parts)
         lineas_medidas = sum(
             len(p.read_text(encoding="utf-8").splitlines())
-            for p in list((RAIZ / "catalogos").glob("*/*.json"))
-                   + list((RAIZ / "perfiles").glob("*/catalogos/*/*.json")))
+            for p in cli._medidas_universales())
 
         esperado = f"{lineas_lenguaje / lineas_medidas:.1f}".replace(".", ",")
         self.assertIn(f"**{esperado} a 1**", cli.escala())
         self.assertIn(f"**{lineas_lenguaje} líneas", cli.escala())
+
+    def test_un_subpaquete_de_nucleo_cuenta_como_lenguaje(self) -> None:
+        """Mover un módulo a `nucleo/<subpaquete>/` no puede sacarlo del criterio de falsación.
+
+        Pasó de verdad: 411 líneas del aislamiento de UDF quedaban fuera del numerador y fuera de
+        la mutación de código por vivir una carpeta más adentro. El numerador ya contaba
+        `nucleo/macros/*.json` por el mismo motivo — sólo faltaba que valiera para los `.py`."""
+        from tools import cifras as cli
+
+        contadas = {p.relative_to(RAIZ).as_posix() for p in cli._fuentes_del_nucleo()}
+        en_subpaquetes = {
+            p.relative_to(RAIZ).as_posix() for p in (RAIZ / "nucleo").rglob("*.py")
+            if p.parent != RAIZ / "nucleo" and p.name != "__init__.py"
+            and "__pycache__" not in p.parts}
+        self.assertTrue(en_subpaquetes, "no hay subpaquetes: el test dejó de ejercitar algo")
+        self.assertLessEqual(en_subpaquetes, contadas)
 
     def _aislado(self, td, contenido, bloque="hola"):
         """`main()` sobre un README temporal y un bloque trivial.
@@ -813,7 +866,8 @@ class CifrasDelReadme(unittest.TestCase):
         ruta = Path(td) / "README.md"
         ruta.write_text(contenido, encoding="utf-8")
         return cli, mock.patch.multiple(
-            cli, RAIZ=Path(td), BLOQUES={"prueba": lambda: bloque})
+            cli, RAIZ=Path(td), BLOQUES={"prueba": lambda: bloque},
+            DOCUMENTOS=("README.md",))
 
     def test_main_devuelve_cero_cuando_el_readme_esta_al_dia(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -851,6 +905,69 @@ class CifrasDelReadme(unittest.TestCase):
                     sys, "argv", ["cifras.py", "--actualizar"]), redirect_stdout(io.StringIO()):
                 self.assertEqual(cli.main(), 0)
             self.assertIn("hola", (Path(td) / "README.md").read_text(encoding="utf-8"))
+
+    def test_main_custodia_todos_los_documentos_declarados(self) -> None:
+        """La deriva revivía en los derivados porque el CI vigilaba sólo el README."""
+        from tools import cifras as cli
+
+        with tempfile.TemporaryDirectory() as td:
+            (Path(td) / "README.md").write_text(
+                "<!-- prueba:inicio -->\nhola\n<!-- prueba:fin -->\n", encoding="utf-8")
+            derivado = Path(td) / "derivado.md"
+            derivado.write_text(
+                "<!-- prueba:inicio -->\nvencido\n<!-- prueba:fin -->\n", encoding="utf-8")
+            parche = mock.patch.multiple(
+                cli, RAIZ=Path(td), BLOQUES={"prueba": lambda: "hola"},
+                DOCUMENTOS=("README.md", "derivado.md"))
+            salida = io.StringIO()
+            with parche, redirect_stdout(salida):
+                # el README está al día y aun así falla: el derivado también es contrato
+                self.assertEqual(cli.main([]), 1)
+                self.assertEqual(cli.main(["--actualizar"]), 0)
+                self.assertEqual(cli.main([]), 0)
+            self.assertIn("derivado.md", salida.getvalue())
+            self.assertIn("hola", derivado.read_text(encoding="utf-8"))
+
+    def test_un_documento_declarado_que_no_existe_es_un_error(self) -> None:
+        """Borrar el archivo no puede ser la manera de librarse de la medición."""
+        from tools import cifras as cli
+
+        with tempfile.TemporaryDirectory() as td:
+            (Path(td) / "README.md").write_text(
+                "<!-- prueba:inicio -->\nhola\n<!-- prueba:fin -->\n", encoding="utf-8")
+            parche = mock.patch.multiple(
+                cli, RAIZ=Path(td), BLOQUES={"prueba": lambda: "hola"},
+                DOCUMENTOS=("README.md", "borrado.md"))
+            with parche, redirect_stdout(io.StringIO()):
+                with self.assertRaises(FileNotFoundError):
+                    cli.main([])
+
+    def test_un_documento_sin_la_marca_no_inventa_el_bloque(self) -> None:
+        """No todo documento publica todas las cifras; el que no la marca, no la lleva."""
+        from tools import cifras as cli
+
+        with tempfile.TemporaryDirectory() as td:
+            cli_, parche = self._aislado(td, "sin ninguna marca\n")
+            with parche, redirect_stdout(io.StringIO()):
+                self.assertEqual(cli_.main([]), 0)
+
+    def test_solo_se_custodian_documentos_versionados(self) -> None:
+        """Un documento gitignoreado no existe en un checkout limpio, y custodiarlo rompe el CI
+        sin que ninguna verificación local lo note: la carpeta está en el disco de quien la generó.
+        Pasó con `estudio/00-esencia.md`. Este test convierte esa clase de error en imposible."""
+        import subprocess
+
+        from tools import cifras as cli
+
+        seguidos = subprocess.run(
+            ["git", "ls-files", "--error-unmatch", *cli.DOCUMENTOS],
+            cwd=RAIZ, capture_output=True, text=True)
+        self.assertEqual(
+            seguidos.returncode, 0,
+            f"`DOCUMENTOS` lista algo que git no sigue: {seguidos.stderr.strip()}")
+        for nombre in cli.DOCUMENTOS:
+            with self.subTest(nombre=nombre):
+                self.assertTrue((RAIZ / nombre).exists())
 
     def test_render_aplica_el_bloque_y_devuelve_el_contenido(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -898,22 +1015,33 @@ class CifrasDelReadme(unittest.TestCase):
         """`por_macro` cuenta las formas que NO son `medida`. Si la comparación se invierte, el
         número pasa a ser el de las canónicas y nadie se entera."""
         from tools import cifras as cli
+        from nucleo.medida import cargar_fuente_medida
 
         canonicas = sum(
             1 for p in cli._medidas_universales()
-            if json.loads(p.read_text(encoding="utf-8"))[0] == "medida")
+            if cargar_fuente_medida(p)[0] == "medida")
         total = len(cli._medidas_universales())
         self.assertIn(f"{total - canonicas} de las {total} pasan por una macro", cli.escala())
         self.assertNotEqual(canonicas, total - canonicas, "el test no discrimina si hay empate")
 
     def test_mover_lenguaje_de_python_a_datos_no_mejora_la_proporcion(self) -> None:
-        """La biblioteca estándar de macros dejó de ser Python y pasó a `nucleo/macros/*.json`. Si
-        el numerador contara sólo `.py`, ese movimiento habría «mejorado» la proporción sin que el
-        lenguaje encogiera nada — el sastreo exacto contra el que esta medición existe."""
+        """La biblioteca estándar de macros dejó de ser Python y pasó a `nucleo/macros/`. Si el
+        numerador contara sólo `.py`, ese movimiento habría «mejorado» la proporción sin que el
+        lenguaje encogiera nada — el sastreo exacto contra el que esta medición existe.
+
+        Y no se fija por nombre de archivo: cuando las tres macros pasaron de `.json` a `.oracle`,
+        una lista de nombres a mano habría hecho fallar el test por el renombre en vez de por lo
+        que dice medir. Se fija que TODAS las de la biblioteca estén contadas, en el formato que
+        sea, que es la afirmación que importa.
+        """
         from tools import cifras as cli
 
         contadas = {p.name for p in cli._lenguaje()}
-        self.assertTrue({"macro.py", "ninguno.json", "peor.json"} <= contadas)
+        self.assertIn("macro.py", contadas)
+        en_disco = {p.name for p in (RAIZ / "nucleo" / "macros").iterdir()
+                    if p.suffix in EXTENSIONES_DE_MACRO and p.is_file()}
+        self.assertTrue(en_disco)
+        self.assertTrue(en_disco <= contadas)
 
     def test_el_reparto_del_corpus_suma_todos_los_casos(self) -> None:
         from tools import cifras as cli
@@ -929,6 +1057,196 @@ class CifrasDelReadme(unittest.TestCase):
         negativas = cli._negativas(cli._fuentes_del_nucleo())
         self.assertIn(f"**{negativas} negativas", cli.negativas())
         self.assertIn(f"**{negativas} negativas", cli.escala())
+
+class ContrasteDeLaTraza(unittest.TestCase):
+    """Las propiedades del álgebra las juzgan DOS implementaciones, no una.
+
+    Sin esto el evaluador se examinaría solo: un defecto en `donde` podría tapar la medida que
+    vigila `donde`. La segunda mano es `diferencial/referencia/evaluador.py`, escrito por otro autor
+    que nunca vio `nucleo/`.
+    """
+
+    def _juezas_y_evidencia(self):
+        from nucleo.medida import cargar_catalogo, medidas_aplicables
+        from nucleo.proyecto import catalogos_a_cargar, macros_del_proyecto
+        from tools import trazar as cli
+
+        proy = Proyecto(RAIZ)
+        catalogo = cargar_catalogo(catalogos_a_cargar(proy), macros=macros_del_proyecto(proy))
+        evidencia, _evaluados, _fallidos = cli.hechos(catalogo, cli.casos(proy))
+        return cli, medidas_aplicables(catalogo.values(), evidencia), evidencia
+
+    def test_las_dos_implementaciones_coinciden_sobre_la_traza_real(self) -> None:
+        cli, juezas, evidencia = self._juezas_y_evidencia()
+        self.assertTrue(juezas, "ninguna propiedad se activó con la traza")
+        self.assertEqual(cli.contrastar(juezas, evidencia), [])
+
+    def test_un_desacuerdo_se_denuncia_y_no_se_traga(self) -> None:
+        """Una comprobación que no puede fallar no comprueba nada."""
+        cli, juezas, evidencia = self._juezas_y_evidencia()
+
+        class Discrepante:
+            @staticmethod
+            def evaluar(medida, _evidencia, _escalares=None):
+                return {"ok": False, "valor": 0, "testigos": []}   # nucleo las da verdes
+
+        with mock.patch.object(cli, "cargar_referencia", lambda: Discrepante):
+            desacuerdos = cli.contrastar(juezas, evidencia)
+            self.assertEqual(len(desacuerdos), len(juezas))
+            self.assertIn("nucleo=True vs referencia=False", desacuerdos[0])
+            with redirect_stdout(io.StringIO()) as salida:
+                self.assertEqual(cli.main([]), 1)
+            self.assertIn("DESACUERDO", salida.getvalue())
+
+    def test_una_referencia_que_revienta_cuenta_como_desacuerdo(self) -> None:
+        """No se puede aprobar por incomparecencia: si la referencia no evalúa, eso es el hallazgo."""
+        cli, juezas, evidencia = self._juezas_y_evidencia()
+
+        class Rota:
+            @staticmethod
+            def evaluar(*_a, **_k):
+                raise RuntimeError("no evalúa")
+
+        with mock.patch.object(cli, "cargar_referencia", lambda: Rota):
+            desacuerdos = cli.contrastar(juezas, evidencia)
+        self.assertEqual(len(desacuerdos), len(juezas))
+        self.assertIn("RuntimeError", desacuerdos[0])
+
+
+class VersionDelAlgebra(unittest.TestCase):
+    """El número del lenguaje es un dato legible por máquina, y su lectura falla cerrada.
+
+    La especificación lo declaraba «en prosa» y el núcleo no lo conocía: una extensión apagaba en
+    silencio un pedazo del diferencial. Estos tests fijan que la versión vive en un solo lugar y que
+    compararla nunca produce un `False` callado.
+    """
+
+    def test_el_nucleo_declara_una_version_legible_y_estable(self) -> None:
+        from nucleo.version import VERSION_ALGEBRA, del_nucleo
+
+        self.assertEqual(str(del_nucleo()), VERSION_ALGEBRA)
+        self.assertEqual(str(del_nucleo()), "0.3")
+
+    def test_parsear_acepta_mayor_menor_y_rechaza_lo_demas(self) -> None:
+        from nucleo.version import Version, VersionInvalida, parsear
+
+        self.assertEqual(parsear("0.3"), Version(0, 3))
+        self.assertEqual(parsear("10.20"), Version(10, 20))
+        for malo in (3, None, ["0.3"], "", "3", "0", "0.3.1", "a.b", "0.3-beta",
+                      "01.2", "-1.0", "0."):
+            with self.subTest(malo=malo):
+                with self.assertRaises(VersionInvalida):
+                    parsear(malo)
+
+    def test_compatible_exige_la_misma_mayor_y_menor_al_menos_pedida(self) -> None:
+        from nucleo.version import compatible, parsear
+
+        self.assertTrue(compatible(parsear("0.3"), parsear("0.3")))
+        self.assertTrue(compatible(parsear("0.2"), parsear("0.3")))
+        self.assertTrue(compatible(parsear("0.3"), parsear("0.4")))
+        self.assertFalse(compatible(parsear("0.4"), parsear("0.3")))
+        self.assertFalse(compatible(parsear("1.0"), parsear("0.9")))
+
+
+class VersionDelProyecto(unittest.TestCase):
+    """Un consumidor declara qué versión necesita; si no coincide, falla con un mensaje útil.
+
+    Quien no declara versión sigue funcionando: no se rompe a un proyecto que ya existía.
+    """
+
+    def _raiz(self, base: str) -> Path:
+        raiz = Path(base)
+        (raiz / "catalogos").mkdir()
+        return raiz
+
+    def _configurar(self, raiz: Path, datos) -> None:
+        (raiz / "oracle.json").write_text(json.dumps(datos), encoding="utf-8")
+
+    def test_sin_oracle_json_o_sin_algebra_el_proyecto_sigue_andando(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            raiz = self._raiz(td)
+            self.assertEqual(configuracion(Proyecto(raiz)), ConfiguracionProyecto())
+
+        with tempfile.TemporaryDirectory() as td:
+            raiz = self._raiz(td)
+            self._configurar(raiz, {"esquema": "oracle.proyecto/v1", "perfiles": []})
+            self.assertEqual(configuracion(Proyecto(raiz)).perfiles, ())
+
+    def test_una_version_compatible_carga_sin_queja(self) -> None:
+        for declarada in ("0.2", "0.3"):
+            with self.subTest(declarada=declarada), tempfile.TemporaryDirectory() as td:
+                raiz = self._raiz(td)
+                self._configurar(raiz, {"esquema": "oracle.proyecto/v1",
+                                        "algebra": declarada, "perfiles": []})
+                self.assertEqual(configuracion(Proyecto(raiz)).perfiles, ())
+
+    def test_una_version_incompatible_falla_diciendo_cual_hay_y_cual_se_pidio(self) -> None:
+        for declarada in ("0.4", "1.0", "9.9"):
+            with self.subTest(declarada=declarada), tempfile.TemporaryDirectory() as td:
+                raiz = self._raiz(td)
+                self._configurar(raiz, {"esquema": "oracle.proyecto/v1",
+                                        "algebra": declarada, "perfiles": []})
+                with self.assertRaises(ProyectoInvalido) as ctx:
+                    configuracion(Proyecto(raiz))
+                self.assertIn(declarada, str(ctx.exception))
+                self.assertIn("0.3", str(ctx.exception))
+
+    def test_una_version_mal_declarada_falla_cerrado(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            raiz = self._raiz(td)
+            self._configurar(raiz, {"esquema": "oracle.proyecto/v1",
+                                    "algebra": "no-es-version", "perfiles": []})
+            with self.assertRaises(ProyectoInvalido):
+                configuracion(Proyecto(raiz))
+
+    def test_el_oracle_de_si_mismo_declara_una_version_compatible(self) -> None:
+        # El `oracle.json` del propio proyecto carga sin queja: su declaración no es ajena al núcleo.
+        self.assertEqual(configuracion(Proyecto(RAIZ)).catalogo_base, True)
+
+
+class VersionDeLaReferencia(unittest.TestCase):
+    """La implementación de referencia declara contra qué versión se escribió, y el arnés la compara.
+
+    Es el caso que motivó todo: agregar `requiere` y `clave` invalidó en silencio a un evaluador
+    anterior, y el contraste seguía publicando «0 desacuerdos» porque los fixtures no lo ejercitaban.
+    """
+
+    def test_la_referencia_versionada_coincide_con_el_nucleo(self) -> None:
+        from types import SimpleNamespace
+
+        from nucleo.diferencial import comprobar_version_referencia
+        from tools import generar_diferencial as gen
+
+        referencia = gen.cargar_referencia()
+        self.assertEqual(comprobar_version_referencia(referencia), [])
+
+    def test_una_referencia_desfasada_o_muda_se_denuncia(self) -> None:
+        from types import SimpleNamespace
+
+        from nucleo.diferencial import comprobar_version_referencia
+
+        for declarada in (None, "0.2", "1.0", "no-version"):
+            with self.subTest(declarada=declarada):
+                problemas = comprobar_version_referencia(
+                    SimpleNamespace(VERSION_ALGEBRA=declarada))
+                self.assertTrue(problemas)
+
+    def test_el_arnes_del_diferencial_aborta_ante_una_referencia_desfasada(self) -> None:
+        from nucleo.medida import cargar_catalogo
+        from nucleo.proyecto import catalogos_a_cargar, macros_del_proyecto
+        from tools import generar_diferencial as gen
+
+        proy = Proyecto(RAIZ)
+        catalogo = cargar_catalogo(catalogos_a_cargar(proy), macros=macros_del_proyecto(proy))
+
+        class ReferenciaVieja:
+            VERSION_ALGEBRA = "0.2"
+
+        with mock.patch.object(gen, "cargar_referencia", lambda: ReferenciaVieja):
+            with self.assertRaises(SystemExit) as ctx:
+                gen.construir(catalogo)
+        self.assertIn("0.2", str(ctx.exception))
+        self.assertIn("0.3", str(ctx.exception))
 
 
 if __name__ == "__main__":

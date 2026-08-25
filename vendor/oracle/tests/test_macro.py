@@ -14,10 +14,11 @@ RAIZ = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ))
 
 from nucleo.algebra import LimitesAlgebra
-from nucleo.macro import (DIRECTORIO_BASE, Macro, MacroMalDeclarada, MacroMalUsada,
+from nucleo.macro import (EXTENSIONES_DE_MACRO,
+                          DIRECTORIO_BASE, Macro, MacroMalDeclarada, MacroMalUsada,
                           exigir_biblioteca,
                           RegistroMacros, cargar_macros, es_macro, expandir, macros_base)
-from nucleo.medida import Medida, cargar_catalogo
+from nucleo.medida import Medida, cargar_catalogo, cargar_fuente_medida, rutas_de_catalogo
 
 PRED = ["==", ["campo", "m", "murio"], False]
 
@@ -127,7 +128,8 @@ class DeclaracionTests(unittest.TestCase):
                 plantilla if plantilla is not None else ["medida", ["$", "id"]]]
 
     def test_las_tres_universales_salen_de_datos_y_no_de_python(self) -> None:
-        archivos = {p.stem for p in DIRECTORIO_BASE.glob("*.json")}
+        archivos = {p.stem for p in DIRECTORIO_BASE.iterdir()
+                    if p.suffix in EXTENSIONES_DE_MACRO and p.is_file()}
         self.assertEqual(archivos, {"ninguno", "ninguno-par", "peor"})
         self.assertEqual(set(macros_base()), archivos)
         for macro in macros_base().values():
@@ -407,9 +409,10 @@ class CatalogoRealTests(unittest.TestCase):
 
     def setUp(self) -> None:
         self.catalogo = cargar_catalogo(RAIZ / "catalogos")
-        self.crudos = {json.loads(p.read_text(encoding="utf-8"))[1]:
-                       json.loads(p.read_text(encoding="utf-8"))
-                       for p in (RAIZ / "catalogos").rglob("*.json")}
+        self.crudos = {
+            cargar_fuente_medida(p)[1]: cargar_fuente_medida(p)
+            for p in rutas_de_catalogo(RAIZ / "catalogos")
+        }
 
     def test_todas_cargan_y_la_mayoria_son_macro(self) -> None:
         macros = sum(1 for d in self.crudos.values() if es_macro(d))
