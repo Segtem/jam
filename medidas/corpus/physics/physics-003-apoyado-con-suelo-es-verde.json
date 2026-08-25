@@ -1,0 +1,24 @@
+{
+  "id": "physics-003-apoyado-con-suelo-es-verde",
+  "fecha": "2026-08-25",
+  "origen": {
+    "repo": "Brianholl/jam",
+    "commit": "gap-null-physics-apoyado"
+  },
+  "titulo": "Una pieza con soporte y gap cero tiene que salir verde",
+  "etiqueta": "verde_correcto",
+  "sintoma": "Al separar la ausencia de soporte del gap, `physics.apoyado` podria volverse roja sobre un mundo sano si el filtro o el umbral quedaran invertidos.",
+  "como_se_detecto": "persona",
+  "medida": "physics.apoyado",
+  "evidencia": {
+    "asentamiento": [
+      {
+        "pieza": "sujeto",
+        "tiene_suelo": true,
+        "gap": 0.0,
+        "soporte": "piso"
+      }
+    ]
+  },
+  "leccion": "La polaridad verde del dominio importa: un soporte real con gap cero no debe producir testigos ofensores."
+}

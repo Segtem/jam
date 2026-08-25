@@ -457,7 +457,7 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
+     "physics.apoyado": true,
      "physics.tiene_suelo": false
     }
    },
@@ -479,7 +479,7 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
+     "physics.apoyado": true,
      "physics.tiene_suelo": false
     }
    },
@@ -501,7 +501,7 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
+     "physics.apoyado": true,
      "physics.tiene_suelo": false
     }
    },
@@ -523,7 +523,7 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
+     "physics.apoyado": true,
      "physics.tiene_suelo": false
     }
    },
@@ -545,7 +545,7 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
+     "physics.apoyado": true,
      "physics.tiene_suelo": false
     }
    },
@@ -567,7 +567,7 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
+     "physics.apoyado": true,
      "physics.tiene_suelo": false
     }
    },
@@ -589,7 +589,7 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
+     "physics.apoyado": true,
      "physics.tiene_suelo": false
     }
    },
@@ -611,7 +611,7 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
+     "physics.apoyado": true,
      "physics.tiene_suelo": false
     }
    },
@@ -633,7 +633,7 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
+     "physics.apoyado": true,
      "physics.tiene_suelo": false
     }
    },
@@ -655,7 +655,7 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
+     "physics.apoyado": true,
      "physics.tiene_suelo": false
     }
    },
@@ -677,7 +677,7 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
+     "physics.apoyado": true,
      "physics.tiene_suelo": false
     }
    },
@@ -699,7 +699,7 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
+     "physics.apoyado": true,
      "physics.tiene_suelo": false
     }
    },
@@ -721,7 +721,7 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
+     "physics.apoyado": true,
      "physics.tiene_suelo": false
     }
    },
@@ -743,7 +743,7 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
+     "physics.apoyado": true,
      "physics.tiene_suelo": false
     }
    },
@@ -765,7 +765,7 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
+     "physics.apoyado": true,
      "physics.tiene_suelo": false
     }
    },
@@ -787,7 +787,7 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
+     "physics.apoyado": true,
      "physics.tiene_suelo": false
     }
    },
@@ -809,7 +809,7 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
+     "physics.apoyado": true,
      "physics.tiene_suelo": false
     }
    },
@@ -831,7 +831,7 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
+     "physics.apoyado": true,
      "physics.tiene_suelo": false
     }
    },
@@ -853,7 +853,7 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
+     "physics.apoyado": true,
      "physics.tiene_suelo": false
     }
    },
@@ -875,7 +875,7 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
+     "physics.apoyado": true,
      "physics.tiene_suelo": false
     }
    },
@@ -1788,7 +1788,7 @@
    ]
   },
   "huellas": {
-   "catalogo": "0f249813c4ccaedce293d041fe4637b6c886250bf9c1f0897e9ea60d52c2594c",
+   "catalogo": "97bc19051e10a077cbf6e5fcb9888c5d6c68f0808fb5232059cc5a4b4c858b3a",
    "configuracion": "ad0e4157309c814e793aa25876da24cd310055de43c1540f0ca23797e43728a9",
    "emisor": "330311e86cf8287be26ebe095a27477df1def7749b4db3eea311af6bfaef11d6",
    "referencia": "7a2e7926f2118a4b45c6c8f18557a015818e0f3e91b5b859bde8c69c2698c462"

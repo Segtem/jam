@@ -1,0 +1,49 @@
+{
+  "id": "geometria-012-al-ras-publica-el-peor-contacto",
+  "fecha": "2026-08-25",
+  "origen": {
+    "repo": "Brianholl/jam",
+    "commit": "mutacion-requiere-gap-null"
+  },
+  "titulo": "Dos contactos separados fijan que al ras publique el peor desvio",
+  "etiqueta": "falso_verde",
+  "sintoma": "El mutante `max->min` de `snap.al_ras` sobrevivía porque los casos rojos tenían un solo contacto fuera de tolerancia despues del filtro.",
+  "como_se_detecto": "mutacion",
+  "medida": "snap.al_ras",
+  "evidencia": {
+    "pieza": [
+      {
+        "id": "a",
+        "ox": 0.0,
+        "oy": 0.0,
+        "oz": 0.0,
+        "ex": 0.0,
+        "ey": 50.0,
+        "ez": 50.0
+      }
+    ],
+    "objetivo": [
+      {
+        "id": "hueco-chico",
+        "eje": "x",
+        "ox": 2.0,
+        "oy": 0.0,
+        "oz": 0.0,
+        "ex": 0.0,
+        "ey": 50.0,
+        "ez": 50.0
+      },
+      {
+        "id": "hueco-grande",
+        "eje": "x",
+        "ox": 9.0,
+        "oy": 0.0,
+        "oz": 0.0,
+        "ex": 0.0,
+        "ey": 50.0,
+        "ez": 50.0
+      }
+    ]
+  },
+  "leccion": "Un agregado `max` no queda fijado por un unico ofensor: hacen falta al menos dos valores malos distintos."
+}

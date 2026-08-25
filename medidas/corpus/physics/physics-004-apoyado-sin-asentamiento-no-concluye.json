@@ -1,0 +1,17 @@
+{
+  "id": "physics-004-apoyado-sin-asentamiento-no-concluye",
+  "fecha": "2026-08-25",
+  "origen": {
+    "repo": "Brianholl/jam",
+    "commit": "gap-null-physics-apoyado"
+  },
+  "titulo": "Sin filas de asentamiento no hay contacto vertical que juzgar",
+  "etiqueta": "falso_verde",
+  "sintoma": "Al pasar `physics.apoyado` a forma canonica con `requiere`, el mutante `quitar_requiere` mostraba que una evidencia vacia volveria verde por conteo cero.",
+  "como_se_detecto": "mutacion",
+  "medida": "physics.apoyado",
+  "evidencia": {
+    "asentamiento": []
+  },
+  "leccion": "La medida necesita al menos una observacion de asentamiento: sin ella no se puede afirmar que una pieza este apoyada."
+}
