@@ -1,0 +1,18 @@
+{
+  "id": "geometria-011-al-ras-sin-piezas-no-concluye",
+  "fecha": "2026-08-25",
+  "origen": {
+    "repo": "Brianholl/jam",
+    "commit": "polaridad-verde-testigos"
+  },
+  "titulo": "Sin piezas la medida no concluye: no hay contacto que juzgar",
+  "etiqueta": "falso_verde",
+  "sintoma": "`snap.al_ras` resume con `max` y umbral `<= 1.0`. Sobre una relación vacía `max` da 0, y `0 <= 1.0` salía VERDE: la medida afirmaba que todo estaba al ras sin haber mirado una sola pieza. Es el falso verde de la ausencia, y se cierra con `requiere`.",
+  "como_se_detecto": "persona",
+  "medida": "snap.al_ras",
+  "evidencia": {
+    "pieza": [],
+    "objetivo": []
+  },
+  "leccion": "Un agregado sobre cero filas es indistinguible de un agregado que dio cero. Sólo la medida sabe cuál de las dos cosas es, y por eso lo declara en `requiere`."
+}

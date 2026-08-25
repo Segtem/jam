@@ -26,6 +26,9 @@ class SintaxisInfijaTests(unittest.TestCase):
             RAIZ / "catalogos", *sorted((RAIZ / "perfiles").glob("*/catalogos"))))
         self.assertEqual(informe["medidas"], del_catalogo)
         self.assertGreater(del_catalogo, 0)
+        del_corpus = len(sintaxis_caso.rutas_de_corpus(RAIZ / "corpus"))
+        self.assertEqual(informe["casos"], del_corpus)
+        self.assertGreater(del_corpus, 0)
         self.assertTrue(informe["json_igual"])
         self.assertTrue(informe["texto_igual"])
         self.assertLess(informe["puntuacion_superficie"], informe["puntuacion_json"])
@@ -181,6 +184,44 @@ class SintaxisDeCasosTests(unittest.TestCase):
         self.assertEqual(sum(1 for r in rutas if r.suffix == ".json"), 2)
         self.assertEqual(sum(1 for r in rutas if r.suffix == ".caso"), len(rutas) - 2)
 
+    def test_la_metamorfica_de_casos_juzga_todo_el_corpus(self) -> None:
+        from nucleo.medida import Medida
+        from nucleo.proyecto import Proyecto, macros_del_proyecto
+        from tools import metamorficas
+
+        filas = metamorficas._sintaxis_casos_ida_y_vuelta(Proyecto(RAIZ))
+        self.assertEqual(len(filas), len(sintaxis_caso.rutas_de_corpus(RAIZ / "corpus")))
+        self.assertTrue(all(f["mismo_veredicto"] and f["mismo_valor"] for f in filas))
+        jueza = cargar_fuente_medida(
+            ruta_de_medida("meta.sintaxis_casos_ida_y_vuelta", RAIZ / "catalogos",
+                           *sorted((RAIZ / "perfiles").glob("*/catalogos"))))
+        m = Medida.de_datos(jueza, macros=macros_del_proyecto(Proyecto(RAIZ)))
+        self.assertTrue(m.evaluar({"equivalencia": filas}).ok)
+
+    def test_la_metamorfica_de_casos_cubre_la_forma_del_caso(self) -> None:
+        from nucleo.medida import Medida
+        from nucleo.proyecto import Proyecto, macros_del_proyecto
+        from tools import metamorficas
+
+        candidatos = metamorficas._generar_casos_candidatos()
+        self.assertGreaterEqual(len(candidatos), 5)
+        self.assertTrue(any("vacia" in c["evidencia"] and c["evidencia"]["vacia"] == []
+                            for c in candidatos))
+        self.assertTrue(any(len(c["evidencia"]) == 3 for c in candidatos))
+        self.assertTrue(any(c["medida"] is None and c["estado_sin_medida"] == "abierto"
+                            for c in candidatos))
+        self.assertTrue(any(any(isinstance(f, list) and f[0] == "clave"
+                                for filas in c["evidencia"].values() for f in filas)
+                            for c in candidatos))
+        filas = metamorficas._sintaxis_casos_cubre_casos()
+        self.assertEqual(len(filas), len(candidatos))
+        self.assertTrue(all(f["mismo_veredicto"] and f["mismo_valor"] for f in filas))
+        jueza = cargar_fuente_medida(
+            ruta_de_medida("meta.sintaxis_casos_cubre_casos", RAIZ / "catalogos",
+                           *sorted((RAIZ / "perfiles").glob("*/catalogos"))))
+        m = Medida.de_datos(jueza, macros=macros_del_proyecto(Proyecto(RAIZ)))
+        self.assertTrue(m.evaluar({"equivalencia": filas}).ok)
+
     def test_una_relacion_heterogenea_usa_la_salida_de_escape(self) -> None:
         datos = self._caso_base({"rel": [{"a": 1}, {"b": "dos", "c": False}]})
         superficie = sintaxis_caso.imprimir(datos)
@@ -323,6 +364,69 @@ class GramaticaDelIdTests(unittest.TestCase):
             self.assertIsNone(ID_MEDIDA_RE.fullmatch(f"tareas.vencida_sin_{forma}"))
 
 
+class GramaticaDelIdDeCasoTests(unittest.TestCase):
+    def _texto(self, cid: str) -> str:
+        datos = {
+            "id": "999-caso-valido",
+            "fecha": "2026-08-25",
+            "origen": {"repo": "test", "commit": "local"},
+            "titulo": "Caso valido",
+            "etiqueta": "verde_correcto",
+            "sintoma": "Prueba",
+            "como_se_detecto": "observacion",
+            "medida": "demo.mide",
+            "evidencia": {"hecho": [{"id": "a"}]},
+            "leccion": "Prueba",
+        }
+        datos["id"] = cid
+        return sintaxis_caso.imprimir(datos)
+
+    def test_la_superficie_acepta_un_id_de_caso_de_la_gramatica(self) -> None:
+        self.assertEqual(sintaxis_caso.leer(self._texto("999-caso-valido"))["id"],
+                         "999-caso-valido")
+
+    def test_la_superficie_rechaza_un_id_de_caso_fuera_de_la_gramatica(self) -> None:
+        cuerpo = self._texto("999-caso-valido").replace("999-caso-valido", "999-caso-con-dueno")
+        for malo in ("999-caso-con-dueño", "999_Caso", "999-", "abc-caso", "999--doble"):
+            with self.subTest(malo=malo):
+                texto = cuerpo.replace("999-caso-con-dueno", malo)
+                with self.assertRaises(sintaxis.ErrorSintaxis) as cm:
+                    sintaxis_caso.leer(texto)
+                self.assertIn("minúsculas ASCII", str(cm.exception))
+
+    def test_la_gramatica_no_describe_a_UN_catalogo_sino_al_lenguaje(self) -> None:
+        """Casi entra una gramática derivada de un solo corpus, y rechazaba a un consumidor.
+
+        La primera versión exigía `^[0-9]{3}-…` —tres dígitos y a otra cosa— porque así se llaman
+        los casos de ESTE repositorio. Un consumidor real numera por dominio
+        (`scatter-004-coberturas-distintas`, `physics-tanda-001-…`) y 9 de sus casos dejaban de
+        cargar. Derivar la gramática de un catálogo propio es la misma trampa que medir la
+        superficie contra las medidas que uno mismo escribió: describe al autor, no al lenguaje.
+        """
+        for ajeno in ("scatter-004-coberturas-distintas",
+                      "physics-tanda-001-interpenetracion-en-el-borde",
+                      "geometria-010-comparte-cara-de-sobra-es-verde",
+                      "99-serie-corta"):
+            with self.subTest(ajeno=ajeno):
+                self.assertEqual(sintaxis_caso.leer(self._texto(ajeno))["id"], ajeno)
+
+    def test_el_json_no_puede_contrabandear_un_id_de_caso_invalido(self) -> None:
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            ruta = Path(d) / "999-caso-con-dueno.json"
+            ruta.write_text(json.dumps({"id": "999-caso-con-dueño"}, ensure_ascii=False),
+                            encoding="utf-8")
+            with self.assertRaises(CasoMalDeclarado) as cm:
+                sintaxis_caso.cargar_fuente_caso(ruta)
+        self.assertIn("minúsculas ASCII", str(cm.exception))
+
+    def test_la_gramatica_vive_junto_a_la_de_medida(self) -> None:
+        from nucleo.proyecto import ID_CASO_RE, ID_MEDIDA_RE
+        self.assertIsNotNone(ID_MEDIDA_RE.fullmatch("dominio.nombre"))
+        self.assertIsNotNone(ID_CASO_RE.fullmatch("999-caso-valido"))
+        self.assertIsNone(ID_CASO_RE.fullmatch("999-caso-con-dueño"))
+
+
 class MedidaNuevaNaceEnLaSuperficieTests(unittest.TestCase):
     def test_el_destino_de_una_medida_nueva_es_la_superficie(self) -> None:
         """El formato en el que se autoriza a alguien a escribir es el primer mensaje del lenguaje."""
@@ -340,6 +444,42 @@ class MedidaNuevaNaceEnLaSuperficieTests(unittest.TestCase):
         from tools.medida import PLANTILLA
         datos = sintaxis.leer(PLANTILLA.format(mid="tareas.mide"))
         self.assertEqual(Medida.de_datos(datos).id, "tareas.mide")
+
+
+class CasoNuevoNaceEnLaSuperficieTests(unittest.TestCase):
+    def test_la_plantilla_de_caso_que_se_entrega_se_lee_y_carga(self) -> None:
+        import tempfile
+        from tools.corpus import PLANTILLA
+
+        texto = PLANTILLA.format(cid="999-caso-nuevo")
+        self.assertEqual(sintaxis_caso.leer(texto)["id"], "999-caso-nuevo")
+        with tempfile.TemporaryDirectory() as d:
+            ruta = Path(d) / "999-caso-nuevo.caso"
+            ruta.write_text(texto, encoding="utf-8")
+            self.assertEqual(sintaxis_caso.cargar_fuente_caso(ruta)["id"], "999-caso-nuevo")
+
+    def test_el_andamio_crea_un_caso_en_superficie(self) -> None:
+        import io
+        import tempfile
+        from contextlib import redirect_stdout
+        from nucleo.proyecto import Proyecto
+        from tools import corpus
+
+        with tempfile.TemporaryDirectory() as d:
+            raiz = Path(d)
+            (raiz / "catalogos").mkdir()
+            (raiz / "corpus").mkdir()
+            salida = io.StringIO()
+            with redirect_stdout(salida):
+                codigo = corpus.main(["--proyecto", str(raiz), "--nuevo", "meta/999-caso-nuevo"])
+            destino = raiz / "corpus" / "meta" / "999-caso-nuevo.caso"
+
+            self.assertEqual(codigo, 0, salida.getvalue())
+            self.assertTrue(destino.exists())
+            self.assertEqual(corpus.ruta_de_caso_nuevo(Proyecto(raiz), "meta/999-caso-nuevo"),
+                             destino)
+            self.assertEqual(sintaxis_caso.cargar_fuente_caso(destino)["id"],
+                             "999-caso-nuevo")
 
 
 class DocumentacionVerificadaTests(unittest.TestCase):
@@ -685,6 +825,7 @@ class VersionDeLaSuperficieTests(unittest.TestCase):
         docs = sintaxis.verificar_documentos(RAIZ)
         self.assertEqual(informe["medidas"], len(sintaxis._rutas_catalogo(RAIZ)))
         self.assertEqual(informe["macros"], len(sintaxis._rutas_macros(RAIZ)))
+        self.assertEqual(informe["casos"], len(sintaxis_caso.rutas_de_corpus(RAIZ / "corpus")))
         self.assertGreater(docs["ejecutables"], 0)
         self.assertTrue(informe["json_igual"])
         self.assertTrue(informe["texto_igual"])
@@ -740,6 +881,80 @@ class NingunaEntradaEsFailOpenTests(unittest.TestCase):
                 cargar_macros(pathlib.Path(d))
             with redirect_stdout(io.StringIO()):
                 self.assertEqual(sintaxis.main(["--leer", str(ruta)]), 1)
+
+
+class LosBloquesDeCasoDeLaDocumentacionTambienSeVerificanTests(unittest.TestCase):
+    """Cuando entró la superficie de casos, sus ejemplos quedaron fuera del verificador.
+
+    `verificar_documentos` miraba dos documentos y una sola superficie. Los ejemplos de `.caso`
+    aparecieron en cuatro documentos y ninguno pasaba por el lector: volvían a ser una afirmación
+    sostenida por la palabra de quien la escribió, que es lo que este mecanismo vino a terminar.
+    """
+
+    def test_se_verifican_las_dos_superficies(self) -> None:
+        import re
+        de_caso = 0
+        for nombre in sintaxis.DOCUMENTOS_CON_SUPERFICIE:
+            texto = (RAIZ / nombre).read_text(encoding="utf-8")
+            de_caso += sum(1 for m in sintaxis.BLOQUE_RE.finditer(texto)
+                           if m.group(1) == "caso" and not m.group(2))
+        self.assertGreater(de_caso, 0, "ningún documento muestra un caso ejecutable")
+        self.assertEqual(sintaxis.verificar_documentos(RAIZ)["fallas"], [])
+
+    def test_un_bloque_de_caso_roto_se_denuncia(self) -> None:
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            raiz = Path(d)
+            for nombre in sintaxis.DOCUMENTOS_CON_SUPERFICIE:
+                (raiz / nombre).write_text("```caso\ncaso 999-roto:\n    fecha\n```\n",
+                                           encoding="utf-8")
+            fallas = sintaxis.verificar_documentos(raiz)["fallas"]
+            self.assertEqual(len(fallas), len(sintaxis.DOCUMENTOS_CON_SUPERFICIE))
+            self.assertIn("no lee", fallas[0])
+
+
+class ElErrorDelLenguajeSeManipulaComoUnErrorTests(unittest.TestCase):
+    """`ErrorSintaxis` es un `dataclass(frozen=True)`, y eso congelaba de más.
+
+    Un dataclass congelado reemplaza `__setattr__` por uno que rechaza TODO, incluidos los dunder
+    que el intérprete y las herramientas de traza escriben sobre cualquier excepción. CPython los
+    escribe por la API de C al levantar —por eso un `raise` simple andaba— pero cualquier código
+    Python que re-lance o encadene el error se estrellaba con `FrozenInstanceError`.
+
+    Lo encontró la mutación de código, no una persona: **51 de 193 mutantes** de `nucleo/caso.py` no
+    salieron ni muertos ni vivos, salieron `error_arnes` con
+    `FrozenInstanceError: cannot assign to field '__traceback__'`. Un error del arnés no es una
+    muerte —caso `017` del corpus—, así que esos 51 no medían nada y la ronda quedaba inconclusa.
+    """
+
+    def test_se_le_puede_escribir_la_maquinaria_de_excepciones(self) -> None:
+        for atributo in ("__traceback__", "__cause__", "__context__"):
+            with self.subTest(atributo=atributo):
+                e = sintaxis.ErrorSintaxis(1, 1, "x")
+                setattr(e, atributo, None)
+                self.assertIsNone(getattr(e, atributo))
+
+    def test_los_campos_del_error_siguen_congelados(self) -> None:
+        """La inmutabilidad que se quiere es la de línea, columna y qué se esperaba."""
+        import dataclasses
+        e = sintaxis.ErrorSintaxis(1, 1, "x")
+        for campo in ("linea", "columna", "esperado"):
+            with self.subTest(campo=campo):
+                with self.assertRaises(dataclasses.FrozenInstanceError):
+                    setattr(e, campo, 99)
+
+    def test_se_puede_encadenar_y_relanzar_desde_python(self) -> None:
+        """El camino exacto que el arnés rompía: atrapar, encadenar y volver a levantar."""
+        import traceback
+        try:
+            try:
+                raise sintaxis.ErrorSintaxis(3, 7, "adentro")
+            except sintaxis.ErrorSintaxis as interno:
+                raise sintaxis.ErrorSintaxis(1, 1, "afuera") from interno
+        except sintaxis.ErrorSintaxis as e:
+            texto = "".join(traceback.format_exception(type(e), e, e.__traceback__))
+            self.assertIn("adentro", texto)
+            self.assertIn("afuera", texto)
 
 
 if __name__ == "__main__":

@@ -2897,19 +2897,6 @@
       "carpeta_conocida": true,
       "fecha_en_nombre": "2026-07-25",
       "frontmatter_completo": true,
-      "nombre": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
-      "nombre_es_ascii": true,
-      "sigue_convencion": true,
-      "tipo_declarado": "INFORME",
-      "tipo_en_nombre": "INFORME",
-      "updated": "2026-07-25"
-     },
-     {
-      "area": "01-Graph",
-      "carpeta": "01-Graph",
-      "carpeta_conocida": true,
-      "fecha_en_nombre": "2026-07-25",
-      "frontmatter_completo": true,
       "nombre": "2026-07-25-INFORME-Fix-Graph-Cable-Fantasma-v1.0",
       "nombre_es_ascii": true,
       "sigue_convencion": true,
@@ -3116,6 +3103,19 @@
       "area": "01-Graph",
       "carpeta": "01-Graph",
       "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-11",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-11"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
       "fecha_en_nombre": "2026-08-12",
       "frontmatter_completo": true,
       "nombre": "2026-08-12-PLAN-Multi-Salida-En-El-Graph-v1.0",
@@ -3149,7 +3149,7 @@
       "sigue_convencion": false,
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "",
-      "updated": "2026-08-11"
+      "updated": "2026-07-25"
      },
      {
       "area": "02-TreeGen",
@@ -3819,11 +3819,6 @@
       "resuelve": true
      },
      {
-      "destino": "2026-07-25-INFORME-Fix-Graph-Cable-Fantasma-v1.0",
-      "origen": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
-      "resuelve": true
-     },
-     {
       "destino": "2026-07-25-PLAN-Contrato-Unificado-Graph-Flow-Presets-Web-v1.0",
       "origen": "2026-07-25-PLAN-Persistencia-Segura-Diagramas-Graph-v1.0",
       "resuelve": true
@@ -4039,6 +4034,11 @@
       "resuelve": true
      },
      {
+      "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
+      "origen": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
+      "resuelve": true
+     },
+     {
       "destino": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
       "origen": "2026-08-12-PLAN-Multi-Salida-En-El-Graph-v1.0",
       "resuelve": true
@@ -4064,7 +4064,7 @@
       "resuelve": true
      },
      {
-      "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
+      "destino": "2026-07-25-INFORME-Fix-Graph-Cable-Fantasma-v1.0",
       "origen": "archivo-sin-convencion",
       "resuelve": true
      },
@@ -5206,7 +5206,7 @@
      {
       "destino": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
       "origen": "README",
-      "resuelve": false
+      "resuelve": true
      },
      {
       "destino": "2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0",
@@ -5291,7 +5291,7 @@
      {
       "destino": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
       "origen": "README",
-      "resuelve": true
+      "resuelve": false
      },
      {
       "destino": "2026-07-25-CONCEPTO-Estetica-Nodos-Grasshopper-v1.0",
@@ -5656,7 +5656,7 @@
       "nombre": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
       "nombre_es_ascii": true,
       "sigue_convencion": true,
-      "tipo_declarado": "INFORME",
+      "tipo_declarado": "PLAN",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-07-25"
      },
@@ -5877,7 +5877,7 @@
       "nombre": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
       "nombre_es_ascii": true,
       "sigue_convencion": true,
-      "tipo_declarado": "PLAN",
+      "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-08-11"
      },
@@ -8414,7 +8414,7 @@
       "sigue_convencion": true,
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
-      "updated": "2026-07-25"
+      "updated": "2020-01-01"
      },
      {
       "area": "01-Graph",
@@ -8635,7 +8635,7 @@
       "sigue_convencion": true,
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
-      "updated": "2020-01-01"
+      "updated": "2026-08-11"
      },
      {
       "area": "01-Graph",
@@ -11160,7 +11160,7 @@
       "updated": "2026-07-25"
      },
      {
-      "area": "01-Graph",
+      "area": "99-Inventada",
       "carpeta": "01-Graph",
       "carpeta_conocida": true,
       "fecha_en_nombre": "2026-07-25",
@@ -11381,7 +11381,7 @@
       "updated": "2026-08-04"
      },
      {
-      "area": "99-Inventada",
+      "area": "01-Graph",
       "carpeta": "01-Graph",
       "carpeta_conocida": true,
       "fecha_en_nombre": "2026-08-11",
@@ -14848,6 +14848,11 @@
       "resuelve": true
      },
      {
+      "destino": "documento-que-no-existe",
+      "origen": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
+      "resuelve": false
+     },
+     {
       "destino": "2026-07-25-PLAN-Contrato-Unificado-Graph-Flow-Presets-Web-v1.0",
       "origen": "2026-07-25-PLAN-Persistencia-Segura-Diagramas-Graph-v1.0",
       "resuelve": true
@@ -15066,11 +15071,6 @@
       "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
       "origen": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
       "resuelve": true
-     },
-     {
-      "destino": "documento-que-no-existe",
-      "origen": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
-      "resuelve": false
      },
      {
       "destino": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
@@ -16682,8 +16682,8 @@
       "carpeta_conocida": true,
       "fecha_en_nombre": "2026-07-25",
       "frontmatter_completo": true,
-      "nombre": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
-      "nombre_es_ascii": true,
+      "nombre": "2026-07-25-INFORME-Ación-Fix-Graph-Buscador-Doble-Clic-v1.0",
+      "nombre_es_ascii": false,
       "sigue_convencion": true,
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
@@ -16903,8 +16903,8 @@
       "carpeta_conocida": true,
       "fecha_en_nombre": "2026-08-11",
       "frontmatter_completo": true,
-      "nombre": "2026-08-11-INFORME-Ación-Definicion-De-Tools-Y-Superficies-v1.0",
-      "nombre_es_ascii": false,
+      "nombre": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
+      "nombre_es_ascii": true,
       "sigue_convencion": true,
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
@@ -17605,7 +17605,7 @@
      },
      {
       "destino": "2026-07-25-INFORME-Fix-Graph-Cable-Fantasma-v1.0",
-      "origen": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
+      "origen": "2026-07-25-INFORME-Ación-Fix-Graph-Buscador-Doble-Clic-v1.0",
       "resuelve": true
      },
      {
@@ -17825,7 +17825,7 @@
      },
      {
       "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
-      "origen": "2026-08-11-INFORME-Ación-Definicion-De-Tools-Y-Superficies-v1.0",
+      "origen": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
       "resuelve": true
      },
      {
@@ -18991,7 +18991,7 @@
      {
       "destino": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
       "origen": "README",
-      "resuelve": false
+      "resuelve": true
      },
      {
       "destino": "2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0",
@@ -19076,7 +19076,7 @@
      {
       "destino": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
       "origen": "README",
-      "resuelve": true
+      "resuelve": false
      },
      {
       "destino": "2026-07-25-CONCEPTO-Estetica-Nodos-Grasshopper-v1.0",
@@ -20216,14 +20216,14 @@
       "area": "01-Graph",
       "carpeta": "",
       "carpeta_conocida": false,
-      "fecha_en_nombre": "2026-08-11",
+      "fecha_en_nombre": "2026-07-25",
       "frontmatter_completo": true,
-      "nombre": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
+      "nombre": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
       "nombre_es_ascii": true,
       "sigue_convencion": true,
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
-      "updated": "2026-08-11"
+      "updated": "2026-07-25"
      }
     ],
     "enlace": [
@@ -21698,8 +21698,8 @@
       "resuelve": true
      },
      {
-      "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
-      "origen": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
+      "destino": "2026-07-25-INFORME-Fix-Graph-Cable-Fantasma-v1.0",
+      "origen": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
       "resuelve": true
      },
      {
@@ -22212,19 +22212,6 @@
       "carpeta_conocida": true,
       "fecha_en_nombre": "2026-07-25",
       "frontmatter_completo": true,
-      "nombre": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
-      "nombre_es_ascii": true,
-      "sigue_convencion": true,
-      "tipo_declarado": "INFORME",
-      "tipo_en_nombre": "INFORME",
-      "updated": "2026-07-25"
-     },
-     {
-      "area": "01-Graph",
-      "carpeta": "01-Graph",
-      "carpeta_conocida": true,
-      "fecha_en_nombre": "2026-07-25",
-      "frontmatter_completo": true,
       "nombre": "2026-07-25-INFORME-Fix-Graph-Cable-Fantasma-v1.0",
       "nombre_es_ascii": true,
       "sigue_convencion": true,
@@ -22426,6 +22413,19 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-08-04"
+     },
+     {
+      "area": "01-Graph",
+      "carpeta": "01-Graph",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-08-11",
+      "frontmatter_completo": true,
+      "nombre": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-08-11"
      },
      {
       "area": "01-Graph",
@@ -22977,14 +22977,14 @@
       "area": "01-Graph",
       "carpeta": "99-Inventada",
       "carpeta_conocida": false,
-      "fecha_en_nombre": "2026-08-11",
+      "fecha_en_nombre": "2026-07-25",
       "frontmatter_completo": true,
-      "nombre": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
+      "nombre": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
       "nombre_es_ascii": true,
       "sigue_convencion": true,
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
-      "updated": "2026-08-11"
+      "updated": "2026-07-25"
      }
     ],
     "enlace": [
@@ -23131,11 +23131,6 @@
      {
       "destino": "2026-07-29-INFORME-Seleccion-Multiple-Alineacion-Nodos-v2.0",
       "origen": "2026-07-25-CONCEPTO-Estetica-Nodos-Grasshopper-v1.0",
-      "resuelve": true
-     },
-     {
-      "destino": "2026-07-25-INFORME-Fix-Graph-Cable-Fantasma-v1.0",
-      "origen": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
       "resuelve": true
      },
      {
@@ -23351,6 +23346,11 @@
      {
       "destino": "2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0",
       "origen": "2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
+      "origen": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
       "resuelve": true
      },
      {
@@ -24454,8 +24454,8 @@
       "resuelve": true
      },
      {
-      "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
-      "origen": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
+      "destino": "2026-07-25-INFORME-Fix-Graph-Cable-Fantasma-v1.0",
+      "origen": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
       "resuelve": true
      },
      {
@@ -25223,6 +25223,19 @@
       "updated": "2026-08-12"
      },
      {
+      "area": "01-Graph",
+      "carpeta": "02-TreeGen",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-07-25",
+      "frontmatter_completo": true,
+      "nombre": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "INFORME",
+      "tipo_en_nombre": "INFORME",
+      "updated": "2026-07-25"
+     },
+     {
       "area": "02-TreeGen",
       "carpeta": "02-TreeGen",
       "carpeta_conocida": true,
@@ -25468,19 +25481,6 @@
       "tipo_declarado": "INFORME",
       "tipo_en_nombre": "INFORME",
       "updated": "2026-08-09"
-     },
-     {
-      "area": "01-Graph",
-      "carpeta": "02-TreeGen",
-      "carpeta_conocida": true,
-      "fecha_en_nombre": "2026-08-11",
-      "frontmatter_completo": true,
-      "nombre": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
-      "nombre_es_ascii": true,
-      "sigue_convencion": true,
-      "tipo_declarado": "INFORME",
-      "tipo_en_nombre": "INFORME",
-      "updated": "2026-08-11"
      },
      {
       "area": "03-Mesh-y-materiales",
@@ -26150,6 +26150,11 @@
      {
       "destino": "2026-08-12-PLAN-Multi-Salida-En-El-Graph-v1.0",
       "origen": "2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0",
+      "resuelve": true
+     },
+     {
+      "destino": "2026-07-25-INFORME-Fix-Graph-Cable-Fantasma-v1.0",
+      "origen": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
       "resuelve": true
      },
      {
@@ -26855,11 +26860,6 @@
      {
       "destino": "2026-08-09-ROADMAP-Verbos-Y-Ejemplos-PMG-v1.0",
       "origen": "2026-08-09-INFORME-Biblioteca-Ejemplos-Malla-Procedural-v1.0",
-      "resuelve": true
-     },
-     {
-      "destino": "2026-07-29-GUIA-Relevo-Claude-Codex-v1.0",
-      "origen": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
       "resuelve": true
      },
      {
@@ -27741,7 +27741,7 @@
       "carpeta": "01-Graph",
       "carpeta_conocida": true,
       "fecha_en_nombre": "2026-07-25",
-      "frontmatter_completo": true,
+      "frontmatter_completo": false,
       "nombre": "2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0",
       "nombre_es_ascii": true,
       "sigue_convencion": true,
@@ -27962,7 +27962,7 @@
       "carpeta": "01-Graph",
       "carpeta_conocida": true,
       "fecha_en_nombre": "2026-08-11",
-      "frontmatter_completo": false,
+      "frontmatter_completo": true,
       "nombre": "2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0",
       "nombre_es_ascii": true,
       "sigue_convencion": true,
@@ -30394,7 +30394,7 @@
    "catalogo": "99372ef74c544a44c24bbbe91d0dd050320a7a0e37d88ea94e6cf2d0de34f79c",
    "configuracion": "407a21668fb6d1cc90b20875fa7e2a1044832d4f2e47f759f46e63edcb27e073",
    "emisor": "0c28471abddabcb59c5a0e4dc2d8818a750dba69100b83fc10bb8c963f162865",
-   "referencia": "29d5b24e38de217db326b8141419b40a4124d19c5a314419a4de7ad8ea8d5a73"
+   "referencia": "fd9fca096aa8cb38746f366ddae12236b64c2ea745fd94f757b28db762797df3"
   },
   "raiz_fuentes": ".."
  },
