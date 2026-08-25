@@ -23,6 +23,70 @@ ALIAS_DERIVADO = "_"
 class ErrorDeAlgebra(ValueError):
     """La expresión o el operador no cumplen el contrato."""
 
+    def __init__(self, mensaje: object = "", *, ruta: tuple[int, ...] | str | None = None):
+        super().__init__(mensaje)
+        self._ruta = _normalizar_ruta(ruta)
+
+    @property
+    def ruta(self) -> str | None:
+        if self._ruta is None:
+            return None
+        return _texto_ruta(self._ruta)
+
+    @property
+    def ruta_indices(self) -> tuple[int, ...] | None:
+        return self._ruta
+
+    def con_ruta_actual(self) -> "ErrorDeAlgebra":
+        if self._ruta is None:
+            self._ruta = ()
+        return self
+
+    def prefijar_ruta(self, prefijo: tuple[int, ...] | str | None) -> "ErrorDeAlgebra":
+        indices = _normalizar_ruta(prefijo)
+        if indices is None:
+            return self
+        self._ruta = indices if self._ruta is None else (*indices, *self._ruta)
+        return self
+
+    def descartar_ruta(self) -> "ErrorDeAlgebra":
+        self._ruta = None
+        return self
+
+    def __str__(self) -> str:
+        texto = super().__str__()
+        if self._ruta is None:
+            return texto
+        ruta = _texto_ruta(self._ruta)
+        return f"{texto} en `{ruta}`" if ruta else f"{texto} en la raíz"
+
+
+def _normalizar_ruta(ruta: tuple[int, ...] | str | None) -> tuple[int, ...] | None:
+    if ruta is None:
+        return None
+    if isinstance(ruta, str):
+        if ruta == "":
+            return ()
+        partes: tuple[object, ...] = tuple(ruta.split("."))
+    else:
+        partes = tuple(ruta)
+    salida = []
+    for parte in partes:
+        if isinstance(parte, bool):
+            raise ValueError(f"ruta inválida: {ruta!r}")
+        try:
+            indice = int(parte)
+        except (TypeError, ValueError) as e:
+            raise ValueError(f"ruta inválida: {ruta!r}") from e
+        if indice < 0:
+            raise ValueError(f"ruta inválida: {ruta!r}")
+        salida.append(indice)
+    return tuple(salida)
+
+
+def _texto_ruta(ruta: tuple[int, ...]) -> str:
+    return ".".join(str(indice) for indice in ruta)
+
 
 @dataclass(frozen=True)
 class LimitesAlgebra:
@@ -165,6 +229,43 @@ def escalar(nombre: str, unidad: str = "", *, registro: RegistroEscalares | None
         destino[nombre] = fn
         return fn
     return envolver
+
+
+# ---- traza de la evaluación (el evaluador como sensor de sí mismo) ----------------
+#
+# El álgebra no puede evaluarse a sí misma: recorrer un AST es recursión, y la recursión salió del
+# álgebra a propósito (§8). Pero SÍ puede juzgarse ejecutándose, que es la doctrina de este proyecto
+# aplicada al evaluador: el sensor produce hechos y el álgebra los mide.
+#
+# Con esto, las propiedades que valen sin importar la implementación —«`donde` nunca agrega filas»,
+# «`unir` materializa exactamente el producto»— dejan de ser tests en Python y pasan a ser MEDIDAS:
+# entran a la mutación, al corpus y al inventario de puntos ciegos como cualquier otra.
+#
+# Apagada por omisión y sin costo cuando lo está: una lectura de ContextVar por paso.
+
+_TRAZA_ACTIVA: ContextVar[list | None] = ContextVar("oracle_traza", default=None)
+
+
+@contextmanager
+def trazar(destino: list | None = None):
+    """Recolecta los hechos de la evaluación mientras dure el bloque.
+
+    Es un contexto y no un global porque dos consumidores pueden medir a la vez sin pisarse, igual
+    que el registro de escalares.
+    """
+    destino = [] if destino is None else destino
+    token = _TRAZA_ACTIVA.set(destino)
+    try:
+        yield destino
+    finally:
+        _TRAZA_ACTIVA.reset(token)
+
+
+def _anotar(clase: str, **campos) -> None:
+    destino = _TRAZA_ACTIVA.get()
+    if destino is None:
+        return
+    destino.append((clase, campos))
 
 
 # ---- expresiones ------------------------------------------------------------------
@@ -317,7 +418,8 @@ def validar_expr(expr, limites: LimitesAlgebra | None = None, *,
 
 
 def evaluar_expr(expr, fila: dict, limites: LimitesAlgebra | None = None, *,
-                 registro: Mapping[str, Callable[..., Any]] | None = None):
+                 registro: Mapping[str, Callable[..., Any]] | None = None,
+                 ruta: tuple[int, ...] | str | None = None):
     """Un literal es un literal; el acceso a datos es SIEMPRE explícito.
 
     Se eligió `["campo", alias, nombre]` en vez de la forma corta `"a.x"` (y en vez de dejar que un
@@ -325,8 +427,24 @@ def evaluar_expr(expr, fila: dict, limites: LimitesAlgebra | None = None, *,
     cambiaría de significado según el contexto. Es más verboso y no tiene casos raros.
     """
     escalares = _registro(registro)
-    validar_expr(expr, limites, registro=escalares)
-    return _evaluar_expr(expr, fila, escalares)
+    try:
+        validar_expr(expr, limites, registro=escalares)
+        return _evaluar_expr(expr, fila, escalares)
+    except ErrorDeAlgebra as e:
+        if ruta is None:
+            e.descartar_ruta()
+        else:
+            e.con_ruta_actual().prefijar_ruta(ruta)
+        raise
+
+
+def _evaluar_hijo(expr: list, indice: int, fila: dict,
+                  escalares: Mapping[str, Callable[..., Any]]):
+    try:
+        return _evaluar_expr(expr[indice], fila, escalares)
+    except ErrorDeAlgebra as e:
+        e.con_ruta_actual().prefijar_ruta((indice,))
+        raise
 
 
 def _evaluar_expr(expr, fila: dict, escalares: Mapping[str, Callable[..., Any]]):
@@ -338,35 +456,59 @@ def _evaluar_expr(expr, fila: dict, escalares: Mapping[str, Callable[..., Any]])
     if cabeza == "campo":
         alias, nombre = resto
         if alias not in fila:
-            raise ErrorDeAlgebra(f"el alias «{alias}» no existe en la fila")
+            raise ErrorDeAlgebra(f"el alias «{alias}» no existe en la fila", ruta=())
         return fila[alias].get(nombre)
     if cabeza == "hecho":
         (alias,) = resto
         if alias not in fila:
-            raise ErrorDeAlgebra(f"el alias «{alias}» no existe en la fila")
+            raise ErrorDeAlgebra(f"el alias «{alias}» no existe en la fila", ruta=())
         return fila[alias]
     if cabeza == "col":
         (nombre,) = resto
         return fila.get(ALIAS_DERIVADO, {}).get(nombre)
 
     if cabeza in COMPARADORES:
-        a, b = (_evaluar_expr(x, fila, escalares) for x in resto)
+        a = _evaluar_hijo(expr, 1, fila, escalares)
+        b = _evaluar_hijo(expr, 2, fila, escalares)
         if a is None or b is None:
             # comparar contra un campo ausente es casi siempre un error de la medida, no un False
-            raise ErrorDeAlgebra(f"«{cabeza}» sobre un valor ausente: {expr}")
-        return comparar(cabeza, a, b)
-    if cabeza == "y":
-        return all(_evaluar_expr(x, fila, escalares) for x in resto)
-    if cabeza == "o":
-        return any(_evaluar_expr(x, fila, escalares) for x in resto)
+            raise ErrorDeAlgebra(f"«{cabeza}» sobre un valor ausente: {expr}", ruta=())
+        try:
+            return comparar(cabeza, a, b)
+        except ErrorDeAlgebra as e:
+            e.con_ruta_actual()
+            raise
+    if cabeza in ("y", "o"):
+        # SIN cortocircuito, y es deliberado. `all`/`any` sobre un generador dejan de evaluar apenas
+        # el resultado está decidido, y eso tapaba exactamente el error que el `raise` de arriba
+        # existe para levantar: `["y", <falso>, ["==", ["campo","a","typo"], 1]]` no llegaba nunca a
+        # mirar el campo inexistente y devolvía un `False` silencioso — el verde que §3 de la
+        # especificación prohíbe. Peor todavía, dependía de los datos: la misma medida rota
+        # levantaba el error con una evidencia y lo escondía con otra.
+        #
+        # Se paga evaluando de más en predicados grandes. El presupuesto de §9 ya acota esa
+        # amplificación, y una medida que se apoya en el cortocircuito para no romperse está rota.
+        valores = []
+        for indice in range(1, len(expr)):
+            valores.append(_evaluar_hijo(expr, indice, fila, escalares))
+        # `declarados` sale del AST y `evaluados` de haber pasado por el bucle: si alguien vuelve a
+        # cortocircuitar, los dos números dejan de coincidir y hay una medida que lo dice.
+        _anotar("nodo", cabeza=cabeza, declarados=len(resto), evaluados=len(valores))
+        return all(valores) if cabeza == "y" else any(valores)
     if cabeza == "no":
-        (x,) = resto
-        return not _evaluar_expr(x, fila, escalares)
+        return not _evaluar_hijo(expr, 1, fila, escalares)
 
     if cabeza in escalares:
-        return escalares[cabeza](*(_evaluar_expr(x, fila, escalares) for x in resto))
+        argumentos = [_evaluar_hijo(expr, indice, fila, escalares)
+                      for indice in range(1, len(expr))]
+        try:
+            return escalares[cabeza](*argumentos)
+        except ErrorDeAlgebra as e:
+            e.con_ruta_actual()
+            raise
 
-    raise ErrorDeAlgebra(f"«{cabeza}» no es accesor, comparador, lógico ni escalar declarada")
+    raise ErrorDeAlgebra(
+        f"«{cabeza}» no es accesor, comparador, lógico ni escalar declarada", ruta=())
 
 
 # ---- agregados --------------------------------------------------------------------
@@ -408,6 +550,69 @@ def _agregar(agregado: str, valores: list):
     return resultado
 
 
+# ---- claves de unicidad -----------------------------------------------------------
+#
+# Una relación es una bolsa (§1): la multiplicidad es evidencia y Oracle no la deduce. Pero un
+# dominio que SÍ conoce su identidad puede declararla como clave de unicidad, y entonces un duplicado
+# deja de ser un hecho más para ser un defecto del sensor. La clave es un nodo opcional a la cabeza
+# de la lista de hechos —`["clave", [<campo>, …]]`—; sin él, la relación es exactamente la bolsa de
+# siempre y no cambia nada.
+
+CLAVE = "clave"
+
+
+def separar_clave(hechos: list) -> tuple[tuple[str, ...], list]:
+    """Separa la declaración opcional de clave de las filas, validándola fail-closed.
+
+    Devuelve `(clave, filas)`: `clave` es la tupla de campos declarados (vacía si la relación no
+    declara nada) y `filas` son los hechos. Un nodo `clave` mal formado levanta, no se ignora: un
+    contrato de identidad que se lee mal se leería como ausencia de contrato, y eso es exactamente
+    el falso verde que la clave existe para cerrar.
+    """
+    if not hechos or not isinstance(hechos[0], list) or not hechos[0] or hechos[0][0] != CLAVE:
+        return (), hechos
+    nodo = hechos[0]
+    if len(nodo) != 2 or not isinstance(nodo[1], list) or not nodo[1]:
+        raise ErrorDeAlgebra(
+            f"«{CLAVE}» va ['{CLAVE}', [<campo>, …]] con al menos un campo, no {nodo!r}")
+    campos = nodo[1]
+    if any(not isinstance(c, str) or not c.strip() for c in campos):
+        raise ErrorDeAlgebra(
+            f"la clave de unicidad lista campos de texto no vacíos, no {campos!r}")
+    if len(set(campos)) != len(campos):
+        raise ErrorDeAlgebra(f"la clave de unicidad repite un campo: {campos}")
+    return tuple(campos), hechos[1:]
+
+
+def validar_unicidad(relacion: str, clave: tuple[str, ...], filas: list) -> None:
+    """Fail-closed: un duplicado bajo la clave declarada es un defecto del sensor, no un hecho más.
+
+    El mensaje nombra la clave responsable y la fila que la viola, para que el sensor pueda corregir
+    su producción sin adivinar qué relación ni qué campo. Un campo de la clave ausente también
+    levanta: una identidad a medias no se puede comprobar, y un nulo implícito la dejaría sin
+    comprobar en silencio.
+    """
+    vistos: dict = {}
+    for i, hecho in enumerate(filas):
+        ausentes = [campo for campo in clave if campo not in hecho]
+        if ausentes:
+            raise ErrorDeAlgebra(
+                f"la relación «{relacion}» declara la clave ({', '.join(clave)}) y la fila {i} "
+                f"no trae el campo {', '.join(ausentes)}")
+        valores = tuple(hecho[campo] for campo in clave)
+        try:
+            hash(valores)
+        except TypeError:
+            raise ErrorDeAlgebra(
+                f"la relación «{relacion}» declara la clave ({', '.join(clave)}) y la fila {i} "
+                f"no la trae como escalar")
+        if valores in vistos:
+            raise ErrorDeAlgebra(
+                f"la relación «{relacion}» declara la clave ({', '.join(clave)}) y la fila {i} "
+                f"la repite: ya la traía la fila {vistos[valores]} — {hecho}")
+        vistos[valores] = i
+
+
 # ---- operadores -------------------------------------------------------------------
 
 FUENTES = ("de", "unir")
@@ -422,25 +627,37 @@ def _de(evidencia: dict, relacion: str, alias: str, limites: LimitesAlgebra) -> 
     if not isinstance(hechos, list):
         raise ErrorDeAlgebra(
             f"la relación «{relacion}» debe ser una lista de hechos, no {type(hechos).__name__}")
-    if len(hechos) > limites.filas_por_relacion:
+    clave, filas = separar_clave(hechos)
+    if len(filas) > limites.filas_por_relacion:
         raise ErrorDeAlgebra(
-            f"la relación «{relacion}» tiene {len(hechos)} filas y supera el límite "
+            f"la relación «{relacion}» tiene {len(filas)} filas y supera el límite "
             f"de {limites.filas_por_relacion}")
-    if not all(isinstance(hecho, dict) for hecho in hechos):
+    if not all(isinstance(hecho, dict) for hecho in filas):
         raise ErrorDeAlgebra(f"la relación «{relacion}» contiene una fila que no es un hecho")
-    return [{alias: dict(hecho)} for hecho in hechos]
+    if clave:
+        validar_unicidad(relacion, clave, filas)
+    return [{alias: dict(hecho)} for hecho in filas]
 
 
 def _unir(paso, evidencia: dict, limites: LimitesAlgebra,
-          registro: Mapping[str, Callable[..., Any]]) -> list[dict]:
-    """`["unir", izq, der]` → producto. Los alias de ambos lados conviven en la fila."""
+          registro: Mapping[str, Callable[..., Any]], _lados: dict | None = None, *,
+          ruta: tuple[int, ...] | None = None) -> list[dict]:
+    """`["unir", izq, der]` → producto. Los alias de ambos lados conviven en la fila.
+
+    `_lados` es la única concesión a la traza: deja los tamaños de cada lado para que quien llama
+    anote el hecho **con lo que este operador realmente devolvió**. La primera versión anotaba acá
+    adentro, leyendo `salida` antes del `return`, y así no medía nada: cualquier defecto entre esa
+    línea y el punto de uso quedaba fuera. Un sensor que se lee a sí mismo no audita la frontera.
+    """
     izq, der = paso[1], paso[2]
     for lado in (izq, der):
         if lado[0] not in FUENTES:
             raise ErrorDeAlgebra(f"«unir» toma fuentes, y recibió «{lado[0]}»")
 
-    filas_izq = aplicar(izq, [], evidencia, limites, registro=registro)
-    filas_der = aplicar(der, [], evidencia, limites, registro=registro)
+    ruta_izq = (*ruta, 1) if ruta is not None else None
+    ruta_der = (*ruta, 2) if ruta is not None else None
+    filas_izq = aplicar(izq, [], evidencia, limites, registro=registro, ruta=ruta_izq)
+    filas_der = aplicar(der, [], evidencia, limites, registro=registro, ruta=ruta_der)
     tamano = len(filas_izq) * len(filas_der)
     if tamano > limites.producto_cartesiano:
         raise ErrorDeAlgebra(
@@ -453,11 +670,14 @@ def _unir(paso, evidencia: dict, limites: LimitesAlgebra,
             if comunes:
                 raise ErrorDeAlgebra(f"«unir» con alias repetido: {sorted(comunes)}")
             salida.append({**a, **b})
+    if _lados is not None:
+        _lados["izquierda"], _lados["derecha"] = len(filas_izq), len(filas_der)
     return salida
 
 
 def _agrupar(paso, filas: list[dict], limites: LimitesAlgebra,
-             registro: Mapping[str, Callable[..., Any]]) -> list[dict]:
+             registro: Mapping[str, Callable[..., Any]], *,
+             ruta: tuple[int, ...] | None = None) -> list[dict]:
     """`["agrupar", [[nombre, expr]…], [[nombre, agg, expr]…]]` → una fila por grupo.
 
     Un grupo NO es un hecho: es un resumen. Así que las filas que salen no llevan alias —los hechos
@@ -470,28 +690,37 @@ def _agrupar(paso, filas: list[dict], limites: LimitesAlgebra,
     donde nada casó da cero y sigue existiendo. Sin nulos y sin operador nuevo.
     """
     claves, agregados = paso[1], paso[2]
+    rutas_clave = [(*ruta, 1, posicion, 1) for posicion in range(len(claves))] if (
+        ruta is not None) else [None] * len(claves)
+    rutas_agregado = [(*ruta, 2, posicion, 2) for posicion in range(len(agregados))] if (
+        ruta is not None) else [None] * len(agregados)
     grupos: dict[tuple, list[dict]] = {}
     for f in filas:
-        k = tuple(evaluar_expr(expr, f, limites, registro=registro)
-                  for _nombre, expr in claves)
+        valores_clave = []
+        for ruta_expr, (_nombre, expr) in zip(rutas_clave, claves):
+            valores_clave.append(evaluar_expr(
+                expr, f, limites, registro=registro, ruta=ruta_expr))
+        k = tuple(valores_clave)
         grupos.setdefault(k, []).append(f)
 
     salida = []
     for k, miembros in grupos.items():
         derivadas = {nombre: valor for (nombre, _expr), valor in zip(claves, k)}
-        for nombre, agg, expr in agregados:
+        for ruta_expr, (nombre, agg, expr) in zip(rutas_agregado, agregados):
             if agg not in AGREGADOS:
                 raise ErrorDeAlgebra(f"agregado desconocido: «{agg}»")
             derivadas[nombre] = (len(miembros) if agg == "contar" else
                                  _agregar(agg, [evaluar_expr(
-                                     expr, m, limites, registro=registro) for m in miembros]))
+                                     expr, m, limites, registro=registro, ruta=ruta_expr)
+                                     for m in miembros]))
         salida.append({ALIAS_DERIVADO: derivadas})
     return salida
 
 
 def aplicar(paso, filas: list[dict], evidencia: dict,
             limites: LimitesAlgebra | None = None, *,
-            registro: Mapping[str, Callable[..., Any]] | None = None) -> list[dict]:
+            registro: Mapping[str, Callable[..., Any]] | None = None,
+            ruta: tuple[int, ...] | None = None) -> list[dict]:
     limites = _limites(limites)
     escalares = _registro(registro)
     op = paso[0]
@@ -499,12 +728,18 @@ def aplicar(paso, filas: list[dict], evidencia: dict,
         relacion, alias = paso[1], paso[2]
         return _de(evidencia, relacion, alias, limites)
     if op == "unir":
-        return _unir(paso, evidencia, limites, escalares)
+        # El hecho se anota con lo que el operador DEVOLVIÓ, no con lo que creyó construir.
+        lados: dict = {}
+        filas_unidas = _unir(paso, evidencia, limites, escalares, lados, ruta=ruta)
+        _anotar("producto", izquierda=lados["izquierda"], derecha=lados["derecha"],
+                salida=len(filas_unidas))
+        return filas_unidas
     if op == "donde":
+        ruta_expr = (*ruta, 1) if ruta is not None else None
         return [f for f in filas if evaluar_expr(
-            paso[1], f, limites, registro=escalares)]
+            paso[1], f, limites, registro=escalares, ruta=ruta_expr)]
     if op == "agrupar":
-        return _agrupar(paso, filas, limites, escalares)
+        return _agrupar(paso, filas, limites, escalares, ruta=ruta)
     raise ErrorDeAlgebra(f"operador desconocido: «{op}»")
 
 
@@ -600,13 +835,16 @@ def desde(tuberia, evidencia: dict, limites: LimitesAlgebra | None = None, *,
     escalares = _registro(registro)
     validar_tuberia(tuberia, limites, registro=escalares)
     filas: list[dict] = []
-    for paso in tuberia[1:]:
-        filas = aplicar(paso, filas, evidencia, limites, registro=escalares)
+    for t, paso in enumerate(tuberia[1:]):
+        antes = len(filas)
+        filas = aplicar(paso, filas, evidencia, limites, registro=escalares, ruta=(2, t + 1))
+        _anotar("paso", t=t, operador=paso[0], filas_antes=antes, filas_despues=len(filas))
     return filas
 
 
 def resumir(resumen, filas: list[dict], limites: LimitesAlgebra | None = None, *,
-            registro: Mapping[str, Callable[..., Any]] | None = None):
+            registro: Mapping[str, Callable[..., Any]] | None = None,
+            ruta: tuple[int, ...] | None = (3,)):
     """`["resumen", agg, expr]` → el escalar. `contar` no evalúa la expresión: cuenta filas."""
     limites = _limites(limites)
     escalares = _registro(registro)
@@ -614,5 +852,6 @@ def resumir(resumen, filas: list[dict], limites: LimitesAlgebra | None = None, *
     _, agg, expr = resumen
     if agg == "contar":
         return len(filas)
+    ruta_expr = (*ruta, 2) if ruta is not None else None
     return _agregar(agg, [evaluar_expr(
-        expr, f, limites, registro=escalares) for f in filas])
+        expr, f, limites, registro=escalares, ruta=ruta_expr) for f in filas])

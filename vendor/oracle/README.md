@@ -17,6 +17,26 @@ bien. Con un LLM el efecto es más fuerte, por dos razones estructurales:
 De ahí la forma de todo lo que hay acá: las reglas son programas que fallan, no documentos que
 aconsejan.
 
+---
+
+> ## Estado: `EXPERIMENTAL` → `METALENGUAJE`
+>
+> **Hoy es un experimento**, y el metalenguaje es el destino, no la descripción. Falta bastante para
+> llegar: la reflexión sobre el catálogo sigue fijada en Python —L2 tiene mecanismo propio, que es
+> justo lo que un metalenguaje no debería necesitar—, y el camino está desglosado en
+> [`PLAN-LENGUAJE.md`](PLAN-LENGUAJE.md).
+>
+> **No hay fecha de corte, ni condición de cierre, ni tope de tamaño.** Las hubo por un rato, en
+> respuesta a dos auditorías externas que midieron a Oracle con la vara de un producto adoptable —
+> vara que este README las invitó a usar. Se retiraron el 2026-08-24: un experimento no se gobierna
+> con plazos, se gobierna con disparadores, y el de la reificación está escrito en el plan.
+>
+> Lo que **no** cambió es la exigencia hacia adentro: toda medida sigue declarando qué NO ve, todo
+> umbral sigue trayendo su defensa, y la mutación sigue teniendo que terminar en cero sobrevivientes.
+> Ser experimental es un estado del proyecto, no un permiso para aflojar sus propias reglas.
+
+---
+
 ## La esencia, mirada de cerca
 
 Después de construirlo, lo que queda debajo de todos los mecanismos es una sola frase:
@@ -39,7 +59,7 @@ No es un instrumento de medición: es un instrumento de **rechazo**. No calcula 
 dejar pasar** lo que no se puede sostener.
 
 <!-- negativas:inicio -->
-En este corte hay 2944 líneas de lenguaje y **171 negativas explícitas** (`raise`).
+En este corte hay 5020 líneas de lenguaje y **230 negativas explícitas** (`raise`).
 <!-- negativas:fin -->
 
 Un umbral sin defensa no se carga. Una medida sin `alcance` no se carga. Un campo ausente no da
@@ -63,7 +83,7 @@ de grave: en un solo día lo cometí tres veces.
 ### El sujeto es el que construye, no lo construido
 
 <!-- deteccion:inicio -->
-Los 30 casos no observacionales salieron a la luz por vías que no aceptan el verde nominal: 17 la mutación, 8 una persona, 4 la casualidad, 1 una herramienta ajena.
+Los 61 casos no observacionales salieron a la luz por vías que no aceptan el verde nominal: 42 la mutación, 12 una persona, 4 la casualidad, 3 una herramienta ajena.
 <!-- deteccion:fin -->
 
 Ninguna de esas vías le pregunta al que escribió el código. Oracle no es un juez de artefactos — es
@@ -72,18 +92,32 @@ una prótesis para alguien que escribe la herramienta y su test con la misma man
 ### El costo, dicho
 
 <!-- escala:inicio -->
-**2944 líneas de lenguaje** (`nucleo/`, código y macros) y **171 negativas explícitas** (`raise`). Contra las 18 medidas universales escritas en él (164 líneas): **18,0 a 1**. 15 de las 18 pasan por una macro.
+**5020 líneas de lenguaje** (`nucleo/`, código y macros) y **230 negativas explícitas** (`raise`). Contra las 33 medidas universales escritas en él (203 líneas): **24,7 a 1**. 26 de las 33 pasan por una macro.
 <!-- escala:fin -->
 
 Ésa es la apuesta y ésa es la métrica: que los catálogos de los proyectos crezcan sin hacer crecer el
 metalenguaje. Los catálogos externos no se incorporan al núcleo para mejorar artificialmente la
 proporción.
 
-Es la única medición del proyecto **que no se puede sastrear escribiendo más medidas** — escribir más
-medidas es justamente lo que la mejora. Si en seis meses la proporción no se movió, el lenguaje no
-valió la pena.
+> **La proporción es sensible al FORMATO, y eso es un defecto de la métrica.** El 2026-08-25 pasó
+> de **16,8 a 24,7** sin que el lenguaje ganara una capacidad ni las medidas perdieran una regla:
+> el catálogo se pasó de JSON compacto a la superficie infija y las mismas 33 medidas bajaron de
+> 298 líneas a 203. El efecto compone en las dos direcciones a la vez —tener sintaxis suma 900
+> líneas al numerador Y acorta el denominador—, así que **el número de hoy no se compara con el de
+> ayer**. Es de la misma familia que el hallazgo de `indent=2`, que infló la proporción
+> reformateando archivos: mientras el denominador se cuente en LÍNEAS, cambiar cómo se escribe una
+> medida mueve la cifra sin que cambie nada de lo que la cifra dice medir. Queda anotado como
+> defecto abierto y no se arregla acá: cualquier arreglo bajaría el costo publicado, y una métrica
+> no se cambia en el movimiento en que su resultado incomoda.
 
-**Y la proporción viene empeorando, dos veces seguidas.**
+Es la única medición del proyecto **que no se puede sastrear escribiendo más medidas** — escribir más
+medidas es justamente lo que la mejora. Es una cifra sobre el **costo**, no un veredicto: qué se
+concluye de ella está en la sección de abajo, y la respuesta corta es «menos de lo que este párrafo
+llegó a afirmar».
+
+**Y la proporción no se mueve.** Fue 16,2 antes de `defmacro`, subió a 18,2, y volvió a 16,2. Ni
+mejoró ni empeoró: después de meses de trabajo está donde empezó, y las dos veces que se movió fue
+por escribir código de núcleo o por escribir medidas universales — nunca por un consumidor.
 
 El corte anterior publicaba «2202 líneas» y «trece a uno» escritos a mano; los valores reales ya eran
 2654 y 16,2 a 1, y nada lo detectó, porque el criterio de falsación declarado del proyecto era
@@ -98,6 +132,38 @@ pago no es este corte: es que la macro número cuatro ya no cuesta ni una línea
 El numerador cuenta `nucleo/macros/*.json` junto con el `.py`, a propósito. Si contara sólo código,
 mover Python a datos habría «mejorado» la proporción sin que el lenguaje encogiera un gramo — el
 sastreo exacto contra el que esta medición existe.
+
+### La proporción no alcanza como criterio, y el proyecto es EXPERIMENTAL
+
+Dos auditorías externas coincidieron: como criterio de falsación, la proporción no puede hacer el
+trabajo. **Disparó en contra tres cortes seguidos** —16,2 → 18,0 → 18,2— y la respuesta publicada fue
+reinterpretarla. Después volvió a 16,2, y eso no la rehabilita: volvió porque se escribieron más
+medidas universales, que es el único mecanismo que la mueve hacia abajo.
+
+El problema es estructural y son dos: es inmune a la adopción —los catálogos externos no entran a su
+denominador, así que ningún consumidor puede moverla— y es inmune a la migración: al mover una
+política real de Python al catálogo, el núcleo bajó tres líneas y la cifra no se movió, porque lo que
+queda en Python es código de sensor y eso no puede migrar nunca.
+
+**Pero el error de fondo no era la métrica: era publicarla como criterio.** «Si en seis meses la
+proporción no se movió, el lenguaje no valió la pena» es una afirmación de producto, y esto no es un
+producto. Es un experimento, y por eso:
+
+> **Oracle está en estado EXPERIMENTAL.** No tiene fecha de corte, ni condición de cierre, ni tope de
+> tamaño para el núcleo. Le falta bastante para ser un metalenguaje —la reflexión sobre el catálogo
+> sigue fijada en Python, ver [`PLAN-LENGUAJE.md`](PLAN-LENGUAJE.md)— y ése es el estado declarado,
+> no un déficit contra un plazo.
+
+Hubo una puerta de abandono prerregistrada, escrita el 2026-08-24 en respuesta a las auditorías, con
+plazo al 2027-01-29 y consecuencia escrita. **Se retiró el mismo día**, junto con el tope de núcleo
+que la acompañaba: ese tope era un número inventado —el tamaño de ese momento más cien líneas— y
+Oracle no lo necesitaba para nada. Poner plazos y consecuencias a un experimento es tratarlo como lo
+que todavía no es, y las auditorías lo midieron con esa vara porque el README las invitó a hacerlo.
+
+Lo que **sí** queda de esa discusión, porque no depende de ningún plazo: la proporción sigue
+publicándose y sigue generada por `tools/cifras.py`, con el CI fallando si vence. Es una cifra sobre
+el costo, no un veredicto sobre el proyecto — y leerla como veredicto fue el error que corrigió esta
+sección.
 
 ## Tres influencias, y qué aporta cada una
 
@@ -139,6 +205,7 @@ apuntado a L1.
 medición   un escalar del mundo
 umbral     una comparación — con su DEFENSA escrita
 testigos   las filas que ofenden  (no se calculan aparte: son las que pasaron el filtro)
+requiere   qué NECESITA ver para concluir  ← opcional
 alcance    qué NO ve esta medida  ← OBLIGATORIO
 ```
 
@@ -147,6 +214,12 @@ que merece. Acá un informe en verde **termina enumerando lo que no miró**.
 
 El umbral lleva su defensa por el mismo motivo: un número que nadie puede discutir es una métrica
 esperando a volverse objetivo.
+
+`requiere` es el espejo de `alcance`, y entró porque declarar un hueco no es cerrarlo. Un agregado
+sobre cero filas da `0`, que es indistinguible de un agregado que dio cero: la medida de ausencia
+salía **verde justo cuando el mundo estaba peor** —ningún importador, ningún par, ningún grupo—.
+Cuando una relación declarada acá viene vacía, el veredicto es `SIN EVIDENCIA`: no es verde y
+tampoco es un rojo del mundo, porque no se midió nada.
 
 ## Lo que NO es
 
@@ -305,11 +378,11 @@ fixtures devuelve estado no-verde; el flujo temporal de un proyecto externo prue
 positivo. Esto evita convertir «no había nada que comparar» en una certificación accidental.
 
 <!-- corpus:inicio -->
-**42 casos**: 30 defectos y 12 verdes correctos. De los defectos, 27 deben ponerse en rojo · 0 huecos abiertos · 2 resueltos conservados · 1 límite humano. Por etiqueta: 25 falsos verdes, 2 falsos rojos, 1 conclusión causal incorrecta pese a una medida correcta y 2 deudas de diseño.
+**90 casos**: 61 defectos y 29 verdes correctos. De los defectos, 58 deben ponerse en rojo · 0 huecos abiertos · 2 resueltos conservados · 1 límite humano. Por etiqueta: 56 falsos verdes, 2 falsos rojos, 1 conclusión causal incorrecta pese a una medida correcta y 2 deudas de diseño.
 <!-- corpus:fin -->
 
 <!-- cifras:inicio -->
-391 tests · 129/129 mutantes de medida · **1231 sitios de mutación de código** (1026 + 205 del motor Python).
+487 tests · 406/406 mutantes de medida · **2041 sitios de mutación de código** (1836 + 205 del motor Python).
 <!-- cifras:fin -->
 
 > **Baseline restaurado el 2026-08-03 sobre el denominador vigente.** Los 16 objetivos de la matriz
@@ -479,8 +552,9 @@ El camino de «formato de datos con buenas defensas» a «lenguaje» está desgl
 [`PLAN-LENGUAJE.md`](PLAN-LENGUAJE.md): `defmacro` en datos, reificación mecánica del catálogo, la
 decisión sobre composición, y el diferencial propio que hoy está estructuralmente vacío.
 
-- **Elegir una licencia.** El paquete, entry points y CI ya existen, pero la decisión legal no se
-  infiere del código ni la toma el agente por el autor.
+- ~~**Elegir una licencia.**~~ **HECHO.** MIT, en [`LICENSE`](LICENSE) y en los metadatos del
+  paquete (`License-Expression: MIT`, con el archivo incluido en el wheel): un tercero puede
+  identificar los permisos automáticamente y redistribuirlo.
 - **Un consumidor real independiente.** El proyecto externo sintético demuestra desacoplamiento
   técnico; la adopción por un proyecto no diseñado junto con Oracle sigue siendo evidencia externa,
   no algo que este repositorio pueda fabricar.

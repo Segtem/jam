@@ -31,7 +31,8 @@ sys.path.insert(0, str(RAIZ))
 import catalogos  # noqa: F401,E402
 from nucleo.algebra import AGREGADOS, COMPARADORES, ESCALARES  # noqa: E402
 from nucleo.fixtures import cargar_fixtures, evidencias as evidencias_fixture  # noqa: E402
-from nucleo.medida import Medida, MedidaMalDeclarada, cargar_catalogo  # noqa: E402
+from nucleo.medida import (Medida, MedidaMalDeclarada, cargar_catalogo,  # noqa: E402
+                           cargar_fuente_medida)
 from nucleo.proyecto import (EscalaresInvalidas, EscalaresNoConfiables, ProyectoInvalido,
                              catalogos_a_cargar, confiar_escalares, escalares_del_proyecto,
                              macros_del_proyecto, presentar_ruta, problemas_estructura,
@@ -40,16 +41,15 @@ from tools.sesion import resolver_cli  # noqa: E402
 
 # La plantilla usa la macro `ninguno`, que es la forma del 80% de las medidas. `--expandir` muestra
 # en qué se convierte; y si el caso no encaja, la forma canónica sigue siendo válida.
+# En superficie infija, no en JSON. La plantilla es lo primero que ve alguien que escribe su primera
+# medida, y hasta hoy le decía «tu trabajo es anidar corchetes». Se guarda como `.oracle`, que el
+# catálogo carga igual que un `.json`.
 PLANTILLA = """\
-[
-  "ninguno",
-  "{mid}",
-  "RELACION",
-  "x",
-  ["==", ["campo", "x", "CAMPO"], false],
-  "POR QUE ese numero y no otro. Un umbral sin defensa es una metrica esperando a volverse objetivo.",
-  "QUE NO VE esta medida. Obligatorio: un verde que no dice lo que no mira se lee como «esta bien»."
-]
+ninguno {mid}:
+    de RELACION x
+    donde x.CAMPO == false
+    umbral <= 0 porque "POR QUE ese numero y no otro. Un umbral sin defensa es una metrica esperando a volverse objetivo."
+    alcance "QUE NO VE esta medida. Obligatorio: un verde que no dice lo que no mira se lee como «esta bien»."
 """
 
 
@@ -137,7 +137,7 @@ def nueva(proy, mid: str) -> int:
 
 
 def expandir_archivo(ruta: Path, macros=None) -> int:
-    datos = json.loads(ruta.read_text(encoding="utf-8"))
+    datos = cargar_fuente_medida(ruta)
     from nucleo.macro import es_macro
     if not es_macro(datos, macros):
         print(f"«{datos[1] if len(datos) > 1 else '?'}» ya está en forma canónica.")
@@ -148,9 +148,9 @@ def expandir_archivo(ruta: Path, macros=None) -> int:
 
 def revisar(proy, ruta: Path) -> int:
     try:
-        datos = json.loads(ruta.read_text(encoding="utf-8"))
-    except json.JSONDecodeError as e:
-        print(f"✗ JSON inválido: {e}")
+        datos = cargar_fuente_medida(ruta)
+    except MedidaMalDeclarada as e:
+        print(f"✗ {e}")
         return 1
     macros = macros_del_proyecto(proy)
     try:

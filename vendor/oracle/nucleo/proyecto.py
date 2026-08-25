@@ -28,6 +28,8 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
+from .version import VersionInvalida, compatible, del_nucleo, parsear
+
 RAIZ_ORACLE = Path(__file__).resolve().parents[1]
 
 
@@ -151,6 +153,21 @@ def configuracion(proy: "Proyecto", *, raices_perfiles=()) -> ConfiguracionProye
     catalogo_base = datos.get("catalogo_base", False)
     if not isinstance(catalogo_base, bool):
         raise ProyectoInvalido("`catalogo_base` debe ser booleano")
+    # Un proyecto puede declarar qué versión del álgebra necesita. Es OPCIONAL: quien no la declara
+    # sigue funcionando (los consumidores existentes no se rompen), pero quien la declara y no coincide
+    # falla cerrado acá, antes de cargar ni una medida — con un mensaje que dice cuál hay y cuál se
+    # pidió.
+    algebra = datos.get("algebra")
+    if algebra is not None:
+        try:
+            necesitada = parsear(algebra)
+        except VersionInvalida as e:
+            raise ProyectoInvalido(f"`oracle.json`: {e}") from e
+        disponible = del_nucleo()
+        if not compatible(necesitada, disponible):
+            raise ProyectoInvalido(
+                f"`oracle.json` pide el álgebra {necesitada} y este núcleo implementa {disponible}; "
+                "un proyecto que declara una versión incompatible no se evalúa")
     return ConfiguracionProyecto(tuple(perfiles), catalogo_base)
 
 
@@ -253,49 +270,33 @@ def escalares_del_proyecto(proy: "Proyecto", *, confiar: bool = False, registro=
     if archivo.is_symlink() or not fisica.is_file():
         raise EscalaresInvalidas("`escalares.py` debe ser un archivo físico, no un symlink")
 
-    import hashlib
-    import importlib.util
     from nucleo import algebra
+    from nucleo.aislamiento.escalares import (ErrorEscalarAislada,
+                                              registrar_escalares_aisladas)
 
     destino = algebra.ESCALARES if registro is None else registro
     if not isinstance(destino, algebra.RegistroEscalares):
         raise EscalaresInvalidas("`registro` debe ser una instancia de RegistroEscalares")
 
-    huella = hashlib.sha256(str(raiz).encode("utf-8")).hexdigest()
-    spec = importlib.util.spec_from_file_location(f"oracle_escalares_{huella}", fisica)
-    if spec is None or spec.loader is None:
-        raise EscalaresInvalidas(f"no se pudo preparar la carga de {fisica}")
-    modulo = importlib.util.module_from_spec(spec)
     anteriores = dict(destino)
     globales_anteriores = dict(algebra.ESCALARES)
+    trabajador = None
     carga_confirmada = False
     try:
         try:
-            with algebra.usar_registro(destino, procedencia=f"proyecto:{raiz}"):
-                spec.loader.exec_module(modulo)
-            alteradas = [nombre for nombre, fn in anteriores.items()
-                         if destino.get(nombre) is not fn]
-            if alteradas:
-                raise EscalaresInvalidas(
-                    f"escalares.py alteró registros existentes: {sorted(alteradas)}")
-            if destino is not algebra.ESCALARES and dict(algebra.ESCALARES) != globales_anteriores:
-                raise EscalaresInvalidas(
-                    "escalares.py intentó alterar el registro global fuera de su motor")
-            for nombre in set(destino) - set(anteriores):
-                fn = destino[nombre]
-                requeridos = ("nombre_escalar", "unidad", "aridad_min", "aridad_max",
-                              "procedencia_escalar")
-                if any(not hasattr(fn, campo) for campo in requeridos):
-                    raise EscalaresInvalidas(
-                        f"la escalar «{nombre}» evitó el decorador `@escalar`")
-        except EscalaresInvalidas:
-            raise
+            trabajador = registrar_escalares_aisladas(raiz, fisica, destino)
+        except ErrorEscalarAislada as e:
+            raise EscalaresInvalidas(f"falló {fisica}: {e}") from e
         except Exception as e:
             raise EscalaresInvalidas(
                 f"falló {fisica}: {type(e).__name__}: {e}") from e
         yield str(fisica)
         carga_confirmada = True
     finally:
+        conservar = (destino is not algebra.ESCALARES and carga_confirmada
+                     and trabajador is not None and bool(trabajador.declaradas))
+        if trabajador is not None and not conservar:
+            trabajador.cerrar()
         if destino is algebra.ESCALARES or not carga_confirmada:
             destino.clear()
             destino.update(anteriores)
@@ -338,6 +339,27 @@ def problemas_estructura(proy: "Proyecto", requeridos: tuple[str, ...]) -> list[
     return fallas
 
 
+# La superficie infija es cómo se escribe; el JSON es cómo se guarda. Una medida NUEVA nace en
+# la superficie: el formato en el que se autoriza a alguien a escribir es el primer mensaje que
+# da el lenguaje, y hasta hoy ese mensaje era «escribí JSON a mano».
+EXTENSION_DE_AUTORIA = ".oracle"
+
+
+# La gramática del id de una medida: `dominio.nombre`, minúsculas ASCII, dígitos y `_`.
+#
+# El ASCII no es pereza y no es que el proyecto no sea en español —la prosa de `porque` y de
+# `alcance` lo es entera—. Es que un id es también un NOMBRE DE ARCHIVO, y en Unicode dos nombres
+# que se dibujan idénticos pueden ser bytes distintos:
+#
+#     "dueño"  →  b'due\xc3\xb1o'    (ñ precompuesta, NFC)
+#     "dueño"  →  b'duen\xcc\x83o'   (n + tilde combinante, NFD)
+#
+# Son distintos para Python, para git y para un `dict`, y se ven iguales en pantalla. macOS
+# normaliza a NFD al escribir y Linux no toca nada, así que el mismo catálogo clonado en dos
+# máquinas puede tener dos ids que nadie puede distinguir mirando. Eso es una divergencia
+# silenciosa entre dos copias del mismo dato, que es justo la clase de cosa que este repositorio
+# existe para no tener. Se cierra por gramática y no por normalización, porque normalizar es
+# aceptar la ambigüedad y después elegir por el autor.
 ID_MEDIDA_RE = re.compile(r"^[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)+$")
 
 
@@ -347,7 +369,7 @@ def ruta_de_medida_nueva(proy: "Proyecto", mid: str) -> Path:
         raise ProyectoInvalido(
             "el id debe ser `dominio.nombre`, sólo con minúsculas ASCII, dígitos y `_`")
     catalogos = proy.catalogos.resolve()
-    destino = proy.catalogos / mid.split(".")[0] / f"{mid}.json"
+    destino = proy.catalogos / mid.split(".")[0] / f"{mid}{EXTENSION_DE_AUTORIA}"
     try:
         destino.resolve().relative_to(catalogos)
     except (OSError, ValueError) as e:
