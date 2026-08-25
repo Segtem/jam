@@ -1,9 +1,9 @@
 [
-  "ninguno",
+  "medida",
   "physics.apoyado",
-  "asentamiento",
-  "a",
-  ["o", ["==", ["campo", "a", "tiene_suelo"], false], [">", ["cerca", ["campo", "a", "gap"], 0.0], 1.0]],
-  "hasta 1 cm entre la base y la tapa del soporte se considera contacto; más aire flota y un gap negativo queda hundido",
-  "gap vertical de AABB contra el soporte más alto. NO ve contacto de la malla real, equilibrio, centro de masa, rotación, penetración lateral ni si el soporte es apropiado"
+  ["desde", ["de", "asentamiento", "a"], ["donde", ["==", ["campo", "a", "tiene_suelo"], true]], ["donde", [">", ["cerca", ["campo", "a", "gap"], 0.0], 1.0]]],
+  ["resumen", "contar", 1],
+  ["umbral", "<=", 0, "hasta 1 cm entre la base y la tapa del soporte se considera contacto; más aire flota y un gap negativo queda hundido"],
+  ["requiere", "asentamiento"],
+  ["alcance", "gap vertical de AABB contra el soporte más alto cuando existe soporte; la ausencia de soporte la mide physics.tiene_suelo. NO ve contacto de la malla real, equilibrio, centro de masa, rotación, penetración lateral ni si el soporte es apropiado"]
 ]
