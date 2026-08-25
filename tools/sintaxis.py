@@ -26,6 +26,7 @@ from nucleo.sintaxis import (  # noqa: E402,F401
     leer_con_mapa,
     ubicar_ruta,
 )
+from nucleo import caso as sintaxis_caso  # noqa: E402
 from nucleo.medida import cargar_fuente_medida, rutas_de_catalogo  # noqa: E402
 
 
@@ -43,6 +44,10 @@ def _rutas_macros(raiz: Path = RAIZ) -> list[Path]:
 
     return sorted(p for p in (raiz / "nucleo" / "macros").iterdir()
                   if p.suffix in EXTENSIONES_DE_MACRO and p.is_file())
+
+
+def _rutas_corpus(raiz: Path = RAIZ) -> list[Path]:
+    return sintaxis_caso.rutas_de_corpus(raiz / "corpus")
 
 
 def _puntuacion(texto: str) -> int:
@@ -67,13 +72,32 @@ def _fila_verificacion(ruta: Path, raiz: Path) -> dict:
     }
 
 
+def _fila_verificacion_caso(ruta: Path, raiz: Path) -> dict:
+    datos = sintaxis_caso.cargar_fuente_caso(ruta)
+    superficie = sintaxis_caso.imprimir(datos)
+    releida = sintaxis_caso.leer(superficie)
+    reimpresa = sintaxis_caso.imprimir(releida)
+    json_compacto = json.dumps(datos, ensure_ascii=False, separators=(",", ":"))
+    return {
+        "ruta": str(ruta.relative_to(raiz)),
+        "json_igual": releida == datos,
+        "texto_igual": reimpresa == superficie,
+        "caracteres_json": len(json_compacto),
+        "caracteres_superficie": len(superficie),
+        "puntuacion_json": _puntuacion(json_compacto),
+        "puntuacion_superficie": _puntuacion(superficie),
+    }
+
+
 def verificar_catalogo(raiz: Path = RAIZ) -> dict:
     filas_medidas = [_fila_verificacion(r, raiz) for r in _rutas_catalogo(raiz)]
     filas_macros = [_fila_verificacion(r, raiz) for r in _rutas_macros(raiz)]
-    filas = filas_medidas + filas_macros
+    filas_casos = [_fila_verificacion_caso(r, raiz) for r in _rutas_corpus(raiz)]
+    filas = filas_medidas + filas_macros + filas_casos
     total = {
         "medidas": len(filas_medidas),
         "macros": len(filas_macros),
+        "casos": len(filas_casos),
         "json_igual": all(f["json_igual"] for f in filas),
         "texto_igual": all(f["texto_igual"] for f in filas),
         "caracteres_json": sum(f["caracteres_json"] for f in filas),
@@ -91,8 +115,14 @@ def verificar_catalogo(raiz: Path = RAIZ) -> dict:
 # ejemplos fueron verificados contra el código vigente, y hasta hoy esa afirmación no la ejercitaba
 # nada: la sostenía la palabra de quien escribió el documento, que es exactamente la clase de
 # afirmación que este repositorio no acepta en ningún otro lado.
-DOCUMENTOS_CON_SUPERFICIE = ("ESCRIBIR-UNA-MEDIDA.md", "ORACLE-TUTORIAL-PRACTICO.md")
-BLOQUE_RE = re.compile(r"```(oracle|oracle-gramatica|oracle-fragmento)\n(.*?)```", re.S)
+# Los cuatro documentos que muestran superficie. Eran dos: al entrar la superficie de CASOS, los
+# ejemplos nuevos aparecieron también en el README y en la especificación, y ahí nadie los miraba.
+DOCUMENTOS_CON_SUPERFICIE = ("ESCRIBIR-UNA-MEDIDA.md", "ORACLE-TUTORIAL-PRACTICO.md",
+                             "README.md", "ESPECIFICACION.md")
+# Dos superficies, dos lectores. `oracle` es una medida y `caso` es un caso del corpus; las
+# etiquetas con sufijo declaran por qué un bloque NO se ejecuta, y esa declaración es el punto.
+BLOQUE_RE = re.compile(
+    r"```(oracle|caso)(-gramatica|-fragmento)?\n(.*?)```", re.S)
 
 
 def verificar_documentos(raiz: Path = RAIZ) -> dict:
@@ -107,18 +137,20 @@ def verificar_documentos(raiz: Path = RAIZ) -> dict:
             continue
         texto = ruta.read_text(encoding="utf-8")
         for m in BLOQUE_RE.finditer(texto):
-            etiqueta, bloque = m.group(1), m.group(2)
+            superficie, sufijo, bloque = m.group(1), m.group(2), m.group(3)
             linea = texto[:m.start()].count("\n") + 1
-            if etiqueta != "oracle":
+            if sufijo:
                 declarados += 1
                 continue
             ejecutables += 1
+            leer_, imprimir_ = ((leer, imprimir) if superficie == "oracle"
+                                else (sintaxis_caso.leer, sintaxis_caso.imprimir))
             try:
-                datos = leer(bloque)
-            except ErrorSintaxis as e:
+                datos = leer_(bloque)
+            except (ErrorSintaxis, sintaxis_caso.CasoMalDeclarado) as e:
                 fallas.append(f"{nombre}:{linea}: no lee — {e}")
                 continue
-            if imprimir(datos) != bloque:
+            if imprimir_(datos) != bloque:
                 fallas.append(f"{nombre}:{linea}: lee pero no es la forma canónica que imprime la "
                               "herramienta")
     return {"ejecutables": ejecutables, "declarados": declarados, "fallas": fallas}
@@ -164,9 +196,11 @@ def main(argv: list[str] | None = None) -> int:
         informe = verificar_catalogo()
         docs = verificar_documentos()
         ok = (informe["json_igual"] and informe["texto_igual"] and informe["medidas"] > 0
-              and informe["macros"] > 0 and not docs["fallas"] and docs["ejecutables"] > 0)
+              and informe["macros"] > 0 and informe["casos"] > 0 and not docs["fallas"]
+              and docs["ejecutables"] > 0)
         print(f"medidas convertidas: {informe['medidas']}")
         print(f"macros convertidas: {informe['macros']}")
+        print(f"casos convertidos: {informe['casos']}")
         print(f"ida JSON: {'OK' if informe['json_igual'] else 'FALLA'}")
         print(f"vuelta texto: {'OK' if informe['texto_igual'] else 'FALLA'}")
         print(f"caracteres: JSON {informe['caracteres_json']} · superficie "
