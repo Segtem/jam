@@ -1,7 +1,7 @@
 [
   "medida",
   "snap.comparte_cara",
-  ["desde", ["unir", ["de", "pieza", "a"], ["de", "objetivo", "b"]]],
+  ["desde", ["unir", ["de", "pieza", "a"], ["de", "objetivo", "b"]], ["donde", ["<=", ["solape_lateral_minimo", ["hecho", "a"], ["hecho", "b"]], 1.0]]],
   ["resumen", "min", ["solape_lateral_minimo", ["hecho", "a"], ["hecho", "b"]]],
   ["umbral", ">", 1.0, "el solape lateral debe superar la tolerancia de 1 cm: tocar una arista o estar en diagonal no constituye una cara compartida"],
   ["alcance", "solape de AABB en los dos ejes laterales. NO ve cuánto de la cara real de la malla coincide, su orientación topológica ni obstrucciones"]
