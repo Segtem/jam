@@ -59,7 +59,7 @@ No es un instrumento de medición: es un instrumento de **rechazo**. No calcula 
 dejar pasar** lo que no se puede sostener.
 
 <!-- negativas:inicio -->
-En este corte hay 5525 líneas de lenguaje y **252 negativas explícitas** (`raise`).
+En este corte hay 5598 líneas de lenguaje y **255 negativas explícitas** (`raise`).
 <!-- negativas:fin -->
 
 Un umbral sin defensa no se carga. Una medida sin `alcance` no se carga. Un campo ausente no da
@@ -83,7 +83,7 @@ de grave: en un solo día lo cometí tres veces.
 ### El sujeto es el que construye, no lo construido
 
 <!-- deteccion:inicio -->
-Los 63 casos no observacionales salieron a la luz por vías que no aceptan el verde nominal: 44 la mutación, 12 una persona, 4 la casualidad, 3 una herramienta ajena.
+Los 67 casos no observacionales salieron a la luz por vías que no aceptan el verde nominal: 48 la mutación, 12 una persona, 4 la casualidad, 3 una herramienta ajena.
 <!-- deteccion:fin -->
 
 Ninguna de esas vías le pregunta al que escribió el código. Oracle no es un juez de artefactos — es
@@ -92,7 +92,7 @@ una prótesis para alguien que escribe la herramienta y su test con la misma man
 ### El costo, dicho
 
 <!-- escala:inicio -->
-**5525 líneas de lenguaje** (`nucleo/`, código y macros) y **252 negativas explícitas** (`raise`). Contra las 34 medidas universales escritas en él (208 líneas): **26,6 a 1**. 27 de las 34 pasan por una macro.
+**5598 líneas de lenguaje** (`nucleo/`, código y macros) y **255 negativas explícitas** (`raise`). Contra las 36 medidas universales escritas en él (218 líneas): **25,7 a 1**. 29 de las 36 pasan por una macro.
 <!-- escala:fin -->
 
 Ésa es la apuesta y ésa es la métrica: que los catálogos de los proyectos crezcan sin hacer crecer el
@@ -254,15 +254,15 @@ oracle/                        LA HERRAMIENTA
   nucleo/                      el álgebra, la medida, las macros, el dominio, la simulación
   perfiles/python/             AST, imports, mutación de `.py` y garantías de `.pyc`
   tools/                       los instrumentos
-  catalogos/                   sólo medidas UNIVERSALES: proceso · meta · simulacion
-  corpus/                      los casos donde la medición dijo bien y no estaba bien
+  catalogos/                   sólo medidas UNIVERSALES: proceso · meta · simulacion (.oracle y .json)
+  corpus/                      los casos donde la medición dijo bien y no estaba bien (.caso y .json)
   ejemplo/                     un banco de pruebas abstracto, no un dominio
 
 <tu-proyecto>/                 TU PROYECTO
   oracle.json                  perfiles optativos activados de forma explícita
-  catalogos/<dominio>/         tus medidas
+  catalogos/<dominio>/         tus medidas (.oracle y .json)
   escalares.py                 tus funciones de dominio
-  corpus/  diferencial/        tus casos y tus fixtures
+  corpus/  diferencial/        tus casos (.caso y .json) y tus fixtures
 ```
 
 Y las herramientas se apuntan:
@@ -313,12 +313,12 @@ no abstraer.
 > [`AUDITORIA-2026-07-30.md`](AUDITORIA-2026-07-30.md) y
 > [`PLAN-CORRECCION.md`](PLAN-CORRECCION.md).
 
-**El paquete contiene los cinco componentes.** El [corpus](corpus/) (42 casos), la [especificación](ESPECIFICACION.md) del álgebra,
+**El paquete contiene los cinco componentes.** El [corpus](corpus/) (42 casos, en formato de autoría `.caso` o almacenamiento `.json`), la [especificación](ESPECIFICACION.md) del álgebra,
 el evaluador (`nucleo/`), **las medidas universales** dentro de [`catalogos/`](catalogos/) —como
-archivos de datos, no como código—, el sensor de mutación y la prueba diferencial.
+archivos de datos (`.oracle` y `.json`), no como código—, el sensor de mutación y la prueba diferencial.
 
 **¿Querés escribir una medida?** → [`ESCRIBIR-UNA-MEDIDA.md`](ESCRIBIR-UNA-MEDIDA.md).
-`python tools/medida.py --relaciones` te dice qué hechos hay para medir; `--nueva` crea el archivo.
+`python tools/medida.py --relaciones` te dice qué hechos hay para medir; `tools/corpus.py --nuevo` crea el caso (`.caso`) y `tools/medida.py --nueva` crea la medida (`.oracle`). Ambos cargan superficie y JSON por igual.
 
 Requiere Python 3.11 o posterior. Se puede usar desde el checkout o instalar sin dependencias:
 
@@ -378,11 +378,11 @@ fixtures devuelve estado no-verde; el flujo temporal de un proyecto externo prue
 positivo. Esto evita convertir «no había nada que comparar» en una certificación accidental.
 
 <!-- corpus:inicio -->
-**93 casos**: 63 defectos y 30 verdes correctos. De los defectos, 60 deben ponerse en rojo · 0 huecos abiertos · 2 resueltos conservados · 1 límite humano. Por etiqueta: 58 falsos verdes, 2 falsos rojos, 1 conclusión causal incorrecta pese a una medida correcta y 2 deudas de diseño.
+**99 casos**: 67 defectos y 32 verdes correctos. De los defectos, 64 deben ponerse en rojo · 0 huecos abiertos · 2 resueltos conservados · 1 límite humano. Por etiqueta: 62 falsos verdes, 2 falsos rojos, 1 conclusión causal incorrecta pese a una medida correcta y 2 deudas de diseño.
 <!-- corpus:fin -->
 
 <!-- cifras:inicio -->
-510 tests · 441/441 mutantes de medida · **2239 sitios de mutación de código** (2034 + 205 del motor Python).
+527 tests · 535/535 mutantes de medida · **2263 sitios de mutación de código** (2058 + 205 del motor Python).
 <!-- cifras:fin -->
 
 > **Baseline restaurado el 2026-08-03 sobre el denominador vigente.** Los 16 objetivos de la matriz
