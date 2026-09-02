@@ -13,7 +13,11 @@ from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ / "Content" / "Python"))
-sys.path.insert(0, str(RAIZ / "vendor" / "oracle"))
+sys.path.insert(0, str(RAIZ / "vendor" / "oracle-pkg"))
+
+# Oracle viene del wheel de PyPI: los nombres internos (`nucleo`, `catalogos`) sólo
+# existen después de importar la fachada, que es la que los registra.
+import oracle_metalenguaje  # noqa: F401,E402
 
 from jam import oracle_physics, oracle_physics_facts  # noqa: E402
 from jam.geometry import AABB, Pieza, Vec3            # noqa: E402

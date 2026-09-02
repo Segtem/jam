@@ -7,6 +7,7 @@ import io
 import json
 import re
 import sys
+import tempfile
 import unittest
 from contextlib import redirect_stdout
 from unittest import mock
@@ -26,6 +27,9 @@ from oraculo.mazes.spacegraph import GraphNode  # noqa: E402
 
 RAIZ = Path(__file__).resolve().parents[3]
 
+# La versión de Oracle que Jam consume, fijada a propósito (ver AGENTS.md).
+ORACLE_VERSION = "0.3.3"
+
 
 def _cargar_vault():
     spec = importlib.util.spec_from_file_location("jam_tools_vault", RAIZ / "tools" / "vault.py")
@@ -36,6 +40,14 @@ def _cargar_vault():
 
 def _cargar_relevo():
     spec = importlib.util.spec_from_file_location("jam_tools_relevo", RAIZ / "tools" / "relevo.py")
+    modulo = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(modulo)
+    return modulo
+
+
+def _cargar_emisor_vault():
+    spec = importlib.util.spec_from_file_location(
+        "jam_emisor_vault", RAIZ / "tools" / "emitir_hechos_vault.py")
     modulo = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(modulo)
     return modulo
@@ -66,6 +78,31 @@ class OracleEmbeddingTests(unittest.TestCase):
         self.assertIn(str(bridge.ORACULO_ROOT), sys.path)
         self.assertIn(str(bridge.ORACLE_PACKAGE_ROOT), sys.path)
 
+    def test_el_puente_apunta_al_wheel_vendorizado_y_ese_wheel_esta(self) -> None:
+        """Sin esto, borrar el wheel no rompe ningún verificador: rompe el editor.
+
+        El intérprete de Unreal no ve el entorno de `uv` ni el del sistema, así que
+        `vendor/oracle-pkg/` es la única copia que el plugin puede importar con el editor
+        abierto — y eso no se descubre corriendo la aceptación.
+        """
+        paquete = bridge.ORACLE_PACKAGE_ROOT
+
+        self.assertEqual(RAIZ / "vendor" / "oracle-pkg", paquete)
+        self.assertTrue((paquete / "oracle_metalenguaje" / "__init__.py").is_file())
+        self.assertFalse(
+            (RAIZ / "vendor" / "oracle").exists(),
+            "el subtree viejo volvió: dos Oracle en el repo se separan en silencio")
+
+    def test_el_wheel_vendorizado_declara_la_version_fijada(self) -> None:
+        """`==` y no `>=`: un consumidor que se actualiza solo se pone rojo un martes."""
+        metadatos = sorted(
+            (RAIZ / "vendor" / "oracle-pkg").glob("oracle_metalenguaje-*.dist-info/METADATA"))
+
+        self.assertEqual(1, len(metadatos), metadatos)
+        self.assertIn(
+            f"Version: {ORACLE_VERSION}",
+            metadatos[0].read_text(encoding="utf-8"))
+
     def test_la_sombra_del_vault_usa_el_motor_instalado_en_vendor(self) -> None:
         vault = _cargar_vault()
 
@@ -75,6 +112,18 @@ class OracleEmbeddingTests(unittest.TestCase):
         self.assertTrue(informe.ok)
         self.assertEqual(10, len(informe.veredictos))
         self.assertTrue(all(v.id.startswith("vault.") for v in informe.veredictos))
+
+    def test_el_fixture_del_vault_elige_documento_en_orden_estable(self) -> None:
+        emisor = _cargar_emisor_vault()
+        with tempfile.TemporaryDirectory() as td:
+            graph = Path(td) / "Vault-kb" / "01-Graph"
+            graph.mkdir(parents=True)
+            (graph / "9999-INFORME-Zeta.md").write_text("z", encoding="utf-8")
+            (graph / "0001-INFORME-Alfa.md").write_text("a", encoding="utf-8")
+
+            elegido = emisor._documento_para_defecto(Path(td))
+
+        self.assertEqual(elegido.name, "0001-INFORME-Alfa.md")
 
     def test_los_fixtures_firman_el_codigo_de_las_escalares(self) -> None:
         for ruta in sorted((RAIZ / "medidas" / "diferencial").glob("*.json")):

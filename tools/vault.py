@@ -185,7 +185,7 @@ def veredicto_del_oraculo():
     """
     try:
         raiz = VAULT.parent
-        sys.path.insert(0, str(raiz / "vendor" / "oracle"))
+        sys.path.insert(0, str(raiz / "vendor" / "oracle-pkg"))
         sys.path.insert(0, str(raiz / "tools"))
         from emitir_hechos_vault import hechos
         from oracle_metalenguaje import Motor

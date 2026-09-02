@@ -77,7 +77,7 @@
     ],
     "verificacion": [
      {
-      "commit": "a573929",
+      "commit": "43ecf54",
       "es_ancestro": true,
       "existe": true,
       "que": "motor"
@@ -174,7 +174,7 @@
     ],
     "verificacion": [
      {
-      "commit": "a573929",
+      "commit": "43ecf54",
       "es_ancestro": true,
       "existe": true,
       "que": "motor"
@@ -271,7 +271,7 @@
     ],
     "verificacion": [
      {
-      "commit": "a573929",
+      "commit": "43ecf54",
       "es_ancestro": true,
       "existe": true,
       "que": "motor"
@@ -368,7 +368,7 @@
     ],
     "verificacion": [
      {
-      "commit": "a573929",
+      "commit": "43ecf54",
       "es_ancestro": true,
       "existe": true,
       "que": "motor"
@@ -465,7 +465,7 @@
     ],
     "verificacion": [
      {
-      "commit": "a573929",
+      "commit": "43ecf54",
       "es_ancestro": true,
       "existe": true,
       "que": "motor"
@@ -659,7 +659,7 @@
     ],
     "verificacion": [
      {
-      "commit": "a573929",
+      "commit": "43ecf54",
       "es_ancestro": true,
       "existe": true,
       "que": "motor"
@@ -756,7 +756,7 @@
     ],
     "verificacion": [
      {
-      "commit": "a573929",
+      "commit": "43ecf54",
       "es_ancestro": true,
       "existe": true,
       "que": "motor"
@@ -806,10 +806,10 @@
    ]
   },
   "huellas": {
-   "catalogo": "75c719ff174288c43b422fcbe1f2b28345ace3d6309532f2d81e1f7c60c0085b",
+   "catalogo": "c764e6c5a414bc618afb20fa914d8d0c89ff81b8770c4cecc77afa6657ef9959",
    "configuracion": "c5fcf7f8aa88cbec11d893a4a16e2d158751f0649d8cf844da0677bedf11c512",
-   "emisor": "7b9f73341182fdb7b1649713c5b053272a0ff73cdb62505d7c697260440c6f75",
-   "referencia": "cb43e601ec4ed1f62e74bd8405afa3c0da9a14e01121de37279b7b6cd78a8899"
+   "emisor": "97e44fc53db0b9fe20545dedd4d26705f38fff78e0f207a79eaf0f1e89388250",
+   "referencia": "35e563af7038500a3508cbbe06cbad5524cc8dbb1820ea42a25c44d203912520"
   },
   "raiz_fuentes": ".."
  },

@@ -1,5 +1,19 @@
 {
   "esquema": "oracle.proyecto/v1",
   "catalogo_base": true,
-  "perfiles": ["python"]
+  "perfiles": ["python"],
+  "sombra": {
+    "meta.toda_cantidad_comparada_tiene_unidad_derivable": {
+      "desde": "2026-09-01",
+      "porque": "54 comparaciones sin unidad derivable sobre 41 archivos de catálogo; declarar los campos en relaciones/ es trabajo por relación y no entra en el commit de la migración"
+    },
+    "meta.todo_umbral_declara_de_donde_sale": {
+      "desde": "2026-09-01",
+      "porque": "41 umbrales anteriores a que existiera `segun`; cada uno necesita que alguien diga de dónde salió el número, y completarlo adivinando sería peor que la falta"
+    },
+    "meta.la_medida_no_se_fija_solo_con_evidencia_fabricada": {
+      "desde": "2026-09-01",
+      "porque": "9 medidas fijadas sólo con evidencia construida; se cierran transcribiendo corridas reales de las sondas contra JamPlayground, que necesita el editor abierto"
+    }
+  }
 }

@@ -538,12 +538,12 @@ diez minutos y sin eso la mitad de los archivos nuevos no se entienden.
 | UE 5.8.1 | APIs + ejemplos + material/UV + PCG real | **103 símbolos + 84 métodos · 8/8 ejemplos · material/UV verde · 287 HISM** |
 | Oracle en UE 5.8.1 | `tools/experiments/verifica_oracle_shadow.py` con editor completo | **placement + snap + scatter + spline + physics + reemplazo + espacio funcional verde; shutdown histórico rojo** |
 | Physics paint en UE 5.8.1 | `tools/experiments/verifica_physics_paint_58.py` | **pila 0/100/200 · Preview ignorado · Landscape por pieza · 3 sombras coinciden** |
-| oracle sobre sí mismo | `cd vendor/oracle && python tools/aceptacion.py` | **27 rojos · 12 verdes · 0 huecos** |
-| oracle sobre Jam | `python vendor/oracle/tools/diferencial.py --proyecto medidas --confiar-escalares` | **1099 acuerdos · 4298 veredictos estables** (11 dominios: `malla` y `malla_solidos`) |
-| » mutación de medidas | `python vendor/oracle/tools/mutar.py --proyecto medidas --confiar-escalares` | **303/303 mutantes muertos** |
+| oracle sobre sí mismo | `cd ~/Dev/oracle && python tools/aceptacion.py` | **27 rojos · 12 verdes · 0 huecos** |
+| oracle sobre Jam | `oracle-diferencial --proyecto medidas --confiar-escalares` | **1099 acuerdos · 4298 veredictos estables** (11 dominios: `malla` y `malla_solidos`) |
+| » mutación de medidas | `oracle-mutar --proyecto medidas --confiar-escalares` | **303/303 mutantes muertos** |
 | Sólidos en UE 5.8.1 | `tools/experiments/verifica_malla_solidos_58.py` | **caja 2.520.000 exacto · esfera y muro cerrados y positivos · caja invertida negativa · TODO VERDE** |
-| » tests de oracle | `cd vendor/oracle && python -m unittest discover -s tests -t . -q` | **391 OK** (eran 339 antes del subtree del 2026-08-14) |
-| » oracle sobre sí mismo, tras el subtree | `cd vendor/oracle && python tools/aceptacion.py` y `tools/cifras.py` | **27 rojos · 12 verdes · 0 huecos** · `CIFRAS OK` |
+| » tests de oracle | `cd ~/Dev/oracle && python -m unittest discover -s tests -t . -q` | **391 OK** (eran 339 antes del subtree del 2026-08-14) |
+| » oracle sobre sí mismo, tras el subtree | `cd ~/Dev/oracle && python tools/aceptacion.py` y `tools/cifras.py` | **27 rojos · 12 verdes · 0 huecos** · `CIFRAS OK` |
 | » su matriz de mutación de código | `python tools/mutar_codigo.py --objetivo <cada uno de los 16>` | **16/16 en VERDE · 1230 muertos + 1 equivalente = los 1231 sitios publicados** |
 | » y Jam con el motor nuevo | el diferencial y la mutación de arriba, con el subtree ya traído | **mismos 1099 acuerdos y 303/303** — el criterio de falsación de `oracle` sigue del lado bueno |
 | **Cerebro de Jam, corte matrices (el de este turno)** | mismo comando de siempre | **1237 OK**, 0.70 s |
@@ -1766,9 +1766,11 @@ path, que es el olor de `bridge.py`. **Yo movería.**
 
 ## No toques esto
 
-- **`vendor/oracle/` es un subtree: no lo edites a mano.** Se cambia en `Segtem/oracle` y se trae con
-  `git subtree pull --prefix=vendor/oracle git@github.com:Segtem/oracle.git main --squash`. Editar la
-  copia la separa del upstream en silencio.
+- **`vendor/oracle-pkg/` es el wheel de PyPI, no un subtree ni código editable.** Desde el
+  2026-09-01 Jam consume `oracle-metalenguaje==0.3.1` instalado, no una copia del repositorio. Se
+  actualiza cambiando el número y reinstalando (ver `AGENTS.md`), nunca a mano: una edición local
+  desaparece en la siguiente reinstalación sin dejar rastro. El subtree `vendor/oracle/` ya no
+  existe.
 - **No borres el verificador escrito a mano de `tools/vault.py`.** La sombra es el chequeo; sin él el
   reemplazo sería un acto de fe. Y si tocás `vault.py`, `relevo.py`, `oracle_placement` u
   `oracle_snap`, **regenerá el fixture** con el emisor correspondiente y el diferencial tiene que

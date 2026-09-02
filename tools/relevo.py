@@ -154,11 +154,20 @@ def vault() -> list[str]:
 
 
 def oracle_diferencial() -> list[str]:
-    """Exige fixtures vigentes además de acuerdo: un diferencial viejo no es evidencia."""
+    """Exige fixtures vigentes además de acuerdo: un diferencial viejo no es evidencia.
+
+    Oracle se instala desde PyPI (`uv tool install oracle-metalenguaje`), así que el comando
+    viene del PATH y no de un archivo del repo. Si falta, se dice cómo traerlo: un relevo que
+    se cae con un traceback no informa nada.
+    """
+    import shutil
+    if shutil.which("oracle-diferencial") is None:
+        return ["el diferencial de Oracle en ROJO:\n      "
+                "falta el comando `oracle-diferencial` en el PATH — "
+                "instalalo con `uv tool install oracle-metalenguaje` (ver AGENTS.md)"]
     return correr(
         "el diferencial de Oracle",
-        [sys.executable, "vendor/oracle/tools/diferencial.py",
-         "--proyecto", "medidas", "--confiar-escalares"],
+        ["oracle-diferencial", "--proyecto", "medidas", "--confiar-escalares"],
         RAIZ,
     )
 

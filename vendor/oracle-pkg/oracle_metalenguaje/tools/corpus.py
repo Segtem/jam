@@ -1,0 +1,386 @@
+"""Verificador del corpus — la primera regla del repositorio, y se aplica a sí mismo.
+
+    python tools/corpus.py            → verifica (sale != 0 si algo está mal)
+    python tools/corpus.py --resumen  → verifica y además cuenta qué mecanismo atrapa qué
+    python tools/corpus.py --listar   → lista los casos del corpus, su etiqueta y qué medida reclaman
+    python tools/corpus.py --nuevo meta/999-caso-nuevo
+                                      → crea un caso nuevo en superficie
+
+Comprueba lo que se degrada solo:
+
+  1. **el esquema** de cada caso, y que el `id` sea el nombre del archivo;
+  2. **la forma de la evidencia**: un mapa de relación → filas de campos ESCALARES. Es el contrato
+     L0 de la especificación, y si se afloja acá se afloja en todo el resto;
+  3. **que ningún caso se caiga en silencio**: un caso sin medida declara si sigue abierto, quedó
+     resuelto por construcción o documenta un límite humano no automatizable.
+
+La 3 es la que importa. Los casos incómodos —los que el marco todavía no puede medir— son
+justamente los que no hay que perder: son la lista de lo que falta.
+"""
+
+from __future__ import annotations
+
+from datetime import date as _date
+import sys
+import re
+from collections import Counter
+from pathlib import Path
+
+sys.path = [str(Path(__file__).resolve().parents[1]), *sys.path]
+from nucleo.algebra import ErrorDeAlgebra, separar_clave  # noqa: E402
+from nucleo.caso import (DETECCIONES, ETIQUETAS, PROCEDENCIAS, CasoMalDeclarado,
+                         cargar_fuente_caso, rutas_de_corpus)  # noqa: E402
+from nucleo.proyecto import (ID_CASO_RE, ProyectoInvalido, presentar_ruta,
+                             problemas_estructura, sin_bandera,
+                             sin_banderas_comunes)  # noqa: E402
+from tools.sesion import resolver_cli  # noqa: E402
+
+OBLIGATORIOS = ("id", "fecha", "origen", "titulo", "etiqueta", "sintoma",
+                "como_se_detecto", "medida", "evidencia", "leccion")
+GRUPO_CASO_RE = re.compile(r"^[a-z][a-z0-9_-]*$")
+
+# Los campos de conjunto cerrado van como MARCADOR o comentario, no con un valor plausible por
+# defecto. Un `falso_verde` que ya viene puesto se queda sin pensar, y estos campos no son
+# decorativos:
+# `etiqueta` decide la polaridad del caso —si se espera rojo o verde— y `como_se_detecto` alimenta
+# una cifra que el README publica (el reparto de por dónde salió a la luz cada defecto).
+# `procedencia` decide si una medida está fijada por evidencia observada o por evidencia fabricada.
+#
+# El marcador es aceptable sólo porque el error que produce enseña qué poner: el lector enumera los
+# valores válidos en el momento, con línea y columna. Y porque el andamio los lista al crear el
+# archivo, que es cuando la persona todavía tiene fresco lo que pasó.
+PROCEDENCIAS_EN_PLANTILLA = " · ".join(sorted(PROCEDENCIAS))
+PLANTILLA = f"""\
+caso {{cid}}:
+    fecha: "{{fecha}}"
+    origen:
+        repo: "{{repo}}"
+        commit: "{{commit}}"
+    # procedencia: {PROCEDENCIAS_EN_PLANTILLA}
+    titulo: "TITULO"
+    etiqueta: ETIQUETA
+    sintoma:
+        SINTOMA
+    como_se_detecto: COMO_SE_DETECTO
+    medida: DOMINIO.MEDIDA
+    evidencia:
+        RELACION: CAMPO
+            "VALOR"
+    leccion:
+        LECCION
+"""
+
+ESCALARES = (str, int, float, bool, type(None))
+ESTADOS_SIN_MEDIDA = {"abierto", "resuelto", "limite_humano"}
+
+
+def casos(raiz: Path) -> list[Path]:
+    return rutas_de_corpus(raiz)
+
+
+def ruta_de_caso_nuevo(proy, ubicacion: str) -> Path:
+    partes = ubicacion.split("/")
+    if len(partes) != 2:
+        raise ProyectoInvalido("el caso nuevo debe indicarse como `grupo/NNN-descripcion`")
+    grupo, cid = partes
+    if GRUPO_CASO_RE.fullmatch(grupo) is None:
+        raise ProyectoInvalido("el grupo del corpus debe usar minúsculas ASCII, dígitos, `_` y `-`")
+    if ID_CASO_RE.fullmatch(cid) is None:
+        raise ProyectoInvalido(
+            "el id de caso debe ser `NNN-descripcion`, sólo con minúsculas ASCII, dígitos y `-`")
+    corpus = proy.corpus.resolve()
+    destino = proy.corpus / grupo / f"{cid}.caso"
+    try:
+        destino.resolve().relative_to(corpus)
+    except (OSError, ValueError) as e:
+        raise ProyectoInvalido(f"el destino de {ubicacion!r} escapa de `corpus/`") from e
+    return destino
+
+
+def _git_del_repositorio(raiz, *args: str) -> str:
+    """Ejecuta una lectura de Git con el contrato estricto que usa el andamio."""
+    import subprocess
+
+    try:
+        resultado = subprocess.run(
+            ["git", "-C", str(raiz), *args],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    if resultado.returncode != 0:
+        return ""
+    return resultado.stdout.strip()
+
+
+def _del_repositorio(raiz) -> tuple[str, str]:
+    """La fecha y el commit de hoy, leídos de git en vez de pedidos a una persona.
+
+    No es sólo comodidad: es una corrección. De los 112 casos del corpus, 62 tenían el commit en
+    prosa —`"sin-commit"`, `"local"`, `"ejemplo abstracto"`, `"sesión 2026-07-29"`— porque el
+    andamio ponía `"COMMIT"` y había que inventar algo. Un dato que la máquina sabe y le pide a una
+    persona termina siendo peor que el que hubiera puesto la máquina.
+
+    Falla ABIERTO, no cerrado: sin git, o fuera de un repositorio, se dejan los marcadores en
+    mayúsculas y quien escribe los completa. Negarse a crear un caso porque no hay repositorio
+    sería confundir dos cosas —el caso registra un hecho, no un commit—.
+    """
+    hoy = _date.today().isoformat()
+    commit = _git_del_repositorio(raiz, "rev-parse", "--short", "HEAD") or "COMMIT"
+    remoto = _git_del_repositorio(raiz, "remote", "get-url", "origin")
+    if remoto:
+        repo = remoto.rstrip("/").removesuffix(".git")
+        repo = "/".join(repo.replace(":", "/").split("/")[-2:])
+    else:
+        repo = "REPO"
+    return hoy, repo, commit
+
+
+def nuevo(proy, ubicacion: str) -> int:
+    try:
+        destino = ruta_de_caso_nuevo(proy, ubicacion)
+    except ProyectoInvalido as e:
+        print(f"id inválido: {e}")
+        return 1
+    if destino.exists():
+        print(f"ya existe: {presentar_ruta(proy, destino)}")
+        return 1
+    destino.parent.mkdir(exist_ok=True)
+    fecha, repo, commit = _del_repositorio(proy.raiz)
+    destino.write_text(
+        PLANTILLA.format(cid=destino.stem, fecha=fecha, repo=repo, commit=commit),
+        encoding="utf-8")
+    print(f"creado: {presentar_ruta(proy, destino)}\n")
+    derivados = [n for n, v in (("fecha", fecha), ("repo", repo), ("commit", commit))
+                 if v not in ("REPO", "COMMIT")]
+    if derivados:
+        print(f"Ya completos, leídos del repositorio: {', '.join(derivados)}.")
+    print("Reemplazá los marcadores en MAYÚSCULAS. Tres campos tienen valores cerrados:\n")
+    # Se listan acá y no sólo en el error, porque el momento de decidirlos es AHORA —mientras se
+    # tiene fresco lo que pasó— y no dos comandos después.
+    print(f"  etiqueta:         {' · '.join(sorted(ETIQUETAS))}")
+    print(f"  procedencia:      {' · '.join(sorted(PROCEDENCIAS))}")
+    print(f"  como_se_detecto:  {' · '.join(sorted(DETECCIONES))}\n")
+    print("Después:  oracle test")
+    return 0
+
+
+def generar(proy, mid: str, argv: list[str] | None = None) -> int:
+    from nucleo.generador import generar_caso
+
+    argv = argv or []
+    confiar = "--confiar-escalares" in argv
+    imprimir_solo = "--imprimir" in argv
+    directorio_destino = None
+    if "--directorio" in argv:
+        idx = argv.index("--directorio")
+        if idx + 1 < len(argv):
+            directorio_destino = Path(argv[idx + 1])
+
+    rc, _ = generar_caso(
+        proy,
+        mid,
+        directorio_destino=directorio_destino,
+        confiar=confiar,
+        imprimir_solo=imprimir_solo,
+    )
+    return rc
+
+
+def revisar_evidencia(nombre: str, evidencia) -> list[str]:
+    """L0: relación → filas planas. Sin objetos anidados, sin listas dentro de un campo.
+
+    Una relación puede encabezarse con `["clave", [<campo>, …]]`, la declaración opcional de
+    unicidad. Se valida con la misma función que usa el álgebra —no con una copia de la regla acá—
+    porque dos lecturas del mismo contrato terminan divergiendo, que es el caso `012` del corpus.
+    Sin esto, un caso que declarara una clave era rechazado como «no es un hecho» y el mecanismo no
+    se podía fijar con casos, que es como este proyecto fija todo lo demás.
+    """
+    fallas = []
+    if not isinstance(evidencia, dict) or not evidencia:
+        return [f"{nombre}: `evidencia` tiene que ser un mapa de relación → filas, y no estar vacío"]
+    for relacion, filas in evidencia.items():
+        if not isinstance(filas, list):
+            fallas.append(f"{nombre}: la relación «{relacion}» no es una lista de filas")
+            continue
+        try:
+            _clave, filas = separar_clave(filas)
+        except ErrorDeAlgebra as e:
+            fallas.append(f"{nombre}: la relación «{relacion}» declara mal su clave: {e}")
+            continue
+        for i, fila in enumerate(filas):
+            if not isinstance(fila, dict):
+                fallas.append(f"{nombre}: {relacion}[{i}] no es un hecho (un mapa de campos)")
+                continue
+            for campo, valor in fila.items():
+                if not isinstance(valor, ESCALARES):
+                    fallas.append(f"{nombre}: {relacion}[{i}].{campo} no es escalar "
+                                  f"({type(valor).__name__}) — L0 no admite anidamiento")
+    return fallas
+
+
+def revisar_estado_sin_medida(nombre: str, caso: dict) -> list[str]:
+    if caso.get("medida"):
+        return []
+    estado = caso.get("estado_sin_medida")
+    if estado not in ESTADOS_SIN_MEDIDA:
+        return [f"{nombre}: `medida` es nula y `estado_sin_medida` no está en "
+                f"{sorted(ESTADOS_SIN_MEDIDA)}"]
+    campo = {"abierto": "sin_medida_todavia", "resuelto": "resuelto",
+             "limite_humano": "limite_humano"}[estado]
+    if not str(caso.get(campo, "")).strip():
+        return [f"{nombre}: estado {estado!r} necesita `{campo}` no vacío"]
+    return []
+
+
+def verificar(raiz: Path) -> tuple[list[str], list[dict]]:
+    fallas: list[str] = []
+    cargados: list[dict] = []
+    vistos: dict[str, Path] = {}
+
+    for p in casos(raiz):
+        try:
+            c = cargar_fuente_caso(p)
+        except CasoMalDeclarado as e:
+            fallas.append(str(e))
+            continue
+
+        faltan = [k for k in OBLIGATORIOS if k not in c]
+        if faltan:
+            fallas.append(f"{p.name}: le faltan los campos {faltan}")
+            continue
+
+        if c["id"] != p.stem:
+            fallas.append(f"{p.name}: el `id` dice «{c['id']}» y el archivo se llama «{p.stem}»")
+        if c["id"] in vistos:
+            fallas.append(f"{p.name}: el id «{c['id']}» ya está en {vistos[c['id']].name}")
+        vistos[c["id"]] = p
+
+        if c["etiqueta"] not in ETIQUETAS:
+            fallas.append(f"{p.name}: etiqueta «{c['etiqueta']}» no está en {sorted(ETIQUETAS)}")
+        if c["como_se_detecto"] not in DETECCIONES:
+            fallas.append(f"{p.name}: como_se_detecto «{c['como_se_detecto']}» "
+                          f"no está en {sorted(DETECCIONES)}")
+        if "procedencia" in c and c["procedencia"] not in PROCEDENCIAS:
+            fallas.append(f"{p.name}: procedencia «{c['procedencia']}» "
+                          f"no está en {sorted(PROCEDENCIAS)}")
+
+        fallas += revisar_estado_sin_medida(p.name, c)
+
+        fallas += revisar_evidencia(p.name, c["evidencia"])
+        cargados.append(c)
+
+    return fallas, cargados
+
+
+def resumen(cargados: list[dict]) -> None:
+    print(f"\ncasos: {len(cargados)}")
+    for titulo, clave in (("por etiqueta", "etiqueta"), ("por cómo se detectó", "como_se_detecto")):
+        print(f"\n{titulo}:")
+        for k, n in Counter(c[clave] for c in cargados).most_common():
+            print(f"  {n:2}  {k}")
+    print("\npor procedencia:")
+    for k, n in Counter(c.get("procedencia", "sin_declarar") for c in cargados).most_common():
+        print(f"  {n:2}  {k}")
+    for estado, titulo in (("abierto", "huecos abiertos"),
+                           ("resuelto", "casos resueltos conservados como memoria"),
+                           ("limite_humano", "límites humanos no automatizables")):
+        ids = [c["id"] for c in cargados if c.get("estado_sin_medida") == estado]
+        print(f"\n{titulo} ({len(ids)}):")
+        for cid in ids:
+            print("  ·", cid)
+    print("\nmedidas que el corpus reclama:")
+    for k, n in Counter(c["medida"] for c in cargados if c["medida"]).most_common():
+        print(f"  {n:2}  {k}")
+
+
+def listar(proy) -> int:
+    estructura = problemas_estructura(proy, ("corpus",))
+    if estructura:
+        print("PROYECTO INVÁLIDO — " + "; ".join(estructura))
+        return 1
+
+    rutas = rutas_de_corpus(proy.corpus)
+    if not rutas:
+        print(f"CORPUS: 0 casos en {presentar_ruta(proy, proy.corpus)}")
+        return 0
+
+    cargados: list[tuple[str, dict]] = []
+    for p in rutas:
+        try:
+            c = cargar_fuente_caso(p)
+            rel = p.relative_to(proy.corpus.resolve()).with_suffix("").as_posix()
+            cargados.append((rel, c))
+        except CasoMalDeclarado as e:
+            print(f"✗ {e}")
+            return 1
+
+    huecos = [c for _, c in cargados if not c.get("medida")]
+    con_medida = [c for _, c in cargados if c.get("medida")]
+
+    n_casos = len(cargados)
+    txt_casos = "1 caso" if n_casos == 1 else f"{n_casos} casos"
+    if not huecos:
+        print(f"CORPUS ({txt_casos} · todos con medida):\n")
+    else:
+        txt_con = f"{len(con_medida)} con medida"
+        txt_huecos = "1 hueco declarado" if len(huecos) == 1 else f"{len(huecos)} huecos declarados"
+        print(f"CORPUS ({txt_casos} · {txt_con} · {txt_huecos}):\n")
+
+    ancho_id = max(len(rel) for rel, _ in cargados)
+    ancho_etiqueta = max(len(c.get("etiqueta", "")) for _, c in cargados)
+
+    for rel, c in cargados:
+        etiqueta = c.get("etiqueta", "")
+        medida = c.get("medida")
+        if medida:
+            reclamo = medida
+        else:
+            estado = c.get("estado_sin_medida", "sin estado")
+            reclamo = f"⚠ hueco declarado ({estado})"
+        print(f"  {rel:<{ancho_id}}  {etiqueta:<{ancho_etiqueta}}  {reclamo}")
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    argv = list(sys.argv[1:] if argv is None else argv)
+    args = sin_banderas_comunes(argv)
+    if "-h" in argv or "--help" in argv:
+        print(__doc__)
+        return 0
+    proy = resolver_cli(argv)
+    if proy is None:
+        return 1
+    estructura = problemas_estructura(proy, ("corpus",))
+    if estructura:
+        print("PROYECTO INVÁLIDO — " + "; ".join(estructura))
+        return 1
+    if args and args[0] in ("--listar", "listar"):
+        return listar(proy)
+    if args and args[0] in ("--generar", "generar"):
+        if len(args) != 2:
+            print("uso: python tools/corpus.py --generar <dominio.medida>")
+            return 1
+        return generar(proy, args[1], argv)
+    if args and args[0] == "--nuevo":
+        if len(args) != 2:
+            print("uso: python tools/corpus.py --nuevo <grupo/NNN-descripcion>")
+            return 1
+        return nuevo(proy, args[1])
+    fallas, cargados = verificar(proy.corpus)
+    if fallas:
+        print(f"CORPUS: {len(fallas)} problema(s)")
+        for f in fallas:
+            print("  ·", f)
+        return 1
+    print(f"CORPUS OK · {len(cargados)} casos · esquema, evidencia L0 y trazabilidad en regla")
+    if "--resumen" in args:
+        resumen(cargados)
+    return 0
+
+
+_entrada_directa = {"__main__": main}.get(__name__)
+if _entrada_directa:
+    sys.exit(_entrada_directa())

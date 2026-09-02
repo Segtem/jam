@@ -1,6 +1,0 @@
-{
-  "esquema": "oracle.proyecto/v1",
-  "algebra": "0.3",
-  "perfiles": ["python"],
-  "catalogo_base": true
-}

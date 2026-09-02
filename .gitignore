@@ -30,3 +30,9 @@ Content/Materials/
 
 # Obsidian: estado local de la UI (cambia en cada sesión, no aporta al repo)
 Vault-kb/.obsidian/workspace.json
+
+# El wheel de Oracle vendorizado SÍ va al repositorio: es lo que el intérprete embebido de Unreal
+# puede importar, y tenerlo fijado es la razón de vendorizarlo. Su bytecode no: se regenera solo y
+# ensucia todo diff posterior con archivos que nadie escribió.
+vendor/oracle-pkg/**/__pycache__/
+vendor/oracle-pkg/**/*.pyc

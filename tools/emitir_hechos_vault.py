@@ -24,7 +24,11 @@ import unicodedata
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(RAIZ / "vendor" / "oracle"))
+sys.path.insert(0, str(RAIZ / "vendor" / "oracle-pkg"))
+
+# Oracle viene del wheel de PyPI: los nombres internos (`nucleo`, `catalogos`) sólo
+# existen después de importar la fachada, que es la que los registra.
+import oracle_metalenguaje  # noqa: F401,E402
 
 import catalogos.escalares                           # noqa: F401,E402
 from nucleo.diferencial import Procedencia           # noqa: E402
@@ -121,6 +125,12 @@ DEFECTOS = {
 }
 
 
+def _documento_para_defecto(raiz: Path) -> Path:
+    """Elige siempre el mismo documento: el orden de glob depende del filesystem."""
+    candidatos = (raiz / "Vault-kb" / "01-Graph").glob("*INFORME*.md")
+    return min(candidatos, key=lambda ruta: ruta.name)
+
+
 def montar(defecto: str | None, i: int = 0) -> Path:
     """Copia el vault y su verificador a un temporal, y aplica el defecto si hay."""
     raiz = Path(tempfile.mkdtemp())
@@ -129,7 +139,7 @@ def montar(defecto: str | None, i: int = 0) -> Path:
     shutil.copy(RAIZ / "tools" / "vault.py", raiz / "tools" / "vault.py")
     shutil.copytree(RAIZ / "Vault-kb", raiz / "Vault-kb")
     if defecto:
-        DEFECTOS[defecto](next((raiz / "Vault-kb" / "01-Graph").glob("*INFORME*.md")))
+        DEFECTOS[defecto](_documento_para_defecto(raiz))
     return raiz
 
 

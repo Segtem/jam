@@ -35,29 +35,71 @@ Crear libre con la mejor herramienta, medir desde afuera. El juego que lo empuja
 
 ## `oracle`: el verificador es un lenguaje aparte
 
-`vendor/oracle/` es un **subtree** de `Segtem/oracle`: un metalenguaje de medidas para construir
-herramientas con un LLM. Jam es su primer **proyecto** — sus medidas, sensores y fixtures viven en
-`medidas/`.
+Oracle es un metalenguaje de medidas para construir herramientas con un LLM. Jam es su primer
+**proyecto** — sus medidas, sensores y fixtures viven en `medidas/`. **Desde el 2026-09-01 se consume
+desde PyPI, ya no por subtree**: `vendor/oracle/` no existe más.
+
+Jam lo usa por **dos caminos a la vez**, y hacen falta los dos:
 
 ```bash
-python vendor/oracle/tools/diferencial.py --proyecto medidas --confiar-escalares
-python vendor/oracle/tools/mutar.py       --proyecto medidas --confiar-escalares
-python vendor/oracle/tools/estudio.py     --proyecto medidas --confiar-escalares
+# 1. los COMANDOS, para vos y para relevo.py
+uv tool install oracle-metalenguaje          # deja los 9 ejecutables en el PATH
+oracle --version                             # tiene que decir 0.3.3 o más
+
+oracle-corpus      --proyecto medidas
+oracle-aceptacion  --proyecto medidas --confiar-escalares
+oracle-diferencial --proyecto medidas --confiar-escalares
+oracle-mutar       --proyecto medidas --confiar-escalares
+oracle-estudio     --proyecto medidas --confiar-escalares
+oracle test        --proyecto medidas --confiar-escalares   # la secuencia entera
 ```
+
+```bash
+# 2. el PAQUETE, para el intérprete embebido de Unreal
+python3 -m pip install --target vendor/oracle-pkg --no-deps "oracle-metalenguaje==0.3.3"
+rm -rf vendor/oracle-pkg/bin        # scripts con shebang de esta máquina; no van al repo
+```
+
+⚠️ **`uv tool install` NO alcanza y borrar `vendor/oracle-pkg/` no rompe ningún verificador: rompe
+el editor.** `bridge.py` pone ese directorio en el `sys.path` del intérprete de Unreal, que es el
+suyo — no ve el entorno de `uv`, ni el del sistema, ni un venv del proyecto. Por eso sigue habiendo
+un directorio en el repo, y por eso **igual es mejor que el subtree**: es un artefacto con versión
+fijada (2,3 MB · 173 archivos, contra 3,5 MB · 284 del subtree), no una copia de un repositorio que
+hay que acordarse de traer y que se puede editar a mano sin que nadie se entere.
+
+**No edites `vendor/oracle-pkg/` a mano.** Una edición local desaparece en la próxima reinstalación
+sin dejar rastro. Actualizar Oracle es cambiar el número en tres lugares —el `pip install` de arriba,
+`ORACLE_VERSION` en `Content/Python/tests/test_oracle_embedding.py` y el `uv tool install`— y
+reinstalar. **Fijá con `==`, nunca con `>=`**: un consumidor que se actualiza solo se pone rojo un
+martes por algo que no cambió de su lado.
 
 ⚠️ **`oracle` es un SEGUNDO REPOSITORIO y se commitea aparte.** Vive en `~/Dev/oracle`
-(`git@github.com:Segtem/oracle.git`). El flujo es siempre el mismo:
+(`git@github.com:Segtem/oracle.git`) y se publica en PyPI como `oracle-metalenguaje`. El flujo ahora
+es: cambiar arriba, commitear y empujar, **publicar una versión**, y recién ahí subir el número acá.
+Al terminar el turno, **los dos repos tienen que quedar empujados** — `relevo.py --cerrar` sólo mira
+Jam.
 
-```bash
-cd ~/Dev/oracle && …cambiar… && git commit && git push        # 1. arriba
-cd ~/Dev/jam && git subtree pull --prefix=vendor/oracle \
-    git@github.com:Segtem/oracle.git main --squash            # 2. traer
-git commit && git push                                        # 3. abajo
-```
+### Las tres sombras declaradas el 2026-09-01
 
-**No edites `vendor/oracle/` a mano**: es una copia vendorizada y editarla la separa del upstream en
-silencio. Y al terminar el turno, **los dos repos tienen que quedar empujados** — `relevo.py --cerrar`
-sólo mira Jam.
+Oracle 0.3.3 trae medidas que el subtree no tenía, y encontraron cosas reales que no se arreglan en
+el commit de la migración. Están en `medidas/oracle.json` **en sombra**: se evalúan, se informan con
+`[EN SOMBRA]` y no tumban la corrida. Apagarlas sería volver a un verde que no significa nada.
+
+| medida | infracciones | cómo se cierra |
+|---|---|---|
+| `meta.toda_cantidad_comparada_tiene_unidad_derivable` | 54 | declarar los campos en `relaciones/`, por relación |
+| `meta.todo_umbral_declara_de_donde_sale` | 41 | poner el `segun` de cada umbral, sin adivinar el número |
+| `meta.la_medida_no_se_fija_solo_con_evidencia_fabricada` | 9 | transcribir corridas reales de las sondas; necesita el editor abierto |
+
+**Una sombra no es una excepción permanente**, y las tres tienen fecha para poder envejecerlas.
+
+### Tres deudas viejas que ya no están (medido el 2026-09-01)
+
+El `id` desalineado de `004-coberturas-distintas`, `snap.al_ras`/`snap.comparte_cara`/
+`scatter.cobertura` sin `donde` ni `agrupar`, y el `vault.json` vencido: las tres estaban cerradas al
+medir. `oracle-corpus` sale **0 · 23 casos**. Y el corpus **sí tiene las dos polaridades**: la
+aceptación informa **3 verdes correctos**, así que la deuda de «cero casos `verde_correcto`» tampoco
+sigue en pie.
 
 Lo que hay que saber antes de tocarlo, en una frase: **una medida es un dato**, y declara
 obligatoriamente **la defensa de su umbral** y **qué NO ve**. El informe verde termina enumerando sus
@@ -80,7 +122,16 @@ cerebro y Slate no se separen en silencio.
 
 ## Recetas
 
-Motor: `~/Dev/engines/UnrealEngine_5.8` (5.8.1) · proyecto host: `/home/workstation/Dev/games/BotOO`.
+Motor: `~/Dev/engines/UnrealEngine_5.8` (5.8.1).
+
+**Proyecto host: `~/Dev/games/JamPlayground`** desde el 2026-08-15. Es un proyecto UE **mínimo**
+creado para esto: arranca en **~15 s** y compila los tres módulos en **~38 s**, contra los 18 GB de
+BotOO que había que cargar en cada iteración.
+
+**BotOO (`~/Dev/games/BotOO`) sigue siendo la PRUEBA DE INTEGRACIÓN**, no el banco de trabajo. Antes
+de dar por bueno un cambio grande, abrirlo también ahí: el plugin tiene que andar sobre un proyecto
+real con arte y PCG, no sólo sobre un template vacío. Las trampas de logs de BotOO que están más
+abajo siguen valiendo para esa pasada.
 
 ```bash
 # tests del cerebro (rápido, sin motor) — el que se corre siempre
@@ -97,19 +148,24 @@ python tools/vault.py            #  --indice reescribe Vault-kb/README.md
 # -NoUBA: Unreal Build Accelerator se confunde con el symlink Plugins/Jam -> ~/Dev/jam
 # (ASSERT: cross-process rename-while-open). Sin esa flag el build falla siempre.
 ENG=~/Dev/engines/UnrealEngine_5.8
-$ENG/Engine/Build/BatchFiles/Linux/Build.sh BotOOEditor Linux Development \
-  -Project="/home/workstation/Dev/games/BotOO/BotOO.uproject" -WaitMutex -FromMsBuild -NoUBA
+$ENG/Engine/Build/BatchFiles/Linux/Build.sh JamPlaygroundEditor Linux Development \
+  -Project="$HOME/Dev/games/JamPlayground/JamPlayground.uproject" -WaitMutex -FromMsBuild -NoUBA
 
 # correr algo dentro del editor, sin ventana
 $ENG/Engine/Binaries/Linux/UnrealEditor-Cmd \
-  /home/workstation/Dev/games/BotOO/BotOO.uproject \
+  $HOME/Dev/games/JamPlayground/JamPlayground.uproject \
   -run=pythonscript -script=/ruta/absoluta/al/script.py \
   -RenderOffScreen -unattended -nosplash -stdout
+
+# la MISMA sonda contra BotOO, para la pasada de integración
+$ENG/Engine/Binaries/Linux/UnrealEditor \
+  $HOME/Dev/games/BotOO/BotOO.uproject -RenderOffScreen -unattended -nosplash \
+  -ExecCmds="py /ruta/absoluta/al/script.py,QUIT_EDITOR"
 ```
 
 ⚠️ **La salida NO llega fiablemente a stdout.** El veredicto está en el `.log` más reciente de
-`/home/workstation/Dev/games/BotOO/Saved/Logs/BotOO*.log`; si el editor GUI está abierto, el
-commandlet paralelo escribe por ejemplo `BotOO_2.log`, no `BotOO.log`.
+`Saved/Logs/` del proyecto que se corrió — `JamPlayground*.log` o `BotOO*.log` según el caso. Si el
+editor GUI está abierto, el commandlet paralelo escribe por ejemplo `BotOO_2.log`, no `BotOO.log`.
 
 ## Reglas que no se negocian
 
@@ -150,7 +206,8 @@ redistribuir, nunca relicenciar CC0. Los repos van privados.
 | `grep --include=*.cpp` en fish | fish expande el glob: va **entre comillas**. |
 | Mutar código y restaurar en el mismo segundo | CPython invalida el `.pyc` por (mtime, tamaño): `max` y `min` ocupan lo mismo, así que sigue corriendo el **bytecode mutado**. Limpiar `__pycache__` entre mutantes. |
 | Matar un proceso que escribe sobre fuentes | **`SIGTERM` no ejecuta el `finally`**. Una corrida cortada dejó un archivo mutado en el árbol; hace falta `atexit` + manejadores de señal, y mirar `git status` después. |
-| Editar `vendor/oracle/` a mano | Es un subtree: se separa del upstream en silencio. Se cambia arriba y se trae con `git subtree pull`. |
+| El trabajador aislado de `escalares.py` no importa `oracle_metalenguaje` | **Era un bug de Oracle 0.3.1 con el paquete vendorizado, y se arregló en 0.3.2.** `nucleo/aislamiento/escalares.py` lanzaba el trabajador con `env` REEMPLAZADO y `PYTHONPATH = RAIZ_ORACLE`, que en el wheel es el directorio del propio paquete — así que `medidas/escalares.py`, que hace `from oracle_metalenguaje import escalar`, moría con `ModuleNotFoundError`. Con el subtree andaba de casualidad, y desde un venv tampoco se veía porque ahí `site.py` agrega `site-packages` solo. Si vuelve a aparecer, el paquete vendorizado es anterior a 0.3.2: revendorizalo. Ver `DECISION-010` de Oracle. |
+| Editar `vendor/oracle-pkg/` a mano | Es el wheel de PyPI, no un subtree: la edición desaparece en la próxima reinstalación sin dejar rastro. Se cambia arriba, se publica, y acá se sube el número. |
 | Dar por compilado un cambio porque el build dijo `Result: Succeeded` | **`Succeeded` también lo imprime un build que no hizo nada.** Pasó: se reportó un fix de UI sobre un binario 35 minutos más viejo que la fuente, y el usuario vio el comportamiento anterior. Usar `python tools/build.py`, que compila y **verifica el timestamp** del binario base contra los fuentes. También detecta el caso del editor abierto, donde UBT linkea un `…-0001.so` de hot reload y el base queda viejo. Un build que sí trabajó imprime `[n/m] Compile …` y `[n/m] Link …`; filtrar la salida sólo por `error:|Result:` esconde justamente eso. |
 | Medir una malla por sus `normals` | **Las normales de sombreado NO deciden qué lado se ve.** El backface culling mira el ORDEN DE LOS ÍNDICES. Una cinta puede declarar normales impecables hacia arriba y ser invisible desde arriba: pasó con `mesh_ribbon`, 790 tests en verde y el tutorial transparente en el viewport. Para juzgar la cara visible, `GeometryScript_MeshQueries.get_triangle_face_normal`, y con una malla nativa al lado como control. |
 | `ls BotOO*.log` para leer el veredicto | El glob matchea **`BotOO-CRC.log`**, que no lleva salida de Python y suele ser el más reciente: la sonda parece muda aunque haya escrito su marcador. Filtrar: `ls -t …/BotOO*.log \| grep -v CRC \| head -1`. |
