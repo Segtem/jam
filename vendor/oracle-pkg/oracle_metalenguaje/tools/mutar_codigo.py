@@ -38,7 +38,6 @@ TESTS = [sys.executable, str(RAIZ / "tools" / "ejecutar_suite_mutacion.py")]
 EQUIVALENTES = RAIZ / "equivalentes.json"
 
 PRIORIDADES = {
-    "nucleo/aislamiento/escalares.py": ("tests.test_proyecto", "tests.test_herramientas"),
     "nucleo/algebra.py": ("tests.test_algebra", "tests.test_nucleo", "tests.test_motor"),
     "nucleo/biblioteca.py": ("tests.test_biblioteca",),
     "nucleo/aislamiento/escalares.py": ("tests.test_aislamiento_escalares",
@@ -102,6 +101,54 @@ PRIORIDADES = {
 # `opcion_del_vocabulario`, así que si el registro se rompe —o deja de emitir un vocabulario— las
 # dos medidas que vigilan el manual se ponen verdes sin mirar nada. Es el caso exacto del criterio:
 # el instrumento custodia una afirmación (que el manual está completo) que nadie más comprueba.
+# ⚠ ESTAR ACÁ NO ES ESTAR MEDIDO — y lo que costó averiguarlo cambió la conclusión.
+#
+# Esta lista tiene siete archivos; la matriz de `mutacion-codigo` del workflow corría UNO. Los otros
+# seis entraban al perfil y no los mutaba nadie salvo a mano, declarado en el workflow como «sube el
+# costo por corrida». Faltaba el número.
+#
+# El 2026-09-02 se midió `tools/medida.py` entero: **264 mutantes, 114 sobrevivientes, ~90 minutos**.
+# Y se probaron los dos arreglos posibles, en ramas separadas y con los criterios fijados antes:
+#
+#   · escribir los tests que faltaban (616 líneas): quedó en **264/264, cero sobrevivientes, 201
+#     segundos**;
+#   · separar el archivo en un módulo custodio y dejar el CLI afuera del perfil: quedó en 3
+#     sobrevivientes de 64 y **1.675 segundos**, ocho veces más lento, con 114 mutantes sin medir.
+#
+# Ganó escribir los tests, y el dato que da vuelta la intuición es el tiempo: el archivo tardaba 90
+# minutos PORQUE estaba mal fijado. Confirmar un sobreviviente cuesta una corrida completa de la
+# suite (~50 s); matarlo cuesta ~0,1 s. Fijarlo lo volvió 27 veces más rápido.
+#
+# Así que «no los agregamos a CI porque salen caros» decía en realidad «no los medimos porque nos
+# iría mal»: medirlos bien es lo que los vuelve baratos. `tools/medida.py` ya está en la matriz.
+#
+# LOS OTROS CINCO, medidos el 2026-09-03 — y el resultado desmintió lo que se esperaba:
+#
+#   tools/lsp.py          140 mutantes ·  0 vivos ·   121 s
+#   tools/corpus.py       112 mutantes ·  0 vivos ·   180 s
+#   tools/aceptacion.py    49 mutantes ·  0 vivos ·   266 s
+#   tools/cli.py          442 mutantes ·  0 vivos ·  1927 s
+#   tools/manual.py        59 mutantes ·  3 vivos ·   242 s  ← se cerraron el mismo día
+#
+# No eran archivos abandonados: estaban fijados y nadie volvía a comprobarlo. `medida.py` era la
+# excepción, no la regla.
+#
+# Y el costo NO se explica por los sobrevivientes: cuatro estaban en cero y `cli.py` igual tarda 32
+# minutos. Son DOS componentes, y acá manda el segundo:
+#
+#   · confirmar un sobreviviente cuesta una corrida completa de la suite (~50 s);
+#   · matar un mutante cuesta lo que tarde el arnés en LLEGAR al test que lo mata. Con
+#     `failfast=True` y los módulos corriendo en el orden declarado, un mutante que muere en el
+#     primer test del primer módulo no cuesta nada, y uno que muere al final del segundo pagó todo
+#     el primero. Por eso `lsp.py` va a 0,86 s por mutante —declara UN módulo, chico y suyo— y
+#     `aceptacion.py` a 5,4 —declara `herramientas` primero, que es grande—.
+#
+# De ahí sale una palanca que no cuesta código: REORDENAR los módulos prioritarios poniendo el más
+# específico primero. No está hecha ni medida; si alguien la prueba, que deje el número.
+#
+# Los tres sobrevivientes de `manual.py` los introdujo quien agregó `--man`: lo midió en 39/39, lo
+# siguió editando y no lo volvió a medir. Es el modo de fallar que este proyecto persigue, cometido
+# adentro: medir una vez y quedarse con el número viejo en la cabeza.
 HERRAMIENTAS_CUSTODIAS = ("aceptacion.py", "cifras.py", "cli.py", "corpus.py",
                           "lsp.py", "manual.py", "medida.py")
 

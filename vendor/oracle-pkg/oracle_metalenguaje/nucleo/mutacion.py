@@ -24,7 +24,9 @@ distintos.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from copy import deepcopy
+from dataclasses import dataclass
 import math
 
 from .medida import Medida
@@ -85,9 +87,10 @@ def quitar_requiere(datos: list) -> list | None:
     falso verde de la ausencia sin que nada lo note.
     """
     d = deepcopy(datos)
-    if len(d) != 7:
+    if (len(d) not in (7, 8) or not isinstance(d[5], list) or not d[5]
+            or d[5][0] != "requiere"):
         return None
-    return [*d[:5], d[6]]
+    return [*d[:5], *d[6:]]
 
 
 def negar_filtro(datos: list) -> list | None:
@@ -108,13 +111,102 @@ def _huella(testigos) -> tuple:
         for fila in testigos))
 
 
-MUTADORES = {
+# Los que escribió quien diseñó el lenguaje. El problema de este conjunto no se ve desde adentro y
+# hay que decirlo: **un mutador que nadie escribió no puede producir un sobreviviente**, así que
+# «todos muertos» mide cobertura sobre un espacio de autoría propia. Por eso hay un segundo conjunto,
+# en `mutadores/`, escrito por un autor que no vio nada de este repositorio.
+#
+# Costo, medido: confirmar un sobreviviente cuesta una corrida completa de la suite (~50 s con
+# 1.033 tests), contra ~0,1 s por un mutante que muere en los módulos prioritarios. Mutar ESTE
+# archivo pide `--timeout 180`: la línea base sola tarda 50,5 s contra el plazo de 60 por
+# omisión, y bajo carga se pasa.
+MUTADORES_PROPIOS = {
     "aflojar_umbral": aflojar_umbral,
     "invertir_comparador": invertir_comparador,
     "quitar_filtro": quitar_filtro,
     "quitar_requiere": quitar_requiere,
     "negar_filtro": negar_filtro,
 }
+
+
+@dataclass(frozen=True)
+class ExclusionDeMutador:
+    """Un mutador que no corre mientras una condición comprobable lo haga equivalente.
+
+    La premisa y su predicado viajan juntos porque una explicación sin comprobación vuelve a
+    envejecer en silencio, que es precisamente el riesgo de excluir un mutador real del
+    denominador.
+    """
+
+    mutador: str
+    premisa: str
+    predicado: Callable[[Medida | list], bool]
+
+
+def _umbral_es_menor_o_igual_a_cero(medida: Medida | list) -> bool:
+    """La equivalencia sólo vale para la forma exacta `umbral <= 0` de la medida."""
+    if isinstance(medida, list):
+        op, limite = _umbral(medida)[1], _umbral(medida)[2]
+    else:
+        op, limite = getattr(medida, "op", None), getattr(medida, "limite", None)
+    return op == "<=" and not isinstance(limite, bool) and limite == 0
+
+
+# No es una lista de excepciones mudas: cada entrada declara la condición que justifica sacar al
+# mutador y cómo volver a comprobarla sobre cada medida. La aceptación convierte esas
+# comprobaciones en hechos para que una premisa que deje de valer se ponga en rojo.
+EXCLUSIONES_DE_MUTADORES = (
+    ExclusionDeMutador(
+        mutador="convertir_conteo_en_existencia",
+        premisa="la medida tiene umbral <= 0",
+        predicado=_umbral_es_menor_o_igual_a_cero,
+    ),
+)
+
+
+def mutadores_declarados_por_sus_autores() -> frozenset:
+    """Los nombres que cada autor DECLARA, leídos de su módulo y no del registro ya construido.
+
+    Existe para no medirse contra sí mismo. Si esta lista saliera de `_mutadores_ajenos()`, un
+    filtro global reintroducido ahí desaparecería de los dos lados a la vez y la medida que lo
+    vigila daría verde mientras el arnés vuelve a la forma vieja. Leer la declaración del autor es
+    lo único independiente del camino que se quiere vigilar.
+
+    El `except` no es simetría con `_mutadores_ajenos()`: un consumidor instala el paquete, y
+    `mutadores/` no viaja en él —no está en `pyproject.toml`—. Ahí el mutador no está ausente
+    porque alguien lo excluyera sino porque nadie lo distribuyó, y eso no es un defecto de nadie.
+    Distinguir las dos cosas es el trabajo de esta función.
+    """
+    from nucleo.mutacion import MUTADORES_PROPIOS  # noqa: PLC0415  se resuelve al llamar, no al importar
+    try:
+        from mutadores import segundo_autor
+    except ImportError:
+        return frozenset(MUTADORES_PROPIOS)
+    return frozenset(MUTADORES_PROPIOS) | {fn.__name__ for fn in segundo_autor.MUTADORES}
+
+
+def _mutadores_ajenos() -> dict:
+    """Los de otros autores, con su procedencia declarada en `mutadores/PROCEDENCIA.md`.
+
+    Se importan adentro de la función y no al tope: `nucleo/` no puede depender de que exista un
+    directorio de mutadores ajenos —un consumidor instala el núcleo, no este repositorio—, y si no
+    está, el arnés sigue midiendo con los propios en vez de romperse.
+
+    Las exclusiones no se aplican en tiempo de importación: viven en `EXCLUSIONES_DE_MUTADORES`
+    y se comprueban por medida en `mutantes()`.
+    """
+    try:
+        from mutadores import segundo_autor
+    except ImportError:
+        return {}
+    return {fn.__name__: fn for fn in segundo_autor.MUTADORES}
+
+
+# El `or {}` no es defensa por las dudas: sin él, mutar el `return` de la función de arriba deja
+# `**None` en esta línea y rompe la IMPORTACIÓN del módulo. Eso es un error de arnés, no una muerte
+# —y un error de arnés no mata un mutante—, así que el sitio quedaba fuera de lo que la mutación
+# puede medir. Con el `or`, el mutante degrada a «sólo los propios» y hay un test que lo nota.
+MUTADORES = {**MUTADORES_PROPIOS, **(_mutadores_ajenos() or {})}
 
 
 _AGREGADO_ALTERNO = {
@@ -268,6 +360,9 @@ def mutantes(datos: list) -> list[tuple[str, list]]:
     """
     salida = []
     for nombre, fn in MUTADORES.items():
+        if any(exclusion.mutador == nombre and exclusion.predicado(datos)
+               for exclusion in EXCLUSIONES_DE_MUTADORES):
+            continue
         mutada = fn(datos)
         if mutada is not None:
             salida.append((nombre, mutada))

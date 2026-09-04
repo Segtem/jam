@@ -28,13 +28,17 @@ import catalogos.escalares  # noqa: F401,E402  registra las escalares declaradas
 from nucleo.caso import cargar_casos  # noqa: E402
 from nucleo.diagnostico import hechos_de_diagnostico, reunir  # noqa: E402
 from nucleo.marco import (hechos_de_casos, hechos_de_documentacion,  # noqa: E402
-                          hechos_de_sombra, hechos_de_verbos, hechos_de_vocabulario)
-from nucleo.medida import (cargar_catalogo, como_hechos, evaluar,  # noqa: E402
-                           medidas_aplicables, relaciones_del_lenguaje_declaradas)
-from nucleo.relacion import cargar_relaciones, hechos_de_relaciones  # noqa: E402
+                          hechos_de_mutadores_excluidos, hechos_de_sombra, hechos_de_verbos,
+                          hechos_de_vocabulario)
+from nucleo.medida import (como_hechos, evaluar, medidas_aplicables,  # noqa: E402
+                           relaciones_del_lenguaje_declaradas)
+from nucleo.mutacion import (EXCLUSIONES_DE_MUTADORES, MUTADORES,  # noqa: E402
+                             mutadores_declarados_por_sus_autores)
+from nucleo.relacion import (ambitos_de_relaciones_declarados,  # noqa: E402
+                             cargar_relaciones, hechos_de_relaciones)
 from nucleo.unidad import hechos_de_unidades  # noqa: E402
 from nucleo.proyecto import (EscalaresInvalidas, EscalaresNoConfiables,  # noqa: E402
-                             bibliotecas_del_proyecto, catalogos_a_cargar, configuracion,
+                             bibliotecas_del_proyecto, catalogo_efectivo, configuracion,
                              confiar_escalares, escalares_del_proyecto,
                              macros_del_proyecto,
                              problemas_estructura, relaciones_del_proyecto)  # noqa: E402
@@ -96,7 +100,7 @@ def _ejecutar(proy) -> int:
     if estructura:
         print("PROYECTO INVÁLIDO — " + "; ".join(estructura))
         return 1
-    catalogo = cargar_catalogo(catalogos_a_cargar(proy), macros=macros_del_proyecto(proy))
+    catalogo = catalogo_efectivo(proy, macros=macros_del_proyecto(proy))
     todos = casos(proy)
     fallas: list[str] = []
     rojos = 0
@@ -166,8 +170,14 @@ def _ejecutar(proy) -> int:
                       # hace falta, y si no está, la relación no se emite y la medida no concluye.
                       **_hechos_del_cli(),
                       **_hechos_del_vocabulario(),
+                      # La exclusión se vigila sobre el registro efectivo del arnés: si vuelve el
+                      # filtrado global, el mutador excluido deja de estar disponible para todas las
+                      # medidas y este hecho lo vuelve visible.
+                      **hechos_de_mutadores_excluidos(EXCLUSIONES_DE_MUTADORES, MUTADORES,
+                                                      mutadores_declarados_por_sus_autores()),
                       **hechos_de_casos(catalogo, todos),
-                      **hechos_de_relaciones(relaciones.values()),
+                      **hechos_de_relaciones(
+                          relaciones.values(), ambitos=ambitos_de_relaciones_declarados()),
                       **hechos_de_unidades(catalogo.values(), relaciones)}
     metas = [m for mid, m in sorted(catalogo.items()) if mid.startswith("meta.")]
     informe_meta = evaluar(medidas_aplicables(metas, evidencia_meta), evidencia_meta)

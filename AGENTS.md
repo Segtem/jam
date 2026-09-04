@@ -44,7 +44,7 @@ Jam lo usa por **dos caminos a la vez**, y hacen falta los dos:
 ```bash
 # 1. los COMANDOS, para vos y para relevo.py
 uv tool install oracle-metalenguaje          # deja los 9 ejecutables en el PATH
-oracle --version                             # tiene que decir 0.3.3 o más
+oracle --version                             # tiene que decir 0.5.0 o más
 
 oracle-corpus      --proyecto medidas
 oracle-aceptacion  --proyecto medidas --confiar-escalares
@@ -56,7 +56,7 @@ oracle test        --proyecto medidas --confiar-escalares   # la secuencia enter
 
 ```bash
 # 2. el PAQUETE, para el intérprete embebido de Unreal
-python3 -m pip install --target vendor/oracle-pkg --no-deps "oracle-metalenguaje==0.3.3"
+python3 -m pip install --target vendor/oracle-pkg --no-deps "oracle-metalenguaje==0.5.0"
 rm -rf vendor/oracle-pkg/bin        # scripts con shebang de esta máquina; no van al repo
 ```
 

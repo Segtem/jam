@@ -44,6 +44,22 @@ ORIGENES_DE_UMBRAL: dict[str, str] = {
 }
 
 
+# ---- dónde obliga una medida -------------------------------------------------------
+#
+# La carpeta dice de dónde vino una medida, no a quién puede imponerle un veredicto. Este
+# vocabulario separa esas dos preguntas sin darle a Oracle un nombre privilegiado: el origen puede
+# ser el catálogo base, un perfil, una biblioteca o el propio proyecto.
+
+AMBITO_SIN_DECLARAR = "sin_declarar"
+
+AMBITOS: dict[str, str] = {
+    "universal": "la medida obliga a todo proyecto que seleccione el catálogo y aporte la "
+                 "evidencia necesaria para evaluarla",
+    "del_origen": "la medida obliga sólo cuando el proyecto evaluado es dueño de su origen; un "
+                  "consumidor ajeno puede leerla, pero no recibe su veredicto",
+}
+
+
 # ---- los operadores de la tubería --------------------------------------------------
 #
 # El álgebra los despacha por literal, repartidos entre `_validar` y `_evaluar`; acá se los nombra
@@ -75,16 +91,23 @@ OPERADORES: dict[str, str] = {
 # lo mide `meta.toda_relacion_del_lenguaje_esta_en_la_referencia`.
 
 RELACIONES_EXPLICADAS: dict[str, str] = {
+    "ambito_de_relacion": "dónde puede aportar jurisdicción cada relación emitida; permite "
+                           "detectar una medida universal apoyada en evidencia que sólo pertenece "
+                           "a su origen",
     "caso": "cada caso del corpus: su polaridad, su procedencia, si la medida que reclama existe, "
             "y si es propio o heredado de una biblioteca",
     "medida_en_uso": "cuántos casos evalúan cada medida y cuántos mutantes le sobreviven; es la "
                      "relación con la que Oracle mide si una medida está ejercitada o es adorno",
     "sombra": "qué medidas heredadas se miden y se informan pero todavía no tumban la corrida, "
-              "desde cuándo y con qué razón escrita",
+              "desde cuándo, con qué razón escrita y hace cuántos días — que es lo que permite "
+              "envejecerlas y distinguir una transición de un estado permanente",
     "relacion_documentada": "si cada relación del lenguaje está nombrada en la especificación; "
                             "existe para que una relación nueva no quede sin documentar en silencio",
     "verbo_del_cli": "cada verbo que el comando acepta y si la ayuda lo nombra; un verbo fuera de "
                      "la ayuda es trabajo terminado que nadie va a encontrar",
+    "mutador_excluido": "cada mutador que el arnés no corre, con la premisa declarada y si sigue "
+                        "disponible en el registro del arnés; ninguna exclusión debe aplicarse "
+                        "globalmente para que el denominador de mutación no baje en silencio",
     "opcion_del_vocabulario": "cada opción de un vocabulario cerrado, con cuántas palabras la "
                               "explican y si el manual la alcanza",
 }

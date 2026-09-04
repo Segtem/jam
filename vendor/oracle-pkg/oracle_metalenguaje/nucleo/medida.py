@@ -7,13 +7,14 @@ Forma canónica, tal como se guarda en `catalogos/`:
   ["desde", ["de", "<relacion>", "<alias>"], ["donde", <pred>]],
   ["resumen", "contar", 1],
   ["umbral", "<=", 0, "<la defensa del número>", "<de dónde salió>"],
+  ["ambito", "<dónde obliga>"],
   ["alcance", "<qué NO ve>"]]
 ```
 
-Dos campos son obligatorios y son la razón de ser del módulo: **`alcance`**, para que un informe en
-verde no pueda decir «todo bien» a secas, y **`segun`**, para que el origen del número sea
-inspeccionable. La defensa en prosa sigue existiendo, pero ya no es obligatoria: dice por qué ése y
-no otro, no de dónde salió.
+Tres campos evitan que una medida prometa más de lo que puede sostener: **`alcance`** impide que un
+verde diga «todo bien» a secas, **`segun`** vuelve inspeccionable el origen del número y **`ambito`**
+separa dónde nació la medida de los proyectos a los que puede obligar. La defensa en prosa sigue
+existiendo, pero ya no es obligatoria: dice por qué ése y no otro, no de dónde salió.
 
 Los **testigos no se declaran**: son las filas con las que terminó la tubería. Declararlos aparte
 obliga a escribir la misma condición dos veces y a mantenerlas sincronizadas a mano — el caso
@@ -30,8 +31,9 @@ from pathlib import Path
 from .algebra import (COMPARADORES, ErrorDeAlgebra, LimitesAlgebra, comparar, desde, resumir,
                       validar_finito, validar_resumen, validar_tuberia)
 from .macro import es_macro, expandir
-from .proyecto import ID_MEDIDA_RE
-from .vocabulario import ORIGENES_DE_UMBRAL, opciones
+from .proyecto import FuenteCatalogo, ID_MEDIDA_RE, ORIGEN_PROYECTO, OrigenCatalogo
+from .vocabulario import (AMBITOS, AMBITO_SIN_DECLARAR, ORIGENES_DE_UMBRAL,
+                          opciones)
 
 
 class MedidaMalDeclarada(ValueError):
@@ -45,7 +47,18 @@ RELACIONES_DE_CATALOGO = frozenset({
     "fuente",
     "termino",
     "requiere",
+    "dependencia_de_medida",
 })
+
+AMBITOS_DE_RELACIONES = {
+    "ancestro": "universal",
+    "medida": "universal",
+    "paso_de_medida": "universal",
+    "fuente": "universal",
+    "termino": "universal",
+    "requiere": "universal",
+    "dependencia_de_medida": "universal",
+}
 
 EXTENSIONES_DE_MEDIDA = frozenset({".json", ".oracle"})
 SEGUN_SIN_DECLARAR = "sin_declarar"
@@ -257,6 +270,7 @@ class Medida:
     porque: str
     alcance: str
     segun: str = SEGUN_SIN_DECLARAR
+    ambito: str = AMBITO_SIN_DECLARAR
     # Relaciones sin las cuales esta medida no puede concluir nada. Es el espejo de `alcance`: uno
     # declara qué NO ve, y éste declara qué NECESITA ver. Existe porque el álgebra no puede
     # expresarlo: `unir` con un lado vacío no produce pares, y sin pares no hay grupos, así que la
@@ -272,16 +286,26 @@ class Medida:
         # que existieron, así que el evaluador, la mutación, el inventario y el L2 no cambian.
         fuente = d
         d = expandir(d, macros, limites)
-        if not isinstance(d, list) or len(d) not in (6, 7) or d[0] != "medida":
+        if not isinstance(d, list) or len(d) not in (6, 7, 8) or d[0] != "medida":
             raise MedidaMalDeclarada(
-                "una medida es ['medida', id, tuberia, resumen, umbral, [requiere,] alcance]")
-        # `requiere` es OPCIONAL y va antes de `alcance`: las medidas que no lo declaran no cambian,
-        # y las rutas de mutación —que indexan tubería, resumen y umbral— tampoco se corren.
-        if len(d) == 7:
-            _, mid, tuberia, resumen, umbral, requiere, alcance = d
-        else:
-            _, mid, tuberia, resumen, umbral, alcance = d
-            requiere = ["requiere"]
+                "una medida es ['medida', id, tuberia, resumen, umbral, "
+                "[requiere,] [ambito,] alcance]")
+        _, mid, tuberia, resumen, umbral, *opcionales, alcance = d
+        # Los dos nodos opcionales tienen etiqueta propia y orden canónico. Leerlos por etiqueta
+        # conserva las medidas anteriores —que no traen ninguno— sin confundir una declaración de
+        # ámbito con `requiere` sólo porque ambas ocupan la sexta posición.
+        requiere = ["requiere"]
+        if opcionales and (isinstance(opcionales[0], list) and opcionales[0]
+                           and opcionales[0][0] == "requiere"):
+            requiere = opcionales.pop(0)
+        ambito = ["ambito", AMBITO_SIN_DECLARAR]
+        if opcionales and (isinstance(opcionales[0], list) and opcionales[0]
+                           and opcionales[0][0] == "ambito"):
+            ambito = opcionales.pop(0)
+        if opcionales:
+            raise MedidaMalDeclarada(
+                f"{mid}: después del umbral sólo pueden ir `requiere`, `ambito` y `alcance`, "
+                "en ese orden")
         # La gramática del id se comprobaba SÓLO al crear el archivo (`ruta_de_medida_nueva`), así
         # que un catálogo podía guardar ids que la propia herramienta se niega a crear. Se comprueba
         # también al cargar: la razón del ASCII está escrita al lado de `ID_MEDIDA_RE`.
@@ -330,6 +354,16 @@ class Medida:
         if not (isinstance(alcance, list) and len(alcance) == 2 and alcance[0] == "alcance"
                 and isinstance(alcance[1], str) and alcance[1].strip()):
             raise MedidaMalDeclarada(f"{mid}: falta `alcance` — hay que declarar qué NO ve")
+        if not (isinstance(ambito, list) and len(ambito) == 2 and ambito[0] == "ambito"):
+            raise MedidaMalDeclarada(
+                f"{mid}: `ambito` es ['ambito', <valor>], con uno de estos valores:\n"
+                f"{opciones(AMBITOS)}")
+        valor_ambito = ambito[1]
+        if (valor_ambito != AMBITO_SIN_DECLARAR
+                and (not isinstance(valor_ambito, str) or valor_ambito not in AMBITOS)):
+            raise MedidaMalDeclarada(
+                f"{mid}: `ambito` recibió {valor_ambito!r}, y los ámbitos declarados son:\n"
+                f"{opciones(AMBITOS)}")
         if not (isinstance(requiere, list) and requiere and requiere[0] == "requiere"
                 and all(isinstance(r, str) and r.strip() for r in requiere[1:])):
             raise MedidaMalDeclarada(
@@ -338,7 +372,8 @@ class Medida:
         if len(set(nombres)) != len(nombres):
             raise MedidaMalDeclarada(f"{mid}: `requiere` repite una relación: {list(nombres)}")
         return cls(id=mid, tuberia=tuberia, resumen=resumen, op=op, limite=limite,
-                   porque=porque, alcance=alcance[1], segun=segun, requiere=nombres,
+                   porque=porque, alcance=alcance[1], segun=segun, ambito=valor_ambito,
+                   requiere=nombres,
                    fuente=tuple(fuente) if es_macro(fuente, macros) else ())
 
     def evaluar(self, evidencia: dict, limites: LimitesAlgebra | None = None, *,
@@ -366,6 +401,11 @@ class Medida:
         # cambia, y con ella no cambian sus huellas ni las rutas de sus mutantes.
         if self.requiere:
             canonica.append(["requiere", *self.requiere])
+        # `sin_declarar` pertenece al estado interno de la migración, no al vocabulario que puede
+        # escribir un autor. Omitirlo conserva las 55 formas anteriores y evita hacer pasar una
+        # ausencia por una declaración; los dos ámbitos reales sí vuelven completos.
+        if self.ambito != AMBITO_SIN_DECLARAR:
+            canonica.append(["ambito", self.ambito])
         return [*canonica, ["alcance", self.alcance]]
 
     def a_fuente(self) -> list:
@@ -469,9 +509,40 @@ def cargar(ruta: Path, *, registro=None,
     )
 
 
+@dataclass(frozen=True)
+class EntradaCatalogo:
+    """Una medida cargada con su origen lógico y su archivo de diagnóstico."""
+
+    medida: Medida
+    origen: OrigenCatalogo
+    ruta: Path
+
+
+class Catalogo(dict[str, Medida]):
+    """Mapa compatible de medidas que conserva una ``EntradaCatalogo`` por id."""
+
+    def __init__(self, entradas=()) -> None:
+        entradas = tuple(entradas)
+        super().__init__((entrada.medida.id, entrada.medida) for entrada in entradas)
+        self.entradas = {entrada.medida.id: entrada for entrada in entradas}
+
+    def filtrar(self, predicado) -> "Catalogo":
+        """Crea otra vista materializada sin separar medidas de sus procedencias."""
+        return Catalogo(entrada for entrada in self.entradas.values() if predicado(entrada))
+
+
+def _fuentes_de_catalogo(directorios) -> tuple[FuenteCatalogo, ...]:
+    """Normaliza rutas sueltas como catálogo propio y conserva fuentes ya identificadas."""
+    return tuple(
+        fuente if isinstance(fuente, FuenteCatalogo)
+        else FuenteCatalogo(Path(fuente), ORIGEN_PROYECTO)
+        for fuente in _normalizar_directorios(directorios)
+    )
+
+
 def cargar_catalogo(*directorios, registro=None,
                     limites: LimitesAlgebra | None = None,
-                    macros=None) -> dict[str, Medida]:
+                    macros=None) -> Catalogo:
     """Una o varias carpetas de medidas. Un id repetido entre carpetas es un error, no una
     sobrescritura silenciosa: si el proyecto quiere cambiar una medida base, la renombra.
 
@@ -480,16 +551,15 @@ def cargar_catalogo(*directorios, registro=None,
     la alternativa sería tratar la invocación como una medida canónica malformada y culpar al archivo
     equivocado.
     """
-    salida: dict[str, Medida] = {}
-    fuentes: dict[str, Path] = {}
-    for p in rutas_de_catalogo(*directorios):
-        m = cargar(p, registro=registro, limites=limites, macros=macros)
-        if m.id in salida:
-            raise MedidaMalDeclarada(
-                f"el id «{m.id}» está dos veces: {fuentes[m.id]} y {p}")
-        salida[m.id] = m
-        fuentes[m.id] = p
-    return salida
+    entradas: dict[str, EntradaCatalogo] = {}
+    for fuente in _fuentes_de_catalogo(directorios):
+        for p in rutas_de_catalogo(fuente):
+            m = cargar(p, registro=registro, limites=limites, macros=macros)
+            if m.id in entradas:
+                raise MedidaMalDeclarada(
+                    f"el id «{m.id}» está dos veces: {entradas[m.id].ruta} y {p}")
+            entradas[m.id] = EntradaCatalogo(m, fuente.origen, p)
+    return Catalogo(entradas.values())
 
 
 @dataclass(frozen=True)
@@ -573,6 +643,7 @@ def hechos_de_catalogo(medidas, clasificacion: ClasificacionMeta) -> HechosCatal
         por_relacion["termino"].extend(_terminos_de_medida(medida))
         por_relacion["ancestro"].extend(_ancestros_de_medida(medida))
         por_relacion["requiere"].extend(_requiere_de(medida))
+        por_relacion["dependencia_de_medida"].extend(_dependencias_de_medida(medida))
     return HechosCatalogo(por_relacion)
 
 
@@ -591,6 +662,7 @@ def _hecho_medida(medida, clasificacion: ClasificacionMeta) -> dict:
         "umbral_es_flotante": isinstance(medida.limite, float),
         "porque": medida.porque,
         "segun": getattr(medida, "segun", SEGUN_SIN_DECLARAR),
+        "ambito": getattr(medida, "ambito", AMBITO_SIN_DECLARAR),
         "alcance": medida.alcance,
         "pasos": max(0, len(medida.tuberia) - 1),
         "declara_requiere": bool(medida.requiere),
@@ -750,6 +822,30 @@ def _requiere_de(medida) -> list[dict]:
         {"medida": medida.id, "indice": indice, "relacion": relacion}
         for indice, relacion in enumerate(medida.requiere)
     ]
+
+
+def _dependencias_de_medida(medida) -> list[dict]:
+    """Cada relación de la que una medida depende, con la vía por la que depende.
+
+    `fuente` y `requiere` ya dicen esto por separado, y ésta no los reemplaza: los une para que una
+    política sobre dependencias se escriba UNA vez. Sin esto, la cota del ámbito serían dos medidas
+    casi iguales —una por vía— y nada las mantendría iguales; es el mismo argumento que llevó a la
+    macro `peor`, donde la tolerancia se escribía dos veces.
+
+    `clase` conserva la vía porque las dos no son lo mismo: una fuente trae filas y su ausencia da
+    una relación vacía, mientras que `requiere` es la precondición que hace SIN EVIDENCIA. Una
+    política futura puede querer distinguirlas, y colapsarlas acá le sacaría el dato.
+    """
+    vistas: dict[tuple[str, str], dict] = {}
+    for fuente in _fuentes_de_medida(medida):
+        vistas.setdefault((fuente["relacion"], "fuente"),
+                          {"medida": medida.id, "relacion": fuente["relacion"],
+                           "clase": "fuente"})
+    for exigida in _requiere_de(medida):
+        vistas.setdefault((exigida["relacion"], "requiere"),
+                          {"medida": medida.id, "relacion": exigida["relacion"],
+                           "clase": "requiere"})
+    return list(vistas.values())
 
 
 def como_hechos(medidas, clasificacion: ClasificacionMeta | None = None) -> list[dict]:
