@@ -5,5 +5,7 @@
   "d",
   ["!=", ["campo", "d", "tipo_en_nombre"], ["campo", "d", "tipo_declarado"]],
   "si el archivo dice INFORME y el frontmatter dice PLAN, una de las dos afirmaciones es falsa y no hay forma de saber cuál",
+  "sin_declarar",
+  "sin_declarar",
   "NO ve si el TIPO elegido es el correcto para lo que el documento realmente es: sólo que las dos declaraciones coincidan entre sí"
 ]

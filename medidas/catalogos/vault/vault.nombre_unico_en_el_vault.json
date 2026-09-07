@@ -6,5 +6,7 @@
   "b",
   ["y", ["==", ["campo", "a", "nombre"], ["campo", "b", "nombre"]], ["<", ["campo", "a", "carpeta"], ["campo", "b", "carpeta"]]],
   "un wikilink apunta por NOMBRE y no por ruta: dos homónimos en carpetas distintas dejan el enlace a cara o cruz, y el verificador de enlaces lo daría por bueno",
+  "sin_declarar",
+  "sin_declarar",
   "NO ve nombres parecidos pero distintos, que confunden a una persona aunque no rompan un enlace"
 ]

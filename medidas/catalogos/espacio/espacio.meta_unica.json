@@ -5,5 +5,7 @@
   "e",
   ["!=", ["campo", "e", "metas"], 1],
   "una misión de extracción necesita exactamente una meta para que ganar tenga un destino inequívoco",
+  "sin_declarar",
+  "sin_declarar",
   "cantidad de nodos marcados como meta. NO ve volumen de extracción, temporizador, interacción, navegación, colisión ni salida del mapa"
 ]

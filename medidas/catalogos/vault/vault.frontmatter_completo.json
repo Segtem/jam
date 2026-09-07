@@ -5,5 +5,7 @@
   "d",
   ["==", ["campo", "d", "frontmatter_completo"], false],
   "sin `title`, `tipo`, `version`, `date`, `updated` y `area` el documento no se puede indexar ni ubicar, y las otras medidas no tienen qué comparar",
+  "sin_declarar",
+  "sin_declarar",
   "ve que los campos ESTÉN. NO ve si su contenido es cierto — un `updated` inventado cumple"
 ]

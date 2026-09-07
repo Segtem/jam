@@ -5,5 +5,7 @@
   "v",
   ["==", ["campo", "v", "es_ancestro"], false],
   "una verificación que apunta a un commit inexistente o a una rama que no está en la historia no se puede reproducir, y afirmarla es afirmar nada",
+  "sin_declarar",
+  "sin_declarar",
   "ve que el commit exista y esté en la historia. NO ve si en ese commit la verificación se corrió de verdad — eso lo declara una persona"
 ]

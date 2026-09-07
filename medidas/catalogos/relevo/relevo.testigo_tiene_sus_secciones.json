@@ -5,5 +5,7 @@
   "s",
   ["==", ["campo", "s", "presente"], false],
   "si una sección se puede omitir, un turno deja de pedir manos o de declarar su frontera sin que nadie lo note: vacía dice «no hace falta», ausente no dice nada",
+  "sin_declarar",
+  "sin_declarar",
   "ve el TÍTULO de la sección. NO ve si abajo hay algo escrito, ni si lo que dice es de este turno"
 ]

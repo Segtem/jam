@@ -5,5 +5,7 @@
   "d",
   ["==", ["campo", "d", "carpeta"], ""],
   "la carpeta es la taxonomía: un documento en la raíz no pertenece a ninguna categoría y el índice no sabe dónde ponerlo",
+  "sin_declarar",
+  "sin_declarar",
   "NO ve los archivos que no son `.md`, ni el `README.md`, que va en la raíz a propósito"
 ]

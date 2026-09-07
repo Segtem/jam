@@ -5,5 +5,7 @@
   "d",
   ["==", ["campo", "d", "nombre_es_ascii"], false],
   "un acento en el nombre de archivo rompe enlaces según el sistema de archivos y la normalización Unicode que use cada herramienta",
+  "sin_declarar",
+  "sin_declarar",
   "NO ve el TÍTULO, que sí lleva acentos y puntuación a propósito: sólo el nombre de archivo"
 ]
