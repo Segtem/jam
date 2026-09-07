@@ -69,6 +69,10 @@ PRIORIDADES = {
     "tools/cifras.py": ("tests.test_herramientas",),
     "tools/cli.py": ("tests.test_biblioteca", "tests.test_vigilar", "tests.test_cli",
                      "tests.test_herramientas"),
+    # `test_contexto` primero y solo: es chico y es suyo. La lección de costo de arriba —un mutante
+    # cuesta lo que tarde el arnés en LLEGAR al test que lo mata— dice poner el módulo más
+    # específico adelante, y acá se puede porque el archivo tiene su propio test.
+    "tools/contexto.py": ("tests.test_contexto", "tests.test_cli"),
     "tools/corpus.py": ("tests.test_corpus_cli", "tests.test_herramientas", "tests.test_cli"),
     "tools/lsp.py": ("tests.test_lsp",),
     # Listo para cuando `aceptacion.py` entre a HERRAMIENTAS_CUSTODIAS; ver la nota de ahí.
@@ -77,6 +81,13 @@ PRIORIDADES = {
     # perfil de `cli.py`. Acá agregaba ~40 s de subprocesos por mutante —la ronda pasaba de
     # minutos a horas— sin matar un mutante que los otros dos módulos no maten.
     "tools/manual.py": ("tests.test_manual", "tests.test_vocabulario"),
+    # `test_mcp` primero y solo: es suyo y es chico. Misma palanca que en `contexto.py`, que pasó de
+    # 858 a 56 segundos.
+    "tools/mcp.py": ("tests.test_mcp", "tests.test_herramientas"),
+    "tools/observar.py": ("tests.test_observar",),
+    "tools/reportar.py": ("tests.test_reportar", "tests.test_cli"),
+    "tools/sondear_generador.py": ("tests.test_sondear_generador",),
+    "tools/sondear_procedencia.py": ("tests.test_sondear_procedencia",),
     "tools/medida.py": ("tests.test_vigilar", "tests.test_herramientas", "tests.test_cli",
                         "tests.test_lsp"),
 }
@@ -149,8 +160,58 @@ PRIORIDADES = {
 # Los tres sobrevivientes de `manual.py` los introdujo quien agregó `--man`: lo midió en 39/39, lo
 # siguió editando y no lo volvió a medir. Es el modo de fallar que este proyecto persigue, cometido
 # adentro: medir una vez y quedarse con el número viejo en la cabeza.
-HERRAMIENTAS_CUSTODIAS = ("aceptacion.py", "cifras.py", "cli.py", "corpus.py",
-                          "lsp.py", "manual.py", "medida.py")
+# `contexto.py` entra el 2026-09-04, y entra por haber fallado. Custodia la afirmación «esto es lo
+# que hay en tu proyecto»: relaciones, escalares, vocabularios y catálogo efectivo, reunidos para
+# quien va a escribir una medida. Nadie más la comprueba — el manual describe el LENGUAJE y la
+# aceptación juzga el RESULTADO; entre las dos no hay quien mire si el inventario del proyecto es
+# cierto.
+#
+# El defecto que lo trajo: un `except Exception: return []` convertía el fallo de cargar las
+# escalares del proyecto en «LAS 0 MEDIDAS QUE YA EXISTEN». Medido sobre los dos consumidores
+# conocidos, que tienen 41 y 9 medidas propias. El destinatario declarado de este archivo es un
+# agente con una ventana de contexto, y a un agente un cero por falla es indistinguible de un cero
+# real: no tiene con qué dudar. Sobre esa base escribe la primera medida de un catálogo que ya
+# tiene cuarenta y una.
+#
+# Es el mismo criterio que trajo a `manual.py`, con una diferencia que conviene no perder: aquél
+# entró por una afirmación que PODÍA romperse, y éste por una que YA se había roto y vivió meses sin
+# que nada la señalara, precisamente porque el archivo estaba fuera del perfil.
+# `mcp.py` entra el 2026-09-04, el mismo día que se escribe, y a propósito. La lección de
+# `contexto.py` es de esta misma sesión: un archivo fuera del perfil llegó a 20 sobrevivientes de 30
+# sin que nadie lo notara, y ahí vivió meses un `except` que le decía a un agente que su proyecto no
+# tenía medidas. Construir las otras dos herramientas del servidor sobre cimientos sin medir sería
+# repetirlo sabiendo.
+#
+# La afirmación que custodia está escrita en `PLAN-0.6.0-MCP.md`: que lo que el servidor le dice a
+# un agente sea lo que Oracle sabe. Nadie más la comprueba — un agente no tiene con qué dudar de la
+# respuesta, y ése es exactamente el motivo por el que el archivo existe.
+# `reportar.py` entra el 2026-09-05, el mismo día que se escribe. Custodia dos afirmaciones que
+# nadie más comprueba: que el contenido del dominio entra SÓLO por inclusión explícita, y que el
+# artefacto que se muestra es íntegramente el que se guarda. `meta.el_diagnostico_no_publica_el_dominio`
+# protege el subdocumento del diagnóstico, no el reporte entero.
+#
+# Y es una afirmación cara de equivocar: lo que se rompe si falla no es una corrida sino la
+# privacidad de quien reporta. Un reporte que arrastra una ruta o un id del negocio sin que su autor
+# lo haya pedido ya salió del repositorio cuando alguien lo nota.
+# `observar.py` entra el 2026-09-07, el mismo día que se escribe. Custodia la afirmación más cara
+# del proyecto: que un caso con `procedencia: observada` salió de una corrida y no de un teclado.
+# `PLAN-0.8.1-SENSOR.md` la llama «la mentira más barata del proyecto y la que nadie puede
+# detectar», y `PROCEDENCIAS` lo dice en el vocabulario: es una afirmación sobre el pasado y Oracle
+# NO puede verificarla.
+#
+# Nadie más comprueba lo que este archivo comprueba. `corpus.py` valida la FORMA del caso y
+# `aceptacion.py` su POLARIDAD; ninguno de los dos mira si la evidencia vino de algún lado. Si la
+# comprobación de lectura vacía, de lectura inestable o de expectativa declarada se rompe, el
+# recorrido sigue emitiendo casos `observada` que pasan todo lo demás — y el corpus queda con
+# observaciones que no observaron nada.
+# `sondear_procedencia.py` entra el 2026-09-07 y su afirmación es chica y precisa: es el `comando`
+# que los casos 483 y 484 declaran en su `origen`. Si emitiera cualquier cosa, esos dos casos
+# estarían apuntando a la nada mientras fijan la medida que persigue exactamente eso. Nadie más lo
+# comprueba: el corpus valida la FORMA del caso y la aceptación su POLARIDAD, y ninguno de los dos
+# corre el comando que el caso declara.
+HERRAMIENTAS_CUSTODIAS = ("aceptacion.py", "cifras.py", "cli.py", "contexto.py", "corpus.py",
+                          "lsp.py", "manual.py", "mcp.py", "medida.py", "observar.py",
+                          "reportar.py", "sondear_generador.py", "sondear_procedencia.py")
 
 
 def objetivos_disponibles() -> dict[str, Path]:

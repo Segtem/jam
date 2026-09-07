@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: oracle-metalenguaje
-Version: 0.5.0
+Version: 0.9.0
 Summary: Metalenguaje para medir evidencia, alcance y mutación sin acoplarse a un dominio
 Author-email: Brian Hollweg <brianhollweg@gmail.com>
 License-Expression: MIT
@@ -30,7 +30,7 @@ Dynamic: license-file
 
 # oracle
 
-[**segtem.github.io/oracle**](https://segtem.github.io/oracle/) · [PyPI](https://pypi.org/project/oracle-metalenguaje/) · [0.5.0](https://github.com/Segtem/oracle/releases/tag/v0.5.0)
+[**segtem.github.io/oracle**](https://segtem.github.io/oracle/) · [PyPI](https://pypi.org/project/oracle-metalenguaje/) · [0.8.1 — notas del corte](https://github.com/Segtem/oracle/blob/main/NOTAS-DE-RELEASE.md)
 
 ```bash
 uv tool install oracle-metalenguaje
@@ -119,6 +119,17 @@ uv tool install .          # o: python -m pip install -e .
 uvx --from . oracle --help # probarlo sin instalar nada
 ```
 
+## Reportar un límite
+
+Si Oracle no pudo expresar una regla, dio un verde que sabés falso o un rojo que no corresponde,
+corré `oracle reportar` desde tu proyecto. El comando pregunta qué esperabas, qué ocurrió y cómo lo
+detectaste; después muestra un artefacto local completo y **no usa la red ni publica nada**.
+
+Por omisión no incluye medidas ni evidencia del dominio. Sólo entran si pedís
+`--incluir-medida` o `--incluir-evidencia`; aun así, revisá toda la salida antes de compartirla.
+Pegala tal cual en la [plantilla pública de reporte de límite](https://github.com/Segtem/oracle/issues/new?template=reporte-de-limite.md).
+Abrir el issue registra el hallazgo: no promete diagnóstico, prioridad, fecha ni arreglo.
+
 ## La esencia, mirada de cerca
 
 Después de construirlo, lo que queda debajo de todos los mecanismos es una sola frase:
@@ -141,7 +152,7 @@ No es un instrumento de medición: es un instrumento de **rechazo**. No calcula 
 dejar pasar** lo que no se puede sostener.
 
 <!-- negativas:inicio -->
-En este corte hay 9609 líneas de lenguaje y **395 negativas explícitas** (`raise`).
+En este corte hay 9700 líneas de lenguaje y **399 negativas explícitas** (`raise`).
 <!-- negativas:fin -->
 
 Un umbral sin defensa no se carga. Una medida sin `alcance` no se carga. Un campo ausente no da
@@ -165,7 +176,7 @@ de grave: en un solo día lo cometí tres veces.
 ### El sujeto es el que construye, no lo construido
 
 <!-- deteccion:inicio -->
-Los 101 casos no observacionales salieron a la luz por vías que no aceptan el verde nominal: 73 la mutación, 20 una persona, 4 la casualidad, 4 una herramienta ajena.
+Los 103 casos no observacionales salieron a la luz por vías que no aceptan el verde nominal: 74 la mutación, 21 una persona, 4 la casualidad, 4 una herramienta ajena.
 <!-- deteccion:fin -->
 
 Ninguna de esas vías le pregunta al que escribió el código. Oracle no es un juez de artefactos — es
@@ -174,7 +185,7 @@ una prótesis para alguien que escribe la herramienta y su test con la misma man
 ### El costo, dicho
 
 <!-- escala:inicio -->
-**9609 líneas de lenguaje** (`nucleo/`, código y macros) y **395 negativas explícitas** (`raise`). Contra las 57 medidas universales escritas en él (406 líneas): **23,7 a 1**. 50 de las 57 pasan por una macro.
+**9700 líneas de lenguaje** (`nucleo/`, código y macros) y **399 negativas explícitas** (`raise`). Contra las 58 medidas universales escritas en él (415 líneas): **23,4 a 1**. 51 de las 58 pasan por una macro.
 <!-- escala:fin -->
 
 Ésa es la apuesta y ésa es la métrica: que los catálogos de los proyectos crezcan sin hacer crecer el
@@ -560,16 +571,19 @@ orden accidental.
 ```bash
 oracle test --proyecto <proyecto> --confiar-escalares  # secuencia completa del consumidor
 python -m unittest discover -s tests -t . -q            # suite sin dependencias
+python tools/sondear_generador.py                       # entrega y polaridad con umbrales no nulos
+python tools/observar.py capturar --plan <plan> --destino <carpeta>   # corrida real de un sensor del consumidor
+python tools/observar.py revalidar --plan <plan> --registro <registro.json>
 python tools/cifras.py                                  # cifras publicadas vigentes
 python tools/verificar_instalacion.py                   # wheel + CLI instalado desde un cwd vacío
 ```
 
 <!-- corpus:inicio -->
-**180 casos**: 109 defectos y 71 verdes correctos. De los defectos, 105 deben ponerse en rojo · 0 huecos abiertos · 2 resueltos conservados · 2 límite humano. Por etiqueta: 104 falsos verdes, 2 falsos rojos, 1 conclusión causal incorrecta pese a una medida correcta y 2 deudas de diseño. Por procedencia: 94 observada, 80 construida, 6 generada y 0 sin declarar.
+**186 casos**: 112 defectos y 74 verdes correctos. De los defectos, 108 deben ponerse en rojo · 0 huecos abiertos · 2 resueltos conservados · 2 límite humano. Por etiqueta: 107 falsos verdes, 2 falsos rojos, 1 conclusión causal incorrecta pese a una medida correcta y 2 deudas de diseño. Por procedencia: 97 observada, 83 construida, 6 generada y 0 sin declarar.
 <!-- corpus:fin -->
 
 <!-- cifras:inicio -->
-1127 tests · 892/892 mutantes de medida · **5097 sitios de mutación de código** (4887 + 210 del motor Python).
+1381 tests · 915/915 mutantes de medida · **5737 sitios de mutación de código** (5527 + 210 del motor Python).
 <!-- cifras:fin -->
 
 Los sitios de mutación de código son un denominador, no un resultado. Este README no publica una
