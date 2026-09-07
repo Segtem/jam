@@ -1,0 +1,29 @@
+{
+  "id": "015-volumen-exactamente-en-la-frontera",
+  "fecha": "2026-09-07",
+  "origen": {
+    "repo": "Brianholl/jam",
+    "commit": "ef6a63a",
+    "comando": "oracle-mutar --proyecto medidas --confiar-escalares (Oracle 0.10.0)"
+  },
+  "procedencia": "construida",
+  "titulo": "Una pieza con volumen exactamente 0,001 deja de ser degenerada si la comparacion se hace estricta",
+  "etiqueta": "falso_verde",
+  "sintoma": "El mutador `hacer_estricta_comparacion_interna` convierte `volumen <= 0.001` en `volumen < 0.001`. Una pieza cuyo volumen es EXACTAMENTE el limite cae del lado del defecto en la medida sana y del lado sano en la mutada.\nEl primer diseno de este caso NO FUNCIONABA, y vale dejarlo escrito: se uso una pieza de 0,1 x 0,1 x 0,1, porque 0,1 al cubo deberia dar 0,001. En punto flotante da 0.0010000000000000002, que NO es <= 0.001, y la medida daba verde. El borde que se creia estar tocando no existia. Los factores son 0,001 x 1,0 x 1,0, que si dan el valor exacto. El valor se eligio EN LA FRANJA que abre la mutacion, no por parecerse a un defecto cualquiera: es lo unico que distingue la medida sana de la mutada. Evidencia construida a mano para ejercer ese borde; ver estudios/OBSERVAR-O-CONSTRUIR-EL-BORDE.md de Oracle.",
+  "como_se_detecto": "mutacion",
+  "medida": "colocacion.bounds",
+  "evidencia": {
+    "pieza": [
+      {
+        "id": "laminita",
+        "ox": 0.0,
+        "oy": 0.0,
+        "oz": 0.0,
+        "ex": 0.001,
+        "ey": 1.0,
+        "ez": 1.0
+      }
+    ]
+  },
+  "leccion": "Escribir un numero de borde no garantiza alcanzarlo: la aritmetica de punto flotante puede correrlo. Lo encontro la comprobacion contra el mutante, no la lectura del diseno."
+}

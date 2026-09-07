@@ -1,0 +1,28 @@
+{
+  "id": "020-desvio-de-base-en-la-franja",
+  "fecha": "2026-09-07",
+  "origen": {
+    "repo": "Brianholl/jam",
+    "commit": "ef6a63a",
+    "comando": "oracle-mutar --proyecto medidas --confiar-escalares (Oracle 0.10.0)"
+  },
+  "procedencia": "construida",
+  "titulo": "Un desvio de base de 1,5 cm queda perdonado si la cota se aleja a 2",
+  "etiqueta": "falso_verde",
+  "sintoma": "El mutador `alejar_limite_de_defecto` mueve `> 1.0` a `> 2.0`. Una base desfasada 1,5 cm deja el asset flotando o hundido, y la medida mutada lo perdona. El valor se eligio EN LA FRANJA que abre la mutacion, no por parecerse a un defecto cualquiera: es lo unico que distingue la medida sana de la mutada. Evidencia construida a mano para ejercer ese borde; ver estudios/OBSERVAR-O-CONSTRUIR-EL-BORDE.md de Oracle.",
+  "como_se_detecto": "mutacion",
+  "medida": "reemplazo.apoyado",
+  "evidencia": {
+    "reemplazo": [
+      {
+        "id": "banco",
+        "d_base": 1.5,
+        "d_centro_x": 0.0,
+        "d_centro_y": 0.0,
+        "d_footprint_x": 0.0,
+        "d_footprint_y": 0.0
+      }
+    ]
+  },
+  "leccion": "Mismo borde que el desvio de centro, sobre otro eje: la tolerancia de 1 cm no queda fijada por un desvio de 10."
+}

@@ -1,0 +1,28 @@
+{
+  "id": "019-desvio-de-centro-en-la-franja",
+  "fecha": "2026-09-07",
+  "origen": {
+    "repo": "Brianholl/jam",
+    "commit": "ef6a63a",
+    "comando": "oracle-mutar --proyecto medidas --confiar-escalares (Oracle 0.10.0)"
+  },
+  "procedencia": "construida",
+  "titulo": "Un desvio de centro de 1,5 cm en X queda perdonado si la cota se aleja a 2",
+  "etiqueta": "falso_verde",
+  "sintoma": "El mutador `alejar_limite_de_defecto` mueve el PRIMER disyunto de `> 1.0` a `> 2.0`. Por eso el desvio en Y va en cero: si tambien estuviera fuera de tolerancia, el segundo disyunto seguiria disparando y el mutante sobreviviria igual. El valor se eligio EN LA FRANJA que abre la mutacion, no por parecerse a un defecto cualquiera: es lo unico que distingue la medida sana de la mutada. Evidencia construida a mano para ejercer ese borde; ver estudios/OBSERVAR-O-CONSTRUIR-EL-BORDE.md de Oracle.",
+  "como_se_detecto": "mutacion",
+  "medida": "reemplazo.centrado",
+  "evidencia": {
+    "reemplazo": [
+      {
+        "id": "farol",
+        "d_base": 0.0,
+        "d_centro_x": 1.5,
+        "d_centro_y": 0.0,
+        "d_footprint_x": 0.0,
+        "d_footprint_y": 0.0
+      }
+    ]
+  },
+  "leccion": "En una medida con `o`, el mutador toca un solo lado. El caso tiene que dejar el otro lado sano, o no distingue nada."
+}

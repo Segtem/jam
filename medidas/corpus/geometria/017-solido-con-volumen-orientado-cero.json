@@ -1,0 +1,25 @@
+{
+  "id": "017-solido-con-volumen-orientado-cero",
+  "fecha": "2026-09-07",
+  "origen": {
+    "repo": "Brianholl/jam",
+    "commit": "ef6a63a",
+    "comando": "oracle-mutar --proyecto medidas --confiar-escalares (Oracle 0.10.0)"
+  },
+  "procedencia": "construida",
+  "titulo": "Un solido con volumen orientado cero mata a los dos mutantes de esta medida",
+  "etiqueta": "falso_verde",
+  "sintoma": "El predicado es `volumen_orientado <= 0.0`. Un volumen orientado de exactamente 0 —una malla cerrada pero degenerada, sin volumen encerrado— cae del lado del defecto. Mata DOS mutantes de un tiro: `hacer_estricta_comparacion_interna`, que lo vuelve `< 0.0`, y `alejar_limite_de_defecto`, que lo vuelve `<= -1.0`. El cero pertenece a la franja de los dos. El valor se eligio EN LA FRANJA que abre la mutacion, no por parecerse a un defecto cualquiera: es lo unico que distingue la medida sana de la mutada. Evidencia construida a mano para ejercer ese borde; ver estudios/OBSERVAR-O-CONSTRUIR-EL-BORDE.md de Oracle.",
+  "como_se_detecto": "mutacion",
+  "medida": "malla.solido_hacia_afuera",
+  "evidencia": {
+    "solido_malla": [
+      {
+        "triangulos": 12,
+        "volumen_orientado": 0.0,
+        "aristas_sueltas": 0
+      }
+    ]
+  },
+  "leccion": "Un caso puede matar dos mutantes cuando el valor cae en la interseccion de las dos franjas. No es una economia buscada: es que el cero es el borde de las dos mutaciones a la vez."
+}

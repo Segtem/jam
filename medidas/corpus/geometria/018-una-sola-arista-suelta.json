@@ -1,0 +1,25 @@
+{
+  "id": "018-una-sola-arista-suelta",
+  "fecha": "2026-09-07",
+  "origen": {
+    "repo": "Brianholl/jam",
+    "commit": "ef6a63a",
+    "comando": "oracle-mutar --proyecto medidas --confiar-escalares (Oracle 0.10.0)"
+  },
+  "procedencia": "construida",
+  "titulo": "Un triangulo degenerado deja exactamente una arista suelta, y el mutador la perdona",
+  "etiqueta": "falso_verde",
+  "sintoma": "El mutador `alejar_limite_de_defecto` mueve `aristas_sueltas > 0` a `> 1`, asi que perdona exactamente el valor 1. Ese valor NO lo produce ninguna malla bien formada: se comprobo por busqueda exhaustiva que con triangulos de vertices distintos los valores alcanzables son 0, 3, 4, 5... y nunca 1. Lo produce un TRIANGULO DEGENERADO, con los tres indices iguales: sus tres aristas son (v,v), el sensor las cuenta como una sola arista dirigida y su opuesta no tiene multiplicidad 1.\nSe intento observarlo antes de construirlo: en toda la evidencia guardada del proyecto `aristas_sueltas` solo vale 0 y 3. Un triangulo degenerado es un defecto real y frecuente en mallas de juego, pero verlo exige abrir el editor. Queda como deuda declarada. El valor se eligio EN LA FRANJA que abre la mutacion, no por parecerse a un defecto cualquiera: es lo unico que distingue la medida sana de la mutada. Evidencia construida a mano para ejercer ese borde; ver estudios/OBSERVAR-O-CONSTRUIR-EL-BORDE.md de Oracle.",
+  "como_se_detecto": "mutacion",
+  "medida": "malla.solido_esta_cerrado",
+  "evidencia": {
+    "solido_malla": [
+      {
+        "triangulos": 1,
+        "volumen_orientado": 0.0,
+        "aristas_sueltas": 1
+      }
+    ]
+  },
+  "leccion": "El unico valor que separa la medida de su mutante es el que ninguna malla sana produce. Eso no vuelve equivalente al mutante: lo vuelve el caso mas interesante, porque describe un defecto que el corpus no cubria."
+}
