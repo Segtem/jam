@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: oracle-metalenguaje
-Version: 0.9.0
+Version: 0.9.1
 Summary: Metalenguaje para medir evidencia, alcance y mutación sin acoplarse a un dominio
 Author-email: Brian Hollweg <brianhollweg@gmail.com>
 License-Expression: MIT
@@ -583,7 +583,7 @@ python tools/verificar_instalacion.py                   # wheel + CLI instalado 
 <!-- corpus:fin -->
 
 <!-- cifras:inicio -->
-1381 tests · 915/915 mutantes de medida · **5737 sitios de mutación de código** (5527 + 210 del motor Python).
+1394 tests · 915/915 mutantes de medida · **5739 sitios de mutación de código** (5529 + 210 del motor Python).
 <!-- cifras:fin -->
 
 Los sitios de mutación de código son un denominador, no un resultado. Este README no publica una
