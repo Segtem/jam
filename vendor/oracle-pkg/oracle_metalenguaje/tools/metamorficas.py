@@ -33,7 +33,7 @@ import sys
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(RAIZ))
+sys.path = [str(RAIZ), *sys.path]
 
 import catalogos.escalares  # noqa: F401,E402
 from nucleo import caso as sintaxis_caso  # noqa: E402
@@ -131,7 +131,8 @@ def _donde_compone(catalogo: dict, casos: list[dict]) -> list[dict]:
         for i, paso in enumerate(pasos):
             if paso[0] == "donde":
                 cond = paso[1]
-                if isinstance(cond, list) and cond and cond[0] == "y" and len(cond) > 2:
+                # Premisa: Medida ya validó la expresión; una conjunción tiene dos operandos.
+                if isinstance(cond, list) and cond[0] == "y":
                     partida = json.loads(json.dumps(datos))
                     nuevos = [["donde", p] for p in cond[1:]]
                     partida[2] = [tuberia[0]] + pasos[:i] + nuevos + pasos[i+1:]
@@ -178,9 +179,9 @@ def _unir_conmuta(catalogo: dict, casos: list[dict]) -> list[dict]:
 
 
 def _usa_unir(fuente) -> bool:
-    if not (isinstance(fuente, list) and fuente):
-        return False
-    return fuente[0] == "unir" or any(_usa_unir(lado) for lado in fuente[1:])
+    # Premisa: llega una fuente validada por Medida. Sólo admite `de` o `unir`; toda unión
+    # anidada tiene otra unión en la raíz. Recorrer los lados no puede cambiar la respuesta.
+    return fuente[0] == "unir"
 
 
 def _el_plan_indexado_da_lo_mismo_que_el_producto(
@@ -211,7 +212,8 @@ def _agrupar_sin_claves(catalogo: dict, casos: list[dict]) -> list[dict]:
     """
     filas = []
     for agg in ("contar", "suma", "max", "min", "promedio"):
-        expr = 1 if agg == "contar" else ["campo", "c", "n"]
+        # Contar no evalúa su expresión. La misma expresión sirve a los cinco agregados.
+        expr = ["campo", "c", "n"]
         agrupada = _sonda(
             ["desde", ["de", "cosa", "c"], ["agrupar", [], [["t", agg, expr]]]],
             ["resumen", "max", ["col", "t"]])
@@ -226,8 +228,7 @@ def _agrupar_sin_claves(catalogo: dict, casos: list[dict]) -> list[dict]:
             continue
         datos = catalogo[mid].a_datos()
         tuberia = datos[2]
-        pasos = tuberia[1:]
-        if any(isinstance(p, list) and p and p[0] == "agrupar" for p in pasos):
+        if any(p[0] == "agrupar" for p in tuberia[2:]):
             continue
         resumen = datos[3]
         agg, expr = resumen[1], resumen[2]
@@ -347,6 +348,11 @@ def _generar_candidatas() -> list[list]:
     ]
 
     aggs_opts = [
+        # `a0` entra el 2026-09-08. Faltaba, y su falta estaba DECLARADA en el `alcance` de la
+        # medida —«NO cubre agrupar con 0 agregados»—: por eso la sonda nunca vio que el impresor
+        # escribía un `agrupar:` sin agregados que el lector después rechazaba. Lo encontró una
+        # medida real de un consumidor, no esta sonda. `c0` —cero CLAVES— estuvo desde siempre.
+        ("a0", []),
         ("a1_contar", [["a1", "contar", 1]]),
         ("a1_suma", [["a1", "suma", acc_campo]]),
         ("a1_max", [["a1", "max", acc_campo]]),
@@ -405,7 +411,8 @@ def _generar_candidatas() -> list[list]:
     for c_id, claves in claves_opts:
         for a_id, aggs in aggs_opts:
             mid = f"meta_gen.grp_{c_id}_{a_id}"
-            res = ["resumen", "max", ["col", "a1"]]
+            # Sin agregados no hay columna `a1` que resumir, así que la sonda cuenta grupos.
+            res = ["resumen", "contar", 1] if not aggs else ["resumen", "max", ["col", "a1"]]
             m = ["medida", mid, ["desde", ["de", "cosa", "c"], ["agrupar", claves, aggs]],
                  res, ["umbral", "<=", 0, "defensa", "contrato"], ["alcance", "sonda generada"]]
             medidas.append(m)
@@ -579,6 +586,16 @@ def _generar_casos_candidatos() -> list[dict]:
             f"90{cantidad}-generado-{cantidad}-relaciones",
             {nombre: filas for nombre, filas in relaciones[:cantidad]},
         ))
+    # Nombres de campo que la forma de TABLA no puede escribir. El generador no los producía, y por
+    # eso la sonda no vio que el impresor elegía la forma equivocada y emitía una cabecera que el
+    # lector después no podía partir. Los nombres de la evidencia de un caso no los pone el álgebra:
+    # los pone el JSON de un sensor, así que un espacio adentro es alcanzable desde el mundo real.
+    for etiqueta, campo in (("espacio", "campo con espacio"), ("coma", "campo,con,coma"),
+                            ("tabulacion", "campo\tcon\ttab")):
+        candidatas.append(_caso_generado(
+            f"90{5 + ('espacio', 'coma', 'tabulacion').index(etiqueta)}-generado-campo-con-{etiqueta}",
+            {"presente": [{campo: 1, "otro": 2}]},
+        ))
     candidatas.append(_caso_generado(
         "904-generado-sin-medida",
         {nombre: filas for nombre, filas in relaciones},
@@ -627,13 +644,19 @@ def hechos(catalogo: dict, casos: list[dict], macros, proy: Proyecto | None = No
 
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
+    if argv in (["--help"], ["-h"]):
+        print(__doc__)
+        return 0
+    if argv not in ([], ["--hechos"]):
+        print(f"argumentos no reconocidos: {' '.join(argv)}; usá --help", file=sys.stderr)
+        return 2
     proy = Proyecto(RAIZ)
     macros = macros_del_proyecto(proy)
     catalogo = cargar_catalogo(catalogos_a_cargar(proy), macros=macros)
     casos = cargar_casos(proy.corpus)
     evidencia = hechos(catalogo, casos, macros, proy)
 
-    if "--hechos" in argv:
+    if argv == ["--hechos"]:
         print(json.dumps(evidencia, ensure_ascii=False, indent=2))
         return 0
 
@@ -666,5 +689,7 @@ def main(argv: list[str] | None = None) -> int:
     return 0 if informe.ok else 1
 
 
-if __name__ == "__main__":
-    raise SystemExit(main())
+# La importación no interpreta los argumentos del proceso anfitrión.
+_entrada_directa = {"__main__": main}.get(__name__)
+if _entrada_directa:
+    raise SystemExit(_entrada_directa())

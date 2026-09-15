@@ -1,6 +1,6 @@
 """Entry point único para Oracle.
 
-    oracle <sustantivo> <verbo>             forma canónica (medida, caso, proyecto, biblioteca)
+    oracle <sustantivo> <verbo>             forma canónica (medida, caso, proyecto, biblioteca, tarea)
     oracle <sustantivo>                     ayuda del sustantivo con sus verbos
 
     oracle medida nueva <dominio.nombre>    crea una nueva medida en catalogos/ con plantilla lista
@@ -23,6 +23,24 @@
     oracle biblioteca instaladas            lista las instaladas y cuáles usa el proyecto
     oracle biblioteca verificar <ruta>      certifica una biblioteca local de políticas
     oracle biblioteca listar <ruta>         muestra sus umbrales, orígenes y alcances completos
+
+    oracle tarea init [ruta]                inicializa el tracker de tareas en tareas/
+    oracle tarea nueva <titulo>             crea una nueva tarea con plantilla y adjuntos
+    oracle tarea listar                     lista las tareas abiertas por prioridad e id (alias ls)
+    oracle tarea ver <id>                   muestra una tarea por su id o prefijo inequívoco
+    oracle tarea cerrar <id>                marca la tarea como CERRADA de forma atómica
+    oracle tarea reabrir <id>               marca la tarea como ABIERTA de forma atómica
+    oracle tarea revisar                    audita la integridad del directorio tareas/
+    oracle tarea anotar <id> [texto]        agrega una nota, URL o marca a la tarea
+    oracle tarea adjuntar <id> <archivo>    copia un adjunto al directorio de la tarea
+    oracle tarea buscar <texto>             busca texto en documentos y notas del tracker
+    oracle tarea referencias <id>           busca menciones del ID en tareas y código
+    oracle tarea resumen                    muestra cantidades por estado y etiquetas
+    oracle tarea seguimiento                diagnóstico de seguimiento y cobertura en Git
+    oracle tarea hechos [--git]              exporta hechos observados del tracker como JSON
+    oracle tarea etiquetar <id>... --etiqueta <e>  agrega una o más etiquetas a tareas
+    oracle tarea desetiquetar [id]... --etiqueta <e> quita etiquetas de una o más tareas
+    oracle tarea grafo [--json]             emite el grafo de referencias entre tareas en DOT o JSON
     oracle manual                           la referencia del lenguaje, armada de sus fuentes
     oracle manual operadores                los seis operadores de una tubería
     oracle manual segun                     de dónde sale el número de un umbral
@@ -36,6 +54,7 @@
     oracle manual --instalar-man <dir>      escribe oracle(1) y oracle-<tema>(7) bajo <dir>
 
     oracle reportar                         prepara un reporte local; no publica ni usa la red
+    oracle censar --proyecto <ruta>…       censa varios proyectos y conserva el estado con su fecha
     oracle convertir <archivo>              traduce entre superficie y JSON (por la extensión)
 """
 
@@ -94,8 +113,10 @@ Uso:
   oracle caso <verbo>                     Operaciones sobre casos del corpus (nuevo, listar, generar)
   oracle proyecto <verbo>                 Operaciones sobre el proyecto (init, test, relaciones, escalares)
   oracle biblioteca <verbo>               Inspecciona bibliotecas locales sin ejecutar código ajeno
+  oracle tarea <verbo>                    Operaciones sobre tareas (init, nueva, listar, ver, cerrar, reabrir, revisar, anotar, adjuntar, buscar, referencias, resumen, seguimiento, hechos, etiquetar, desetiquetar, grafo)
   oracle convertir <archivo>              Traduce entre superficie y JSON (por la extensión)
   oracle reportar [opciones]              Prepara y muestra un reporte local; no lo publica
+  oracle censar --proyecto <ruta> ...     Censa varios proyectos y conserva el estado con su fecha
   oracle --help                           Muestra esta ayuda
   oracle --version                        Versión del paquete, del álgebra y de la sintaxis
 
@@ -169,6 +190,11 @@ Uso:
   oracle biblioteca listar <ruta>         Lista cada umbral, segun y alcance completo""")
 
 
+def ayuda_tarea() -> None:
+    from tools import tareas
+    tareas.ayuda()
+
+
 def _informe_biblioteca(ruta_str: str):
     try:
         return verificar_biblioteca(ruta_str)
@@ -201,15 +227,19 @@ def cmd_diagnostico(proy, argv: list[str]) -> int:
     destino = ""
     if "--salida" in resto:
         i = resto.index("--salida")
-        if i + 1 >= len(resto):
+        if i + 1 >= len(resto) or resto[i + 1].startswith("--"):
             print("falta la ruta: oracle diagnostico --salida <archivo.json>")
             return 1
         destino = resto[i + 1]
     diagnostico = _diagnostico_actual(proy)
-    texto = json.dumps(diagnostico.datos, ensure_ascii=False, indent=2)
+    texto = json.dumps(diagnostico.datos, ensure_ascii=False, indent="  ")
 
     if destino:
-        Path(destino).write_text(texto + "\n", encoding="utf-8")
+        try:
+            Path(destino).write_text(texto + "\n", encoding="utf-8")
+        except OSError as e:
+            print(f"no se pudo escribir el diagnóstico en «{destino}»: {e}", file=sys.stderr)
+            return 1
         print(f"escrito: {destino}")
         print("Leelo entero antes de compartirlo. Oracle no lo manda a ningún lado.")
         return 0
@@ -342,6 +372,25 @@ VERBOS = {
     "caso": ("nuevo", "listar", "generar"),
     "proyecto": ("init", "test", "relaciones", "escalares", "contexto"),
     "biblioteca": ("nueva", "instaladas", "verificar", "listar"),
+    "tarea": (
+        "init",
+        "nueva",
+        "listar",
+        "ver",
+        "cerrar",
+        "reabrir",
+        "revisar",
+        "anotar",
+        "adjuntar",
+        "buscar",
+        "referencias",
+        "resumen",
+        "seguimiento",
+        "hechos",
+        "etiquetar",
+        "desetiquetar",
+        "grafo",
+    ),
     # Los temas del manual NO se copian acá: son los que el manual sabe mostrar. Copiarlos sería
     # una segunda lista que se despega, que es exactamente lo que el manual existe para evitar.
     "manual": tuple(manual.temas()),
@@ -349,7 +398,7 @@ VERBOS = {
 
 # Los comandos planos también son verbos públicos. Declararlos permite que la misma medida que
 # vigila `medida listar` vea `oracle reportar`, y que el manual del comando se derive del despacho.
-VERBOS_DIRECTOS = ("reportar",)
+VERBOS_DIRECTOS = ("censar", "reportar")
 
 
 def verbos_documentados() -> dict[str, tuple[str, ...]]:
@@ -358,7 +407,10 @@ def verbos_documentados() -> dict[str, tuple[str, ...]]:
 # `caso nueva` se acepta desde siempre por la concordancia con «medida nueva». Se declara acá en
 # vez de esconderse en la tupla: un alias que nadie escribió a propósito es un alias que nadie
 # puede documentar.
-ALIAS = {("caso", "nueva"): "nuevo"}
+ALIAS = {
+    ("caso", "nueva"): "nuevo",
+    ("tarea", "ls"): "listar",
+}
 
 
 def verbos_aceptados(sustantivo: str) -> frozenset[str]:
@@ -640,7 +692,11 @@ def cmd_convertir(proy: Proyecto, ruta_str: str) -> int:
         print(f"no existe: {ruta_str}")
         return 1
 
-    texto = ruta.read_text(encoding="utf-8")
+    try:
+        texto = ruta.read_text(encoding="utf-8")
+    except (OSError, UnicodeError) as e:
+        print(f"✗ {ruta}: no se pudo leer el archivo — {e}")
+        return 1
     try:
         macros = macros_del_proyecto(proy)
         if ruta.suffix == ".json":
@@ -654,6 +710,10 @@ def cmd_convertir(proy: Proyecto, ruta_str: str) -> int:
             return 1
     except (ErrorSintaxis, caso_superficie.CasoMalDeclarado) as e:
         print(f"✗ {ruta}: {fragmento_de_error(e, texto)}")
+        return 1
+    except ValueError as e:
+        # El cargador JSON y el impresor rechazan aquí formas que no se pueden convertir.
+        print(f"✗ {ruta}: {e}")
         return 1
     return 0
 
@@ -927,6 +987,13 @@ def main(argv: list[str] | None = None) -> int:
     subcomando = posicionales[0]
     resto = posicionales[1:]
 
+    # ANTES de resolver el proyecto, y con el `argv` CRUDO. `censar` es el único verbo que toma
+    # VARIOS `--proyecto`, y la resolución de más abajo consume esa bandera para quedarse con uno.
+    # Pasar por ahí le dejaría la lista vacía, que fue exactamente el primer intento.
+    if subcomando in ("censar", "--censar"):
+        from tools import censar as tcensar
+        return tcensar.main([a for a in argv[1:] if a != subcomando])
+
     # 1. Ayudas por sustantivo (devuelven 0 y no requieren proyecto)
     if subcomando == "medida" and (not resto or resto[0] in ("-h", "--help", "help")):
         ayuda_medida()
@@ -940,6 +1007,9 @@ def main(argv: list[str] | None = None) -> int:
     if subcomando == "biblioteca" and (not resto or resto[0] in ("-h", "--help", "help")):
         ayuda_biblioteca()
         return 0
+    if subcomando == "tarea" and (not resto or resto[0] in ("-h", "--help", "help")):
+        ayuda_tarea()
+        return 0
     if subcomando in ("reportar", "--reportar") and resto \
             and resto[0] in ("-h", "--help", "help"):
         ayuda_reportar()
@@ -948,15 +1018,13 @@ def main(argv: list[str] | None = None) -> int:
     # 2. Inicialización de proyecto (no requiere proyecto previo)
     if subcomando == "manual":
         tema = resto[0] if resto and not resto[0].startswith("-") else None
-        if tema is not None and "--instalar-man" in argv and argv[-1] == tema:
-            tema = None          # `--instalar-man <dir>`: el último no es un tema, es el destino
         if tema is not None and tema not in verbos_aceptados("manual"):
             return _verbo_desconocido("manual", tema)
         if "--instalar-man" in argv:
             # El destino es el argumento siguiente; sin él no se adivina un directorio: escribir
             # nueve archivos en un lugar que el usuario no nombró es peor que no hacer nada.
             posicion = argv.index("--instalar-man") + 1
-            if posicion >= len(argv):
+            if posicion >= len(argv) or argv[posicion].startswith("-"):
                 print("falta el directorio: oracle manual --instalar-man <dir>", file=sys.stderr)
                 return 2
             for ruta in manual.instalar_man(Path(argv[posicion])):
@@ -990,6 +1058,9 @@ def main(argv: list[str] | None = None) -> int:
     if subcomando == "proyecto" and resto and resto[0] not in verbos_aceptados("proyecto"):
         return _verbo_desconocido("proyecto", resto[0])
 
+    if subcomando == "tarea" and resto and resto[0] not in verbos_aceptados("tarea"):
+        return _verbo_desconocido("tarea", resto[0])
+
     if subcomando == "biblioteca":
         verbo = resto[0]
         if verbo not in verbos_aceptados("biblioteca"):
@@ -1018,6 +1089,13 @@ def main(argv: list[str] | None = None) -> int:
         if verbo == "verificar":
             return cmd_biblioteca_verificar(resto[1])
         return cmd_biblioteca_listar(resto[1])
+
+    if subcomando == "tarea":
+        from tools import tareas as ttareas
+        verbo = resto[0]
+        canonico = ALIAS.get(("tarea", verbo.lstrip("-")), verbo.lstrip("-"))
+        args = resto[1:]
+        return ttareas.despachar(canonico, args, argv)
 
     # Para todos los demás comandos resolvemos el proyecto
     try:
@@ -1154,7 +1232,15 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_expandir(proy, args[0])
 
     # Si pasaron un archivo directamente: `oracle medida.oracle`
-    if Path(subcomando).exists() or (proy.raiz / subcomando).exists():
+    #
+    # `is_file()` y no `exists()`: con `exists()`, un subcomando mal escrito que COINCIDE con un
+    # directorio del proyecto se despachaba como si fuera una medida. `oracle corpus` —razonable de
+    # tipear, porque `oracle-corpus` sí existe como ejecutable— encontraba `medidas/corpus`, entraba
+    # a `cmd_revisar` y moría con «no se pudo leer la medida …: Is a directory». El error hablaba de
+    # otra cosa que lo que la persona había pedido, y el verbo que sí buscaba nunca se nombraba.
+    # Lo encontró un agente siguiendo una instrucción mía equivocada, que es como se encuentran
+    # estas cosas: alguien escribe lo que le parece razonable y la herramienta contesta cualquiera.
+    if Path(subcomando).is_file() or (proy.raiz / subcomando).is_file():
         return cmd_revisar(proy, subcomando, argv)
 
     print(f"subcomando desconocido: {subcomando}")

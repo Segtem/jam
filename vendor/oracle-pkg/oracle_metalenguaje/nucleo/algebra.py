@@ -401,9 +401,15 @@ def validar_expr(expr, limites: LimitesAlgebra | None = None, *,
     Los literales son los escalares que JSON puede representar. Las listas son siempre llamadas del
     DSL: accesor, comparador, lógico o escalar registrada.
     """
-    limites = _limites(limites)
-    escalares = _registro(registro)
-    if _profundidad > limites.profundidad_expresion:
+    # Se resuelven por llamada, no por nodo. No se memoriza la validez: expresiones y registros
+    # pueden cambiar entre filas. LimitesAlgebra es inmutable; el registro conserva su identidad.
+    _validar_expr(expr, _limites(limites), _registro(registro), _profundidad)
+
+
+def _validar_expr(expr, limites: LimitesAlgebra,
+                  escalares: Mapping[str, Callable[..., Any]], profundidad: int) -> None:
+    """Recorre todos los nodos con el presupuesto y el registro ya resueltos."""
+    if profundidad > limites.profundidad_expresion:
         raise ErrorDeAlgebra(
             "la expresión supera la profundidad máxima declarada "
             f"({limites.profundidad_expresion})")
@@ -457,8 +463,7 @@ def validar_expr(expr, limites: LimitesAlgebra | None = None, *,
             f"«{cabeza}» no es accesor, comparador, lógico ni escalar declarada")
 
     for argumento in argumentos:
-        validar_expr(
-            argumento, limites, registro=escalares, _profundidad=_profundidad + 1)
+        _validar_expr(argumento, limites, escalares, profundidad + 1)
 
 
 def evaluar_expr(expr, fila: dict, limites: LimitesAlgebra | None = None, *,

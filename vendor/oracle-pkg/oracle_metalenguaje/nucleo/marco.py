@@ -148,8 +148,27 @@ def hechos_de_vocabulario(vocabularios, temas_del_manual) -> dict:
         for opcion, sentido in sorted(vocabularios[nombre].items())]}
 
 
+def medida_evaluada(valores: dict, medida: str) -> bool:
+    """Si la medida ENTREGÓ un número en esta corrida. No es `valor >= 0`.
+
+    `tools/aceptacion.py` alimenta `valores` sólo con los veredictos de las medidas `meta.*`, así
+    que una sombra sobre una medida de DOMINIO —lo primero que declararía un consumidor— nunca
+    aparece acá. Su cota quedaba sin comprobar para siempre, y en verde.
+    """
+    valor = valores.get(medida)
+    return not isinstance(valor, bool) and isinstance(valor, (int, float))
+
+
+def _valor_medido(valores: dict, medida: str) -> int:
+    """El valor que dio la medida, o -1 si no se midió. Sin el `isinstance` un `True` contaría 1."""
+    valor = valores.get(medida)
+    if isinstance(valor, bool) or not isinstance(valor, (int, float)):
+        return -1
+    return int(valor)
+
+
 def hechos_de_sombra(en_sombra, veredictos_ok: dict, catalogo: dict,
-                     hoy: date | None = None) -> dict:
+                     hoy: date | None = None, valores: dict | None = None) -> dict:
     """Un hecho por medida puesta en sombra: qué declara, hace cuánto, y si ya está en verde.
 
     La sombra apaga la CONSECUENCIA de un rojo, no la medición. Estos hechos existen para que el
@@ -163,8 +182,10 @@ def hechos_de_sombra(en_sombra, veredictos_ok: dict, catalogo: dict,
     que le corresponde.
     """
     hoy = hoy or date.today()
+    valores = valores or {}
     filas = []
     for entrada in en_sombra:
+        valor = _valor_medido(valores, entrada.medida)
         try:
             dias = (hoy - date.fromisoformat(entrada.desde)).days
         except ValueError:
@@ -179,6 +200,30 @@ def hechos_de_sombra(en_sombra, veredictos_ok: dict, catalogo: dict,
             # esté en verde algo que no corrió.
             "dio_ok": bool(veredictos_ok.get(entrada.medida, False)),
             "existe": entrada.medida in catalogo,
+            # La DEUDA que la sombra tapa, y la cota que se declaró para ella. Sin `cota` las dos
+            # valen -1 y `supera_la_cota` queda en falso: una sombra sin cota se comporta como
+            # antes. Con cota, la deuda no puede crecer en silencio, que es lo único que apagar la
+            # consecuencia nunca debió comprar. `valor` es -1 cuando la medida no llegó a
+            # evaluarse: no se puede afirmar el tamaño de una deuda que no se midió.
+            #
+            # ⚠ Y ahí queda un HUECO, que encontró una revisión de falsación el 2026-09-08: acá
+            # decía que «de la falta se ocupa que `existe` sea falso», y no es cierto. `existe`
+            # sólo mira si la medida está en el CATÁLOGO. Una sombra con cota sobre una medida que
+            # el catálogo tiene y la corrida no evalúa —una de dominio, por ejemplo— deja `existe`
+            # en verdadero, `valor` en -1, y las dos medidas de cota se abstienen. Nadie la juzga.
+            # Está declarado en el `alcance` de las dos, y sin cerrar.
+            # `>= 0` y no `> 0`: CERO es una cota legítima, y la más exigente que se puede
+            # escribir —«esta deuda no puede tener ni un caso»—. Leerla como «no declarada»
+            # apagaría justo la sombra que más obliga.
+            "declara_cota": entrada.cota >= 0,
+            "cota": entrada.cota,
+            "valor": valor,
+            # `evaluada` aparte de `valor >= 0`, y no es lo mismo: `-1` era un centinela que
+            # significaba dos cosas —«no se midió» y «midió menos que cero»— y una medida de dominio
+            # puede dar un número negativo legítimo. Preguntar si la medida ESTUVO en los valores es
+            # la pregunta que se quería hacer; el centinela era una forma de hacerla mal.
+            "evaluada": medida_evaluada(valores, entrada.medida),
+            "supera_la_cota": entrada.cota >= 0 and valor > entrada.cota,
         })
     return {"sombra": filas}
 
