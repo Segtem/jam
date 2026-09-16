@@ -914,6 +914,19 @@
       "tipo_declarado": "ROADMAP",
       "tipo_en_nombre": "ROADMAP",
       "updated": "2026-08-09"
+     },
+     {
+      "area": "04-Ejecucion-y-pruebas",
+      "carpeta": "04-Ejecucion-y-pruebas",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-09-10",
+      "frontmatter_completo": true,
+      "nombre": "2026-09-10-GUIA-DSL-De-Jam-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "GUIA",
+      "tipo_en_nombre": "GUIA",
+      "updated": "2026-09-10"
      }
     ],
     "enlace": [
@@ -2743,16 +2756,46 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "vault.area_es_la_carpeta": true,
-     "vault.carpeta_conocida": true,
-     "vault.enlace_resuelve": true,
-     "vault.fecha_coincide": true,
-     "vault.frontmatter_completo": true,
-     "vault.ningun_doc_suelto_en_la_raiz": true,
-     "vault.nombre_es_ascii": true,
-     "vault.nombre_sigue_la_convencion": true,
-     "vault.nombre_unico_en_el_vault": true,
-     "vault.tipo_coincide": true
+     "vault.area_es_la_carpeta": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.carpeta_conocida": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.enlace_resuelve": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.fecha_coincide": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.frontmatter_completo": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.ningun_doc_suelto_en_la_raiz": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.nombre_es_ascii": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.nombre_sigue_la_convencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.nombre_unico_en_el_vault": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.tipo_coincide": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -3670,6 +3713,19 @@
       "tipo_declarado": "ROADMAP",
       "tipo_en_nombre": "ROADMAP",
       "updated": "2026-08-09"
+     },
+     {
+      "area": "04-Ejecucion-y-pruebas",
+      "carpeta": "04-Ejecucion-y-pruebas",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-09-10",
+      "frontmatter_completo": true,
+      "nombre": "2026-09-10-GUIA-DSL-De-Jam-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "GUIA",
+      "tipo_en_nombre": "GUIA",
+      "updated": "2026-09-10"
      }
     ],
     "enlace": [
@@ -5499,16 +5555,46 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "vault.area_es_la_carpeta": true,
-     "vault.carpeta_conocida": true,
-     "vault.enlace_resuelve": false,
-     "vault.fecha_coincide": false,
-     "vault.frontmatter_completo": true,
-     "vault.ningun_doc_suelto_en_la_raiz": true,
-     "vault.nombre_es_ascii": true,
-     "vault.nombre_sigue_la_convencion": false,
-     "vault.nombre_unico_en_el_vault": true,
-     "vault.tipo_coincide": false
+     "vault.area_es_la_carpeta": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.carpeta_conocida": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.enlace_resuelve": {
+      "ok": false,
+      "valor": 1
+     },
+     "vault.fecha_coincide": {
+      "ok": false,
+      "valor": 1
+     },
+     "vault.frontmatter_completo": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.ningun_doc_suelto_en_la_raiz": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.nombre_es_ascii": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.nombre_sigue_la_convencion": {
+      "ok": false,
+      "valor": 1
+     },
+     "vault.nombre_unico_en_el_vault": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.tipo_coincide": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -6426,6 +6512,19 @@
       "tipo_declarado": "ROADMAP",
       "tipo_en_nombre": "ROADMAP",
       "updated": "2026-08-09"
+     },
+     {
+      "area": "04-Ejecucion-y-pruebas",
+      "carpeta": "04-Ejecucion-y-pruebas",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-09-10",
+      "frontmatter_completo": true,
+      "nombre": "2026-09-10-GUIA-DSL-De-Jam-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "GUIA",
+      "tipo_en_nombre": "GUIA",
+      "updated": "2026-09-10"
      }
     ],
     "enlace": [
@@ -8255,16 +8354,46 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "vault.area_es_la_carpeta": true,
-     "vault.carpeta_conocida": true,
-     "vault.enlace_resuelve": true,
-     "vault.fecha_coincide": true,
-     "vault.frontmatter_completo": true,
-     "vault.ningun_doc_suelto_en_la_raiz": true,
-     "vault.nombre_es_ascii": true,
-     "vault.nombre_sigue_la_convencion": true,
-     "vault.nombre_unico_en_el_vault": true,
-     "vault.tipo_coincide": false
+     "vault.area_es_la_carpeta": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.carpeta_conocida": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.enlace_resuelve": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.fecha_coincide": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.frontmatter_completo": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.ningun_doc_suelto_en_la_raiz": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.nombre_es_ascii": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.nombre_sigue_la_convencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.nombre_unico_en_el_vault": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.tipo_coincide": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -9182,6 +9311,19 @@
       "tipo_declarado": "ROADMAP",
       "tipo_en_nombre": "ROADMAP",
       "updated": "2026-08-09"
+     },
+     {
+      "area": "04-Ejecucion-y-pruebas",
+      "carpeta": "04-Ejecucion-y-pruebas",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-09-10",
+      "frontmatter_completo": true,
+      "nombre": "2026-09-10-GUIA-DSL-De-Jam-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "GUIA",
+      "tipo_en_nombre": "GUIA",
+      "updated": "2026-09-10"
      }
     ],
     "enlace": [
@@ -11011,16 +11153,46 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "vault.area_es_la_carpeta": true,
-     "vault.carpeta_conocida": true,
-     "vault.enlace_resuelve": true,
-     "vault.fecha_coincide": false,
-     "vault.frontmatter_completo": true,
-     "vault.ningun_doc_suelto_en_la_raiz": true,
-     "vault.nombre_es_ascii": true,
-     "vault.nombre_sigue_la_convencion": true,
-     "vault.nombre_unico_en_el_vault": true,
-     "vault.tipo_coincide": true
+     "vault.area_es_la_carpeta": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.carpeta_conocida": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.enlace_resuelve": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.fecha_coincide": {
+      "ok": false,
+      "valor": 1
+     },
+     "vault.frontmatter_completo": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.ningun_doc_suelto_en_la_raiz": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.nombre_es_ascii": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.nombre_sigue_la_convencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.nombre_unico_en_el_vault": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.tipo_coincide": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -11938,6 +12110,19 @@
       "tipo_declarado": "ROADMAP",
       "tipo_en_nombre": "ROADMAP",
       "updated": "2026-08-09"
+     },
+     {
+      "area": "04-Ejecucion-y-pruebas",
+      "carpeta": "04-Ejecucion-y-pruebas",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-09-10",
+      "frontmatter_completo": true,
+      "nombre": "2026-09-10-GUIA-DSL-De-Jam-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "GUIA",
+      "tipo_en_nombre": "GUIA",
+      "updated": "2026-09-10"
      }
     ],
     "enlace": [
@@ -13767,16 +13952,46 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "vault.area_es_la_carpeta": false,
-     "vault.carpeta_conocida": true,
-     "vault.enlace_resuelve": true,
-     "vault.fecha_coincide": true,
-     "vault.frontmatter_completo": true,
-     "vault.ningun_doc_suelto_en_la_raiz": true,
-     "vault.nombre_es_ascii": true,
-     "vault.nombre_sigue_la_convencion": true,
-     "vault.nombre_unico_en_el_vault": true,
-     "vault.tipo_coincide": true
+     "vault.area_es_la_carpeta": {
+      "ok": false,
+      "valor": 1
+     },
+     "vault.carpeta_conocida": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.enlace_resuelve": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.fecha_coincide": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.frontmatter_completo": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.ningun_doc_suelto_en_la_raiz": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.nombre_es_ascii": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.nombre_sigue_la_convencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.nombre_unico_en_el_vault": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.tipo_coincide": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -14694,6 +14909,19 @@
       "tipo_declarado": "ROADMAP",
       "tipo_en_nombre": "ROADMAP",
       "updated": "2026-08-09"
+     },
+     {
+      "area": "04-Ejecucion-y-pruebas",
+      "carpeta": "04-Ejecucion-y-pruebas",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-09-10",
+      "frontmatter_completo": true,
+      "nombre": "2026-09-10-GUIA-DSL-De-Jam-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "GUIA",
+      "tipo_en_nombre": "GUIA",
+      "updated": "2026-09-10"
      }
     ],
     "enlace": [
@@ -16528,16 +16756,46 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "vault.area_es_la_carpeta": true,
-     "vault.carpeta_conocida": true,
-     "vault.enlace_resuelve": false,
-     "vault.fecha_coincide": true,
-     "vault.frontmatter_completo": true,
-     "vault.ningun_doc_suelto_en_la_raiz": true,
-     "vault.nombre_es_ascii": true,
-     "vault.nombre_sigue_la_convencion": true,
-     "vault.nombre_unico_en_el_vault": true,
-     "vault.tipo_coincide": true
+     "vault.area_es_la_carpeta": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.carpeta_conocida": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.enlace_resuelve": {
+      "ok": false,
+      "valor": 1
+     },
+     "vault.fecha_coincide": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.frontmatter_completo": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.ningun_doc_suelto_en_la_raiz": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.nombre_es_ascii": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.nombre_sigue_la_convencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.nombre_unico_en_el_vault": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.tipo_coincide": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -17455,6 +17713,19 @@
       "tipo_declarado": "ROADMAP",
       "tipo_en_nombre": "ROADMAP",
       "updated": "2026-08-09"
+     },
+     {
+      "area": "04-Ejecucion-y-pruebas",
+      "carpeta": "04-Ejecucion-y-pruebas",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-09-10",
+      "frontmatter_completo": true,
+      "nombre": "2026-09-10-GUIA-DSL-De-Jam-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "GUIA",
+      "tipo_en_nombre": "GUIA",
+      "updated": "2026-09-10"
      }
     ],
     "enlace": [
@@ -19284,16 +19555,46 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "vault.area_es_la_carpeta": true,
-     "vault.carpeta_conocida": true,
-     "vault.enlace_resuelve": false,
-     "vault.fecha_coincide": true,
-     "vault.frontmatter_completo": true,
-     "vault.ningun_doc_suelto_en_la_raiz": true,
-     "vault.nombre_es_ascii": false,
-     "vault.nombre_sigue_la_convencion": true,
-     "vault.nombre_unico_en_el_vault": true,
-     "vault.tipo_coincide": true
+     "vault.area_es_la_carpeta": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.carpeta_conocida": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.enlace_resuelve": {
+      "ok": false,
+      "valor": 1
+     },
+     "vault.fecha_coincide": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.frontmatter_completo": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.ningun_doc_suelto_en_la_raiz": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.nombre_es_ascii": {
+      "ok": false,
+      "valor": 1
+     },
+     "vault.nombre_sigue_la_convencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.nombre_unico_en_el_vault": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.tipo_coincide": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -20211,6 +20512,19 @@
       "tipo_declarado": "ROADMAP",
       "tipo_en_nombre": "ROADMAP",
       "updated": "2026-08-09"
+     },
+     {
+      "area": "04-Ejecucion-y-pruebas",
+      "carpeta": "04-Ejecucion-y-pruebas",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-09-10",
+      "frontmatter_completo": true,
+      "nombre": "2026-09-10-GUIA-DSL-De-Jam-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "GUIA",
+      "tipo_en_nombre": "GUIA",
+      "updated": "2026-09-10"
      },
      {
       "area": "01-Graph",
@@ -22058,16 +22372,46 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "vault.area_es_la_carpeta": false,
-     "vault.carpeta_conocida": false,
-     "vault.enlace_resuelve": true,
-     "vault.fecha_coincide": true,
-     "vault.frontmatter_completo": true,
-     "vault.ningun_doc_suelto_en_la_raiz": false,
-     "vault.nombre_es_ascii": true,
-     "vault.nombre_sigue_la_convencion": true,
-     "vault.nombre_unico_en_el_vault": false,
-     "vault.tipo_coincide": true
+     "vault.area_es_la_carpeta": {
+      "ok": false,
+      "valor": 1
+     },
+     "vault.carpeta_conocida": {
+      "ok": false,
+      "valor": 1
+     },
+     "vault.enlace_resuelve": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.fecha_coincide": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.frontmatter_completo": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.ningun_doc_suelto_en_la_raiz": {
+      "ok": false,
+      "valor": 1
+     },
+     "vault.nombre_es_ascii": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.nombre_sigue_la_convencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.nombre_unico_en_el_vault": {
+      "ok": false,
+      "valor": 1
+     },
+     "vault.tipo_coincide": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -22972,6 +23316,19 @@
       "tipo_declarado": "ROADMAP",
       "tipo_en_nombre": "ROADMAP",
       "updated": "2026-08-09"
+     },
+     {
+      "area": "04-Ejecucion-y-pruebas",
+      "carpeta": "04-Ejecucion-y-pruebas",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-09-10",
+      "frontmatter_completo": true,
+      "nombre": "2026-09-10-GUIA-DSL-De-Jam-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "GUIA",
+      "tipo_en_nombre": "GUIA",
+      "updated": "2026-09-10"
      },
      {
       "area": "01-Graph",
@@ -24814,16 +25171,46 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "vault.area_es_la_carpeta": false,
-     "vault.carpeta_conocida": false,
-     "vault.enlace_resuelve": true,
-     "vault.fecha_coincide": true,
-     "vault.frontmatter_completo": true,
-     "vault.ningun_doc_suelto_en_la_raiz": true,
-     "vault.nombre_es_ascii": true,
-     "vault.nombre_sigue_la_convencion": true,
-     "vault.nombre_unico_en_el_vault": true,
-     "vault.tipo_coincide": true
+     "vault.area_es_la_carpeta": {
+      "ok": false,
+      "valor": 1
+     },
+     "vault.carpeta_conocida": {
+      "ok": false,
+      "valor": 1
+     },
+     "vault.enlace_resuelve": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.fecha_coincide": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.frontmatter_completo": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.ningun_doc_suelto_en_la_raiz": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.nombre_es_ascii": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.nombre_sigue_la_convencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.nombre_unico_en_el_vault": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.tipo_coincide": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -25754,6 +26141,19 @@
       "tipo_declarado": "ROADMAP",
       "tipo_en_nombre": "ROADMAP",
       "updated": "2026-08-09"
+     },
+     {
+      "area": "04-Ejecucion-y-pruebas",
+      "carpeta": "04-Ejecucion-y-pruebas",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-09-10",
+      "frontmatter_completo": true,
+      "nombre": "2026-09-10-GUIA-DSL-De-Jam-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "GUIA",
+      "tipo_en_nombre": "GUIA",
+      "updated": "2026-09-10"
      }
     ],
     "enlace": [
@@ -27588,16 +27988,46 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "vault.area_es_la_carpeta": false,
-     "vault.carpeta_conocida": true,
-     "vault.enlace_resuelve": true,
-     "vault.fecha_coincide": true,
-     "vault.frontmatter_completo": true,
-     "vault.ningun_doc_suelto_en_la_raiz": true,
-     "vault.nombre_es_ascii": true,
-     "vault.nombre_sigue_la_convencion": true,
-     "vault.nombre_unico_en_el_vault": false,
-     "vault.tipo_coincide": true
+     "vault.area_es_la_carpeta": {
+      "ok": false,
+      "valor": 1
+     },
+     "vault.carpeta_conocida": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.enlace_resuelve": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.fecha_coincide": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.frontmatter_completo": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.ningun_doc_suelto_en_la_raiz": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.nombre_es_ascii": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.nombre_sigue_la_convencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.nombre_unico_en_el_vault": {
+      "ok": false,
+      "valor": 1
+     },
+     "vault.tipo_coincide": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -28515,6 +28945,19 @@
       "tipo_declarado": "ROADMAP",
       "tipo_en_nombre": "ROADMAP",
       "updated": "2026-08-09"
+     },
+     {
+      "area": "04-Ejecucion-y-pruebas",
+      "carpeta": "04-Ejecucion-y-pruebas",
+      "carpeta_conocida": true,
+      "fecha_en_nombre": "2026-09-10",
+      "frontmatter_completo": true,
+      "nombre": "2026-09-10-GUIA-DSL-De-Jam-v1.0",
+      "nombre_es_ascii": true,
+      "sigue_convencion": true,
+      "tipo_declarado": "GUIA",
+      "tipo_en_nombre": "GUIA",
+      "updated": "2026-09-10"
      }
     ],
     "enlace": [
@@ -30344,16 +30787,46 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "vault.area_es_la_carpeta": true,
-     "vault.carpeta_conocida": true,
-     "vault.enlace_resuelve": true,
-     "vault.fecha_coincide": true,
-     "vault.frontmatter_completo": false,
-     "vault.ningun_doc_suelto_en_la_raiz": true,
-     "vault.nombre_es_ascii": true,
-     "vault.nombre_sigue_la_convencion": true,
-     "vault.nombre_unico_en_el_vault": true,
-     "vault.tipo_coincide": true
+     "vault.area_es_la_carpeta": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.carpeta_conocida": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.enlace_resuelve": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.fecha_coincide": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.frontmatter_completo": {
+      "ok": false,
+      "valor": 1
+     },
+     "vault.ningun_doc_suelto_en_la_raiz": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.nombre_es_ascii": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.nombre_sigue_la_convencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.nombre_unico_en_el_vault": {
+      "ok": true,
+      "valor": 0
+     },
+     "vault.tipo_coincide": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -30391,10 +30864,10 @@
    ]
   },
   "huellas": {
-   "catalogo": "c596c465cac6df34e642336b732f4f022960e82359c316d75b89909d3de1336a",
+   "catalogo": "3b3ff2704e53aa7e1040dd2944f67267cc2e253f20e8dc4803b68d8111065574",
    "configuracion": "407a21668fb6d1cc90b20875fa7e2a1044832d4f2e47f759f46e63edcb27e073",
    "emisor": "90aaf78c5d126419aa0f0bdb4017211ef9e993ed9abedc169fe62e965d386a7f",
-   "referencia": "b6d131be61cce6fcfcf3886639eee38e41eba04fb2666e3b38d7adb2c47fe2e3"
+   "referencia": "d5a5e4030f4879b0fef5fa8380cf893f80e0a01c98beec99e29c4e9fe542fcdb"
   },
   "raiz_fuentes": ".."
  },
