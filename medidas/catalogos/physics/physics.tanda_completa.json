@@ -6,6 +6,6 @@
   ["==", ["campo", "a", "apoyada"], false],
   "cero piezas sin soporte: un drop parcial no puede quedar verde aunque otra pieza sí haya aterrizado",
   "sin_declarar",
-  "sin_declarar",
+  "universal",
   "el indicador de soporte que entrega el asentador. NO ve si el soporte es estable, transitable, resistente o apropiado para el asset"
 ]

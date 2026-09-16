@@ -5,5 +5,6 @@
   ["resumen", "max", ["desvio_de_contacto", ["hecho", "a"], ["hecho", "b"]]],
   ["umbral", "<=", 1.0, "hasta 1 cm se considera contacto: evita rechazar ruido de bounds sin aceptar una junta visible"],
   ["requiere", "pieza", "objetivo"],
+  ["ambito", "universal"],
   ["alcance", "contacto de las caras sobre el eje solicitado. NO ve si las piezas comparten superficie en los otros dos ejes, ni la geometría real dentro del AABB. Si `pieza` u `objetivo` vienen vacías la medida NO concluye —lo declara en `requiere`— y sale SIN EVIDENCIA en vez de un verde que no miró nada"]
 ]

@@ -6,6 +6,6 @@
   ["==", ["campo", "d", "sigue_convencion"], false],
   "el nombre de archivo viaja por git, la terminal y los wikilinks: si no sigue la convención, el documento deja de ser referenciable de forma estable",
   "sin_declarar",
-  "sin_declarar",
+  "universal",
   "NO ve si el nombre DESCRIBE bien el contenido, ni si la versión que declara es la que corresponde: sólo que la forma sea la pactada"
 ]

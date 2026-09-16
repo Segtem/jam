@@ -6,6 +6,6 @@
   ["==", ["campo", "e", "resuelve"], false],
   "un vault con enlaces rotos se degrada en silencio, igual que un test que no discrimina",
   "sin_declarar",
-  "sin_declarar",
+  "universal",
   "NO ve si el enlace apunta al documento PERTINENTE, ni detecta documentos que nadie enlaza"
 ]

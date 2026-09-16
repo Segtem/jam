@@ -6,6 +6,6 @@
   ["==", ["campo", "a", "tiene_suelo"], false],
   "soltar sin encontrar ningún soporte debajo no completa la operación: la pieza queda donde nació o caería al vacío",
   "sin_declarar",
-  "sin_declarar",
+  "universal",
   "existencia de un soporte AABB en XY y debajo del centro. NO ve landscapes, superficie de triángulos, resistencia, estabilidad, pendiente ni colisión Chaos"
 ]

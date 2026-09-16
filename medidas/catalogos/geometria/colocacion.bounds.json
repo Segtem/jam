@@ -6,6 +6,6 @@
   ["<=", ["volumen", ["hecho", "a"]], 0.001],
   "una malla vacía o degenerada da volumen ~0: la colocación es inútil aunque no choque con nada",
   "sin_declarar",
-  "sin_declarar",
+  "universal",
   "volumen del AABB. NO ve si la malla está partida, invertida, ni si tiene geometría adentro del bounding box"
 ]
