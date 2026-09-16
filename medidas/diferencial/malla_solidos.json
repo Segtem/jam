@@ -16,8 +16,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -37,8 +43,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -58,8 +70,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -79,8 +97,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -100,8 +124,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -121,8 +151,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -142,8 +178,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -163,8 +205,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -184,8 +232,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -205,8 +259,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -226,8 +286,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -247,8 +313,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -268,8 +340,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -289,8 +367,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -310,8 +394,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -331,8 +421,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -352,8 +448,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -373,8 +475,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -394,8 +502,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -415,8 +529,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -436,8 +556,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": false
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -457,8 +583,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": false
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -478,8 +610,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": false
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -499,8 +637,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": false
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -520,8 +664,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": false
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -541,8 +691,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": false
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -562,8 +718,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": false
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -583,8 +745,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": false
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -604,8 +772,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": false
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -625,8 +799,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": false
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -646,8 +826,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": false
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -667,8 +853,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": false
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -688,8 +880,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": false
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -709,8 +907,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": false
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -730,8 +934,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": false
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -751,8 +961,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": false
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -772,8 +988,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": false
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -793,8 +1015,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": false
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -814,8 +1042,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": false
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -835,8 +1069,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": true,
-     "malla.solido_hacia_afuera": false
+     "malla.solido_esta_cerrado": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -856,8 +1096,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -877,8 +1123,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -898,8 +1150,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -919,8 +1177,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -940,8 +1204,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -961,8 +1231,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -982,8 +1258,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1003,8 +1285,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1024,8 +1312,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1045,8 +1339,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1066,8 +1366,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1087,8 +1393,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1108,8 +1420,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1129,8 +1447,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1150,8 +1474,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1171,8 +1501,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1192,8 +1528,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1213,8 +1555,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1234,8 +1582,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1255,8 +1609,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1276,8 +1636,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1297,8 +1663,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1318,8 +1690,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1339,8 +1717,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1360,8 +1744,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1381,8 +1771,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1402,8 +1798,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1423,8 +1825,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1444,8 +1852,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1465,8 +1879,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1486,8 +1906,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1507,8 +1933,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1528,8 +1960,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1549,8 +1987,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1570,8 +2014,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1591,8 +2041,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1612,8 +2068,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1633,8 +2095,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1654,8 +2122,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1675,8 +2149,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.solido_esta_cerrado": false,
-     "malla.solido_hacia_afuera": true
+     "malla.solido_esta_cerrado": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.solido_hacia_afuera": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false

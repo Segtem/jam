@@ -18,6 +18,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from tools.tareas_consulta import ConsultaInvalida, compilar
+
 ID_RE = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9_-]*$")
 ID_COMPLETO_RE = re.compile(r"^[0-9]{8}-[0-9]{6}(?:-[a-z0-9_-]+)*$")
 LINEA_META_RE = re.compile(r"^[ \t]*[-*][ \t]+([A-Za-z0-9_-]+)[ \t]*:[ \t]*(.*)$")
@@ -91,6 +93,27 @@ def _sanear_slug(texto: str) -> str:
     texto_ascii = "".join(c for c in texto_norm if not unicodedata.combining(c))
     limpio = re.sub(r"[^a-zA-Z0-9]+", "-", texto_ascii).strip("-").lower()
     return limpio
+
+
+LARGO_SUFIJO_DERIVADO = 16
+
+
+def _sufijo_del_titulo(titulo: str) -> str:
+    """El sufijo que se deriva de un título cuando nadie pasó `--sufijo`.
+
+    Eran 40 caracteres, y el ID entero es el prefijo de cada commit de ese trabajo: la tarea de
+    0.18.0 salió `20260915-010206-juzgar-evidencia-real-desde-el-cli-0-18` y hubo que rehacer dos
+    commits. Se corta en un límite de palabra y no a la mitad de una: el punto de tener sufijo es
+    leer el listado de un vistazo, y media palabra se lee peor que una palabra menos.
+    """
+    slug = _sanear_slug(titulo)
+    if len(slug) <= LARGO_SUFIJO_DERIVADO:
+        return slug
+    recortado = slug[:LARGO_SUFIJO_DERIVADO]
+    # Si el corte cayó justo en un guion, la última palabra está entera y no hay nada que retroceder.
+    if slug[LARGO_SUFIJO_DERIVADO] != "-" and "-" in recortado:
+        recortado = recortado.rsplit("-", 1)[0]
+    return recortado.rstrip("-")
 
 
 def validar_seguridad_id(id_o_prefijo: str) -> None:
@@ -562,6 +585,11 @@ def cmd_init(argv: list[str], args: list[str]) -> int:
         help="Ruta del proyecto (por defecto: directorio actual)",
     )
     parser.add_argument("--proyecto", default=None, help="Ruta al proyecto")
+    parser.add_argument(
+        "--sin-readme",
+        action="store_true",
+        help="Inicializa el tracker sin crear README.md",
+    )
     parsed = parser.parse_args(args)
 
     try:
@@ -588,31 +616,32 @@ def cmd_init(argv: list[str], args: list[str]) -> int:
         print(f"ERROR: no se pudo crear el directorio {raiz_tareas}: {e}", file=sys.stderr)
         return 1
 
-    readme = raiz_tareas / "README.md"
-    if readme.is_symlink():
-        print(
-            f"ERROR: {readme} es un enlace simbólico; no se permite inicializar a través de enlaces.",
-            file=sys.stderr,
-        )
-        return 1
+    if not parsed.sin_readme:
+        readme = raiz_tareas / "README.md"
+        if readme.is_symlink():
+            print(
+                f"ERROR: {readme} es un enlace simbólico; no se permite inicializar a través de enlaces.",
+                file=sys.stderr,
+            )
+            return 1
 
-    contenido_readme = (
-        "# Tareas de Oracle\n\n"
-        "Este directorio almacena tareas y contexto de trabajo en carpetas y Markdown.\n"
-        "Cada subdirectorio representa una tarea con su archivo `TAREA.md` y adjuntos.\n"
-    )
-    # O_CREAT | O_EXCL rechaza cualquier entrada preexistente, también enlaces rotos.
-    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
-    modo = stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH
-    try:
-        fd = os.open(readme, flags, modo)
-        with open(fd, "w", encoding="utf-8") as f:
-            f.write(contenido_readme)
-    except FileExistsError:
-        pass
-    except OSError as e:
-        print(f"ERROR: no se pudo crear {readme}: {e}", file=sys.stderr)
-        return 1
+        contenido_readme = (
+            "# Tareas de Oracle\n\n"
+            "Este directorio almacena tareas y contexto de trabajo en carpetas y Markdown.\n"
+            "Cada subdirectorio representa una tarea con su archivo `TAREA.md` y adjuntos.\n"
+        )
+        # O_CREAT | O_EXCL rechaza cualquier entrada preexistente, también enlaces rotos.
+        flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
+        modo = stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH
+        try:
+            fd = os.open(readme, flags, modo)
+            with open(fd, "w", encoding="utf-8") as f:
+                f.write(contenido_readme)
+        except FileExistsError:
+            pass
+        except OSError as e:
+            print(f"ERROR: no se pudo crear {readme}: {e}", file=sys.stderr)
+            return 1
 
     print(f"Tracker de tareas inicializado en {raiz_tareas}")
     return 0
@@ -637,7 +666,8 @@ def cmd_nueva(argv: list[str], args: list[str]) -> int:
         default=50,
         help="Prioridad numérica entera (defecto: 50)",
     )
-    parser.add_argument("--sufijo", default=None, help="Sufijo identificador personalizado")
+    parser.add_argument("--sufijo", default=None,
+                        help="Sufijo del ID; sin él se deriva del título, hasta 16 caracteres")
     parser.add_argument("--json", action="store_true", help="Salida en formato JSON")
     parser.add_argument("--proyecto", default=None, help="Ruta al proyecto")
     parsed = parser.parse_args(args)
@@ -673,7 +703,7 @@ def cmd_nueva(argv: list[str], args: list[str]) -> int:
         )
         return 1
 
-    sufijo = parsed.sufijo or _sanear_slug(titulo)[:40].rstrip("-")
+    sufijo = parsed.sufijo if parsed.sufijo is not None else _sufijo_del_titulo(titulo)
 
     try:
         id_tarea, carpeta = crear_carpeta_tarea_atomica(raiz_tareas, sufijo)
@@ -709,15 +739,38 @@ def cmd_listar(argv: list[str], args: list[str]) -> int:
         prog="oracle tarea listar",
         description="Lista tareas del proyecto (alias: ls)",
     )
+    parser.add_argument("consulta", nargs="*", default=[], help="Consulta TQL opcional")
     parser.add_argument("--cerradas", action="store_true", help="Muestra sólo tareas cerradas")
     parser.add_argument("--todas", action="store_true", help="Muestra abiertas y cerradas")
     parser.add_argument("--etiqueta", "-e", default=None, help="Filtra por etiqueta exacta")
     parser.add_argument(
         "--texto", "-t", default=None, help="Busca texto en título o descripción"
     )
+    parser.add_argument(
+        "--por-id",
+        action="store_true",
+        help="Ordena por ID descendente (más nuevas primero)",
+    )
+    parser.add_argument("--invertir", action="store_true", help="Invierte el orden de la lista")
+    parser.add_argument(
+        "--explicar",
+        action="store_true",
+        help="Muestra tokens y forma compilada sin listar ni requerir tracker",
+    )
     parser.add_argument("--json", action="store_true", help="Salida en formato JSON")
     parser.add_argument("--proyecto", default=None, help="Ruta al proyecto")
     parsed = parser.parse_args(args)
+
+    texto_consulta = " ".join(parsed.consulta)
+    try:
+        consulta_tql = compilar(texto_consulta)
+    except ConsultaInvalida as e:
+        print(e, file=sys.stderr)
+        return 2
+
+    if parsed.explicar:
+        print(consulta_tql.explicar())
+        return 0
 
     if parsed.cerradas and parsed.todas:
         print(
@@ -763,9 +816,17 @@ def cmd_listar(argv: list[str], args: list[str]) -> int:
             txt_buscado = parsed.texto.strip().lower()
             if txt_buscado not in t.titulo.lower() and txt_buscado not in t.cuerpo.lower():
                 continue
+        if not consulta_tql.evaluar(t):
+            continue
         filtradas.append(t)
 
-    filtradas.sort(key=lambda x: (-x.prioridad, x.id))
+    if parsed.por_id:
+        filtradas.sort(key=lambda x: x.id, reverse=True)
+    else:
+        filtradas.sort(key=lambda x: (-x.prioridad, x.id))
+
+    if parsed.invertir:
+        filtradas.reverse()
 
     if parsed.json:
         datos = [t.a_dict() for t in filtradas]
@@ -1269,6 +1330,11 @@ def cmd_desetiquetar(argv: list[str], args: list[str]) -> int:
         help="Etiqueta a quitar (repetible o separada por comas)",
     )
     parser.add_argument(
+        "--consulta",
+        default=None,
+        help="Expresión de consulta TQL para filtrar tareas (modo masivo)",
+    )
+    parser.add_argument(
         "--cerradas",
         action="store_true",
         help="Aplica a tareas cerradas (modo masivo)",
@@ -1286,8 +1352,18 @@ def cmd_desetiquetar(argv: list[str], args: list[str]) -> int:
         parser.error("las opciones --cerradas y --todas son incompatibles")
     if parsed.ids and (parsed.cerradas or parsed.todas):
         parser.error("no se pueden combinar identificadores explícitos con --cerradas o --todas")
+    if parsed.ids and parsed.consulta:
+        parser.error("no se pueden combinar identificadores explícitos con --consulta")
     if not parsed.etiqueta:
         parser.error("debe especificar al menos una etiqueta con --etiqueta")
+
+    consulta_obj = None
+    if parsed.consulta:
+        try:
+            consulta_obj = compilar(parsed.consulta)
+        except ConsultaInvalida as e:
+            print(str(e), file=sys.stderr)
+            return 2
 
     try:
         etiquetas_op = _sanear_etiquetas_operacion(parsed.etiqueta)
@@ -1324,6 +1400,8 @@ def cmd_desetiquetar(argv: list[str], args: list[str]) -> int:
                     continue
                 if not parsed.cerradas and t.estado != "ABIERTA":
                     continue
+            if consulta_obj is not None and not consulta_obj.evaluar(t):
+                continue
             carpetas.append(t.ruta.parent)
 
     return _aplicar_y_guardar_etiquetas(
@@ -1339,9 +1417,9 @@ def ayuda() -> None:
     print("""Oracle — metalenguaje de medidas: tracker de tareas.
 
 Uso:
-  oracle tarea init [ruta]                Inicializa el tracker de tareas en tareas/
+  oracle tarea init [ruta] [opciones]     Inicializa el tracker de tareas en tareas/
   oracle tarea nueva <titulo> [opciones]  Crea una nueva tarea con plantilla lista
-  oracle tarea listar [opciones]          Lista tareas (alias: ls)
+  oracle tarea listar [consulta] [opc]    Lista tareas (alias: ls)
   oracle tarea ver <id> [--ruta] [--json] Muestra detalles de una tarea o su ruta
   oracle tarea cerrar <id>                Marca la tarea como CERRADA de forma atómica
   oracle tarea reabrir <id>               Marca la tarea como ABIERTA de forma atómica
@@ -1349,7 +1427,7 @@ Uso:
   oracle tarea anotar <id> [texto] [opc]  Agrega una nota, URL o marca temporal a una tarea
   oracle tarea adjuntar <id> <archivo>    Copia un adjunto al directorio de la tarea
   oracle tarea buscar <texto> [--json]    Busca texto en tareas y notas del tracker
-  oracle tarea referencias <id> [--json]  Busca menciones del ID en tareas y código
+  oracle tarea referencias [id] [--json]  Busca menciones del ID en tareas y código
   oracle tarea resumen [--json]           Muestra cantidades por estado y etiquetas
   oracle tarea seguimiento [opciones]     Diagnóstico de seguimiento y cobertura en Git
   oracle tarea hechos [opciones]          Emite hechos relacionales del tracker en JSON
@@ -1357,10 +1435,13 @@ Uso:
   oracle tarea desetiquetar [id]... [opc] Quita una o más etiquetas de tareas
   oracle tarea grafo [--json]             Emite el grafo de referencias en DOT o JSON
 
+Opciones de «init»:
+  --sin-readme                           Inicializa el tracker sin crear README.md
+
 Opciones de «nueva»:
   --etiqueta, -e <etiqueta>              Agrega una o más etiquetas (separadas por coma o repetidas)
   --prioridad <n>                        Prioridad numérica entera (por defecto: 50)
-  --sufijo <slug>                        Sufijo identificador personalizado
+  --sufijo <slug>                        Sufijo del ID (sin él se deriva del título, ≤16)
   --json                                 Emite el ID y ruta en JSON
 
 Opciones de «listar» / «ls»:
@@ -1368,6 +1449,9 @@ Opciones de «listar» / «ls»:
   --todas                                Muestra abiertas y cerradas
   --etiqueta, -e <etiqueta>              Filtra por etiqueta exacta
   --texto, -t <palabra>                  Busca texto en título o descripción
+  --por-id                               Ordena por ID descendente
+  --invertir                             Invierte el orden del listado final
+  --explicar                             Muestra la consulta TQL compilada y sale
   --json                                 Emite la lista de tareas en JSON
 
 Opciones de «anotar»:
@@ -1389,6 +1473,7 @@ Opciones de «etiquetar»:
 
 Opciones de «desetiquetar»:
   --etiqueta, -e <etiqueta>              Etiqueta a quitar (repetible o separada por comas)
+  --consulta <tql>                       Filtra tareas por consulta TQL en modo masivo
   --cerradas                             Aplica a tareas cerradas (modo masivo)
   --todas                                Aplica a abiertas y cerradas (modo masivo)
   --json                                 Emite la lista de cambios en JSON

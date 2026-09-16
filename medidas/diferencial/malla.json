@@ -48,8 +48,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.cara_visible": true,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -111,8 +117,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.cara_visible": true,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -174,8 +186,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.cara_visible": true,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -237,8 +255,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.cara_visible": true,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -300,8 +324,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.cara_visible": true,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -343,8 +373,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.cara_visible": true,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -386,8 +422,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.cara_visible": true,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -449,8 +491,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.cara_visible": true,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -492,8 +540,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.cara_visible": true,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -565,8 +619,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.cara_visible": true,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -638,8 +698,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.cara_visible": true,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -671,8 +737,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.cara_visible": true,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -734,8 +806,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.cara_visible": true,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -787,8 +865,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.cara_visible": true,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -830,8 +914,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.cara_visible": true,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -873,8 +963,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.cara_visible": true,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -946,8 +1042,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.cara_visible": true,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -989,8 +1091,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.cara_visible": true,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -1062,8 +1170,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.cara_visible": true,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -1095,8 +1209,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.cara_visible": true,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -1168,8 +1288,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 10
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1201,8 +1327,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 2
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1254,8 +1386,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 6
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1297,8 +1435,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 4
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1340,8 +1484,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 4
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1413,8 +1563,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 10
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1446,8 +1602,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 2
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1519,8 +1681,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 10
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1552,8 +1720,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 2
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1605,8 +1779,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 6
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1658,8 +1838,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 6
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1721,8 +1907,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 8
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1794,8 +1986,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 10
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1867,8 +2065,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 10
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1920,8 +2124,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 6
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1963,8 +2173,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 4
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2016,8 +2232,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 6
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2079,8 +2301,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 8
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2122,8 +2350,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 4
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2155,8 +2389,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 2
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2228,8 +2468,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 10
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2301,8 +2547,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 10
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2364,8 +2616,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 8
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2427,8 +2685,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 8
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2500,8 +2764,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 10
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2533,8 +2803,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 2
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2596,8 +2872,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 8
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2629,8 +2911,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 2
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2702,8 +2990,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 10
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2735,8 +3029,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 2
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2768,8 +3068,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 2
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2831,8 +3137,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 8
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2904,8 +3216,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 10
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2967,8 +3285,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 8
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -3010,8 +3334,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 4
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -3043,8 +3373,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 2
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -3076,8 +3412,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 2
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -3149,8 +3491,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 10
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -3222,8 +3570,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 10
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -3255,8 +3609,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 2
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -3318,8 +3678,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": false
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -3391,8 +3757,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": false
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -3454,8 +3826,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": false
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -3507,8 +3885,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": false
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -3580,8 +3964,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": false
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -3613,8 +4003,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -3686,8 +4082,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": false
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -3739,8 +4141,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": false
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -3792,8 +4200,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": false
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -3825,8 +4239,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -3888,8 +4308,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": false
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -3941,8 +4367,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": false
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -3974,8 +4406,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -4017,8 +4455,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": false
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -4060,8 +4504,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": false
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -4123,8 +4573,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": false
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -4156,8 +4612,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -4209,8 +4671,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": false
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -4282,8 +4750,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": false
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -4315,8 +4789,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -4348,8 +4828,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.cara_visible": true,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -4401,8 +4887,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -4434,8 +4926,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.cara_visible": true,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -4467,8 +4965,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.cara_visible": true,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -4550,8 +5054,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": false
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 2
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -4633,8 +5143,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": false
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -4696,8 +5212,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.cara_visible": true,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -4759,8 +5281,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.cara_visible": true,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -4832,8 +5360,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": false
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -4885,8 +5419,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": false
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 2
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -4918,8 +5458,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.cara_visible": true,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -4951,8 +5497,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.cara_visible": true,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -5024,8 +5576,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": false
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -5087,8 +5645,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "malla.cara_visible": false,
-     "malla.superficie_sin_vueltas": false
+     "malla.cara_visible": {
+      "ok": false,
+      "valor": 1
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -5140,8 +5704,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.cara_visible": true,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -5183,8 +5753,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.cara_visible": true,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -5236,8 +5812,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.cara_visible": true,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -5269,8 +5851,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.cara_visible": true,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -5312,8 +5900,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.cara_visible": true,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -5385,8 +5979,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "malla.cara_visible": true,
-     "malla.superficie_sin_vueltas": true
+     "malla.cara_visible": {
+      "ok": true,
+      "valor": 0
+     },
+     "malla.superficie_sin_vueltas": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true

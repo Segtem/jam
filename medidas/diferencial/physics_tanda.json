@@ -59,8 +59,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -123,8 +129,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -187,8 +199,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -251,8 +269,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -315,8 +339,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -379,8 +409,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -443,8 +479,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -507,8 +549,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -571,8 +619,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -635,8 +689,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -699,8 +759,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -763,8 +829,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -827,8 +899,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -891,8 +969,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -955,8 +1039,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -1019,8 +1109,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -1083,8 +1179,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -1147,8 +1249,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -1211,8 +1319,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -1275,8 +1389,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -1339,8 +1459,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 3
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1403,8 +1529,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 3
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1467,8 +1599,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 3
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1531,8 +1669,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 3
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1595,8 +1739,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 3
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1659,8 +1809,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 3
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1723,8 +1879,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 3
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1787,8 +1949,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 3
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1851,8 +2019,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 3
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1915,8 +2089,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 3
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1979,8 +2159,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 3
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2043,8 +2229,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 3
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2107,8 +2299,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 3
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2171,8 +2369,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 3
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2235,8 +2439,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 3
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2299,8 +2509,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 3
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2363,8 +2579,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 3
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2427,8 +2649,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 3
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2491,8 +2719,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 3
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2555,8 +2789,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 3
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2603,8 +2843,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2651,8 +2897,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2699,8 +2951,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2747,8 +3005,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2795,8 +3059,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2843,8 +3113,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2891,8 +3167,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2939,8 +3221,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -2987,8 +3275,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -3035,8 +3329,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -3083,8 +3383,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -3131,8 +3437,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -3179,8 +3491,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -3227,8 +3545,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -3275,8 +3599,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -3323,8 +3653,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -3371,8 +3707,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -3419,8 +3761,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -3467,8 +3815,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -3515,8 +3869,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": false,
-     "physics.tanda_sin_interpenetracion": true
+     "physics.tanda_completa": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -3579,8 +3939,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": false
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": false,
+      "valor": 19
+     }
     }
    },
    "referencia_ok": false
@@ -3643,8 +4009,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": false
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": false,
+      "valor": 19
+     }
     }
    },
    "referencia_ok": false
@@ -3707,8 +4079,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": false
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": false,
+      "valor": 19
+     }
     }
    },
    "referencia_ok": false
@@ -3771,8 +4149,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": false
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": false,
+      "valor": 19
+     }
     }
    },
    "referencia_ok": false
@@ -3835,8 +4219,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": false
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": false,
+      "valor": 19
+     }
     }
    },
    "referencia_ok": false
@@ -3899,8 +4289,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": false
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": false,
+      "valor": 19
+     }
     }
    },
    "referencia_ok": false
@@ -3963,8 +4359,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": false
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": false,
+      "valor": 19
+     }
     }
    },
    "referencia_ok": false
@@ -4027,8 +4429,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": false
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": false,
+      "valor": 19
+     }
     }
    },
    "referencia_ok": false
@@ -4091,8 +4499,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": false
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": false,
+      "valor": 19
+     }
     }
    },
    "referencia_ok": false
@@ -4155,8 +4569,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": false
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": false,
+      "valor": 19
+     }
     }
    },
    "referencia_ok": false
@@ -4219,8 +4639,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": false
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": false,
+      "valor": 19
+     }
     }
    },
    "referencia_ok": false
@@ -4283,8 +4709,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": false
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": false,
+      "valor": 19
+     }
     }
    },
    "referencia_ok": false
@@ -4347,8 +4779,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": false
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": false,
+      "valor": 19
+     }
     }
    },
    "referencia_ok": false
@@ -4411,8 +4849,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": false
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": false,
+      "valor": 19
+     }
     }
    },
    "referencia_ok": false
@@ -4475,8 +4919,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": false
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": false,
+      "valor": 19
+     }
     }
    },
    "referencia_ok": false
@@ -4539,8 +4989,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": false
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": false,
+      "valor": 19
+     }
     }
    },
    "referencia_ok": false
@@ -4603,8 +5059,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": false
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": false,
+      "valor": 19
+     }
     }
    },
    "referencia_ok": false
@@ -4667,8 +5129,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": false
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": false,
+      "valor": 19
+     }
     }
    },
    "referencia_ok": false
@@ -4731,8 +5199,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": false
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": false,
+      "valor": 19
+     }
     }
    },
    "referencia_ok": false
@@ -4795,8 +5269,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.tanda_completa": true,
-     "physics.tanda_sin_interpenetracion": false
+     "physics.tanda_completa": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tanda_sin_interpenetracion": {
+      "ok": false,
+      "valor": 19
+     }
     }
    },
    "referencia_ok": false

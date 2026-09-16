@@ -149,10 +149,22 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -305,10 +317,22 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -461,10 +485,22 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -617,10 +653,22 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -773,10 +821,22 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -929,10 +989,22 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -1085,10 +1157,22 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -1241,10 +1325,22 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -1397,10 +1493,22 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -1553,10 +1661,22 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -1709,10 +1829,22 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -1865,10 +1997,22 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -2021,10 +2165,22 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -2177,10 +2333,22 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -2333,10 +2501,22 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -2489,10 +2669,22 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -2645,10 +2837,22 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -2801,10 +3005,22 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -2957,10 +3173,22 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -3113,10 +3341,22 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -3256,10 +3496,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": false,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -3399,10 +3651,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": false,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -3542,10 +3806,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": false,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -3685,10 +3961,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": false,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -3828,10 +4116,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": false,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -3971,10 +4271,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": false,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -4114,10 +4426,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": false,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -4257,10 +4581,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": false,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -4400,10 +4736,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": false,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -4543,10 +4891,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": false,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -4686,10 +5046,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": false,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -4829,10 +5201,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": false,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -4972,10 +5356,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": false,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -5115,10 +5511,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": false,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -5258,10 +5666,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": false,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -5401,10 +5821,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": false,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -5544,10 +5976,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": false,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -5687,10 +6131,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": false,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -5830,10 +6286,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": false,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -5973,10 +6441,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": false,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -6129,10 +6609,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": false,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -6285,10 +6777,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": false,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -6441,10 +6945,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": false,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -6597,10 +7113,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": false,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -6753,10 +7281,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": false,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -6909,10 +7449,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": false,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -7065,10 +7617,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": false,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -7221,10 +7785,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": false,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -7377,10 +7953,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": false,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -7533,10 +8121,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": false,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -7689,10 +8289,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": false,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -7845,10 +8457,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": false,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -8001,10 +8625,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": false,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -8157,10 +8793,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": false,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -8313,10 +8961,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": false,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -8469,10 +9129,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": false,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -8625,10 +9297,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": false,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -8781,10 +9465,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": false,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -8937,10 +9633,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": false,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -9093,10 +9801,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": false,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -9249,10 +9969,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": false
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": false,
+      "valor": 49
+     }
     }
    },
    "referencia_ok": false
@@ -9405,10 +10137,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": false
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": false,
+      "valor": 49
+     }
     }
    },
    "referencia_ok": false
@@ -9561,10 +10305,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": false
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": false,
+      "valor": 49
+     }
     }
    },
    "referencia_ok": false
@@ -9717,10 +10473,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": false
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": false,
+      "valor": 49
+     }
     }
    },
    "referencia_ok": false
@@ -9873,10 +10641,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": false
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": false,
+      "valor": 49
+     }
     }
    },
    "referencia_ok": false
@@ -10029,10 +10809,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": false
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": false,
+      "valor": 49
+     }
     }
    },
    "referencia_ok": false
@@ -10185,10 +10977,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": false
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": false,
+      "valor": 49
+     }
     }
    },
    "referencia_ok": false
@@ -10341,10 +11145,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": false
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": false,
+      "valor": 49
+     }
     }
    },
    "referencia_ok": false
@@ -10497,10 +11313,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": false
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": false,
+      "valor": 49
+     }
     }
    },
    "referencia_ok": false
@@ -10653,10 +11481,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": false
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": false,
+      "valor": 49
+     }
     }
    },
    "referencia_ok": false
@@ -10809,10 +11649,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": false
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": false,
+      "valor": 49
+     }
     }
    },
    "referencia_ok": false
@@ -10965,10 +11817,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": false
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": false,
+      "valor": 49
+     }
     }
    },
    "referencia_ok": false
@@ -11121,10 +11985,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": false
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": false,
+      "valor": 49
+     }
     }
    },
    "referencia_ok": false
@@ -11277,10 +12153,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": false
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": false,
+      "valor": 49
+     }
     }
    },
    "referencia_ok": false
@@ -11433,10 +12321,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": false
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": false,
+      "valor": 49
+     }
     }
    },
    "referencia_ok": false
@@ -11589,10 +12489,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": false
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": false,
+      "valor": 49
+     }
     }
    },
    "referencia_ok": false
@@ -11745,10 +12657,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": false
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": false,
+      "valor": 49
+     }
     }
    },
    "referencia_ok": false
@@ -11901,10 +12825,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": false
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": false,
+      "valor": 49
+     }
     }
    },
    "referencia_ok": false
@@ -12057,10 +12993,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": false
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": false,
+      "valor": 49
+     }
     }
    },
    "referencia_ok": false
@@ -12213,10 +13161,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": true,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": false
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": false,
+      "valor": 49
+     }
     }
    },
    "referencia_ok": false
@@ -12369,10 +13329,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": false,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -12525,10 +13497,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": false,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -12681,10 +13665,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": false,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -12837,10 +13833,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": false,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -12993,10 +14001,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": false,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -13149,10 +14169,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": false,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -13305,10 +14337,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": false,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -13461,10 +14505,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": false,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -13617,10 +14673,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": false,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -13773,10 +14841,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": false,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -13929,10 +15009,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": false,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -14085,10 +15177,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": false,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -14241,10 +15345,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": false,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -14397,10 +15513,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": false,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -14553,10 +15681,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": false,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -14709,10 +15849,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": false,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -14865,10 +16017,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": false,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -15021,10 +16185,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": false,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -15177,10 +16353,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": false,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -15333,10 +16521,22 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "scatter.cantidad": true,
-     "scatter.cobertura": false,
-     "scatter.contencion": true,
-     "scatter.interpenetracion": true
+     "scatter.cantidad": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.cobertura": {
+      "ok": false,
+      "valor": 1
+     },
+     "scatter.contencion": {
+      "ok": true,
+      "valor": 0
+     },
+     "scatter.interpenetracion": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false

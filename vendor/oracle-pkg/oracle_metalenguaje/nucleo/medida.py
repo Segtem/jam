@@ -28,10 +28,12 @@ import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .algebra import (COMPARADORES, ErrorDeAlgebra, LimitesAlgebra, comparar, desde, resumir,
-                      validar_finito, validar_resumen, validar_tuberia)
+from .algebra import (COMPARADORES, ErrorDeAlgebra, LimitesAlgebra, LOGICOS, comparar, desde,
+                      evaluar_expr, resumir, separar_clave, validar_expr, validar_finito,
+                      validar_resumen, validar_tuberia)
 from .macro import es_macro, expandir
 from .proyecto import FuenteCatalogo, ID_MEDIDA_RE, ORIGEN_PROYECTO, OrigenCatalogo
+from .relacion import NOMBRE_CAMPO_RE, NOMBRE_RELACION_RE
 from .vocabulario import (AMBITOS, AMBITO_SIN_DECLARAR, ORIGENES_DE_UMBRAL,
                           opciones)
 
@@ -58,6 +60,20 @@ AMBITOS_DE_RELACIONES = {
     "termino": "universal",
     "requiere": "universal",
     "dependencia_de_medida": "universal",
+}
+
+CAMPOS_DE_RELACIONES = {
+    "ancestro": ("medida", "ruta", "ancestro", "cabeza_ancestro", "tipo", "cabeza", "cabeza_padre", "texto"),
+    "medida": (
+        "id", "dominio", "relacion", "agregado", "comparador", "umbral", "umbral_op",
+        "umbral_valor", "umbral_es_flotante", "porque", "segun", "ambito", "alcance",
+        "pasos", "declara_requiere", "es_meta_por_el_nombre", "es_meta_por_lo_que_mide",
+    ),
+    "paso_de_medida": ("medida", "indice", "ruta", "operador"),
+    "fuente": ("medida", "ruta", "relacion", "alias"),
+    "termino": ("medida", "ruta", "padre", "cabeza_padre", "tipo", "cabeza", "texto", "longitud"),
+    "requiere": ("medida", "indice", "relacion", "con_condicion"),
+    "dependencia_de_medida": ("medida", "relacion", "clase", "con_condicion"),
 }
 
 EXTENSIONES_DE_MEDIDA = frozenset({".json", ".oracle"})
@@ -260,6 +276,44 @@ def _resumir_fila(fila: dict) -> str:
     return ", ".join(partes)
 
 
+def _es_expresion_booleana(nodo, registro=None) -> bool:
+    """Al cargar: un literal booleano, una comparación, un lógico sobre booleanos o una escalar
+    declarada. Lo que devuelve una escalar recién se sabe al evaluar, y ahí `_cumple` lo exige."""
+    if not isinstance(nodo, list):
+        return isinstance(nodo, bool)
+    cabeza, *argumentos = nodo
+    if cabeza in ("y", "o"):
+        return all(_es_expresion_booleana(a, registro) for a in argumentos)
+    if cabeza == "no":
+        return len(argumentos) == 1 and _es_expresion_booleana(argumentos[0], registro)
+    return cabeza in COMPARADORES or cabeza in (registro or ())
+
+
+def _validar_alias_en_expr(nodo, alias_esperado: str, relacion: str, mid: str) -> None:
+    if not isinstance(nodo, list) or not nodo:
+        return
+    cabeza = nodo[0]
+    if cabeza in ("campo", "hecho"):
+        # `validar_expr` ya rechazó un acceso mal formado; acá sólo importa de qué alias es.
+        if nodo[1:2] != [alias_esperado]:
+            raise MedidaMalDeclarada(
+                f"{mid}: la condición de `requiere` para «{relacion}» sólo puede usar el alias "
+                f"«{alias_esperado}», pero se encontró «{nodo[1]}»")
+    elif cabeza == "col":
+        raise MedidaMalDeclarada(
+            f"{mid}: la condición de `requiere` no puede referenciar columnas («col»)")
+    for hijo in nodo[1:]:
+        _validar_alias_en_expr(hijo, alias_esperado, relacion, mid)
+
+
+def _cumple(condicion, alias: str, fila: dict, limites, registro) -> bool:
+    """Evalúa la condición de `requiere` sobre una fila; un resultado que no es booleano levanta."""
+    valor = evaluar_expr(condicion, {alias: fila}, limites, registro=registro)
+    if type(valor) is not bool:
+        raise ErrorDeAlgebra(f"la condición de `requiere` tiene que dar booleano, no {valor!r}")
+    return valor
+
+
 @dataclass(frozen=True)
 class Medida:
     id: str
@@ -364,16 +418,52 @@ class Medida:
             raise MedidaMalDeclarada(
                 f"{mid}: `ambito` recibió {valor_ambito!r}, y los ámbitos declarados son:\n"
                 f"{opciones(AMBITOS)}")
-        if not (isinstance(requiere, list) and requiere and requiere[0] == "requiere"
-                and all(isinstance(r, str) and r.strip() for r in requiere[1:])):
-            raise MedidaMalDeclarada(
-                f"{mid}: `requiere` es ['requiere', <relación>, …] con nombres no vacíos")
-        nombres = tuple(requiere[1:])
-        if len(set(nombres)) != len(nombres):
-            raise MedidaMalDeclarada(f"{mid}: `requiere` repite una relación: {list(nombres)}")
+        entradas_requiere: list = []
+        relaciones_vistas: set[str] = set()
+
+        for item in requiere[1:]:
+            if isinstance(item, str):
+                # La regla de 0.6, sin cambios: validar el nombre con la expresión de relación
+                # rechazaría lo que hoy carga, y eso subiría la MAYOR del álgebra (§0).
+                if not item.strip():
+                    raise MedidaMalDeclarada(
+                        f"{mid}: `requiere` es ['requiere', <relación>, …] con nombres no vacíos")
+                if item in relaciones_vistas:
+                    raise MedidaMalDeclarada(
+                        f"{mid}: `requiere` repite una relación: «{item}»")
+                relaciones_vistas.add(item)
+                entradas_requiere.append(item)
+            elif isinstance(item, list):
+                if len(item) != 4 or item[0] != "filas":
+                    raise MedidaMalDeclarada(
+                        f"{mid}: entrada condicional de `requiere` debe ser ['filas', relacion, alias, condicion]")
+                _, rel, alias, condicion = item
+                if not isinstance(rel, str) or NOMBRE_RELACION_RE.fullmatch(rel) is None:
+                    raise MedidaMalDeclarada(
+                        f"{mid}: relación inválida en `requiere`: «{rel}»")
+                if not isinstance(alias, str) or NOMBRE_CAMPO_RE.fullmatch(alias) is None:
+                    raise MedidaMalDeclarada(
+                        f"{mid}: alias inválido en `requiere`: «{alias}»")
+                if rel in relaciones_vistas:
+                    raise MedidaMalDeclarada(
+                        f"{mid}: `requiere` repite una relación: «{rel}»")
+                relaciones_vistas.add(rel)
+                try:
+                    validar_expr(condicion, limites, registro=registro)
+                except ErrorDeAlgebra as e:
+                    raise MedidaMalDeclarada(f"{mid}: condición de `requiere` inválida: {e}") from e
+                if not _es_expresion_booleana(condicion, registro):
+                    raise MedidaMalDeclarada(
+                        f"{mid}: la condición de `requiere` debe ser una expresión booleana")
+                _validar_alias_en_expr(condicion, alias, rel, mid)
+                entradas_requiere.append(["filas", rel, alias, condicion])
+            else:
+                raise MedidaMalDeclarada(
+                    f"{mid}: elemento inválido en `requiere`: {item!r}")
+
         return cls(id=mid, tuberia=tuberia, resumen=resumen, op=op, limite=limite,
                    porque=porque, alcance=alcance[1], segun=segun, ambito=valor_ambito,
-                   requiere=nombres,
+                   requiere=tuple(entradas_requiere),
                    fuente=tuple(fuente) if es_macro(fuente, macros) else ())
 
     def evaluar(self, evidencia: dict, limites: LimitesAlgebra | None = None, *,
@@ -381,7 +471,24 @@ class Medida:
         evidencia = evidencia_con_derivadas(evidencia)
         # ANTES de medir: si falta con qué, no hay veredicto que dar. Medir igual produciría el
         # agregado sobre cero filas —que es 0— y un umbral `<= 0` lo leería como verde.
-        faltante = next((r for r in self.requiere if not evidencia.get(r)), "")
+        #
+        # Todas las condiciones, en todas las filas, ANTES de decidir: sin cortocircuito entre filas ni
+        # entre entradas. Un campo ausente levanta aunque otra fila ya cumpla o aunque otra relación
+        # requerida venga vacía; si no, el veredicto dependería del orden de la bolsa (DECISION-001) o
+        # del orden de `requiere`. Lo encontró la referencia independiente de 0.7.
+        faltante = ""
+        for entrada in self.requiere:
+            if isinstance(entrada, str):
+                if not faltante and not evidencia.get(entrada):
+                    faltante = entrada
+                continue
+            _, relacion, alias, condicion = entrada
+            # Las filas, no la lista cruda: una relación puede traer `["clave", …]` a la cabeza.
+            _clave, filas = separar_clave(evidencia.get(relacion, []))
+            cumplen = [_cumple(condicion, alias, fila, limites, registro) for fila in filas]
+            if not faltante and not any(cumplen):
+                from .sintaxis import _expr
+                faltante = f"{relacion} con {_expr(condicion)}"
         if faltante:
             return Veredicto(id=self.id, valor=0, ok=False,
                              umbral=f"{self.op} {self.limite}", porque=self.porque,
@@ -577,33 +684,101 @@ def cargar_catalogo(*directorios, registro=None,
 @dataclass(frozen=True)
 class Informe:
     veredictos: tuple
+    # Ids que el proyecto declaró en sombra en `oracle.json`. Se miden y se informan igual; lo único
+    # que se apaga es la consecuencia: su rojo no hace fallar `ok`.
+    en_sombra: frozenset = frozenset()
+    no_juzgaron: tuple[tuple[str, str], ...] = ()
 
     @property
     def ok(self) -> bool:
-        return bool(self.veredictos) and all(v.ok for v in self.veredictos)
+        if self.no_juzgaron:
+            return False
+        return bool(self.veredictos) and all(
+            v.ok or v.id in self.en_sombra for v in self.veredictos)
+
+    @property
+    def rojos(self) -> tuple:
+        """Los rojos que la sombra NO perdona: los que hacen fallar."""
+        return tuple(v for v in self.veredictos if not v.ok and v.id not in self.en_sombra)
+
+    @property
+    def perdonados(self) -> tuple:
+        """Los rojos que están en sombra. Se miden y se informan igual; lo único que se apaga es la
+        consecuencia."""
+        return tuple(v for v in self.veredictos if not v.ok and v.id in self.en_sombra)
 
     def texto(self) -> str:
         """Nunca dice «TODO VERDE» a secas: un verde termina enumerando lo que no miró."""
-        if not self.veredictos:
+        if not self.veredictos and not self.no_juzgaron:
             return "VEREDICTO: SIN MEDIDAS — no hay nada que evaluar"
-        lineas = [v.linea() for v in self.veredictos]
-        malas = [v for v in self.veredictos if not v.ok]
-        if malas:
-            lineas.append(f"\nVEREDICTO: {len(malas)} de {len(self.veredictos)} medidas en rojo")
+        lineas = []
+        for v in self.veredictos:
+            linea = v.linea()
+            if v.id in self.en_sombra:
+                # En el renglón del veredicto, no al final de los testigos, donde nadie la asocia.
+                primero, salto, resto = linea.partition("\n")
+                linea = f"{primero}   [EN SOMBRA]{salto}{resto}"
+            lineas.append(linea)
+        if self.no_juzgaron:
+            lineas.append(f"\nNO PUDIERON JUZGAR ({len(self.no_juzgaron)}):")
+            for mid, motivo in self.no_juzgaron:
+                lineas.append(f"  · {mid}: {motivo}")
+        malas = self.rojos
+        perdonadas = len(self.perdonados)
+        if malas or self.no_juzgaron:
+            partes = []
+            if malas:
+                partes.append(f"{len(malas)} de {len(self.veredictos)} medidas en rojo")
+            if self.no_juzgaron:
+                partes.append(f"{len(self.no_juzgaron)} no pudieron juzgar")
+            lineas.append(f"\nVEREDICTO: {', '.join(partes)}")
         else:
-            lineas.append(f"\nVEREDICTO: verde en {len(self.veredictos)} medidas. SIN MIRAR:")
+            sombra = f", con {perdonadas} en rojo en sombra" if perdonadas else ""
+            lineas.append(
+                f"\nVEREDICTO: verde en {len(self.veredictos)} medidas{sombra}. SIN MIRAR:")
             lineas += [f"  · {v.id}: {v.alcance}" for v in self.veredictos]
         return "\n".join(lineas)
 
     def a_json(self) -> str:
-        return json.dumps({"ok": self.ok, "medidas": [v.a_dict() for v in self.veredictos]},
-                          ensure_ascii=False)
+        return json.dumps({
+            "ok": self.ok,
+            "medidas": [
+                {**v.a_dict(), "en_sombra": v.id in self.en_sombra} for v in self.veredictos
+            ],
+            "no_juzgaron": [
+                {"id": mid, "motivo": motivo} for mid, motivo in self.no_juzgaron
+            ],
+        }, ensure_ascii=False)
 
 
 def evaluar(medidas, evidencia: dict, limites: LimitesAlgebra | None = None, *,
             registro=None) -> Informe:
     return Informe(tuple(
         m.evaluar(evidencia, limites, registro=registro) for m in medidas))
+
+
+def evaluar_conjunto(
+    medidas,
+    evidencia: dict,
+    limites: LimitesAlgebra | None = None,
+    *,
+    en_sombra: frozenset = frozenset(),
+    registro=None,
+) -> Informe:
+    """Evalúa un iterable de medidas sobre una evidencia y separa las que no pudieron juzgar."""
+    veredictos = []
+    no_juzgaron = []
+    for m in medidas:
+        try:
+            v = m.evaluar(evidencia, limites, registro=registro)
+            veredictos.append(v)
+        except ErrorDeAlgebra as e:
+            no_juzgaron.append((m.id, str(e)))
+    return Informe(
+        veredictos=tuple(veredictos),
+        en_sombra=en_sombra,
+        no_juzgaron=tuple(no_juzgaron),
+    )
 
 
 # ---- derivados de la declaración: el «OpenAPI» del oráculo ----
@@ -830,10 +1005,23 @@ def _fuentes(medida: str, fuente, ruta: tuple[int, ...]):
 
 
 def _requiere_de(medida) -> list[dict]:
-    return [
-        {"medida": medida.id, "indice": indice, "relacion": relacion}
-        for indice, relacion in enumerate(medida.requiere)
-    ]
+    filas = []
+    for indice, entrada in enumerate(medida.requiere):
+        if isinstance(entrada, str):
+            filas.append({
+                "medida": medida.id,
+                "indice": indice,
+                "relacion": entrada,
+                "con_condicion": False,
+            })
+        else:   # `de_datos` sólo deja nombres o `["filas", relación, alias, condición]`
+            filas.append({
+                "medida": medida.id,
+                "indice": indice,
+                "relacion": entrada[1],
+                "con_condicion": True,
+            })
+    return filas
 
 
 def _dependencias_de_medida(medida) -> list[dict]:
@@ -852,11 +1040,11 @@ def _dependencias_de_medida(medida) -> list[dict]:
     for fuente in _fuentes_de_medida(medida):
         vistas.setdefault((fuente["relacion"], "fuente"),
                           {"medida": medida.id, "relacion": fuente["relacion"],
-                           "clase": "fuente"})
+                           "clase": "fuente", "con_condicion": False})
     for exigida in _requiere_de(medida):
         vistas.setdefault((exigida["relacion"], "requiere"),
                           {"medida": medida.id, "relacion": exigida["relacion"],
-                           "clase": "requiere"})
+                           "clase": "requiere", "con_condicion": exigida["con_condicion"]})
     return list(vistas.values())
 
 

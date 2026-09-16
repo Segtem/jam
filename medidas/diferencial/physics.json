@@ -17,8 +17,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -39,8 +45,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -61,8 +73,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -83,8 +101,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -105,8 +129,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -127,8 +157,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -149,8 +185,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -171,8 +213,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -193,8 +241,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -215,8 +269,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -237,8 +297,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -259,8 +325,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -281,8 +353,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -303,8 +381,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -325,8 +409,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -347,8 +437,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -369,8 +465,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -391,8 +493,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -413,8 +521,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -435,8 +549,14 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -457,8 +577,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": false
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -479,8 +605,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": false
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -501,8 +633,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": false
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -523,8 +661,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": false
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -545,8 +689,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": false
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -567,8 +717,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": false
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -589,8 +745,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": false
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -611,8 +773,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": false
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -633,8 +801,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": false
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -655,8 +829,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": false
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -677,8 +857,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": false
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -699,8 +885,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": false
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -721,8 +913,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": false
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -743,8 +941,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": false
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -765,8 +969,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": false
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -787,8 +997,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": false
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -809,8 +1025,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": false
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -831,8 +1053,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": false
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -853,8 +1081,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": false
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -875,8 +1109,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": true,
-     "physics.tiene_suelo": false
+     "physics.apoyado": {
+      "ok": true,
+      "valor": 0
+     },
+     "physics.tiene_suelo": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -897,8 +1137,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -919,8 +1165,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -941,8 +1193,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -963,8 +1221,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -985,8 +1249,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1007,8 +1277,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1029,8 +1305,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1051,8 +1333,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1073,8 +1361,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1095,8 +1389,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1117,8 +1417,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1139,8 +1445,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1161,8 +1473,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1183,8 +1501,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1205,8 +1529,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1227,8 +1557,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1249,8 +1585,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1271,8 +1613,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1293,8 +1641,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1315,8 +1669,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1337,8 +1697,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1359,8 +1725,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1381,8 +1753,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1403,8 +1781,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1425,8 +1809,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1447,8 +1837,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1469,8 +1865,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1491,8 +1893,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1513,8 +1921,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1535,8 +1949,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1557,8 +1977,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1579,8 +2005,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1601,8 +2033,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1623,8 +2061,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1645,8 +2089,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1667,8 +2117,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1689,8 +2145,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1711,8 +2173,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1733,8 +2201,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -1755,8 +2229,14 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "physics.apoyado": false,
-     "physics.tiene_suelo": true
+     "physics.apoyado": {
+      "ok": false,
+      "valor": 1
+     },
+     "physics.tiene_suelo": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false

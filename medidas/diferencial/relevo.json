@@ -88,12 +88,30 @@
    "oracle_al_generar": {
     "global_ok": true,
     "por_medida": {
-     "proceso.verificacion_vigente": true,
-     "relevo.agentes_conocidos": true,
-     "relevo.el_relevo_tiene_dos_puntas": true,
-     "relevo.testigo_tiene_sus_campos": true,
-     "relevo.testigo_tiene_sus_secciones": true,
-     "relevo.verificacion_existe": true
+     "proceso.verificacion_vigente": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.agentes_conocidos": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.el_relevo_tiene_dos_puntas": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.testigo_tiene_sus_campos": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.testigo_tiene_sus_secciones": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.verificacion_existe": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": true
@@ -185,12 +203,30 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "proceso.verificacion_vigente": true,
-     "relevo.agentes_conocidos": true,
-     "relevo.el_relevo_tiene_dos_puntas": true,
-     "relevo.testigo_tiene_sus_campos": false,
-     "relevo.testigo_tiene_sus_secciones": true,
-     "relevo.verificacion_existe": true
+     "proceso.verificacion_vigente": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.agentes_conocidos": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.el_relevo_tiene_dos_puntas": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.testigo_tiene_sus_campos": {
+      "ok": false,
+      "valor": 1
+     },
+     "relevo.testigo_tiene_sus_secciones": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.verificacion_existe": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -282,12 +318,30 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "proceso.verificacion_vigente": true,
-     "relevo.agentes_conocidos": true,
-     "relevo.el_relevo_tiene_dos_puntas": true,
-     "relevo.testigo_tiene_sus_campos": true,
-     "relevo.testigo_tiene_sus_secciones": false,
-     "relevo.verificacion_existe": true
+     "proceso.verificacion_vigente": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.agentes_conocidos": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.el_relevo_tiene_dos_puntas": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.testigo_tiene_sus_campos": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.testigo_tiene_sus_secciones": {
+      "ok": false,
+      "valor": 1
+     },
+     "relevo.verificacion_existe": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -379,12 +433,30 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "proceso.verificacion_vigente": true,
-     "relevo.agentes_conocidos": true,
-     "relevo.el_relevo_tiene_dos_puntas": false,
-     "relevo.testigo_tiene_sus_campos": true,
-     "relevo.testigo_tiene_sus_secciones": true,
-     "relevo.verificacion_existe": true
+     "proceso.verificacion_vigente": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.agentes_conocidos": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.el_relevo_tiene_dos_puntas": {
+      "ok": false,
+      "valor": 1
+     },
+     "relevo.testigo_tiene_sus_campos": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.testigo_tiene_sus_secciones": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.verificacion_existe": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -476,12 +548,30 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "proceso.verificacion_vigente": true,
-     "relevo.agentes_conocidos": false,
-     "relevo.el_relevo_tiene_dos_puntas": true,
-     "relevo.testigo_tiene_sus_campos": true,
-     "relevo.testigo_tiene_sus_secciones": true,
-     "relevo.verificacion_existe": true
+     "proceso.verificacion_vigente": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.agentes_conocidos": {
+      "ok": false,
+      "valor": 1
+     },
+     "relevo.el_relevo_tiene_dos_puntas": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.testigo_tiene_sus_campos": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.testigo_tiene_sus_secciones": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.verificacion_existe": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -573,12 +663,30 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "proceso.verificacion_vigente": true,
-     "relevo.agentes_conocidos": true,
-     "relevo.el_relevo_tiene_dos_puntas": true,
-     "relevo.testigo_tiene_sus_campos": true,
-     "relevo.testigo_tiene_sus_secciones": true,
-     "relevo.verificacion_existe": false
+     "proceso.verificacion_vigente": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.agentes_conocidos": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.el_relevo_tiene_dos_puntas": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.testigo_tiene_sus_campos": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.testigo_tiene_sus_secciones": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.verificacion_existe": {
+      "ok": false,
+      "valor": 1
+     }
     }
    },
    "referencia_ok": false
@@ -670,12 +778,30 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "proceso.verificacion_vigente": false,
-     "relevo.agentes_conocidos": true,
-     "relevo.el_relevo_tiene_dos_puntas": true,
-     "relevo.testigo_tiene_sus_campos": true,
-     "relevo.testigo_tiene_sus_secciones": true,
-     "relevo.verificacion_existe": true
+     "proceso.verificacion_vigente": {
+      "ok": false,
+      "valor": 1
+     },
+     "relevo.agentes_conocidos": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.el_relevo_tiene_dos_puntas": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.testigo_tiene_sus_campos": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.testigo_tiene_sus_secciones": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.verificacion_existe": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false
@@ -767,12 +893,30 @@
    "oracle_al_generar": {
     "global_ok": false,
     "por_medida": {
-     "proceso.verificacion_vigente": false,
-     "relevo.agentes_conocidos": true,
-     "relevo.el_relevo_tiene_dos_puntas": true,
-     "relevo.testigo_tiene_sus_campos": true,
-     "relevo.testigo_tiene_sus_secciones": true,
-     "relevo.verificacion_existe": true
+     "proceso.verificacion_vigente": {
+      "ok": false,
+      "valor": 1
+     },
+     "relevo.agentes_conocidos": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.el_relevo_tiene_dos_puntas": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.testigo_tiene_sus_campos": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.testigo_tiene_sus_secciones": {
+      "ok": true,
+      "valor": 0
+     },
+     "relevo.verificacion_existe": {
+      "ok": true,
+      "valor": 0
+     }
     }
    },
    "referencia_ok": false

@@ -3,6 +3,7 @@
     python tools/mutar_codigo.py                 → informe
     python tools/mutar_codigo.py --hechos        → volcar la evidencia (JSON)
     python tools/mutar_codigo.py --timeout 90    → límite por ejecución de tests
+    python tools/mutar_codigo.py --limite-memoria-mb 4000 → límite de memoria en MiB (0 desactiva)
     python tools/mutar_codigo.py --manifiesto progreso.json [--reanudar]
 
 Cada ronda copia el proyecto a un directorio temporal y sólo muta esa copia. Un bloqueo impide dos
@@ -23,8 +24,7 @@ RAIZ = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ))
 
 import catalogos  # noqa: F401,E402
-from nucleo.algebra import ErrorDeAlgebra  # noqa: E402
-from nucleo.medida import cargar_catalogo, medidas_aplicables  # noqa: E402
+from nucleo.medida import cargar_catalogo, evaluar_conjunto, medidas_aplicables  # noqa: E402
 from perfiles.python.mutacion_codigo import (CacheNoLimpio, EquivalenteInvalido,
                                               LineaBaseFallida, AislamientoRoto,
                                               ManifiestoInvalido, RondaEnCurso, correr,
@@ -64,6 +64,7 @@ PRIORIDADES = {
     "nucleo/vocabulario.py": ("tests.test_vocabulario", "tests.test_sintaxis"),
     "nucleo/simulacion.py": ("tests.test_simulacion",),
     "nucleo/unidad.py": ("tests.test_unidad", "tests.test_nucleo", "tests.test_medida"),
+    "nucleo/campo_leido.py": ("tests.test_campos_de_relaciones", "tests.test_campos_revision"),
     "nucleo/version.py": ("tests.test_herramientas",),
     "oracle_metalenguaje/_compat.py": ("tests.test_motor",),
     "oracle_metalenguaje/motor.py": ("tests.test_motor",),
@@ -71,6 +72,8 @@ PRIORIDADES = {
     "perfiles/python/mutacion_codigo.py": ("tests.test_mutacion_codigo",),
     "tools/censar.py": ("tests.test_censar",),
     "tools/cifras.py": ("tests.test_herramientas",),
+    # Sus tests directos son los de `comparar_dominio` y los del contrato del fixture.
+    "tools/diferencial.py": ("tests.test_herramientas", "tests.test_fixtures"),
     # Medido el 2026-09-09: vigilar tarda 0,08 s y mata 48 mutantes; biblioteca, 0,23 s y 69
     # (19 compartidos). Adelantarlos evita pagar todo el CLI por sus mutantes exclusivos.
     # `test_cli.load_tests` deja el diagnóstico real al final del módulo; aceptación y
@@ -123,19 +126,25 @@ PRIORIDADES = {
     "tools/sondear_generador.py": ("tests.test_sondear_generador",),
     "tools/sondear_procedencia.py": ("tests.test_sondear_procedencia",),
     # El tracker fija su propia integridad y la evidencia entregada a políticas optativas.
-    "tools/tareas.py": ("tests.test_tareas_tatr_revision", "tests.test_tareas_tatr",
+    "tools/tareas.py": ("tests.test_tareas_consulta_revision", "tests.test_tareas_consulta",
+                        "tests.test_tareas_tatr_revision", "tests.test_tareas_tatr",
                         "tests.test_tareas_errores", "tests.test_tareas_limites",
                         "tests.test_tareas_mutacion", "tests.test_tareas_atomicas",
                         "tests.test_tareas", "tests.test_tareas_revision",
                         "tests.test_tareas_contexto_mutacion", "tests.test_tareas_hechos_mutacion"),
     "tools/tareas_contexto.py": ("tests.test_tareas_contexto_errores",
                                 "tests.test_tareas_contexto_mutacion", "tests.test_tareas_atomicas",
+                                "tests.test_tareas_consulta_revision", "tests.test_tareas_consulta",
                                 "tests.test_tareas_tatr_revision", "tests.test_tareas_tatr",
                                 "tests.test_tareas_contexto", "tests.test_tareas_p2_revision"),
+    # 0.19.0: el lenguaje de consultas; un filtro mal compilado lista o desetiqueta de más.
+    "tools/tareas_consulta.py": ("tests.test_tareas_consulta_revision", "tests.test_tareas_consulta"),
     "tools/tareas_git.py": ("tests.test_tareas_p4_revision", "tests.test_tareas_git",
                             "tests.test_tareas_p2_revision", "tests.test_tareas_p3_revision"),
     "tools/tareas_hechos.py": ("tests.test_tareas_hechos_mutacion", "tests.test_tareas_hechos",
                                "tests.test_tareas_p3_revision", "tests.test_tareas_p4_revision"),
+    # 0.18.0: el veredicto sobre evidencia real; un verde que no respeta ámbito o sombra miente.
+    "tools/juzgar.py": ("tests.test_juzgar_revision", "tests.test_juzgar"),
     # 0.17.0: grafo de menciones entre tareas.
     "tools/tareas_grafo.py": ("tests.test_tareas_tatr", "tests.test_tareas_tatr_revision"),
     "tools/medida.py": ("tests.test_vigilar", "tests.test_herramientas", "tests.test_cli",
@@ -269,18 +278,37 @@ PRIORIDADES = {
 # `metamorficas.py` también entra: sus 242 sitios están fijados y su pérdida de esquinas podía
 # dejar verdes vacuamente las dos medidas de sintaxis que cerraron DECISION-004.
 # Ver estudios/CUSTODIA-DE-SONDAS-Y-COSTO-DEL-CLI.md y sus manifiestos completos.
-CUSTODIAS_SIN_MEDIR = {}
+CUSTODIAS_SIN_MEDIR = {
+    # `diferencial.py` entra como custodia el 2026-09-16 (tarea 20260916-014457-custodia): es quien
+    # comprueba el acuerdo con la implementación independiente y la frescura de cada fixture, y si su
+    # comparación se rompe en silencio el diferencial sigue diciendo ✓. Nadie más mira eso: el corpus
+    # valida la FORMA del caso y la aceptación su POLARIDAD.
+    #
+    # NO entra a la matriz todavía, y el número es el argumento: medido el 2026-09-16 sobre una copia
+    # con el archivo declarado, **57 mutantes, 24 muertos, 32 sobrevivientes y 1 error de arnés**.
+    # Es el mismo cuadro que `sintaxis.py` en su momento: la deuda no es de este cambio y entrar hoy
+    # pondría el CI en rojo por tests que faltan desde antes. Los 32 caen en el INFORME —las marcas
+    # `✓`/`✗` y los conteos que se imprimen—, no en `comparar_dominio`, que es lo que decide; el error
+    # de arnés es el `if __name__ == "__main__"` mutado a `!=`, que corre `main()` al importarse: lo
+    # cierra el patrón `_entrada_directa` que ya usan las tres sondas.
+    "diferencial.py": (
+        "57 mutantes, 24 muertos, 32 sobrevivientes y 1 error de arnés el 2026-09-16; los "
+        "sobrevivientes están en la impresión del informe y la deuda es previa a su declaración "
+        "como custodia. Se cierra en la tarea 20260916-035324-informe."),
+}
 
 
+# 0.17.0 suma `tareas_grafo.py`: una mención mal leída dibuja un grafo que parece completo.
 # El tracker añade cuatro custodias: integridad del documento y cambios de estado; captura
 # y consultas con límites explícitos; pertenencia al índice/HEAD; hechos y omisiones para las
 # políticas. Una lectura incompleta o una referencia mal clasificada puede dar un verde falso.
 # P4 conserva las rondas y sus límites en estudios/0.16.0-tareas/verificacion-p4/.
 HERRAMIENTAS_CUSTODIAS = ("aceptacion.py", "censar.py", "cifras.py", "cli.py", "contexto.py",
-                          "corpus.py", "manual.py", "mcp.py", "medida.py", "metamorficas.py",
+                          "diferencial.py",
+                          "corpus.py", "juzgar.py", "manual.py", "mcp.py", "medida.py", "metamorficas.py",
                           "observar.py", "reportar.py", "sintaxis.py", "sondear_generador.py",
                           "sondear_procedencia.py", "tareas.py", "tareas_contexto.py",
-                          "tareas_git.py", "tareas_hechos.py")
+                          "tareas_consulta.py", "tareas_git.py", "tareas_grafo.py", "tareas_hechos.py")
 
 # `lsp.py` SALIÓ de la lista el 2026-09-09, y no por costo: mide 140/140 en 2,2 minutos. Salió
 # porque no cumple el criterio. Es un adaptador de editor: no lo corre CI, no lo corre `oracle
@@ -346,6 +374,11 @@ def dependencias_de_ronda() -> list[Path]:
     return sorted(set(rutas))
 
 
+# Los 4 GB que se venían poniendo a mano con `ulimit -v` antes de cada ronda. En un solo lugar: el
+# número también viaja en la ayuda del comando.
+LIMITE_MEMORIA_MB_PREDETERMINADO = 4000
+
+
 def argumentos(argv: list[str]):
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--hechos", action="store_true", help="emitir sólo evidencia JSON")
@@ -353,6 +386,9 @@ def argumentos(argv: list[str]):
                    help="segundos máximos para la baseline y cada mutante (60 por defecto)")
     p.add_argument("--limite-salida-kb", type=int, default=1024,
                    help="KiB máximos conservados por stdout y stderr en cada ejecución")
+    p.add_argument("--limite-memoria-mb", type=int, default=LIMITE_MEMORIA_MB_PREDETERMINADO,
+                   help=f"MiB máximos de memoria por ejecución "
+                        f"({LIMITE_MEMORIA_MB_PREDETERMINADO} por defecto, 0 desactiva)")
     p.add_argument("--manifiesto", type=Path,
                    help="guardar progreso atómico para poder reanudar la ronda")
     p.add_argument("--reanudar", action="store_true",
@@ -606,10 +642,15 @@ def _ejecutar(proy, args) -> int:
             print("objetivos: " + ", ".join(p.relative_to(RAIZ).as_posix() for p in objetivos) + "\n")
         equivalentes = equivalentes_del_alcance(
             cargar_equivalentes(EQUIVALENTES), objetivos)
+        if args.limite_memoria_mb < 0:
+            raise ValueError("limite_memoria_mb tiene que ser mayor o igual a cero (0 desactiva)")
+        limite_memoria = (args.limite_memoria_mb * 1024 * 1024
+                          if args.limite_memoria_mb > 0 else None)
         evidencia = correr(
             RAIZ, objetivos, comando_tests, equivalentes, al_terminar_uno=progreso,
             timeout_por_ejecucion=args.timeout,
             limite_salida=args.limite_salida_kb * 1024,
+            limite_memoria=limite_memoria,
             manifiesto=args.manifiesto, reanudar=args.reanudar,
             dependencias=dependencias_de_ronda())
     except (LineaBaseFallida, CacheNoLimpio, EquivalenteInvalido, AislamientoRoto,
@@ -668,18 +709,14 @@ def _ejecutar(proy, args) -> int:
     #
     # Una medida que no puede juzgar esta evidencia se declara y se cuenta; no se saltea en silencio
     # ni se lleva puesta la ronda.
-    no_juzgaron = []
-    for medida in medidas_aplicables(catalogo.values(), evidencia):
-        try:
-            v = medida.evaluar(evidencia)
-        except ErrorDeAlgebra as e:
-            no_juzgaron.append((medida.id, str(e)))
-            continue
+    juezas = medidas_aplicables(catalogo.values(), evidencia)
+    informe = evaluar_conjunto(juezas, evidencia)
+    for v in informe.veredictos:
         print(f"  {'✓' if v.ok else '✗'} {v.id:<44} valor {v.valor} ({v.umbral})")
-    if no_juzgaron:
-        print(f"\n  {len(no_juzgaron)} medida(s) NO pudieron juzgar esta evidencia — la relación "
+    if informe.no_juzgaron:
+        print(f"\n  {len(informe.no_juzgaron)} medida(s) NO pudieron juzgar esta evidencia — la relación "
               "estaba, los campos no:")
-        for mid, motivo in no_juzgaron:
+        for mid, motivo in informe.no_juzgaron:
             print(f"    · {mid}: {motivo}")
 
     if ronda_inconclusa:

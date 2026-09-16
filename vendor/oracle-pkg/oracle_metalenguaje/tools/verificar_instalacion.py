@@ -142,17 +142,18 @@ def _recorrer_tareas(oracle: Path, *, temporal: Path, env: dict[str, str]) -> No
     evidencia.write_text(hechos.stdout, encoding="utf-8")
     consumidor = temporal / "politicas-tareas"
     shutil.copytree(RAIZ / "ejemplo" / "seguimiento-tareas", consumidor)
-    evaluar = [str(oracle.parent / "python"), str(consumidor / "evaluar.py"), "--con", str(evidencia)]
+    juzgar = [str(oracle), "juzgar", "--proyecto", str(consumidor), "--con", str(evidencia)]
     if not opciones_hechos:
-        evaluar.extend(["--politica", "referencias_locales_presentes", "--politica", "lectura_sin_omisiones"])
-    _correr(evaluar, cwd=temporal, env=env)
+        juzgar.extend(["--medida", "seguimiento.referencias_locales_presentes",
+                       "--medida", "seguimiento.lectura_sin_omisiones"])
+    _correr(juzgar, cwd=temporal, env=env)
     with ruta.open("a", encoding="utf-8") as documento:
         documento.write("\n[Defecto construido](ausente-p3.txt)\n")
     rotos = _correr(comando_hechos, cwd=subcarpeta, env=env)
     evidencia.write_text(rotos.stdout, encoding="utf-8")
     rechazo = subprocess.run(
-        [str(oracle.parent / "python"), str(consumidor / "evaluar.py"), "--con", str(evidencia),
-         "--politica", "referencias_locales_presentes"],
+        [str(oracle), "juzgar", "--proyecto", str(consumidor), "--con", str(evidencia),
+         "--medida", "seguimiento.referencias_locales_presentes"],
         cwd=temporal, env=env, capture_output=True, text=True, timeout=30)
     if rechazo.returncode != 1 or "ausente-p3.txt" not in rechazo.stdout:
         raise RuntimeError("la política instalada no rechaza el enlace roto con su testigo")
@@ -183,6 +184,15 @@ def _recorrer_tareas(oracle: Path, *, temporal: Path, env: dict[str, str]) -> No
     dot = _correr([str(oracle), "tarea", "grafo"], cwd=subcarpeta, env=env)
     if not dot.stdout.lstrip().startswith("digraph"):
         raise RuntimeError("grafo instalado no emite DOT")
+    # 0.19.0: consultas en español sobre el mismo consumidor instalado.
+    consulta = _correr([str(oracle), "tarea", "listar", ":investigacion", "y", "no", ":nada", "--json"],
+                       cwd=subcarpeta, env=env)
+    if [f["id"] for f in json.loads(consulta.stdout)] != [identidad]:
+        raise RuntimeError("la consulta instalada no selecciona la tarea etiquetada")
+    invalida = subprocess.run([str(oracle), "tarea", "listar", "prioridad"], cwd=subcarpeta, env=env,
+                              capture_output=True, text=True, timeout=30)
+    if invalida.returncode != 2 or "^" not in invalida.stderr or "Traceback" in invalida.stderr:
+        raise RuntimeError("una consulta de tipo inválido instalada no sale 2 con su posición")
 
 
 def _hablarle_al_lsp(ejecutable: Path, *, proyecto: Path, cwd: Path, env: dict[str, str]) -> None:
