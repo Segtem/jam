@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: oracle-metalenguaje
-Version: 0.25.1
+Version: 0.27.0
 Summary: Metalenguaje para medir evidencia, alcance y mutación sin acoplarse a un dominio
 Author-email: Brian Hollweg <brianhollweg@gmail.com>
 License-Expression: MIT
@@ -152,7 +152,7 @@ No es un instrumento de medición: es un instrumento de **rechazo**. No calcula 
 dejar pasar** lo que no se puede sostener.
 
 <!-- negativas:inicio -->
-En este corte hay 10613 líneas de lenguaje y **436 negativas explícitas** (`raise`).
+En este corte hay 10813 líneas de lenguaje y **442 negativas explícitas** (`raise`).
 <!-- negativas:fin -->
 
 Un umbral sin defensa no se carga. Una medida sin `alcance` no se carga. Un campo ausente no da
@@ -176,7 +176,7 @@ de grave: en un solo día lo cometí tres veces.
 ### El sujeto es el que construye, no lo construido
 
 <!-- deteccion:inicio -->
-Los 111 casos no observacionales salieron a la luz por vías que no aceptan el verde nominal: 75 la mutación, 27 una persona, 5 la casualidad, 4 una herramienta ajena.
+Los 112 casos no observacionales salieron a la luz por vías que no aceptan el verde nominal: 76 la mutación, 27 una persona, 5 la casualidad, 4 una herramienta ajena.
 <!-- deteccion:fin -->
 
 Ninguna de esas vías le pregunta al que escribió el código. Oracle no es un juez de artefactos — es
@@ -185,7 +185,7 @@ una prótesis para alguien que escribe la herramienta y su test con la misma man
 ### El costo, dicho
 
 <!-- escala:inicio -->
-**10613 líneas de lenguaje** (`nucleo/`, código y macros) y **436 negativas explícitas** (`raise`). Contra las 61 medidas universales escritas en él (437 líneas): **24,3 a 1**. 52 de las 61 pasan por una macro.
+**10813 líneas de lenguaje** (`nucleo/`, código y macros) y **442 negativas explícitas** (`raise`). Contra las 62 medidas universales escritas en él (443 líneas): **24,4 a 1**. 53 de las 62 pasan por una macro.
 <!-- escala:fin -->
 
 Ésa es la apuesta y ésa es la métrica: que los catálogos de los proyectos crezcan sin hacer crecer el
@@ -463,9 +463,15 @@ oracle juzgar --con hechos.json [--proyecto <ruta>] [--medida <id>]… [--json] 
 
 La evidencia es un objeto JSON `relación → lista de filas`. Juzga con el catálogo **efectivo** del
 proyecto —una medida `del_origen` heredada no obliga a quien la hereda— y respeta las sombras de
-`oracle.json`, igual que la aceptación: el mismo proyecto no da dos veredictos. Sale 0 si pasa, 1 si
-hay un rojo fuera de sombra o **ninguna medida aplica** (nunca un verde vacío) y 2 si la entrada o el
-proyecto son inválidos.
+`oracle.json`, igual que la aceptación: el mismo proyecto no da dos veredictos. Una sombra con `cota`
+perdona sólo hasta esa cota: por encima —o sin un número que comparar— el rojo vuelve, marcado
+`SUPERA SU COTA`. Sale 0 si pasa, 1 si hay un rojo que ninguna sombra perdona o **ninguna medida
+aplica** (nunca un verde vacío) y 2 si la entrada o el proyecto son inválidos.
+
+Una medida se aplica si la evidencia trae **todas** sus relaciones. Las del catálogo propio que no se
+aplicaron no cuentan en el veredicto, pero se nombran —`NO SE APLICARON`, y `no_aplicadas` en
+`--json`— con la relación que les faltó: «no vino su relación» es un «no miré». Las heredadas no se
+listan, porque juzgan el catálogo y no la evidencia. `Motor.evaluar` hace lo mismo.
 
 Oracle se juzga así a sí mismo en CI: `oracle tarea hechos --git` sobre su propio `tareas/`, con las
 políticas de [`ejemplo/seguimiento-tareas`](https://github.com/Segtem/oracle/tree/main/ejemplo/seguimiento-tareas).
@@ -506,6 +512,26 @@ publicador: contiene datos, se activa por proyecto y dos ids iguales fallan cerr
 biblioteca listar <ruta>` muestra por medida el umbral, `segun` y el `alcance` completo;
 `oracle biblioteca verificar <ruta>` comprueba contenido, corpus y la cifra de mutación publicada.
 Certifica esos hechos, no que la política sea correcta para un proyecto.
+
+## Servidor MCP (sólo lectura)
+
+`oracle-mcp --proyecto <ruta>` le da a un agente las mismas respuestas que el CLI, por
+[Model Context Protocol](https://modelcontextprotocol.io) sobre stdio. El proyecto se fija al arrancar
+y `--confiar-escalares` sólo se concede ahí: ninguna llamada puede ampliar esa autoridad.
+
+| herramienta | responde |
+|---|---|
+| `oracle_catalogo_efectivo` | qué medidas obligan a este proyecto, y por qué |
+| `oracle_evaluar` | qué hace una medida —por id o escrita en la llamada— con una evidencia: verde, rojo o sin evidencia, testigos y, si está en sombra, si la sombra la perdona |
+| `oracle_desafiar` | qué parte de una medida candidata todavía no está fijada: las dos polaridades y sus mutantes, sin guardar nada |
+| `oracle_juzgar` | lo mismo que `oracle juzgar`: una evidencia contra el catálogo efectivo, con sombras, cotas y las medidas que no se aplicaron |
+| `oracle_tareas` | el tracker: `listar`, `ver`, `buscar` y `hechos` |
+
+Las cinco son **de sólo lectura**, y no por prudencia genérica: los falsos verdes que un agente
+comete ocurren al leer, y una escritura «aprobada» por dos evidencias que el mismo agente fabricó
+parece una aprobación sin serlo. En el tracker, además, crear o cerrar una tarea sólo vale junto con
+su commit, y el commit no se hace por MCP. El contrato, con el porqué de cada decisión, está en
+[`estudios/MCP-CONTRATO.md`](https://github.com/Segtem/oracle/blob/main/estudios/MCP-CONTRATO.md).
 
 ## Las decisiones, y por qué
 
@@ -631,11 +657,11 @@ python tools/verificar_instalacion.py                   # wheel + CLI instalado 
 ```
 
 <!-- corpus:inicio -->
-**210 casos**: 125 defectos y 85 verdes correctos. De los defectos, 118 deben ponerse en rojo · 0 huecos abiertos · 5 resueltos conservados · 2 límite humano. Por etiqueta: 119 falsos verdes, 2 falsos rojos, 1 conclusión causal incorrecta pese a una medida correcta y 3 deudas de diseño. Por procedencia: 113 observada, 91 construida, 6 generada y 0 sin declarar.
+**212 casos**: 126 defectos y 86 verdes correctos. De los defectos, 119 deben ponerse en rojo · 0 huecos abiertos · 5 resueltos conservados · 2 límite humano. Por etiqueta: 120 falsos verdes, 2 falsos rojos, 1 conclusión causal incorrecta pese a una medida correcta y 3 deudas de diseño. Por procedencia: 114 observada, 92 construida, 6 generada y 0 sin declarar.
 <!-- corpus:fin -->
 
 <!-- cifras:inicio -->
-2223 tests · 994/994 mutantes de medida · **7610 sitios de mutación de código** (7378 + 232 del motor Python).
+2364 tests · 1010/1010 mutantes de medida · **7877 sitios de mutación de código** (7645 + 232 del motor Python).
 <!-- cifras:fin -->
 
 Los sitios de mutación de código son un denominador, no un resultado. Este README no publica una

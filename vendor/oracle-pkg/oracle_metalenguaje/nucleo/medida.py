@@ -688,24 +688,40 @@ class Informe:
     # que se apaga es la consecuencia: su rojo no hace fallar `ok`.
     en_sombra: frozenset = frozenset()
     no_juzgaron: tuple[tuple[str, str], ...] = ()
+    # `(id, cota)` de las sombras que declaran cota. Una sombra perdona la deuda que declaró, no
+    # cualquiera: con un valor por encima de su cota —o sin un número que comparar— el rojo vuelve.
+    cotas: tuple[tuple[str, int], ...] = ()
+    # `(id, relaciones que faltaron)` de las medidas propias que la evidencia no alimentó. No se
+    # evaluaron y no cuentan en el veredicto, pero se nombran: «no vino su relación» es un «no miré».
+    no_aplicadas: tuple[tuple[str, tuple[str, ...]], ...] = ()
+
+    def supera_su_cota(self, v) -> bool:
+        cota = dict(self.cotas).get(v.id)
+        if cota is None:
+            return False
+        valor = v.valor
+        return isinstance(valor, bool) or not isinstance(valor, (int, float)) or valor > cota
+
+    def perdona(self, v) -> bool:
+        """Si la sombra le apaga la consecuencia a este veredicto: el mismo criterio que `ok`."""
+        return not v.ok and v.id in self.en_sombra and not self.supera_su_cota(v)
 
     @property
     def ok(self) -> bool:
         if self.no_juzgaron:
             return False
-        return bool(self.veredictos) and all(
-            v.ok or v.id in self.en_sombra for v in self.veredictos)
+        return bool(self.veredictos) and all(v.ok or self.perdona(v) for v in self.veredictos)
 
     @property
     def rojos(self) -> tuple:
         """Los rojos que la sombra NO perdona: los que hacen fallar."""
-        return tuple(v for v in self.veredictos if not v.ok and v.id not in self.en_sombra)
+        return tuple(v for v in self.veredictos if not v.ok and not self.perdona(v))
 
     @property
     def perdonados(self) -> tuple:
-        """Los rojos que están en sombra. Se miden y se informan igual; lo único que se apaga es la
-        consecuencia."""
-        return tuple(v for v in self.veredictos if not v.ok and v.id in self.en_sombra)
+        """Los rojos que están en sombra y dentro de su cota. Se miden y se informan igual; lo único
+        que se apaga es la consecuencia."""
+        return tuple(v for v in self.veredictos if self.perdona(v))
 
     def texto(self) -> str:
         """Nunca dice «TODO VERDE» a secas: un verde termina enumerando lo que no miró."""
@@ -717,8 +733,9 @@ class Informe:
             if v.id in self.en_sombra:
                 # En el renglón del veredicto, no al final de los testigos, donde nadie la asocia.
                 primero, salto, resto = linea.partition("\n")
-                linea = f"{primero}   [EN SOMBRA]{salto}{resto}"
+                linea = f"{primero}   [EN SOMBRA{self._marca_de_cota(v)}]{salto}{resto}"
             lineas.append(linea)
+        lineas += self.lineas_no_aplicadas()
         if self.no_juzgaron:
             lineas.append(f"\nNO PUDIERON JUZGAR ({len(self.no_juzgaron)}):")
             for mid, motivo in self.no_juzgaron:
@@ -739,14 +756,27 @@ class Informe:
             lineas += [f"  · {v.id}: {v.alcance}" for v in self.veredictos]
         return "\n".join(lineas)
 
+    def lineas_no_aplicadas(self) -> list[str]:
+        if not self.no_aplicadas:
+            return []
+        return [f"\nNO SE APLICARON ({len(self.no_aplicadas)}) — su relación no vino en la evidencia:",
+                *(f"  · {mid}: falta {', '.join(faltan)}" for mid, faltan in self.no_aplicadas)]
+
+    def _marca_de_cota(self, v) -> str:
+        return f", SUPERA SU COTA {dict(self.cotas)[v.id]}" if self.supera_su_cota(v) else ""
+
     def a_json(self) -> str:
         return json.dumps({
             "ok": self.ok,
             "medidas": [
-                {**v.a_dict(), "en_sombra": v.id in self.en_sombra} for v in self.veredictos
+                {**v.a_dict(), "en_sombra": v.id in self.en_sombra,
+                 "supera_su_cota": self.supera_su_cota(v)} for v in self.veredictos
             ],
             "no_juzgaron": [
                 {"id": mid, "motivo": motivo} for mid, motivo in self.no_juzgaron
+            ],
+            "no_aplicadas": [
+                {"id": mid, "faltan": list(faltan)} for mid, faltan in self.no_aplicadas
             ],
         }, ensure_ascii=False)
 
@@ -763,6 +793,7 @@ def evaluar_conjunto(
     limites: LimitesAlgebra | None = None,
     *,
     en_sombra: frozenset = frozenset(),
+    cotas: tuple[tuple[str, int], ...] = (),
     registro=None,
 ) -> Informe:
     """Evalúa un iterable de medidas sobre una evidencia y separa las que no pudieron juzgar."""
@@ -778,6 +809,7 @@ def evaluar_conjunto(
         veredictos=tuple(veredictos),
         en_sombra=en_sombra,
         no_juzgaron=tuple(no_juzgaron),
+        cotas=cotas,
     )
 
 
@@ -799,7 +831,13 @@ def relaciones_de_fuente(fuente) -> tuple[str, ...]:
 
 def relaciones_de_medida(medida) -> tuple[str, ...]:
     tuberia = medida.tuberia
-    return relaciones_de_fuente(tuberia[1]) if isinstance(tuberia, list) and len(tuberia) > 1 else ()
+    if not isinstance(tuberia, list) or len(tuberia) <= 1:
+        return ()
+    rels = list(relaciones_de_fuente(tuberia[1]))
+    for paso in tuberia[2:]:
+        if paso[:1] == ["sin"]:
+            rels.extend(relaciones_de_fuente(paso[1]))
+    return tuple(dict.fromkeys(rels))
 
 
 def medidas_aplicables(medidas, evidencia: dict) -> list:
@@ -807,6 +845,17 @@ def medidas_aplicables(medidas, evidencia: dict) -> list:
     relaciones = set(evidencia_con_derivadas(evidencia))
     return [medida for medida in medidas
             if set(relaciones_de_medida(medida)) <= relaciones]
+
+def no_aplicadas(medidas, evidencia: dict) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Las que `medidas_aplicables` deja afuera, con las relaciones que les faltaron."""
+    relaciones = set(evidencia_con_derivadas(evidencia))
+    salida = []
+    for medida in medidas:
+        faltan = tuple(r for r in relaciones_de_medida(medida) if r not in relaciones)
+        if faltan:
+            salida.append((medida.id, faltan))
+    return tuple(salida)
+
 
 def inventario(medidas) -> list[dict]:
     """Todos los umbrales con su defensa. Antes vivían escondidos en firmas de funciones."""
@@ -986,7 +1035,11 @@ def _pasos_de(medida) -> list[dict]:
 
 
 def _fuentes_de_medida(medida) -> list[dict]:
-    return list(_fuentes(medida.id, medida.tuberia[1], (2, 1)))
+    fuentes = list(_fuentes(medida.id, medida.tuberia[1], (2, 1)))
+    for indice, paso in enumerate(medida.tuberia[2:], start=2):
+        if paso[:1] == ["sin"]:
+            fuentes.extend(_fuentes(medida.id, paso[1], (2, indice, 1)))
+    return fuentes
 
 
 def _fuentes(medida: str, fuente, ruta: tuple[int, ...]):
