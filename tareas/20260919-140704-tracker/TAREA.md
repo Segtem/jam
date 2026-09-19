@@ -1,6 +1,6 @@
 # El trabajo pendiente de Jam necesita un tracker único
 
-- ESTADO: ABIERTA
+- ESTADO: CERRADA
 - PRIORIDAD: 100
 - ETIQUETAS: proceso
 
@@ -37,10 +37,5 @@ La vigencia del editor ya llegó roja antes de editar y tiene tarea propia.
 
 ## Próximo paso
 
-Retomar con escritura habilitada en `.git`. Revisar y confirmar únicamente AGENTS.md,
-CLAUDE.md, RELEVO.md y tareas/ con `20260919-140704-tracker: el tracker del proyecto`.
-Repetir `oracle tarea revisar` y `oracle tarea hechos --git` y comprobar que los documentos
-estén en HEAD. Registrar el resultado y cerrar esta tarea con el commit
-`20260919-140704-tracker: done`. No hacer push. La vigencia del editor se resuelve en
-`20260919-140926-editor-vigente`, sin falsear el campo para cerrar esta migración.
-La tarea de Oracle permanece ABIERTA para que Claude revise.
+Sin pendientes de implantación en Jam. Claude revisa el inventario desde la tarea
+20260919-134424-tareas-jam de Oracle, que continúa ABIERTA. No hacer push.
