@@ -6,25 +6,20 @@ Este proyecto lo trabajan **dos agentes por turnos de 3-4 días**: Claude Code y
 recuerda el turno del otro, así que **todo lo que valga para mañana vive en el repo**, no en la
 memoria de nadie.
 
-## Lo primero, siempre
+## Protocolo de tareas y relevo
 
-```bash
-python tools/relevo.py          # ¿en qué turno estoy y llegó verde?
-```
-
-Después leé **`RELEVO.md`**. **Ya no es corto** —acumula el historial de decisiones de todos los
-turnos— así que tiene orden de lectura, y las cuatro primeras cosas alcanzan para empezar a trabajar:
-
-1. el **encabezado del «Testigo»**, que dice en una línea por dónde empezar y qué pasó en el turno
-   anterior;
-2. la **agenda corta** al principio de «Lo próximo» (la tabla A/B/C) — el resto de esa sección es
-   historial, de lo más nuevo a lo más viejo, y se lee cuando hace falta;
-3. **«No toques esto»**, que te ahorra un día;
-4. **«Frontera de verificación»**, que te dice qué está sin probar — o sea sobre qué **no** conviene
-   construir todavía.
-
-**«Para las manos de Brian» no es opcional y no se borra cuando está vacía**: es lo único que ninguna
-medición contesta, y el turno que no deja gestos anotados deja de pedir manos sin que nadie lo note.
+- Para retomar: `oracle tarea listar` y `oracle tarea ver <id>`.
+- La tarea es la fuente de verdad del pedido, los avances, la evidencia y los bloqueos.
+- Anotá el relevo con `oracle tarea anotar <id> "…"`; nunca en otro `.md` suelto.
+- Todo pendiente nuevo va a `oracle tarea nueva "<problema>" --sufijo <corto>`.
+- Al dejar el trabajo, reemplazá la única sección `## Próximo paso` al final de la tarea.
+- Si hay un bloqueo, escribí su causa y la acción concreta para destrabarlo.
+- Commits: `<ID>: resumen`; cierre: `<ID>: done`, con la tarea CERRADA.
+- `RELEVO.md` conserva evidencia histórica y las restricciones «No toques esto».
+- `python tools/relevo.py` sigue comprobando la vigencia del editor; un rojo se anota en la tarea.
+- Los gestos para Brian se siguen con `oracle tarea listar --etiqueta gestos`.
+- «Para las manos de Brian» se conserva aunque esté vacía; sus avances se anotan en las tareas.
+- El vault es documentación: se enlaza como evidencia, no se usa como lista de pendientes.
 
 ## Qué es Jam
 

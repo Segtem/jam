@@ -9,6 +9,11 @@ verde_editor_fecha: 2026-08-14
 
 # Testigo
 
+> Archivo histórico desde el 2026-09-19. El trabajo vigente y los relevos viven en
+> `oracle tarea listar` / `oracle tarea ver <id>`. Las agendas de abajo pueden estar
+> superadas; no se actualizan como backlog. Se conservan evidencia, restricciones,
+> gestos de referencia y campos que todavía consume `tools/relevo.py`.
+
 Entra **codex**. Corré `python tools/relevo.py` antes de leer esto; si sale rojo, eso es el turno.
 
 ⚠️ **Este archivo ya no se lee entero de una sentada** —1788 líneas, y unas 1450 son historial
