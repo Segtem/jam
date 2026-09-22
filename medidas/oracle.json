@@ -7,8 +7,8 @@
   "sombra": {
     "meta.toda_cantidad_comparada_tiene_unidad_derivable": {
       "desde": "2026-09-01",
-      "porque": "54 comparaciones sin unidad derivable sobre 41 archivos de catálogo; declarar los campos en relaciones/ es trabajo por relación y no entra en el commit de la migración Medido el 2026-09-16: hoy son 54, y ésa es la cota: la sombra apaga la consecuencia, no la medición, y sin cota la deuda podía crecer sin que nada fallara. Si sube, la corrida vuelve a ponerse roja.",
-      "cota": 54
+      "porque": "54 comparaciones sin unidad derivable sobre 41 archivos de catálogo; declarar los campos en relaciones/ es trabajo por relación y no entra en el commit de la migración Medido el 2026-09-16: hoy son 54, y ésa es la cota: la sombra apaga la consecuencia, no la medición, y sin cota la deuda podía crecer sin que nada fallara. Si sube, la corrida vuelve a ponerse roja. El 2026-09-22 bajó a 51 al declarar vecina y asentamiento (tarea 20260921-214213-relaciones-colocacion).",
+      "cota": 51
     },
     "meta.todo_umbral_declara_de_donde_sale": {
       "desde": "2026-09-01",

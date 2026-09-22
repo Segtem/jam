@@ -1,0 +1,35 @@
+[
+  "relacion",
+  "asentamiento",
+  [
+    "campos",
+    [
+      "campo",
+      "pieza",
+      "texto",
+      "sin_unidad"
+    ],
+    [
+      "campo",
+      "soporte",
+      "texto",
+      "sin_unidad"
+    ],
+    [
+      "campo",
+      "tiene_suelo",
+      "booleano",
+      "sin_unidad"
+    ],
+    [
+      "campo",
+      "gap",
+      "flotante",
+      "cm"
+    ]
+  ],
+  [
+    "alcance",
+    "observa la presencia de soporte y la separación vertical (gap) entre la base de la pieza y la cota superior del soporte AABB más alto. NO observa superficies de landscape o terreno continuo, mallas de colisión complejas, estabilidad física ni dinámicas de Chaos"
+  ]
+]
