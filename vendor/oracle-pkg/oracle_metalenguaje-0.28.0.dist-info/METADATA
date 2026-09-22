@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: oracle-metalenguaje
-Version: 0.27.0
+Version: 0.28.0
 Summary: Metalenguaje para medir evidencia, alcance y mutación sin acoplarse a un dominio
 Author-email: Brian Hollweg <brianhollweg@gmail.com>
 License-Expression: MIT
@@ -106,6 +106,8 @@ cd <tu-proyecto>
 oracle nueva <dominio.nombre>
 oracle test
 ```
+
+Para llegar a una regla del producto medida sobre una corrida real, seguí [De un producto nuevo a su primera medida observable](https://github.com/Segtem/oracle/blob/main/docs/13-primer-valor.md): incluye un defecto, su corrección y las salidas verificadas. El tracker de tareas es optativo.
 
 `--confiar-escalares` hace falta sólo si tu proyecto declara funciones propias en `escalares.py`;
 sin esa bandera, Oracle no ejecuta código de nadie.
@@ -454,6 +456,26 @@ diferencias con tatr en [docs/12-tareas.md](https://github.com/Segtem/oracle/blo
 
 ## Juzgar evidencia real
 
+`oracle test` verifica medidas contra **casos guardados del corpus**. La aceptación no
+reejecuta los comandos de origen ni el producto: aun si cambia `game.js`, el resultado
+puede conservarse mientras la evidencia guardada siga igual. El resumen declara ese alcance;
+`SINTAXIS` comprueba archivos Oracle, no la sintaxis del código del producto. Las omisiones de
+`--rapido` siguen visibles en el veredicto verde y en el resumen rojo.
+
+Contrato de salida para CI (se conservan los códigos existentes):
+
+| Situación | Estado | Código |
+| --- | --- | --- |
+| Sin medidas propias, casos ni fixtures diferenciales | `SIN MEDICIÓN` (advertencia) | `0` |
+| Verificaciones aprobadas sobre casos, con medidas propias o heredadas | `VERDE`, limitado al corpus y las verificaciones ejecutadas | `0` |
+| Corpus inválido o alguna verificación fallida | `ROJO` | `1` |
+| Estructura inválida | `ROJO` | `1` |
+
+El vacío deja de anunciar `VERDE`; los consumidores que interpreten el texto deben reconocer
+`SIN MEDICIÓN`. Un catálogo con medidas propias y sin casos sigue fallando. La cantidad de
+medidas propias no permite inferir cobertura del producto. Este contrato no cambia `juzgar`
+ni su tratamiento de las medidas que no se aplicaron.
+
 `oracle test` responde si el catálogo está bien fijado. Lo que viene después —¿estos hechos cumplen
 el catálogo?— es otro veredicto, y desde 0.18.0 tiene su verbo:
 
@@ -661,7 +683,7 @@ python tools/verificar_instalacion.py                   # wheel + CLI instalado 
 <!-- corpus:fin -->
 
 <!-- cifras:inicio -->
-2364 tests · 1010/1010 mutantes de medida · **7877 sitios de mutación de código** (7645 + 232 del motor Python).
+2394 tests · 1010/1010 mutantes de medida · **7886 sitios de mutación de código** (7654 + 232 del motor Python).
 <!-- cifras:fin -->
 
 Los sitios de mutación de código son un denominador, no un resultado. Este README no publica una
