@@ -1,6 +1,6 @@
 # Las relaciones de colocación no están declaradas
 
-- ESTADO: ABIERTA
+- ESTADO: CERRADA
 - PRIORIDAD: 75
 - ETIQUETAS: aura, colocacion
 
