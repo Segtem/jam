@@ -1,0 +1,20 @@
+{
+  "evento": "Criterio escrito antes de enumerar, seleccionar o leer la muestra",
+  "fecha_utc": "2026-09-23T11:32:58.832927+00:00",
+  "sha256_criterio": "3bb1abea433466b31d4d8cf6abd9abf15c3a1c7a85cd89e0d01cdd1597225663",
+  "semilla_muestra": 20260923111039,
+  "poblacion": "Archivos Vault-kb/**/*.md con nombre AAAA-MM-DD-*.md; excluye índices README.md; orden lexicográfico de rutas relativas POSIX; sin filtro por contenido",
+  "seleccion": "random.Random(semilla_muestra).sample(poblacion_ordenada, 15), sin reemplazo",
+  "controles": "Cinco derivados de cinco documentos de la muestra; expectativas sólo sobre el defecto introducido; originales sin etiqueta de calidad",
+  "alcance": "Sólo preparación; cero llamadas a modelos y sin ejecutar el sensor",
+  "fecha_preparacion_utc": "2026-09-23T11:34:02.334552+00:00",
+  "cantidad_poblacion": 71,
+  "cantidad_muestra": 15,
+  "cantidad_controles": 5,
+  "semilla_mezcla": 20260923111040,
+  "python_random": "random.Random, sample y shuffle; ver preparar.py",
+  "extraccion": "Se elimina frontmatter y primera cabecera H1 del cuerpo; H1 pasa a titulo. Resto íntegro. Originales exactos fuera del paquete.",
+  "entrega": "Entregar únicamente paquete-ciego.zip; clave, protocolo, originales y tarea quedan fuera.",
+  "limites_controles": "Controles negativos gruesos; no calibran defectos sutiles ni prueban verdad técnica. Los originales no tienen respuestas esperadas.",
+  "sha256_paquete": "f2295a93e2f6588597bf039bb5eb1bd4a0c46c84f588bedffe0c63cfb4dc3b29"
+}

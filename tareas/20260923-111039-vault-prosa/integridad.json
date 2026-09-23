@@ -1,0 +1,14 @@
+{
+  "estado": "Preparación íntegra; no es un juicio semántico",
+  "poblacion": 71,
+  "originales": 15,
+  "controles": 5,
+  "ids_unicos": 20,
+  "casilleros_sin_responder": 60,
+  "criterio_sellado_sin_cambios": true,
+  "muestra_reproducida": true,
+  "originales_contrastados_con_copias": 15,
+  "zip_solo_cuatro_archivos_ciegos": true,
+  "llamadas_modelos": 0,
+  "limite": "No hay juicio, acuerdo ni costo observado del sensor; controles gruesos, sin garantía sobre defectos sutiles."
+}

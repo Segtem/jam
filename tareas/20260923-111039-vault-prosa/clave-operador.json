@@ -1,0 +1,187 @@
+[
+  {
+    "id": "d9d50e128d0",
+    "ruta": "Vault-kb/00-Proceso/2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0.md",
+    "sha256_original": "90440cc47914f9f52f06e4a5932fa7d0af5a6b7fee48e6e0707ccd062a68b4d1",
+    "copia": "originales/02.md",
+    "control": false,
+    "esperado": null
+  },
+  {
+    "id": "d1b26a4702d",
+    "ruta": "Vault-kb/02-TreeGen/2026-07-27-INFORME-TreeGen-Copy-Mesh-To-Frames-v1.0.md",
+    "sha256_original": "853fbc8e0e927d92190bd3ddd63262294c1168ee89df050f10a997f63cec0130",
+    "copia": "originales/01.md",
+    "control": false,
+    "esperado": null
+  },
+  {
+    "id": "ddcc4b8bc68",
+    "ruta": "Vault-kb/00-Proceso/2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0.md",
+    "sha256_original": "90440cc47914f9f52f06e4a5932fa7d0af5a6b7fee48e6e0707ccd062a68b4d1",
+    "copia": "originales/02.md",
+    "control": true,
+    "transformacion": "Sustituir cuerpo completo por texto sin desarrollo del tema, referencia contrastable ni condición concreta de vigencia",
+    "esperado": {
+      "tema_desarrollado": false,
+      "referencia_concreta": false,
+      "vigencia_delimitada": false
+    }
+  },
+  {
+    "id": "d42b3cb32d8",
+    "ruta": "Vault-kb/01-Graph/2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0.md",
+    "sha256_original": "ebc84d6a66cbd4bc4a71817bb8236b5ec4973923f191efba403bb6ab645bac01",
+    "copia": "originales/10.md",
+    "control": false,
+    "esperado": null
+  },
+  {
+    "id": "d7122fdcb1d",
+    "ruta": "Vault-kb/02-TreeGen/2026-07-26-GUIA-Ejemplo-Graph-Pino-Procedural-v1.0.md",
+    "sha256_original": "649b9427bca1b448080646606ccc01cb190cf821be75780ce61723ab0c61f925",
+    "copia": "originales/03.md",
+    "control": true,
+    "transformacion": "Sustituir cuerpo completo por texto sin desarrollo del tema, referencia contrastable ni condición concreta de vigencia",
+    "esperado": {
+      "tema_desarrollado": false,
+      "referencia_concreta": false,
+      "vigencia_delimitada": false
+    }
+  },
+  {
+    "id": "d7dd1b4e57f",
+    "ruta": "Vault-kb/02-TreeGen/2026-07-27-INFORME-TreeGen-Distribute-Frames-v1.0.md",
+    "sha256_original": "a053171a2d1d3135402ff9ee03d596eb7fbd42e4247ed28f94603b8658b7b811",
+    "copia": "originales/14.md",
+    "control": false,
+    "esperado": null
+  },
+  {
+    "id": "dbff9d1227b",
+    "ruta": "Vault-kb/02-TreeGen/2026-07-26-GUIA-Ejemplo-Graph-Pino-Procedural-v1.0.md",
+    "sha256_original": "649b9427bca1b448080646606ccc01cb190cf821be75780ce61723ab0c61f925",
+    "copia": "originales/03.md",
+    "control": false,
+    "esperado": null
+  },
+  {
+    "id": "dcd56f7d545",
+    "ruta": "Vault-kb/04-Ejecucion-y-pruebas/2026-07-25-PLAN-Infraestructura-Pruebas-Jam-Oraculo-v1.0.md",
+    "sha256_original": "0fe81020bfecae21d1235b64b74f75936b31768bba5a3f0d849b5c195b7dcf5a",
+    "copia": "originales/04.md",
+    "control": true,
+    "transformacion": "Sustituir cuerpo completo por texto sin desarrollo del tema, referencia contrastable ni condición concreta de vigencia",
+    "esperado": {
+      "tema_desarrollado": false,
+      "referencia_concreta": false,
+      "vigencia_delimitada": false
+    }
+  },
+  {
+    "id": "d498676caf5",
+    "ruta": "Vault-kb/01-Graph/2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0.md",
+    "sha256_original": "4ce95dac6183c12b3eb663fa5c5f42daf66470532ee722ec1ca20e743dc85aa9",
+    "copia": "originales/08.md",
+    "control": false,
+    "esperado": null
+  },
+  {
+    "id": "dc600656334",
+    "ruta": "Vault-kb/01-Graph/2026-07-25-PLAN-Persistencia-Segura-Diagramas-Graph-v1.0.md",
+    "sha256_original": "91834fa1f0114634e194354347c233cf8887c5bb53f31211619c67bd3f545a5b",
+    "copia": "originales/05.md",
+    "control": false,
+    "esperado": null
+  },
+  {
+    "id": "d11fb0e3ed9",
+    "ruta": "Vault-kb/03-Mesh-y-materiales/2026-08-04-INFORME-Soldar-Bordes-Y-Diagnostico-De-Malla-v1.0.md",
+    "sha256_original": "db3ae21a1aee96d5424ec9ad34ba72d5dc0e7c49ce956d30dd0f9416baf2b232",
+    "copia": "originales/07.md",
+    "control": false,
+    "esperado": null
+  },
+  {
+    "id": "d916e186d3d",
+    "ruta": "Vault-kb/04-Ejecucion-y-pruebas/2026-07-25-PLAN-Infraestructura-Pruebas-Jam-Oraculo-v1.0.md",
+    "sha256_original": "0fe81020bfecae21d1235b64b74f75936b31768bba5a3f0d849b5c195b7dcf5a",
+    "copia": "originales/04.md",
+    "control": false,
+    "esperado": null
+  },
+  {
+    "id": "dc5c58e4603",
+    "ruta": "Vault-kb/02-TreeGen/2026-07-27-INFORME-TreeGen-UV-Materiales-Sections-HISM-v1.0.md",
+    "sha256_original": "61c4443d4fb07aede87c400dc25a820d7dbfab6b5047978a80d0c8aec060b10b",
+    "copia": "originales/11.md",
+    "control": false,
+    "esperado": null
+  },
+  {
+    "id": "dd04ee57e02",
+    "ruta": "Vault-kb/02-TreeGen/2026-07-26-INFORME-TreeGen-Curve-Child-Ramas-Jerarquicas-v1.0.md",
+    "sha256_original": "fe238b84bc1874b3e4ce9d7f949a3361085985434a7f87b48635268f3b1521b9",
+    "copia": "originales/13.md",
+    "control": false,
+    "esperado": null
+  },
+  {
+    "id": "dd273467fe6",
+    "ruta": "Vault-kb/02-TreeGen/2026-07-27-INFORME-TreeGen-Copy-Mesh-To-Frames-v1.0.md",
+    "sha256_original": "853fbc8e0e927d92190bd3ddd63262294c1168ee89df050f10a997f63cec0130",
+    "copia": "originales/01.md",
+    "control": true,
+    "transformacion": "Sustituir cuerpo completo por texto sin desarrollo del tema, referencia contrastable ni condición concreta de vigencia",
+    "esperado": {
+      "tema_desarrollado": false,
+      "referencia_concreta": false,
+      "vigencia_delimitada": false
+    }
+  },
+  {
+    "id": "d1360d2d324",
+    "ruta": "Vault-kb/04-Ejecucion-y-pruebas/2026-07-25-INFORME-Auditoria-Proactiva-Jam-v1.0.md",
+    "sha256_original": "61584057ad10cd5d69410a58d56b7bc336722d49328781aa662b861a3c8da757",
+    "copia": "originales/06.md",
+    "control": false,
+    "esperado": null
+  },
+  {
+    "id": "d2d4bfa8813",
+    "ruta": "Vault-kb/03-Mesh-y-materiales/2026-07-27-INFORME-Oraculo-De-Forma-Malla-Referencia-v1.0.md",
+    "sha256_original": "7dc1be03a18aeb3b85034e9e0b4ea049d8829ece55c8aaebf77818e8d2d7bc18",
+    "copia": "originales/09.md",
+    "control": false,
+    "esperado": null
+  },
+  {
+    "id": "d4db5b3d22e",
+    "ruta": "Vault-kb/01-Graph/2026-07-25-PLAN-Persistencia-Segura-Diagramas-Graph-v1.0.md",
+    "sha256_original": "91834fa1f0114634e194354347c233cf8887c5bb53f31211619c67bd3f545a5b",
+    "copia": "originales/05.md",
+    "control": true,
+    "transformacion": "Sustituir cuerpo completo por texto sin desarrollo del tema, referencia contrastable ni condición concreta de vigencia",
+    "esperado": {
+      "tema_desarrollado": false,
+      "referencia_concreta": false,
+      "vigencia_delimitada": false
+    }
+  },
+  {
+    "id": "d0622c3273e",
+    "ruta": "Vault-kb/02-TreeGen/2026-07-27-INFORME-TreeGen-Asset-Set-Choose-Copy-Variants-v1.0.md",
+    "sha256_original": "c6297cfcabc27b207597fe3d44d44b7cbf8e5bacbe52fa28cb139b7898517404",
+    "copia": "originales/12.md",
+    "control": false,
+    "esperado": null
+  },
+  {
+    "id": "d5349c3b488",
+    "ruta": "Vault-kb/04-Ejecucion-y-pruebas/2026-07-25-PLAN-Contratos-Defensivos-Tools-Assets-v1.0.md",
+    "sha256_original": "3e97e03d58698d4ea4e75ea36e612d07db4dee4365b4def3e3b20711df77bae1",
+    "copia": "originales/15.md",
+    "control": false,
+    "esperado": null
+  }
+]

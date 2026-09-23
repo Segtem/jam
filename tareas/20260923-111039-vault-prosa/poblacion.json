@@ -1,0 +1,286 @@
+[
+  {
+    "ruta": "Vault-kb/00-Proceso/2026-07-25-ROADMAP-Vision-Producto-Jam-v1.0.md",
+    "sha256": "c751cc2962066ed48086fb94efd7d508e995e6b179e2d6eb753984a6985593a9"
+  },
+  {
+    "ruta": "Vault-kb/00-Proceso/2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0.md",
+    "sha256": "c551e2eaf8122cbad522f4fbb2ef04c4e2e3b556fee703d8ab63e1cc59bbdbee"
+  },
+  {
+    "ruta": "Vault-kb/00-Proceso/2026-07-29-GUIA-Relevo-Claude-Codex-v1.0.md",
+    "sha256": "482b204094f0f7dc4881ad07259444dcf0c8cc18a37dad71aac90daa64eab56a"
+  },
+  {
+    "ruta": "Vault-kb/00-Proceso/2026-07-30-INFORME-Auditoria-Viabilidad-Lenguaje-Propio-Oracle-v1.0.md",
+    "sha256": "55804da5098c83bc5e634da905ada686da526332245289058da325171589a080"
+  },
+  {
+    "ruta": "Vault-kb/00-Proceso/2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0.md",
+    "sha256": "90440cc47914f9f52f06e4a5932fa7d0af5a6b7fee48e6e0707ccd062a68b4d1"
+  },
+  {
+    "ruta": "Vault-kb/00-Proceso/2026-07-31-PLAN-Autonomia-Embedding-Oracle-P3-v1.0.md",
+    "sha256": "79873e18c946bf1ff62c0f92f80910d25449538f9bda45fecca38686f37b9847"
+  },
+  {
+    "ruta": "Vault-kb/00-Proceso/2026-08-02-PLAN-Revision-Jam-Oracle-UE-5-8-v1.0.md",
+    "sha256": "898a1716d280dc4e73ead2b6985d79febcae7697c9be9961558a74b686ec8e16"
+  },
+  {
+    "ruta": "Vault-kb/00-Proceso/2026-08-06-CONCEPTO-Graph-Autoria-Dash-Consumo-v1.0.md",
+    "sha256": "2e8bc8e7c5fb437f360ebf65efcdd9e294a9ef0e80809ad30010e24fca60a349"
+  },
+  {
+    "ruta": "Vault-kb/00-Proceso/2026-08-06-PLAN-Physics-Paint-Como-Herramienta-De-Graph-v1.0.md",
+    "sha256": "57c3de1ca58c2eb9d40ea916599c9f055150857d02c9e2baee3fbd0adbea7e7a"
+  },
+  {
+    "ruta": "Vault-kb/01-Graph/2026-07-25-CONCEPTO-Estetica-Nodos-Grasshopper-v1.0.md",
+    "sha256": "83db1da36abaeaadcd3ff66c90f8b812083c4e8451586310f7755ebfbcdb7ff5"
+  },
+  {
+    "ruta": "Vault-kb/01-Graph/2026-07-25-INFORME-Fix-Graph-Buscador-Doble-Clic-v1.0.md",
+    "sha256": "4ce95dac6183c12b3eb663fa5c5f42daf66470532ee722ec1ca20e743dc85aa9"
+  },
+  {
+    "ruta": "Vault-kb/01-Graph/2026-07-25-INFORME-Fix-Graph-Cable-Fantasma-v1.0.md",
+    "sha256": "81295d066a6091f5970c9bd2c3e70802f089783ad49792c2b0dffc9896413745"
+  },
+  {
+    "ruta": "Vault-kb/01-Graph/2026-07-25-INFORME-Graph-Eliminar-Conexiones-Alt-Click-v1.0.md",
+    "sha256": "c2338eb86a77f005a339ca4ed45b321dc03e86d9cd6bef294222fcbdb4a6a6fe"
+  },
+  {
+    "ruta": "Vault-kb/01-Graph/2026-07-25-PLAN-Persistencia-Segura-Diagramas-Graph-v1.0.md",
+    "sha256": "91834fa1f0114634e194354347c233cf8887c5bb53f31211619c67bd3f545a5b"
+  },
+  {
+    "ruta": "Vault-kb/01-Graph/2026-07-25-PLAN-Tipado-Cardinalidad-Conexiones-Graph-v1.0.md",
+    "sha256": "75ee536eba9f309a2a1242f3282e79526f282f53f076044e35b55b2d00539ae4"
+  },
+  {
+    "ruta": "Vault-kb/01-Graph/2026-07-27-INFORME-Nodos-De-Debug-Ver-El-Stream-v1.0.md",
+    "sha256": "2745d296bc8a061b9a407b1351557cf122df1c7f57e86a3be937a55205dce436"
+  },
+  {
+    "ruta": "Vault-kb/01-Graph/2026-07-29-INFORME-Docking-Paneles-Nomad-Tabs-v1.0.md",
+    "sha256": "9d4874107646b4548d799894e179bdf1479027666a3be06b2b9af69916dca740"
+  },
+  {
+    "ruta": "Vault-kb/01-Graph/2026-07-29-INFORME-Funciones-Graph-Firma-v1.0.md",
+    "sha256": "b79c4b12337d4acb7b5c1435b8e4c59f6456b99345d7513dffa922f3b282b7a0"
+  },
+  {
+    "ruta": "Vault-kb/01-Graph/2026-07-29-INFORME-Historial-Deshacer-Rehacer-v1.0.md",
+    "sha256": "f782202ae2290ae7b2035569c505bb3969286c626f007e272ee4dc6914599c1e"
+  },
+  {
+    "ruta": "Vault-kb/01-Graph/2026-07-29-INFORME-Seleccion-Multiple-Alineacion-Nodos-v2.0.md",
+    "sha256": "22a358d586f4cb7878102e8b8772d2f4c2dd07813fbae36ea40f76574a8bd9c6"
+  },
+  {
+    "ruta": "Vault-kb/01-Graph/2026-07-29-ROADMAP-Accesibilidad-Graph-v1.0.md",
+    "sha256": "ebc84d6a66cbd4bc4a71817bb8236b5ec4973923f191efba403bb6ab645bac01"
+  },
+  {
+    "ruta": "Vault-kb/01-Graph/2026-08-02-PLAN-ABM-Funciones-Graph-v1.0.md",
+    "sha256": "1416ca5d185db3489a11f9bef96d7dd727b3a038c537c9c922d3f9d047c25b63"
+  },
+  {
+    "ruta": "Vault-kb/01-Graph/2026-08-02-PLAN-Verbos-Math-Numeros-Vectores-Matrices-v1.0.md",
+    "sha256": "d029aa612d547f2ae92ecd1eb7843a56c684029be2b528e6d9de5603ebe45a58"
+  },
+  {
+    "ruta": "Vault-kb/01-Graph/2026-08-02-ROADMAP-Nodos-Unreal-Engine-5-8-1-v1.0.md",
+    "sha256": "cebf86fa52b2303673bf6ef231a21a46f02073f9bb6f56c0b7838812bcbfbb85"
+  },
+  {
+    "ruta": "Vault-kb/01-Graph/2026-08-03-INFORME-Ribbon-Jerarquico-Familias-v1.0.md",
+    "sha256": "75738ee65251f0cd04c42ef6e54415424134e7d223c79e9e41c8fcaa1544f932"
+  },
+  {
+    "ruta": "Vault-kb/01-Graph/2026-08-03-ROADMAP-Catalogo-Matematico-Ampliado-v1.0.md",
+    "sha256": "b8b433b5d54b77c6eca12909bbb17f5977c981bfb697218103b3fa6ccd01c429"
+  },
+  {
+    "ruta": "Vault-kb/01-Graph/2026-08-04-INFORME-Comentarios-Y-Grupos-Graph-v1.0.md",
+    "sha256": "cd0179da7443c84d91d503a779b26ae2d4db50d91684c52f1110385dbc3e3270"
+  },
+  {
+    "ruta": "Vault-kb/01-Graph/2026-08-11-INFORME-Definicion-De-Tools-Y-Superficies-v1.0.md",
+    "sha256": "0433ca7e3cc3b3ae1740c42a81fd1246d3cc3e3a64acfeba65dc934b99c695c6"
+  },
+  {
+    "ruta": "Vault-kb/01-Graph/2026-08-12-PLAN-Multi-Salida-En-El-Graph-v1.0.md",
+    "sha256": "8b640325fd4c07b4dd2bb87ca7c92099c5da309cd3549aea0e398c5fdce9f141"
+  },
+  {
+    "ruta": "Vault-kb/01-Graph/2026-08-12-ROADMAP-Escalera-Grasshopper-Basics-v1.0.md",
+    "sha256": "f86d841633a747e5bd208638032322a5a142ed31632393250362ee124bb7aeaa"
+  },
+  {
+    "ruta": "Vault-kb/02-TreeGen/2026-07-26-GUIA-Ejemplo-Graph-Pino-Procedural-v1.0.md",
+    "sha256": "649b9427bca1b448080646606ccc01cb190cf821be75780ce61723ab0c61f925"
+  },
+  {
+    "ruta": "Vault-kb/02-TreeGen/2026-07-26-INFORME-TreeGen-Curvas-Pipe-Arbol-Ramificado-v1.0.md",
+    "sha256": "9d4f4d0d4042c040550b26592ab807211d88becfba74e34f593ae8c24c4a6e8a"
+  },
+  {
+    "ruta": "Vault-kb/02-TreeGen/2026-07-26-INFORME-TreeGen-Curve-Child-Ramas-Jerarquicas-v1.0.md",
+    "sha256": "fe238b84bc1874b3e4ce9d7f949a3361085985434a7f87b48635268f3b1521b9"
+  },
+  {
+    "ruta": "Vault-kb/02-TreeGen/2026-07-26-INFORME-TreeGen-Follaje-Procedural-Variacion-v1.0.md",
+    "sha256": "b49dbc60474640b0929293eb6b735a3655d1b1cc538076954d8467e65e12e343"
+  },
+  {
+    "ruta": "Vault-kb/02-TreeGen/2026-07-26-INFORME-TreeGen-Mesh-From-Asset-Along-Curve-v1.0.md",
+    "sha256": "8955f2796db7262a66c60281b1aefb6b34c016518fe128abcf14fb04c42721f0"
+  },
+  {
+    "ruta": "Vault-kb/02-TreeGen/2026-07-26-INFORME-TreeGen-Mesh-Leaf-StaticMesh-Opcional-v1.0.md",
+    "sha256": "4c8ba5f49b2f43434d0170eab9f137038cf583bd5ab77c1bddd53828e1741012"
+  },
+  {
+    "ruta": "Vault-kb/02-TreeGen/2026-07-26-INFORME-TreeGen-Replica-Jerarquica-Branch-Leaf-v1.0.md",
+    "sha256": "a52079b851b1221952f71ab9079b917aa920b0b181e4febf493f8822b7c5dada"
+  },
+  {
+    "ruta": "Vault-kb/02-TreeGen/2026-07-27-INFORME-TreeGen-Asset-Set-Choose-Copy-Variants-v1.0.md",
+    "sha256": "c6297cfcabc27b207597fe3d44d44b7cbf8e5bacbe52fa28cb139b7898517404"
+  },
+  {
+    "ruta": "Vault-kb/02-TreeGen/2026-07-27-INFORME-TreeGen-Auditoria-Blueprints-Flow-Real-v1.0.md",
+    "sha256": "5acc079c53c6ffdf8c8dbef957903edf0a5511f61b20f594d0b662e85a55bd82"
+  },
+  {
+    "ruta": "Vault-kb/02-TreeGen/2026-07-27-INFORME-TreeGen-Branch-From-Frames-v1.0.md",
+    "sha256": "21d907a9f755be23d64dfe973f166b007c28cf88c56481e495d41ecf33f8af44"
+  },
+  {
+    "ruta": "Vault-kb/02-TreeGen/2026-07-27-INFORME-TreeGen-Copy-Mesh-To-Frames-v1.0.md",
+    "sha256": "853fbc8e0e927d92190bd3ddd63262294c1168ee89df050f10a997f63cec0130"
+  },
+  {
+    "ruta": "Vault-kb/02-TreeGen/2026-07-27-INFORME-TreeGen-Curve-Frames-FrameStream-v1.0.md",
+    "sha256": "2dedec0902e6f51d776cdc821c729333580a7d8f2a8882c476d069cdbd45b1af"
+  },
+  {
+    "ruta": "Vault-kb/02-TreeGen/2026-07-27-INFORME-TreeGen-Curve-N-Array-Pipe-With-Profile-v1.0.md",
+    "sha256": "cb408bd281efb91930a4e7f04cf7ef873b2cc928dd6ae29f01e42bb65bd072b2"
+  },
+  {
+    "ruta": "Vault-kb/02-TreeGen/2026-07-27-INFORME-TreeGen-Distribute-Frames-v1.0.md",
+    "sha256": "a053171a2d1d3135402ff9ee03d596eb7fbd42e4247ed28f94603b8658b7b811"
+  },
+  {
+    "ruta": "Vault-kb/02-TreeGen/2026-07-27-INFORME-TreeGen-Dos-Niveles-Presets-v1.0.md",
+    "sha256": "a7aca7cde14068876bf91022f197cf3f874b8850e7ecbf5f6d50374d68996223"
+  },
+  {
+    "ruta": "Vault-kb/02-TreeGen/2026-07-27-INFORME-TreeGen-Relieve-De-Corteza-v1.0.md",
+    "sha256": "ae511086d102a733dc4b9c74f8bcf1ccaf65ad64812048b2893e380e901c282c"
+  },
+  {
+    "ruta": "Vault-kb/02-TreeGen/2026-07-27-INFORME-TreeGen-Transform-Frames-v1.0.md",
+    "sha256": "527f6d6a3b5ece496e6e2a6a2178e208c5487116a6d61336894bbcdf0745a404"
+  },
+  {
+    "ruta": "Vault-kb/02-TreeGen/2026-07-27-INFORME-TreeGen-UV-Materiales-Sections-HISM-v1.0.md",
+    "sha256": "61c4443d4fb07aede87c400dc25a820d7dbfab6b5047978a80d0c8aec060b10b"
+  },
+  {
+    "ruta": "Vault-kb/02-TreeGen/2026-08-09-INFORME-Biblioteca-Ejemplos-Malla-Procedural-v1.0.md",
+    "sha256": "39aa153f0e09c42941857859843db9087ee99b083dab308303f6d3a375674c94"
+  },
+  {
+    "ruta": "Vault-kb/03-Mesh-y-materiales/2026-07-26-INFORME-Graph-Tab-Mesh-Verbos-Malla-v1.0.md",
+    "sha256": "67777ef0316df295984733719f40e2f0f44278b6d86dcb125451f3825386e663"
+  },
+  {
+    "ruta": "Vault-kb/03-Mesh-y-materiales/2026-07-26-INFORME-Nodo-Convert-To-Nanite-v1.0.md",
+    "sha256": "11d25be45bc40c2d857c551e708dd217420b3d33095c9f3e5ce1c1c88cbe91c9"
+  },
+  {
+    "ruta": "Vault-kb/03-Mesh-y-materiales/2026-07-26-INFORME-Nodo-Mesh-Color-Vertex-Color-v1.0.md",
+    "sha256": "7ec12f160f37be51ff25333d02def7853c09ed50d9fd3998576fa8a3ce54eb1b"
+  },
+  {
+    "ruta": "Vault-kb/03-Mesh-y-materiales/2026-07-27-INFORME-Oraculo-De-Forma-Malla-Referencia-v1.0.md",
+    "sha256": "7dc1be03a18aeb3b85034e9e0b4ea049d8829ece55c8aaebf77818e8d2d7bc18"
+  },
+  {
+    "ruta": "Vault-kb/03-Mesh-y-materiales/2026-07-28-INFORME-Materiales-Avanzados-Layers-Substrate-Substance-v1.0.md",
+    "sha256": "02a4bcb68b7c808c0fcbf0187baf7e1201a120b1159829fc6f6ceed6373c6c53"
+  },
+  {
+    "ruta": "Vault-kb/03-Mesh-y-materiales/2026-07-28-INFORME-Primitivas-Tab-Mesh-v1.0.md",
+    "sha256": "ffca3b00febf6a3ebb942d3935da4e16b79f86946f2ce1a8ec8adf498c8d6b96"
+  },
+  {
+    "ruta": "Vault-kb/03-Mesh-y-materiales/2026-08-02-INFORME-Nanite-Fracture-Dataflow-UE-5-8-v1.0.md",
+    "sha256": "22edb1f38a14c7f93ae1a5715c7121e881899650a4f52e3eff744f7165771e98"
+  },
+  {
+    "ruta": "Vault-kb/03-Mesh-y-materiales/2026-08-04-INFORME-Soldar-Bordes-Y-Diagnostico-De-Malla-v1.0.md",
+    "sha256": "db3ae21a1aee96d5424ec9ad34ba72d5dc0e7c49ce956d30dd0f9416baf2b232"
+  },
+  {
+    "ruta": "Vault-kb/03-Mesh-y-materiales/2026-08-09-INFORME-GitHub-Procedural-Mesh-Generation-v1.0.md",
+    "sha256": "424f2761d2f194b54746393277cc65e9d755af590cfa0742ba8a1c1e4997450d"
+  },
+  {
+    "ruta": "Vault-kb/03-Mesh-y-materiales/2026-08-09-ROADMAP-Verbos-Y-Ejemplos-PMG-v1.0.md",
+    "sha256": "5d558aaa66b340b3c391a5da79b07d7ba4e9bc20afd8b3058c4ea29b24be815b"
+  },
+  {
+    "ruta": "Vault-kb/03-Mesh-y-materiales/2026-08-13-ROADMAP-Modelado-Japones-Como-Medidas-v1.0.md",
+    "sha256": "160cd46029e057af0442785b6faa4a16bcab450ed8040b3d765a7a5a08a3d717"
+  },
+  {
+    "ruta": "Vault-kb/04-Ejecucion-y-pruebas/2026-07-25-INFORME-Auditoria-Proactiva-Jam-v1.0.md",
+    "sha256": "61584057ad10cd5d69410a58d56b7bc336722d49328781aa662b861a3c8da757"
+  },
+  {
+    "ruta": "Vault-kb/04-Ejecucion-y-pruebas/2026-07-25-PLAN-Compilacion-Estricta-Preview-Bake-v1.0.md",
+    "sha256": "d36428248983f466193d8218922cd73626dd1760836c61ddc66d78851ef45e21"
+  },
+  {
+    "ruta": "Vault-kb/04-Ejecucion-y-pruebas/2026-07-25-PLAN-Contrato-Unificado-Graph-Flow-Presets-Web-v1.0.md",
+    "sha256": "3e07f277897386ee5140e3f785f11cf711de70954e9a6f43cbbd94c178c2378c"
+  },
+  {
+    "ruta": "Vault-kb/04-Ejecucion-y-pruebas/2026-07-25-PLAN-Contratos-Defensivos-Tools-Assets-v1.0.md",
+    "sha256": "3e97e03d58698d4ea4e75ea36e612d07db4dee4365b4def3e3b20711df77bae1"
+  },
+  {
+    "ruta": "Vault-kb/04-Ejecucion-y-pruebas/2026-07-25-PLAN-Errores-Resultados-Observables-Flow-v1.0.md",
+    "sha256": "1d96225254aff6affce2b918f84f09f5b577ef34561af6f16e49ed820efd05d1"
+  },
+  {
+    "ruta": "Vault-kb/04-Ejecucion-y-pruebas/2026-07-25-PLAN-Infraestructura-Pruebas-Jam-Oraculo-v1.0.md",
+    "sha256": "0fe81020bfecae21d1235b64b74f75936b31768bba5a3f0d849b5c195b7dcf5a"
+  },
+  {
+    "ruta": "Vault-kb/04-Ejecucion-y-pruebas/2026-07-26-PLAN-Preview-Transaccional-Efectos-PCG-v1.0.md",
+    "sha256": "8dce3902783e335e0c062cfc3498304528aeaf6071763a8e6c45723690193cae"
+  },
+  {
+    "ruta": "Vault-kb/04-Ejecucion-y-pruebas/2026-07-27-INFORME-Puente-P-a-F-Ops-Flow-v1.0.md",
+    "sha256": "b3d3d2a58c886d992e831dba218db7b66ed8ff2d695fc7c7cc5660e6370c4d56"
+  },
+  {
+    "ruta": "Vault-kb/04-Ejecucion-y-pruebas/2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0.md",
+    "sha256": "2f3c93746f1c15dfdd850137772385eb54cbb5a499e7dd9e11c6385d52873be0"
+  },
+  {
+    "ruta": "Vault-kb/04-Ejecucion-y-pruebas/2026-08-09-ROADMAP-MassEntity-En-Jam-v1.0.md",
+    "sha256": "059ad33b3274d25a0e75af68660ee3da11bdf1c867d7ee9e9801bbde3de5f2a3"
+  },
+  {
+    "ruta": "Vault-kb/04-Ejecucion-y-pruebas/2026-09-10-GUIA-DSL-De-Jam-v1.0.md",
+    "sha256": "2ad949294d02d13aa9df49549ad998da6873775f70cbde74cc646e9036d98229"
+  }
+]

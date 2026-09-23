@@ -29,4 +29,4 @@ su `alcance` que las produjo un modelo.
 
 ## Próximo paso
 
-Esperar `ejemplo/sensor-prosa` en Oracle; mientras tanto, escribir las preguntas y sus ejemplos.
+el paquete está listo para el juez ciego.
