@@ -30,3 +30,7 @@ su `alcance` que las produjo un modelo.
 ## Próximo paso
 
 el paquete está listo para el juez ciego.
+
+### Nota (2026-09-23 11:48:59 UTC)
+
+2026-09-23, Claude: el juez ciego (sesión limpia) marcó como 'no' en P1 exactamente los 5 controles, y avisó que algunos se notan a simple vista (textos sobre una servilleta y una limonada). Controles tan obvios sólo prueban que el modelo distingue basura de prosa, no que lea con criterio. Para una próxima corrida, los controles tienen que ser plausibles: documentos del tema correcto con el defecto sutil (un título que promete algo que el cuerpo no cumple, rutas que no existen).
