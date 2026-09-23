@@ -1,0 +1,77 @@
+[
+  {
+    "lote": 1,
+    "inicio_utc": "2026-09-23T11:50:15.610632+00:00",
+    "http": 200,
+    "sha256_cruda": "3156fff938aa15a60a3986d731f7cafa0e1917ed8f40d5d2c83cc8475ee677f3",
+    "modelo": "typesafe/jev-1.13-20260917",
+    "usage": {
+      "input_tokens": 14961,
+      "output_tokens": 388,
+      "cost": 0.000628362
+    },
+    "id": "gen-dec-1790164215-p3WInwc9Q9k5E76EXt0t",
+    "fin_utc": "2026-09-23T11:50:16.404857+00:00",
+    "segundos": 0.7942311050137505
+  },
+  {
+    "lote": 2,
+    "inicio_utc": "2026-09-23T11:50:16.405081+00:00",
+    "http": 200,
+    "sha256_cruda": "3d4c6d5dc8f8227cc0134aea0ce3da2df44ffe8533d144da8bf1ae3c1a060cb5",
+    "modelo": "typesafe/jev-1.13-20260917",
+    "usage": {
+      "input_tokens": 4715,
+      "output_tokens": 382,
+      "cost": 0.00019803
+    },
+    "id": "gen-dec-1790164216-H3Xj7kUb53esRgo2XddR",
+    "fin_utc": "2026-09-23T11:50:16.931790+00:00",
+    "segundos": 0.5267157180060167
+  },
+  {
+    "lote": 3,
+    "inicio_utc": "2026-09-23T11:50:16.932090+00:00",
+    "http": 200,
+    "sha256_cruda": "9bb6e844bcf59d9c92a550c2ba0e81c57da0c22bb33f17991de36f7453512b70",
+    "modelo": "typesafe/jev-1.13-20260917",
+    "usage": {
+      "input_tokens": 6714,
+      "output_tokens": 385,
+      "cost": 0.000281988
+    },
+    "id": "gen-dec-1790164217-T55ldM1nrr5zb3E7pC56",
+    "fin_utc": "2026-09-23T11:50:17.492239+00:00",
+    "segundos": 0.560157445986988
+  },
+  {
+    "lote": 4,
+    "inicio_utc": "2026-09-23T11:50:17.492576+00:00",
+    "http": 200,
+    "sha256_cruda": "b0bd687603f0fc96e1b20dc1d44dd6128121f218d9120aa0e61a171f0ec61784",
+    "modelo": "typesafe/jev-1.13-20260917",
+    "usage": {
+      "input_tokens": 9209,
+      "output_tokens": 385,
+      "cost": 0.000386778
+    },
+    "id": "gen-dec-1790164217-I41jPngvrIgW22OMN1fT",
+    "fin_utc": "2026-09-23T11:50:17.995648+00:00",
+    "segundos": 0.5030800100066699
+  },
+  {
+    "lote": 5,
+    "inicio_utc": "2026-09-23T11:50:17.996000+00:00",
+    "http": 200,
+    "sha256_cruda": "afa019c2ca8f782ed12fb1de34d80c3b54b216b91f4fafd78b053eb3060b917b",
+    "modelo": "typesafe/jev-1.13-20260917",
+    "usage": {
+      "input_tokens": 10932,
+      "output_tokens": 394,
+      "cost": 0.000459144
+    },
+    "id": "gen-dec-1790164218-vhtYNHi0J4f3BYdvmCd9",
+    "fin_utc": "2026-09-23T11:50:18.622810+00:00",
+    "segundos": 0.6268203379877377
+  }
+]

@@ -1,0 +1,16 @@
+{
+  "inicio_utc": "2026-09-23T11:50:15.610159+00:00",
+  "modelo": "typesafe/jev-1.13",
+  "corte_si": 0.5,
+  "zona_descriptiva": [
+    0.4,
+    0.6
+  ],
+  "lote": 4,
+  "reintentos": 0,
+  "sha256_criterio": "3bb1abea433466b31d4d8cf6abd9abf15c3a1c7a85cd89e0d01cdd1597225663",
+  "sha256_registros": "64e797fc236ca9d25cb48dffe365bb161c5c7ff6445f8d56c1bf0f5074477af4",
+  "exposicion": "Se leyó oracle tarea ver: nota agregada adelanta P1 de Claude y debilidad de controles. No se abrió juicio-ciego-claude.json ni clave-operador.json antes de sellar respuestas. Modelo sin esa nota.",
+  "fuente_api": "https://openrouter.ai/blog/insights/what-is-jev/",
+  "adaptacion": "CRITERIO íntegro; mismos registros sin modificaciones en cinco lotes consecutivos de cuatro. Noul devuelve P(sí), sin justificaciones/citas generativas. P(no)=1-P(sí)."
+}

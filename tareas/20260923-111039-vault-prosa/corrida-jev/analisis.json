@@ -1,0 +1,116 @@
+{
+  "tema_desarrollado": {
+    "originales": {
+      "n": 15,
+      "acuerdos": 15,
+      "claude_si": 15,
+      "jev_si": 15,
+      "si_si": 15,
+      "no_no": 0,
+      "claude_si_jev_no": 0,
+      "claude_no_jev_si": 0,
+      "brier": 0.0014666666666666682,
+      "zona_04_06": 0
+    },
+    "controles": {
+      "n": 5,
+      "acuerdos": 5,
+      "claude_si": 0,
+      "jev_si": 0,
+      "si_si": 0,
+      "no_no": 5,
+      "claude_si_jev_no": 0,
+      "claude_no_jev_si": 0,
+      "brier": 0.0011200000000000001,
+      "zona_04_06": 0
+    },
+    "total": {
+      "n": 20,
+      "acuerdos": 20,
+      "claude_si": 15,
+      "jev_si": 15,
+      "si_si": 15,
+      "no_no": 5,
+      "claude_si_jev_no": 0,
+      "claude_no_jev_si": 0,
+      "brier": 0.0013800000000000012,
+      "zona_04_06": 0
+    }
+  },
+  "referencia_concreta": {
+    "originales": {
+      "n": 15,
+      "acuerdos": 14,
+      "claude_si": 15,
+      "jev_si": 14,
+      "si_si": 14,
+      "no_no": 0,
+      "claude_si_jev_no": 1,
+      "claude_no_jev_si": 0,
+      "brier": 0.03734666666666667,
+      "zona_04_06": 1
+    },
+    "controles": {
+      "n": 5,
+      "acuerdos": 5,
+      "claude_si": 0,
+      "jev_si": 0,
+      "si_si": 0,
+      "no_no": 5,
+      "claude_si_jev_no": 0,
+      "claude_no_jev_si": 0,
+      "brier": 0.0008,
+      "zona_04_06": 0
+    },
+    "total": {
+      "n": 20,
+      "acuerdos": 19,
+      "claude_si": 15,
+      "jev_si": 14,
+      "si_si": 14,
+      "no_no": 5,
+      "claude_si_jev_no": 1,
+      "claude_no_jev_si": 0,
+      "brier": 0.028210000000000002,
+      "zona_04_06": 1
+    }
+  },
+  "vigencia_delimitada": {
+    "originales": {
+      "n": 15,
+      "acuerdos": 11,
+      "claude_si": 7,
+      "jev_si": 5,
+      "si_si": 4,
+      "no_no": 7,
+      "claude_si_jev_no": 3,
+      "claude_no_jev_si": 1,
+      "brier": 0.19492,
+      "zona_04_06": 6
+    },
+    "controles": {
+      "n": 5,
+      "acuerdos": 5,
+      "claude_si": 0,
+      "jev_si": 0,
+      "si_si": 0,
+      "no_no": 5,
+      "claude_si_jev_no": 0,
+      "claude_no_jev_si": 0,
+      "brier": 0.004780000000000001,
+      "zona_04_06": 0
+    },
+    "total": {
+      "n": 20,
+      "acuerdos": 16,
+      "claude_si": 7,
+      "jev_si": 5,
+      "si_si": 4,
+      "no_no": 12,
+      "claude_si_jev_no": 3,
+      "claude_no_jev_si": 1,
+      "brier": 0.147385,
+      "zona_04_06": 6
+    }
+  }
+}

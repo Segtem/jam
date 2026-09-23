@@ -1,0 +1,13 @@
+{
+  "fin_utc": "2026-09-23T11:50:18.623012+00:00",
+  "completa": true,
+  "respuestas": 60,
+  "fallo": null,
+  "archivos": {
+    "respuesta-cruda-01.json": "3156fff938aa15a60a3986d731f7cafa0e1917ed8f40d5d2c83cc8475ee677f3",
+    "respuesta-cruda-02.json": "3d4c6d5dc8f8227cc0134aea0ce3da2df44ffe8533d144da8bf1ae3c1a060cb5",
+    "respuesta-cruda-03.json": "9bb6e844bcf59d9c92a550c2ba0e81c57da0c22bb33f17991de36f7453512b70",
+    "respuesta-cruda-04.json": "b0bd687603f0fc96e1b20dc1d44dd6128121f218d9120aa0e61a171f0ec61784",
+    "respuesta-cruda-05.json": "afa019c2ca8f782ed12fb1de34d80c3b54b216b91f4fafd78b053eb3060b917b"
+  }
+}

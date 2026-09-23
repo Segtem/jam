@@ -1,0 +1,7 @@
+{
+  "fecha_utc": "2026-09-23T11:52:05.580681+00:00",
+  "sha256_juicio": "e9133ea32fdd668a7374072564de326549037d0971007d06aeeb71ced777dca5",
+  "sha256_clave": "69fa0d053b3a4c399e00a96ac918b10766abedac56511285f40cfc5018acffba",
+  "sello_respuestas_previo": "2026-09-23T11:50:18.623012+00:00",
+  "validaciones": "20 ids únicos idénticos, 60 booleanos, 60 probabilidades coincidentes con HTTP, hashes de criterio/registros/crudas intactos"
+}
