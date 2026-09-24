@@ -28,6 +28,17 @@ se alcanza por el DSL, si hace la ida y vuelta DSL ↔ nodos, y qué lo impide, 
 Incluir las tareas abiertas que ya son parte de esto (`etiquetas-pines`, `labels-tools`,
 `jamtool-ui`, `colocar-cli`, `fuente-roja`). Ordenar lo que falta por cuánto le cierra el paso a un LLM.
 
+## Avance
+
+2026-09-24: Auditoría completada y documentada en [AUDITORIA.md](../../tareas/20260924-114746-dsl-llm/AUDITORIA.md) (sin cambios de código, sin ejecuciones de shell):
+- Relevamiento de 186 tools registradas: ~80 corren por consola y 86 quedan excluidas del DSL (`registro_core.cable_que_falta`).
+- Análisis de la falta de ida y vuelta: `JamGraph` solo serializa a JSON crudo; no hay compilador DSL → Grafo ni descompilador Grafo → DSL.
+- Diagnóstico de coerción ciega y descarte silencioso en `dsl.coaccionar` (`_desc` ignorado en `graph.py:825`).
+- Diagnóstico del bug `fuente-roja` en `graph.ejecutar_detalle` (excepciones secundarias en cascada por `entrada=None`).
+- Relevamiento del estado de las 5 tareas abiertas vinculadas (`etiquetas-pines`, `labels-tools`, `jamtool-ui`, `colocar-cli`, `fuente-roja`).
+- Jerarquía priorizada de 7 niveles de bloqueos para el LLM.
+
 ## Próximo paso
 
-La auditoría.
+Diseñar la especificación técnica de la sintaxis DSL para grafos y composición (tuberías/pipes, asignación de identificadores semánticos y conexión de pines) que resuelva la P1 de la auditoría y defina el contrato de ida y vuelta formal DSL ↔ JamGraph.
+
