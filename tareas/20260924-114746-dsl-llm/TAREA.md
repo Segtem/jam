@@ -40,5 +40,8 @@ Incluir las tareas abiertas que ya son parte de esto (`etiquetas-pines`, `labels
 
 ## Próximo paso
 
-Diseñar la especificación técnica de la sintaxis DSL para grafos y composición (tuberías/pipes, asignación de identificadores semánticos y conexión de pines) que resuelva la P1 de la auditoría y defina el contrato de ida y vuelta formal DSL ↔ JamGraph.
-
+La auditoría está hecha ([AUDITORIA.md](AUDITORIA.md)). El trabajo sigue en tareas propias, en este
+orden: `dsl-parametros` (acotada, ya), `fuente-roja` (acotada, ya), `dsl-grafos` (diseño con tres
+modelos, después la implementación), `jam-mcp` (después de `dsl-grafos`), y `etiquetas-pines` y
+`labels-tools` para que el humano vea en los nodos los mismos nombres que usa el LLM. Esta tarea se
+cierra cuando `dsl-grafos` tenga la ida y vuelta.
