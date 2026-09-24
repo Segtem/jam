@@ -28,7 +28,7 @@ from oraculo.mazes.spacegraph import GraphNode  # noqa: E402
 RAIZ = Path(__file__).resolve().parents[3]
 
 # La versión de Oracle que Jam consume, fijada a propósito (ver AGENTS.md).
-ORACLE_VERSION = "0.28.0"
+ORACLE_VERSION = "0.30.0"
 
 
 def _cargar_vault():

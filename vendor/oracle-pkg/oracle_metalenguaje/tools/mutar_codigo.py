@@ -251,7 +251,7 @@ PRIORIDADES = {
 # tenía medidas. Construir las otras dos herramientas del servidor sobre cimientos sin medir sería
 # repetirlo sabiendo.
 #
-# La afirmación que custodia está escrita en `PLAN-0.6.0-MCP.md`: que lo que el servidor le dice a
+# La afirmación que custodia está escrita en `vault-kb/planes/PLAN-0.6.0-MCP.md`: que lo que el servidor le dice a
 # un agente sea lo que Oracle sabe. Nadie más la comprueba — un agente no tiene con qué dudar de la
 # respuesta, y ése es exactamente el motivo por el que el archivo existe.
 # `reportar.py` entra el 2026-09-05, el mismo día que se escribe. Custodia dos afirmaciones que
@@ -264,7 +264,7 @@ PRIORIDADES = {
 # lo haya pedido ya salió del repositorio cuando alguien lo nota.
 # `observar.py` entra el 2026-09-07, el mismo día que se escribe. Custodia la afirmación más cara
 # del proyecto: que un caso con `procedencia: observada` salió de una corrida y no de un teclado.
-# `PLAN-0.8.1-SENSOR.md` la llama «la mentira más barata del proyecto y la que nadie puede
+# `vault-kb/planes/PLAN-0.8.1-SENSOR.md` la llama «la mentira más barata del proyecto y la que nadie puede
 # detectar», y `PROCEDENCIAS` lo dice en el vocabulario: es una afirmación sobre el pasado y Oracle
 # NO puede verificarla.
 #
@@ -287,7 +287,7 @@ PRIORIDADES = {
 # Se fijó la conducta y se adelantaron los tests específicos; no se relajó el umbral de ~10 min.
 # `metamorficas.py` también entra: sus 242 sitios están fijados y su pérdida de esquinas podía
 # dejar verdes vacuamente las dos medidas de sintaxis que cerraron DECISION-004.
-# Ver estudios/CUSTODIA-DE-SONDAS-Y-COSTO-DEL-CLI.md y sus manifiestos completos.
+# Ver vault-kb/estudios/CUSTODIA-DE-SONDAS-Y-COSTO-DEL-CLI.md y sus manifiestos completos.
 # `diferencial.py` estuvo acá desde que se declaró custodia (2026-09-16) con 57 mutantes y 32
 # sobrevivientes, todos en la impresión del informe y los códigos de salida. Con los tests de
 # `tests/test_diferencial_informe.py` y el patrón `_entrada_directa`, la ronda dio 55/55 en tres minutos
@@ -299,7 +299,7 @@ CUSTODIAS_SIN_MEDIR = {}
 # El tracker añade cuatro custodias: integridad del documento y cambios de estado; captura
 # y consultas con límites explícitos; pertenencia al índice/HEAD; hechos y omisiones para las
 # políticas. Una lectura incompleta o una referencia mal clasificada puede dar un verde falso.
-# P4 conserva las rondas y sus límites en estudios/0.16.0-tareas/verificacion-p4/.
+# P4 conserva las rondas y sus límites en vault-kb/estudios/0.16.0-tareas/verificacion-p4/.
 HERRAMIENTAS_CUSTODIAS = ("aceptacion.py", "censar.py", "cifras.py", "cli.py", "contexto.py",
                           "diferencial.py",
                           "corpus.py", "juzgar.py", "manual.py", "mcp.py", "medida.py", "metamorficas.py",
@@ -398,6 +398,8 @@ def argumentos(argv: list[str]):
     p.add_argument("--hechos", action="store_true", help="emitir sólo evidencia JSON")
     p.add_argument("--timeout", type=float, default=60.0,
                    help="segundos máximos para la baseline y cada mutante (60 por defecto)")
+    p.add_argument("--timeout-base", type=float,
+                   help="segundos máximos sólo para la línea base (por defecto usa --timeout)")
     p.add_argument("--limite-salida-kb", type=int, default=1024,
                    help="KiB máximos conservados por stdout y stderr en cada ejecución")
     p.add_argument("--limite-memoria-mb", type=int, default=LIMITE_MEMORIA_MB_PREDETERMINADO,
@@ -686,7 +688,7 @@ def _ejecutar(proy, args) -> int:
                           if args.limite_memoria_mb > 0 else None)
         evidencia = correr(
             RAIZ, objetivos, comando_tests, equivalentes, al_terminar_uno=progreso,
-            timeout_por_ejecucion=args.timeout,
+            timeout_por_ejecucion=args.timeout, timeout_base=args.timeout_base,
             limite_salida=args.limite_salida_kb * 1024,
             limite_memoria=limite_memoria,
             manifiesto=args.manifiesto, reanudar=args.reanudar,

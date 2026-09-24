@@ -15,6 +15,7 @@ import hashlib
 import json
 import sys
 from contextlib import contextmanager
+from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -44,21 +45,87 @@ from tools.tareas_hechos import extraer_hechos  # noqa: E402
 PROTOCOLO = "2025-11-25"
 NOMBRE_SERVIDOR = "oracle-mcp"
 
+_ESQUEMA_MEDIDA = {
+    "oneOf": [
+        {
+            "type": "object",
+            "additionalProperties": False,
+            "required": ["id"],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*)+$",
+                },
+            },
+        },
+        {
+            "type": "object",
+            "additionalProperties": False,
+            "required": ["texto", "formato"],
+            "properties": {
+                "texto": {"type": "string"},
+                "formato": {"enum": ["oracle", "json"]},
+            },
+        },
+    ],
+}
+
+
+_ANOTACIONES = {
+    "readOnlyHint": True,
+    "destructiveHint": False,
+    "idempotentHint": True,
+    "openWorldHint": False,
+}
+
+
+_ESQUEMA_UMBRAL = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["operador", "valor", "segun", "porque"],
+    "properties": {
+        "operador": {"type": "string"},
+        "valor": {"type": ["string", "number", "boolean"]},
+        "segun": {"type": "string"},
+        "porque": {"type": "string"},
+    },
+}
+
+
+_DEFS_EVIDENCIA = {
+    "evidencia": {
+        "type": "object",
+        "additionalProperties": {
+            "type": "array",
+            "items": {"type": "object"},
+        },
+    },
+}
+
+
+_ESQUEMA_SOMBRA = {
+    "oneOf": [
+        {"type": "null"},
+        {
+            "type": "object",
+            "additionalProperties": False,
+            "required": ["desde", "porque", "cota", "perdona"],
+            "properties": {
+                "desde": {"type": "string"},
+                "porque": {"type": "string"},
+                "cota": {"type": ["integer", "null"]},
+                "perdona": {"type": "boolean"},
+            },
+        },
+    ],
+}
+
+
 HERRAMIENTA_CATALOGO = {
     "name": "oracle_catalogo_efectivo",
     "title": "Catálogo efectivo de Oracle",
-    "description": (
-        "Consulta las medidas que obligan al proyecto fijado al arrancar el servidor. Sin ids "
-        "devuelve un índice compacto; con ids devuelve el detalle de esas medidas. Usa "
-        "catalogo_efectivo: no confunde todo lo instalado con lo que tiene jurisdicción aquí. "
-        "No evalúa evidencia ni escribe archivos."
-    ),
-    "annotations": {
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": False,
-    },
+    "description": "Consulta medidas efectivas del proyecto fijado. Sin ids: índice; con ids: detalle. No evalúa evidencia.",
+    "annotations": deepcopy(_ANOTACIONES),
     "inputSchema": {
         "type": "object",
         "additionalProperties": False,
@@ -114,17 +181,7 @@ HERRAMIENTA_CATALOGO = {
                             "type": "array", "items": {"type": "string"},
                             "uniqueItems": True,
                         },
-                        "umbral": {
-                            "type": "object",
-                            "additionalProperties": False,
-                            "required": ["operador", "valor", "segun", "porque"],
-                            "properties": {
-                                "operador": {"type": "string"},
-                                "valor": {"type": ["string", "number", "boolean"]},
-                                "segun": {"type": "string"},
-                                "porque": {"type": "string"},
-                            },
-                        },
+                        "umbral": deepcopy(_ESQUEMA_UMBRAL),
                         "alcance": {"type": "string"},
                         "fuente": {"type": "string"},
                         "fuente_sha256": {
@@ -140,58 +197,17 @@ HERRAMIENTA_CATALOGO = {
 HERRAMIENTA_EVALUAR = {
     "name": "oracle_evaluar",
     "title": "Evaluar una medida en memoria",
-    "description": (
-        "Evalúa una medida efectiva por id o un texto de medida sin guardarlo contra una "
-        "evidencia JSON. Devuelve verde, rojo o sin_evidencia como estados distintos, además "
-        "del valor, umbral, testigos y alcance. Use esta herramienta para entender conducta "
-        "puntual; no prueba que la medida sea correcta."
-    ),
-    "annotations": {
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": False,
-    },
+    "description": "Evalúa una medida efectiva por id o texto sin guardar contra evidencia JSON. Distingue verde, rojo y sin_evidencia; incluye umbral, testigos y alcance. No demuestra corrección de la medida.",
+    "annotations": deepcopy(_ANOTACIONES),
     "inputSchema": {
         "type": "object",
         "additionalProperties": False,
         "required": ["medida", "evidencia"],
         "properties": {
-            "medida": {
-                "oneOf": [
-                    {
-                        "type": "object",
-                        "additionalProperties": False,
-                        "required": ["id"],
-                        "properties": {
-                            "id": {
-                                "type": "string",
-                                "pattern": "^[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*)+$",
-                            },
-                        },
-                    },
-                    {
-                        "type": "object",
-                        "additionalProperties": False,
-                        "required": ["texto", "formato"],
-                        "properties": {
-                            "texto": {"type": "string"},
-                            "formato": {"enum": ["oracle", "json"]},
-                        },
-                    },
-                ],
-            },
+            "medida": deepcopy(_ESQUEMA_MEDIDA),
             "evidencia": {"$ref": "#/$defs/evidencia"},
         },
-        "$defs": {
-            "evidencia": {
-                "type": "object",
-                "additionalProperties": {
-                    "type": "array",
-                    "items": {"type": "object"},
-                },
-            },
-        },
+        "$defs": deepcopy(_DEFS_EVIDENCIA),
     },
     "outputSchema": {
         "type": "object",
@@ -211,33 +227,8 @@ HERRAMIENTA_EVALUAR = {
             "medida": {"type": "string"},
             "estado": {"enum": ["verde", "rojo", "sin_evidencia"]},
             "valor": {"type": "number"},
-            "umbral": {
-                "type": "object",
-                "additionalProperties": False,
-                "required": ["operador", "valor", "segun", "porque"],
-                "properties": {
-                    "operador": {"type": "string"},
-                    "valor": {"type": ["string", "number", "boolean"]},
-                    "segun": {"type": "string"},
-                    "porque": {"type": "string"},
-                },
-            },
-            "sombra": {
-                "oneOf": [
-                    {"type": "null"},
-                    {
-                        "type": "object",
-                        "additionalProperties": False,
-                        "required": ["desde", "porque", "cota", "perdona"],
-                        "properties": {
-                            "desde": {"type": "string"},
-                            "porque": {"type": "string"},
-                            "cota": {"type": ["integer", "null"]},
-                            "perdona": {"type": "boolean"},
-                        },
-                    },
-                ],
-            },
+            "umbral": deepcopy(_ESQUEMA_UMBRAL),
+            "sombra": deepcopy(_ESQUEMA_SOMBRA),
             "testigos": {
                 "type": "array", "items": {"type": "object"}, "maxItems": 5,
             },
@@ -249,18 +240,13 @@ HERRAMIENTA_EVALUAR = {
     },
 }
 
-# La declaración es la del contrato, palabra por palabra: `MCP-CONTRATO.md` es normativo y un
-# test compara los dos. Divergir acá sería anunciar una herramienta que nadie documentó.
+# HERRAMIENTAS es la fuente del bloque normativo de MCP-CONTRATO.md.
+# Regenerar con python3 -m tools.mcp_contrato; la suite verifica que esté actualizado.
 HERRAMIENTA_DESAFIAR = {
     "name": "oracle_desafiar",
     "title": "Desafiar una medida con corpus y mutación",
-    "description": "Falsa en memoria una medida por id o texto. Combina, si se pide, sus casos del corpus y diferenciales del proyecto con casos efímeros, exige ambas polaridades y ejecuta mutación de medidas. Informa discordancias, mutantes sobrevivientes y rechazos del álgebra; nunca declara que la medida sea semánticamente correcta ni escribe evidencia.",
-    "annotations": {
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": False
-    },
+    "description": "Desafía por id o texto con corpus y diferenciales opcionales y casos efímeros. Exige ambas polaridades y muta; informa discordancias, sobrevivientes y rechazos. No demuestra corrección semántica.",
+    "annotations": deepcopy(_ANOTACIONES),
     "inputSchema": {
         "type": "object",
         "additionalProperties": False,
@@ -268,42 +254,7 @@ HERRAMIENTA_DESAFIAR = {
             "medida"
         ],
         "properties": {
-            "medida": {
-                "oneOf": [
-                    {
-                        "type": "object",
-                        "additionalProperties": False,
-                        "required": [
-                            "id"
-                        ],
-                        "properties": {
-                            "id": {
-                                "type": "string",
-                                "pattern": "^[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*)+$"
-                            }
-                        }
-                    },
-                    {
-                        "type": "object",
-                        "additionalProperties": False,
-                        "required": [
-                            "texto",
-                            "formato"
-                        ],
-                        "properties": {
-                            "texto": {
-                                "type": "string"
-                            },
-                            "formato": {
-                                "enum": [
-                                    "oracle",
-                                    "json"
-                                ]
-                            }
-                        }
-                    }
-                ]
-            },
+            "medida": deepcopy(_ESQUEMA_MEDIDA),
             "usar_evidencia_del_proyecto": {
                 "type": "boolean",
                 "default": True,
@@ -338,17 +289,7 @@ HERRAMIENTA_DESAFIAR = {
                 }
             }
         },
-        "$defs": {
-            "evidencia": {
-                "type": "object",
-                "additionalProperties": {
-                    "type": "array",
-                    "items": {
-                        "type": "object"
-                    }
-                }
-            }
-        }
+        "$defs": deepcopy(_DEFS_EVIDENCIA)
     },
     "outputSchema": {
         "type": "object",
@@ -519,19 +460,8 @@ HERRAMIENTA_DESAFIAR = {
 HERRAMIENTA_JUZGAR = {
     "name": "oracle_juzgar",
     "title": "Juzgar evidencia contra el catálogo efectivo",
-    "description": (
-        "Juzga una evidencia JSON contra las medidas que obligan al proyecto (o un subconjunto "
-        "indicado en ids). Aplica el catálogo efectivo, las sombras y cotas declaradas en "
-        "oracle.json y reporta medidas no aplicadas. Devuelve ok si el conjunto satisface las "
-        "medidas evaluadas y las sombras dentro de su cota. No evalúa escalares no autorizadas "
-        "ni escribe archivos."
-    ),
-    "annotations": {
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": False,
-    },
+    "description": "Juzga evidencia contra el catálogo efectivo (ids selecciona un subconjunto). Informa no aplicadas, sombras y cotas. ok exige medidas satisfechas y sombras dentro de cota; no ejecuta escalares no autorizadas.",
+    "annotations": deepcopy(_ANOTACIONES),
     "inputSchema": {
         "type": "object",
         "additionalProperties": False,
@@ -549,15 +479,7 @@ HERRAMIENTA_JUZGAR = {
                 "description": "Ids efectivos a evaluar. Omitir para evaluar todas las aplicables del catálogo.",
             },
         },
-        "$defs": {
-            "evidencia": {
-                "type": "object",
-                "additionalProperties": {
-                    "type": "array",
-                    "items": {"type": "object"},
-                },
-            },
-        },
+        "$defs": deepcopy(_DEFS_EVIDENCIA),
     },
     "outputSchema": {
         "type": "object",
@@ -601,33 +523,8 @@ HERRAMIENTA_JUZGAR = {
                         "id": {"type": "string"},
                         "estado": {"enum": ["verde", "rojo", "sin_evidencia"]},
                         "valor": {"type": "number"},
-                        "umbral": {
-                            "type": "object",
-                            "additionalProperties": False,
-                            "required": ["operador", "valor", "segun", "porque"],
-                            "properties": {
-                                "operador": {"type": "string"},
-                                "valor": {"type": ["string", "number", "boolean"]},
-                                "segun": {"type": "string"},
-                                "porque": {"type": "string"},
-                            },
-                        },
-                        "sombra": {
-                            "oneOf": [
-                                {"type": "null"},
-                                {
-                                    "type": "object",
-                                    "additionalProperties": False,
-                                    "required": ["desde", "porque", "cota", "perdona"],
-                                    "properties": {
-                                        "desde": {"type": "string"},
-                                        "porque": {"type": "string"},
-                                        "cota": {"type": ["integer", "null"]},
-                                        "perdona": {"type": "boolean"},
-                                    },
-                                },
-                            ],
-                        },
+                        "umbral": deepcopy(_ESQUEMA_UMBRAL),
+                        "sombra": deepcopy(_ESQUEMA_SOMBRA),
                         "testigos": {
                             "type": "array",
                             "items": {"type": "object"},
@@ -676,18 +573,8 @@ HERRAMIENTA_JUZGAR = {
 HERRAMIENTA_TAREAS = {
     "name": "oracle_tareas",
     "title": "Consultar el tracker de tareas del proyecto",
-    "description": (
-        "Consulta tareas y notas del tracker (tareas/) de sólo lectura: listar tareas abiertas "
-        "o cerradas, ver el detalle de una tarea por id o prefijo, buscar texto en tareas y "
-        "notas, o extraer evidencia relacional de hechos. Falla con TRACKER_AUSENTE si el "
-        "proyecto no tiene tracker. No crea ni modifica tareas."
-    ),
-    "annotations": {
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": False,
-    },
+    "description": "Lee tareas/: listar sin cuerpos; ver por id o sufijo/prefijo con cuerpo completo; buscar texto o extraer hechos. Sin tracker: TRACKER_AUSENTE.",
+    "annotations": deepcopy(_ANOTACIONES),
     "inputSchema": {
         "type": "object",
         "additionalProperties": False,
@@ -737,7 +624,7 @@ HERRAMIENTA_TAREAS = {
             "accion": {"enum": ["listar", "ver", "buscar", "hechos"]},
             "resultado": {
                 "type": ["array", "object"],
-                "description": "Resultado de la acción: lista de tareas para listar, objeto de tarea para ver, objeto con coincidencias y omitidos para buscar, u objeto de hechos relacionales para hechos.",
+                "description": "Resultado de la acción: lista de tareas sin cuerpo para listar, objeto de tarea con cuerpo completo para ver, objeto con coincidencias y omitidos para buscar, u objeto de hechos relacionales para hechos.",
             },
         },
     },
@@ -1199,6 +1086,28 @@ def _error_catalogo(proy: Proyecto, error: Exception) -> ErrorHerramienta:
         "CATALOGO_INVALIDO", f"{motivo}. No se devolvió un catálogo parcial.")
 
 
+def _rechazar_escalares(e):
+    # `partition` y no `split(..., 1)`: con `maxsplit` el arnés genera un mutante `1 → 2` que
+    # NINGÚN test puede distinguir —el primer segmento es el mismo para cualquier maxsplit
+    # positivo, y acá se toma `[0]`—. Declararlo equivalente sería anotar un sitio que se puede
+    # borrar; `partition` no lleva la constante, así que el mutante deja de existir. El `[0]` sí
+    # queda medido: con un mensaje sin el separador, `[1]` devuelve vacío y el test lo nota.
+    archivo = str(e).partition(" es código Python externo")[0]
+    raise ErrorHerramienta(
+        "ESCALARES_NO_AUTORIZADAS",
+        f"{archivo} es código externo; autorizalo en la configuración de arranque del "
+        "servidor, no en esta llamada.") from e
+
+
+def _cargar_catalogo(proy: Proyecto, macros):
+    try:
+        return catalogo_efectivo(proy, macros=macros)
+    except ProyectoInvalido:
+        raise
+    except Exception as e:
+        raise _error_catalogo(proy, e) from e
+
+
 def catalogo_para_mcp(proy: Proyecto, argumentos, *, confiar_escalares: bool = False) -> dict:
     """Construye una respuesta completa o un error explícito; nunca convierte una falla en cero."""
     ids = _validar_argumentos(argumentos)
@@ -1255,17 +1164,7 @@ def catalogo_para_mcp(proy: Proyecto, argumentos, *, confiar_escalares: bool = F
     except ErrorHerramienta:
         raise
     except EscalaresNoConfiables as e:
-        # `partition` y no `split(..., 1)`: con `maxsplit` el arnés genera un mutante `1 → 2` que
-        # NINGÚN test puede distinguir —el primer segmento es el mismo para cualquier maxsplit
-        # positivo, y acá se toma `[0]`—. Declararlo equivalente sería anotar un sitio que se puede
-        # borrar; `partition` no lleva la constante, así que el mutante deja de existir. El `[0]` sí
-        # queda medido: con un mensaje sin el separador, `[1]` devuelve vacío y el test lo nota.
-        archivo = str(e).partition(" es código Python externo")[0]
-        raise ErrorHerramienta(
-            "ESCALARES_NO_AUTORIZADAS",
-            f"{archivo} es código externo; autorizalo en la configuración de arranque del "
-            "servidor, no en esta llamada.",
-        ) from e
+        _rechazar_escalares(e)
     except EscalaresInvalidas as e:
         raise _error_catalogo(proy, e) from e
     except ProyectoInvalido as e:
@@ -1499,12 +1398,7 @@ def desafiar_para_mcp(proy: Proyecto, argumentos, *, confiar_escalares: bool = F
             macros = macros_del_proyecto(proy)
             catalogo = None
             if "id" in especificacion:
-                try:
-                    catalogo = catalogo_efectivo(proy, macros=macros)
-                except ProyectoInvalido:
-                    raise
-                except Exception as e:
-                    raise _error_catalogo(proy, e) from e
+                catalogo = _cargar_catalogo(proy, macros)
                 mid = especificacion["id"]
                 if mid not in catalogo:
                     raise _error_id_ausente(mid, proy, catalogo)
@@ -1534,11 +1428,7 @@ def desafiar_para_mcp(proy: Proyecto, argumentos, *, confiar_escalares: bool = F
     except ErrorHerramienta:
         raise
     except EscalaresNoConfiables as e:
-        archivo = str(e).partition(" es código Python externo")[0]
-        raise ErrorHerramienta(
-            "ESCALARES_NO_AUTORIZADAS",
-            f"{archivo} es código externo; autorizalo en la configuración de arranque del "
-            "servidor, no en esta llamada.") from e
+        _rechazar_escalares(e)
     except EscalaresInvalidas as e:
         raise _error_catalogo(proy, e) from e
     except ProyectoInvalido as e:
@@ -1563,12 +1453,7 @@ def evaluar_para_mcp(proy: Proyecto, argumentos, *, confiar_escalares: bool = Fa
             macros = macros_del_proyecto(proy)
             catalogo = None
             if "id" in especificacion:
-                try:
-                    catalogo = catalogo_efectivo(proy, macros=macros)
-                except ProyectoInvalido:
-                    raise
-                except Exception as e:
-                    raise _error_catalogo(proy, e) from e
+                catalogo = _cargar_catalogo(proy, macros)
             try:
                 declaradas = relaciones_del_proyecto(proy)
             except ProyectoInvalido:
@@ -1608,12 +1493,7 @@ def evaluar_para_mcp(proy: Proyecto, argumentos, *, confiar_escalares: bool = Fa
     except ErrorHerramienta:
         raise
     except EscalaresNoConfiables as e:
-        archivo = str(e).partition(" es código Python externo")[0]
-        raise ErrorHerramienta(
-            "ESCALARES_NO_AUTORIZADAS",
-            f"{archivo} es código externo; autorizalo en la configuración de arranque del "
-            "servidor, no en esta llamada.",
-        ) from e
+        _rechazar_escalares(e)
     except EscalaresInvalidas as e:
         raise _error_catalogo(proy, e) from e
     except ProyectoInvalido as e:
@@ -1700,12 +1580,7 @@ def juzgar_para_mcp(proy: Proyecto, argumentos, *, confiar_escalares: bool = Fal
     try:
         with escalares_del_proyecto(proy, confiar=confiar_escalares):
             macros = macros_del_proyecto(proy)
-            try:
-                catalogo = catalogo_efectivo(proy, macros=macros)
-            except ProyectoInvalido:
-                raise
-            except Exception as e:
-                raise _error_catalogo(proy, e) from e
+            catalogo = _cargar_catalogo(proy, macros)
 
             def refrescar():
                 macros_actuales = macros_del_proyecto(proy)
@@ -1767,12 +1642,7 @@ def juzgar_para_mcp(proy: Proyecto, argumentos, *, confiar_escalares: bool = Fal
     except ErrorHerramienta:
         raise
     except EscalaresNoConfiables as e:
-        archivo = str(e).partition(" es código Python externo")[0]
-        raise ErrorHerramienta(
-            "ESCALARES_NO_AUTORIZADAS",
-            f"{archivo} es código externo; autorizalo en la configuración de arranque del "
-            "servidor, no en esta llamada.",
-        ) from e
+        _rechazar_escalares(e)
     except EscalaresInvalidas as e:
         raise _error_catalogo(proy, e) from e
     except ProyectoInvalido as e:
@@ -1902,7 +1772,10 @@ def tareas_para_mcp(proy: Proyecto, argumentos) -> dict:
             invertir=False,
             todas=False,
         )
-        resultado = [t.a_dict() for t in filtradas]
+        resultado = [
+            {k: v for k, v in t.a_dict().items() if k != "cuerpo"}
+            for t in filtradas
+        ]
     elif accion == "ver":
         ident = validos["id"].strip()
         try:

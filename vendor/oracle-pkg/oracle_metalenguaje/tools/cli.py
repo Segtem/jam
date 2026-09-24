@@ -3,6 +3,7 @@
     oracle <sustantivo> <verbo>             forma canónica (medida, caso, proyecto, biblioteca, tarea)
     oracle <sustantivo>                     ayuda del sustantivo con sus verbos
 
+    oracle plantilla sensor-prosa <destino> copia el sensor opcional sin ejecutarlo ni pisar archivos
     oracle medida nueva <dominio.nombre>    crea una nueva medida en catalogos/ con plantilla lista
     oracle medida revisar <archivo>         revisa y evalúa una medida suelta contra la evidencia
     oracle medida probar <archivo> --con <filas>   corre una medida contra filas escritas a mano
@@ -44,6 +45,7 @@
     oracle tarea grafo [--json]             emite el grafo de referencias entre tareas en DOT o JSON
     oracle manual                           la referencia del lenguaje, armada de sus fuentes
     oracle manual operadores                los seis operadores de una tubería
+    oracle manual aritmetica                suma, resta y producto infijos en expresiones
     oracle manual segun                     de dónde sale el número de un umbral
     oracle manual etiqueta                  qué enseña un caso del corpus
     oracle manual procedencia               de dónde salió la evidencia de un caso
@@ -113,6 +115,7 @@ def ayuda() -> None:
 Uso:
   oracle medida <verbo>                   Operaciones sobre medidas (nueva, revisar, listar, expandir)
   oracle caso <verbo>                     Operaciones sobre casos del corpus (nuevo, listar, generar)
+  oracle plantilla sensor-prosa <destino> Copia el sensor opcional a un directorio nuevo
   oracle proyecto <verbo>                 Operaciones sobre el proyecto (init, test, juzgar, relaciones, escalares)
   oracle biblioteca <verbo>               Inspecciona bibliotecas locales sin ejecutar código ajeno
   oracle tarea <verbo>                    Operaciones sobre tareas (init, nueva, listar, ver, cerrar, reabrir, revisar, anotar, adjuntar, buscar, referencias, resumen, seguimiento, hechos, etiquetar, desetiquetar, grafo)
@@ -373,6 +376,7 @@ def cmd_reportar(proy, argv: list[str]) -> int:
 # Cada entrada es el verbo canónico. Los alias se derivan: `--verbo` para todos, más los que
 # `ALIAS` declare aparte.
 VERBOS = {
+    "plantilla": ("sensor-prosa",),
     "medida": ("nueva", "revisar", "probar", "listar", "expandir"),
     "caso": ("nuevo", "listar", "generar"),
     "proyecto": ("init", "test", "juzgar", "relaciones", "escalares", "contexto"),
@@ -544,7 +548,7 @@ def cmd_init(ruta_str: str | None, argv: list[str]) -> int:
         raiz = Path(ruta_str).expanduser().resolve()
     elif "--proyecto" in argv:
         i = argv.index("--proyecto")
-        if i + 1 >= len(argv):
+        if i + 1 >= len(argv) or argv[i + 1].startswith("-"):
             print("PROYECTO INVÁLIDO — --proyecto necesita una ruta", file=sys.stderr)
             return 1
         raiz = Path(argv[i + 1]).expanduser().resolve()
@@ -607,10 +611,16 @@ def cmd_caso_listar(proy: Proyecto) -> int:
 
 
 def cmd_caso_generar(proy: Proyecto, mid: str, argv: list[str]) -> int:
-    return corpus.generar(proy, mid, argv)
+    try:
+        return corpus.generar(proy, mid, argv)
+    except (EscalaresNoConfiables, EscalaresInvalidas) as e:
+        print(f"ESCALARES EXTERNAS NO EJECUTADAS — {e}")
+        return 1
 
 
 def cmd_revisar(proy: Proyecto, ruta_str: str, argv: list[str]) -> int:
+    from nucleo.proyecto import relaciones_del_proyecto
+
     ruta = Path(ruta_str)
     if not ruta.exists():
         ruta = proy.raiz / ruta_str
@@ -619,10 +629,14 @@ def cmd_revisar(proy: Proyecto, ruta_str: str, argv: list[str]) -> int:
         return 1
     try:
         with escalares_del_proyecto(proy, confiar=confiar_escalares(argv)):
+            relaciones_del_proyecto(proy)
             return medida.revisar(proy, ruta)
     except (EscalaresNoConfiables, EscalaresInvalidas) as e:
         print(f"ESCALARES EXTERNAS NO EJECUTADAS — {e}")
         return 1
+    except ProyectoInvalido as e:
+        print(f"PROYECTO INVÁLIDO — {e}", file=sys.stderr)
+        return 2
 
 
 def cmd_probar(proy: Proyecto, ruta_str: str, texto: str, *, argv: list[str] | None = None,
@@ -780,14 +794,20 @@ def cmd_test(proy: Proyecto, argv: list[str]) -> int:
         print("\nVEREDICTO: ROJO (escalares.py no confiado)")
         return 1
 
-    macros = macros_del_proyecto(proy)
+    from nucleo.proyecto import relaciones_del_proyecto
+
     try:
+        relaciones_del_proyecto(proy)
+        macros = macros_del_proyecto(proy)
         with escalares_del_proyecto(proy, confiar=confiar):
             catalogo = cargar_catalogo(catalogos_a_cargar(proy), macros=macros)
     except (EscalaresNoConfiables, EscalaresInvalidas) as e:
         print(f"ESCALARES EXTERNAS NO EJECUTADAS — {e}")
         print("\nVEREDICTO: ROJO (escalares.py no pudo cargarse)")
         return 1
+    except ProyectoInvalido as e:
+        print(f"PROYECTO INVÁLIDO — {e}", file=sys.stderr)
+        return 2
     except Exception as e:
         print(f"CATÁLOGO INVÁLIDO — {e}")
         print("\nVEREDICTO: ROJO (catálogo no pudo cargarse)")
@@ -957,7 +977,10 @@ def cmd_test(proy: Proyecto, argv: list[str]) -> int:
     if proy.es_el_propio_oracle:
         if todo:
             from tools import mutar_codigo
-            rc_mutar_codigo = mutar_codigo._ejecutar(proy, mutar_codigo.argumentos([]))
+            # La suite completa de la línea base tardó 163,716 s con bytecode frío
+            # (tarea timeout-suite-mutacion). El plazo por mutante sigue en 60 s.
+            args_mutacion = mutar_codigo.argumentos(["--timeout-base", "240"])
+            rc_mutar_codigo = mutar_codigo._ejecutar(proy, args_mutacion)
             if rc_mutar_codigo != 0:
                 fallas_suite.append("mutación de código")
         else:
@@ -1012,6 +1035,12 @@ def main(argv: list[str] | None = None) -> int:
     subcomando = posicionales[0]
     resto = posicionales[1:]
 
+    if subcomando == "plantilla":
+        if resto and resto[0] not in ("-h", "--help", "help") and resto[0] not in verbos_aceptados("plantilla"):
+            return _verbo_desconocido("plantilla", resto[0])
+        from tools import plantilla
+        return plantilla.main(argv[1:])
+
     # ANTES de resolver el proyecto, y con el `argv` CRUDO. `censar` es el único verbo que toma
     # VARIOS `--proyecto`, y la resolución de más abajo consume esa bandera para quedarse con uno.
     # Pasar por ahí le dejaría la lista vacía, que fue exactamente el primer intento.
@@ -1051,6 +1080,28 @@ def main(argv: list[str] | None = None) -> int:
         ayuda_reportar()
         return 0
 
+    # `resto` ya excluye `--proyecto <ruta>` mediante sin_banderas_comunes.
+    # Estos verbos reciben una ruta posicional: la ayuda debe resolverse antes de usarla.
+    if "-h" in resto or "--help" in resto:
+        if subcomando == "init":
+            ayuda()
+            return 0
+        if subcomando == "proyecto" and resto[0] == "init":
+            ayuda_proyecto()
+            return 0
+        if subcomando == "biblioteca" and resto[0] in ("nueva", "verificar", "listar"):
+            ayuda_biblioteca()
+            return 0
+        if subcomando == "medida" and resto[0] in ("revisar", "probar", "expandir"):
+            ayuda_medida()
+            return 0
+        if subcomando == "caso" and resto[0] == "nuevo":
+            ayuda_caso()
+            return 0
+        if subcomando in ("revisar", "expandir", "convertir"):
+            ayuda()
+            return 0
+
     # 2. Inicialización de proyecto (no requiere proyecto previo)
     if subcomando == "manual":
         tema = resto[0] if resto and not resto[0].startswith("-") else None
@@ -1073,12 +1124,11 @@ def main(argv: list[str] | None = None) -> int:
             print(manual.texto(tema))
         return 0
 
-    if subcomando == "init":
-        args = [a for a in resto if a != "--rapido"]
-        ruta = args[0] if args else None
-        return cmd_init(ruta, argv)
-    if subcomando == "proyecto" and resto and resto[0] == "init":
-        args = [a for a in resto[1:] if a != "--rapido"]
+    if subcomando == "init" or (subcomando == "proyecto" and resto and resto[0] == "init"):
+        args = [a for a in resto[1 if subcomando == "proyecto" else 0:] if a != "--rapido"]
+        if args and args[0].startswith("-"):
+            print(f"opción desconocida: {args[0]}", file=sys.stderr)
+            return 2
         ruta = args[0] if args else None
         return cmd_init(ruta, argv)
 
