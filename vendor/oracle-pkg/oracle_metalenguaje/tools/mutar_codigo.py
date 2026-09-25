@@ -84,6 +84,19 @@ PRIORIDADES = {
     # Sus tests directos son los de `comparar_dominio` y los del contrato del fixture.
     "tools/diferencial.py": ("tests.test_diferencial_informe", "tests.test_herramientas",
                              "tests.test_fixtures"),
+    "tools/generar_diferencial.py": ("tests.test_custodia_fase1", "tests.test_herramientas",
+                                      "tests.test_fixtures"),
+    "tools/ejecutar_suite_mutacion.py": ("tests.test_ejecutar_suite_mutacion",),
+    "tools/mutar_codigo.py": (
+        "tests.test_mutar_codigo_custodia",
+        "tests.test_mutacion_codigo.NingunModuloDelNucleoQuedaFueraDelArnesTests",
+        "tests.test_mutacion_codigo.LimiteMemoriaTests",
+        "tests.test_mutacion_codigo.FiltroSitiosTests"),
+    "tools/mutar.py": ("tests.test_custodia_fase1", "tests.test_herramientas",
+                       "tests.test_mutacion"),
+    "tools/trazar.py": ("tests.test_custodia_fase1", "tests.test_herramientas",
+                        "tests.test_algebra"),
+    "tools/verificar_instalacion.py": ("tests.test_verificar_instalacion",),
     # Medido el 2026-09-09: vigilar tarda 0,08 s y mata 48 mutantes; biblioteca, 0,23 s y 69
     # (19 compartidos). Adelantarlos evita pagar todo el CLI por sus mutantes exclusivos.
     # `test_cli.load_tests` deja el diagnóstico real al final del módulo; aceptación y
@@ -292,6 +305,10 @@ PRIORIDADES = {
 # sobrevivientes, todos en la impresión del informe y los códigos de salida. Con los tests de
 # `tests/test_diferencial_informe.py` y el patrón `_entrada_directa`, la ronda dio 55/55 en tres minutos
 # y pasó a la matriz: el costo era el síntoma de estar mal fijado, como en `medida.py` y `cli.py`.
+# Fase 1 de la custodia de arneses (2026-09-24): `mutar.py` decide si las medidas discriminan,
+# `generar_diferencial.py` fija el acuerdo con la referencia y la frescura del fixture, y
+# `trazar.py` comprueba los invariantes operacionales del álgebra. Si cualquiera calla un fallo,
+# su verde deja una afirmación sin verificar. Ninguno se muta a sí mismo en esta ronda.
 CUSTODIAS_SIN_MEDIR = {}
 
 
@@ -301,11 +318,54 @@ CUSTODIAS_SIN_MEDIR = {}
 # políticas. Una lectura incompleta o una referencia mal clasificada puede dar un verde falso.
 # P4 conserva las rondas y sus límites en vault-kb/estudios/0.16.0-tareas/verificacion-p4/.
 HERRAMIENTAS_CUSTODIAS = ("aceptacion.py", "censar.py", "cifras.py", "cli.py", "contexto.py",
-                          "diferencial.py",
+                          "diferencial.py", "generar_diferencial.py",
+                          "ejecutar_suite_mutacion.py",
                           "corpus.py", "juzgar.py", "manual.py", "mcp.py", "medida.py", "metamorficas.py",
-                          "observar.py", "reportar.py", "sintaxis.py", "sondear_generador.py",
+                          "mutar.py", "mutar_codigo.py", "observar.py", "reportar.py", "sintaxis.py", "sondear_generador.py",
                           "sondear_procedencia.py", "tareas.py", "tareas_contexto.py",
-                          "tareas_consulta.py", "tareas_git.py", "tareas_grafo.py", "tareas_hechos.py")
+                          "tareas_consulta.py", "tareas_git.py", "tareas_grafo.py", "tareas_hechos.py",
+                          "trazar.py", "verificar_instalacion.py")
+
+# Alcance de la matriz: cada Python de tools/ que no custodia una afirmación propia debe
+# quedar nombrado. Las seis primeras razones provienen de custodia/ANALISIS.md (§2).
+# guia.py y sitio.py sólo generan y verifican vistas de documentación; sus salidas se
+# comprueban por separado. __init__.py registra un alias de importación, no un veredicto.
+FUERA_TOOLS = {
+    "tools/__init__.py": "registra el alias de importación tools; no emite un veredicto propio",
+    "tools/estudio.py": "genera documentación para uso externo; no lo ejecuta CI ni juzga hechos",
+    "tools/guia.py": "reconstruye la guía de documentación; su salida se comprueba por separado",
+    "tools/lsp.py": "adapta el editor; no lo ejecuta CI y los cálculos viven en nucleo/",
+    "tools/mcp_contrato.py": "sincroniza documentación; el protocolo operativo lo custodia mcp.py",
+    "tools/oracle.py": "es un alias sin lógica propia de cli.py, que sí está en la matriz",
+    "tools/plantilla.py": "copia recursos iniciales; verificar_instalacion.py comprueba su uso",
+    "tools/sesion.py": "es un helper de errores; proyecto.py custodia la validación sustantiva",
+    "tools/sitio.py": "genera el sitio desde Markdown; su salida se comprueba por separado",
+}
+FUERA_NUCLEO = {
+    "nucleo/__init__.py": "archivo vacío de inicialización, sin código que mutar",
+    "nucleo/aislamiento/__init__.py": "sólo tiene una docstring, sin código que mutar",
+}
+
+
+def alcance_del_perfil() -> dict[str, dict]:
+    """Inventario completo de nucleo/ y tools/, con exclusiones justificadas."""
+    dentro = set(objetivos_disponibles())
+    resultado = {}
+    for directorio, razones in (("nucleo", FUERA_NUCLEO), ("tools", FUERA_TOOLS)):
+        encontrados = {ruta.relative_to(RAIZ).as_posix()
+                       for ruta in (RAIZ / directorio).rglob("*.py")}
+        incluidos = encontrados & dentro
+        fuera = encontrados - incluidos
+        if fuera != set(razones) or any(not razon.strip() for razon in razones.values()):
+            raise ValueError(
+                f"alcance de mutación de {directorio}/ sin declarar: "
+                f"{sorted(fuera - set(razones))}; exclusiones vencidas: "
+                f"{sorted(set(razones) - fuera)}")
+        resultado[directorio] = {
+            "total": len(encontrados), "dentro": incluidos,
+            "fuera": {ruta: razones[ruta] for ruta in sorted(fuera)},
+        }
+    return resultado
 
 # `lsp.py` SALIÓ de la lista el 2026-09-09, y no por costo: mide 140/140 en 2,2 minutos. Salió
 # porque no cumple el criterio. Es un adaptador de editor: no lo corre CI, no lo corre `oracle
@@ -353,6 +413,11 @@ def resolver_objetivos(declarados: list[str] | None) -> list[Path]:
 def comando_de_tests(objetivos: list[Path], *, priorizar: bool) -> list[str]:
     comando = list(TESTS)
     if priorizar:
+        # Los arneses usan suites testigo; la instalación usa fixtures de wheel mínimos.
+        # Descubrir toda la suite por mutante volvería muy costosa la ronda.
+        relativos = {ruta.relative_to(RAIZ).as_posix() for ruta in objetivos}
+        if relativos <= {"tools/ejecutar_suite_mutacion.py", "tools/mutar_codigo.py"} or relativos == {"tools/verificar_instalacion.py"}:
+            comando.append("--solo-prioridad")
         modulos = dict.fromkeys(
             modulo for ruta in objetivos
             for modulo in PRIORIDADES[ruta.relative_to(RAIZ).as_posix()])

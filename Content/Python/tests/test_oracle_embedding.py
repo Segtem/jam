@@ -28,7 +28,7 @@ from oraculo.mazes.spacegraph import GraphNode  # noqa: E402
 RAIZ = Path(__file__).resolve().parents[3]
 
 # La versión de Oracle que Jam consume, fijada a propósito (ver AGENTS.md).
-ORACLE_VERSION = "0.30.0"
+ORACLE_VERSION = "0.31.0"
 
 
 def _cargar_vault():
@@ -335,6 +335,18 @@ class OracleEmbeddingTests(unittest.TestCase):
 
         self.assertEqual("piso", observacion["soporte"])
         self.assertEqual(20.0, observacion["gap"])
+        self.assertTrue(observacion["gap_medible"])
+
+    def test_hechos_physics_sin_suelo_no_inventan_contacto(self) -> None:
+        pieza, _ = self._caso_physics(con_suelo=False)
+        observacion = oracle_physics_facts.hechos(pieza, [])["asentamiento"][0]
+
+        self.assertFalse(observacion["tiene_suelo"])
+        self.assertTrue(observacion["tiene_suelo_medible"])
+        self.assertEqual(0.0, observacion["gap"])
+        self.assertFalse(observacion["gap_medible"])
+        self.assertFalse(observacion["soporte_medible"])
+        self.assertEqual("", observacion["soporte"])
 
     def test_physics_no_compara_una_tolerancia_no_declarada(self) -> None:
         pieza, soportes = self._caso_physics()
@@ -388,6 +400,9 @@ class OracleEmbeddingTests(unittest.TestCase):
             self._resultado_tanda(pieza, apoyada=False, soporte=None)])
 
         self.assertFalse(evidencia["asentada"][0]["apoyada"])
+        self.assertTrue(evidencia["asentada"][0]["apoyada_medible"])
+        self.assertFalse(evidencia["asentada"][0]["soporte_medible"])
+        self.assertEqual("", evidencia["asentada"][0]["soporte"])
         self.assertNotIn("completa", evidencia["asentada"][0])
 
     def test_physics_tanda_no_compara_una_tolerancia_no_declarada(self) -> None:

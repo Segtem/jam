@@ -540,12 +540,17 @@ def _evaluar_expr(expr, fila: dict, escalares: Mapping[str, Callable[..., Any]])
         valores = []
         for indice in range(1, len(expr)):
             valores.append(_evaluar_hijo(expr, indice, fila, escalares))
+        if any(type(valor) is not bool for valor in valores):
+            raise ErrorDeAlgebra(f"«{cabeza}» exige operandos booleanos", ruta=())
         # `declarados` sale del AST y `evaluados` de haber pasado por el bucle: si alguien vuelve a
         # cortocircuitar, los dos números dejan de coincidir y hay una medida que lo dice.
         _anotar("nodo", cabeza=cabeza, declarados=len(resto), evaluados=len(valores))
         return all(valores) if cabeza == "y" else any(valores)
     if cabeza == "no":
-        return not _evaluar_hijo(expr, 1, fila, escalares)
+        valor = _evaluar_hijo(expr, 1, fila, escalares)
+        if type(valor) is not bool:
+            raise ErrorDeAlgebra("«no» exige un operando booleano", ruta=())
+        return not valor
 
     if cabeza in escalares:
         argumentos = [_evaluar_hijo(expr, indice, fila, escalares)
@@ -677,6 +682,28 @@ def validar_unicidad(relacion: str, clave: tuple[str, ...], filas: list) -> None
         vistos[valores] = i
 
 
+def validar_evidencia(evidencia: dict, limites: LimitesAlgebra | None = None) -> None:
+    """Carga y valida toda la evidencia antes de decidir si una medida puede medir."""
+    if not isinstance(evidencia, dict):
+        raise ErrorDeAlgebra("la evidencia debe ser un diccionario")
+    limite = _limites(limites).filas_por_relacion
+    for relacion, hechos in evidencia.items():
+        if not isinstance(hechos, list):
+            raise ErrorDeAlgebra(f"la relación «{relacion}» debe ser una lista de hechos")
+        clave, filas = separar_clave(hechos)
+        if len(filas) > limite:
+            raise ErrorDeAlgebra(f"la relación «{relacion}» supera el límite de {limite} filas")
+        for i, hecho in enumerate(filas):
+            if not isinstance(hecho, dict):
+                raise ErrorDeAlgebra(f"la relación «{relacion}» contiene una fila que no es un hecho")
+            for campo, valor in hecho.items():
+                if valor is None:
+                    raise ErrorDeAlgebra(
+                        f"la relación «{relacion}» trae null explícito en la fila {i}, campo «{campo}»")
+        if clave:
+            validar_unicidad(relacion, clave, filas)
+
+
 # ---- operadores -------------------------------------------------------------------
 
 FUENTES = ("de", "unir")
@@ -790,7 +817,10 @@ def _sin(paso, filas: list[dict], evidencia: dict, limites: LimitesAlgebra,
         hubo_coincidencia = False
         for b in filas_der:
             fila_combinada = {**f, **b}
-            if evaluar_expr(condicion, fila_combinada, limites, registro=registro, ruta=ruta_cond):
+            valor = evaluar_expr(condicion, fila_combinada, limites, registro=registro, ruta=ruta_cond)
+            if type(valor) is not bool:
+                raise ErrorDeAlgebra("«sin» exige un predicado booleano", ruta=ruta_cond)
+            if valor:
                 hubo_coincidencia = True
         if not hubo_coincidencia:
             salida.append(f)
@@ -872,8 +902,14 @@ def aplicar(paso, filas: list[dict], evidencia: dict,
         return _sin(paso, filas, evidencia, limites, escalares, ruta=ruta)
     if op == "donde":
         ruta_expr = (*ruta, 1) if ruta is not None else None
-        return [f for f in filas if evaluar_expr(
-            paso[1], f, limites, registro=escalares, ruta=ruta_expr)]
+        salida = []
+        for f in filas:
+            valor = evaluar_expr(paso[1], f, limites, registro=escalares, ruta=ruta_expr)
+            if type(valor) is not bool:
+                raise ErrorDeAlgebra("«donde» exige un predicado booleano", ruta=ruta_expr)
+            if valor:
+                salida.append(f)
+        return salida
     if op == "agrupar":
         return _agrupar(paso, filas, limites, escalares, ruta=ruta)
     raise ErrorDeAlgebra(f"operador desconocido: «{op}»")
@@ -1020,19 +1056,6 @@ def _clave_cruzada(predicado, alias_izq: set, alias_der: set):
     return None
 
 
-def _clave_indexable(valor):
-    """El valor de una clave, o `ErrorDeAlgebra` si no puede compararse por igualdad.
-
-    Sin esto, una clave inválida no rompe: simplemente no casa con nada, el par nunca se arma y el
-    error que el camino ingenuo SÍ levantaría desaparece. Un plan que calla un error que el otro
-    plan da no es una optimización: es otra semántica.
-    """
-    if isinstance(valor, bool) or not isinstance(valor, (int, str)):
-        raise ErrorDeAlgebra(
-            f"«unir» indexado necesita claves enteras o de texto, y recibió {valor!r}")
-    return valor
-
-
 def _unir_donde_indexado(paso_unir, paso_donde, evidencia: dict, limites: LimitesAlgebra,
                          registro: Mapping[str, Callable[..., Any]],
                          ruta_unir):
@@ -1060,12 +1083,31 @@ def _unir_donde_indexado(paso_unir, paso_donde, evidencia: dict, limites: Limite
         return None
     (alias_a, campo_a), (alias_b, campo_b) = clave
 
+    # El producto ingenuo compara todos los pares. Una clave ausente o tipos incompatibles
+    # deben fallar también cuando el índice no encuentra ninguna coincidencia. Comparar un
+    # representante de cada tipo alcanza, y además deja afuera del índice todo lo que `==` no
+    # acepta (flotantes, listas) y la mezcla de `True` con `1`, que en un dict caerían juntos.
+    tipos_izq = {}
+    tipos_der = {}
+    for filas, alias, campo, tipos in ((filas_izq, alias_a, campo_a, tipos_izq),
+                                       (filas_der, alias_b, campo_b, tipos_der)):
+        for fila in filas:
+            valor = fila[alias].get(campo)
+            tipos.setdefault(type(valor), valor)
+    for izquierdo in tipos_izq.values():
+        for derecho in tipos_der.values():
+            try:
+                comparar("==", izquierdo, derecho)
+            except ErrorDeAlgebra as e:
+                # La misma ubicación que da `donde` al evaluar el predicado par por par.
+                raise e.prefijar_ruta((*ruta_unir[:-1], ruta_unir[-1] + 1, 1))
+
     indice: dict = {}
     for fila in filas_der:
-        indice.setdefault(_clave_indexable(fila[alias_b].get(campo_b)), []).append(fila)
+        indice.setdefault(fila[alias_b][campo_b], []).append(fila)
     salida = []
     for a in filas_izq:
-        for b in indice.get(_clave_indexable(a[alias_a].get(campo_a)), ()):
+        for b in indice.get(a[alias_a][campo_a], ()):
             salida.append({**a, **b})
     return salida, len(filas_izq) * len(filas_der), {"izquierda": len(filas_izq),
                                                      "derecha": len(filas_der)}
@@ -1075,6 +1117,7 @@ def desde(tuberia, evidencia: dict, limites: LimitesAlgebra | None = None, *,
           registro: Mapping[str, Callable[..., Any]] | None = None) -> list[dict]:
     """`["desde", fuente, paso, paso, …]` → las filas que sobrevivieron. **Son los testigos.**"""
     limites = _limites(limites)
+    validar_evidencia(evidencia, limites)
     escalares = _registro(registro)
     validar_tuberia(tuberia, limites, registro=escalares)
     # El plan sólo aplica al PRIMER par de pasos, y los índices de la traza salen de ahí en vez de

@@ -14,7 +14,7 @@
     oracle caso listar                      lista los casos del corpus, su etiqueta y qué medida reclaman
     oracle caso generar <medida>            propone casos a partir de los mutantes que sobreviven
 
-    oracle proyecto init [ruta]             inicializa un proyecto con catalogos/, corpus/, diferencial/ y oracle.json
+    oracle proyecto init [ruta]             inicializa un proyecto con catalogos/, corpus/, diferencial/, relaciones/ y oracle.json
     oracle proyecto test [--rapido|--todo]  ejecuta la secuencia completa de verificación con veredicto final
     oracle proyecto juzgar --con <archivo>  juzga evidencia contra el catálogo del proyecto (alias juzgar)
     oracle proyecto relaciones              hechos y campos disponibles derivados de la evidencia
@@ -46,6 +46,8 @@
     oracle manual                           la referencia del lenguaje, armada de sus fuentes
     oracle manual operadores                los seis operadores de una tubería
     oracle manual aritmetica                suma, resta y producto infijos en expresiones
+    oracle manual macros                    macros abiertas y variantes que requieren evidencia
+    oracle manual ambito                    dónde obliga una medida
     oracle manual segun                     de dónde sale el número de un umbral
     oracle manual etiqueta                  qué enseña un caso del corpus
     oracle manual procedencia               de dónde salió la evidencia de un caso
@@ -84,7 +86,8 @@ LIMITE_ILEGIBLES = 10
 from nucleo.biblioteca import (BibliotecaInvalida, andamio,  # noqa: E402
                                descubrir_bibliotecas,
                                verificar_biblioteca)
-from nucleo.caso import CasoMalDeclarado, rutas_de_corpus  # noqa: E402
+from nucleo.caso import CasoMalDeclarado, es_andamio, rutas_de_corpus  # noqa: E402
+from nucleo.marco import hechos_de_uso  # noqa: E402
 from nucleo.medida import cargar_catalogo, rutas_de_catalogo  # noqa: E402
 from tools import manual  # noqa: E402
 from tools import reportar  # noqa: E402
@@ -97,6 +100,7 @@ from nucleo.proyecto import (  # noqa: E402
     ProyectoInvalido,
     configuracion,
     catalogos_a_cargar,
+    catalogos_base_a_cargar,
     confiar_escalares,
     escalares_del_proyecto,
     macros_del_proyecto,
@@ -113,13 +117,15 @@ def ayuda() -> None:
     print("""Oracle — metalenguaje para medir evidencia, alcance y mutación.
 
 Uso:
-  oracle medida <verbo>                   Operaciones sobre medidas (nueva, revisar, listar, expandir)
+  oracle medida <verbo>                   Operaciones sobre medidas (nueva, revisar, probar, listar, expandir)
   oracle caso <verbo>                     Operaciones sobre casos del corpus (nuevo, listar, generar)
   oracle plantilla sensor-prosa <destino> Copia el sensor opcional a un directorio nuevo
   oracle proyecto <verbo>                 Operaciones sobre el proyecto (init, test, juzgar, relaciones, escalares)
   oracle biblioteca <verbo>               Inspecciona bibliotecas locales sin ejecutar código ajeno
   oracle tarea <verbo>                    Operaciones sobre tareas (init, nueva, listar, ver, cerrar, reabrir, revisar, anotar, adjuntar, buscar, referencias, resumen, seguimiento, hechos, etiquetar, desetiquetar, grafo)
   oracle convertir <archivo>              Traduce entre superficie y JSON (por la extensión)
+  oracle manual [tema]                    Manual integrado y vocabularios cerrados
+  oracle contexto                        Inventario de relaciones y medidas activas
   oracle reportar [opciones]              Prepara y muestra un reporte local; no lo publica
   oracle censar --proyecto <ruta> ...     Censa varios proyectos y conserva el estado con su fecha
   oracle --help                           Muestra esta ayuda
@@ -185,7 +191,8 @@ Uso:
   oracle proyecto test [--rapido|--todo]  Ejecuta la secuencia completa de verificación
   oracle proyecto juzgar --con <archivo>  Juzga evidencia contra el catálogo del proyecto
   oracle proyecto relaciones              Muestra las relaciones y campos observados
-  oracle proyecto escalares               Muestra las funciones escalares y operadores""")
+  oracle proyecto escalares               Muestra las funciones escalares y operadores
+  oracle contexto                        Inventario de relaciones y medidas activas""")
 
 
 def ayuda_biblioteca() -> None:
@@ -558,12 +565,14 @@ def cmd_init(ruta_str: str | None, argv: list[str]) -> int:
     catalogos_dir = raiz / "catalogos"
     corpus_dir = raiz / "corpus"
     diferencial_dir = raiz / "diferencial"
+    relaciones_dir = raiz / "relaciones"
     oracle_json = raiz / "oracle.json"
 
     try:
         catalogos_dir.mkdir(parents=True, exist_ok=True)
         corpus_dir.mkdir(exist_ok=True)
         diferencial_dir.mkdir(exist_ok=True)
+        relaciones_dir.mkdir(exist_ok=True)
         if not oracle_json.exists():
             # `catalogo_base` NO es opcional en un proyecto nuevo, y es lo más importante que
             # escribe `init`. Sin él, el proyecto carga SÓLO sus propias medidas y se queda sin las
@@ -586,10 +595,11 @@ def cmd_init(ruta_str: str | None, argv: list[str]) -> int:
     print("  · catalogos/")
     print("  · corpus/")
     print("  · diferencial/")
+    print("  · relaciones/")
     print("  · oracle.json\n")
     print("Próximos pasos:")
-    print("  1. Creá una medida:  oracle nueva <dominio.nombre>")
-    print("  2. Creá un caso:     oracle caso <grupo/id>")
+    print("  1. Creá un caso:     oracle caso <grupo/id>")
+    print("  2. Creá una medida:  oracle nueva <dominio.nombre>")
     print("  3. Verificá todo:    oracle test")
     return 0
 
@@ -766,10 +776,17 @@ def _veredicto_verde(*, todo: bool, omisiones: list[str]) -> None:
         print("VEREDICTO: VERDE (todas las verificaciones aplicables en regla)")
 
 
-def _alcance_test() -> None:
+def _alcance_test(*, todo: bool, propio_oracle: bool) -> None:
     print("ALCANCE: verificación de medidas contra casos guardados del corpus.")
     print("PRODUCTO: sin nueva medición; la aceptación no reejecuta los comandos de origen "
           "ni el producto. El resultado no certifica su estado actual.")
+    if todo and propio_oracle:
+        from tools.mutar_codigo import alcance_del_perfil
+        for directorio, datos in alcance_del_perfil().items():
+            print(f"MUTACIÓN DE CÓDIGO — {directorio}/: "
+                  f"{len(datos['fuera'])} de {datos['total']} módulos fuera del perfil")
+            for ruta, razon in datos["fuera"].items():
+                print(f"  · {ruta}: {razon}")
 
 
 def cmd_test(proy: Proyecto, argv: list[str]) -> int:
@@ -796,6 +813,20 @@ def cmd_test(proy: Proyecto, argv: list[str]) -> int:
 
     from nucleo.proyecto import relaciones_del_proyecto
 
+    casos_archivos = rutas_de_corpus(proy.corpus)
+    andamios = []
+    for ruta in casos_archivos:
+        try:
+            if es_andamio(ruta):
+                andamios.append(ruta)
+        except (OSError, UnicodeError):
+            continue  # corpus.verificar informará el archivo ilegible
+    if andamios:
+        print(f"ANDAMIO ✗ — {len(andamios)} caso(s) con evidencia por completar:")
+        for ruta in andamios:
+            print(f"  · {presentar_ruta(proy, ruta)}")
+        print()
+
     try:
         relaciones_del_proyecto(proy)
         macros = macros_del_proyecto(proy)
@@ -813,9 +844,10 @@ def cmd_test(proy: Proyecto, argv: list[str]) -> int:
         print("\nVEREDICTO: ROJO (catálogo no pudo cargarse)")
         return 1
 
-    casos_archivos = rutas_de_corpus(proy.corpus)
     rutas_diferencial = sorted(proy.diferencial.glob("*.json"))
     fallas_suite: list[str] = []
+    if andamios:
+        fallas_suite.append("casos de andamio")
     omisiones_veredicto: list[str] = []
 
     # 0. Tests unitarios de Oracle
@@ -862,6 +894,28 @@ def cmd_test(proy: Proyecto, argv: list[str]) -> int:
     else:
         print(f"CORPUS OK · {len(cargados_casos)} casos · esquema, evidencia L0 y trazabilidad en regla")
     print()
+
+    # La cobertura de medidas propias es un requisito aun en --rapido y sin catálogo base.
+    # Los fixtures diferenciales también cuentan como casos para la mutación.
+    try:
+        with escalares_del_proyecto(proy, confiar=confiar):
+            casos_de_uso = mutar.casos(proy, catalogo)
+        heredadas = (set(cargar_catalogo(catalogos_base_a_cargar(proy), macros=macros))
+                     if not proy.es_el_propio_oracle else set())
+        uso = hechos_de_uso(catalogo, casos_de_uso,
+                           evaluadas_aparte=mutar.evaluadas_en_otro_arnes(catalogo),
+                           heredadas=heredadas)["medida_en_uso"]
+        sin_casos = [m["id"] for m in uso
+                     if m["debe_tener_mutantes"] and m["casos_que_la_evaluan"] == 0]
+        if sin_casos:
+            print(f"MEDIDAS SIN CASOS ✗ — {len(sin_casos)} medida(s) propias sin ejercitar:")
+            for mid in sin_casos:
+                print(f"  · {mid}: escribí un caso rojo y uno verde que ejerzan esta medida")
+            fallas_suite.append("medidas sin casos")
+            print()
+    except ValueError:
+        # La ronda diferencial informará los fixtures inválidos con su diagnóstico preciso.
+        pass
 
     # 2. Sintaxis
     if not any((catalogo, casos_archivos)):
@@ -996,7 +1050,7 @@ def cmd_test(proy: Proyecto, argv: list[str]) -> int:
     print()
 
     # Veredicto final
-    _alcance_test()
+    _alcance_test(todo=todo, propio_oracle=proy.es_el_propio_oracle)
     if fallas_suite:
         if omisiones_veredicto:
             print(f"OMISIONES: {'; '.join(omisiones_veredicto)}")
@@ -1083,6 +1137,9 @@ def main(argv: list[str] | None = None) -> int:
     # `resto` ya excluye `--proyecto <ruta>` mediante sin_banderas_comunes.
     # Estos verbos reciben una ruta posicional: la ayuda debe resolverse antes de usarla.
     if "-h" in resto or "--help" in resto:
+        if subcomando == "test" or (subcomando == "proyecto" and resto[0] == "test"):
+            print("Uso: oracle test [--rapido|--todo] [--proyecto <ruta>]")
+            return 0
         if subcomando == "init":
             ayuda()
             return 0
@@ -1092,10 +1149,12 @@ def main(argv: list[str] | None = None) -> int:
         if subcomando == "biblioteca" and resto[0] in ("nueva", "verificar", "listar"):
             ayuda_biblioteca()
             return 0
-        if subcomando == "medida" and resto[0] in ("revisar", "probar", "expandir"):
+        # Todo verbo de `medida` y `caso` toma un id posicional: `--help` no puede terminar leído
+        # como id (`oracle nueva --help` decía «id inválido»).
+        if subcomando in ("medida", "nueva", "--nueva"):
             ayuda_medida()
             return 0
-        if subcomando == "caso" and resto[0] == "nuevo":
+        if subcomando in ("caso", "--caso", "--nuevo"):
             ayuda_caso()
             return 0
         if subcomando in ("revisar", "expandir", "convertir"):
