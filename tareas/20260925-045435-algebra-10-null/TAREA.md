@@ -22,3 +22,7 @@ Volver a medir con el núcleo nuevo antes de subir el pin, cuando Oracle publiqu
 ## Próximo paso
 
 Leer los escenarios `sin_suelo` y decidir la forma.
+
+### Nota (2026-09-25 12:12:40 UTC)
+
+2026-09-25, Brian delegó en Claude: el null de los fixtures de física se modela explícito con un bool más su medibilidad (por ejemplo tiene_suelo más tiene_suelo_medible); cuando no se pudo medir, valor = false y *_medible = false, y las medidas filtran por *_medible. Oracle 0.31.0 publica el álgebra 1.0; Jam sigue fijado en 0.30.0 hasta migrar fixtures y medidas y medir en verde.
