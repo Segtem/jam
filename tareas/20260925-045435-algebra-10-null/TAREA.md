@@ -1,6 +1,6 @@
 # Oracle álgebra 1.0 rechaza null: los fixtures de física lo usan en tiene_suelo, apoyado y tanda_completa
 
-- ESTADO: ABIERTA
+- ESTADO: CERRADA
 - PRIORIDAD: 80
 - ETIQUETAS: oracle, fisica
 
