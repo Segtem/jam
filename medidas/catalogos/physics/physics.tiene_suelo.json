@@ -3,7 +3,7 @@
   "physics.tiene_suelo",
   "asentamiento",
   "a",
-  ["==", ["campo", "a", "tiene_suelo"], false],
+  ["o", ["==", ["campo", "a", "tiene_suelo_medible"], false], ["==", ["campo", "a", "tiene_suelo"], false]],
   "soltar sin encontrar ningún soporte debajo no completa la operación: la pieza queda donde nació o caería al vacío",
   "sin_declarar",
   "universal",

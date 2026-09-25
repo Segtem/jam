@@ -3,7 +3,7 @@
   "physics.tanda_completa",
   "asentada",
   "a",
-  ["==", ["campo", "a", "apoyada"], false],
+  ["o", ["==", ["campo", "a", "apoyada_medible"], false], ["==", ["campo", "a", "apoyada"], false]],
   "cero piezas sin soporte: un drop parcial no puede quedar verde aunque otra pieza sí haya aterrizado",
   "sin_declarar",
   "universal",

@@ -7,8 +7,8 @@
   "sombra": {
     "meta.toda_cantidad_comparada_tiene_unidad_derivable": {
       "desde": "2026-09-01",
-      "porque": "54 comparaciones sin unidad derivable sobre 41 archivos de catálogo; declarar los campos en relaciones/ es trabajo por relación y no entra en el commit de la migración Medido el 2026-09-16: hoy son 54, y ésa es la cota: la sombra apaga la consecuencia, no la medición, y sin cota la deuda podía crecer sin que nada fallara. Si sube, la corrida vuelve a ponerse roja. El 2026-09-22 bajó a 51 al declarar vecina y asentamiento (tarea 20260921-214213-relaciones-colocacion).",
-      "cota": 51
+      "porque": "54 comparaciones sin unidad derivable sobre 41 archivos de catálogo; declarar los campos en relaciones/ es trabajo por relación. El 2026-09-22 bajó a 51 al declarar vecina y asentamiento (tarea 20260921-214213-relaciones-colocacion). El 2026-09-25 bajó a 49 al declarar asentada para la migración de null a medibilidad explícita. Esta cota impide que la deuda vuelva a crecer en silencio.",
+      "cota": 49
     },
     "meta.todo_umbral_declara_de_donde_sale": {
       "desde": "2026-09-01",
@@ -17,8 +17,8 @@
     },
     "meta.la_medida_no_se_fija_solo_con_evidencia_fabricada": {
       "desde": "2026-09-01",
-      "porque": "9 medidas fijadas sólo con evidencia construida; se cierran transcribiendo corridas reales de las sondas contra JamPlayground, que necesita el editor abierto Medido el 2026-09-16: hoy son 16, y ésa es la cota: la sombra apaga la consecuencia, no la medición, y sin cota la deuda podía crecer sin que nada fallara. Si sube, la corrida vuelve a ponerse roja.",
-      "cota": 16
+      "porque": "9 medidas fijadas sólo con evidencia construida; se cierran transcribiendo corridas reales de las sondas contra JamPlayground, que necesita el editor abierto. El 2026-09-16 eran 16. El 2026-09-25 son 18: los casos nuevos de evidencia contradictoria de física no pueden salir de una sonda sana y se construyeron para probar el fallo cerrado ante un emisor defectuoso. La cota sigue vigilando que no crezca sin explicación.",
+      "cota": 18
     }
   }
 }

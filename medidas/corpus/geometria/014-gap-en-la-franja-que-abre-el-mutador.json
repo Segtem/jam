@@ -17,7 +17,9 @@
       {
         "pieza": "caja",
         "tiene_suelo": true,
+        "tiene_suelo_medible": true,
         "gap": 1.5,
+        "gap_medible": true,
         "soporte": "mesa"
       }
     ]

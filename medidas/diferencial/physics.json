@@ -7,9 +7,12 @@
     "asentamiento": [
      {
       "gap": 0.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -35,9 +38,12 @@
     "asentamiento": [
      {
       "gap": 0.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -63,9 +69,12 @@
     "asentamiento": [
      {
       "gap": 0.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -91,9 +100,12 @@
     "asentamiento": [
      {
       "gap": 0.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -119,9 +131,12 @@
     "asentamiento": [
      {
       "gap": 0.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -147,9 +162,12 @@
     "asentamiento": [
      {
       "gap": 0.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -175,9 +193,12 @@
     "asentamiento": [
      {
       "gap": 0.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -203,9 +224,12 @@
     "asentamiento": [
      {
       "gap": 0.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -231,9 +255,12 @@
     "asentamiento": [
      {
       "gap": 0.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -259,9 +286,12 @@
     "asentamiento": [
      {
       "gap": 0.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -287,9 +317,12 @@
     "asentamiento": [
      {
       "gap": 0.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -315,9 +348,12 @@
     "asentamiento": [
      {
       "gap": 0.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -343,9 +379,12 @@
     "asentamiento": [
      {
       "gap": 0.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -371,9 +410,12 @@
     "asentamiento": [
      {
       "gap": 0.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -399,9 +441,12 @@
     "asentamiento": [
      {
       "gap": 0.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -427,9 +472,12 @@
     "asentamiento": [
      {
       "gap": 0.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -455,9 +503,12 @@
     "asentamiento": [
      {
       "gap": 0.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -483,9 +534,12 @@
     "asentamiento": [
      {
       "gap": 0.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -511,9 +565,12 @@
     "asentamiento": [
      {
       "gap": 0.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -539,9 +596,12 @@
     "asentamiento": [
      {
       "gap": 0.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -566,10 +626,13 @@
    "evidencia": {
     "asentamiento": [
      {
-      "gap": null,
+      "gap": 0.0,
+      "gap_medible": false,
       "pieza": "sujeto",
-      "soporte": null,
-      "tiene_suelo": false
+      "soporte": "",
+      "soporte_medible": false,
+      "tiene_suelo": false,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -578,8 +641,8 @@
     "global_ok": false,
     "por_medida": {
      "physics.apoyado": {
-      "ok": true,
-      "valor": 0
+      "ok": false,
+      "valor": 1
      },
      "physics.tiene_suelo": {
       "ok": false,
@@ -594,10 +657,13 @@
    "evidencia": {
     "asentamiento": [
      {
-      "gap": null,
+      "gap": 0.0,
+      "gap_medible": false,
       "pieza": "sujeto",
-      "soporte": null,
-      "tiene_suelo": false
+      "soporte": "",
+      "soporte_medible": false,
+      "tiene_suelo": false,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -606,8 +672,8 @@
     "global_ok": false,
     "por_medida": {
      "physics.apoyado": {
-      "ok": true,
-      "valor": 0
+      "ok": false,
+      "valor": 1
      },
      "physics.tiene_suelo": {
       "ok": false,
@@ -622,10 +688,13 @@
    "evidencia": {
     "asentamiento": [
      {
-      "gap": null,
+      "gap": 0.0,
+      "gap_medible": false,
       "pieza": "sujeto",
-      "soporte": null,
-      "tiene_suelo": false
+      "soporte": "",
+      "soporte_medible": false,
+      "tiene_suelo": false,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -634,8 +703,8 @@
     "global_ok": false,
     "por_medida": {
      "physics.apoyado": {
-      "ok": true,
-      "valor": 0
+      "ok": false,
+      "valor": 1
      },
      "physics.tiene_suelo": {
       "ok": false,
@@ -650,10 +719,13 @@
    "evidencia": {
     "asentamiento": [
      {
-      "gap": null,
+      "gap": 0.0,
+      "gap_medible": false,
       "pieza": "sujeto",
-      "soporte": null,
-      "tiene_suelo": false
+      "soporte": "",
+      "soporte_medible": false,
+      "tiene_suelo": false,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -662,8 +734,8 @@
     "global_ok": false,
     "por_medida": {
      "physics.apoyado": {
-      "ok": true,
-      "valor": 0
+      "ok": false,
+      "valor": 1
      },
      "physics.tiene_suelo": {
       "ok": false,
@@ -678,10 +750,13 @@
    "evidencia": {
     "asentamiento": [
      {
-      "gap": null,
+      "gap": 0.0,
+      "gap_medible": false,
       "pieza": "sujeto",
-      "soporte": null,
-      "tiene_suelo": false
+      "soporte": "",
+      "soporte_medible": false,
+      "tiene_suelo": false,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -690,8 +765,8 @@
     "global_ok": false,
     "por_medida": {
      "physics.apoyado": {
-      "ok": true,
-      "valor": 0
+      "ok": false,
+      "valor": 1
      },
      "physics.tiene_suelo": {
       "ok": false,
@@ -706,10 +781,13 @@
    "evidencia": {
     "asentamiento": [
      {
-      "gap": null,
+      "gap": 0.0,
+      "gap_medible": false,
       "pieza": "sujeto",
-      "soporte": null,
-      "tiene_suelo": false
+      "soporte": "",
+      "soporte_medible": false,
+      "tiene_suelo": false,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -718,8 +796,8 @@
     "global_ok": false,
     "por_medida": {
      "physics.apoyado": {
-      "ok": true,
-      "valor": 0
+      "ok": false,
+      "valor": 1
      },
      "physics.tiene_suelo": {
       "ok": false,
@@ -734,10 +812,13 @@
    "evidencia": {
     "asentamiento": [
      {
-      "gap": null,
+      "gap": 0.0,
+      "gap_medible": false,
       "pieza": "sujeto",
-      "soporte": null,
-      "tiene_suelo": false
+      "soporte": "",
+      "soporte_medible": false,
+      "tiene_suelo": false,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -746,8 +827,8 @@
     "global_ok": false,
     "por_medida": {
      "physics.apoyado": {
-      "ok": true,
-      "valor": 0
+      "ok": false,
+      "valor": 1
      },
      "physics.tiene_suelo": {
       "ok": false,
@@ -762,10 +843,13 @@
    "evidencia": {
     "asentamiento": [
      {
-      "gap": null,
+      "gap": 0.0,
+      "gap_medible": false,
       "pieza": "sujeto",
-      "soporte": null,
-      "tiene_suelo": false
+      "soporte": "",
+      "soporte_medible": false,
+      "tiene_suelo": false,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -774,8 +858,8 @@
     "global_ok": false,
     "por_medida": {
      "physics.apoyado": {
-      "ok": true,
-      "valor": 0
+      "ok": false,
+      "valor": 1
      },
      "physics.tiene_suelo": {
       "ok": false,
@@ -790,10 +874,13 @@
    "evidencia": {
     "asentamiento": [
      {
-      "gap": null,
+      "gap": 0.0,
+      "gap_medible": false,
       "pieza": "sujeto",
-      "soporte": null,
-      "tiene_suelo": false
+      "soporte": "",
+      "soporte_medible": false,
+      "tiene_suelo": false,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -802,8 +889,8 @@
     "global_ok": false,
     "por_medida": {
      "physics.apoyado": {
-      "ok": true,
-      "valor": 0
+      "ok": false,
+      "valor": 1
      },
      "physics.tiene_suelo": {
       "ok": false,
@@ -818,10 +905,13 @@
    "evidencia": {
     "asentamiento": [
      {
-      "gap": null,
+      "gap": 0.0,
+      "gap_medible": false,
       "pieza": "sujeto",
-      "soporte": null,
-      "tiene_suelo": false
+      "soporte": "",
+      "soporte_medible": false,
+      "tiene_suelo": false,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -830,8 +920,8 @@
     "global_ok": false,
     "por_medida": {
      "physics.apoyado": {
-      "ok": true,
-      "valor": 0
+      "ok": false,
+      "valor": 1
      },
      "physics.tiene_suelo": {
       "ok": false,
@@ -846,10 +936,13 @@
    "evidencia": {
     "asentamiento": [
      {
-      "gap": null,
+      "gap": 0.0,
+      "gap_medible": false,
       "pieza": "sujeto",
-      "soporte": null,
-      "tiene_suelo": false
+      "soporte": "",
+      "soporte_medible": false,
+      "tiene_suelo": false,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -858,8 +951,8 @@
     "global_ok": false,
     "por_medida": {
      "physics.apoyado": {
-      "ok": true,
-      "valor": 0
+      "ok": false,
+      "valor": 1
      },
      "physics.tiene_suelo": {
       "ok": false,
@@ -874,10 +967,13 @@
    "evidencia": {
     "asentamiento": [
      {
-      "gap": null,
+      "gap": 0.0,
+      "gap_medible": false,
       "pieza": "sujeto",
-      "soporte": null,
-      "tiene_suelo": false
+      "soporte": "",
+      "soporte_medible": false,
+      "tiene_suelo": false,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -886,8 +982,8 @@
     "global_ok": false,
     "por_medida": {
      "physics.apoyado": {
-      "ok": true,
-      "valor": 0
+      "ok": false,
+      "valor": 1
      },
      "physics.tiene_suelo": {
       "ok": false,
@@ -902,10 +998,13 @@
    "evidencia": {
     "asentamiento": [
      {
-      "gap": null,
+      "gap": 0.0,
+      "gap_medible": false,
       "pieza": "sujeto",
-      "soporte": null,
-      "tiene_suelo": false
+      "soporte": "",
+      "soporte_medible": false,
+      "tiene_suelo": false,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -914,8 +1013,8 @@
     "global_ok": false,
     "por_medida": {
      "physics.apoyado": {
-      "ok": true,
-      "valor": 0
+      "ok": false,
+      "valor": 1
      },
      "physics.tiene_suelo": {
       "ok": false,
@@ -930,10 +1029,13 @@
    "evidencia": {
     "asentamiento": [
      {
-      "gap": null,
+      "gap": 0.0,
+      "gap_medible": false,
       "pieza": "sujeto",
-      "soporte": null,
-      "tiene_suelo": false
+      "soporte": "",
+      "soporte_medible": false,
+      "tiene_suelo": false,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -942,8 +1044,8 @@
     "global_ok": false,
     "por_medida": {
      "physics.apoyado": {
-      "ok": true,
-      "valor": 0
+      "ok": false,
+      "valor": 1
      },
      "physics.tiene_suelo": {
       "ok": false,
@@ -958,10 +1060,13 @@
    "evidencia": {
     "asentamiento": [
      {
-      "gap": null,
+      "gap": 0.0,
+      "gap_medible": false,
       "pieza": "sujeto",
-      "soporte": null,
-      "tiene_suelo": false
+      "soporte": "",
+      "soporte_medible": false,
+      "tiene_suelo": false,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -970,8 +1075,8 @@
     "global_ok": false,
     "por_medida": {
      "physics.apoyado": {
-      "ok": true,
-      "valor": 0
+      "ok": false,
+      "valor": 1
      },
      "physics.tiene_suelo": {
       "ok": false,
@@ -986,10 +1091,13 @@
    "evidencia": {
     "asentamiento": [
      {
-      "gap": null,
+      "gap": 0.0,
+      "gap_medible": false,
       "pieza": "sujeto",
-      "soporte": null,
-      "tiene_suelo": false
+      "soporte": "",
+      "soporte_medible": false,
+      "tiene_suelo": false,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -998,8 +1106,8 @@
     "global_ok": false,
     "por_medida": {
      "physics.apoyado": {
-      "ok": true,
-      "valor": 0
+      "ok": false,
+      "valor": 1
      },
      "physics.tiene_suelo": {
       "ok": false,
@@ -1014,10 +1122,13 @@
    "evidencia": {
     "asentamiento": [
      {
-      "gap": null,
+      "gap": 0.0,
+      "gap_medible": false,
       "pieza": "sujeto",
-      "soporte": null,
-      "tiene_suelo": false
+      "soporte": "",
+      "soporte_medible": false,
+      "tiene_suelo": false,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1026,8 +1137,8 @@
     "global_ok": false,
     "por_medida": {
      "physics.apoyado": {
-      "ok": true,
-      "valor": 0
+      "ok": false,
+      "valor": 1
      },
      "physics.tiene_suelo": {
       "ok": false,
@@ -1042,10 +1153,13 @@
    "evidencia": {
     "asentamiento": [
      {
-      "gap": null,
+      "gap": 0.0,
+      "gap_medible": false,
       "pieza": "sujeto",
-      "soporte": null,
-      "tiene_suelo": false
+      "soporte": "",
+      "soporte_medible": false,
+      "tiene_suelo": false,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1054,8 +1168,8 @@
     "global_ok": false,
     "por_medida": {
      "physics.apoyado": {
-      "ok": true,
-      "valor": 0
+      "ok": false,
+      "valor": 1
      },
      "physics.tiene_suelo": {
       "ok": false,
@@ -1070,10 +1184,13 @@
    "evidencia": {
     "asentamiento": [
      {
-      "gap": null,
+      "gap": 0.0,
+      "gap_medible": false,
       "pieza": "sujeto",
-      "soporte": null,
-      "tiene_suelo": false
+      "soporte": "",
+      "soporte_medible": false,
+      "tiene_suelo": false,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1082,8 +1199,8 @@
     "global_ok": false,
     "por_medida": {
      "physics.apoyado": {
-      "ok": true,
-      "valor": 0
+      "ok": false,
+      "valor": 1
      },
      "physics.tiene_suelo": {
       "ok": false,
@@ -1098,10 +1215,13 @@
    "evidencia": {
     "asentamiento": [
      {
-      "gap": null,
+      "gap": 0.0,
+      "gap_medible": false,
       "pieza": "sujeto",
-      "soporte": null,
-      "tiene_suelo": false
+      "soporte": "",
+      "soporte_medible": false,
+      "tiene_suelo": false,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1110,8 +1230,8 @@
     "global_ok": false,
     "por_medida": {
      "physics.apoyado": {
-      "ok": true,
-      "valor": 0
+      "ok": false,
+      "valor": 1
      },
      "physics.tiene_suelo": {
       "ok": false,
@@ -1127,9 +1247,12 @@
     "asentamiento": [
      {
       "gap": 25.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1155,9 +1278,12 @@
     "asentamiento": [
      {
       "gap": 25.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1183,9 +1309,12 @@
     "asentamiento": [
      {
       "gap": 25.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1211,9 +1340,12 @@
     "asentamiento": [
      {
       "gap": 25.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1239,9 +1371,12 @@
     "asentamiento": [
      {
       "gap": 25.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1267,9 +1402,12 @@
     "asentamiento": [
      {
       "gap": 25.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1295,9 +1433,12 @@
     "asentamiento": [
      {
       "gap": 25.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1323,9 +1464,12 @@
     "asentamiento": [
      {
       "gap": 25.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1351,9 +1495,12 @@
     "asentamiento": [
      {
       "gap": 25.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1379,9 +1526,12 @@
     "asentamiento": [
      {
       "gap": 25.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1407,9 +1557,12 @@
     "asentamiento": [
      {
       "gap": 25.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1435,9 +1588,12 @@
     "asentamiento": [
      {
       "gap": 25.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1463,9 +1619,12 @@
     "asentamiento": [
      {
       "gap": 25.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1491,9 +1650,12 @@
     "asentamiento": [
      {
       "gap": 25.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1519,9 +1681,12 @@
     "asentamiento": [
      {
       "gap": 25.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1547,9 +1712,12 @@
     "asentamiento": [
      {
       "gap": 25.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1575,9 +1743,12 @@
     "asentamiento": [
      {
       "gap": 25.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1603,9 +1774,12 @@
     "asentamiento": [
      {
       "gap": 25.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1631,9 +1805,12 @@
     "asentamiento": [
      {
       "gap": 25.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1659,9 +1836,12 @@
     "asentamiento": [
      {
       "gap": 25.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1687,9 +1867,12 @@
     "asentamiento": [
      {
       "gap": -15.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1715,9 +1898,12 @@
     "asentamiento": [
      {
       "gap": -15.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1743,9 +1929,12 @@
     "asentamiento": [
      {
       "gap": -15.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1771,9 +1960,12 @@
     "asentamiento": [
      {
       "gap": -15.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1799,9 +1991,12 @@
     "asentamiento": [
      {
       "gap": -15.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1827,9 +2022,12 @@
     "asentamiento": [
      {
       "gap": -15.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1855,9 +2053,12 @@
     "asentamiento": [
      {
       "gap": -15.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1883,9 +2084,12 @@
     "asentamiento": [
      {
       "gap": -15.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1911,9 +2115,12 @@
     "asentamiento": [
      {
       "gap": -15.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1939,9 +2146,12 @@
     "asentamiento": [
      {
       "gap": -15.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1967,9 +2177,12 @@
     "asentamiento": [
      {
       "gap": -15.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -1995,9 +2208,12 @@
     "asentamiento": [
      {
       "gap": -15.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -2023,9 +2239,12 @@
     "asentamiento": [
      {
       "gap": -15.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -2051,9 +2270,12 @@
     "asentamiento": [
      {
       "gap": -15.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -2079,9 +2301,12 @@
     "asentamiento": [
      {
       "gap": -15.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -2107,9 +2332,12 @@
     "asentamiento": [
      {
       "gap": -15.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -2135,9 +2363,12 @@
     "asentamiento": [
      {
       "gap": -15.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -2163,9 +2394,12 @@
     "asentamiento": [
      {
       "gap": -15.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -2191,9 +2425,12 @@
     "asentamiento": [
      {
       "gap": -15.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -2219,9 +2456,12 @@
     "asentamiento": [
      {
       "gap": -15.0,
+      "gap_medible": true,
       "pieza": "sujeto",
       "soporte": "piso",
-      "tiene_suelo": true
+      "soporte_medible": true,
+      "tiene_suelo": true,
+      "tiene_suelo_medible": true
      }
     ]
    },
@@ -2268,9 +2508,9 @@
    ]
   },
   "huellas": {
-   "catalogo": "7d9098302dbb120d31283fd96a14717dd67beeb812fc57f2b2bc429a10d30678",
+   "catalogo": "89e2073b2e4b991072b1b35db4f8f92ef80421c0c193cc92a8b5ac0c9ea6abc9",
    "configuracion": "ad0e4157309c814e793aa25876da24cd310055de43c1540f0ca23797e43728a9",
-   "emisor": "7542f52e6aefb1c53e92bf1275f0e821e3b23615b5ca0b934d916dd915dc37a1",
+   "emisor": "2e161430afa91316be3ee24a3039c4be5e5614f97b34a14584d9e59824791108",
    "referencia": "7a2e7926f2118a4b45c6c8f18557a015818e0f3e91b5b859bde8c69c2698c462"
   },
   "raiz_fuentes": ".."

@@ -15,7 +15,9 @@
       {
         "pieza": "sujeto",
         "tiene_suelo": true,
+        "tiene_suelo_medible": true,
         "gap": 0.0,
+        "gap_medible": true,
         "soporte": "piso"
       }
     ]

@@ -23,9 +23,21 @@
     ],
     [
       "campo",
+      "tiene_suelo_medible",
+      "booleano",
+      "sin_unidad"
+    ],
+    [
+      "campo",
       "gap",
       "flotante",
       "cm"
+    ],
+    [
+      "campo",
+      "gap_medible",
+      "booleano",
+      "sin_unidad"
     ]
   ],
   [

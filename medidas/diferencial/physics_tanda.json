@@ -7,6 +7,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -19,10 +20,12 @@
       "oz": -4033.197971728492,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -35,10 +38,12 @@
       "oz": -3983.197971728492,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -51,6 +56,7 @@
       "oz": -3933.197971728492,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -77,6 +83,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -89,10 +96,12 @@
       "oz": -48108.853247711544,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -105,10 +114,12 @@
       "oz": -48058.853247711544,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -121,6 +132,7 @@
       "oz": -48008.853247711544,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -147,6 +159,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -159,10 +172,12 @@
       "oz": 12960.045342665384,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -175,10 +190,12 @@
       "oz": 13010.045342665384,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -191,6 +208,7 @@
       "oz": 13060.045342665384,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -217,6 +235,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -229,10 +248,12 @@
       "oz": 23112.993865259938,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -245,10 +266,12 @@
       "oz": 23162.993865259938,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -261,6 +284,7 @@
       "oz": 23212.993865259938,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -287,6 +311,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -299,10 +324,12 @@
       "oz": -2313.699462964403,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -315,10 +342,12 @@
       "oz": -2263.699462964403,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -331,6 +360,7 @@
       "oz": -2213.699462964403,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -357,6 +387,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -369,10 +400,12 @@
       "oz": 37758.22751384815,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -385,10 +418,12 @@
       "oz": 37808.22751384815,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -401,6 +436,7 @@
       "oz": 37858.22751384815,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -427,6 +463,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -439,10 +476,12 @@
       "oz": 42842.532789399964,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -455,10 +494,12 @@
       "oz": 42892.532789399964,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -471,6 +512,7 @@
       "oz": 42942.532789399964,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -497,6 +539,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -509,10 +552,12 @@
       "oz": -26127.884942129484,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -525,10 +570,12 @@
       "oz": -26077.884942129484,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -541,6 +588,7 @@
       "oz": -26027.884942129484,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -567,6 +615,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -579,10 +628,12 @@
       "oz": 846.5767601724074,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -595,10 +646,12 @@
       "oz": 896.5767601724074,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -611,6 +664,7 @@
       "oz": 946.5767601724074,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -637,6 +691,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -649,10 +704,12 @@
       "oz": 2509.602614783318,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -665,10 +722,12 @@
       "oz": 2559.602614783318,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -681,6 +740,7 @@
       "oz": 2609.602614783318,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -707,6 +767,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -719,10 +780,12 @@
       "oz": -7912.158170850969,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -735,10 +798,12 @@
       "oz": -7862.158170850969,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -751,6 +816,7 @@
       "oz": -7812.158170850969,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -777,6 +843,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -789,10 +856,12 @@
       "oz": -47517.33951330994,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -805,10 +874,12 @@
       "oz": -47467.33951330994,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -821,6 +892,7 @@
       "oz": -47417.33951330994,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -847,6 +919,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -859,10 +932,12 @@
       "oz": -10096.151130711027,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -875,10 +950,12 @@
       "oz": -10046.151130711027,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -891,6 +968,7 @@
       "oz": -9996.151130711027,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -917,6 +995,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -929,10 +1008,12 @@
       "oz": -900.3151958513627,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -945,10 +1026,12 @@
       "oz": -850.3151958513627,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -961,6 +1044,7 @@
       "oz": -800.3151958513627,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -987,6 +1071,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -999,10 +1084,12 @@
       "oz": 25620.46644230935,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1015,10 +1102,12 @@
       "oz": 25670.46644230935,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1031,6 +1120,7 @@
       "oz": 25720.46644230935,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -1057,6 +1147,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1069,10 +1160,12 @@
       "oz": 10945.958059614597,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1085,10 +1178,12 @@
       "oz": 10995.958059614597,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1101,6 +1196,7 @@
       "oz": 11045.958059614597,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -1127,6 +1223,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1139,10 +1236,12 @@
       "oz": 10379.291055140828,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1155,10 +1254,12 @@
       "oz": 10429.291055140828,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1171,6 +1272,7 @@
       "oz": 10479.291055140828,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -1197,6 +1299,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1209,10 +1312,12 @@
       "oz": -41338.66347052581,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1225,10 +1330,12 @@
       "oz": -41288.66347052581,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1241,6 +1348,7 @@
       "oz": -41238.66347052581,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -1267,6 +1375,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1279,10 +1388,12 @@
       "oz": -33242.81889935435,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1295,10 +1406,12 @@
       "oz": -33192.81889935435,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1311,6 +1424,7 @@
       "oz": -33142.81889935435,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -1337,6 +1451,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1349,10 +1464,12 @@
       "oz": -39831.58920345158,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1365,10 +1482,12 @@
       "oz": -39781.58920345158,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1381,6 +1500,7 @@
       "oz": -39731.58920345158,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -1407,6 +1527,7 @@
     "asentada": [
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1418,11 +1539,13 @@
       "oy": -1056.395316577211,
       "oz": -47115.27789871378,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1434,11 +1557,13 @@
       "oy": -1056.395316577211,
       "oz": -47115.27789871378,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1450,7 +1575,8 @@
       "oy": -1056.395316577211,
       "oz": -47115.27789871378,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -1477,6 +1603,7 @@
     "asentada": [
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1488,11 +1615,13 @@
       "oy": -36874.16854724923,
       "oz": 9807.468015695653,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1504,11 +1633,13 @@
       "oy": -36874.16854724923,
       "oz": 9807.468015695653,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1520,7 +1651,8 @@
       "oy": -36874.16854724923,
       "oz": 9807.468015695653,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -1547,6 +1679,7 @@
     "asentada": [
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1558,11 +1691,13 @@
       "oy": 13003.946186646652,
       "oz": 12645.638872123454,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1574,11 +1709,13 @@
       "oy": 13003.946186646652,
       "oz": 12645.638872123454,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1590,7 +1727,8 @@
       "oy": 13003.946186646652,
       "oz": 12645.638872123454,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -1617,6 +1755,7 @@
     "asentada": [
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1628,11 +1767,13 @@
       "oy": 46845.1016575206,
       "oz": -23025.318739305912,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1644,11 +1785,13 @@
       "oy": 46845.1016575206,
       "oz": -23025.318739305912,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1660,7 +1803,8 @@
       "oy": 46845.1016575206,
       "oz": -23025.318739305912,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -1687,6 +1831,7 @@
     "asentada": [
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1698,11 +1843,13 @@
       "oy": -36173.69552489081,
       "oz": 15339.923223907666,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1714,11 +1861,13 @@
       "oy": -36173.69552489081,
       "oz": 15339.923223907666,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1730,7 +1879,8 @@
       "oy": -36173.69552489081,
       "oz": 15339.923223907666,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -1757,6 +1907,7 @@
     "asentada": [
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1768,11 +1919,13 @@
       "oy": 25358.737619820386,
       "oz": 15802.564646559127,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1784,11 +1937,13 @@
       "oy": 25358.737619820386,
       "oz": 15802.564646559127,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1800,7 +1955,8 @@
       "oy": 25358.737619820386,
       "oz": 15802.564646559127,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -1827,6 +1983,7 @@
     "asentada": [
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1838,11 +1995,13 @@
       "oy": -20354.71576184308,
       "oz": -5136.458442418756,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1854,11 +2013,13 @@
       "oy": -20354.71576184308,
       "oz": -5136.458442418756,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1870,7 +2031,8 @@
       "oy": -20354.71576184308,
       "oz": -5136.458442418756,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -1897,6 +2059,7 @@
     "asentada": [
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1908,11 +2071,13 @@
       "oy": -28052.177776311404,
       "oz": 15430.01387852231,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1924,11 +2089,13 @@
       "oy": -28052.177776311404,
       "oz": 15430.01387852231,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1940,7 +2107,8 @@
       "oy": -28052.177776311404,
       "oz": 15430.01387852231,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -1967,6 +2135,7 @@
     "asentada": [
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1978,11 +2147,13 @@
       "oy": -39330.990027112246,
       "oz": 44654.69862448414,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -1994,11 +2165,13 @@
       "oy": -39330.990027112246,
       "oz": 44654.69862448414,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2010,7 +2183,8 @@
       "oy": -39330.990027112246,
       "oz": 44654.69862448414,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -2037,6 +2211,7 @@
     "asentada": [
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2048,11 +2223,13 @@
       "oy": 21321.381867339252,
       "oz": 6876.4173039521775,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2064,11 +2241,13 @@
       "oy": 21321.381867339252,
       "oz": 6876.4173039521775,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2080,7 +2259,8 @@
       "oy": 21321.381867339252,
       "oz": 6876.4173039521775,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -2107,6 +2287,7 @@
     "asentada": [
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2118,11 +2299,13 @@
       "oy": 18059.20151370793,
       "oz": -8138.757579838741,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2134,11 +2317,13 @@
       "oy": 18059.20151370793,
       "oz": -8138.757579838741,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2150,7 +2335,8 @@
       "oy": 18059.20151370793,
       "oz": -8138.757579838741,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -2177,6 +2363,7 @@
     "asentada": [
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2188,11 +2375,13 @@
       "oy": 3083.1198417433334,
       "oz": -6649.161628751463,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2204,11 +2393,13 @@
       "oy": 3083.1198417433334,
       "oz": -6649.161628751463,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2220,7 +2411,8 @@
       "oy": 3083.1198417433334,
       "oz": -6649.161628751463,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -2247,6 +2439,7 @@
     "asentada": [
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2258,11 +2451,13 @@
       "oy": 454.85894702527,
       "oz": -2521.579152082879,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2274,11 +2469,13 @@
       "oy": 454.85894702527,
       "oz": -2521.579152082879,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2290,7 +2487,8 @@
       "oy": 454.85894702527,
       "oz": -2521.579152082879,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -2317,6 +2515,7 @@
     "asentada": [
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2328,11 +2527,13 @@
       "oy": -14116.176223820243,
       "oz": -9802.9670642813,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2344,11 +2545,13 @@
       "oy": -14116.176223820243,
       "oz": -9802.9670642813,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2360,7 +2563,8 @@
       "oy": -14116.176223820243,
       "oz": -9802.9670642813,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -2387,6 +2591,7 @@
     "asentada": [
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2398,11 +2603,13 @@
       "oy": -44237.54242008396,
       "oz": -12188.370066594733,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2414,11 +2621,13 @@
       "oy": -44237.54242008396,
       "oz": -12188.370066594733,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2430,7 +2639,8 @@
       "oy": -44237.54242008396,
       "oz": -12188.370066594733,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -2457,6 +2667,7 @@
     "asentada": [
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2468,11 +2679,13 @@
       "oy": 14157.251645841476,
       "oz": 16745.748029708368,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2484,11 +2697,13 @@
       "oy": 14157.251645841476,
       "oz": 16745.748029708368,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2500,7 +2715,8 @@
       "oy": 14157.251645841476,
       "oz": 16745.748029708368,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -2527,6 +2743,7 @@
     "asentada": [
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2538,11 +2755,13 @@
       "oy": 5313.022282589438,
       "oz": 39639.05831633654,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2554,11 +2773,13 @@
       "oy": 5313.022282589438,
       "oz": 39639.05831633654,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2570,7 +2791,8 @@
       "oy": 5313.022282589438,
       "oz": 39639.05831633654,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -2597,6 +2819,7 @@
     "asentada": [
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2608,11 +2831,13 @@
       "oy": 47955.72922775826,
       "oz": 47169.13933972464,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2624,11 +2849,13 @@
       "oy": 47955.72922775826,
       "oz": 47169.13933972464,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2640,7 +2867,8 @@
       "oy": 47955.72922775826,
       "oz": 47169.13933972464,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -2667,6 +2895,7 @@
     "asentada": [
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2678,11 +2907,13 @@
       "oy": -34612.5803236339,
       "oz": 22176.44621923259,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2694,11 +2925,13 @@
       "oy": -34612.5803236339,
       "oz": 22176.44621923259,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2710,7 +2943,8 @@
       "oy": -34612.5803236339,
       "oz": 22176.44621923259,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -2737,6 +2971,7 @@
     "asentada": [
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2748,11 +2983,13 @@
       "oy": 6407.659951944392,
       "oz": 14546.941428935148,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2764,11 +3001,13 @@
       "oy": 6407.659951944392,
       "oz": 14546.941428935148,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2780,7 +3019,8 @@
       "oy": 6407.659951944392,
       "oz": 14546.941428935148,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -2807,6 +3047,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2819,10 +3060,12 @@
       "oz": 32424.702731209807,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2834,7 +3077,8 @@
       "oy": 32374.8455891575,
       "oz": 32899.70273120981,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -2861,6 +3105,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2873,10 +3118,12 @@
       "oz": 35377.87407399969,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2888,7 +3135,8 @@
       "oy": 41107.60795048409,
       "oz": 35852.87407399969,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -2915,6 +3163,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2927,10 +3176,12 @@
       "oz": 24964.116305940144,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2942,7 +3193,8 @@
       "oy": -13974.655527415955,
       "oz": 25439.116305940144,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -2969,6 +3221,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2981,10 +3234,12 @@
       "oz": 39181.65608089596,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -2996,7 +3251,8 @@
       "oy": 40812.56613768934,
       "oz": 39656.65608089596,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -3023,6 +3279,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3035,10 +3292,12 @@
       "oz": 6978.406840272248,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3050,7 +3309,8 @@
       "oy": 29157.036039669954,
       "oz": 7453.406840272248,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -3077,6 +3337,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3089,10 +3350,12 @@
       "oz": 24456.813811642278,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3104,7 +3367,8 @@
       "oy": 40463.36491619324,
       "oz": 24931.813811642278,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -3131,6 +3395,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3143,10 +3408,12 @@
       "oz": -24289.949889555992,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3158,7 +3425,8 @@
       "oy": 12442.807850719451,
       "oz": -23814.949889555992,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -3185,6 +3453,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3197,10 +3466,12 @@
       "oz": -7312.78095921209,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3212,7 +3483,8 @@
       "oy": -21837.230823317066,
       "oz": -6837.78095921209,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -3239,6 +3511,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3251,10 +3524,12 @@
       "oz": 28232.15419552385,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3266,7 +3541,8 @@
       "oy": -48434.52716548119,
       "oz": 28707.15419552385,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -3293,6 +3569,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3305,10 +3582,12 @@
       "oz": -45690.32042718503,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3320,7 +3599,8 @@
       "oy": 1833.0349956445862,
       "oz": -45215.32042718503,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -3347,6 +3627,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3359,10 +3640,12 @@
       "oz": -21970.70042324588,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3374,7 +3657,8 @@
       "oy": 23121.45869070216,
       "oz": -21495.70042324588,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -3401,6 +3685,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3413,10 +3698,12 @@
       "oz": -8409.822443805846,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3428,7 +3715,8 @@
       "oy": -38089.52998117122,
       "oz": -7934.822443805846,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -3455,6 +3743,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3467,10 +3756,12 @@
       "oz": -20152.408003478347,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3482,7 +3773,8 @@
       "oy": -45074.05165649293,
       "oz": -19677.408003478347,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -3509,6 +3801,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3521,10 +3814,12 @@
       "oz": -12388.22247536185,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3536,7 +3831,8 @@
       "oy": -12817.12741945956,
       "oz": -11913.22247536185,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -3563,6 +3859,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3575,10 +3872,12 @@
       "oz": 23800.67621331061,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3590,7 +3889,8 @@
       "oy": 8490.601709052971,
       "oz": 24275.67621331061,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -3617,6 +3917,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3629,10 +3930,12 @@
       "oz": 7152.567893832485,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3644,7 +3947,8 @@
       "oy": 40340.48083971227,
       "oz": 7627.567893832485,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -3671,6 +3975,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3683,10 +3988,12 @@
       "oz": -2879.6706948701903,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3698,7 +4005,8 @@
       "oy": 15036.969559723868,
       "oz": -2404.6706948701903,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -3725,6 +4033,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3737,10 +4046,12 @@
       "oz": -28771.26892214989,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3752,7 +4063,8 @@
       "oy": -45363.481497456116,
       "oz": -28296.26892214989,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -3779,6 +4091,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3791,10 +4104,12 @@
       "oz": -4942.103072694823,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3806,7 +4121,8 @@
       "oy": -27314.20897201393,
       "oz": -4467.103072694823,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -3833,6 +4149,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3845,10 +4162,12 @@
       "oz": 26497.932511742634,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": false,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3860,7 +4179,8 @@
       "oy": -17291.646454284502,
       "oz": 26972.932511742634,
       "sobre_hermana": false,
-      "soporte": null,
+      "soporte": "",
+      "soporte_medible": false,
       "yaw": 0.0
      }
     ]
@@ -3887,6 +4207,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3899,10 +4220,12 @@
       "oz": 17106.098227737806,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3915,10 +4238,12 @@
       "oz": 17136.098227737806,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3931,6 +4256,7 @@
       "oz": 17206.098227737806,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -3957,6 +4283,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3969,10 +4296,12 @@
       "oz": 32443.516706405513,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -3985,10 +4314,12 @@
       "oz": 32473.516706405513,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4001,6 +4332,7 @@
       "oz": 32543.516706405513,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -4027,6 +4359,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4039,10 +4372,12 @@
       "oz": -32780.19976357915,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4055,10 +4390,12 @@
       "oz": -32750.19976357915,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4071,6 +4408,7 @@
       "oz": -32680.19976357915,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -4097,6 +4435,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4109,10 +4448,12 @@
       "oz": -12077.907533415688,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4125,10 +4466,12 @@
       "oz": -12047.907533415688,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4141,6 +4484,7 @@
       "oz": -11977.907533415688,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -4167,6 +4511,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4179,10 +4524,12 @@
       "oz": 42968.51959110507,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4195,10 +4542,12 @@
       "oz": 42998.51959110507,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4211,6 +4560,7 @@
       "oz": 43068.51959110507,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -4237,6 +4587,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4249,10 +4600,12 @@
       "oz": 46292.225187548465,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4265,10 +4618,12 @@
       "oz": 46322.225187548465,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4281,6 +4636,7 @@
       "oz": 46392.225187548465,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -4307,6 +4663,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4319,10 +4676,12 @@
       "oz": 43476.99046069957,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4335,10 +4694,12 @@
       "oz": 43506.99046069957,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4351,6 +4712,7 @@
       "oz": 43576.99046069957,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -4377,6 +4739,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4389,10 +4752,12 @@
       "oz": -18797.50630704967,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4405,10 +4770,12 @@
       "oz": -18767.50630704967,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4421,6 +4788,7 @@
       "oz": -18697.50630704967,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -4447,6 +4815,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4459,10 +4828,12 @@
       "oz": -32498.497036271598,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4475,10 +4846,12 @@
       "oz": -32468.497036271598,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4491,6 +4864,7 @@
       "oz": -32398.497036271598,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -4517,6 +4891,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4529,10 +4904,12 @@
       "oz": -16550.000995118142,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4545,10 +4922,12 @@
       "oz": -16520.000995118142,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4561,6 +4940,7 @@
       "oz": -16450.000995118142,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -4587,6 +4967,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4599,10 +4980,12 @@
       "oz": -15706.722021049842,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4615,10 +4998,12 @@
       "oz": -15676.722021049842,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4631,6 +5016,7 @@
       "oz": -15606.722021049842,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -4657,6 +5043,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4669,10 +5056,12 @@
       "oz": -48072.8821381718,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4685,10 +5074,12 @@
       "oz": -48042.8821381718,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4701,6 +5092,7 @@
       "oz": -47972.8821381718,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -4727,6 +5119,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4739,10 +5132,12 @@
       "oz": -38974.182286147756,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4755,10 +5150,12 @@
       "oz": -38944.182286147756,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4771,6 +5168,7 @@
       "oz": -38874.182286147756,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -4797,6 +5195,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4809,10 +5208,12 @@
       "oz": 17905.769155101632,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4825,10 +5226,12 @@
       "oz": 17935.769155101632,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4841,6 +5244,7 @@
       "oz": 18005.769155101632,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -4867,6 +5271,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4879,10 +5284,12 @@
       "oz": -9893.648593015008,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4895,10 +5302,12 @@
       "oz": -9863.648593015008,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4911,6 +5320,7 @@
       "oz": -9793.648593015008,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -4937,6 +5347,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4949,10 +5360,12 @@
       "oz": 17544.290984181294,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4965,10 +5378,12 @@
       "oz": 17574.290984181294,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -4981,6 +5396,7 @@
       "oz": 17644.290984181294,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -5007,6 +5423,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -5019,10 +5436,12 @@
       "oz": -39027.72455811595,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -5035,10 +5454,12 @@
       "oz": -38997.72455811595,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -5051,6 +5472,7 @@
       "oz": -38927.72455811595,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -5077,6 +5499,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -5089,10 +5512,12 @@
       "oz": 32914.12245678618,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -5105,10 +5530,12 @@
       "oz": 32944.12245678618,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -5121,6 +5548,7 @@
       "oz": 33014.12245678618,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -5147,6 +5575,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -5159,10 +5588,12 @@
       "oz": -37874.64608086491,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -5175,10 +5606,12 @@
       "oz": -37844.64608086491,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -5191,6 +5624,7 @@
       "oz": -37774.64608086491,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -5217,6 +5651,7 @@
     "asentada": [
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -5229,10 +5664,12 @@
       "oz": 35868.24406713658,
       "sobre_hermana": false,
       "soporte": "piso",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -5245,10 +5682,12 @@
       "oz": 35898.24406713658,
       "sobre_hermana": true,
       "soporte": "p0",
+      "soporte_medible": true,
       "yaw": 0.0
      },
      {
       "apoyada": true,
+      "apoyada_medible": true,
       "ex": 25.0,
       "ey": 25.0,
       "ez": 25.0,
@@ -5261,6 +5700,7 @@
       "oz": 35968.24406713658,
       "sobre_hermana": true,
       "soporte": "p1",
+      "soporte_medible": true,
       "yaw": 0.0
      }
     ]
@@ -5309,9 +5749,9 @@
    ]
   },
   "huellas": {
-   "catalogo": "7426f13a16a6dc2a289e13e035e19ec8cabeafa036da0eb1fbbd87b48bea6872",
+   "catalogo": "ce7451c1150c3e0f79e15273b711459451ecc4a3fac5e9058de01423d6852291",
    "configuracion": "71fbf928394c1cf36d8a24f39fd1b3db97f369c051c6ef358c0e8b6eef24a04b",
-   "emisor": "bf2c6a80184fec0779f8a30330a2f26ae6e54c5163263a4e9a0721e1f9d1df0e",
+   "emisor": "dd1db36fc308c66ab4eedd396df90ac78eccefed41a5195ecee051d7ece29031",
    "referencia": "3785428e1def6302a007dc73940b66c0d8de81a59f3a912dc244fed5717e25e7"
   },
   "raiz_fuentes": ".."

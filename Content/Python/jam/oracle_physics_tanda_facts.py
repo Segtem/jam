@@ -12,7 +12,9 @@ def _plano(resultado: dict) -> dict:
         "ex": a.extent.x, "ey": a.extent.y, "ez": a.extent.z,
         "lx": loc.x, "ly": loc.y, "lz": loc.z, "yaw": pieza.yaw,
         "apoyada": bool(resultado["apoyada"]),
-        "soporte": resultado.get("soporte"),
+        "apoyada_medible": True,
+        "soporte": resultado.get("soporte") or "",
+        "soporte_medible": resultado.get("soporte") is not None,
         "sobre_hermana": bool(resultado.get("sobre_hermana")),
     }
 

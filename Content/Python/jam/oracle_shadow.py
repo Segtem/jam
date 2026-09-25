@@ -229,13 +229,11 @@ def comparar_physics(
 
     from . import oracle_physics_facts
 
-    apoyado_en_alcance = (
-        referencia["estado"] == "sin_suelo" or bool(referencia["apoyado"]))
     return _comparar_evidencia(
         oracle_physics_facts.hechos(pieza, soportes, tol=tol),
         {
             "physics.tiene_suelo": referencia["estado"] != "sin_suelo",
-            "physics.apoyado": apoyado_en_alcance,
+            "physics.apoyado": bool(referencia["apoyado"]),
         },
     )
 

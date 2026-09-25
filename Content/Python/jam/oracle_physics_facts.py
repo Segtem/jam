@@ -20,9 +20,13 @@ def hechos(pieza, soportes, *, tol: float = 1.0) -> dict:
             mejor = (top, soporte.nombre)
 
     base = a.origin.z - a.extent.z
+    tiene_suelo = mejor is not None
     return {"asentamiento": [{
         "pieza": pieza.nombre,
-        "tiene_suelo": mejor is not None,
-        "gap": None if mejor is None else base - mejor[0],
-        "soporte": None if mejor is None else mejor[1],
+        "tiene_suelo": tiene_suelo,
+        "tiene_suelo_medible": True,
+        "gap": 0.0 if mejor is None else base - mejor[0],
+        "gap_medible": tiene_suelo,
+        "soporte": "" if mejor is None else mejor[1],
+        "soporte_medible": tiene_suelo,
     }]}
