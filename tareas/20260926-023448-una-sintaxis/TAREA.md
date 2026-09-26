@@ -1,6 +1,6 @@
 # Migrar medidas, casos y relaciones de JSON escrito a mano a la superficie de Oracle
 
-- ESTADO: ABIERTA
+- ESTADO: CERRADA
 - PRIORIDAD: 65
 - ETIQUETAS: oracle, sintaxis
 
