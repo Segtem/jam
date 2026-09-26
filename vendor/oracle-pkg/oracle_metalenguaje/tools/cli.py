@@ -44,7 +44,7 @@
     oracle tarea desetiquetar [id]... --etiqueta <e> quita etiquetas de una o más tareas
     oracle tarea grafo [--json]             emite el grafo de referencias entre tareas en DOT o JSON
     oracle manual                           la referencia del lenguaje, armada de sus fuentes
-    oracle manual operadores                los seis operadores de una tubería
+    oracle manual operadores                los seis operadores de una tubería y `desde`
     oracle manual aritmetica                suma, resta y producto infijos en expresiones
     oracle manual macros                    macros abiertas y variantes que requieren evidencia
     oracle manual ambito                    dónde obliga una medida
@@ -54,7 +54,7 @@
     oracle manual como_se_detecto           quién encontró el defecto
     oracle manual relaciones                las relaciones que el lenguaje emite sobre sí mismo
     oracle manual verbos                    los verbos del comando, por sustantivo
-    oracle manual medidas                   las 54 medidas que Oracle trae, y qué NO ve cada una
+    oracle manual medidas                   las medidas universales que Oracle trae, y qué NO ve cada una
     oracle manual [tema] --man              la misma referencia en roff, para `man -l`
     oracle manual --instalar-man <dir>      escribe oracle(1) y oracle-<tema>(7) bajo <dir>
 
