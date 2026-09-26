@@ -1,0 +1,17 @@
+caso scatter-005-cobertura-suficiente-es-verde:
+    fecha: "2026-08-25"
+    origen:
+        repo: "Brianholl/jam"
+        commit: "polaridad-verde-testigos"
+    titulo: "Un reparto que cubre de sobra tiene que salir verde, y con cero testigos"
+    etiqueta: verde_correcto
+    sintoma:
+        La medida se reescribió para que un rojo señale QUÉ celda ofende. La primera versión filtraba las celdas malas y agregaba con `min`: sin celdas malas la relación queda vacía, `min` sobre vacío da 0 y `0 >= 0.6` es falso. Todo mundo sano salía ROJO.
+    como_se_detecto: persona
+    medida: scatter.cobertura
+    evidencia:
+        cobertura_scatter: ocupadas, total, fraccion
+            9, 9, 1.0
+            7, 9, 0.7777777777777778
+    leccion:
+        Un catálogo con una sola polaridad no mide lo que dice medir. Este caso existe porque el arreglo que dio testigos exactos convirtió, en su primera versión, TODO mundo sano en un rojo —filtrar lo que ofende antes de un agregado deja la relación vacía— y ningún caso del corpus podía verlo: los quince eran de la misma polaridad.

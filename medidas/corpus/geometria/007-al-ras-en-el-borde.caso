@@ -1,0 +1,18 @@
+caso 007-al-ras-en-el-borde:
+    fecha: "2026-07-31"
+    origen:
+        repo: "Brianholl/jam"
+        commit: "sombra-snap-al-ras"
+    titulo: "El primer flotante fuera de la tolerancia de contacto sigue siendo rojo"
+    etiqueta: falso_verde
+    sintoma:
+        Aflojar 1 cm al siguiente flotante aceptaba una junta fuera del límite declarado.
+    como_se_detecto: mutacion
+    medida: snap.al_ras
+    evidencia:
+        pieza: id, ox, oy, oz, ex, ey, ez
+            "a", 0.0, 0.0, 0.0, 0.0, 50.0, 50.0
+        objetivo: id, eje, ox, oy, oz, ex, ey, ez
+            "b", "x", 1.0000000000000002, 0.0, 0.0, 0.0, 50.0, 50.0
+    leccion:
+        La tolerancia de contacto se fija con el siguiente valor representable, no con un hueco lejano.

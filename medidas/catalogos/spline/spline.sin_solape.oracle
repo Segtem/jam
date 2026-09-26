@@ -1,0 +1,6 @@
+ninguno spline.sin_solape:
+    de junta_spline j
+    donde j.solape > 1.0
+    umbral <= 0 segun sin_declarar porque "hasta 1 cm se considera ruido de junta; por encima dos módulos ocupan el mismo tramo de arco"
+    ambito universal
+    alcance "solape longitudinal nominal entre vecinos. NO ve AABB, triángulos, ancho, curvas cerradas, cruces no adyacentes, jitter visual ni colisión real"

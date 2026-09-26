@@ -1,0 +1,6 @@
+ninguno espacio.meta_unica:
+    de espacio e
+    donde e.metas != 1
+    umbral <= 0 segun sin_declarar porque "una misión de extracción necesita exactamente una meta para que ganar tenga un destino inequívoco"
+    ambito universal
+    alcance "cantidad de nodos marcados como meta. NO ve volumen de extracción, temporizador, interacción, navegación, colisión ni salida del mapa"

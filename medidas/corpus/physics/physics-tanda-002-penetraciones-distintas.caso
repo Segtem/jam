@@ -1,0 +1,19 @@
+caso physics-tanda-002-penetraciones-distintas:
+    fecha: "2026-08-10"
+    origen:
+        repo: "Brianholl/jam"
+        commit: "auditoria-physics-tanda"
+    titulo: "La tanda publica la peor de dos penetraciones"
+    etiqueta: falso_verde
+    sintoma:
+        Con una sola pareja clavada, resumir por mínimo o máximo publicaba el mismo testigo.
+    como_se_detecto: mutacion
+    medida: physics.tanda_sin_interpenetracion
+    evidencia:
+        asentada: id, ox, oy, oz, ex, ey, ez, apoyada
+            "a", 0.0, 0.0, 0.0, 25.0, 25.0, 25.0, true
+            "b", 48.0, 0.0, 0.0, 25.0, 25.0, 25.0, true
+            "c", 1000.0, 0.0, 0.0, 25.0, 25.0, 25.0, true
+            "d", 1040.0, 0.0, 0.0, 25.0, 25.0, 25.0, true
+    leccion:
+        Un agregado no se fija con una sola fila: necesita profundidades distintas para distinguir máximo de mínimo.

@@ -1,0 +1,19 @@
+caso 009-al-ras-toma-el-menor-solape:
+    fecha: "2026-07-31"
+    origen:
+        repo: "Brianholl/jam"
+        commit: "sombra-snap-al-ras"
+    titulo: "Un lote no comparte cara si uno de sus objetivos sólo toca una arista"
+    etiqueta: falso_verde
+    sintoma:
+        Resumir por máximo dejaba que un buen solape ocultara otro contacto diagonal.
+    como_se_detecto: mutacion
+    medida: snap.comparte_cara
+    evidencia:
+        pieza: id, ox, oy, oz, ex, ey, ez
+            "a", 0.0, 0.0, 0.0, 50.0, 50.0, 50.0
+        objetivo: id, eje, ox, oy, oz, ex, ey, ez
+            "cara", "x", 100.0, 0.0, 0.0, 50.0, 50.0, 50.0
+            "arista", "x", 100.0, 99.0, 0.0, 50.0, 50.0, 50.0
+    leccion:
+        La semántica de lote exige el menor solape: todos los objetivos deben compartir una cara real de AABB.

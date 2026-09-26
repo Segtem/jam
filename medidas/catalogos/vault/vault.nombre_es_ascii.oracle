@@ -1,0 +1,6 @@
+ninguno vault.nombre_es_ascii:
+    de documento d
+    donde d.nombre_es_ascii == false
+    umbral <= 0 segun sin_declarar porque "un acento en el nombre de archivo rompe enlaces según el sistema de archivos y la normalización Unicode que use cada herramienta"
+    ambito universal
+    alcance "NO ve el TÍTULO, que sí lleva acentos y puntuación a propósito: sólo el nombre de archivo"

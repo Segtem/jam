@@ -1,0 +1,6 @@
+ninguno espacio.inicio_unico:
+    de espacio e
+    donde e.inicios != 1
+    umbral <= 0 segun sin_declarar porque "una misión de extracción necesita exactamente una entrada para que su estado inicial sea inequívoco"
+    ambito universal
+    alcance "cantidad de nodos marcados como inicio. NO ve dónde está la entrada, si tiene espacio de spawn, navegación, colisión ni visibilidad"

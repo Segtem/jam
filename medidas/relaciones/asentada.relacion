@@ -1,0 +1,18 @@
+relacion asentada:
+    id: texto
+    ox: flotante cm
+    oy: flotante cm
+    oz: flotante cm
+    ex: flotante cm
+    ey: flotante cm
+    ez: flotante cm
+    lx: flotante cm
+    ly: flotante cm
+    lz: flotante cm
+    yaw: flotante grados
+    apoyada: booleano
+    apoyada_medible: booleano
+    soporte: texto
+    soporte_medible: booleano
+    sobre_hermana: booleano
+    alcance "Estado final y caja AABB de cada pieza asentada. NO observa la geometría de la malla, equilibrio, estabilidad posterior ni colisiones de Chaos"

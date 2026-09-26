@@ -1,0 +1,17 @@
+caso physics-tanda-001-interpenetracion-en-el-borde:
+    fecha: "2026-08-10"
+    origen:
+        repo: "Brianholl/jam"
+        commit: "auditoria-physics-tanda"
+    titulo: "Medio centímetro efectivo de clavada vuelve roja la tanda"
+    etiqueta: falso_verde
+    sintoma:
+        Aflojar el umbral de cero a uno aceptaba una interpenetración pequeña.
+    como_se_detecto: mutacion
+    medida: physics.tanda_sin_interpenetracion
+    evidencia:
+        asentada: id, ox, oy, oz, ex, ey, ez, apoyada
+            "a", 0.0, 0.0, 0.0, 25.0, 25.0, 25.0, true
+            "b", 48.5, 0.0, 0.0, 25.0, 25.0, 25.0, true
+    leccion:
+        El umbral sólo queda fijado con un defecto dentro del primer paso que permitiría el mutador.

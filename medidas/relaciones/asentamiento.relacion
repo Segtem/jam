@@ -1,0 +1,8 @@
+relacion asentamiento:
+    pieza: texto
+    soporte: texto
+    tiene_suelo: booleano
+    tiene_suelo_medible: booleano
+    gap: flotante cm
+    gap_medible: booleano
+    alcance "observa la presencia de soporte y la separación vertical (gap) entre la base de la pieza y la cota superior del soporte AABB más alto. NO observa superficies de landscape o terreno continuo, mallas de colisión complejas, estabilidad física ni dinámicas de Chaos"

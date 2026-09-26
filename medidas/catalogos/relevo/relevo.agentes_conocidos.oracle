@@ -1,0 +1,6 @@
+ninguno relevo.agentes_conocidos:
+    de agente a
+    donde a.conocido == false
+    umbral <= 0 segun sin_declarar porque "un agente que no está en la lista no tiene ni recetas ni trampas escritas para él, así que el relevo no le sirve de nada"
+    ambito universal
+    alcance "NO ve si el agente nombrado es el que realmente va a trabajar"

@@ -1,0 +1,6 @@
+ninguno vault.frontmatter_completo:
+    de documento d
+    donde d.frontmatter_completo == false
+    umbral <= 0 segun sin_declarar porque "sin `title`, `tipo`, `version`, `date`, `updated` y `area` el documento no se puede indexar ni ubicar, y las otras medidas no tienen qué comparar"
+    ambito universal
+    alcance "ve que los campos ESTÉN. NO ve si su contenido es cierto — un `updated` inventado cumple"

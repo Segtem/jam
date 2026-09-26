@@ -1,0 +1,16 @@
+caso physics-007-gap-indecidible-no-es-verde:
+    fecha: "2026-09-25"
+    origen:
+        repo: "Brianholl/jam"
+        commit: "algebra-10-null"
+    titulo: "Un gap aparente no compensa un suelo no medible"
+    etiqueta: falso_verde
+    sintoma:
+        Si un emisor defectuoso marca suelo no medible y gap medible con valor cero, sustituir tiene_suelo_medible por gap_medible afirma contacto por accidente.
+    como_se_detecto: mutacion
+    medida: physics.apoyado
+    evidencia:
+        asentamiento: pieza, tiene_suelo, tiene_suelo_medible, gap, gap_medible, soporte, soporte_medible
+            "sujeto", false, false, 0.0, true, "", false
+    leccion:
+        Una fila contradictoria se rechaza; ambas mediciones son necesarias para afirmar contacto.

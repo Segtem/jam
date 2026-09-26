@@ -1,0 +1,6 @@
+ninguno spline.cobertura:
+    de spline_modular s
+    donde s.cobertura < 0.9
+    umbral <= 0 segun sin_declarar porque "la cadena operativa exige que los largos reales de sus módulos cubran al menos el 90% de la curva"
+    ambito universal
+    alcance "suma largos nominales de módulos que Unreal sí creó. NO ve huecos internos, el sobrante final por separado, visibilidad ni cobertura de la malla real"

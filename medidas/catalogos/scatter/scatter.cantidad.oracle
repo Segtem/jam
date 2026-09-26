@@ -1,0 +1,6 @@
+ninguno scatter.cantidad:
+    de conteo_scatter c
+    donde c.obtenidas != c.pedidas
+    umbral <= 0 segun sin_declarar porque "cero discrepancias: si se pidieron N instancias, una región saturada no puede entregar menos en silencio"
+    ambito universal
+    alcance "compara cantidades declaradas. NO ve si las instancias son las correctas, dónde quedaron ni si el pedido era razonable para el área"

@@ -1,0 +1,6 @@
+ninguno vault.carpeta_conocida:
+    de documento d
+    donde d.carpeta_conocida == false
+    umbral <= 0 segun sin_declarar porque "una carpeta fuera de la lista es una categoría que nadie declaró, y por ahí vuelve la segunda taxonomía incoherente que la reorganización eliminó"
+    ambito universal
+    alcance "NO ve si la lista de carpetas es la correcta ni si falta alguna: sólo que no haya carpetas de más"

@@ -1,0 +1,16 @@
+caso physics-006-suelo-indecidible-no-es-verde:
+    fecha: "2026-09-25"
+    origen:
+        repo: "Brianholl/jam"
+        commit: "algebra-10-null"
+    titulo: "Una afirmación de suelo contradicha por su medibilidad no es verde"
+    etiqueta: falso_verde
+    sintoma:
+        Un emisor defectuoso puede afirmar tiene_suelo=true y tiene_suelo_medible=false; confiar en el valor sin su marca permitiría un verde falso.
+    como_se_detecto: mutacion
+    medida: physics.tiene_suelo
+    evidencia:
+        asentamiento: pieza, tiene_suelo, tiene_suelo_medible, gap, gap_medible, soporte, soporte_medible
+            "sujeto", true, false, 0.0, false, "", false
+    leccion:
+        La medibilidad manda incluso ante una fila contradictoria que el sensor sano nunca produce.

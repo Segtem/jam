@@ -1,0 +1,6 @@
+ninguno vault.tipo_coincide:
+    de documento d
+    donde d.tipo_en_nombre != d.tipo_declarado
+    umbral <= 0 segun sin_declarar porque "si el archivo dice INFORME y el frontmatter dice PLAN, una de las dos afirmaciones es falsa y no hay forma de saber cuál"
+    ambito universal
+    alcance "NO ve si el TIPO elegido es el correcto para lo que el documento realmente es: sólo que las dos declaraciones coincidan entre sí"

@@ -1,0 +1,16 @@
+caso scatter-003-cobertura-en-el-borde:
+    fecha: "2026-08-09"
+    origen:
+        repo: "Brianholl/jam"
+        commit: "migracion-scatter-oracle"
+    titulo: "Una cobertura apenas menor al sesenta por ciento sigue siendo roja"
+    etiqueta: falso_verde
+    sintoma:
+        El generador por celdas sólo produce novenos y no fijaba el siguiente flotante del umbral.
+    como_se_detecto: mutacion
+    medida: scatter.cobertura
+    evidencia:
+        cobertura_scatter: ocupadas, total, fraccion
+            5, 9, 0.5999999999999999
+    leccion:
+        Los escenarios realistas prueban el contrato; una reducción sintética fija su borde numérico.

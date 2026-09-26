@@ -1,0 +1,18 @@
+caso 001-interpenetracion-en-el-borde:
+    fecha: "2026-07-31"
+    origen:
+        repo: "Brianholl/jam"
+        commit: "integracion-oracle-p3"
+    titulo: "La tolerancia se descuenta antes del umbral de interpenetración"
+    etiqueta: falso_verde
+    sintoma:
+        Aflojar el umbral de profundidad de 0 a 1 aceptaba una clavada efectiva de medio centímetro.
+    como_se_detecto: mutacion
+    medida: colocacion.interpenetracion
+    evidencia:
+        pieza: id, ox, oy, oz, ex, ey, ez
+            "a", 0.0, 0.0, 0.0, 50.0, 50.0, 50.0
+        vecina: id, ox, oy, oz, ex, ey, ez
+            "b", 98.5, 0.0, 0.0, 50.0, 50.0, 50.0
+    leccion:
+        Un umbral sólo queda fijado con un defecto dentro del primer paso que el mutador permitiría.

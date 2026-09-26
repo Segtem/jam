@@ -1,0 +1,6 @@
+ninguno relevo.testigo_tiene_sus_secciones:
+    de testigo_seccion s
+    donde s.presente == false
+    umbral <= 0 segun sin_declarar porque "si una sección se puede omitir, un turno deja de pedir manos o de declarar su frontera sin que nadie lo note: vacía dice «no hace falta», ausente no dice nada"
+    ambito universal
+    alcance "ve el TÍTULO de la sección. NO ve si abajo hay algo escrito, ni si lo que dice es de este turno"

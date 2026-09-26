@@ -1,0 +1,6 @@
+ninguno vault.area_es_la_carpeta:
+    de documento d
+    donde d.area != d.carpeta
+    umbral <= 0 segun sin_declarar porque "la carpeta es la taxonomía; un `area` que dice otra cosa reintroduce la segunda taxonomía incoherente que la reorganización eliminó"
+    ambito universal
+    alcance "NO ve si el documento está en la carpeta CORRECTA: sólo que su `area` diga dónde está"

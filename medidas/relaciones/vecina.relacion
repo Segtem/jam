@@ -1,0 +1,13 @@
+relacion vecina:
+    id: texto
+    ox: flotante cm
+    oy: flotante cm
+    oz: flotante cm
+    ex: flotante cm
+    ey: flotante cm
+    ez: flotante cm
+    lx: flotante cm
+    ly: flotante cm
+    lz: flotante cm
+    yaw: flotante grados
+    alcance "observa la caja envolvente alineada a los ejes (AABB) y el pivote de actores vecinos en la escena. NO observa mallas triangulares reales, concavidades, materiales, visibilidad, oclusión, pitch ni roll"

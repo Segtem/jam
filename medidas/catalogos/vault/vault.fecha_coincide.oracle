@@ -1,0 +1,6 @@
+ninguno vault.fecha_coincide:
+    de documento d
+    donde d.fecha_en_nombre != d.updated
+    umbral <= 0 segun sin_declarar porque "la fecha del nombre es lo que se ve al listar el directorio; si no es la de `updated`, el orden aparente del vault miente"
+    ambito universal
+    alcance "NO ve si `updated` es cierto — nadie comprueba que el documento se haya tocado ese día"

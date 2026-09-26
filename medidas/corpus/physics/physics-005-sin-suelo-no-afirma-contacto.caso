@@ -1,0 +1,16 @@
+caso physics-005-sin-suelo-no-afirma-contacto:
+    fecha: "2026-09-25"
+    origen:
+        repo: "Brianholl/jam"
+        commit: "algebra-10-null"
+    titulo: "Un gap no medible no afirma contacto aunque el valor portador sea cero"
+    etiqueta: falso_verde
+    sintoma:
+        Sin suelo, el gap se representa con valor cero y medibilidad falsa; ignorar la medibilidad lo haría pasar por apoyado.
+    como_se_detecto: persona
+    medida: physics.apoyado
+    evidencia:
+        asentamiento: pieza, tiene_suelo, tiene_suelo_medible, gap, gap_medible, soporte, soporte_medible
+            "sujeto", false, true, 0.0, false, "", false
+    leccion:
+        Un valor portador no es una medición: la medida debe leer gap_medible antes de afirmar contacto.

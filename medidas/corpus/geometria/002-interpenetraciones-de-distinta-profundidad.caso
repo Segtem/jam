@@ -1,0 +1,19 @@
+caso 002-interpenetraciones-de-distinta-profundidad:
+    fecha: "2026-07-31"
+    origen:
+        repo: "Brianholl/jam"
+        commit: "integracion-oracle-p3"
+    titulo: "Dos choques distintos fijan que el resumen sea el máximo"
+    etiqueta: falso_verde
+    sintoma:
+        Con un solo choque, resumir por mínimo o máximo publicaba el mismo valor.
+    como_se_detecto: mutacion
+    medida: colocacion.interpenetracion
+    evidencia:
+        pieza: id, ox, oy, oz, ex, ey, ez
+            "a", 0.0, 0.0, 0.0, 50.0, 50.0, 50.0
+        vecina: id, ox, oy, oz, ex, ey, ez
+            "b1", 98.0, 0.0, 0.0, 50.0, 50.0, 50.0
+            "b2", 90.0, 0.0, 0.0, 50.0, 50.0, 50.0
+    leccion:
+        Un agregado no se fija con una sola fila: hacen falta valores distintos.

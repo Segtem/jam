@@ -1,0 +1,6 @@
+ninguno physics.tiene_suelo:
+    de asentamiento a
+    donde a.tiene_suelo_medible == false o a.tiene_suelo == false
+    umbral <= 0 segun sin_declarar porque "soltar sin encontrar ningún soporte debajo no completa la operación: la pieza queda donde nació o caería al vacío"
+    ambito universal
+    alcance "existencia de un soporte AABB en XY y debajo del centro. NO ve landscapes, superficie de triángulos, resistencia, estabilidad, pendiente ni colisión Chaos"

@@ -1,0 +1,16 @@
+caso scatter-006-cobertura-sin-evidencia-no-concluye:
+    fecha: "2026-08-25"
+    origen:
+        repo: "Brianholl/jam"
+        commit: "mutacion-requiere-gap-null"
+    titulo: "Sin observacion de cobertura no hay reparto que aprobar"
+    etiqueta: falso_verde
+    espera: sin_evidencia
+    sintoma:
+        Quitar `requiere` de `scatter.cobertura` hacia que una relacion vacia saliera verde: sin filas malas, `contar` devolvia cero aunque no se habia medido nada.
+    como_se_detecto: mutacion
+    medida: scatter.cobertura
+    evidencia:
+        cobertura_scatter:
+    leccion:
+        La ausencia de observacion no es cobertura suficiente; la medida debe declarar y fijar esa precondicion.

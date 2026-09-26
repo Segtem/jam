@@ -1,0 +1,6 @@
+ninguno espacio.ganable:
+    de espacio e
+    donde e.alcanzable == false
+    umbral <= 0 segun sin_declarar porque "la extracción debe ser alcanzable desde la entrada recogiendo las llaves antes de cruzar cada puerta que las exige"
+    ambito universal
+    alcance "alcance topológico en el subconjunto vivo de nodos, llaves y puertas. NO ve geometría, distancias, navmesh, movimiento real, switches, hazards, flags, recursos, tareas ni canales"

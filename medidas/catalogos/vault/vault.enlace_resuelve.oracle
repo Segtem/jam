@@ -1,0 +1,6 @@
+ninguno vault.enlace_resuelve:
+    de enlace e
+    donde e.resuelve == false
+    umbral <= 0 segun sin_declarar porque "un vault con enlaces rotos se degrada en silencio, igual que un test que no discrimina"
+    ambito universal
+    alcance "NO ve si el enlace apunta al documento PERTINENTE, ni detecta documentos que nadie enlaza"

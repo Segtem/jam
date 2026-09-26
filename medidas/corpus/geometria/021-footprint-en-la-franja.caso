@@ -1,0 +1,18 @@
+caso 021-footprint-en-la-franja:
+    fecha: "2026-09-07"
+    origen:
+        repo: "Brianholl/jam"
+        commit: "ef6a63a"
+        comando: "oracle-mutar --proyecto medidas --confiar-escalares (Oracle 0.10.0)"
+    procedencia: construida
+    titulo: "Un footprint 2,5 cm mas grande en X queda perdonado si la cota se aleja a 3"
+    etiqueta: falso_verde
+    sintoma:
+        El mutador `alejar_limite_de_defecto` mueve el PRIMER disyunto de `> 2.0` a `> 3.0`. El desvio en Y va en cero por el mismo motivo que en el caso del centro: el segundo disyunto no se muta, y si disparara taparia la diferencia. El valor se eligio EN LA FRANJA que abre la mutacion, no por parecerse a un defecto cualquiera: es lo unico que distingue la medida sana de la mutada. Evidencia construida a mano para ejercer ese borde; ver estudios/OBSERVAR-O-CONSTRUIR-EL-BORDE.md de Oracle.
+    como_se_detecto: mutacion
+    medida: reemplazo.footprint
+    evidencia:
+        reemplazo: id, d_base, d_centro_x, d_centro_y, d_footprint_x, d_footprint_y
+            "cajon", 0.0, 0.0, 0.0, 2.5, 0.0
+    leccion:
+        La franja de este mutador es de un centimetro, entre 2 y 3. Los casos que habia traian desvios de 10 cm, comodos para las dos versiones.

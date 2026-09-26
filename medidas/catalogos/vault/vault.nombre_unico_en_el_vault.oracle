@@ -1,0 +1,7 @@
+ninguno-par vault.nombre_unico_en_el_vault:
+    de documento a
+    unir documento b
+    donde a.nombre == b.nombre y a.carpeta < b.carpeta
+    umbral <= 0 segun sin_declarar porque "un wikilink apunta por NOMBRE y no por ruta: dos homónimos en carpetas distintas dejan el enlace a cara o cruz, y el verificador de enlaces lo daría por bueno"
+    ambito universal
+    alcance "NO ve nombres parecidos pero distintos, que confunden a una persona aunque no rompan un enlace"

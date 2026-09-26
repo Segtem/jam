@@ -1,0 +1,6 @@
+ninguno relevo.verificacion_existe:
+    de verificacion v
+    donde v.es_ancestro == false
+    umbral <= 0 segun sin_declarar porque "una verificación que apunta a un commit inexistente o a una rama que no está en la historia no se puede reproducir, y afirmarla es afirmar nada"
+    ambito universal
+    alcance "ve que el commit exista y esté en la historia. NO ve si en ese commit la verificación se corrió de verdad — eso lo declara una persona"

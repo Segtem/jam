@@ -1,0 +1,17 @@
+caso 004-desvios-de-grilla-distintos:
+    fecha: "2026-07-31"
+    origen:
+        repo: "Brianholl/jam"
+        commit: "integracion-oracle-p3"
+    titulo: "Dos desvíos distintos fijan el peor valor de grilla"
+    etiqueta: falso_verde
+    sintoma:
+        Con una sola pieza fuera de grilla, máximo y mínimo eran indistinguibles.
+    como_se_detecto: mutacion
+    medida: snap.grilla
+    evidencia:
+        pieza: id, lx, ly, lz
+            "a", 2.0, 0.0, 0.0
+            "b", 37.0, 0.0, 0.0
+    leccion:
+        El resumen `max` necesita al menos dos ofensores con magnitudes diferentes.
