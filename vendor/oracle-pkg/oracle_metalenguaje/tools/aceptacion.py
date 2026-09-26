@@ -27,6 +27,7 @@ sys.path.insert(0, str(RAIZ))
 
 import catalogos.escalares  # noqa: F401,E402  registra las escalares declaradas
 from nucleo.campo_leido import hechos_de_campos_leidos  # noqa: E402
+from nucleo.autoria import hechos_de_autoria  # noqa: E402
 from nucleo.caso import cargar_casos  # noqa: E402
 from nucleo.medida import relaciones_de_medida  # noqa: E402
 from nucleo.diagnostico import hechos_de_diagnostico, reunir  # noqa: E402
@@ -46,6 +47,17 @@ from nucleo.proyecto import (EscalaresInvalidas, EscalaresNoConfiables,  # noqa:
                              macros_del_proyecto,
                              problemas_estructura, relaciones_del_proyecto)  # noqa: E402
 from tools.sesion import resolver_cli  # noqa: E402
+
+
+def _resultado_esperado(caso: dict, *, ok: bool, sin_evidencia: str) -> str | None:
+    if caso.get("espera") == "sin_evidencia":
+        return None if sin_evidencia else "se esperaba SIN EVIDENCIA"
+    if caso["etiqueta"] == "verde_correcto":
+        return None if ok and not sin_evidencia else "se esperaba VERDE"
+    if sin_evidencia:
+        return ("salió SIN EVIDENCIA; si es lo que el caso prueba, declaralo con "
+                "espera: sin_evidencia")
+    return None if not ok else "se esperaba ROJO medido"
 
 
 def _hechos_del_cli() -> dict:
@@ -108,6 +120,7 @@ def _ejecutar(proy, hechos: str = "", solo: tuple[str, ...] = ()) -> int:
     todos = casos(proy)
     fallas: list[str] = []
     rojos = 0
+    ausencias = 0
     verdes = 0
     huecos: list[str] = []
     archivados = {"resuelto": [], "limite_humano": []}
@@ -139,30 +152,30 @@ def _ejecutar(proy, hechos: str = "", solo: tuple[str, ...] = ()) -> int:
                 print(f"  NO JUZGÓ {c['id']:<36} {mid}  ({motivo})")
         elif inf.veredictos:
             v = inf.veredictos[0]
-            if v.ok != esperado_ok:
+            discordancia = _resultado_esperado(c, ok=v.ok, sin_evidencia=v.sin_evidencia)
+            if discordancia:
                 # Es el criterio 4 de la especificación, no una política: tiene que fallar también
                 # sin el catálogo base. Antes esto sólo lo dictaminaba
                 # `meta.el_caso_se_pone_como_debe`, y un proyecto con `catalogo_base: false` —el de
                 # la guía de la batalla naval— descartaba el caso en silencio y salía VERDE.
-                esperado = "VERDE" if esperado_ok else "ROJO"
+                esperado = ("SIN EVIDENCIA" if c.get("espera") == "sin_evidencia" else
+                            "VERDE" if esperado_ok else "ROJO medido")
                 estado = "SIN EVIDENCIA" if v.sin_evidencia else ("verde" if v.ok else "ROJO")
-                fallas.append(f"{c['id']}: salió {estado} con {mid} y su etiqueta "
-                              f"«{c['etiqueta']}» pide {esperado}")
+                fallas.append(f"{c['id']}: {discordancia} con {mid}")
                 print(f"  FALLA {c['id']:<38} {mid}  (valor {v.valor}; salió {estado}, "
                       f"se esperaba {esperado})")
             elif esperado_ok:
                 verdes += 1
                 print(f"  verde {c['id']:<38} {mid}  (valor {v.valor})")
+            elif v.sin_evidencia:
+                ausencias += 1
+                print(f"  SIN EVIDENCIA {c['id']:<29} {mid}  («{v.sin_evidencia}» vacía)")
             else:
                 rojos += 1
-                # Un SIN EVIDENCIA cumple la polaridad de un defecto, pero no es un valor medido:
-                # imprimir «valor 0» sugería que la regla contó cero infracciones.
-                detalle = (f"SIN EVIDENCIA: «{v.sin_evidencia}» vacía" if v.sin_evidencia
-                           else f"valor {v.valor}")
-                print(f"  ROJO  {c['id']:<38} {mid}  ({detalle})")
+                print(f"  ROJO  {c['id']:<38} {mid}  (valor {v.valor})")
 
     print(f"\ndefectos que se pusieron rojos: {rojos} · verdes correctos: {verdes} · "
-          f"huecos declarados: {len(huecos)}")
+          f"sin evidencia esperada: {ausencias} · huecos declarados: {len(huecos)}")
     for h in huecos:
         print(f"  hueco  {h}")
     for estado, ids in archivados.items():
@@ -184,6 +197,7 @@ def _ejecutar(proy, hechos: str = "", solo: tuple[str, ...] = ()) -> int:
     referencia = proy.raiz / "ESPECIFICACION.md"
     texto_referencia = referencia.read_text(encoding="utf-8") if referencia.is_file() else ""
     evidencia_meta = {"medida": como_hechos(catalogo.values()),
+                      **hechos_de_autoria(proy),
                       **hechos_de_diagnostico(reunir(proy), secretos),
                       **hechos_de_documentacion(
                           relaciones_del_lenguaje_declaradas(), texto_referencia),
@@ -312,7 +326,8 @@ def _ejecutar(proy, hechos: str = "", solo: tuple[str, ...] = ()) -> int:
         for f in fallas:
             print("  ·", f)
         return 1
-    print(f"\nACEPTACIÓN ✓ — {rojos} defectos en rojo, {verdes} verdes correctos, "
+    print(f"\nACEPTACIÓN ✓ — {rojos} defectos en rojo, {ausencias} sin evidencia esperada, "
+          f"{verdes} verdes correctos, "
           f"{len(huecos)} huecos declarados sin tapar")
     return 0
 

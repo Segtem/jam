@@ -28,6 +28,9 @@ from nucleo.sintaxis import (  # noqa: E402,F401
 )
 from nucleo import caso as sintaxis_caso  # noqa: E402
 from nucleo.medida import cargar_fuente_medida, rutas_de_catalogo  # noqa: E402
+from nucleo import relacion as sintaxis_relacion  # noqa: E402
+from tools import formato  # noqa: E402
+from nucleo.forma import leer_texto  # noqa: E402
 
 
 def _rutas_catalogo(raiz: Path = RAIZ) -> list[Path]:
@@ -51,6 +54,10 @@ def _rutas_macros(raiz: Path = RAIZ) -> list[Path]:
 
 def _rutas_corpus(raiz: Path = RAIZ) -> list[Path]:
     return sintaxis_caso.rutas_de_corpus(raiz / "corpus")
+
+
+def _rutas_relaciones(raiz: Path = RAIZ) -> list[Path]:
+    return sintaxis_relacion.rutas_de_relaciones(raiz / "relaciones")
 
 
 def _puntuacion(texto: str) -> int:
@@ -92,6 +99,7 @@ def _fila_ilegible(ruta: Path, raiz: Path, e: Exception) -> dict:
         "error": f"{type(e).__name__}: {e}",
         "json_igual": False,
         "texto_igual": False,
+        "forma_unica": False, "diff_forma": [],
         "caracteres_json": 0,
         "caracteres_superficie": 0,
         "puntuacion_json": 0,
@@ -101,7 +109,7 @@ def _fila_ilegible(ruta: Path, raiz: Path, e: Exception) -> dict:
 
 def _fila_verificacion(ruta: Path, raiz: Path) -> dict:
     try:
-        texto = ruta.read_text(encoding="utf-8")
+        texto = leer_texto(ruta)
         datos = leer(texto) if ruta.suffix == ".oracle" else json.loads(texto)
         superficie = imprimir(datos)
         releida = leer(superficie)
@@ -113,12 +121,15 @@ def _fila_verificacion(ruta: Path, raiz: Path) -> dict:
         # fila con su tipo y su mensaje; ninguna se convierte en verde.
         return _fila_ilegible(ruta, raiz, e)
     json_compacto = json.dumps(datos, ensure_ascii=False, separators=(",", ":"))
+    forma_unica = ruta.suffix not in formato.LECTORES or formato.sin_comentarios(texto) == superficie
     return {
         "ruta": str(ruta.relative_to(raiz)),
         "imprimio": True,
         "error": "",
         "json_igual": releida == datos,
         "texto_igual": reimpresa == superficie,
+        "forma_unica": forma_unica,
+        "diff_forma": formato.diferencia(texto, superficie) if not forma_unica else [],
         "caracteres_json": len(json_compacto),
         "caracteres_superficie": len(superficie),
         "puntuacion_json": _puntuacion(json_compacto),
@@ -128,21 +139,47 @@ def _fila_verificacion(ruta: Path, raiz: Path) -> dict:
 
 def _fila_verificacion_caso(ruta: Path, raiz: Path) -> dict:
     try:
-        datos = sintaxis_caso.cargar_fuente_caso(ruta)
+        texto = leer_texto(ruta)
+        datos = sintaxis_caso.leer(texto) if ruta.suffix == ".caso" else sintaxis_caso.cargar_fuente_caso(ruta)
         superficie = sintaxis_caso.imprimir(datos)
         releida = sintaxis_caso.leer(superficie)
         reimpresa = sintaxis_caso.imprimir(releida)
     except Exception as e:                 # noqa: BLE001
         return _fila_ilegible(ruta, raiz, e)
     json_compacto = json.dumps(datos, ensure_ascii=False, separators=(",", ":"))
+    forma_unica = ruta.suffix not in formato.LECTORES or formato.sin_comentarios(texto) == superficie
     return {
         "ruta": str(ruta.relative_to(raiz)),
         "imprimio": True,
         "error": "",
         "json_igual": releida == datos,
         "texto_igual": reimpresa == superficie,
+        "forma_unica": forma_unica,
+        "diff_forma": formato.diferencia(texto, superficie) if not forma_unica else [],
         "caracteres_json": len(json_compacto),
         "caracteres_superficie": len(superficie),
+        "puntuacion_json": _puntuacion(json_compacto),
+        "puntuacion_superficie": _puntuacion(superficie),
+    }
+
+
+def _fila_verificacion_relacion(ruta: Path, raiz: Path) -> dict:
+    try:
+        texto = leer_texto(ruta)
+        datos = sintaxis_relacion.leer(texto) if ruta.suffix == ".relacion" else sintaxis_relacion.cargar_fuente_relacion(ruta)
+        superficie = sintaxis_relacion.imprimir(datos)
+        releida = sintaxis_relacion.leer(superficie)
+        reimpresa = sintaxis_relacion.imprimir(releida)
+    except Exception as e:                 # noqa: BLE001
+        return _fila_ilegible(ruta, raiz, e)
+    json_compacto = json.dumps(datos, ensure_ascii=False, separators=(",", ":"))
+    forma_unica = ruta.suffix not in formato.LECTORES or formato.sin_comentarios(texto) == superficie
+    return {
+        "ruta": str(ruta.relative_to(raiz)), "imprimio": True, "error": "",
+        "json_igual": releida == datos, "texto_igual": reimpresa == superficie,
+        "forma_unica": forma_unica,
+        "diff_forma": formato.diferencia(texto, superficie) if not forma_unica else [],
+        "caracteres_json": len(json_compacto), "caracteres_superficie": len(superficie),
         "puntuacion_json": _puntuacion(json_compacto),
         "puntuacion_superficie": _puntuacion(superficie),
     }
@@ -152,17 +189,21 @@ def verificar_catalogo(raiz: Path = RAIZ) -> dict:
     filas_medidas = [_fila_verificacion(r, raiz) for r in _rutas_catalogo(raiz)]
     filas_macros = [_fila_verificacion(r, raiz) for r in _rutas_macros(raiz)]
     filas_casos = [_fila_verificacion_caso(r, raiz) for r in _rutas_corpus(raiz)]
-    filas = filas_medidas + filas_macros + filas_casos
+    filas_relaciones = [_fila_verificacion_relacion(r, raiz) for r in _rutas_relaciones(raiz)]
+    filas = filas_medidas + filas_macros + filas_casos + filas_relaciones
     ilegibles = [f for f in filas if f["error"]]
+    desformateados = [f for f in filas if f["imprimio"] and not f["forma_unica"]]
     total = {
         "medidas": len(filas_medidas),
         "macros": len(filas_macros),
         "casos": len(filas_casos),
+        "relaciones": len(filas_relaciones),
         # Lo que NO se pudo recorrer, aparte y con su nombre. Antes esto no existía porque la
         # primera excepción se llevaba puesta la corrida: `oracle test` moría con un traceback en
         # vez de decir cuántos archivos no pudo imprimir. Medido contra un consumidor real, eran 33
         # de 41 medidas, y ninguna de las otras 8 llegaba a informarse.
         "ilegibles": ilegibles,
+        "desformateados": desformateados,
         "json_igual": all(f["json_igual"] for f in filas),
         "texto_igual": all(f["texto_igual"] for f in filas),
         "caracteres_json": sum(f["caracteres_json"] for f in filas),
@@ -187,7 +228,7 @@ DOCUMENTOS_CON_SUPERFICIE = ("docs/03-escribir-una-medida.md", "docs/tutorial-pr
 # Dos superficies, dos lectores. `oracle` es una medida y `caso` es un caso del corpus; las
 # etiquetas con sufijo declaran por qué un bloque NO se ejecuta, y esa declaración es el punto.
 BLOQUE_RE = re.compile(
-    r"```(oracle|caso)(-gramatica|-fragmento)?\n(.*?)```", re.S)
+    r"```(oracle|caso|relacion)(-gramatica|-fragmento)?\n(.*?)```", re.S)
 
 
 def verificar_documentos(raiz: Path = RAIZ) -> dict:
@@ -208,11 +249,13 @@ def verificar_documentos(raiz: Path = RAIZ) -> dict:
                 declarados += 1
                 continue
             ejecutables += 1
-            leer_, imprimir_ = ((leer, imprimir) if superficie == "oracle"
-                                else (sintaxis_caso.leer, sintaxis_caso.imprimir))
+            leer_, imprimir_ = ({"oracle": (leer, imprimir),
+                                 "caso": (sintaxis_caso.leer, sintaxis_caso.imprimir),
+                                 "relacion": (sintaxis_relacion.leer, sintaxis_relacion.imprimir)}[superficie])
             try:
                 datos = leer_(bloque)
-            except (ErrorSintaxis, sintaxis_caso.CasoMalDeclarado) as e:
+            except (ErrorSintaxis, sintaxis_caso.CasoMalDeclarado,
+                    sintaxis_relacion.RelacionMalDeclarada) as e:
                 fallas.append(f"{nombre}:{linea}: no lee — {e}")
                 continue
             if imprimir_(datos) != bloque:
@@ -247,7 +290,9 @@ def main(argv: list[str] | None = None) -> int:
         # fail-open al lado de dos fail-closed es peor que no tener ninguna: enseña a confiar.
         from nucleo.version import VersionInvalida, exigir_sintaxis_compatible
 
-        texto = Path(argv[1]).read_text(encoding="utf-8")
+        from nucleo.forma import error_forma, leer_texto
+
+        texto = leer_texto(Path(argv[1]))
         try:
             lectura = leer_con_mapa(texto)
             exigir_sintaxis_compatible(lectura.version)
@@ -255,6 +300,12 @@ def main(argv: list[str] | None = None) -> int:
             print(f"✗ {fragmento_de_error(e, texto)}")
             return 1
         datos = lectura.datos
+        # Una sola sintaxis: esta rama también carga, así que exige la forma del impresor como
+        # los cargadores del proyecto (antes aceptaba CRLF, espacios de más o la línea de versión).
+        fuera = error_forma(argv[1], texto, imprimir(datos))
+        if fuera:
+            print(f"✗ {fuera}")
+            return 1
         print(json.dumps(datos, ensure_ascii=False, separators=(",", ":")))
         return 0
     if argv[0] == "--verificar":
@@ -269,14 +320,16 @@ def main(argv: list[str] | None = None) -> int:
             return 1
         informe = verificar_catalogo()
         docs = verificar_documentos()
-        ok = (informe["json_igual"] and informe["texto_igual"] and informe["medidas"] > 0
+        ok = (informe["json_igual"] and informe["texto_igual"] and not informe["desformateados"] and informe["medidas"] > 0
               and informe["macros"] > 0 and informe["casos"] > 0 and not docs["fallas"]
               and docs["ejecutables"] > 0)
         print(f"medidas convertidas: {informe['medidas']}")
         print(f"macros convertidas: {informe['macros']}")
         print(f"casos convertidos: {informe['casos']}")
+        print(f"relaciones convertidas: {informe.get('relaciones', 0)}")
         print(f"ida JSON: {'OK' if informe['json_igual'] else 'FALLA'}")
         print(f"vuelta texto: {'OK' if informe['texto_igual'] else 'FALLA'}")
+        print(f"forma única: {'OK' if not informe['desformateados'] else 'FALLA'}")
         print(f"caracteres: JSON {informe['caracteres_json']} · superficie "
               f"{informe['caracteres_superficie']}")
         print(f"puntuación: JSON {informe['puntuacion_json']} "

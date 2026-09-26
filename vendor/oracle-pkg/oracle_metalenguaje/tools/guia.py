@@ -19,7 +19,7 @@ import shutil
 RAIZ = Path(__file__).resolve().parents[1]
 GUIAS = tuple(RAIZ / "docs" / nombre for nombre in (
     "de-cero.md", "como-funciona.md", "02-de-cero-a-un-rojo.md", "05-por-que-la-mutacion.md",
-    "07-conectar-a-un-proyecto-propio.md", "13-primer-valor.md"))
+    "07-conectar-a-un-proyecto-propio.md", "13-primer-valor.md", "recetas.md"))
 GUIA = GUIAS[0]
 CLI = RAIZ / "tools/cli.py"
 FENCE = re.compile(r"^```([^\n]*)$")
@@ -109,6 +109,14 @@ def correr(comando: str, cwd: Path, temporal: Path, falla: bool = False) -> tupl
     return salida, cwd
 
 
+def reemplazar_salidas(lineas: list[str], cambios: list[tuple[int, int, str]]) -> list[str]:
+    """Devuelve una copia con los cuerpos de salida nuevos, conservando el resto del documento."""
+    resultado = lineas.copy()
+    for inicio, fin, salida in reversed(cambios):
+        resultado[inicio:fin] = salida.splitlines(keepends=True)
+    return resultado
+
+
 def verificar(escribir: bool = False, guia: Path = GUIA) -> None:
     lineas = guia.read_text(encoding="utf-8").splitlines(keepends=True)
     encontrados = list(bloques(lineas))
@@ -153,9 +161,7 @@ def verificar(escribir: bool = False, guia: Path = GUIA) -> None:
                                          "python3 tools/guia.py --escribir")
                 cambios.append((si + 1, sf, salida))
     if escribir:
-        for inicio, fin, salida in reversed(cambios):
-            lineas[inicio:fin] = salida.splitlines(keepends=True)
-        guia.write_text("".join(lineas), encoding="utf-8")
+        guia.write_text("".join(reemplazar_salidas(lineas, cambios)), encoding="utf-8")
     print(f"{guia.relative_to(RAIZ)}: {sum(b[2][:2] == ['bash', 'paso'] for b in encontrados)} pasos, "
           f"{len(cambios)} salidas actualizadas")
 
@@ -174,5 +180,8 @@ def main() -> int:
     return 0
 
 
-if __name__ == "__main__":
-    raise SystemExit(main())
+# El modismo de cli.py: con `if __name__ == "__main__"`, el mutante `Eq → NotEq` ejecuta el módulo al
+# importarlo y rompe el arnés en vez de morir. Con la verdad del valor, ese mutante no existe.
+_entrada_directa = {"__main__": main}.get(__name__)
+if _entrada_directa:
+    raise SystemExit(_entrada_directa())

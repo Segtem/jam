@@ -80,9 +80,23 @@ PROCEDENCIAS = {
         "la produjo un generador a partir de una especificación, no una corrida del mundo",
 }
 
+ESPERAS = {
+    "sin_evidencia": "la medida debe declarar que no puede juzgar por falta de evidencia; "
+                     "sólo vale para un caso de defecto y se escribe después de `etiqueta`",
+}
+
 
 class CasoMalDeclarado(ValueError):
     pass
+
+
+def validar_espera(datos: dict) -> None:
+    if "espera" not in datos:
+        return
+    if datos["espera"] != "sin_evidencia":
+        raise CasoMalDeclarado("`espera` sólo admite `sin_evidencia`")
+    if datos.get("etiqueta") == "verde_correcto":
+        raise CasoMalDeclarado("`espera: sin_evidencia` no vale con `etiqueta: verde_correcto`")
 
 
 def _json_valor(texto: str, linea: int, columna: int):
@@ -135,6 +149,12 @@ def _escalar(valor) -> str:
 
 def _campo_bloque(nombre: str, valor: str) -> list[str]:
     lineas = str(valor).split("\n")
+    # Una línea que empieza con `#` es comentario en todo el archivo, también dentro de la prosa:
+    # escribirla la haría desaparecer al releer.
+    for linea in lineas:
+        if linea.lstrip().startswith("#"):
+            raise ValueError(f"«{nombre}»: una línea de prosa no puede empezar con `#` "
+                             f"(sería un comentario): «{linea.strip()}»")
     return [f"{IND}{nombre}:", *(f"{IND2}{linea}" for linea in lineas)]
 
 
@@ -193,21 +213,25 @@ def _lineas_relacion(nombre: str, filas: list) -> list[str]:
 class _Parser:
     def __init__(self, texto: str) -> None:
         self.texto = texto
-        self.lineas = texto.splitlines()
+        # Las líneas `#` completas se van antes de parsear, estén donde estén (entre campos, en la
+        # prosa, en el origen o en la evidencia); cada línea que queda conserva su número real.
+        todas = texto.splitlines()
+        self.numeros = [n for n, linea in enumerate(todas, 1) if not linea.lstrip().startswith("#")]
+        self.lineas = [todas[n - 1] for n in self.numeros]
+        self.fin = len(todas) + 1
         self.i = 0
 
     def _saltar_vacios(self) -> None:
         while self.i < len(self.lineas):
             linea = self.lineas[self.i]
-            if linea.strip() and not linea.lstrip().startswith("#"):
+            if linea.strip():
                 break
             self.i += 1
 
     def _actual(self) -> tuple[int, str]:
         if self.i >= len(self.lineas):
-            linea = len(self.lineas) + 1
-            return linea, ""
-        return self.i + 1, self.lineas[self.i]
+            return self.fin, ""
+        return self.numeros[self.i], self.lineas[self.i]
 
     def _tomar_campo(self, nombre: str, nivel: int = 1) -> tuple[str, int, int] | None:
         self._saltar_vacios()
@@ -401,6 +425,10 @@ class _Parser:
             _fallar(n_etiqueta, col_etiqueta,
                     f"una etiqueta declarada\n{opciones(ETIQUETAS)}", etiqueta)
         datos["etiqueta"] = etiqueta
+        espera = self._tomar_campo("espera")
+        if espera is not None:
+            datos["espera"] = espera[0]
+            validar_espera(datos)
         datos["sintoma"] = self._leer_bloque("sintoma")
         como_se_detecto, n_det, col_det = self._exigir_campo("como_se_detecto")
         if como_se_detecto not in DETECCIONES:
@@ -435,15 +463,26 @@ def leer(texto: str) -> dict:
 # Todo lo que la superficie `.caso` sabe escribir. Un caso con algo que no está acá no se puede
 # imprimir sin perderlo, y perderlo en silencio es lo que esta lista existe para impedir.
 CAMPOS_DEL_CASO = frozenset({
-    "id", "fecha", "origen", "procedencia", "titulo", "etiqueta", "sintoma", "como_se_detecto",
+    "id", "fecha", "origen", "procedencia", "titulo", "etiqueta", "espera", "sintoma", "como_se_detecto",
     "medida", "estado_sin_medida", "resuelto", "limite_humano", "sin_medida_todavia",
     "evidencia", "leccion",
 })
 
 
+# El orden en que ya estaba escrito todo el corpus; un campo nuevo va después, alfabético.
+ORDEN_ORIGEN = ("tipo", "repo", "commit", "plan", "cuando_utc", "comando", "registro",
+                "evidencia_sha256", "estado")
+
+
+def _orden_origen(item):
+    clave = item[0]
+    return (ORDEN_ORIGEN.index(clave), "") if clave in ORDEN_ORIGEN else (len(ORDEN_ORIGEN), clave)
+
+
 def imprimir(datos: dict) -> str:
     if not isinstance(datos, dict):
         raise ValueError("un caso tiene que ser un objeto JSON")
+    validar_espera(datos)
     # FAIL-CLOSED al imprimir, desde el 2026-09-09. Antes esta función escribía los campos que
     # conocía y DESCARTABA el resto sin decir nada: un consumidor tenía 91 casos con un campo
     # propio, y la ida y vuelta los perdía enteros. Nadie perdió datos todavía porque no hay
@@ -471,12 +510,15 @@ def imprimir(datos: dict) -> str:
     lineas = [f"caso {datos['id']}:"]
     lineas.append(f"{IND}fecha: {_escalar(datos['fecha'])}")
     lineas.append(f"{IND}origen:")
-    for clave, valor in datos["origen"].items():
+    # Un orden por el impresor, no por quien escribió: si no, dos textos del mismo origen son canónicos.
+    for clave, valor in sorted(datos["origen"].items(), key=_orden_origen):
         lineas.append(f"{IND2}{clave}: {_escalar(valor)}")
     if "procedencia" in datos:
         lineas.append(f"{IND}procedencia: {datos['procedencia']}")
     lineas.append(f"{IND}titulo: {_escalar(datos['titulo'])}")
     lineas.append(f"{IND}etiqueta: {datos['etiqueta']}")
+    if "espera" in datos:
+        lineas.append(f"{IND}espera: {datos['espera']}")
     lineas.extend(_campo_bloque("sintoma", datos["sintoma"]))
     lineas.append(f"{IND}como_se_detecto: {datos['como_se_detecto']}")
     lineas.append(f"{IND}medida: {datos['medida'] if datos['medida'] is not None else 'null'}")
@@ -532,7 +574,8 @@ def es_andamio(ruta: Path) -> bool:
 def cargar_fuente_caso(ruta: Path) -> dict:
     ruta = Path(ruta)
     try:
-        texto = ruta.read_text(encoding="utf-8")
+        from .forma import leer_texto
+        texto = leer_texto(ruta) if ruta.suffix == ".caso" else ruta.read_text(encoding="utf-8")
     except OSError as e:
         raise CasoMalDeclarado(f"no se pudo leer el caso {ruta}: {e}") from e
     if ruta.suffix == ".json":
@@ -545,11 +588,19 @@ def cargar_fuente_caso(ruta: Path) -> dict:
             datos = leer(texto)
         except ErrorSintaxis as e:
             raise CasoMalDeclarado(f"{ruta}: {fragmento_de_error(e, texto)}") from e
+        from .forma import error_forma
+        error = error_forma(ruta, texto, imprimir(datos))
+        if error:
+            raise CasoMalDeclarado(error)
     else:
         raise CasoMalDeclarado(
             f"formato de caso no soportado: {ruta} (esperaba .json o .caso)")
     if not isinstance(datos, dict):
         raise CasoMalDeclarado(f"{ruta}: la raíz del caso debe ser un objeto")
+    try:
+        validar_espera(datos)
+    except CasoMalDeclarado as e:
+        raise CasoMalDeclarado(f"{ruta}: {e}") from e
     cid = datos.get("id")
     if not isinstance(cid, str) or ID_CASO_RE.fullmatch(cid) is None:
         raise CasoMalDeclarado(

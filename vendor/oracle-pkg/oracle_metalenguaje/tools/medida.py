@@ -4,7 +4,7 @@
     python tools/medida.py --escalares             qué funciones de dominio se pueden usar
     python tools/medida.py --nueva dominio.nombre  crea el archivo con la forma puesta
     python tools/medida.py --listar                lista las medidas con umbral, alcance y fijación
-    python tools/medida.py <archivo.json>          la revisa y la corre contra el corpus
+    python tools/medida.py <archivo.oracle>        la revisa y la corre contra el corpus
     python tools/medida.py --expandir <archivo>     ve en qué forma canónica se convierte la macro
 
 Para ejecutar `escalares.py` de otro proyecto hace falta `--confiar-escalares`. Ayuda,
@@ -56,8 +56,8 @@ from tools.sesion import resolver_cli  # noqa: E402
 # La plantilla usa la macro `ninguno`, que es la forma del 80% de las medidas. `--expandir` muestra
 # en qué se convierte; y si el caso no encaja, la forma canónica sigue siendo válida.
 # En superficie infija, no en JSON. La plantilla es lo primero que ve alguien que escribe su primera
-# medida, y hasta hoy le decía «tu trabajo es anidar corchetes». Se guarda como `.oracle`, que el
-# catálogo carga igual que un `.json`.
+# medida, y hasta hoy le decía «tu trabajo es anidar corchetes». Se guarda como `.oracle`: es la única
+# forma de escribir una medida (una-sintaxis).
 PLANTILLA = """\
 ninguno {mid}:
     de RELACION x
@@ -178,6 +178,16 @@ def _borrador(nombre: str, campos: dict) -> tuple[list | None, list[str]]:
     return ["relacion", nombre, ["campos", *declarados], ["alcance", ""]], []
 
 
+def _imprimir_borrador(datos: list) -> str:
+    """Conserva los huecos deliberados que `relacion.imprimir` rechaza."""
+    lineas = [f"relacion {datos[1]}:"]
+    for _, nombre, tipo, unidad in datos[2][1:]:
+        sufijo = f" {unidad}" if tipo in ("entero", "flotante") and unidad else ""
+        lineas.append(f"    {nombre}: {tipo}{sufijo}")
+    lineas.append('    alcance ""')
+    return "\n".join(lineas) + "\n"
+
+
 def escribir_relaciones(proy) -> int:
     """Escribe BORRADORES de las relaciones observadas que el proyecto todavía no declara.
 
@@ -215,8 +225,8 @@ def escribir_relaciones(proy) -> int:
         if nombre in del_lenguaje:
             salteadas.append((nombre, "la emite Oracle y sus campos ya están declarados"))
             continue
-        ruta = destino / f"{nombre}.json"
-        if ruta.exists():
+        ruta = destino / f"{nombre}.relacion"
+        if ruta.exists() or (destino / f"{nombre}.json").exists():
             salteadas.append((nombre, "ya tiene un borrador; no se pisa"))
             continue
         borrador, sin_decidir = _borrador(nombre, campos[nombre])
@@ -227,14 +237,12 @@ def escribir_relaciones(proy) -> int:
         # paralelo es una segunda versión de lo mismo, y la mutación mostró que nadie lo miraba.
         a_decidir = sum(1 for campo in borrador[2][1:] if campo[3] == "")
         destino.mkdir(exist_ok=True)
-        # Con la misma forma que `relaciones/*.json`: el borrador lo va a editar una persona, y lo
-        # va a mover a una carpeta donde todo está escrito así. Los nombres ya son ASCII.
-        ruta.write_text(json.dumps(borrador, indent=2) + "\n", encoding="utf-8")
+        ruta.write_text(_imprimir_borrador(borrador), encoding="utf-8")
         escritas.append((nombre, a_decidir))
 
     for nombre, a_decidir in escritas:
         faltan = f"{a_decidir} unidad(es) y el alcance" if a_decidir else "el alcance"
-        print(f"borrador: {presentar_ruta(proy, destino / f'{nombre}.json')} — falta {faltan}")
+        print(f"borrador: {presentar_ruta(proy, destino / f'{nombre}.relacion')} — falta {faltan}")
     for nombre, razon in salteadas:
         print(f"salteada: {nombre} — {razon}")
     for nombre, sin_decidir in ambiguas:
@@ -931,7 +939,7 @@ def main(argv: list[str] | None = None) -> int:
             return 1
     if args[0] == "--expandir":
         if len(args) < 2:
-            print("falta el archivo: --expandir <archivo.json>")
+            print("falta el archivo: --expandir <archivo.oracle>")
             return 1
         entrada = Path(args[1])
         accion = lambda: expandir_archivo(

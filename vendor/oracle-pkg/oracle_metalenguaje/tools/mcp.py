@@ -64,7 +64,7 @@ _ESQUEMA_MEDIDA = {
             "required": ["texto", "formato"],
             "properties": {
                 "texto": {"type": "string"},
-                "formato": {"enum": ["oracle", "json"]},
+                "formato": {"const": "oracle"},
             },
         },
     ],
@@ -279,7 +279,8 @@ HERRAMIENTA_DESAFIAR = {
                         "espera": {
                             "enum": [
                                 "verde",
-                                "rojo"
+                                "rojo",
+                                "sin_evidencia"
                             ]
                         },
                         "evidencia": {
@@ -844,10 +845,10 @@ def _validar_evaluacion(argumentos) -> tuple[dict, dict]:
                 "ARGUMENTOS_INVALIDOS",
                 f"$.medida.texto: {_json_compacto(texto)}; se esperaba texto.",
             )
-        if formato not in ("oracle", "json") or not isinstance(formato, str):
+        if formato != "oracle":
             raise ErrorHerramienta(
                 "ARGUMENTOS_INVALIDOS",
-                f"$.medida.formato: {_json_compacto(formato)}; se esperaba oracle o json.",
+                f"$.medida.formato: {_json_compacto(formato)}; se esperaba oracle.",
             )
     else:
         raise ErrorHerramienta(
@@ -880,20 +881,19 @@ def _validar_evaluacion(argumentos) -> tuple[dict, dict]:
 
 
 def _medida_en_memoria(especificacion: dict, macros) -> Medida:
-    """Carga sólo bytes recibidos; ni el modo JSON ni el modo Oracle aceptan una ruta lateral."""
+    """Carga sólo texto Oracle recibido en memoria, sin aceptar rutas laterales."""
     texto = especificacion["texto"]
     formato = especificacion["formato"]
     try:
-        if formato == "json":
-            datos = json.loads(texto)
-        else:
-            lectura = leer_con_mapa(texto, macros=macros)
-            exigir_sintaxis_compatible(lectura.version)
-            datos = lectura.datos
+        lectura = leer_con_mapa(texto, macros=macros)
+        exigir_sintaxis_compatible(lectura.version)
+        datos = lectura.datos
+        from nucleo.forma import error_forma
+        from nucleo.sintaxis import imprimir
+        error = error_forma("<texto de medida>", texto, imprimir(datos, macros=macros))
+        if error:
+            raise ErrorHerramienta("MEDIDA_INVALIDA", error)
         return Medida.de_datos(datos, macros=macros)
-    except json.JSONDecodeError as e:
-        raise ErrorHerramienta(
-            "MEDIDA_INVALIDA", f"el texto JSON de la medida no se entiende: {e}.") from e
     except ErrorSintaxis as e:
         raise ErrorHerramienta(
             "MEDIDA_INVALIDA",
@@ -1266,7 +1266,8 @@ def _casos_del_desafio(argumentos, mid: str, corpus) -> list[dict]:
                 continue
             casos.append({
                 "id": caso.get("id", ""),
-                "espera": "verde" if caso.get("etiqueta") == "verde_correcto" else "rojo",
+                "espera": (caso.get("espera") or
+                           ("verde" if caso.get("etiqueta") == "verde_correcto" else "rojo")),
                 "evidencia": caso.get("evidencia", {}),
                 "origen": "corpus",
             })
@@ -1320,7 +1321,7 @@ def _desafiar(medida: Medida, casos: list[dict]) -> dict:
                 "casos": len(casos), "mutacion": None}
 
     polaridades = {caso["espera"] for caso in casos}
-    if polaridades != {"verde", "rojo"}:
+    if "verde" not in polaridades or not polaridades.intersection({"rojo", "sin_evidencia"}):
         return {"conclusion": "faltan_polaridades", "discordancias": [],
                 "casos": len(casos), "mutacion": None}
 
@@ -1391,8 +1392,8 @@ def desafiar_para_mcp(proy: Proyecto, argumentos, *, confiar_escalares: bool = F
                 "PROCEDENCIA_NO_ADMITIDA",
                 "un caso de la llamada no declara procedencia: una llamada no puede convertir "
                 "evidencia fabricada en evidencia observada.")
-        if caso["espera"] not in ("verde", "rojo"):
-            raise ErrorHerramienta("ARGUMENTOS_INVALIDOS", "`espera` es «verde» o «rojo».")
+        if caso["espera"] not in ("verde", "rojo", "sin_evidencia"):
+            raise ErrorHerramienta("ARGUMENTOS_INVALIDOS", "`espera` es «verde», «rojo» o «sin_evidencia».")
     try:
         with escalares_del_proyecto(proy, confiar=confiar_escalares):
             macros = macros_del_proyecto(proy)
