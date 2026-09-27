@@ -8,16 +8,17 @@ memoria de nadie.
 
 ## Protocolo de tareas y relevo
 
-- Para retomar: `oracle tarea listar` y `oracle tarea ver <id>`.
+- Para retomar: `tasks list` y `tasks show <id>`. `tasks` es el tracker, paquete aparte de Oracle
+  desde 0.34.0: `uv tool install trackertast==0.1.0` (los verbos en español siguen como alias).
 - La tarea es la fuente de verdad del pedido, los avances, la evidencia y los bloqueos.
-- Anotá el relevo con `oracle tarea anotar <id> "…"`; nunca en otro `.md` suelto.
-- Todo pendiente nuevo va a `oracle tarea nueva "<problema>" --sufijo <corto>`.
+- Anotá el relevo con `tasks note <id> "…"`; nunca en otro `.md` suelto.
+- Todo pendiente nuevo va a `tasks new "<problema>" --sufijo <corto>`.
 - Al dejar el trabajo, reemplazá la única sección `## Próximo paso` al final de la tarea.
 - Si hay un bloqueo, escribí su causa y la acción concreta para destrabarlo.
 - Commits: `<ID>: resumen`; cierre: `<ID>: done`, con la tarea CERRADA.
 - `RELEVO.md` conserva evidencia histórica y las restricciones «No toques esto».
 - `python tools/relevo.py` sigue comprobando la vigencia del editor; un rojo se anota en la tarea.
-- Los gestos para Brian se siguen con `oracle tarea listar --etiqueta gestos`.
+- Los gestos para Brian se siguen con `tasks list --etiqueta gestos`.
 - «Para las manos de Brian» se conserva aunque esté vacía; sus avances se anotan en las tareas.
 - El vault es documentación: se enlaza como evidencia, no se usa como lista de pendientes.
 
@@ -39,7 +40,7 @@ Jam lo usa por **dos caminos a la vez**, y hacen falta los dos:
 ```bash
 # 1. los COMANDOS, para vos y para relevo.py
 uv tool install oracle-metalenguaje          # deja los 10 ejecutables en el PATH
-oracle --version                             # tiene que decir 0.33.0
+oracle --version                             # tiene que decir 0.34.0
 
 oracle-corpus      --proyecto medidas
 oracle-aceptacion  --proyecto medidas --confiar-escalares
@@ -51,7 +52,7 @@ oracle test        --proyecto medidas --confiar-escalares   # la secuencia enter
 
 ```bash
 # 2. el PAQUETE, para el intérprete embebido de Unreal
-python3 -m pip install --target vendor/oracle-pkg --no-deps "oracle-metalenguaje==0.33.0"
+python3 -m pip install --target vendor/oracle-pkg --no-deps "oracle-metalenguaje==0.34.0"
 rm -rf vendor/oracle-pkg/bin        # scripts con shebang de esta máquina; no van al repo
 ```
 
