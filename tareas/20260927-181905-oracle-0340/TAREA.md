@@ -1,6 +1,6 @@
 # Oracle 0.34.0 y el tracker como paquete aparte (trackertast)
 
-- ESTADO: ABIERTA
+- ESTADO: CERRADA
 - PRIORIDAD: 50
 - ETIQUETAS: 
 
