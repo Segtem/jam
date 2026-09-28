@@ -25,6 +25,10 @@ convierte un `JamGraph` en DSL: el LLM y el humano trabajan sobre cosas distinta
    `JamGraph → dsl` (lo que edita el humano se lee como texto), con la ida y vuelta como test.
 3. La consola de una línea sigue funcionando como caso particular.
 
+### Nota (2026-09-28 01:45:28 UTC)
+
+2026-09-27, Claude: pedido de diseño escrito en investigacion/pedido.txt: el mismo texto para los tres, a ciegas entre sí, con diez criterios escritos para elegir (ida y vuelta exacta y qué es «el mismo grafo», cobertura del modelo entero, escribible por un LLM, legible en el canvas, diffs limpios, la consola de una línea como caso particular, dónde vive el layout, literales ricos coherentes con texto_de_valor, cerebro puro, una sola forma canónica) y entregables comparables: gramática, Cylinder-Strip y TreeGen-Curve-Frames transcritos enteros, un ejemplo propio con multi-salida, valor cableado, expresión, función y bypass, reglas del impresor, errores con línea, integración con api.run/canvas/MCP y la alternativa descartada. Lanzados: agy (gemini-3.8-flash-high) en contenedor agy-naval sobre una copia git archive de HEAD, y un agente Claude nuevo sin el contexto de esta sesión. Codex (gpt-6-sol) vuelve el 2026-09-30.
+
 ## Próximo paso
 
-El pedido del diseño para los tres modelos.
+Juntar las tres respuestas en investigacion/ (agy.md, claude.md, codex.md; Codex el 2026-09-30), armar la tabla por criterio y proponérsela a Brian, que elige.

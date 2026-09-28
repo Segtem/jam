@@ -1,0 +1,41 @@
+Sos consultor de diseño del repositorio Jam (/home/workstation/Dev/jam): un plugin de Unreal Engine con un canvas de nodos (el Graph), verbos de colocación y un DSL. Hay que diseñar un DSL de GRAFOS. No modifiques ningún archivo: sólo leé y respondé.
+
+EL PROBLEMA
+Un LLM tiene que poder hacer por texto todo lo que Jam hace, y un humano tiene que poder seguir, observar y corregir esa creación en el canvas de nodos, y viceversa: el texto y los nodos son DOS VISTAS DEL MISMO GRAFO. Hoy no es así:
+- Content/Python/jam/dsl.py lee UNA línea por vez: `verbo [asset] [clave=valor …]`. No hay nodos con nombre ni cables, así que los 86 verbos que necesitan una entrada por cable (mallas, curvas, frames, materiales, Mass, flujo de puntos) quedan fuera de su alcance (ver registro_core.cable_que_falta).
+- Lo que corre por api.run (panel.ejecutar_dsl) no aparece en el canvas, y nada convierte un JamGraph en texto.
+
+Leé antes de responder:
+- tareas/20260924-114746-dsl-llm/AUDITORIA.md (la auditoría: qué falta y por qué) y tareas/20260924-121231-dsl-grafos/TAREA.md.
+- Content/Python/jam/graph.py: JamGraph (from_json/to_json), PIN_IN/PIN_OUT/PIN_ASSET/COMODIN, compilar (qué valida: pines, tipos, cardinalidad, aridad -1 variádica, data_params, optional_data_params, salidas extra, bypass), ejecutar_detalle.
+- Content/Python/jam/tools.py: REGISTRO (params con default tipado, opciones, data_params, in_name/out_name, salidas extra, label, etiquetas_params).
+- Content/Python/jam/math_core.py: VALORES/VALOR_KINDS (nodos de valor: number, math, text, vector, dominio, matriz…), resolver, texto_de_valor (cómo se escribe hoy un valor rico), expresiones «=…» y la tabla de variables por nombre.
+- Content/Python/jam/flow.py: el otro formato (Flow, con `kind` en vez de `verb`) y su evaluador.
+- Content/Python/jam/funcion.py: funciones con firma (input/output, instancias `fn:<nombre>`, expansión inline).
+- Source/JamEditor/Private/SJamGraphEditor.cpp, función que arma el JSON del canvas (busca `schema_version`): qué guarda el canvas por nodo (verb, params como strings, x, y, debug, bypass, compact), aristas de 4 elementos, `reroutes` (puntos por índice de arista) y `comments`.
+- Dos ejemplos reales: Resources/Examples/Cylinder-Strip.jamgraph y Resources/Examples/TreeGen-Curve-Frames.jamgraph.
+- El antecedente: Oracle (paquete oracle-metalenguaje, vendorizado en vendor/oracle-pkg/oracle_metalenguaje) tiene una «superficie» con UNA sola forma de escribir: el texto que escribe su impresor es la forma canónica (como gofmt; `oracle formatear --escribir`), y la ida y vuelta está verificada. El lector y el impresor están en nucleo/sintaxis.py; los casos, en nucleo/caso.py. Miralo si te sirve; no hace falta copiarlo.
+
+LO QUE TIENE QUE CUMPLIR (así se va a elegir entre propuestas)
+1. Ida y vuelta EXACTA: texto → grafo → texto da el mismo texto (canónico); grafo → texto → grafo da el mismo grafo. Definí qué significa «el mismo grafo» (¿params iguales a su default se omiten o se escriben?, ¿el orden de los cables de un pin variádico importa?, ¿los params como string «10» vs número?).
+2. Cobertura total del modelo: todos los verbos del REGISTRO y las ops de Flow; pines de salida extra (multi-salida), pines de datos, el pin asset, nodos de valor, expresiones «=…» y variables por nombre, instancias de funciones, flags (bypass, debug/display, compact), aridad variádica.
+3. Escribible por un LLM que nunca lo vio, con la ayuda generada del registro: pocos tokens, sin ids técnicos (n1, n2), un error se ubica por línea y dice qué y cómo seguir.
+4. Legible para el humano: los nombres del texto son los que ve en el canvas; cuando el humano agrega un nodo en el canvas, el nombre que se genera es legible y estable.
+5. Diffs limpios: cambiar un param cambia una línea; agregar un nodo no renombra ni reordena lo demás.
+6. La consola de una línea actual (`scatter SM_Rock count=20`) sigue siendo válida como caso particular, o se explica exactamente qué cambia.
+7. Layout (x/y, reroutes, comments, view): decidí si vive en el texto, en un bloque aparte, en un archivo al lado o se deriva, sin romper el criterio 1.
+8. Literales de tipos ricos (vector, dominio, matriz) coherentes con lo que ya imprime math_core.texto_de_valor.
+9. Implementación: cerebro puro (Content/Python/jam, cero `import unreal`), qué archivos nuevos o cambiados, y cuánto código estimás.
+10. Una sola forma canónica (como la superficie de Oracle), no varias maneras de escribir lo mismo.
+
+QUÉ ENTREGAR
+a. La gramática (EBNF o equivalente, corta).
+b. Los DOS ejemplos reales transcritos ENTEROS en tu sintaxis.
+c. Un ejemplo propio que use: un pin de salida extra (p. ej. matrix_decompose), un nodo de valor cableado a un parámetro, una expresión «=…», una instancia de función y un nodo con bypass.
+d. Las reglas del impresor canónico (orden de nodos, de params, de cables; qué se omite).
+e. Cómo se ve en el texto una edición típica del humano en el canvas (agrega un nodo entre dos, cambia un param, recablea).
+f. Tres mensajes de error de ejemplo, con línea.
+g. Cómo se integra: api.run, el canvas (qué hace el C++ al recibir texto), y un futuro servidor MCP que lee el grafo como texto y aplica texto.
+h. La mejor alternativa que descartaste y por qué, y los riesgos de tu propuesta.
+
+Verificá cada afirmación sobre el código contra el árbol real, con archivo:línea; si no leíste algo, no lo afirmes. Respondé en español, en no más de 2500 palabras (los ejemplos transcritos no cuentan).
