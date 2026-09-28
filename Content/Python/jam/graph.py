@@ -702,7 +702,7 @@ def ejecutar(g: JamGraph, plan: GraphPlan | None = None) -> str:
 
 
 def ejecutar_detalle(g: JamGraph, plan: GraphPlan | None = None,
-                     almacen=None) -> tuple[str, dict]:
+                     almacen=None, adaptador=None) -> tuple[str, dict]:
     """Corre el grafo en orden topológico: cada nodo dispara su tool y su oráculo. Devuelve
     (reporte, {nid: {'estado','texto'}}) — el estado es lo que pinta cada nodo en el canvas.
     Los actores quedan en el nivel (quien llama decide preview/confirm).
@@ -712,7 +712,14 @@ def ejecutar_detalle(g: JamGraph, plan: GraphPlan | None = None,
     que `cache_core.es_cacheable` acepta —los que producen un dato transitorio—: saltear uno que
     spawnea dejaría la escena sin sus actores, y eso se diagnostica como «a veces no aparece».
     """
-    from . import cache_core, display_core, dsl, tools
+    from . import cache_core, display_core, dsl
+    # El motor del otro lado (tarea `fuera-del-motor`): por defecto el de Unreal, `jam.tools`. Otro
+    # adaptador —el de Godot, que corre el núcleo FUERA del motor— trae `REGISTRO`,
+    # `implementacion(verbo)`, `limpiar_asset_producido_runtime(verbo)` y
+    # `dato_producido_runtime(verbo, entrada)`.
+    if adaptador is None:
+        from . import tools as adaptador
+    REGISTRO = adaptador.REGISTRO
     try:
         plan = plan or compilar(g)
     except GraphValidationError as exc:
@@ -753,7 +760,7 @@ def ejecutar_detalle(g: JamGraph, plan: GraphPlan | None = None,
             return None
         origen, origen_pin = fuente
         return _valor_del_pin(g.nodes.get(origen, {}).get("verb", ""), origen_pin,
-                              runtime_outputs.get(origen), tools.REGISTRO)
+                              runtime_outputs.get(origen), REGISTRO)
 
     # Las huellas se calculan una vez, antes del recorrido: cuestan microsegundos y el que las pide
     # necesita el mapa entero para decidir qué reusar.
@@ -804,7 +811,7 @@ def ejecutar_detalle(g: JamGraph, plan: GraphPlan | None = None,
             # Lo que se MUESTRA es lo que sale por el pin principal, no el valor crudo guardado: con
             # `corte_principal` los dos dejan de ser lo mismo, y el nodo estaría diciendo «traslación»
             # arriba de una tupla de cinco vectores.
-            v = _valor_del_pin(verb, PIN_OUT, v, tools.REGISTRO)
+            v = _valor_del_pin(verb, PIN_OUT, v, REGISTRO)
             # El mismo texto que arma el panel de Flow, y por la misma razón: los dos dibujan el
             # mismo nodo, y si el formato viviera en dos lados el valor se leería distinto según
             # por qué botón se corrió.
@@ -814,7 +821,7 @@ def ejecutar_detalle(g: JamGraph, plan: GraphPlan | None = None,
             por_nodo[nid] = {"estado": "ok" if v is not None else "warn", "texto": txt}
             continue
 
-        info = tools.REGISTRO[verb]  # el Compile ya garantizó que existe
+        info = REGISTRO[verb]  # el Compile ya garantizó que existe
         asset = plan.input_assets.get(nid)
         # Compile propaga la ruta FINAL prevista. Durante Run, transformadores como Fracture crean
         # una variante temporal única; los consumidores deben recibir esa salida real, no la ruta
@@ -885,9 +892,9 @@ def ejecutar_detalle(g: JamGraph, plan: GraphPlan | None = None,
             reusados.append(nid)
             continue
 
-        tools.limpiar_asset_producido_runtime(verb)
+        adaptador.limpiar_asset_producido_runtime(verb)
         try:
-            txt = str(info["fn"](entrada, **kw))
+            txt = str(adaptador.implementacion(verb)(entrada, **kw))
         except Exception as e:  # noqa: BLE001
             txt = f"[error] {type(e).__name__}: {e}"
         lineas.append(f"[{nid}·{verb}] {txt}")
@@ -895,7 +902,7 @@ def ejecutar_detalle(g: JamGraph, plan: GraphPlan | None = None,
         por_nodo[nid] = {"estado": estado, "texto": txt}
         if estado == "error":
             rotos[nid] = nid
-        producido = tools.dato_producido_runtime(verb, entrada)
+        producido = adaptador.dato_producido_runtime(verb, entrada)
         salida = (producido if producido is not None else entrada) if estado != "error" else None
         runtime_outputs[nid] = salida
         if salida is not None:

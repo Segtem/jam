@@ -2141,6 +2141,11 @@ for _verbo, _fn in IMPLEMENTA.items():
 MOTOR = "unreal"
 
 
+def implementacion(verbo: str):
+    """Lo que el ejecutor del Graph le pide al adaptador (ver `graph.ejecutar_detalle`)."""
+    return REGISTRO[verbo]["fn"]
+
+
 def motor_activo() -> tuple[str, frozenset | None]:
     """El motor del otro lado y lo que implementa: `("unreal", IMPLEMENTA)`.
 

@@ -172,6 +172,15 @@ $ENG/Engine/Binaries/Linux/UnrealEditor \
 `unreal.register_slate_post_tick_callback` y sale sola con `unreal.SystemLibrary.quit_editor()`.
 El modelo es `tools/experiments/verifica_texto_canvas_58.py`.
 
+**Godot (base común, tarea `base-comun`).** El núcleo corre FUERA de Godot, en un Python común, y le
+habla al plugin de editor `Godot/addons/jam/` (TCP 127.0.0.1:8792, una línea de JSON por pedido).
+Banco de trabajo: `~/Dev/games/JamGodot` (el plugin entra por symlink). Godot headless:
+`godot --headless --editor --path ~/Dev/games/JamGodot`. La prueba cruzada Unreal ↔ Godot es
+`python tools/experiments/verifica_base_comun_godot.py` (antes, `verifica_caja_comun_58.py` en
+Unreal). El contrato habla en el marco del núcleo —cm, Z arriba—; el plugin traduce, e INVIERTE cada
+triángulo porque la traducción es una reflexión (medido con el `BoxMesh` de Godot). Cerrar Godot por
+PID: `pkill -f` con el path del proyecto mata también al shell que lo lanzó.
+
 ⚠️ **La salida NO llega fiablemente a stdout.** El veredicto está en el `.log` más reciente de
 `Saved/Logs/` del proyecto que se corrió — `JamPlayground*.log` o `BotOO*.log` según el caso. Si el
 editor GUI está abierto, el commandlet paralelo escribe por ejemplo `BotOO_2.log`, no `BotOO.log`.

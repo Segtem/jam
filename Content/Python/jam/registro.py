@@ -1020,13 +1020,17 @@ _SOLO_UNREAL_POR_CATEGORIA = {"Mass": "MassEntity es de Unreal",
 #: La base común (tarea `base-comun`): se calculan en el núcleo (`jam.comun`) y cada motor sólo los
 #: vuelve suyos con su primitiva «malla desde datos». Un test ata esta lista a `comun.IMPLEMENTA`.
 COMUNES = frozenset({"mesh_box"})
+#: Las PRIMITIVAS del contrato que cada motor implementa con lo suyo (no se calculan en el núcleo):
+#: mostrar una malla sin hornearla. También corren en cualquier motor: todo adaptador las trae.
+PRIMITIVAS = frozenset({"mesh_preview"})
 
 for _nombre, _info in REGISTRO.items():
     _source = _nombre in GRAPH_SOURCES
     # En qué motores corre (tarea `fuera-del-motor`, criterio 11 de `dsl-grafos`). Se DERIVA: una op
     # de Flow o un verbo de la base común es cálculo del núcleo y corre en cualquiera («*»); el resto
     # vive en el adaptador de Unreal.
-    _info["motores"] = ("*",) if (_info.get("_flow_op") or _nombre in COMUNES) else ("unreal",)
+    _info["motores"] = (("*",) if (_info.get("_flow_op") or _nombre in COMUNES
+                                   or _nombre in PRIMITIVAS) else ("unreal",))
     _porque = _SOLO_UNREAL.get(_nombre) or _SOLO_UNREAL_POR_CATEGORIA.get(_info.get("cat", ""))
     if _porque:
         _info["porque"] = _porque
