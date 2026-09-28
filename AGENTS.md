@@ -175,9 +175,12 @@ El modelo es `tools/experiments/verifica_texto_canvas_58.py`.
 **Godot (base común, tarea `base-comun`).** El núcleo corre FUERA de Godot, en un Python común, y le
 habla al plugin de editor `Godot/addons/jam/` (TCP 127.0.0.1:8792, una línea de JSON por pedido).
 Banco de trabajo: `~/Dev/games/JamGodot` (el plugin entra por symlink). Godot headless:
-`godot --headless --editor --path ~/Dev/games/JamGodot`. La prueba cruzada Unreal ↔ Godot es
-`python tools/experiments/verifica_base_comun_godot.py` (antes, `verifica_caja_comun_58.py` en
-Unreal). El contrato habla en el marco del núcleo —cm, Z arriba—; el plugin traduce, e INVIERTE cada
+`godot --headless --editor --path ~/Dev/games/JamGodot`. La prueba cruzada Unreal ↔ Godot/Unity es
+`python tools/experiments/verifica_base_comun.py --motor godot|unity` (antes, `verifica_caja_comun_58.py`
+en Unreal): corre todo el fixture común y compara triángulos, posiciones, caja, área y volumen con
+signo. **Unity**: `Unity/Assets/Jam/Editor/` (C#, TCP 8793), banco `~/Dev/games/JamUnity` (symlink),
+editor `~/Dev/engines/unity/6000.3.24f1` (la 6000.6.1f1 necesita `libxml2-legacy`); en batchmode
+atiende con `-executeMethod Jam.JamServidor.Lote` hasta «salir». El contrato habla en el marco del núcleo —cm, Z arriba—; el plugin traduce, e INVIERTE cada
 triángulo porque la traducción es una reflexión (medido con el `BoxMesh` de Godot). Cerrar Godot por
 PID: `pkill -f` con el path del proyecto mata también al shell que lo lanzó.
 

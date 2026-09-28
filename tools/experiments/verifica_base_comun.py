@@ -1,6 +1,7 @@
-"""La base común corre igual en Unreal y en Godot (tarea `base-comun`, paso 2), medido por los DOS.
+"""La base común corre igual en Unreal y en otro motor (tarea `base-comun`), medido por los DOS.
 
-    python tools/experiments/verifica_base_comun_godot.py
+    python tools/experiments/verifica_base_comun.py --motor godot
+    python tools/experiments/verifica_base_comun.py --motor unity
 
 1. Lee lo que midió Unreal sobre la caja del núcleo: `~/Dev/games/JamPlayground/Saved/
    jam_caja_comun.json` (lo escribe `verifica_caja_comun_58.py`, que se corre antes en el editor).
@@ -24,10 +25,27 @@ JAM = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(JAM / "Content/Python"))
 sys.modules["unreal"] = None   # el núcleo corre SIN Unreal: es la prueba
 
+import argparse  # noqa: E402
+
 from jam import adaptador_godot as ag  # noqa: E402
+from jam import adaptador_unity as au  # noqa: E402
 
 UNREAL = Path.home() / "Dev/games/JamPlayground/Saved/jam_caja_comun.json"
 PROYECTO = Path.home() / "Dev/games/JamGodot"
+UNITY = Path.home() / "Dev/engines/unity/6000.3.24f1/Editor/Unity"
+PROYECTO_UNITY = Path.home() / "Dev/games/JamUnity"
+
+
+def _lanzar(motor: str):
+    """(proceso, módulo del adaptador) del motor, headless. Unity: el bucle de lote de Codex
+    (`Jam.JamServidor.Lote`), que atiende en el hilo principal hasta «salir»."""
+    if motor == "godot":
+        return subprocess.Popen(["godot", "--headless", "--editor", "--path", str(PROYECTO)],
+                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL), ag
+    log = PROYECTO_UNITY / "jam-unity-cruzada.log"
+    return subprocess.Popen([str(UNITY), "-projectPath", str(PROYECTO_UNITY), "-logFile", str(log),
+                             "-batchmode", "-nographics", "-executeMethod", "Jam.JamServidor.Lote"],
+                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL), au
 
 
 FIXTURE = JAM / "Content/Python/tests/fixtures/primitivas_unreal.json"
@@ -79,35 +97,38 @@ def _textos() -> list[tuple[str, str, dict]]:
 
 
 def main() -> int:
+    a = argparse.ArgumentParser(description=__doc__)
+    a.add_argument("--motor", choices=("godot", "unity"), default="godot")
+    motor = a.parse_args().motor
     if json.loads(UNREAL.read_text()).get("veredicto") != "VERDE":
         raise SystemExit(f"la medición de Unreal no es VERDE: {UNREAL}")
-    godot = subprocess.Popen(["godot", "--headless", "--editor", "--path", str(PROYECTO)],
-                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    proceso, mod = _lanzar(motor)
     fallas, filas = [], []
+    cliente = None
     try:
-        for _ in range(60):
+        for _ in range(240):
             try:
-                cliente = ag.Cliente(plazo=10)
+                cliente = mod.Cliente(plazo=30)
                 break
-            except ag.ErrorAdaptador:
+            except mod.ErrorAdaptador:
                 time.sleep(1)
         else:
-            raise SystemExit("Godot no abrió el puerto del plugin Jam")
-        adaptador = ag.AdaptadorGodot(cliente)
+            raise SystemExit(f"{motor} no abrió el puerto del plugin Jam")
+        adaptador = (ag.AdaptadorGodot if motor == "godot" else au.AdaptadorUnity)(cliente)
         casos = _textos()
         for nombre, texto, _u in casos:
             r = ag.correr_texto(texto + f"ver = mesh_preview @m name={nombre}\n", adaptador)
             if not r["ok"]:
-                fallas.append(f"{nombre}: no corrió en Godot: {r['errores'] or r['report']}")
+                fallas.append(f"{nombre}: no corrió en {motor}: {r['errores'] or r['report']}")
         en_godot = {m["nodo"]: m["hechos"] for m in cliente.pedir("hechos")["mallas"]}
         for nombre, _texto, u in casos:
             g = en_godot.get(nombre, {})
             filas.append({"caso": nombre, "unreal": {k: u[k] for k in ("triangulos", "posiciones", "min", "max", "area", "volumen")},
-                          "godot": g})
+                          motor: g})
             cerca = lambda a, b: all(abs(x - y) <= 1e-3 for x, y in zip(a, b))  # noqa: E731
             if (g.get("triangulos"), g.get("posiciones")) != (u["triangulos"], u["posiciones"]) or not (
                     cerca(g.get("min", []), u["min"]) and cerca(g.get("max", []), u["max"])):
-                fallas.append(f"{nombre}: Unreal y Godot miden distinto")
+                fallas.append(f"{nombre}: Unreal y {motor} miden distinto")
             if abs(g.get("area", 0) - u["area"]) > 1e-5 * max(1.0, u["area"]):
                 fallas.append(f"{nombre}: área {g.get('area')} contra {u['area']}")
             # El volumen CON SIGNO, sumado con la convención de caras frontales de Godot: coincide
@@ -118,11 +139,22 @@ def main() -> int:
                 fallas.append(f"{nombre}: volumen con signo {g.get('volumen')} contra {u['volumen']} "
                               "(caras dadas vuelta si el signo no coincide)")
         cliente.pedir("descartar")
-        cliente.cerrar()
     finally:
-        godot.terminate()
-        godot.wait(20)
-    print(json.dumps({"veredicto": "VERDE" if not fallas else "ROJO", "casos": filas,
+        if cliente is not None:
+            if motor == "unity":
+                try:
+                    cliente.pedir("salir")
+                except (OSError, mod.ErrorAdaptador):
+                    pass
+            cliente.cerrar()
+        if motor == "godot":
+            proceso.terminate()
+        try:
+            proceso.wait(60)
+        except subprocess.TimeoutExpired:
+            proceso.terminate()
+            proceso.wait(20)
+    print(json.dumps({"veredicto": "VERDE" if not fallas else "ROJO", "motor": motor, "casos": filas,
                       "fallas": fallas}, ensure_ascii=False, indent=1))
     return 0 if not fallas else 1
 
