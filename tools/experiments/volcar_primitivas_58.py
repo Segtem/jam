@@ -31,6 +31,17 @@ FUENTES = {
                     {"latitude_steps": 1}, {"longitude_steps": 2}],
     "mesh_disc": [{}, {"radius": 50, "sides": 6, "start_angle": 0, "end_angle": 180},
                   {"radius": 80, "sides": 8, "hole_radius": 30}],
+    "mesh_triangle": [{}, {"size": 37}],
+    "mesh_capsule": [{}, {"radius": 20, "length": 60, "hemisphere_steps": 2, "sides": 5},
+                     {"hemisphere_steps": 0}],
+    "mesh_torus": [{}, {"major_radius": 60, "minor_radius": 10, "major_steps": 5, "minor_steps": 3},
+                   {"major_steps": 2}],
+    "mesh_round_rect": [{}, {"size_x": 150, "size_y": 40, "corner_radius": 10, "steps_round": 2},
+                        {"corner_radius": 0}],
+    "mesh_stairs": [{}, {"step_width": 80, "step_height": 25, "step_depth": 40, "steps": 3, "floating": True}],
+    "mesh_stairs_curved": [{}, {"step_width": 60, "step_height": 20, "inner_radius": 50,
+                                "curve_angle": -120, "steps": 4, "floating": True}],
+    "mesh_sphere_box": [{}, {"radius": 30, "steps": 2}, {"steps": 0}],
 }
 TRANSFORMS = [{"x": 10, "y": -20, "z": 30}, {"yaw": 90}, {"pitch": 30, "yaw": 10, "roll": 45},
               {"scale_x": 2, "scale_y": 0.5, "scale_z": 3}, {"scale_x": -1},
@@ -66,8 +77,22 @@ def medir(dm):
             "tris": tris}
 
 
+#: La REFERENCIA tiene que ser Geometry Script. Un verbo que ya pasó a la base común corre en
+#: Unreal con el código del núcleo, así que volcarlo por el camino del Graph mediría al núcleo
+#: contra sí mismo (pasó: el re-volcado del cono cambió). Para esos, la función de `mesh.py`, que es
+#: la de Geometry Script; para los demás, el verbo.
+REFERENCIA_GEOMETRY_SCRIPT = {"mesh_box": "box", "mesh_quad": "quad", "mesh_grid": "grid",
+                              "mesh_disc": "disc", "mesh_cylinder": "cylinder", "mesh_cone": "cone",
+                              "mesh_sphere": "sphere"}
+
+
 def correr(verbo, entrada, params):
-    from jam import tools
+    from jam import mesh, tools
+    if verbo in REFERENCIA_GEOMETRY_SCRIPT:
+        resultado = getattr(mesh, REFERENCIA_GEOMETRY_SCRIPT[verbo])(**params)
+        if "error" in resultado:
+            raise RuntimeError(resultado["error"])
+        return resultado["mesh"]
     tools.limpiar_asset_producido_runtime(verbo)
     tools.REGISTRO[verbo]["fn"](entrada, **params)
     return tools.dato_producido_runtime(verbo)
@@ -83,6 +108,12 @@ def caso(verbo, entrada, params, **extra):
 
 
 def main():
+    from jam import registro, tools
+    sin_referencia = sorted(v for v in FUENTES if v in registro.COMUNES
+                            and tools.REGISTRO[v].get("source") and v not in REFERENCIA_GEOMETRY_SCRIPT)
+    if sin_referencia:
+        raise RuntimeError(f"{sin_referencia} ya son comunes y no tienen su función de Geometry "
+                           "Script en REFERENCIA_GEOMETRY_SCRIPT: se volcaría el núcleo contra sí mismo")
     casos = []
     for verbo, lista in FUENTES.items():
         for params in lista:
