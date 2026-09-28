@@ -138,10 +138,10 @@ def validar_cuerpo(cuerpo: JamGraph, biblio: dict[str, JamGraph] | None = None) 
     except FuncionError as exc:
         return contrato, {"_graph": [str(exc)]}
 
-    from . import graph, tools
+    from . import graph, registro as _registro
     comprobable = JamGraph()
     comprobable.edges = list(expandido.edges)
-    registro = dict(tools.REGISTRO)
+    registro = dict(_registro.REGISTRO)
     for nid, nodo in expandido.nodes.items():
         copia = {"verb": nodo.get("verb", ""), "params": dict(nodo.get("params", {})),
                  "asset": nodo.get("asset"), "x": nodo.get("x", 0.0),
@@ -314,8 +314,7 @@ def colapsar(g: JamGraph, seleccion: set[str], nombre: str, *, registro: dict | 
         raise FuncionError("la función necesita un nombre")
 
     if registro is None:
-        from . import tools
-        registro = tools.REGISTRO
+        from .registro import REGISTRO as registro
     biblio = biblioteca() if biblio is None else biblio
 
     from .graph import _tipo_entrada, _tipo_salida

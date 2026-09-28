@@ -516,8 +516,8 @@ def compilar(g: JamGraph, *, registro: dict | None = None, resolver_asset=None,
         for desconocido in sorted(set(crudos) - set(defaults)):
             # Si el param se MUDÓ de verbo, decir adónde. Un grafo guardado que abre con
             # «parámetro desconocido» obliga a adivinar qué pasó y a buscar en qué commit.
-            from . import tools
-            destino = tools.PARAMS_MUDADOS.get((verb, desconocido))
+            from .registro import PARAMS_MUDADOS
+            destino = PARAMS_MUDADOS.get((verb, desconocido))
             if destino:
                 error(nid, f"«{desconocido}» se mudó a `{destino}`: "
                            f"`{verb}` y `{destino}` son verbos distintos ahora")

@@ -108,6 +108,14 @@ puntos ciegos. Todo lo demás está en
 
 - `Content/Python/jam/*.py` — cerebro. **Cero `import unreal`.** Por eso se puede testear sin motor,
   y por eso los **1237 tests corren en 0.7 s**.
+- `Content/Python/jam/registro.py` — la **descripción** de cada verbo (params, tipos, opciones,
+  pines, doc), sin `"fn"`. Es núcleo: se importa con `sys.modules["unreal"] = None`, y
+  `test_nucleo_sin_motor.py` lo exige para él, `dsl`, `graph`, `flow`, `funcion` y el resto del
+  núcleo. Un verbo nuevo se DESCRIBE acá y se IMPLEMENTA en el adaptador.
+- `Content/Python/jam/tools.py` — el adaptador de Unreal de los verbos: las `t_*` y
+  `IMPLEMENTA = {verbo: fn}`, que al importarse enchufa `"fn"` en el mismo diccionario
+  (`tools.REGISTRO is registro.REGISTRO`). Tarea `fuera-del-motor`: el núcleo sale del motor y cada
+  motor tiene su adaptador.
 - `Content/Python/jam/ue.py` — **el único** adaptador al motor.
 - `Source/JamEditor/` — C++ de Slate (paneles, Graph). La lógica sigue en Python; el C++ la llama
   con `ExecPythonCommandEx`.

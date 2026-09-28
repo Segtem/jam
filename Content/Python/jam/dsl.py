@@ -8,7 +8,7 @@ para crear, oráculo para verificar.
 
 Los NOMBRES (verbos + params + keywords) están en inglés; la prosa (docs/veredictos) en español.
 Sólo parsea y coacciona tipos; QUIÉN spawnea/previsualiza lo decide `jam.panel` (reusa el mismo
-preview/confirm/discard del panel). Los verbos y sus params salen de `jam.tools.REGISTRO`, así
+preview/confirm/discard del panel). Los verbos y sus params salen de `jam.registro.REGISTRO`, así
 que agregar una herramienta al registro la habilita en la consola sin tocar este archivo.
 """
 
@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import shlex
 
-from . import tools
+from . import registro
 
 # Alias cómodos para el que tipea rápido (nombre corto → param real).
 _ALIAS = {"n": "count", "s": "seed", "h": "height", "t": "thickness"}
@@ -53,7 +53,7 @@ def coaccionar(verbo: str, params: dict) -> tuple[dict, list[str]]:
     corre el verbo: seguir con el default es el silencio que dejaba `cownt=10` en verde.
     """
     from . import registro_core
-    info = tools.REGISTRO.get(verbo, {})
+    info = registro.REGISTRO.get(verbo, {})
     spec = info.get("params", {})
     out: dict = {}
     errores: list[str] = []
@@ -92,7 +92,7 @@ def ayuda() -> str:
 
     lineas = ["Jam DSL — un comando por línea:"]
     de_grafo = 0
-    for nombre, info in tools.REGISTRO.items():
+    for nombre, info in registro.REGISTRO.items():
         if not registro_core.corre_en_consola(info):
             de_grafo += 1
             continue
