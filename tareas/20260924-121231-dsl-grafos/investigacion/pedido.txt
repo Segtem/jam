@@ -27,6 +27,7 @@ LO QUE TIENE QUE CUMPLIR (así se va a elegir entre propuestas)
 8. Literales de tipos ricos (vector, dominio, matriz) coherentes con lo que ya imprime math_core.texto_de_valor.
 9. Implementación: cerebro puro (Content/Python/jam, cero `import unreal`), qué archivos nuevos o cambiados, y cuánto código estimás.
 10. Una sola forma canónica (como la superficie de Oracle), no varias maneras de escribir lo mismo.
+11. Fuera del motor: el grafo y el DSL (lector, impresor, forma normal, ayuda) viven en un núcleo que NO importa `unreal`, ni directa ni indirectamente: tiene que poder importarse con `sys.modules["unreal"] = None`. Hoy `tools.py` importa `unreal` en su línea 10 y mezcla la DESCRIPCIÓN de cada verbo (params, tipos, opciones, pines, doc) con su EJECUCIÓN (`"fn"`). El diseño tiene que apoyarse en un REGISTRO NEUTRO —lo que declara `REGISTRO` sin `"fn"`— en el que cada verbo describe además sus CAPACIDADES por motor (qué adaptador lo puede ejecutar: Unreal, Godot, Unity), y decir cómo se ve en el texto y en los errores un verbo que el motor conectado no tiene («no disponible en este motor», con el porqué, nunca un fallo mudo). Contexto: tareas/20260928-015538-fuera-del-motor/2026-09-27-JAM-FUERA-DEL-MOTOR.md (núcleo fuera del motor y un adaptador por motor; todavía no decidido, pero el diseño del DSL no puede volver a acoplarse a Unreal).
 
 QUÉ ENTREGAR
 a. La gramática (EBNF o equivalente, corta).
@@ -35,7 +36,7 @@ c. Un ejemplo propio que use: un pin de salida extra (p. ej. matrix_decompose), 
 d. Las reglas del impresor canónico (orden de nodos, de params, de cables; qué se omite).
 e. Cómo se ve en el texto una edición típica del humano en el canvas (agrega un nodo entre dos, cambia un param, recablea).
 f. Tres mensajes de error de ejemplo, con línea.
-g. Cómo se integra: api.run, el canvas (qué hace el C++ al recibir texto), y un futuro servidor MCP que lee el grafo como texto y aplica texto.
+g. Cómo se integra: api.run, el canvas (qué hace el C++ al recibir texto), un futuro servidor MCP que lee el grafo como texto y aplica texto, y el registro neutro del criterio 11 (qué módulos quedan en el núcleo, qué queda en el adaptador de Unreal, cómo se declaran las capacidades).
 h. La mejor alternativa que descartaste y por qué, y los riesgos de tu propuesta.
 
 Verificá cada afirmación sobre el código contra el árbol real, con archivo:línea; si no leíste algo, no lo afirmes. Respondé en español, en no más de 2500 palabras (los ejemplos transcritos no cuentan).
