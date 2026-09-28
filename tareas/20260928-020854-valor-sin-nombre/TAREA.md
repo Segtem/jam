@@ -1,6 +1,6 @@
 # Dos nodos de valor sin name se pisan en la tabla de variables sin que Compile lo vea
 
-- ESTADO: ABIERTA
+- ESTADO: CERRADA
 - PRIORIDAD: 78
 - ETIQUETAS: graph, dsl
 
