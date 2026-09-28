@@ -27,7 +27,8 @@ API_PUBLICA = frozenset({"leer_canvas", "aplicar_texto", "ayuda_texto", "graph_t
                          "graph_from_text", "run_text", "confirm", "discard",
                          # el editor web (web/editor.html), con los nombres de jam.servidor.Nucleo
                          "estado", "spec_editor", "compilar_grafo", "correr_grafo",
-                         "texto_de_grafo", "grafo_de_texto", "preview"})
+                         "texto_de_grafo", "grafo_de_texto", "preview", "ejemplos", "ejemplo",
+                         "grafo_inicial"})
 #: Un Run puede tardar (un árbol de TreeGen hornea mallas): más que el plazo de un botón de la web.
 API_TIMEOUT = 600.0
 

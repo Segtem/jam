@@ -1,0 +1,8 @@
+x = series_range end=720 count=7
+y = graph_curve start_value=0 end_value=0 midpoint=0.48 mid_value=240 samples=7
+z = graph_curve start_value=0 end_value=180 midpoint=0.62 mid_value=-80 samples=7
+polyline = curve_polyline x=@x y=@y z=@z
+smooth = curve_smooth @polyline iterations=3 strength=0.45
+uniformar = curve_resample @smooth count=31
+pipe = mesh_pipe @uniformar radius_start=26 radius_end=26 sides=12 samples=32 miter_limit=2.5
+ver = mesh_preview @pipe name=tubo

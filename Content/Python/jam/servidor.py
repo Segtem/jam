@@ -35,7 +35,8 @@ class Nucleo:
     """El núcleo de Jam con un motor del otro lado del contrato."""
 
     PUBLICAS = frozenset({"estado", "spec_editor", "compilar_grafo", "correr_grafo",
-                          "texto_de_grafo", "grafo_de_texto", "preview"})
+                          "texto_de_grafo", "grafo_de_texto", "preview", "ejemplos", "ejemplo",
+                          "grafo_inicial"})
 
     def __init__(self, motor: str):
         self.motor = motor
@@ -129,6 +130,19 @@ class Nucleo:
         errores = [{"linea": lineas.get(n, 0), "columna": 0, "nodo": n, "mensaje": r["texto"]}
                    for n, r in compilado["nodes"].items() if r["estado"] == "error"]
         return {"ok": not errores, "graph": g, "errores": errores}
+
+    def ejemplos(self) -> list:
+        from . import ejemplos
+        return ejemplos.listar(self.motor, self._implementados())
+
+    def ejemplo(self, nombre: str) -> dict:
+        from . import ejemplos
+        return ejemplos.grafo(nombre)
+
+    def grafo_inicial(self) -> dict:
+        """Lo que muestra el editor al abrirse: la vitrina de la base común, que corre en todos."""
+        from . import ejemplos
+        return {"nombre": ejemplos.INICIAL, "graph": ejemplos.grafo(ejemplos.INICIAL)}
 
     def preview(self, accion: str) -> dict:
         op = {"bake": "fijar", "discard": "descartar"}.get(accion)

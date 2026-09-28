@@ -24,6 +24,22 @@
   #conexion.on::before { content:"● "; color:var(--ok); }
   #conexion.off::before { content:"● "; color:var(--error); }
   #cuerpo { display:flex; height:calc(100% - 42px - 110px); }
+  #paleta { width:230px; display:flex; flex-direction:column; border-right:1px solid var(--borde);
+            background:var(--panel); }
+  #buscar { margin:6px; padding:5px 8px; background:#17181a; color:var(--tinta);
+            border:1px solid var(--borde); border-radius:4px; font:inherit; }
+  #lista { flex:1; overflow:auto; padding:0 4px 8px; }
+  #lista details { margin:2px 0; }
+  #lista summary { cursor:pointer; padding:3px 4px; color:var(--acento); font-weight:600;
+                   font-size:12px; letter-spacing:.03em; }
+  #lista .nodo { display:block; width:100%; text-align:left; margin:1px 0; padding:3px 8px;
+                 background:transparent; border:1px solid transparent; }
+  #lista .nodo:hover { border-color:var(--borde); background:#30333a; }
+  #lista .nodo.no { color:#6f6d68; }
+  #vacio { position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+           pointer-events:none; color:var(--tenue); font-size:15px; text-align:center; }
+  select { background:#33363b; color:var(--tinta); border:1px solid var(--borde); border-radius:4px;
+           padding:4px 6px; font:inherit; }
   #lienzo { flex:1; position:relative; min-width:0; }
   #lienzo canvas { display:block; }
   #texto { width:440px; display:flex; flex-direction:column; border-left:1px solid var(--borde);
@@ -52,11 +68,18 @@
   <label class="boton" title="Abrir un .jamgraph">📂 Abrir<input id="archivo" type="file" accept=".jamgraph,.json" hidden></label>
   <button id="b-guardar" title="Descargar el grafo como .jamgraph">💾 Guardar</button>
   <button id="b-nuevo" title="Grafo vacío">Nuevo</button>
+  <select id="ejemplos" title="Ejemplos: los marcados ✓ corren en este motor"><option value="">Ejemplos…</option></select>
   <button id="b-texto" class="activo" title="El grafo como texto: lo que escribe y lee un LLM">✎ Texto</button>
   <span id="conexion" class="off">conectando…</span>
 </div>
 <div id="cuerpo">
-  <div id="lienzo"><canvas id="canvas"></canvas></div>
+  <div id="paleta">
+    <input id="buscar" placeholder="buscar nodo…" autocomplete="off">
+    <div id="lista"></div>
+  </div>
+  <div id="lienzo"><canvas id="canvas"></canvas>
+    <div id="vacio">Elegí un nodo de la paleta (izquierda) o un ejemplo arriba.<br>
+      Doble clic en el fondo también busca un nodo.</div></div>
   <div id="texto">
     <div class="acciones">
       <button id="b-aplicar" title="Vuelve nodos lo escrito; conserva la posición de cada nodo por su nombre">Aplicar</button>

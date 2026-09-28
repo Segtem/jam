@@ -241,6 +241,86 @@ function separarEncimados(nodos) {
   }
 }
 
+// ---------------------------------------------------------------- paleta y ejemplos
+
+function agregarNodo(t) {
+  const nodo = LiteGraph.createNode(`${t.cat || "Otros"}/${t.verbo}`);
+  if (!nodo) return;
+  // Al centro de lo que estás mirando, corrido un poco por cada nodo nuevo para que no se apilen.
+  const [cx, cy] = lienzo.convertOffsetToCanvas([lienzo.canvas.width / 2, lienzo.canvas.height / 2]);
+  const k = (grafo._nodes || []).length % 6;
+  nodo.pos = [cx - 100 + k * 24, cy - 60 + k * 24];
+  grafo.add(nodo);
+  lienzo.selectNode(nodo);
+  cambioEnElGrafo();
+}
+
+function armarPaleta(filtro) {
+  const lista = $("#lista");
+  lista.innerHTML = "";
+  const f = (filtro || "").trim().toLowerCase();
+  const porCat = {};
+  for (const t of SPEC.tools) {
+    const texto = `${t.verbo} ${t.label || ""} ${t.doc || ""}`.toLowerCase();
+    if (f && !texto.includes(f)) continue;
+    (porCat[t.cat || "Otros"] = porCat[t.cat || "Otros"] || []).push(t);
+  }
+  const orden = [...(SPEC.categorias || []), ...Object.keys(porCat)];
+  for (const cat of [...new Set(orden)]) {
+    const nodos = porCat[cat];
+    if (!nodos) continue;
+    const disp = nodos.filter((t) => t.disponible !== false).length;
+    const d = document.createElement("details");
+    d.open = Boolean(f) || disp > 0 && disp <= 12;
+    const s = document.createElement("summary");
+    s.textContent = `${cat} · ${disp}/${nodos.length}`;
+    d.appendChild(s);
+    for (const t of nodos.sort((a, b) => (a.disponible === false) - (b.disponible === false))) {
+      const b = document.createElement("button");
+      b.className = "nodo" + (t.disponible === false ? " no" : "");
+      b.textContent = t.label && t.label !== t.verbo ? `${t.label}  ·  ${t.verbo}` : t.verbo;
+      b.title = (t.disponible === false ? `NO DISPONIBLE en este motor: ${t.porque}\n\n` : "") + (t.doc || "");
+      b.onclick = () => agregarNodo(t);
+      d.appendChild(b);
+    }
+    lista.appendChild(d);
+  }
+}
+
+async function cargarEjemplos() {
+  const sel = $("#ejemplos");
+  for (const e of await api("ejemplos")) {
+    const o = document.createElement("option");
+    o.value = e.nombre;
+    o.textContent = `${e.corre ? "✓" : "·"} ${e.nombre}`;
+    o.title = e.corre ? "corre en este motor" : `le falta: ${e.faltan.join(", ")}`;
+    sel.appendChild(o);
+  }
+  sel.onchange = async () => {
+    if (!sel.value) return;
+    desdeJam(await api("ejemplo", sel.value));
+    reportar(`ejemplo «${sel.value}» cargado. ▶ Run lo corre en el motor.`);
+    sel.value = "";
+    encuadrar();
+  };
+}
+
+function encuadrar() {
+  // Que se vea todo el grafo: el zoom que entra en el lienzo, con un margen.
+  const nodos = grafo._nodes || [];
+  if (!nodos.length) return;
+  const xs = nodos.map((n) => n.pos[0]), ys = nodos.map((n) => n.pos[1]);
+  const x1 = Math.max(...nodos.map((n) => n.pos[0] + n.size[0])), y1 = Math.max(...nodos.map((n) => n.pos[1] + n.size[1] + 20));
+  const x0 = Math.min(...xs), y0 = Math.min(...ys) - 30;
+  // Nunca menos de 0,65: por debajo LiteGraph dibuja los nodos sin texto. Un grafo más grande se
+  // recorre arrastrando el fondo.
+  const escala = Math.max(0.65, Math.min(1, lienzo.canvas.width / (x1 - x0 + 80),
+                                         lienzo.canvas.height / (y1 - y0 + 80)));
+  lienzo.ds.scale = escala;
+  lienzo.ds.offset = [-x0 + 40 / escala, -y0 + 40 / escala];
+  lienzo.setDirty(true, true);
+}
+
 // ---------------------------------------------------------------- compilar, correr, texto
 
 let temporizador = null;
@@ -250,7 +330,12 @@ function cambioEnElGrafo(inmediato) {
   temporizador = setTimeout(sincronizar, inmediato ? 0 : 350);
 }
 
+function actualizarVacio() {
+  $("#vacio").style.display = (grafo._nodes || []).length ? "none" : "flex";
+}
+
 async function sincronizar() {
+  actualizarVacio();
   const doc = aJam();
   const json = JSON.stringify(doc);
   if (json === ultimoJson) return;
@@ -319,9 +404,19 @@ async function iniciar() {
   lienzo.onNodeMoved = () => cambioEnElGrafo();
   grafo.start();
   window.addEventListener("resize", ajustarLienzo);
+  armarPaleta("");
+  $("#buscar").addEventListener("input", (e) => armarPaleta(e.target.value));
+  await cargarEjemplos();
+  // Algo que mirar al abrir: en Unreal, el grafo del Graph de Slate si hay uno; si no, la vitrina.
+  const inicial = await api("grafo_inicial");
+  if (inicial.graph && Object.keys(inicial.graph.nodes || {}).length) {
+    desdeJam(inicial.graph);
+    setTimeout(encuadrar, 50);
+  }
   const disponibles = SPEC.tools.filter((t) => t.disponible !== false).length;
   reportar(`${SPEC.tools.length} nodos, ${disponibles} disponibles en ${estado.motor}. ` +
-           "Doble clic en el fondo busca un nodo; clic derecho, el menú por categoría.");
+           (inicial.graph ? `Abierto: «${inicial.nombre}». ▶ Run lo corre en el motor. ` : "") +
+           "Paleta a la izquierda; doble clic en el fondo también busca un nodo.");
 }
 
 $("#b-compilar").onclick = () => { ultimoJson = ""; sincronizar().then(() => reportar("Compile listo: mirá el color de cada nodo")); };

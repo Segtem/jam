@@ -227,6 +227,34 @@ def grafo_de_texto(texto_: str, base_json: str = "") -> str:
     return graph_from_text(texto_, base_json)
 
 
+def ejemplos() -> str:
+    import json
+
+    from . import ejemplos as _ejemplos, tools
+    motor, implementados = tools.motor_activo()
+    return json.dumps(_ejemplos.listar(motor, implementados), ensure_ascii=False)
+
+
+def ejemplo(nombre: str) -> str:
+    import json
+
+    from . import ejemplos as _ejemplos
+    return json.dumps(_ejemplos.grafo(nombre), ensure_ascii=False)
+
+
+def grafo_inicial() -> str:
+    """Al abrir el editor web en Unreal: el grafo que está abierto en el Graph de Slate, si hay uno
+    (el mismo grafo, en las dos vistas); si no, la vitrina de la base común."""
+    import json
+
+    from . import ejemplos as _ejemplos
+    canvas = json.loads(_grafo_actual())
+    if canvas.get("nodes"):
+        return json.dumps({"nombre": "el Graph de Slate", "graph": canvas}, ensure_ascii=False)
+    return json.dumps({"nombre": _ejemplos.INICIAL, "graph": _ejemplos.grafo(_ejemplos.INICIAL)},
+                      ensure_ascii=False)
+
+
 def preview(accion: str) -> str:
     import json
     if accion not in ("bake", "discard"):
