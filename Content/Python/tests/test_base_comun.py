@@ -70,7 +70,8 @@ class Registro(unittest.TestCase):
         """El verbo común conserva la firma que tenía en Unreal: un grafo guardado no cambia."""
         import inspect
         for verbo, fn in comun.IMPLEMENTA.items():
-            firma = [p for p in inspect.signature(fn).parameters if not p.startswith("_")]
+            firma = [n for n, p in inspect.signature(fn).parameters.items()
+                     if p.kind is inspect.Parameter.KEYWORD_ONLY]
             self.assertEqual(firma, list(registro.REGISTRO[verbo]["params"]), verbo)
 
 

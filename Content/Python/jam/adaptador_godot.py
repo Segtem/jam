@@ -90,10 +90,10 @@ class AdaptadorGodot:
 
             def fn(entrada=None, **kw):
                 try:
-                    self._salidas[verbo] = calcular(entrada, **kw)
+                    self._salidas[verbo], texto = calcular(entrada, **kw)
                 except malla_core.MallaError as e:
                     raise RuntimeError(str(e)) from None
-                return f"{verbo.upper()} M ✓ — {malla_core.info(self._salidas[verbo])}"
+                return texto
             return fn
         if verbo == "mesh_preview":
             def mostrar(entrada=None, *, name="JamPreview"):

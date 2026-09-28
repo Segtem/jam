@@ -10,8 +10,6 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass, replace
 
-import unreal
-
 
 @dataclass(frozen=True)
 class CurvePath:
@@ -117,6 +115,12 @@ def _spline_points(value, samples: int) -> tuple[tuple[float, float, float], ...
     if isinstance(value, CurvePath):
         return value.points
 
+    # Un spline REAL del nivel sólo existe con Unreal: fuera del motor (Godot, un agente) no hay
+    # ninguno que leer, y el resto del módulo es cálculo puro (tarea `base-comun`).
+    try:
+        import unreal
+    except ImportError:
+        return ()
     spline = None
     spline_type = getattr(unreal, "SplineComponent", None)
     if spline_type is not None and isinstance(value, spline_type):

@@ -1019,7 +1019,9 @@ _SOLO_UNREAL_POR_CATEGORIA = {"Mass": "MassEntity es de Unreal",
 
 #: La base común (tarea `base-comun`): se calculan en el núcleo (`jam.comun`) y cada motor sólo los
 #: vuelve suyos con su primitiva «malla desde datos». Un test ata esta lista a `comun.IMPLEMENTA`.
-COMUNES = frozenset({"mesh_box"})
+COMUNES = frozenset({"mesh_box", "graph_curve", "series_range", "series_remap", "curve_bezier",
+                     "curve_polyline", "curve_interpolate", "curve_line", "curve_line_sdl",
+                     "curve_move", "curve_resample", "curve_smooth"})
 #: Las PRIMITIVAS del contrato que cada motor implementa con lo suyo (no se calculan en el núcleo):
 #: mostrar una malla sin hornearla. También corren en cualquier motor: todo adaptador las trae.
 PRIMITIVAS = frozenset({"mesh_preview"})

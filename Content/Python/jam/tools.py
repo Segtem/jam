@@ -698,22 +698,6 @@ def _mesh_output(verbo: str, result: dict, label: str) -> str:
     return f"{label} ✓ — {result.get('info', 'DynamicMesh')}"
 
 
-def t_curve_bezier(_input=None, *, start_x=0.0, start_y=0.0, start_z=0.0,
-                   end_x=0.0, end_y=0.0, end_z=500.0,
-                   bend_x=0.0, bend_y=0.0, bend_z=0.0, segments=8) -> str:
-    from . import curve
-    result = curve.bezier(
-        start_x=float(start_x), start_y=float(start_y), start_z=float(start_z),
-        end_x=float(end_x), end_y=float(end_y), end_z=float(end_z),
-        bend_x=float(bend_x), bend_y=float(bend_y), bend_z=float(bend_z),
-        segments=int(segments),
-    )
-    if "error" in result:
-        raise RuntimeError(result["error"])
-    _RUNTIME_DATA_OUTPUTS["curve_bezier"] = result["curve"]
-    return f"BEZIER S ✓ — {result['info']}"
-
-
 def t_curve_child(curve_input, *, at=0.5, length=300.0, angle=55.0, azimuth=0.0,
                   bend=40.0, radial_offset=0.0, segments=8, samples=32) -> str:
     from . import curve
@@ -913,108 +897,6 @@ def t_choose_asset(frame_input, *, assets=None, mode="random", seed=7) -> str:
         raise RuntimeError(result["error"])
     _RUNTIME_DATA_OUTPUTS["choose_asset"] = result["selection"]
     return f"CHOOSE ASSET AF ✓ — {result['info']}"
-
-
-def t_graph_curve(_input=None, *, start_value=1.0, end_value=0.15, shape="custom",
-                  power=2.0, midpoint=0.55, mid_value=0.72, samples=16) -> str:
-    from . import fields
-    result = fields.graph_curve(
-        start_value=float(start_value), end_value=float(end_value), shape=str(shape),
-        power=float(power), midpoint=float(midpoint), mid_value=float(mid_value),
-        samples=int(samples),
-    )
-    if "error" in result:
-        raise RuntimeError(result["error"])
-    _RUNTIME_DATA_OUTPUTS["graph_curve"] = result["series"]
-    return f"GRAPH CURVE N[] ✓ — {result['info']}"
-
-
-def t_series_range(_input=None, *, start=0.0, end=1.0, count=11) -> str:
-    from . import fields
-    result = fields.series_range(start=float(start), end=float(end), count=int(count))
-    if "error" in result:
-        raise RuntimeError(result["error"])
-    _RUNTIME_DATA_OUTPUTS["series_range"] = result["series"]
-    return f"RANGE N[] ✓ — {result['info']}"
-
-
-def t_series_remap(series_input, *, source_min=0.0, source_max=1.0,
-                   target_min=0.0, target_max=1.0, clamp=True) -> str:
-    from . import fields
-    result = fields.series_remap(
-        series_input, source_min=float(source_min), source_max=float(source_max),
-        target_min=float(target_min), target_max=float(target_max), clamp=bool(clamp))
-    if "error" in result:
-        raise RuntimeError(result["error"])
-    _RUNTIME_DATA_OUTPUTS["series_remap"] = result["series"]
-    return f"REMAP N[] ✓ — {result['info']}"
-
-
-def t_curve_polyline(_input=None, *, x=None, y=None, z=None, closed=False) -> str:
-    from . import curve
-    result = curve.polyline(x=x, y=y, z=z, closed=bool(closed))
-    if "error" in result:
-        raise RuntimeError(result["error"])
-    _RUNTIME_DATA_OUTPUTS["curve_polyline"] = result["curve"]
-    return f"POLYLINE S ✓ — {result['info']}"
-
-
-def t_curve_interpolate(_input=None, *, x=None, y=None, z=None, segments=8) -> str:
-    from . import curve
-    result = curve.interpolate(x=x, y=y, z=z, segments=int(segments))
-    if "error" in result:
-        raise RuntimeError(result["error"])
-    _RUNTIME_DATA_OUTPUTS["curve_interpolate"] = result["curve"]
-    return f"INTERPOLATE S ✓ — {result['info']}"
-
-
-def t_curve_line(_input=None, *, desde="0,0,0", hasta="0,0,300") -> str:
-    from . import curve, math_core
-    result = curve.line(math_core._vector(desde, "desde"), math_core._vector(hasta, "hasta"))
-    if "error" in result:
-        raise RuntimeError(result["error"])
-    _RUNTIME_DATA_OUTPUTS["curve_line"] = result["curve"]
-    return f"LINE S ✓ — {result['info']}"
-
-
-def t_curve_line_sdl(_input=None, *, origen="0,0,0", direccion="0,0,1", largo=300.0) -> str:
-    from . import curve, math_core
-    result = curve.line_sdl(math_core._vector(origen, "origen"),
-                            math_core._vector(direccion, "direccion"), largo)
-    if "error" in result:
-        raise RuntimeError(result["error"])
-    _RUNTIME_DATA_OUTPUTS["curve_line_sdl"] = result["curve"]
-    return f"LINE SDL S ✓ — {result['info']}"
-
-
-def t_curve_move(curve_input, *, desplazamiento="0,0,100") -> str:
-    from . import curve, math_core
-    result = curve.move(curve_input, math_core._vector(desplazamiento, "desplazamiento"))
-    if "error" in result:
-        raise RuntimeError(result["error"])
-    _RUNTIME_DATA_OUTPUTS["curve_move"] = result["curve"]
-    return f"MOVE S ✓ — {result['info']}"
-
-
-def t_curve_resample(curve_input, *, count=24, samples=32) -> str:
-    from . import curve
-    result = curve.resample(curve_input, count=int(count), samples=int(samples))
-    if "error" in result:
-        raise RuntimeError(result["error"])
-    _RUNTIME_DATA_OUTPUTS["curve_resample"] = result["curve"]
-    return f"RESAMPLE S ✓ — {result['info']}"
-
-
-def t_curve_smooth(curve_input, *, iterations=2, strength=0.5,
-                   preserve_ends=True, samples=32) -> str:
-    from . import curve
-    result = curve.smooth(
-        curve_input, iterations=int(iterations), strength=float(strength),
-        preserve_ends=bool(preserve_ends), samples=int(samples))
-    if "error" in result:
-        raise RuntimeError(result["error"])
-    _RUNTIME_DATA_OUTPUTS["curve_smooth"] = result["curve"]
-    return f"SMOOTH S ✓ — {result['info']}"
 
 
 def t_curve_fuse_collinear(curve_input, *, angle_tolerance=1.0,
@@ -1807,8 +1689,8 @@ def t_mesh_box(_input=None, *, size_x=100.0, size_y=100.0, size_z=100.0,
     La misma que la de Geometry Script, medida por el motor en `verifica_caja_comun_58.py`."""
     from . import comun, malla_core, mesh
     try:
-        malla = comun.IMPLEMENTA["mesh_box"](_input, size_x=size_x, size_y=size_y, size_z=size_z,
-                                             steps_x=steps_x, steps_y=steps_y, steps_z=steps_z)
+        malla, _texto = comun.IMPLEMENTA["mesh_box"](_input, size_x=size_x, size_y=size_y, size_z=size_z,
+                                                     steps_x=steps_x, steps_y=steps_y, steps_z=steps_z)
     except malla_core.MallaError as e:
         raise RuntimeError(str(e)) from None
     dm = mesh.desde_malla(malla)
@@ -1979,6 +1861,18 @@ def asset_producido(verbo: str, asset_entrada, params: dict | None = None) -> st
 # ponytail: se inyecta en el mismo dict para no mudar a los ~40 consumidores de `tools.REGISTRO`;
 # la etapa 2 (contrato JSON por adaptador) cambia el ejecutor para que pida la implementación acá.
 
+def _envolver_comun(verbo: str):
+    """Un verbo de la base común: lo calcula `jam.comun` —el mismo código que corre con Godot— y
+    acá sólo se guarda lo que produjo para el que sigue."""
+    def fn(entrada=None, **params):
+        from . import comun
+        dato, texto = comun.IMPLEMENTA[verbo](entrada, **params)
+        _RUNTIME_DATA_OUTPUTS[verbo] = dato
+        return texto
+    fn.__name__ = f"t_{verbo}"
+    return fn
+
+
 def _envolver_op_flow(kind: str, aridad: int):
     """Adapta la firma de una op de Flow —(list[stream], params) → stream— a la de un verbo."""
     def fn(entrada=None, **params):
@@ -2031,7 +1925,7 @@ IMPLEMENTA = {
     "nanite": t_nanite,
     "nanite_analyze": t_nanite_analyze,
     "nanite_validate": t_nanite_validate,
-    "curve_bezier": t_curve_bezier,
+    "curve_bezier": _envolver_comun("curve_bezier"),
     "curve_child": t_curve_child,
     "curve_noise": t_curve_noise,
     "curve_frames": t_curve_frames,
@@ -2048,16 +1942,16 @@ IMPLEMENTA = {
     "select_asset": t_select_asset,
     "asset_set": t_asset_set,
     "choose_asset": t_choose_asset,
-    "graph_curve": t_graph_curve,
-    "series_range": t_series_range,
-    "series_remap": t_series_remap,
-    "curve_polyline": t_curve_polyline,
-    "curve_interpolate": t_curve_interpolate,
-    "curve_line": t_curve_line,
-    "curve_line_sdl": t_curve_line_sdl,
-    "curve_move": t_curve_move,
-    "curve_resample": t_curve_resample,
-    "curve_smooth": t_curve_smooth,
+    "graph_curve": _envolver_comun("graph_curve"),
+    "series_range": _envolver_comun("series_range"),
+    "series_remap": _envolver_comun("series_remap"),
+    "curve_polyline": _envolver_comun("curve_polyline"),
+    "curve_interpolate": _envolver_comun("curve_interpolate"),
+    "curve_line": _envolver_comun("curve_line"),
+    "curve_line_sdl": _envolver_comun("curve_line_sdl"),
+    "curve_move": _envolver_comun("curve_move"),
+    "curve_resample": _envolver_comun("curve_resample"),
+    "curve_smooth": _envolver_comun("curve_smooth"),
     "curve_fuse_collinear": t_curve_fuse_collinear,
     "curve_subdivide": t_curve_subdivide,
     "curve_offset": t_curve_offset,
