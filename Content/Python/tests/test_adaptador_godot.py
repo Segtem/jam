@@ -66,7 +66,7 @@ class Adaptador(_Base):
         self.assertIn("en Godot: 12 triángulos", r["nodes"]["ver"]["texto"])
 
     def test_un_verbo_que_godot_no_tiene_no_corre_y_dice_por_que(self):
-        r = ag.correr_texto("esfera = mesh_sphere\nver = mesh_preview @esfera\n", self._adaptador())
+        r = ag.correr_texto("toro = mesh_torus\nver = mesh_preview @toro\n", self._adaptador())
         self.assertFalse(r["ok"])
         self.assertEqual(r["errores"][0]["linea"], 1)
         self.assertIn("no disponible en este motor (godot)", r["errores"][0]["mensaje"])

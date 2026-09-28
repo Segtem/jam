@@ -181,7 +181,10 @@ func _hechos(mi: MeshInstance3D) -> Dictionary:
 	var posiciones := {}
 	for p in v:
 		var n := _a_nucleo(p)
-		posiciones["%.3f,%.3f,%.3f" % [n[0], n[1], n[2]]] = true
+		# `+ 0.0` convierte -0 en +0: un vértice en el eje (ápice, polo) sale como -0.0000001 y
+		# «%.3f» lo escribiría «-0.000», partiendo un mismo punto en dos.
+		posiciones["%.3f,%.3f,%.3f" % [snappedf(n[0], 0.001) + 0.0, snappedf(n[1], 0.001) + 0.0,
+			snappedf(n[2], 0.001) + 0.0]] = true
 	var aabb := mi.mesh.get_aabb()
 	var a := _a_nucleo(aabb.position)
 	var b := _a_nucleo(aabb.end)

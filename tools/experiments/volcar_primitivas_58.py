@@ -55,7 +55,12 @@ def medir(dm):
             n = next(v for v in n if isinstance(v, unreal.Vector))
         tris.append({"p": [_vec(p) for p in pts], "n": _vec(n)})
     from jam import mesh
-    return {"triangulos": len(tris), "vertices": len(mesh._posiciones(dm)),
+    crudas = mesh._posiciones(dm)
+    # «vertices» es la cuenta CRUDA de la DynamicMesh (un cono con punta deja un vértice por lado en
+    # el ápice); «posiciones» son las distintas, a 0,001 cm: el hecho geométrico que se compara entre
+    # motores. Lo encontró agy2: el juez comparaba posiciones contra la cuenta cruda.
+    return {"triangulos": len(tris), "vertices": len(crudas),
+            "posiciones": len({tuple(round(c, 3) for c in p) for p in crudas}),
             "min": _vec(caja.min), "max": _vec(caja.max),
             "area": round(nums[0], 4) if nums else None, "volumen": round(nums[1], 4) if len(nums) > 1 else None,
             "tris": tris}

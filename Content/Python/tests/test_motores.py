@@ -38,7 +38,7 @@ class Declaracion(unittest.TestCase):
         self.assertIn("MassEntity", registro.disponible("mass_spawn", "godot")[1])
 
     def test_lo_demas_dice_que_todavia_no_esta(self):
-        self.assertEqual(registro.disponible("mesh_sphere", "godot"),
+        self.assertEqual(registro.disponible("mesh_torus", "godot"),
                          (False, "todavía no tiene implementación en godot"))
 
     def test_lo_que_anuncia_el_adaptador_manda_sobre_lo_declarado(self):
@@ -63,7 +63,7 @@ class Compile(unittest.TestCase):
         g.add("pts_line", {}, nid="linea")
         g.add("jitter", {}, nid="ruido")
         g.connect("linea", "ruido")
-        g.add("mesh_sphere", {}, nid="caja")   # Geometry Script: hoy, sólo el adaptador de Unreal
+        g.add("mesh_torus", {}, nid="caja")   # Geometry Script: hoy, sólo el adaptador de Unreal
         return g
 
     def test_en_unreal_compila(self):

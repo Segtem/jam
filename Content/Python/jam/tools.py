@@ -964,38 +964,6 @@ def t_mesh_triangle(_input=None, *, size=100.0) -> str:
     return _mesh_output("mesh_triangle", mesh.triangle(size=float(size)), "TRIANGLE M")
 
 
-def t_mesh_cylinder(_input=None, *, radius=50.0, height=200.0, sides=16,
-                    height_steps=1, capped=True) -> str:
-    from . import mesh
-    return _mesh_output(
-        "mesh_cylinder",
-        mesh.cylinder(radius=float(radius), height=float(height), sides=int(sides),
-                      height_steps=int(height_steps), capped=bool(capped)),
-        "CYLINDER M",
-    )
-
-
-def t_mesh_cone(_input=None, *, base_radius=60.0, top_radius=0.0, height=200.0,
-                sides=16, height_steps=4, capped=True) -> str:
-    from . import mesh
-    return _mesh_output(
-        "mesh_cone",
-        mesh.cone(base_radius=float(base_radius), top_radius=float(top_radius), height=float(height),
-                  sides=int(sides), height_steps=int(height_steps), capped=bool(capped)),
-        "CONE M",
-    )
-
-
-def t_mesh_sphere(_input=None, *, radius=100.0, latitude_steps=8, longitude_steps=12) -> str:
-    from . import mesh
-    return _mesh_output(
-        "mesh_sphere",
-        mesh.sphere(radius=float(radius), latitude_steps=int(latitude_steps),
-                    longitude_steps=int(longitude_steps)),
-        "SPHERE M",
-    )
-
-
 def t_mesh_from_asset(asset_input) -> str:
     from . import mesh
     return _mesh_output("mesh_from_asset", mesh.from_asset(asset_input), "FROM ASSET M")
@@ -1955,9 +1923,9 @@ IMPLEMENTA = {
     "mesh_triangle": t_mesh_triangle,
     "mesh_quad": _envolver_comun_malla("mesh_quad", "QUAD M"),
     "mesh_grid": _envolver_comun_malla("mesh_grid", "GRID M"),
-    "mesh_cylinder": t_mesh_cylinder,
-    "mesh_cone": t_mesh_cone,
-    "mesh_sphere": t_mesh_sphere,
+    "mesh_cylinder": _envolver_comun_malla("mesh_cylinder", "CYLINDER M"),
+    "mesh_cone": _envolver_comun_malla("mesh_cone", "CONE M"),
+    "mesh_sphere": _envolver_comun_malla("mesh_sphere", "SPHERE M"),
     "mesh_from_asset": t_mesh_from_asset,
     "mesh_copy_static": t_mesh_copy_static,
     "mesh_copy_skeletal": t_mesh_copy_skeletal,

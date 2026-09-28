@@ -5,7 +5,8 @@ volcar_primitivas_58.py` corriendo cada verbo por el camino real del Graph. No s
 regenera para que un test pase: si el motor cambia, se vuelve a volcar y se mira el diff.
 
 `juzgar(malla, caso)` devuelve la lista de diferencias (vacía = igual al motor):
-- triángulos, vértices distintos, caja envolvente (1e-3) y área (1e-3 relativo);
+- triángulos, posiciones distintas (no la cuenta cruda de vértices, que es de cada motor),
+  caja envolvente (1e-3) y área (1e-3 relativo);
 - cada triángulo del motor tiene su gemelo en el núcleo (las tres posiciones, en cualquier orden,
   a menos de 1e-3), y el gemelo DIBUJA la misma cara: `malla_core.cara_frontal` apunta hacia el
   mismo lado que la normal que midió Unreal.
@@ -39,8 +40,8 @@ def juzgar(malla: malla_core.Malla, caso: dict) -> list[str]:
     dif = []
     if h["triangulos"] != m["triangulos"]:
         dif.append(f"triángulos {h['triangulos']} ≠ motor {m['triangulos']}")
-    if h["posiciones"] != m["vertices"]:
-        dif.append(f"vértices distintos {h['posiciones']} ≠ motor {m['vertices']}")
+    if h["posiciones"] != m["posiciones"]:
+        dif.append(f"posiciones distintas {h['posiciones']} ≠ motor {m['posiciones']}")
     if not (_cerca(h["min"], m["min"]) and _cerca(h["max"], m["max"])):
         dif.append(f"caja {h['min']}..{h['max']} ≠ motor {m['min']}..{m['max']}")
     if m.get("area") and abs(h["area"] - m["area"]) > TOL * max(1.0, m["area"]):
@@ -63,6 +64,10 @@ def juzgar(malla: malla_core.Malla, caso: dict) -> list[str]:
             continue
         usados.add(gemelo[0])
         cara = malla_core.cara_frontal(malla.vertices, gemelo[1])
+        # Un triángulo DEGENERADO (dos vértices en el mismo punto: el ápice de un cono de Geometry
+        # Script deja uno por lado) no tiene cara que dibujar ni orientación que comparar.
+        if sum(c * c for c in cara) < 1e-12 or sum(c * c for c in t["n"]) < 1e-12:
+            continue
         if sum(cara[i] * t["n"][i] for i in range(3)) <= 0.0:
             dif.append(f"el triángulo {k} {t['p']} está dado vuelta (el núcleo dibuja la otra cara)")
         if len(dif) > 5:

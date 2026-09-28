@@ -50,6 +50,31 @@ def mesh_disc(_entrada=None, *, radius=100.0, sides=24, start_angle=0.0, end_ang
     return m, f"DISC M ✓ — {malla_core.info(m)}"
 
 
+# ---- sólidos de revolución (agy2, contra el fixture de Unreal) ----
+
+def mesh_cylinder(_entrada=None, *, radius=50.0, height=200.0, sides=16, height_steps=1,
+                  capped=True) -> tuple:
+    from . import malla_revolucion
+    m = malla_revolucion.cilindro(radius=radius, height=height, sides=sides,
+                                  height_steps=height_steps, capped=capped)
+    return m, f"CYLINDER M ✓ — {malla_core.info(m)}"
+
+
+def mesh_cone(_entrada=None, *, base_radius=60.0, top_radius=0.0, height=200.0, sides=16,
+              height_steps=4, capped=True) -> tuple:
+    from . import malla_revolucion
+    m = malla_revolucion.cono(base_radius=base_radius, top_radius=top_radius, height=height,
+                              sides=sides, height_steps=height_steps, capped=capped)
+    return m, f"CONE M ✓ — {malla_core.info(m)}"
+
+
+def mesh_sphere(_entrada=None, *, radius=100.0, latitude_steps=8, longitude_steps=12) -> tuple:
+    from . import malla_revolucion
+    m = malla_revolucion.esfera(radius=radius, latitude_steps=latitude_steps,
+                                longitude_steps=longitude_steps)
+    return m, f"SPHERE M ✓ — {malla_core.info(m)}"
+
+
 def _exigir_malla(valor, verbo: str) -> malla_core.Malla:
     if not isinstance(valor, malla_core.Malla):
         raise RuntimeError(f"{verbo} necesita una malla M del núcleo")
@@ -159,6 +184,7 @@ def curve_smooth(curve_input, *, iterations=2, strength=0.5,
 
 IMPLEMENTA = {"mesh_box": mesh_box, **{v: globals()[v] for v in (
     "mesh_quad", "mesh_grid", "mesh_disc", "mesh_transform", "mesh_merge",
+    "mesh_cylinder", "mesh_cone", "mesh_sphere",
     "graph_curve", "series_range", "series_remap", "curve_bezier", "curve_polyline",
     "curve_interpolate", "curve_line", "curve_line_sdl", "curve_move", "curve_resample",
     "curve_smooth")}}

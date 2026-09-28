@@ -38,6 +38,21 @@ def _params(params: dict) -> str:
     return " ".join(f"{k}={str(v).lower() if isinstance(v, bool) else v}" for k, v in params.items())
 
 
+def _cerrada(tris: list[dict]) -> bool:
+    """¿La malla que volcó Unreal es cerrada? Cada arista (por posición, a 0,001 cm) aparece en
+    exactamente dos triángulos no degenerados. El volumen de una malla ABIERTA no está definido
+    —depende del origen—, así que sólo se compara el de las cerradas."""
+    from collections import Counter
+    aristas = Counter()
+    for t in tris:
+        p = [tuple(round(c, 3) for c in q) for q in t["p"]]
+        if len(set(p)) < 3:
+            continue
+        for a, b in ((p[0], p[1]), (p[1], p[2]), (p[2], p[0])):
+            aristas[frozenset((a, b))] += 1
+    return bool(aristas) and all(n == 2 for n in aristas.values())
+
+
 def _textos() -> list[tuple[str, str, dict]]:
     """(nombre, texto, hechos de Unreal) de cada caso: las tres cajas medidas y todo el fixture de
     primitivas que ya es común (generadores, mesh_transform sobre la caja, mesh_merge)."""
@@ -46,8 +61,9 @@ def _textos() -> list[tuple[str, str, dict]]:
     for i, caso in enumerate(json.loads(UNREAL.read_text())["casos"]):
         u = caso["nucleo"]
         salida.append((f"caja{i}", f"m = mesh_box {_params(caso['caso'])}\n",
-                       {"triangulos": u["triangulos"], "vertices": u["vertices"], "min": u["min"],
-                        "max": u["max"], "area": u["area_volumen"][0], "volumen": u["area_volumen"][1]}))
+                       {"triangulos": u["triangulos"], "posiciones": u["vertices"], "min": u["min"],
+                        "max": u["max"], "area": u["area_volumen"][0], "volumen": u["area_volumen"][1],
+                        "cerrada": True}))
     for i, caso in enumerate(json.loads(FIXTURE.read_text())["casos"]):
         v = caso["verbo"]
         if v not in registro.COMUNES or "error" in caso:
@@ -58,7 +74,7 @@ def _textos() -> list[tuple[str, str, dict]]:
             texto = CAJA + "otra = mesh_transform @caja x=200 yaw=30\nm = mesh_merge @caja @otra\n"
         else:
             texto = f"m = {v} {_params(caso['params'])}\n"
-        salida.append((f"{v}{i}", texto, caso["motor"]))
+        salida.append((f"{v}{i}", texto, {**caso["motor"], "cerrada": _cerrada(caso["motor"]["tris"])}))
     return salida
 
 
@@ -86,10 +102,10 @@ def main() -> int:
         en_godot = {m["nodo"]: m["hechos"] for m in cliente.pedir("hechos")["mallas"]}
         for nombre, _texto, u in casos:
             g = en_godot.get(nombre, {})
-            filas.append({"caso": nombre, "unreal": {k: u[k] for k in ("triangulos", "vertices", "min", "max", "area", "volumen")},
+            filas.append({"caso": nombre, "unreal": {k: u[k] for k in ("triangulos", "posiciones", "min", "max", "area", "volumen")},
                           "godot": g})
             cerca = lambda a, b: all(abs(x - y) <= 1e-3 for x, y in zip(a, b))  # noqa: E731
-            if (g.get("triangulos"), g.get("posiciones")) != (u["triangulos"], u["vertices"]) or not (
+            if (g.get("triangulos"), g.get("posiciones")) != (u["triangulos"], u["posiciones"]) or not (
                     cerca(g.get("min", []), u["min"]) and cerca(g.get("max", []), u["max"])):
                 fallas.append(f"{nombre}: Unreal y Godot miden distinto")
             if abs(g.get("area", 0) - u["area"]) > 1e-5 * max(1.0, u["area"]):
@@ -97,7 +113,8 @@ def main() -> int:
             # El volumen CON SIGNO, sumado con la convención de caras frontales de Godot: coincide
             # con el de Unreal sólo si Godot dibuja las mismas caras. (Contra el centro de la caja
             # envolvente no sirve: en un merge de dos piezas el centro cae entre las dos.)
-            if abs(g.get("volumen", float("nan")) - u["volumen"]) > 1e-5 * max(1.0, abs(u["volumen"])) + 1e-3:
+            if u["cerrada"] and abs(g.get("volumen", float("nan")) - u["volumen"]) > \
+                    1e-5 * max(1.0, abs(u["volumen"])) + 1e-3:
                 fallas.append(f"{nombre}: volumen con signo {g.get('volumen')} contra {u['volumen']} "
                               "(caras dadas vuelta si el signo no coincide)")
         cliente.pedir("descartar")

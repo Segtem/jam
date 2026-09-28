@@ -21,6 +21,7 @@
    "motor": {
     "triangulos": 36,
     "vertices": 20,
+    "posiciones": 20,
     "min": [
      -30.0,
      -28.5317,
@@ -925,6 +926,7 @@
    "motor": {
     "triangulos": 12,
     "vertices": 12,
+    "posiciones": 12,
     "min": [
      -20.0,
      -17.3205,
@@ -1253,6 +1255,7 @@
    "motor": {
     "triangulos": 8,
     "vertices": 6,
+    "posiciones": 6,
     "min": [
      -34.641,
      -20.0,
@@ -1483,6 +1486,7 @@
    "motor": {
     "triangulos": 28,
     "vertices": 16,
+    "posiciones": 16,
     "min": [
      -30.0,
      -30.0,
@@ -2265,6 +2269,7 @@
    "motor": {
     "triangulos": 256,
     "vertices": 130,
+    "posiciones": 130,
     "min": [
      -16.448,
      -28.8103,
@@ -8504,6 +8509,7 @@
    "motor": {
     "triangulos": 144,
     "vertices": 78,
+    "posiciones": 78,
     "min": [
      -10.9654,
      -17.9697,
@@ -12055,6 +12061,7 @@
    "motor": {
     "triangulos": 74,
     "vertices": 39,
+    "posiciones": 39,
     "min": [
      -16.9003,
      -23.1393,
@@ -13924,6 +13931,7 @@
    "motor": {
     "triangulos": 204,
     "vertices": 104,
+    "posiciones": 104,
     "min": [
      -16.448,
      -29.2732,
@@ -18935,6 +18943,7 @@
    "motor": {
     "triangulos": 56,
     "vertices": 30,
+    "posiciones": 30,
     "min": [
      -0.0,
      -28.5317,
@@ -20324,6 +20333,7 @@
    "motor": {
     "triangulos": 24,
     "vertices": 18,
+    "posiciones": 18,
     "min": [
      -0.0,
      -17.3205,
@@ -20945,6 +20955,7 @@
    "motor": {
     "triangulos": 14,
     "vertices": 9,
+    "posiciones": 9,
     "min": [
      -0.0,
      -20.0,
@@ -21324,6 +21335,7 @@
    "motor": {
     "triangulos": 44,
     "vertices": 24,
+    "posiciones": 24,
     "min": [
      -0.0,
      -30.0,

@@ -31,11 +31,11 @@ def main():
         tools.REGISTRO[caso["verbo"]]["fn"](None, **caso["params"])
         m = medir(tools.dato_producido_runtime(caso["verbo"]))
         esperado = caso["motor"]
-        igual = (m["triangulos"], m["vertices"], m["min"], m["max"]) == (
-            esperado["triangulos"], esperado["vertices"], esperado["min"], esperado["max"]) and \
+        igual = (m["triangulos"], m["posiciones"], m["min"], m["max"]) == (
+            esperado["triangulos"], esperado["posiciones"], esperado["min"], esperado["max"]) and \
             abs(m["area"] - esperado["area"]) <= 1e-3 * max(1.0, esperado["area"])
         filas.append({"verbo": caso["verbo"], "params": caso["params"], "igual": igual,
-                      "nucleo_en_unreal": {k: m[k] for k in ("triangulos", "vertices", "min", "max", "area")}})
+                      "nucleo_en_unreal": {k: m[k] for k in ("triangulos", "posiciones", "min", "max", "area")}})
         if not igual:
             fallas.append(f"{caso['verbo']} {caso['params']}: distinto de Geometry Script")
     return {"generadores": sorted(generadores), "casos": filas, "fallas": fallas}
