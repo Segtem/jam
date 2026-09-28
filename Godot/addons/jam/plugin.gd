@@ -36,15 +36,22 @@ func _enter_tree() -> void:
 ## El editor de nodos de Jam (la web): lo sirve el núcleo en un proceso aparte, que habla con este
 ## plugin por el contrato. Si ya está corriendo, sólo se abre otra ventana.
 func _abrir_editor() -> void:
-	var ruta := str(ProjectSettings.get_setting("jam/nucleo_python",
-		OS.get_environment("HOME") + "/Dev/jam/Content/Python"))
+	# Dónde está el núcleo y con qué Python: los escribe `tools/instalar.py` en project.godot
+	# ([jam] nucleo_python / python). Sin instalar, el lugar de la máquina de desarrollo.
+	var casa := OS.get_environment("USERPROFILE") if OS.get_name() == "Windows" else OS.get_environment("HOME")
+	var ruta := str(ProjectSettings.get_setting("jam/nucleo_python", casa + "/Dev/jam/Content/Python"))
+	var python := str(ProjectSettings.get_setting("jam/python",
+		"python" if OS.get_name() == "Windows" else "python3"))
 	var codigo := "import sys; sys.path.insert(0, %s); from jam import servidor; " % JSON.stringify(ruta)
 	if _pid_editor > 0 and OS.is_process_running(_pid_editor):
 		codigo += "servidor.abrir_ventana('http://127.0.0.1:%d/')" % PUERTO_EDITOR
-		OS.create_process("python3", ["-c", codigo])
+		OS.create_process(python, ["-c", codigo])
 		return
 	codigo += "servidor.main(['--motor', 'godot', '--abrir'])"
-	_pid_editor = OS.create_process("python3", ["-c", codigo])
+	_pid_editor = OS.create_process(python, ["-c", codigo])
+	if _pid_editor <= 0:
+		push_error("JAM_GODOT no pude lanzar «%s»: instalá Python 3.11+ o fijá jam/python en Configuración del proyecto" % python)
+		return
 	print("JAM_GODOT editor de nodos en http://127.0.0.1:%d/ (pid %d)" % [PUERTO_EDITOR, _pid_editor])
 
 

@@ -13,17 +13,28 @@ namespace Jam
         const string Url = "http://127.0.0.1:8796/";
         static Process _nucleo;
 
-        static string RutaNucleo()
+        // Dónde está el núcleo y con qué Python: los escribe `tools/instalar.py` en
+        // ProjectSettings/JamNucleo.json. Sin instalar, el lugar de la máquina de desarrollo.
+        [System.Serializable] class Config { public string nucleo_python = ""; public string python = ""; }
+
+        static Config Leer()
         {
-            var ruta = EditorPrefs.GetString("Jam.NucleoPython", "");
-            return string.IsNullOrEmpty(ruta)
-                ? System.Environment.GetEnvironmentVariable("HOME") + "/Dev/jam/Content/Python"
-                : ruta;
+            var archivo = System.IO.Path.Combine("ProjectSettings", "JamNucleo.json");
+            var c = System.IO.File.Exists(archivo)
+                ? UnityEngine.JsonUtility.FromJson<Config>(System.IO.File.ReadAllText(archivo)) : new Config();
+            var windows = UnityEngine.Application.platform == UnityEngine.RuntimePlatform.WindowsEditor;
+            if (string.IsNullOrEmpty(c.nucleo_python))
+                c.nucleo_python = System.Environment.GetEnvironmentVariable(windows ? "USERPROFILE" : "HOME")
+                                  + "/Dev/jam/Content/Python";
+            if (string.IsNullOrEmpty(c.python)) c.python = windows ? "python" : "python3";
+            return c;
         }
+
+        static string RutaNucleo() => Leer().nucleo_python;
 
         static Process Python(string codigo)
         {
-            var info = new ProcessStartInfo("python3") { UseShellExecute = false, CreateNoWindow = true };
+            var info = new ProcessStartInfo(Leer().python) { UseShellExecute = false, CreateNoWindow = true };
             info.ArgumentList.Add("-c");
             info.ArgumentList.Add("import sys; sys.path.insert(0, " + JsonUtilityQuote(RutaNucleo()) +
                                   "); from jam import servidor; " + codigo);
