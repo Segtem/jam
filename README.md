@@ -9,6 +9,8 @@ con la mejor herramienta, medir desde afuera (anti-Goodhart).
 
 No es un producto para terceros: es la herramienta con la que construyo mi juego.
 
+**En otra máquina:** ver [`INSTALAR.md`](INSTALAR.md) — `python tools/instalar.py <proyecto>` para Unreal, Godot o Unity.
+
 ## El juego: BotOO — *Bounty of the Old Ones*
 
 Un **Hunt: Showdown** lovecrafteano de **época 1920**, con la fidelidad visual de **The Order: 1886**.
