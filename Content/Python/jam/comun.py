@@ -95,6 +95,18 @@ def mesh_merge(entrada=None) -> tuple:
     return m, f"MERGE M ✓ — {malla_core.info(m)}"
 
 
+def mesh_pipe(entrada=None, *, radius_start=30.0, radius_end=5.0, sides=10, samples=16, capped=True,
+              profile_rotation=0.0, miter_limit=4.0, radius_from_parent=0.0, pivot_uvs=False) -> tuple:
+    """El tubo sobre una curva (agy1, contra el fixture de Unreal). En Unreal sigue con Geometry
+    Script, que además arma los UV de Pivot Painter (`pivot_uvs`), que la malla del núcleo no lleva."""
+    from . import malla_tubo
+    m = malla_tubo.tubo(entrada, radius_start=radius_start, radius_end=radius_end, sides=sides,
+                        samples=samples, capped=capped, profile_rotation=profile_rotation,
+                        miter_limit=miter_limit, radius_from_parent=radius_from_parent,
+                        pivot_uvs=pivot_uvs)
+    return m, f"PIPE M ✓ — {malla_core.info(m)}"
+
+
 # ---- curvas y series: se mudaron de `tools.py` tal cual (misma firma, mismo texto) ----
 
 def graph_curve(_input=None, *, start_value=1.0, end_value=0.15, shape="custom",
@@ -184,7 +196,7 @@ def curve_smooth(curve_input, *, iterations=2, strength=0.5,
 
 IMPLEMENTA = {"mesh_box": mesh_box, **{v: globals()[v] for v in (
     "mesh_quad", "mesh_grid", "mesh_disc", "mesh_transform", "mesh_merge",
-    "mesh_cylinder", "mesh_cone", "mesh_sphere",
+    "mesh_cylinder", "mesh_cone", "mesh_sphere", "mesh_pipe",
     "graph_curve", "series_range", "series_remap", "curve_bezier", "curve_polyline",
     "curve_interpolate", "curve_line", "curve_line_sdl", "curve_move", "curve_resample",
     "curve_smooth")}}

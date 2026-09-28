@@ -49,6 +49,7 @@ def _lanzar(motor: str):
 
 
 FIXTURE = JAM / "Content/Python/tests/fixtures/primitivas_unreal.json"
+PIPE = JAM / "Content/Python/tests/fixtures/pipe_unreal.json"
 CAJA = "caja = mesh_box size_x=100 size_y=60 size_z=40\n"
 
 
@@ -93,6 +94,15 @@ def _textos() -> list[tuple[str, str, dict]]:
         else:
             texto = f"m = {v} {_params(caso['params'])}\n"
         salida.append((f"{v}{i}", texto, {**caso["motor"], "cerrada": _cerrada(caso["motor"]["tris"])}))
+    # El tubo, sobre las curvas que se pueden ESCRIBIR con verbos comunes (la esquina de 90° del
+    # fixture no: la cubre el juez de tests/test_malla_tubo.py).
+    curvas = {"recta": 'curva = curve_line desde="0,0,0" hasta="0,0,300"\n',
+              "bezier": "curva = curve_bezier end_x=200 end_z=300 bend_x=150 bend_y=60 segments=12\n"}
+    for i, caso in enumerate(json.loads(PIPE.read_text())["casos"]):
+        if caso["curva"] in curvas and "error" not in caso:
+            salida.append((f"mesh_pipe_{caso['curva']}{i}",
+                           curvas[caso["curva"]] + f"m = mesh_pipe @curva {_params(caso['params'])}\n",
+                           {**caso["motor"], "cerrada": _cerrada(caso["motor"]["tris"])}))
     return salida
 
 
