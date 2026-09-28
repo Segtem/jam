@@ -53,3 +53,7 @@ que Oracle juzga igual.
 ### Nota (2026-09-28 15:21:06 UTC)
 
 2026-09-28, Claude: frames y ramas a la base común (10 verbos: curve_frames, distribute_frames, transform_frames, points_to_frames, branch_from_frames, curve_child, curve_branches, curve_fuse_collinear, curve_subdivide, curve_offset): la misma mudanza tal cual de tools.py a comun.py que las curvas (todos importaban sólo curve.py, puro); curve_noise no sigue el patrón y queda. Los tests que llamaban tools.t_* directo pasan por tools.implementacion(verbo), el mismo camino del Graph. Verificación: suite 1395 OK; BotOO (tiene el asset PineFrond): los cuatro TreeGen —que ejercen estos verbos— corren en verde por api.run_graph_json (en JamPlayground tres fallan en el Compile por el asset, antes y después).
+
+### Nota (2026-09-28 15:58:50 UTC)
+
+e1df64a: las 7 formas de agy2 (malla_formas.py) en la base común. Juez 18/18; verifica_comunes_58 en JamPlayground VERDE (21 generadores, 31 casos); verifica_base_comun godot y unity VERDE (49 casos). Ya no queda ningún generador de malla sólo-Unreal salvo mesh_revolve/ribbon/extrude/loft (necesitan curva o malla).
