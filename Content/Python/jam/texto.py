@@ -350,7 +350,7 @@ def leer(texto: str, vocab: dict | None = None) -> JamGraph:
         if origen not in g.nodes:
             cerca = difflib.get_close_matches(origen, list(g.nodes), n=1)
             raise ErrorTexto(numero, col, f"«@{origen}» no es un nodo de este grafo"
-                                          + (f" — ¿quisiste decir «{cerca[0]}»?" if cerca else "")
+                                          + (f" — ¿quisiste decir «{cerca[0]}»?" if cerca else ".")
                                           + " Los nombres son lo que está a la izquierda del «=».")
         g.edges.append((origen, pin, destino, pin_destino))
     return g
@@ -456,3 +456,93 @@ def ayuda(verbo: str, vocab: dict | None = None) -> str:
                       for k, d in spec["params"].items() if k != spec["posicional"])
     doc = info.get("doc", "")
     return f"{verbo}{pos}{entrada}{' → ' + salida if salida else ''} · {params}" + (f" — {doc}" if doc else "")
+
+
+# ---------------------------------------------------------------- unión con el canvas
+
+#: Paso horizontal entre un nodo y el que alimenta: el de los ejemplos de Resources/Examples.
+PASO_X = 320.0
+PASO_Y = 200.0
+
+
+def es_documento(texto_: str) -> bool:
+    """¿Es el texto de un grafo (alguna línea «nombre = …») y no un comando de consola?"""
+    return any(_CABECERA.match(linea) for linea in texto_.splitlines() if linea.strip())
+
+
+def aplicar(texto_: str, base_json: str = "", vocab: dict | None = None) -> dict:
+    """El JSON del canvas que resulta de leer `texto_`, conservando el layout de `base_json`.
+
+    Lo que el texto no dice lo pone el canvas: un nodo que sobrevive conserva `x`, `y` y `compact`
+    por NOMBRE; uno nuevo va a la derecha de lo que lo alimenta, o donde lo ponga `layout.auto`. Los
+    reroutes se guardan por índice de arista (SJamGraphEditor, `BuildJson`), así que se reindexan
+    por identidad del cable. Los comentarios pasan tal cual. Levanta `ErrorTexto`.
+    """
+    vocab = vocabulario() if vocab is None else vocab
+    g = leer(texto_, vocab)
+    base = json.loads(base_json) if base_json and base_json.strip() else {}
+    viejos = base.get("nodes", {}) or {}
+
+    try:
+        orden = g.topo_order()
+    except ValueError:
+        orden = list(g.nodes)
+    fuentes: dict[str, list[str]] = {}
+    for a, _ap, b, _bp in g.edges:
+        fuentes.setdefault(b, []).append(a)
+    pos: dict[str, tuple[float, float]] = {
+        nid: (float(viejos[nid].get("x", 0.0)), float(viejos[nid].get("y", 0.0)))
+        for nid in g.nodes if nid in viejos}
+    if len(pos) < len(g.nodes):
+        from .layout import auto
+        auto_pos = auto([{"id": nid, "x": 0.0, "y": 0.0} for nid in g.nodes],
+                        [(a, b) for a, _ap, b, _bp in g.edges])
+        for nid in orden:
+            if nid in pos:
+                continue
+            con_pos = [f for f in fuentes.get(nid, []) if f in pos]
+            x, y = ((pos[con_pos[0]][0] + PASO_X, pos[con_pos[0]][1]) if con_pos
+                    else auto_pos.get(nid, (0.0, 0.0)))
+            # Nunca encima de otro: un nodo tapado es un nodo que el humano no ve aparecer.
+            ocupados = set(pos.values())
+            while (x, y) in ocupados:
+                y += PASO_Y
+            pos[nid] = (x, y)
+
+    nodos = {}
+    for nid, n in g.nodes.items():
+        spec = vocab.get(n["verb"])
+        params = ({k: _guardar(valor(spec["tipos"].get(k, "str"), d))
+                   for k, d in spec["params"].items()} if spec else {})
+        # El literal que un cable tapa no está en el texto (el cable manda), pero sigue siendo del
+        # humano: si mañana desconecta, tiene que volver lo que había escrito y no el default.
+        # Observación de Codex al contrastar el diseño (investigacion/codex.md).
+        cableados = {bp for _a, _ap, b, bp in g.edges if b == nid and bp != PIN_IN}
+        params.update({k: v for k, v in (viejos.get(nid, {}).get("params") or {}).items()
+                       if k in cableados})
+        params.update(n["params"])
+        nodo = {"verb": n["verb"], "params": params, "asset": None,
+                "x": pos[nid][0], "y": pos[nid][1]}
+        for bandera in ("debug", "bypass"):
+            if n.get(bandera):
+                nodo[bandera] = True
+        if viejos.get(nid, {}).get("compact"):
+            nodo["compact"] = True
+        nodos[nid] = nodo
+
+    aristas = [list(e) for e in g.edges]
+    salida = {"schema_version": 1, "nodes": nodos, "edges": aristas}
+    viejas = [tuple(e) for e in base.get("edges", []) if len(e) == 4]
+    reroutes = {}
+    for indice, puntos in (base.get("reroutes") or {}).items():
+        try:
+            cable = viejas[int(indice)]
+        except (ValueError, IndexError):
+            continue
+        if list(cable) in aristas:
+            reroutes[str(aristas.index(list(cable)))] = puntos
+    if reroutes:
+        salida["reroutes"] = reroutes
+    if base.get("comments"):
+        salida["comments"] = base["comments"]
+    return salida

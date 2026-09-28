@@ -87,6 +87,31 @@ sumideros en v1; orden del documento en v2, que da diffs más estables).
 
 2026-09-28, Claude: tramo 1 hecho — jam/texto.py (núcleo, sin unreal): vocabulario (registro neutro + VALORES + ops de Flow + bordes de función), leer (texto → JamGraph, ErrorTexto con línea y columna), imprimir (forma canónica: una línea por nodo en orden del documento, posicional, @entradas, params en orden del registro sin defaults, +bypass/+debug), normal (forma normal tipada por pin: defaults, cableados, expresión implícita → «=…», valor sin name = id, cables como conjunto salvo el variádico), lineas (nodo → línea, para ubicar diagnósticos) y ayuda (firma en la misma sintaxis). Verificación: test_texto.py, 30 tests: sobre los 19 ejemplos y 3 presets de grafo, grafo→texto→grafo da la misma forma normal, el texto canónico es punto fijo, y el PLAN del Compile (orden, params resueltos, assets o diagnósticos) es idéntico para el original y el releído; Cylinder-Strip sale carácter por carácter como lo transcribió el diseño; el ejemplo propio del diseño (salida extra, valor cableado, expresiones, fn:, bypass, variádico) es canónico. Mutación a mano de texto.py: .6g, normal que ignora valores, variádico sin orden, bypass perdido y defaults no omitidos — mueren los cinco (el de .6g recién con el test de precisión que se agregó por eso). En el camino se cerró valor-sin-nombre (la regla name = id, que el texto necesita). Suite 1295 OK; oracle test VERDE. Pendiente: resolver las instancias fn: por etiqueta (hoy se escribe el verbo crudo, fn:<id>, y sus params van en orden alfabético) y el campo motores.
 
+## Codex, contrastado con la elegida (2026-09-28)
+
+Respondió el mismo pedido (v2, con el criterio 11) sobre la copia a ciegas, con `gpt-6-astra` (el
+modelo de `~/.codex/config.toml`), 128 mil tokens: [codex.md](investigacion/codex.md). Propone otra
+filosofía: igualdad **documental** —se conservan los defaults escritos, la representación de cada
+string (`"10"` ≠ `10`), el literal tapado por un cable, el layout y las definiciones de funciones
+congeladas dentro del documento—, con los cables en líneas propias (`a.out -> b.in`) y un
+encabezado `jam 1`. Sus transcripciones son largas a propósito (Cylinder-Strip en 31 líneas).
+
+No rompe la elegida: es el otro extremo del mismo compromiso, y Brian eligió el texto corto para el
+LLM. Lo que se toma:
+
+- **El literal tapado por un cable** no se pierde: `texto.aplicar` lo conserva del `.jamgraph` base
+  (hecho en el tramo 2, con test).
+- **Una divergencia real Graph/Flow**: en Flow un variádico acepta un stream; en el Graph, los
+  wrappers fijan mínimo dos (`registro._registrar_ops_flow`). Queda anotado acá; no bloquea.
+- Lo que señala de `graph.py:519`, `funcion.py:141` y `dsl.py:19` ya lo resolvió la etapa 1 de
+  `fuera-del-motor` (su copia es anterior).
+- Las funciones congeladas en el documento y `@id(...)` para ids opacos son la respuesta a lo que
+  la elegida deja abierto (resolver `fn:` por etiqueta); se retoma cuando se haga eso.
+
+### Nota (2026-09-28 10:11:11 UTC)
+
+2026-09-28, Claude: tramo 2 hecho — la integración. texto.aplicar (puro): JSON del canvas desde el texto conservando layout por NOMBRE, nodos nuevos a la derecha de su fuente y nunca encima de otro, params completos con defaults (el canvas los guarda todos), el literal tapado por un cable conservado del base, reroutes reindexados por identidad del cable y comentarios tal cual. api.graph_text, api.graph_from_text (errores de lectura con línea y columna; diagnósticos del Compile en la línea de su nodo; devuelve el canónico) y api.run_text (corre por el MISMO run_graph_json del canvas; el reporte dice «línea N [nodo·verbo]»). api.run manda a run_text todo lo que tenga «nombre =»; la consola de una línea sigue igual. Tests: test_texto_api.py, 12 (mutantes a mano: encimar, reroute por índice viejo, layout no conservado y literal tapado, los cuatro mueren). Editor (JamPlayground, tools/experiments/verifica_texto_58.py): VERDE — un documento escrito a mano corre por api.run y coloca, cada nodo con su línea; uno con error no toca la escena y sugiere «caja»; Cylinder-Strip por texto da los mismos 10 estados y los mismos textos que por JSON. Suite 1307 OK; oracle test VERDE (28/4/3, 1099, 448/448).
+
 ## Próximo paso
 
-Tramo 2, la integración: `api.graph_text` / `api.graph_from_text` / `api.run_text`, con los diagnósticos del Compile traducidos a línea (`texto.lineas`) y la unión del layout con el canvas (posición por nombre, `layout.auto` para lo nuevo); `api.run` manda a `run_text` lo que tiene «nombre =». Después, el C++ (panel Texto, ids legibles al crear nodos). Codex: su respuesta al pedido está corriendo (2026-09-28) para contrastarla con la elegida.
+Tramo 3, el canvas (C++): (1) ids legibles al crear un nodo (el verbo sin prefijo de familia, `_2`… si existe; hoy `n%d` en SJamGraphEditor.cpp), (2) el nombre del nodo visible en la ficha, (3) un panel «Texto» con Aplicar (`graph_from_text` + `LoadGraphJson`, un solo paso de Undo) y (4) que `api.run` de un documento también lo muestre en el canvas abierto (buzón). Leer la fuente de UE antes de tocar Slate. Después: `motores` en el registro y `fn:` por etiqueta.

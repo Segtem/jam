@@ -64,8 +64,85 @@ def select_asset(path: str) -> str:
 
 
 def run(command: str) -> str:
-    from . import panel
+    """Una línea de consola (`scatter SM_Rock count=20`) o el TEXTO de un grafo (`a = mesh_box`…).
+
+    La consola corre el comando como siempre; un documento se arma como grafo y corre por el Run del
+    canvas (`run_text`), así que lo que escribe un LLM es lo mismo que el humano ve en los nodos.
+    """
+    from . import panel, texto
+    if texto.es_documento(command):
+        import json
+        return json.loads(run_text(command))["report"]
     return panel.ejecutar_dsl(command, None)
+
+
+# ---- el texto del grafo (tarea `dsl-grafos`): la segunda vista del mismo JamGraph ----
+
+def graph_text(graph_json: str) -> str:
+    """El texto canónico del grafo del canvas. JSON `{ok, texto}` o `{ok: false, error}`."""
+    import json
+
+    from . import graph, texto
+    try:
+        return json.dumps({"ok": True, "texto": texto.imprimir(graph.JamGraph.from_json(graph_json))},
+                          ensure_ascii=False)
+    except ValueError as e:
+        return json.dumps({"ok": False, "error": str(e)}, ensure_ascii=False)
+
+
+def _errores_de_texto(e) -> list[dict]:
+    return [{"linea": e.linea, "columna": e.columna, "nodo": "", "mensaje": e.mensaje}]
+
+
+def graph_from_text(text: str, base_json: str = "") -> str:
+    """Texto → JSON del canvas, con el layout de `base_json` y el Compile ubicado por línea.
+
+    JSON `{ok, graph, canonico, errores: [{linea, columna, nodo, mensaje}]}`. Un error de lectura
+    deja `graph` en `null`; un error de Compile devuelve el grafo igual —se puede mirar en el canvas—
+    con cada diagnóstico en la línea de su nodo.
+    """
+    import json
+
+    from . import texto
+    try:
+        g = texto.aplicar(text, base_json)
+    except texto.ErrorTexto as e:
+        return json.dumps({"ok": False, "graph": None, "canonico": "",
+                           "errores": _errores_de_texto(e)}, ensure_ascii=False)
+    grafo_json = json.dumps(g, ensure_ascii=False)
+    canonico = json.loads(graph_text(grafo_json)).get("texto", "")
+    lineas = texto.lineas(canonico)
+    compilado = json.loads(compile_graph_json(grafo_json))
+    errores = [{"linea": lineas.get(nid, 0), "columna": 0, "nodo": nid, "mensaje": r.get("texto", "")}
+               for nid, r in compilado.get("nodes", {}).items() if r.get("estado") == "error"]
+    if not compilado.get("ok") and not errores:
+        errores.append({"linea": 0, "columna": 0, "nodo": "", "mensaje": compilado.get("report", "")})
+    return json.dumps({"ok": not errores, "graph": g, "canonico": canonico,
+                       "errores": sorted(errores, key=lambda e: e["linea"])}, ensure_ascii=False)
+
+
+def run_text(text: str, base_json: str = "") -> str:
+    """Lee el texto y lo corre por el MISMO Run del canvas. JSON de `run_graph_json` más
+    `canonico`, `lineas` (nodo → línea) y `errores`; el reporte nombra la línea de cada nodo."""
+    import json
+    import re
+
+    from . import texto
+    leido = json.loads(graph_from_text(text, base_json))
+    if leido["graph"] is None or leido["errores"]:
+        reporte = "RUN ✗ — el texto no se puede correr:\n" + "\n".join(
+            f"  línea {e['linea']}" + (f" ({e['nodo']})" if e["nodo"] else "") + f": {e['mensaje']}"
+            for e in leido["errores"])
+        return json.dumps({"ok": False, "report": reporte, "nodes": {}, **leido}, ensure_ascii=False)
+    lineas = texto.lineas(leido["canonico"])
+    corrida = json.loads(run_graph_json(json.dumps(leido["graph"], ensure_ascii=False)))
+    corrida["report"] = re.sub(
+        r"^\[([A-Za-z_][A-Za-z0-9_]*)·",
+        lambda m: f"línea {lineas[m.group(1)]} [{m.group(1)}·" if m.group(1) in lineas else m.group(0),
+        corrida.get("report", ""), flags=re.M)
+    corrida.update({"canonico": leido["canonico"], "lineas": lineas, "errores": [],
+                    "graph": leido["graph"]})
+    return json.dumps(corrida, ensure_ascii=False)
 
 
 def run_graph(graph_json: str) -> str:
