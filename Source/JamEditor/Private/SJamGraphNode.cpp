@@ -668,6 +668,8 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 					if (ResultState == TEXT("error")) { return LOCTEXT("VeredictoError", "reventó: no hay resultado"); }
 					if (ResultState == TEXT("omitido")) { return LOCTEXT("VeredictoOmitido",
 						"no corrió: se está viendo otro nodo (apagá su ◉ para correr todo)"); }
+					if (ResultState == TEXT("cancelado")) { return LOCTEXT("VeredictoCancelado",
+						"no corrió: falló un nodo aguas arriba (el texto del nodo dice cuál)"); }
 					return LOCTEXT("VeredictoNada", "todavía no corrió");
 				})
 				.Font(FCoreStyle::GetDefaultFontStyle("Bold", 12))
@@ -1113,6 +1115,9 @@ FString SJamGraphNode::StateGlyph() const
 	// «sin veredicto»: son dos cosas distintas —uno nunca corrió, el otro fue excluido a propósito—
 	// y sin distinguirlas el usuario no puede saber si su nodo está roto o simplemente apagado.
 	if (ResultState == TEXT("omitido")) { return TEXT("–"); }
+	// Cancelado: no corrió porque falló algo de lo que depende. La flecha dice DÓNDE mirar: arriba.
+	// Está en DroidSansFallback, la misma fuente que sirve el ▲; Roboto no la tiene.
+	if (ResultState == TEXT("cancelado")) { return TEXT("↑"); }
 	return FString();   // todavía no corrió: no hay veredicto que mostrar
 }
 
@@ -1124,6 +1129,7 @@ FLinearColor SJamGraphNode::StateColor() const
 	if (ResultState == TEXT("warn"))  { return FLinearColor(0.85f, 0.48f, 0.03f, 1.0f); }
 	if (ResultState == TEXT("error")) { return FLinearColor(0.80f, 0.12f, 0.12f, 1.0f); }
 	if (ResultState == TEXT("omitido")) { return FLinearColor(0.45f, 0.44f, 0.42f, 1.0f); }   // gris: fuera del recorte
+	if (ResultState == TEXT("cancelado")) { return FLinearColor(0.55f, 0.30f, 0.28f, 1.0f); }   // rojo apagado: lo cortó un fallo de arriba
 	return FLinearColor(0.24f, 0.24f, 0.23f, 1.0f);   // neutro: contorno oscuro del componente
 }
 

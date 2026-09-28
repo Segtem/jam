@@ -259,7 +259,7 @@ class GlifosQueLaFuenteTieneTests(unittest.TestCase):
     """
 
     #: Verificados contra `Engine/Content/Slate/Fonts/DroidSansFallback.ttf` (UE 5.8.1).
-    PERMITIDOS = set("○◉■□▲△●◯⊗⊙✓✗✕‼◐")
+    PERMITIDOS = set("○◉■□▲△●◯⊗⊙✓✗✕‼◐↑")
 
     def glifos_del_nodo(self) -> set:
         import re

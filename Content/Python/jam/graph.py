@@ -759,6 +759,15 @@ def ejecutar_detalle(g: JamGraph, plan: GraphPlan | None = None,
     # falta para producirlo. Sin ningún marcado, `permitidos` es todo y esto no cambia nada.
     marcas, permitidos = display_core.recorte(g.nodes, [list(a) for a in g.edges])
 
+    # ---- un fallo corta lo que cuelga de él ----
+    # Un nodo rojo no entrega nada, y el que depende de él recibía `None` y corría igual: fallaba
+    # con un `NoneType` que escondía la causa, o peor, colocaba algo con lo que tuviera a mano.
+    # `rotos` guarda, por nodo, CUÁL fue la fuente del fallo, para decirlo en todos los de abajo.
+    padres: dict[str, set[str]] = {}
+    for origen, _op, destino, _dp in g.edges:
+        padres.setdefault(destino, set()).add(origen)
+    rotos: dict[str, str] = {}
+
     for nid in plan.order:
         n = g.nodes[nid]
         verb = n["verb"]
@@ -767,6 +776,14 @@ def ejecutar_detalle(g: JamGraph, plan: GraphPlan | None = None,
         # apaga en silencio es indistinguible de uno roto, y el usuario buscaría el bug donde no está.
         if nid not in permitidos:
             por_nodo[nid] = {"estado": "omitido", "texto": "no corre: sólo se está viendo otro nodo"}
+            continue
+
+        causa = next((rotos[p] for p in sorted(padres.get(nid, ())) if p in rotos), None)
+        if causa is not None:
+            rotos[nid] = causa
+            txt = f"no corre: «{causa}» falló aguas arriba"
+            lineas.append(f"[{nid}·{verb}] {txt}")
+            por_nodo[nid] = {"estado": "cancelado", "texto": txt}
             continue
 
         # nodos de VALOR: no ejecutan verbo; aportan su valor (y lo muestran en el nodo).
@@ -868,6 +885,8 @@ def ejecutar_detalle(g: JamGraph, plan: GraphPlan | None = None,
         lineas.append(f"[{nid}·{verb}] {txt}")
         estado = _estado(txt)
         por_nodo[nid] = {"estado": estado, "texto": txt}
+        if estado == "error":
+            rotos[nid] = nid
         producido = tools.dato_producido_runtime(verb, entrada)
         salida = (producido if producido is not None else entrada) if estado != "error" else None
         runtime_outputs[nid] = salida
