@@ -17,7 +17,7 @@ RAIZ_PY = Path(__file__).resolve().parents[1]
 
 #: Lo que tiene que cargar sin motor. Agregar acá un módulo es una promesa: si mañana importa
 #: `unreal` (directo o por otro módulo), este test lo dice.
-NUCLEO = ("registro", "registro_core", "dsl", "graph", "flow", "math_core", "funcion", "letras",
+NUCLEO = ("registro", "registro_core", "dsl", "texto", "graph", "flow", "math_core", "funcion", "letras",
           "shader", "layout", "display_core", "cache_core")
 
 _SONDA = """

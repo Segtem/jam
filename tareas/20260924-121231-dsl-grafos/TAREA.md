@@ -83,8 +83,10 @@ sumideros en v1; orden del documento en v2, que da diffs más estables).
 
 2026-09-27, DECISIÓN de Brian: se elige la propuesta de Claude v2 (investigacion/claude.md). Cuando vuelva Codex (2026-09-30) se le pasa el mismo pedido y se contrasta su respuesta con la elegida, sin reabrir la elección salvo que encuentre algo que la rompa. Se implementa después de la etapa 1 de fuera-del-motor.
 
+### Nota (2026-09-28 10:07:35 UTC)
+
+2026-09-28, Claude: tramo 1 hecho — jam/texto.py (núcleo, sin unreal): vocabulario (registro neutro + VALORES + ops de Flow + bordes de función), leer (texto → JamGraph, ErrorTexto con línea y columna), imprimir (forma canónica: una línea por nodo en orden del documento, posicional, @entradas, params en orden del registro sin defaults, +bypass/+debug), normal (forma normal tipada por pin: defaults, cableados, expresión implícita → «=…», valor sin name = id, cables como conjunto salvo el variádico), lineas (nodo → línea, para ubicar diagnósticos) y ayuda (firma en la misma sintaxis). Verificación: test_texto.py, 30 tests: sobre los 19 ejemplos y 3 presets de grafo, grafo→texto→grafo da la misma forma normal, el texto canónico es punto fijo, y el PLAN del Compile (orden, params resueltos, assets o diagnósticos) es idéntico para el original y el releído; Cylinder-Strip sale carácter por carácter como lo transcribió el diseño; el ejemplo propio del diseño (salida extra, valor cableado, expresiones, fn:, bypass, variádico) es canónico. Mutación a mano de texto.py: .6g, normal que ignora valores, variádico sin orden, bypass perdido y defaults no omitidos — mueren los cinco (el de .6g recién con el test de precisión que se agregó por eso). En el camino se cerró valor-sin-nombre (la regla name = id, que el texto necesita). Suite 1295 OK; oracle test VERDE. Pendiente: resolver las instancias fn: por etiqueta (hoy se escribe el verbo crudo, fn:<id>, y sus params van en orden alfabético) y el campo motores.
+
 ## Próximo paso
 
-1. Esperar la etapa 1 de `fuera-del-motor` (el registro neutro).
-2. Implementar Claude v2: `texto.py` (lector, impresor, forma normal, ayuda), ida y vuelta sobre los 20 ejemplos, y después la integración con api.run y el canvas.
-3. 2026-09-30: el pedido a Codex y el contraste.
+Tramo 2, la integración: `api.graph_text` / `api.graph_from_text` / `api.run_text`, con los diagnósticos del Compile traducidos a línea (`texto.lineas`) y la unión del layout con el canvas (posición por nombre, `layout.auto` para lo nuevo); `api.run` manda a `run_text` lo que tiene «nombre =». Después, el C++ (panel Texto, ids legibles al crear nodos). Codex: su respuesta al pedido está corriendo (2026-09-28) para contrastarla con la elegida.
