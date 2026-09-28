@@ -34,7 +34,15 @@ def main():
         return {"leido": mallas_del_nivel()}
     from jam import api
     texto = open(os.environ["JAM_VITRINA"], encoding="utf-8").read()
-    les.new_level(NIVEL)
+    # La vitrina se rehace entera. Si el nivel ya existe, `new_level` no lo abre y después no hay
+    # qué guardar (pasó: «guardado: false»): se carga y se borran las piezas de la corrida anterior.
+    if unreal.EditorAssetLibrary.does_asset_exist(NIVEL):
+        les.load_level(NIVEL)
+        for actor in unreal.EditorLevelLibrary.get_all_level_actors():
+            if isinstance(actor, unreal.DynamicMeshActor):
+                unreal.EditorLevelLibrary.destroy_actor(actor)
+    else:
+        les.new_level(NIVEL)
     r = json.loads(api.run_text(texto, '{"nodes": {}, "edges": []}'))
     confirmado = api.confirm()
     guardado = les.save_current_level()

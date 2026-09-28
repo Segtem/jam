@@ -1,0 +1,20 @@
+caja = mesh_box
+esfera0 = mesh_sphere radius=50 latitude_steps=12 longitude_steps=16
+esfera = mesh_transform @esfera0 x=200 z=50
+cilindro0 = mesh_cylinder radius=40 height=120 sides=24
+cilindro = mesh_transform @cilindro0 x=400
+cono0 = mesh_cone base_radius=50 height=120 sides=24
+cono = mesh_transform @cono0 x=600
+disco0 = mesh_disc radius=50 sides=32 hole_radius=20
+disco = mesh_transform @disco0 x=800 z=40
+piso0 = mesh_grid width=1100 height=300 columns=12 rows=4
+piso = mesh_transform @piso0 x=400 y=-250
+torre0 = mesh_box size_x=60 size_y=60 size_z=200 steps_z=4
+torre = mesh_transform @torre0 x=800 y=-250 yaw=30
+ver_caja = mesh_preview @caja name=caja
+ver_esfera = mesh_preview @esfera name=esfera
+ver_cilindro = mesh_preview @cilindro name=cilindro
+ver_cono = mesh_preview @cono name=cono
+ver_disco = mesh_preview @disco name=disco
+ver_piso = mesh_preview @piso name=piso
+ver_torre = mesh_preview @torre name=torre

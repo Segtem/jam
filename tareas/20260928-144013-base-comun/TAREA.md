@@ -37,3 +37,7 @@ que Oracle juzga igual.
 1. Integrar `mesh_pipe` (agy1, en curso) y sumarlo a la cruzada.
 2. La vitrina en los tres motores: el mismo texto guardado en `/Game/Jam/Vitrina` (Unreal), `main.tscn` (Godot) y `JamBaseComun.unity` (Unity), para que Brian los abra.
 3. Las primitivas del contrato que faltan (colocar un asset, raycast, resolver un asset) y `jam-mcp` con Godot y Unity.
+
+### Nota (2026-09-28 15:14:22 UTC)
+
+2026-09-28, Claude: LA VITRINA. tools/vitrina/vitrina.py corre el MISMO texto (tools/vitrina/base_comun.jam: caja, esfera, cilindro, cono, disco con agujero, piso de grilla y una torre girada, todo con mesh_transform) en los tres motores y lo guarda: Unreal en JamPlayground /Game/Jam/Vitrina (vitrina_unreal_58.py: carga el nivel si existe y limpia la corrida anterior —con new_level sobre uno existente no había qué guardar—; reabierto en otra sesión: las 7 piezas), Godot en ~/Dev/games/JamGodot/main.tscn (commit en su git local), Unity en ~/Dev/games/JamUnity Assets/Scenes/JamBaseComun.unity. Los tres dan las mismas 7 piezas con los mismos triángulos (12, 320, 144, 288, 64, 66, 28). Pendiente menor: Unity acumula en Assets/JamGenerado las mallas de corridas viejas.
