@@ -53,3 +53,7 @@ Brian propuso (2026-09-28) guardar lo hecho con Unreal y arrancar por nodos simp
 ### Nota (2026-09-28 15:47:01 UTC)
 
 2026-09-28, Claude: el editor web ya no abre vacío (Brian abrió los tres y no vio nodos: agregar sólo se podía con doble clic o clic derecho, que no se descubren). Paleta a la izquierda (categorías con disponibles/total en el motor, buscador, clic = nodo al centro; los no disponibles en gris con el porqué), menú Ejemplos (Resources/Examples + tools/vitrina/*.jam, con ✓ los que corren en ese motor y el tooltip de lo que falta; jam/ejemplos.py, puro), y al abrir: en Unreal el grafo del Graph de Slate si hay uno, si no la vitrina (grafo_inicial). Encuadre con zoom mínimo legible. Nuevo ejemplo común: tools/vitrina/tubo_sobre_curva.jam. Probado en Chrome contra Godot: abre con la vitrina, la búsqueda encuentra, un clic agrega, Run la corre entera en Godot.
+
+### Nota (2026-09-28 15:51:18 UTC)
+
+Instalar en otra máquina (3458afb): tools/instalar.py + INSTALAR.md. Probado en proyectos temporales de los tres motores; en modo --copiar Godot cargó el plugin y corrió mesh_box → preview (12 triángulos). Windows escrito (junction, python/USERPROFILE) pero SIN probar.
