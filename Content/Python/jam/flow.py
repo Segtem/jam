@@ -939,6 +939,22 @@ class Flow:
             else:
                 nombres[nombre] = nid
 
+        # Params: el mismo juicio que el Compile del Graph y la consola (`registro_core`). Un nombre
+        # mal escrito se ignoraba y el nodo corría con su default; una opción fuera de la lista, igual.
+        from .registro_core import opcion_invalida, param_desconocido
+        cableados = {(d, dp) for _o, _op, d, dp in self.enlaces}
+        for nid, nodo in self.nodos.items():
+            meta = OPS_META.get(nodo.get("kind", ""))
+            if meta is None or nodo.get("kind") in VALOR_KINDS:
+                continue
+            for clave, valor in (nodo.get("params") or {}).items():
+                if clave not in meta["params"]:
+                    error(nid, param_desconocido(nodo["kind"], clave, meta["params"]))
+                elif (nid, clave) not in cableados and not str(valor).strip().startswith("="):
+                    fallo = opcion_invalida(clave, valor, meta)
+                    if fallo:
+                        error(nid, fallo)
+
         streams_por_nodo = {nid: 0 for nid in self.nodos}
         params_por_pin: dict[tuple[str, str], int] = {}
         enlaces_vistos: set[tuple[str, str, str, str]] = set()

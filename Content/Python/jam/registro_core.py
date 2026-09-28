@@ -68,6 +68,33 @@ def cable_que_falta(info: dict) -> str:
     return "" if tipo in TIPOS_QUE_LA_CONSOLA_PUEDE_DAR else tipo
 
 
+def _parecido(palabra: str, candidatos) -> str:
+    """« — ¿quisiste decir «x»?» o nada. El que se equivoca de nombre casi siempre quería uno cercano."""
+    import difflib
+    cerca = difflib.get_close_matches(str(palabra), [str(c) for c in candidatos], n=1, cutoff=0.6)
+    return f" — ¿quisiste decir «{cerca[0]}»?" if cerca else ""
+
+
+def param_desconocido(verbo: str, clave: str, params) -> str:
+    """El error de un parámetro que el verbo no tiene: el más parecido y la lista de los que sí.
+
+    Una sola redacción para la consola, el Compile del Graph y el preflight de Flow. Descartarlo en
+    silencio corría el verbo con su default: `cownt=10` salía verde con 200 piedras.
+    """
+    validos = ", ".join(params) or "ninguno"
+    return (f"parámetro desconocido: «{clave}»{_parecido(clave, params)}"
+            f" (los de `{verbo}`: {validos})")
+
+
+def opcion_invalida(clave: str, valor, info: dict) -> str:
+    """El error de un valor fuera de `opciones[clave]`, o `""` si vale (o si no hay opciones)."""
+    opciones = (info.get("opciones") or {}).get(clave)
+    if not opciones or str(valor) in [str(o) for o in opciones]:
+        return ""
+    return (f"{clave}: «{valor}» no es una opción{_parecido(valor, opciones)}"
+            f" (opciones: {', '.join(repr(o) if o == '' else str(o) for o in opciones)})")
+
+
 def corre_en_consola(info: dict) -> bool:
     """¿Esta tool puede correr como una línea escrita, sin canvas?"""
     return not cable_que_falta(info)

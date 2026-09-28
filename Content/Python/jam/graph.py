@@ -522,7 +522,8 @@ def compilar(g: JamGraph, *, registro: dict | None = None, resolver_asset=None,
                 error(nid, f"«{desconocido}» se mudó a `{destino}`: "
                            f"`{verb}` y `{destino}` son verbos distintos ahora")
             else:
-                error(nid, f"parámetro desconocido: «{desconocido}»")
+                from .registro_core import param_desconocido
+                error(nid, param_desconocido(verb, desconocido, defaults))
         efectivos: dict = {}
         data_params = registro[verb].get("data_params", {})
         # Un pin de datos puede ser OPCIONAL: sin cable, el verbo corre sin ese dato. Es el caso del
@@ -545,6 +546,12 @@ def compilar(g: JamGraph, *, registro: dict | None = None, resolver_asset=None,
                 fallo = None
             else:
                 valor, fallo = _resolver_parametro(crudos.get(pin, default), default, tabla)
+            if not fallo:
+                from .registro_core import opcion_invalida
+                fallo_opcion = opcion_invalida(pin, valor, registro[verb])
+                if fallo_opcion:
+                    error(nid, fallo_opcion)
+                    continue
             if fallo:
                 error(nid, f"{pin}: {fallo}")
             else:

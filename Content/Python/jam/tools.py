@@ -98,7 +98,9 @@ def t_pcg(asset, *, area=1600.0, count=200, density=0.0, view=True, name="JamPCG
             raise RuntimeError(f"preset «{preset}» no encontrado")
         if p.get("kind") == "tool":
             r = dsl.parsear(p.get("command", ""))
-            kw, _ = dsl.coaccionar(r["verbo"], r["params"])
+            kw, errores = dsl.coaccionar(r["verbo"], r["params"])
+            if errores:
+                raise RuntimeError(f"preset «{preset}»: " + "; ".join(errores))
             area = float(kw.get("area", area))
             count = int(kw.get("count", count))
             if r["asset"]:

@@ -47,13 +47,19 @@ def parsear(linea: str) -> dict:
 
 
 def coaccionar(verbo: str, params: dict) -> tuple[dict, list[str]]:
-    """Convierte cada param al tipo de su default en REGISTRO. Devuelve (kwargs, desconocidos)."""
-    spec = tools.REGISTRO.get(verbo, {}).get("params", {})
+    """Convierte cada param al tipo de su default en REGISTRO. Devuelve (kwargs, errores).
+
+    Cada error es una frase entera —qué falló, cuáles valen, el más parecido— y quien la recibe NO
+    corre el verbo: seguir con el default es el silencio que dejaba `cownt=10` en verde.
+    """
+    from . import registro_core
+    info = tools.REGISTRO.get(verbo, {})
+    spec = info.get("params", {})
     out: dict = {}
-    desconocidos: list[str] = []
+    errores: list[str] = []
     for k, v in params.items():
         if k not in spec:
-            desconocidos.append(k)
+            errores.append(registro_core.param_desconocido(verbo, k, spec))
             continue
         d = spec[k]
         try:
@@ -66,8 +72,12 @@ def coaccionar(verbo: str, params: dict) -> tuple[dict, list[str]]:
             else:
                 out[k] = v
         except (TypeError, ValueError):
-            desconocidos.append(f"{k}={v}?")
-    return out, desconocidos
+            errores.append(f"{k}: «{v}» no es {type(d).__name__}")
+            continue
+        fallo = registro_core.opcion_invalida(k, out[k], info)
+        if fallo:
+            errores.append(fallo)
+    return out, errores
 
 
 def ayuda() -> str:

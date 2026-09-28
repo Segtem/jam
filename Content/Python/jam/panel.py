@@ -821,6 +821,12 @@ def _h_descartar(widget=None, *, owner: str | None = None) -> str:
 
 # ---- Ejecución del DSL y del grafo (lo que llama la UI C++) ----
 
+def _no_corrio(verbo: str, errores: list[str]) -> str:
+    """Un parámetro mal escrito NO corre el verbo: seguir con el default era un verde que mentía."""
+    return (f"[error] «{verbo}» no corrió:\n" + "\n".join(f"  · {e}" for e in errores)
+            + "\n«help» lista los parámetros de cada verbo.")
+
+
 def ejecutar_dsl(linea: str, widget=None) -> str:
     """Corre una línea de DSL. Los verbos de spawn pasan por preview (Confirmar/Descartar los
     resuelven). `widget` se ignora (compat con la firma que llama el C++)."""
@@ -861,7 +867,9 @@ def ejecutar_dsl(linea: str, widget=None) -> str:
         return f"{len(hits)} assets: {nombres}"
     if verbo in tools.SIN_SPAWN:
         # selección/estado, no spawn: no pasan por preview (no agregan actores al nivel)
-        kw, _desc = dsl.coaccionar(verbo, r["params"])
+        kw, errores = dsl.coaccionar(verbo, r["params"])
+        if errores:
+            return _no_corrio(verbo, errores)
         if verbo == "pick":
             return tools.t_pick(None)   # lee la selección del Content Browser de Unreal
         # `name` como nombre de asset es SÓLO para el verbo `asset` (en pcg, `name` es el del volumen).
@@ -881,12 +889,16 @@ def ejecutar_dsl(linea: str, widget=None) -> str:
             return (f"«{verbo}» es un verbo de grafo: necesita una entrada {falta} y ese dato sólo "
                     f"llega por un cable.\nAbrilo en Jam ▸ Graph y cableale lo que produce {falta}. "
                     f"«help» lista lo que sí corre acá.")
+        # Los params se juzgan ANTES que el asset: con la biblioteca vacía, «cownt=10» contestaba
+        # «biblioteca vacía» y el error que el que escribe puede arreglar quedaba escondido.
+        kw, errores = dsl.coaccionar(verbo, r["params"])
+        if errores:
+            return _no_corrio(verbo, errores)
         asset = _resolver_asset(r["asset"])
         if r["asset"] and asset is None:
             return f"asset «{r['asset']}» no encontrado en la biblioteca."
         if not asset:
             return "biblioteca vacía (no hay assets que colocar)."
-        kw, desconocidos = dsl.coaccionar(verbo, r["params"])
         fn = tools.REGISTRO[verbo]["fn"]
 
         # El asset va al slot de entrada SÓLO si ese slot admite un asset. Ver
@@ -914,10 +926,7 @@ def ejecutar_dsl(linea: str, widget=None) -> str:
                 anchor=_kw.get("anchor", "") or "base", align=_kw.get("align", False),
                 sink=_kw.get("sink", 0.0))
 
-        cuerpo = _preview(_correr, owner="dash")
-        if desconocidos:
-            cuerpo += f"\n(ignoré params desconocidos: {', '.join(desconocidos)})"
-        return cuerpo
+        return _preview(_correr, owner="dash")
     return f"verbo desconocido: «{verbo}». «help» lista los verbos."
 
 
