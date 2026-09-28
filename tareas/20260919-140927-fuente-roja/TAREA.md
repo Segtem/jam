@@ -1,6 +1,6 @@
 # Un nodo fuente rojo permite ejecutar dependientes
 
-- ESTADO: ABIERTA
+- ESTADO: CERRADA
 - PRIORIDAD: 77
 - ETIQUETAS: graph
 
