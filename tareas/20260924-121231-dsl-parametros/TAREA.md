@@ -1,6 +1,6 @@
 # El DSL descarta en silencio un parámetro mal escrito y no valida las opciones
 
-- ESTADO: ABIERTA
+- ESTADO: CERRADA
 - PRIORIDAD: 90
 - ETIQUETAS: dsl, llm
 
