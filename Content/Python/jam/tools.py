@@ -1803,10 +1803,18 @@ def t_mass_clear(handle_input) -> str:
 
 def t_mesh_box(_input=None, *, size_x=100.0, size_y=100.0, size_z=100.0,
                steps_x=0, steps_y=0, steps_z=0) -> str:
-    from . import mesh
-    return _mesh_output("mesh_box", mesh.box(
-        size_x=float(size_x), size_y=float(size_y), size_z=float(size_z),
-        steps_x=int(steps_x), steps_y=int(steps_y), steps_z=int(steps_z)), "BOX M")
+    """Base común: la caja la calcula el NÚCLEO (`jam.comun`); Unreal sólo la vuelve DynamicMesh.
+    La misma que la de Geometry Script, medida por el motor en `verifica_caja_comun_58.py`."""
+    from . import comun, malla_core, mesh
+    try:
+        malla = comun.IMPLEMENTA["mesh_box"](_input, size_x=size_x, size_y=size_y, size_z=size_z,
+                                             steps_x=steps_x, steps_y=steps_y, steps_z=steps_z)
+    except malla_core.MallaError as e:
+        raise RuntimeError(str(e)) from None
+    dm = mesh.desde_malla(malla)
+    return _mesh_output("mesh_box", {
+        "mesh": dm,
+        "info": f"{mesh._info(dm)} · {float(size_x):g}×{float(size_y):g}×{float(size_z):g}cm"}, "BOX M")
 
 
 def t_mesh_capsule(_input=None, *, radius=30.0, length=150.0, hemisphere_steps=5, sides=12) -> str:

@@ -321,6 +321,26 @@ def _pasos(*valores, minimo: int = 0) -> bool:
     return all(isinstance(v, int) and v >= minimo for v in valores)
 
 
+def desde_malla(malla, *, soldar: bool = True, material_id: int = 0):
+    """La primitiva «malla desde datos» del adaptador de Unreal (tarea `base-comun`): una
+    `malla_core.Malla` del núcleo pasa a `DynamicMesh`.
+
+    Se SUELDA por defecto: los buffers repiten un vértice por cada cara que lo toca (así viaja una
+    normal dura), y Geometry Script los comparte. Sin soldar, lo que viene después —simplificar,
+    extruir, contar piezas— vería una caja de seis tapas sueltas en vez de un sólido.
+    """
+    result = _new_mesh()
+    buffers = unreal.GeometryScriptSimpleMeshBuffers()
+    buffers.set_editor_property("vertices", [unreal.Vector(*p) for p in malla.vertices])
+    buffers.set_editor_property("triangles", [unreal.IntVector(*t) for t in malla.triangulos])
+    buffers.set_editor_property("normals", [unreal.Vector(*p) for p in malla.normales])
+    buffers.set_editor_property("uv0", [unreal.Vector2D(*p) for p in malla.uv0])
+    unreal.GeometryScript_MeshEdits.append_buffers_to_mesh(result, buffers, material_id=material_id)
+    if soldar:
+        unreal.GeometryScript_MeshRepair.weld_mesh_edges(result, unreal.GeometryScriptWeldEdgesOptions())
+    return result
+
+
 def box(*, size_x: float = 100.0, size_y: float = 100.0, size_z: float = 100.0,
         steps_x: int = 0, steps_y: int = 0, steps_z: int = 0) -> dict:
     """Caja con el pivote en la BASE: apoya sola, que es lo que un kit necesita."""

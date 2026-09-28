@@ -1017,11 +1017,16 @@ _SOLO_UNREAL = {"nanite": "Nanite existe sólo en Unreal", "nanite_analyze": "Na
 _SOLO_UNREAL_POR_CATEGORIA = {"Mass": "MassEntity es de Unreal",
                               "Shader": "arma el grafo de materiales de Unreal"}
 
+#: La base común (tarea `base-comun`): se calculan en el núcleo (`jam.comun`) y cada motor sólo los
+#: vuelve suyos con su primitiva «malla desde datos». Un test ata esta lista a `comun.IMPLEMENTA`.
+COMUNES = frozenset({"mesh_box"})
+
 for _nombre, _info in REGISTRO.items():
     _source = _nombre in GRAPH_SOURCES
     # En qué motores corre (tarea `fuera-del-motor`, criterio 11 de `dsl-grafos`). Se DERIVA: una op
-    # de Flow es cálculo puro y corre en cualquiera («*»); una `t_*` vive en el adaptador de Unreal.
-    _info["motores"] = ("*",) if _info.get("_flow_op") else ("unreal",)
+    # de Flow o un verbo de la base común es cálculo del núcleo y corre en cualquiera («*»); el resto
+    # vive en el adaptador de Unreal.
+    _info["motores"] = ("*",) if (_info.get("_flow_op") or _nombre in COMUNES) else ("unreal",)
     _porque = _SOLO_UNREAL.get(_nombre) or _SOLO_UNREAL_POR_CATEGORIA.get(_info.get("cat", ""))
     if _porque:
         _info["porque"] = _porque
