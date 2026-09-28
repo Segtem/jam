@@ -1,6 +1,6 @@
 # Un grafo con una función pierde todos sus bypass al expandirse
 
-- ESTADO: ABIERTA
+- ESTADO: CERRADA
 - PRIORIDAD: 80
 - ETIQUETAS: graph
 
