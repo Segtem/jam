@@ -425,7 +425,9 @@ def colapsar(g: JamGraph, seleccion: set[str], nombre: str, *, registro: dict | 
 def _copiar(nodo: dict, dx: float = 0.0, dy: float = 0.0) -> dict:
     return {"verb": nodo["verb"], "params": dict(nodo.get("params", {})),
             "asset": nodo.get("asset"), "x": float(nodo.get("x", 0.0)) + dx,
-            "y": float(nodo.get("y", 0.0)) + dy, "debug": bool(nodo.get("debug", False))}
+            "y": float(nodo.get("y", 0.0)) + dy, "debug": bool(nodo.get("debug", False)),
+            # Sin esto, con UNA instancia en el grafo, todo nodo apagado volvía a correr.
+            "bypass": bool(nodo.get("bypass", False))}
 
 
 def expandir(g: JamGraph, biblioteca: dict[str, JamGraph], _pila: tuple[str, ...] = ()) -> JamGraph:

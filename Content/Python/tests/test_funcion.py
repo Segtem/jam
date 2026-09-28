@@ -493,6 +493,24 @@ class ExpansionTests(unittest.TestCase):
 
         self.assertEqual(g.to_json(), antes)
 
+    def test_expandir_conserva_el_bypass_afuera_y_adentro_del_cuerpo(self) -> None:
+        """Un nodo apagado tiene que seguir apagado. `_copiar` no llevaba `bypass`: con UNA
+        instancia en el grafo, todos los nodos bypasseados volvían a correr."""
+        cuerpo = _cuerpo_escalar()
+        cuerpo.nodes["k"]["bypass"] = True
+        g = JamGraph()
+        g.add("mesh_cylinder", {}, nid="cil")
+        g.add("mesh_normals", {}, nid="nor")
+        g.nodes["nor"]["bypass"] = True
+        g.add("fn:escalar", {}, nid="f1")
+        g.connect("cil", "nor")
+        g.connect("nor", "f1", "malla")
+
+        e = expandir(g, {"escalar": cuerpo})
+
+        self.assertTrue(e.nodes["nor"].get("bypass"), "el bypass de afuera se perdió")
+        self.assertTrue(e.nodes["f1__k"].get("bypass"), "el bypass del cuerpo se perdió")
+
     def test_una_entrada_sin_cablear_no_explota_y_deja_el_nodo_suelto(self) -> None:
         g = JamGraph()
         g.add("fn:escalar", {}, nid="f1")
