@@ -126,11 +126,13 @@ def main() -> int:
             raise SystemExit(f"{motor} no abrió el puerto del plugin Jam")
         adaptador = (ag.AdaptadorGodot if motor == "godot" else au.AdaptadorUnity)(cliente)
         casos = _textos()
+        en_godot = {}
         for nombre, texto, _u in casos:
             r = ag.correr_texto(texto + f"ver = mesh_preview @m name={nombre}\n", adaptador)
             if not r["ok"]:
                 fallas.append(f"{nombre}: no corrió en {motor}: {r['errores'] or r['report']}")
-        en_godot = {m["nodo"]: m["hechos"] for m in cliente.pedir("hechos")["mallas"]}
+            # Después de CADA caso: el Run siguiente descarta el Preview de éste, como en Unreal.
+            en_godot.update({m["nodo"]: m["hechos"] for m in cliente.pedir("hechos")["mallas"]})
         for nombre, _texto, u in casos:
             g = en_godot.get(nombre, {})
             filas.append({"caso": nombre, "unreal": {k: u[k] for k in ("triangulos", "posiciones", "min", "max", "area", "volumen")},

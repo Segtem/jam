@@ -64,6 +64,12 @@ class Nucleo:
         except Exception:  # noqa: BLE001 — sin motor se juzga por lo declarado
             return None
 
+    def _opciones_compile(self) -> dict:
+        try:
+            return self.adaptador().opciones_compile()
+        except Exception:  # noqa: BLE001 — sin motor, el Compile no resuelve assets
+            return {}
+
     # ---- lo que llama el editor ----
 
     def estado(self) -> dict:
@@ -83,7 +89,7 @@ class Nucleo:
         g = graph.JamGraph.from_json(grafo_json)
         try:
             graph.compilar(g, registro=registro.REGISTRO, motor=self.motor,
-                           implementados=self._implementados())
+                           implementados=self._implementados(), **self._opciones_compile())
         except graph.GraphValidationError as e:
             nodos = {n: {"estado": "error", "texto": " · ".join(m)} for n, m in e.diagnostics.items()
                      if n in g.nodes}
@@ -105,7 +111,7 @@ class Nucleo:
             self._adaptador = None
             return {"ok": False, "report": f"RUN ✗ — {e}", "nodes": {}}
         plan = graph.compilar(g, registro=registro.REGISTRO, motor=self.motor,
-                              implementados=ad.capacidades())
+                              implementados=ad.capacidades(), **ad.opciones_compile())
         with self._lock:
             reporte, por_nodo = graph.ejecutar_detalle(g, plan, adaptador=ad)
         ok = not any(r.get("estado") == "error" for r in por_nodo.values())

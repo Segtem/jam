@@ -31,6 +31,39 @@ namespace Jam
         [DataMember] public string op;
         [DataMember] public string nombre;
         [DataMember] public DatosMalla malla;
+        [DataMember] public string ruta;
+        [DataMember] public Instancia[] instancias;
+        [DataMember] public Rayo[] rayos;
+    }
+
+    [DataContract]
+    public sealed class Instancia
+    {
+        [DataMember] public float[] pos;
+        [DataMember] public float yaw;
+        [DataMember] public float[] escala;
+    }
+
+    [DataContract]
+    public sealed class Rayo
+    {
+        [DataMember] public float[] desde;
+        [DataMember] public float[] hacia;
+    }
+
+    [DataContract]
+    public sealed class Caja
+    {
+        [DataMember] public double[] min;
+        [DataMember] public double[] max;
+    }
+
+    [DataContract]
+    public sealed class Golpe
+    {
+        [DataMember] public bool golpe;
+        [DataMember(EmitDefaultValue = false)] public double[] punto;
+        [DataMember(EmitDefaultValue = false)] public double[] normal;
     }
 
     [DataContract]
@@ -73,6 +106,11 @@ namespace Jam
         [DataMember(EmitDefaultValue = false)] public MedicionCubo cubo_nativo;
         [DataMember(EmitDefaultValue = false)] public string modo;
         [DataMember] public int pid;
+        [DataMember(EmitDefaultValue = false)] public string ruta;
+        [DataMember(EmitDefaultValue = false)] public double[] min;
+        [DataMember(EmitDefaultValue = false)] public double[] max;
+        [DataMember(EmitDefaultValue = false)] public Caja[] instancias;
+        [DataMember(EmitDefaultValue = false)] public Golpe[] golpes;
     }
 
     // Contrato 1: sólo materializa buffers; no calcula geometría ni evalúa código recibido.
@@ -211,14 +249,20 @@ namespace Jam
                     version = Application.unityVersion, cubo_nativo = cubo,
                     modo = Application.isBatchMode ? "bucle principal" : "EditorApplication.update",
                     pid = System.Diagnostics.Process.GetCurrentProcess().Id,
-                    primitivas = new[] { "mostrar_malla", "descartar", "fijar", "hechos" } };
+                    primitivas = new[] { "mostrar_malla", "descartar", "fijar", "hechos",
+                        "guardar_malla", "resolver_asset", "colocar", "raycast" } };
                 case "mostrar_malla": return Mostrar(p);
+                case "guardar_malla": return GuardarMalla(p);
+                case "resolver_asset": return ResolverAsset(p);
+                case "colocar": return Colocar(p);
+                case "raycast": return Raycast(p);
                 case "descartar":
+                    // Sólo lo que no se fijó: lo fijado ya es escena y descartar no lo toca.
                     var raiz = Raiz(false);
-                    int cuantos = raiz == null ? 0 : raiz.childCount;
-                    if (raiz != null)
-                        foreach (Transform t in raiz.Cast<Transform>().ToArray()) Borrar(t.gameObject);
-                    return new Respuesta { descartados = cuantos };
+                    var sueltos = raiz == null ? new GameObject[0] : raiz.Cast<Transform>()
+                        .Where(t => EsPreview(t)).Select(t => t.gameObject).ToArray();
+                    foreach (var g in sueltos) Borrar(g);
+                    return new Respuesta { descartados = sueltos.Length };
                 case "fijar": return Fijar();
                 case "hechos":
                     var r = Raiz(false);
@@ -255,7 +299,7 @@ namespace Jam
                 throw new ArgumentException("Buffer inválido: " + campo);
         }
 
-        static Respuesta Mostrar(Pedido p)
+        static Mesh ArmarMalla(Pedido p)
         {
             var d = p.malla ?? throw new ArgumentException("Falta la malla.");
             Validar(d.vertices, 3, "vertices");
@@ -282,6 +326,13 @@ namespace Jam
             else mesh.RecalculateNormals();
             if (d.uv0 != null && d.uv0.Length > 0) mesh.uv = d.uv0.Select(v => new Vector2(v[0], v[1])).ToArray();
             mesh.RecalculateBounds();
+            return mesh;
+        }
+
+        static Respuesta Mostrar(Pedido p)
+        {
+            var mesh = ArmarMalla(p);
+            var nombre = mesh.name;
             var raiz = Raiz(true);
             var viejo = raiz.Cast<Transform>().FirstOrDefault(t => t.name == nombre);
             if (viejo != null) Borrar(viejo.gameObject);
@@ -293,12 +344,220 @@ namespace Jam
             return new Respuesta { nodo = nombre, hechos = Medir(objeto.GetComponent<MeshFilter>().sharedMesh) };
         }
 
+        static Respuesta GuardarMalla(Pedido p)
+        {
+            if (string.IsNullOrWhiteSpace(p.nombre) || p.nombre == "." || p.nombre == ".." ||
+                p.nombre.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || p.nombre.Contains("\\"))
+                throw new ArgumentException("Nombre de malla inválido.");
+            var malla = ArmarMalla(p);
+            try
+            {
+                if (!AssetDatabase.IsValidFolder(CarpetaMallas)) AssetDatabase.CreateFolder("Assets", "JamGenerado");
+                if (!AssetDatabase.IsValidFolder(CarpetaMallas + "/Mallas"))
+                    AssetDatabase.CreateFolder(CarpetaMallas, "Mallas");
+                string ruta = CarpetaMallas + "/Mallas/" + p.nombre + ".asset";
+                var anterior = AssetDatabase.LoadMainAssetAtPath(ruta);
+                if (anterior != null && !(anterior is Mesh))
+                    throw new ArgumentException("La ruta ya contiene un asset que no es malla: " + ruta);
+                // Conservar GUID y referencias de las instancias que ya usan este asset.
+                if (anterior != null) { EditorUtility.CopySerialized(malla, anterior); EditorUtility.SetDirty(anterior); }
+                else AssetDatabase.CreateAsset(malla, ruta);
+                AssetDatabase.SaveAssets();
+                return new Respuesta { ruta = ruta };
+            }
+            finally
+            {
+                if (!AssetDatabase.Contains(malla)) UnityEngine.Object.DestroyImmediate(malla);
+            }
+        }
+
+        static UnityEngine.Object CargarAsset(string ruta)
+        {
+            if (string.IsNullOrEmpty(ruta) || !ruta.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException("Se necesita una ruta de asset bajo Assets/.");
+            var asset = AssetDatabase.LoadMainAssetAtPath(ruta);
+            if (!(asset is Mesh) && !(asset is GameObject))
+                throw new ArgumentException("No hay un asset Mesh o GameObject en " + ruta);
+            return asset;
+        }
+
+        // Una caja girada requiere sus OCHO esquinas; transformar sólo min/max pierde extremos.
+        static Bounds TransformarCaja(Bounds caja, Matrix4x4 matriz)
+        {
+            var resultado = new Bounds(matriz.MultiplyPoint3x4(caja.min), Vector3.zero);
+            for (int i = 0; i < 8; i++)
+                resultado.Encapsulate(matriz.MultiplyPoint3x4(new Vector3(
+                    (i & 1) == 0 ? caja.min.x : caja.max.x,
+                    (i & 2) == 0 ? caja.min.y : caja.max.y,
+                    (i & 4) == 0 ? caja.min.z : caja.max.z)));
+            return resultado;
+        }
+
+        static Bounds CajaLocal(UnityEngine.Object asset)
+        {
+            if (asset is Mesh malla) return malla.bounds;
+            var objeto = (GameObject)asset;
+            var filtros = objeto.GetComponentsInChildren<MeshFilter>(true).Where(f => f.sharedMesh != null).ToArray();
+            if (filtros.Length == 0) throw new ArgumentException("El asset no contiene mallas: " + objeto.name);
+            Bounds? caja = null;
+            foreach (var filtro in filtros)
+            {
+                var parte = TransformarCaja(filtro.sharedMesh.bounds,
+                    objeto.transform.worldToLocalMatrix * filtro.transform.localToWorldMatrix);
+                if (caja == null) caja = parte;
+                else { var union = caja.Value; union.Encapsulate(parte); caja = union; }
+            }
+            return caja.Value;
+        }
+
+        static Respuesta ResolverAsset(Pedido p)
+        {
+            if (string.IsNullOrWhiteSpace(p.nombre)) throw new ArgumentException("Falta el nombre del asset.");
+            string ruta = p.nombre;
+            if (!ruta.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase))
+            {
+                var candidatas = AssetDatabase.FindAssets("t:Mesh").Concat(AssetDatabase.FindAssets("t:GameObject"))
+                    .Select(AssetDatabase.GUIDToAssetPath).Distinct()
+                    .Where(r => string.Equals(Path.GetFileNameWithoutExtension(r), p.nombre, StringComparison.OrdinalIgnoreCase))
+                    .Where(r => { var a = AssetDatabase.LoadMainAssetAtPath(r); return a is Mesh || a is GameObject; })
+                    .OrderBy(r => r, StringComparer.Ordinal).ToArray();
+                if (candidatas.Length == 0) throw new ArgumentException("No hay assets con nombre " + p.nombre);
+                if (candidatas.Length != 1)
+                    throw new ArgumentException("Hay varios assets con nombre " + p.nombre + ": " + string.Join(", ", candidatas));
+                ruta = candidatas[0];
+            }
+            var asset = CargarAsset(ruta);
+            var caja = CajaLocal(asset);
+            return new Respuesta { ruta = AssetDatabase.GetAssetPath(asset), min = ANucleo(caja.min), max = ANucleo(caja.max) };
+        }
+
+        static Respuesta Colocar(Pedido p)
+        {
+            if (string.IsNullOrWhiteSpace(p.nombre)) throw new ArgumentException("Falta el nombre del grupo.");
+            if (p.instancias == null) throw new ArgumentException("Faltan las instancias.");
+            foreach (var instancia in p.instancias)
+            {
+                if (instancia == null) throw new ArgumentException("Instancia inválida.");
+                Validar(new[] { instancia.pos, instancia.escala }, 3, "pos/escala");
+                if (float.IsNaN(instancia.yaw) || float.IsInfinity(instancia.yaw))
+                    throw new ArgumentException("Yaw inválido.");
+            }
+            var asset = CargarAsset(p.ruta);
+            var local = CajaLocal(asset);
+            var raiz = Raiz(true);
+            var grupo = new GameObject(p.nombre) { hideFlags = HideFlags.DontSaveInEditor };
+            grupo.transform.SetParent(raiz, false);
+            var cajas = new List<Caja>();
+            try
+            {
+                foreach (var instancia in p.instancias)
+                {
+                    GameObject hijo;
+                    if (asset is Mesh malla)
+                    {
+                        hijo = new GameObject("Instancia " + cajas.Count);
+                        hijo.transform.SetParent(grupo.transform, false);
+                        hijo.AddComponent<MeshFilter>().sharedMesh = malla;
+                        hijo.AddComponent<MeshRenderer>().sharedMaterial =
+                            AssetDatabase.GetBuiltinExtraResource<Material>("Default-Material.mat");
+                    }
+                    else hijo = (GameObject)PrefabUtility.InstantiatePrefab(asset, grupo.transform);
+                    foreach (var t in hijo.GetComponentsInChildren<Transform>(true))
+                        t.gameObject.hideFlags |= HideFlags.DontSaveInEditor;
+                    hijo.transform.localPosition = AUnity(instancia.pos);
+                    hijo.transform.localRotation = Quaternion.Euler(0, -instancia.yaw, 0);
+                    hijo.transform.localScale = new Vector3(instancia.escala[0], instancia.escala[2], instancia.escala[1]);
+                    var mundo = TransformarCaja(local, hijo.transform.localToWorldMatrix);
+                    cajas.Add(new Caja { min = ANucleo(mundo.min), max = ANucleo(mundo.max) });
+                }
+                var viejo = raiz.Cast<Transform>().FirstOrDefault(t => t != grupo.transform && t.name == p.nombre);
+                if (viejo != null) Borrar(viejo.gameObject);
+            }
+            catch { Borrar(grupo); throw; }
+            SceneView.RepaintAll();
+            return new Respuesta { nodo = grupo.name, instancias = cajas.ToArray() };
+        }
+
+        static bool EsPreview(Transform objeto)
+        {
+            for (var t = objeto; t != null; t = t.parent)
+                if ((t.gameObject.hideFlags & HideFlags.DontSaveInEditor) != 0) return true;
+            return false;
+        }
+
+        // Contra TODAS las mallas de la escena, incluido lo que la corrida en curso ya colocó (un
+        // piso y los muebles encima, en un mismo grafo). El Preview de la corrida anterior no está:
+        // el núcleo lo descarta al empezar cada Run (docs/contrato-motor.md).
+        // En double: Vector3 es float32 y un rayo de ±10 km (el de `place surface`) pierde ahí un
+        // milímetro (medido en Godot: el piso en -5 cm daba -4,98).
+        // ponytail: O(triángulos) por rayo; una BVH si la escena pesa.
+        static Respuesta Raycast(Pedido p)
+        {
+            if (p.rayos == null) throw new ArgumentException("Faltan los rayos.");
+            var filtros = SceneManager.GetActiveScene().GetRootGameObjects()
+                .SelectMany(g => g.GetComponentsInChildren<MeshFilter>(true))
+                .Where(f => f.sharedMesh != null && f.GetComponent<Renderer>() != null).ToArray();
+            var geometria = filtros.Select(f => (
+                vertices: f.sharedMesh.vertices.Select(v => D(f.transform.localToWorldMatrix, v)).ToArray(),
+                indices: f.sharedMesh.triangles)).ToArray();
+            var golpes = new List<Golpe>();
+            foreach (var rayo in p.rayos)
+            {
+                if (rayo == null) throw new ArgumentException("Rayo inválido.");
+                Validar(new[] { rayo.desde, rayo.hacia }, 3, "desde/hacia");
+                // Núcleo (cm, Z arriba) → Unity (m, Y arriba), en double.
+                var o = new[] { rayo.desde[0] * 0.01, rayo.desde[2] * 0.01, rayo.desde[1] * 0.01 };
+                var d = new[] { rayo.hacia[0] * 0.01 - o[0], rayo.hacia[2] * 0.01 - o[1], rayo.hacia[1] * 0.01 - o[2] };
+                double mejor = double.MaxValue;
+                var golpe = new Golpe();
+                foreach (var malla in geometria)
+                for (int i = 0; i < malla.indices.Length; i += 3)
+                {
+                    var a = malla.vertices[malla.indices[i]];
+                    var e1 = Resta(malla.vertices[malla.indices[i + 1]], a);
+                    var e2 = Resta(malla.vertices[malla.indices[i + 2]], a);
+                    var q = Cruz(d, e2);
+                    double det = Punto(e1, q);
+                    if (Math.Abs(det) < 1e-18) continue;
+                    var t = Resta(o, a);
+                    double u = Punto(t, q) / det;
+                    if (u < 0 || u > 1) continue;
+                    var r = Cruz(t, e1);
+                    double v = Punto(d, r) / det;
+                    if (v < 0 || u + v > 1) continue;
+                    double f = Punto(e2, r) / det;   // fracción del segmento desde→hacia
+                    if (f < 0 || f > 1 || f >= mejor) continue;
+                    mejor = f;
+                    var n = Cruz(e1, e2);
+                    double largo = Math.Sqrt(Punto(n, n));
+                    if (Punto(n, d) > 0) largo = -largo;   // del lado de `desde`
+                    golpe = new Golpe { golpe = true,
+                        punto = new[] { Math.Round((o[0] + d[0] * f) * 100.0, 3), Math.Round((o[2] + d[2] * f) * 100.0, 3),
+                                        Math.Round((o[1] + d[1] * f) * 100.0, 3) },
+                        normal = new[] { Math.Round(n[0] / largo, 4), Math.Round(n[2] / largo, 4), Math.Round(n[1] / largo, 4) } };
+                }
+                golpes.Add(golpe);
+            }
+            return new Respuesta { golpes = golpes.ToArray() };
+        }
+
+        static double[] D(Matrix4x4 m, Vector3 v)
+        {
+            return new[] { (double)m.m00 * v.x + (double)m.m01 * v.y + (double)m.m02 * v.z + m.m03,
+                           (double)m.m10 * v.x + (double)m.m11 * v.y + (double)m.m12 * v.z + m.m13,
+                           (double)m.m20 * v.x + (double)m.m21 * v.y + (double)m.m22 * v.z + m.m23 };
+        }
+        static double[] Resta(double[] a, double[] b) { return new[] { a[0] - b[0], a[1] - b[1], a[2] - b[2] }; }
+        static double[] Cruz(double[] a, double[] b)
+        { return new[] { a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0] }; }
+        static double Punto(double[] a, double[] b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
+
         static void Borrar(GameObject objeto)
         {
-            var filtro = objeto.GetComponent<MeshFilter>();
-            var mesh = filtro == null ? null : filtro.sharedMesh;
+            var mallas = objeto.GetComponentsInChildren<MeshFilter>(true)
+                .Select(f => f.sharedMesh).Where(m => m != null && !AssetDatabase.Contains(m)).Distinct().ToArray();
             UnityEngine.Object.DestroyImmediate(objeto);
-            if (mesh != null && !AssetDatabase.Contains(mesh)) UnityEngine.Object.DestroyImmediate(mesh);
+            foreach (var malla in mallas) UnityEngine.Object.DestroyImmediate(malla);
         }
 
         static Respuesta Fijar()
@@ -307,14 +566,15 @@ namespace Jam
             if (raiz == null) return new Respuesta { fijados = 0 };
             if (!AssetDatabase.IsValidFolder("Assets/Scenes")) AssetDatabase.CreateFolder("Assets", "Scenes");
             if (!AssetDatabase.IsValidFolder(CarpetaMallas)) AssetDatabase.CreateFolder("Assets", "JamGenerado");
-            foreach (var filtro in raiz.GetComponentsInChildren<MeshFilter>())
+            foreach (var filtro in raiz.GetComponentsInChildren<MeshFilter>(true))
             {
                 // Una escena no conserva un Mesh transitorio: se guarda como asset primero.
-                if (!AssetDatabase.Contains(filtro.sharedMesh))
+                if (filtro.sharedMesh != null && !AssetDatabase.Contains(filtro.sharedMesh))
                     AssetDatabase.CreateAsset(filtro.sharedMesh,
                         AssetDatabase.GenerateUniqueAssetPath(CarpetaMallas + "/Malla.asset"));
-                filtro.gameObject.hideFlags = HideFlags.None;
             }
+            foreach (var t in raiz.GetComponentsInChildren<Transform>(true))
+                t.gameObject.hideFlags &= ~HideFlags.DontSaveInEditor;
             AssetDatabase.SaveAssets();
             if (!EditorSceneManager.SaveScene(raiz.gameObject.scene, Escena))
                 throw new IOException("No se pudo guardar " + Escena);

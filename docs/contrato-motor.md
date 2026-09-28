@@ -42,10 +42,12 @@ las anuncia en `hola` sigue funcionando para lo demás.
   `-yaw` alrededor del eje vertical (la traducción de marco es una reflexión) y la escala
   `(sx, sy, sz)` pasa a `(sx, sz, sy)`. `min`/`max` de cada instancia es la caja envolvente de mundo
   de la instancia —la del asset transformada por sus 8 esquinas—, en el orden en que llegaron.
-- **`raycast`.** Contra la geometría de malla de la escena abierta, el golpe más cercano a `desde`
-  sobre el segmento. IGNORA el Preview sin fijar, como Unreal ignora lo de Jam sin confirmar: si no,
-  cada Run se apoyaría encima del anterior. `normal` es la de la cara golpeada, unitaria, del lado
-  de `desde`. Sin golpe: `{golpe: false}`.
+- **`raycast`.** Contra TODA la geometría de malla de la escena abierta, incluido lo que la corrida
+  en curso ya colocó (un piso y los muebles encima, en un mismo grafo): el golpe más cercano a
+  `desde` sobre el segmento. `normal` es la de la cara golpeada, unitaria, del lado de `desde`. Sin
+  golpe: `{golpe: false}`. El Preview de la corrida ANTERIOR no es suelo, igual que en Unreal: el
+  núcleo lo descarta al empezar cada Run, así que el plugin no tiene que distinguirlo.
+- **`descartar`.** Borra sólo lo que no se fijó; lo fijado ya es escena.
 
 ## Lo que el núcleo hace con ellas
 

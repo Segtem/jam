@@ -15,6 +15,8 @@ class ClienteFalso:
         self.pedidos.append((op, datos))
         if op == "hola":
             return {"ok": True, "contrato": self.contrato, "version": "6000.falso"}
+        if op == "descartar":
+            return {"ok": True, "descartados": 0}
         return {"ok": True, "nodo": datos["nombre"],
                 "hechos": {"triangulos": len(datos["malla"]["triangulos"]), "posiciones": 8}}
 

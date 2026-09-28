@@ -27,6 +27,8 @@ class _GodotFalso(socketserver.StreamRequestHandler):
             self.pedidos.append(p)
             if p["op"] == "hola":
                 r = {"ok": True, "motor": "godot", "contrato": self.contrato, "version": "falso"}
+            elif p["op"] == "descartar":
+                r = {"ok": True, "descartados": 0}
             elif p["op"] == "mostrar_malla":
                 r = {"ok": True, "nodo": p["nombre"],
                      "hechos": {"triangulos": len(p["malla"]["triangulos"]), "posiciones": 8}}
@@ -72,6 +74,14 @@ class Adaptador(_Base):
         self.assertEqual(r["errores"][0]["linea"], 2)
         self.assertIn("no disponible en este motor (godot)", r["errores"][0]["mensaje"])
         self.assertFalse([p for p in _GodotFalso.pedidos if p["op"] == "mostrar_malla"])
+
+    def test_un_plugin_sin_las_ops_de_colocar_deja_place_deshabilitado(self):
+        # El falso anuncia sólo el contrato 1 original: asset/place/mesh_to_static no corren.
+        r = ag.correr_texto("caja = mesh_box\na = mesh_to_static @caja\nc = place @a surface=false\n",
+                            self._adaptador())
+        self.assertFalse(r["ok"])
+        self.assertIn("no disponible en este motor (godot)", r["errores"][0]["mensaje"])
+        self.assertEqual({e["nodo"] for e in r["errores"]} & {"a", "c"}, {"a", "c"})
 
     def test_las_ops_de_flow_corren_en_el_nucleo(self):
         r = ag.correr_texto("linea = pts_line count=5\nruido = jitter @linea\n", self._adaptador())

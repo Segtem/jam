@@ -720,6 +720,10 @@ def ejecutar_detalle(g: JamGraph, plan: GraphPlan | None = None,
     if adaptador is None:
         from . import tools as adaptador
     REGISTRO = adaptador.REGISTRO
+    # Un adaptador fuera del motor limpia el Preview del Run anterior (ver `AdaptadorGodot`).
+    # Unreal no lo necesita: su Preview es transaccional y el raycast ignora el viejo.
+    if hasattr(adaptador, "empezar_corrida"):
+        adaptador.empezar_corrida()
     try:
         plan = plan or compilar(g)
     except GraphValidationError as exc:

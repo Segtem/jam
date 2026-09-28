@@ -1029,8 +1029,10 @@ COMUNES = frozenset({"mesh_box", "mesh_quad", "mesh_grid", "mesh_disc", "mesh_tr
                      "curve_child", "curve_branches", "curve_fuse_collinear", "curve_subdivide",
                      "curve_offset"})
 #: Las PRIMITIVAS del contrato que cada motor implementa con lo suyo (no se calculan en el núcleo):
-#: mostrar una malla sin hornearla. También corren en cualquier motor: todo adaptador las trae.
-PRIMITIVAS = frozenset({"mesh_preview"})
+#: mostrar una malla sin hornearla, y colocar (`docs/contrato-motor.md`): guardar una malla como
+#: asset, resolver un asset por nombre, instanciarlo. Dónde va cada instancia lo decide el núcleo
+#: (`jam.colocacion`); un plugin que no anuncia las ops de colocar las deja deshabilitadas.
+PRIMITIVAS = frozenset({"mesh_preview", "asset", "mesh_to_static", "place"})
 
 for _nombre, _info in REGISTRO.items():
     _source = _nombre in GRAPH_SOURCES
