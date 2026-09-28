@@ -58,6 +58,28 @@ Encontrado de paso por Claude, a verificar: `compilar` nombra un nodo de valor `
 
 2026-09-27, Claude: por pedido de Brian, el pedido suma el criterio 11 (núcleo fuera del motor: el grafo y el DSL no importan unreal, sobre un registro neutro con capacidades por motor; ver fuera-del-motor) y el entregable g lo cubre. Las dos respuestas de arriba son la versión 1, sin ese criterio: se relanzan agy y un Claude nuevo con el pedido actualizado, y Codex (2026-09-30) recibe el mismo.
 
+## Versión 2, con el criterio 11 (2026-09-27)
+
+Mismo pedido con el criterio 11, sobre una copia sin las respuestas v1 ni la tabla: agy
+([agy.md](investigacion/agy.md)) y un Claude nuevo ([claude.md](investigacion/claude.md)).
+
+| criterio | agy v2 | Claude v2 |
+|---|---|---|
+| forma | igual que v1: bloque por nodo, `pin = valor` por línea; flags `@bypass` | `nombre = verbo [posicional] @entradas clave=valor +bypass` (una línea por nodo, estilo SSA) |
+| 1 · ida y vuelta | forma normal definida, pero sigue con `.6g` → **pierde precisión** | forma normal N(g) completa; `repr`; valores tipados por pin, incluido el `%.17g` que escribe el C++ |
+| defaults | dice omitirlos y los imprime: `capped = true`, `profile_rotation = 0.0`, `pivot_uvs = false` en mesh_pipe son defaults (medido) | omitidos, comparados uno por uno contra el registro |
+| 2 · cobertura | ejemplo propio con verbos **inexistentes**: `matrix_from_trs`, `mesh_relax` (medido) | todos los verbos y pines existen (medido); slot posicional declarado por verbo (asset, value, expr, name) |
+| 5 · diffs | orden topológico con desempate alfabético: insertar un nodo lo mete en medio | **orden del documento** (el de creación): un nodo nuevo va al final, nada más se mueve; un param o un recableado tocan una línea |
+| 7 · layout | en el texto (`layout:` con posiciones, comments y reroutes) | fuera del texto; unido por nombre; `textconv` de git para leer los `.jamgraph` como texto en los diffs |
+| 11 · fuera del motor | `registro_neutro.py` con `motores: {unreal, godot, unity}` y motivo; error «no disponible en motor» con línea; CI con `unreal` bloqueado | `registro.py` (REGISTRO sin `fn`, con `motores` derivado: `*` si la implementación es pura, `unreal` para `t_*`, y `no_disponible` con el porqué); `tools.py` queda como adaptador con `IMPLEMENTA`; `compilar(motor=…)`; auditoría de capacidades declaradas contra implementadas. **Midió** qué módulos importan con `unreal` bloqueado: `dsl.py` NO (por `from . import tools`), contra lo que decía la nota de fuera-del-motor (verificado) |
+| 9 · tamaño | ~1000 líneas | ~900 movidas de tools a registro, ~550 texto.py, ~300 C++, ~250 tests |
+| hallazgos | — | bug de `funcion._copiar` sin `bypass` (verificado y arreglado en `bypass-funciones`); dos valores sin `name` se pisan (verificado, tarea `valor-sin-nombre`) |
+
+La v2 de Claude y su v1 coinciden en lo esencial (una línea por nodo, `@` para cables, layout fuera,
+forma normal con defaults omitidos) y difieren en `:` vs `=` y en el orden (postorden desde los
+sumideros en v1; orden del documento en v2, que da diffs más estables).
+
 ## Próximo paso
 
-Juntar agy.md y claude.md (con el criterio 11) y codex.md (2026-09-30), rehacer la tabla por criterio y proponérsela a Brian, que elige.
+Brian elige: decidir ya (recomendación: Claude v2 como base) o esperar a Codex del 2026-09-30 con
+el mismo pedido. Si se elige Claude v2, su `registro.py` es la etapa 1 de `fuera-del-motor`.
