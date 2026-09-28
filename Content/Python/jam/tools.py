@@ -964,20 +964,6 @@ def t_mesh_triangle(_input=None, *, size=100.0) -> str:
     return _mesh_output("mesh_triangle", mesh.triangle(size=float(size)), "TRIANGLE M")
 
 
-def t_mesh_quad(_input=None, *, width=100.0, height=100.0) -> str:
-    from . import mesh
-    return _mesh_output("mesh_quad", mesh.quad(width=float(width), height=float(height)), "QUAD M")
-
-
-def t_mesh_grid(_input=None, *, width=500.0, height=500.0, columns=6, rows=6) -> str:
-    from . import mesh
-    return _mesh_output(
-        "mesh_grid",
-        mesh.grid(width=float(width), height=float(height), columns=int(columns), rows=int(rows)),
-        "GRID M",
-    )
-
-
 def t_mesh_cylinder(_input=None, *, radius=50.0, height=200.0, sides=16,
                     height_steps=1, capped=True) -> str:
     from . import mesh
@@ -1714,14 +1700,6 @@ def t_mesh_torus(_input=None, *, major_radius=100.0, minor_radius=25.0,
         major_steps=int(major_steps), minor_steps=int(minor_steps)), "TORUS M")
 
 
-def t_mesh_disc(_input=None, *, radius=100.0, sides=24, start_angle=0.0, end_angle=360.0,
-                hole_radius=0.0) -> str:
-    from . import mesh
-    return _mesh_output("mesh_disc", mesh.disc(
-        radius=float(radius), sides=int(sides), start_angle=float(start_angle),
-        end_angle=float(end_angle), hole_radius=float(hole_radius)), "DISC M")
-
-
 def t_mesh_round_rect(_input=None, *, size_x=200.0, size_y=200.0, corner_radius=20.0, steps_round=6) -> str:
     from . import mesh
     return _mesh_output("mesh_round_rect", mesh.round_rect(
@@ -1873,6 +1851,24 @@ def _envolver_comun(verbo: str):
     return fn
 
 
+def _envolver_comun_malla(verbo: str, etiqueta: str):
+    """Un GENERADOR de la base común: la malla la calcula `jam.comun` y Unreal sólo la vuelve
+    DynamicMesh (`mesh.desde_malla`). Los OPERADORES comunes (mesh_transform, mesh_merge) siguen con
+    Geometry Script acá: reciben también mallas de verbos propios de Unreal, con materiales y
+    colores que la malla del núcleo no lleva; que den lo mismo lo prueba el fixture de Unreal."""
+    def fn(entrada=None, **params):
+        from . import comun, malla_core, mesh
+        try:
+            malla, _texto = comun.IMPLEMENTA[verbo](entrada, **params)
+        except malla_core.MallaError as e:
+            raise RuntimeError(str(e)) from None
+        dm = mesh.desde_malla(malla)
+        _RUNTIME_DATA_OUTPUTS[verbo] = dm
+        return f"{etiqueta} ✓ — {mesh._info(dm)}"
+    fn.__name__ = f"t_{verbo}"
+    return fn
+
+
 def _envolver_op_flow(kind: str, aridad: int):
     """Adapta la firma de una op de Flow —(list[stream], params) → stream— a la de un verbo."""
     def fn(entrada=None, **params):
@@ -1957,8 +1953,8 @@ IMPLEMENTA = {
     "curve_offset": t_curve_offset,
     "curve_branches": t_curve_branches,
     "mesh_triangle": t_mesh_triangle,
-    "mesh_quad": t_mesh_quad,
-    "mesh_grid": t_mesh_grid,
+    "mesh_quad": _envolver_comun_malla("mesh_quad", "QUAD M"),
+    "mesh_grid": _envolver_comun_malla("mesh_grid", "GRID M"),
     "mesh_cylinder": t_mesh_cylinder,
     "mesh_cone": t_mesh_cone,
     "mesh_sphere": t_mesh_sphere,
@@ -2011,7 +2007,7 @@ IMPLEMENTA = {
     "mesh_box": t_mesh_box,
     "mesh_capsule": t_mesh_capsule,
     "mesh_torus": t_mesh_torus,
-    "mesh_disc": t_mesh_disc,
+    "mesh_disc": _envolver_comun_malla("mesh_disc", "DISC M"),
     "mesh_round_rect": t_mesh_round_rect,
     "mesh_stairs": t_mesh_stairs,
     "mesh_stairs_curved": t_mesh_stairs_curved,

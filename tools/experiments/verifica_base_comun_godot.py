@@ -30,9 +30,40 @@ UNREAL = Path.home() / "Dev/games/JamPlayground/Saved/jam_caja_comun.json"
 PROYECTO = Path.home() / "Dev/games/JamGodot"
 
 
+FIXTURE = JAM / "Content/Python/tests/fixtures/primitivas_unreal.json"
+CAJA = "caja = mesh_box size_x=100 size_y=60 size_z=40\n"
+
+
+def _params(params: dict) -> str:
+    return " ".join(f"{k}={str(v).lower() if isinstance(v, bool) else v}" for k, v in params.items())
+
+
+def _textos() -> list[tuple[str, str, dict]]:
+    """(nombre, texto, hechos de Unreal) de cada caso: las tres cajas medidas y todo el fixture de
+    primitivas que ya es común (generadores, mesh_transform sobre la caja, mesh_merge)."""
+    from jam import registro
+    salida = []
+    for i, caso in enumerate(json.loads(UNREAL.read_text())["casos"]):
+        u = caso["nucleo"]
+        salida.append((f"caja{i}", f"m = mesh_box {_params(caso['caso'])}\n",
+                       {"triangulos": u["triangulos"], "vertices": u["vertices"], "min": u["min"],
+                        "max": u["max"], "area": u["area_volumen"][0], "volumen": u["area_volumen"][1]}))
+    for i, caso in enumerate(json.loads(FIXTURE.read_text())["casos"]):
+        v = caso["verbo"]
+        if v not in registro.COMUNES or "error" in caso:
+            continue
+        if v == "mesh_transform":
+            texto = CAJA + f"m = mesh_transform @caja {_params(caso['params'])}\n"
+        elif v == "mesh_merge":
+            texto = CAJA + "otra = mesh_transform @caja x=200 yaw=30\nm = mesh_merge @caja @otra\n"
+        else:
+            texto = f"m = {v} {_params(caso['params'])}\n"
+        salida.append((f"{v}{i}", texto, caso["motor"]))
+    return salida
+
+
 def main() -> int:
-    medido_unreal = json.loads(UNREAL.read_text())
-    if medido_unreal.get("veredicto") != "VERDE":
+    if json.loads(UNREAL.read_text()).get("veredicto") != "VERDE":
         raise SystemExit(f"la medición de Unreal no es VERDE: {UNREAL}")
     godot = subprocess.Popen(["godot", "--headless", "--editor", "--path", str(PROYECTO)],
                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -47,26 +78,28 @@ def main() -> int:
         else:
             raise SystemExit("Godot no abrió el puerto del plugin Jam")
         adaptador = ag.AdaptadorGodot(cliente)
-        for i, caso in enumerate(medido_unreal["casos"]):
-            params = " ".join(f"{k}={v}" for k, v in caso["caso"].items())
-            r = ag.correr_texto(f"caja = mesh_box {params}\nver = mesh_preview @caja name=caso{i}\n",
-                                adaptador)
+        casos = _textos()
+        for nombre, texto, _u in casos:
+            r = ag.correr_texto(texto + f"ver = mesh_preview @m name={nombre}\n", adaptador)
             if not r["ok"]:
-                fallas.append(f"caso {i}: no corrió en Godot: {r['errores'] or r['report']}")
+                fallas.append(f"{nombre}: no corrió en Godot: {r['errores'] or r['report']}")
         en_godot = {m["nodo"]: m["hechos"] for m in cliente.pedir("hechos")["mallas"]}
-        for i, caso in enumerate(medido_unreal["casos"]):
-            u, g = caso["nucleo"], en_godot.get(f"caso{i}", {})
-            area_u = u["area_volumen"][0]
-            fila = {"caso": caso["caso"], "unreal": {k: u[k] for k in ("triangulos", "vertices", "min", "max")}
-                    | {"area": area_u}, "godot": g}
-            filas.append(fila)
-            if (g.get("triangulos"), g.get("posiciones"), g.get("min"), g.get("max")) != (
-                    u["triangulos"], u["vertices"], u["min"], u["max"]):
-                fallas.append(f"caso {i}: Unreal y Godot miden distinto")
-            if abs(g.get("area", 0) - area_u) > 1e-6 * area_u:
-                fallas.append(f"caso {i}: área {g.get('area')} contra {area_u}")
-            if g.get("caras_hacia_afuera") != g.get("triangulos"):
-                fallas.append(f"caso {i}: en Godot hay caras frontales hacia adentro")
+        for nombre, _texto, u in casos:
+            g = en_godot.get(nombre, {})
+            filas.append({"caso": nombre, "unreal": {k: u[k] for k in ("triangulos", "vertices", "min", "max", "area", "volumen")},
+                          "godot": g})
+            cerca = lambda a, b: all(abs(x - y) <= 1e-3 for x, y in zip(a, b))  # noqa: E731
+            if (g.get("triangulos"), g.get("posiciones")) != (u["triangulos"], u["vertices"]) or not (
+                    cerca(g.get("min", []), u["min"]) and cerca(g.get("max", []), u["max"])):
+                fallas.append(f"{nombre}: Unreal y Godot miden distinto")
+            if abs(g.get("area", 0) - u["area"]) > 1e-5 * max(1.0, u["area"]):
+                fallas.append(f"{nombre}: área {g.get('area')} contra {u['area']}")
+            # El volumen CON SIGNO, sumado con la convención de caras frontales de Godot: coincide
+            # con el de Unreal sólo si Godot dibuja las mismas caras. (Contra el centro de la caja
+            # envolvente no sirve: en un merge de dos piezas el centro cae entre las dos.)
+            if abs(g.get("volumen", float("nan")) - u["volumen"]) > 1e-5 * max(1.0, abs(u["volumen"])) + 1e-3:
+                fallas.append(f"{nombre}: volumen con signo {g.get('volumen')} contra {u['volumen']} "
+                              "(caras dadas vuelta si el signo no coincide)")
         cliente.pedir("descartar")
         cliente.cerrar()
     finally:

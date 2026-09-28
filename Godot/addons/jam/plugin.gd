@@ -187,6 +187,7 @@ func _hechos(mi: MeshInstance3D) -> Dictionary:
 	var b := _a_nucleo(aabb.end)
 	var centro := aabb.get_center()
 	var area := 0.0
+	var volumen := 0.0   # con signo: positivo sólo si las caras que Godot dibuja miran afuera
 	var afuera := 0
 	for t in range(idx.size() / 3):
 		var p0 := v[idx[3 * t]]
@@ -194,9 +195,11 @@ func _hechos(mi: MeshInstance3D) -> Dictionary:
 		var p2 := v[idx[3 * t + 2]]
 		var cara := (p2 - p0).cross(p1 - p0)   # la cara que Godot dibuja (medido en su BoxMesh)
 		area += cara.length() / 2.0
+		volumen += p0.dot(cara) / 6.0
 		if cara.dot((p0 + p1 + p2) / 3.0 - centro) > 0.0:
 			afuera += 1
 	return {"triangulos": idx.size() / 3, "posiciones": posiciones.size(),
 		"min": [snappedf(minf(a[0], b[0]), 0.001), snappedf(minf(a[1], b[1]), 0.001), snappedf(minf(a[2], b[2]), 0.001)],
 		"max": [snappedf(maxf(a[0], b[0]), 0.001), snappedf(maxf(a[1], b[1]), 0.001), snappedf(maxf(a[2], b[2]), 0.001)],
-		"area": snappedf(area * 10000.0, 0.001), "caras_hacia_afuera": afuera}
+		"area": snappedf(area * 10000.0, 0.001), "volumen": snappedf(volumen * 1000000.0, 0.001),
+		"caras_hacia_afuera": afuera}

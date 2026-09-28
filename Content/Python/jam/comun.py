@@ -28,6 +28,48 @@ def mesh_box(_entrada=None, *, size_x=100.0, size_y=100.0, size_z=100.0,
     return m, f"BOX M ✓ — {malla_core.info(m)}"
 
 
+# ---- primitivas planas y operadores de malla (agy1, contra el fixture de Unreal) ----
+
+def mesh_quad(_entrada=None, *, width=100.0, height=100.0) -> tuple:
+    from . import malla_plana
+    m = malla_plana.quad(width=width, height=height)
+    return m, f"QUAD M ✓ — {malla_core.info(m)}"
+
+
+def mesh_grid(_entrada=None, *, width=500.0, height=500.0, columns=6, rows=6) -> tuple:
+    from . import malla_plana
+    m = malla_plana.grid(width=width, height=height, columns=columns, rows=rows)
+    return m, f"GRID M ✓ — {malla_core.info(m)}"
+
+
+def mesh_disc(_entrada=None, *, radius=100.0, sides=24, start_angle=0.0, end_angle=360.0,
+              hole_radius=0.0) -> tuple:
+    from . import malla_plana
+    m = malla_plana.disc(radius=radius, sides=sides, start_angle=start_angle,
+                         end_angle=end_angle, hole_radius=hole_radius)
+    return m, f"DISC M ✓ — {malla_core.info(m)}"
+
+
+def _exigir_malla(valor, verbo: str) -> malla_core.Malla:
+    if not isinstance(valor, malla_core.Malla):
+        raise RuntimeError(f"{verbo} necesita una malla M del núcleo")
+    return valor
+
+
+def mesh_transform(entrada=None, *, x=0.0, y=0.0, z=0.0, pitch=0.0, yaw=0.0, roll=0.0,
+                   scale_x=1.0, scale_y=1.0, scale_z=1.0) -> tuple:
+    from . import malla_ops
+    m = malla_ops.transformar(_exigir_malla(entrada, "mesh_transform"), x=x, y=y, z=z, pitch=pitch,
+                              yaw=yaw, roll=roll, scale_x=scale_x, scale_y=scale_y, scale_z=scale_z)
+    return m, f"TRANSFORM M ✓ — {malla_core.info(m)}"
+
+
+def mesh_merge(entrada=None) -> tuple:
+    from . import malla_ops
+    m = malla_ops.juntar([_exigir_malla(v, "mesh_merge") for v in (entrada or [])])
+    return m, f"MERGE M ✓ — {malla_core.info(m)}"
+
+
 # ---- curvas y series: se mudaron de `tools.py` tal cual (misma firma, mismo texto) ----
 
 def graph_curve(_input=None, *, start_value=1.0, end_value=0.15, shape="custom",
@@ -116,6 +158,7 @@ def curve_smooth(curve_input, *, iterations=2, strength=0.5,
 
 
 IMPLEMENTA = {"mesh_box": mesh_box, **{v: globals()[v] for v in (
+    "mesh_quad", "mesh_grid", "mesh_disc", "mesh_transform", "mesh_merge",
     "graph_curve", "series_range", "series_remap", "curve_bezier", "curve_polyline",
     "curve_interpolate", "curve_line", "curve_line_sdl", "curve_move", "curve_resample",
     "curve_smooth")}}
