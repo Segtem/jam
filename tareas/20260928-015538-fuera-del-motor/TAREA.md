@@ -30,7 +30,10 @@ grafo y el DSL fuera del motor, sin `unreal`, sobre un registro neutro con capac
 queda más limpio afuera. La etapa 1 puede ir apenas termine `dsl-grafos`, o antes si se quiere que
 su diseño nazca sobre el registro neutro.
 
+### Nota (2026-09-28 02:53:25 UTC)
+
+2026-09-27, DECISIÓN de Brian: se va por fuera del motor. Orden: la etapa 1 (partir tools.py: registro neutro en el núcleo, implementaciones en el adaptador de Unreal) va ANTES de implementar dsl-grafos, porque el diseño elegido (Claude v2) se apoya en ese registro (registro.py con motores y no_disponible).
+
 ## Próximo paso
 
-**Decisión de Brian:** ¿se va por este camino?, y si sí, ¿la etapa 1 antes o después de
-`dsl-grafos`?
+Etapa 1: partir `tools.py`. Hecho cuando el núcleo importa con `sys.modules["unreal"] = None` (incluido `dsl.py`), la suite y la UI de Slate siguen iguales y `oracle test` da los mismos números.

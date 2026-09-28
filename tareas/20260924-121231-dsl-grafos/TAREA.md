@@ -79,7 +79,12 @@ La v2 de Claude y su v1 coinciden en lo esencial (una línea por nodo, `@` para 
 forma normal con defaults omitidos) y difieren en `:` vs `=` y en el orden (postorden desde los
 sumideros en v1; orden del documento en v2, que da diffs más estables).
 
+### Nota (2026-09-28 02:53:25 UTC)
+
+2026-09-27, DECISIÓN de Brian: se elige la propuesta de Claude v2 (investigacion/claude.md). Cuando vuelva Codex (2026-09-30) se le pasa el mismo pedido y se contrasta su respuesta con la elegida, sin reabrir la elección salvo que encuentre algo que la rompa. Se implementa después de la etapa 1 de fuera-del-motor.
+
 ## Próximo paso
 
-Brian elige: decidir ya (recomendación: Claude v2 como base) o esperar a Codex del 2026-09-30 con
-el mismo pedido. Si se elige Claude v2, su `registro.py` es la etapa 1 de `fuera-del-motor`.
+1. Esperar la etapa 1 de `fuera-del-motor` (el registro neutro).
+2. Implementar Claude v2: `texto.py` (lector, impresor, forma normal, ayuda), ida y vuelta sobre los 20 ejemplos, y después la integración con api.run y el canvas.
+3. 2026-09-30: el pedido a Codex y el contraste.
