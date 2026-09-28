@@ -831,6 +831,10 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 		// del borde superior se dibuja por encima del ribbon y del menú.
 		+ SVerticalBox::Slot().FillHeight(1.0f).Padding(6.0f, 2.0f)
 		[
+			// El canvas y, a su derecha, el TEXTO del mismo grafo (se abre con «✎ Texto»).
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot().FillWidth(1.0f)
+			[
 			SNew(SBorder)
 			.BorderImage(FAppStyle::GetBrush("Brushes.Recessed"))
 			.Padding(0.0f)
@@ -906,6 +910,11 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 					]
 				]
 			]
+			]
+			+ SHorizontalBox::Slot().AutoWidth()
+			[
+				ConstruirPanelTexto()
+			]
 		]
 
 		// Compile/Run + salida.
@@ -965,6 +974,25 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 					return FReply::Handled();
 				})
 			]
+			+ SHorizontalBox::Slot().AutoWidth().Padding(4.0f, 0.0f, 0.0f, 0.0f)
+			[
+				SNew(SCheckBox)
+				.Style(FAppStyle::Get(), "ToggleButtonCheckbox")
+				.IsChecked_Lambda([this]()
+					{ return bTextoVisible ? ECheckBoxState::Checked : ECheckBoxState::Unchecked; })
+				.OnCheckStateChanged_Lambda([this](ECheckBoxState)
+				{
+					bTextoVisible = !bTextoVisible;
+					if (bTextoVisible) { RefrescarTexto(); }
+				})
+				.ToolTipText(LOCTEXT("TextoTip",
+					"El grafo como texto: una línea por nodo, «nombre = verbo @entrada clave=valor».\n"
+					"Es lo que escribe y lee un LLM. Editalo y «Aplicar» lo vuelve nodos; lo que cambies\n"
+					"en los nodos se reescribe acá."))
+				[
+					SNew(STextBlock).Text(LOCTEXT("Texto", "✎ Texto"))
+				]
+			]
 			+ SHorizontalBox::Slot().FillWidth(1.0f).VAlign(VAlign_Center).Padding(8.0f, 0.0f, 0.0f, 0.0f)
 			[
 				SNew(STextBlock).Text(LOCTEXT("Hint",
@@ -984,6 +1012,10 @@ void SJamGraphEditor::Construct(const FArguments& InArgs, const TArray<FJamTool>
 	RebuildCategoryStrip();
 	RebuildTabContent();   // abre la primera categoría con sus fichas
 	Anterior = BuildJson();   // la foto de arranque: el grafo vacío del que parte el historial
+	AlCambiarGrafo();
+	// Dos veces por segundo alcanza para que lo que corre un agente aparezca «ya», y no satura el
+	// intérprete: cada vuelta es una llamada que devuelve `{version, graph: null}` casi siempre.
+	RegisterActiveTimer(0.5f, FWidgetActiveTimerDelegate::CreateSP(this, &SJamGraphEditor::SondearBuzon));
 }
 
 
@@ -2231,6 +2263,40 @@ EActiveTimerReturnType SJamGraphEditor::CrearNodoDiferido(const double, const fl
 	return EActiveTimerReturnType::Stop;
 }
 
+FString SJamGraphEditor::NombreDeNodoNuevo(const FString& Verb)
+{
+	// El nombre sale de Python (`jam.texto.nombre_nuevo`): es el que el TEXTO del grafo escribe a la
+	// izquierda del «=», y la regla vive una sola vez. «n7» no le decía nada a nadie; «mesh_weld» sí.
+	TArray<TSharedPtr<FJsonValue>> Usados;
+	for (const FGNode& N : Nodes)
+	{
+		Usados.Add(MakeShared<FJsonValueString>(N.Id));
+	}
+	FString UsadosJson;
+	const TSharedRef<TJsonWriter<TCHAR, TCondensedJsonPrintPolicy<TCHAR>>> Writer =
+		TJsonWriterFactory<TCHAR, TCondensedJsonPrintPolicy<TCHAR>>::Create(&UsadosJson);
+	FJsonSerializer::Serialize(Usados, Writer);
+
+	const FString Respuesta = FModuleManager::LoadModuleChecked<FJamEditorModule>("JamEditor")
+		.LlamarApi(TEXT("nombre_de_nodo_nuevo"), {Verb, UsadosJson});
+	TSharedPtr<FJsonObject> Root;
+	FString Nombre;
+	if (FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Respuesta), Root) && Root.IsValid()
+		&& Root->TryGetStringField(TEXT("nombre"), Nombre) && !Nombre.IsEmpty()
+		&& !Nodes.ContainsByPredicate([&Nombre](const FGNode& X) { return X.Id == Nombre; }))
+	{
+		return Nombre;
+	}
+	// Sin Python el nodo igual tiene que nacer: el nombre viejo es feo pero único.
+	FString Respaldo;
+	do
+	{
+		Respaldo = FString::Printf(TEXT("n%d"), NextId++);
+	}
+	while (Nodes.ContainsByPredicate([&Respaldo](const FGNode& X) { return X.Id == Respaldo; }));
+	return Respaldo;
+}
+
 FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At,
 	const FString& PreferredId)
 {
@@ -2256,7 +2322,7 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At,
 	}
 	else
 	{
-		Node.Id = FString::Printf(TEXT("n%d"), NextId++);
+		Node.Id = NombreDeNodoNuevo(Verb);
 	}
 	Node.Verb = Verb;
 	if (At != nullptr)
@@ -2371,6 +2437,7 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At,
 	TSharedRef<SJamGraphNode> Widget = SNew(SJamGraphNode)
 		.Verb(Verb)
 		.DisplayName(T->Label.IsEmpty() ? Verb : T->Label)
+		.NodeName(Id)
 		.IconPath(IconPathForVerb(Verb))
 		.IconColor(CategoryColor(T->Cat))
 		.OutputPinName(TEXT("out"))
@@ -2676,6 +2743,7 @@ void SJamGraphEditor::Marcar()
 	// después de editar traería de vuelta un estado que ya no encaja con lo que hay en pantalla.
 	Rehechos.Reset();
 	Anterior = BuildJson();
+	AlCambiarGrafo();
 }
 
 void SJamGraphEditor::RestaurarSnapshot(const FString& Json)
@@ -2688,8 +2756,209 @@ void SJamGraphEditor::RestaurarSnapshot(const FString& Json)
 	if (LoadGraphJson(Json, /*bConservarEdicionFuncion*/ true))
 	{
 		Anterior = BuildJson();
+		AlCambiarGrafo();
 	}
 	CurrentPath = Documento;
+}
+
+// ---- el texto del grafo (tarea `dsl-grafos`) ----
+
+static FJamEditorModule& JamModulo()
+{
+	return FModuleManager::LoadModuleChecked<FJamEditorModule>("JamEditor");
+}
+
+static TSharedPtr<FJsonObject> JamLeerJson(const FString& Texto)
+{
+	TSharedPtr<FJsonObject> Root;
+	if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Texto), Root))
+	{
+		Root.Reset();
+	}
+	return Root;
+}
+
+void SJamGraphEditor::AlCambiarGrafo()
+{
+	JamModulo().LlamarApi(TEXT("canvas_publicar"), {Anterior});
+	// Lo que el humano tipeó y todavía no aplicó no se pisa: sería perder trabajo en silencio.
+	if (bTextoVisible && !bTextoEditado)
+	{
+		RefrescarTexto();
+	}
+}
+
+void SJamGraphEditor::RefrescarTexto()
+{
+	if (!TextoBox.IsValid())
+	{
+		return;
+	}
+	const TSharedPtr<FJsonObject> R = JamLeerJson(JamModulo().LlamarApi(TEXT("graph_text"), {BuildJson()}));
+	FString Texto;
+	FString Error;
+	if (!R.IsValid())
+	{
+		Error = TEXT("Python no contestó: no hay texto que mostrar.");
+	}
+	else if (!R->TryGetStringField(TEXT("texto"), Texto))
+	{
+		R->TryGetStringField(TEXT("error"), Error);
+	}
+	TGuardValue<bool> Callado(bRefrescandoTexto, true);
+	TextoBox->SetText(FText::FromString(Texto));
+	bTextoEditado = false;
+	if (TextoEstado.IsValid())
+	{
+		TextoEstado->SetText(FText::FromString(Error));
+	}
+}
+
+void SJamGraphEditor::PedirAplicarTexto()
+{
+	if (!TextoBox.IsValid())
+	{
+		return;
+	}
+	TextoPorAplicar = TextoBox->GetText().ToString();
+	RegisterActiveTimer(0.0f, FWidgetActiveTimerDelegate::CreateSP(
+		this, &SJamGraphEditor::AplicarTextoDiferido));
+}
+
+bool SJamGraphEditor::CargarDesdeTexto(const FString& GraphJson)
+{
+	const FString Documento = CurrentPath;
+	const bool bOk = LoadGraphJson(GraphJson, /*bConservarEdicionFuncion*/ true);
+	CurrentPath = Documento;
+	return bOk;
+}
+
+EActiveTimerReturnType SJamGraphEditor::AplicarTextoDiferido(const double, const float)
+{
+	const TSharedPtr<FJsonObject> R = JamLeerJson(
+		JamModulo().LlamarApi(TEXT("graph_from_text"), {TextoPorAplicar, BuildJson()}));
+	if (!R.IsValid())
+	{
+		if (TextoEstado.IsValid())
+		{
+			TextoEstado->SetText(LOCTEXT("TextoSinPython", "Python no contestó: el grafo no cambió."));
+		}
+		return EActiveTimerReturnType::Stop;
+	}
+	TArray<FString> Lineas;
+	const TArray<TSharedPtr<FJsonValue>>* Errores = nullptr;
+	if (R->TryGetArrayField(TEXT("errores"), Errores))
+	{
+		for (const TSharedPtr<FJsonValue>& V : *Errores)
+		{
+			const TSharedPtr<FJsonObject> E = V.IsValid() ? V->AsObject() : nullptr;
+			if (!E.IsValid()) { continue; }
+			const FString Nodo = E->GetStringField(TEXT("nodo"));
+			Lineas.Add(FString::Printf(TEXT("línea %d%s: %s"),
+				static_cast<int32>(E->GetNumberField(TEXT("linea"))),
+				Nodo.IsEmpty() ? TEXT("") : *FString::Printf(TEXT(" (%s)"), *Nodo),
+				*E->GetStringField(TEXT("mensaje"))));
+		}
+	}
+	const TSharedPtr<FJsonObject>* Grafo = nullptr;
+	if (R->TryGetObjectField(TEXT("graph"), Grafo) && Grafo != nullptr && Grafo->IsValid())
+	{
+		FString GrafoJson;
+		const TSharedRef<TJsonWriter<TCHAR, TCondensedJsonPrintPolicy<TCHAR>>> W =
+			TJsonWriterFactory<TCHAR, TCondensedJsonPrintPolicy<TCHAR>>::Create(&GrafoJson);
+		FJsonSerializer::Serialize(Grafo->ToSharedRef(), W);
+		// Un error de Compile NO impide cargar: el grafo se mira en el canvas con su problema a la
+		// vista, igual que uno armado a mano. Sólo un error de LECTURA deja todo como estaba.
+		if (CargarDesdeTexto(GrafoJson))
+		{
+			bTextoEditado = false;
+			RefrescarTexto();
+		}
+	}
+	if (TextoEstado.IsValid())
+	{
+		TextoEstado->SetText(Lineas.Num() > 0
+			? FText::FromString(FString::Join(Lineas, TEXT("\n")))
+			: LOCTEXT("TextoAplicado", "✓ aplicado"));
+	}
+	return EActiveTimerReturnType::Stop;
+}
+
+EActiveTimerReturnType SJamGraphEditor::SondearBuzon(const double, const float)
+{
+	const TSharedPtr<FJsonObject> R = JamLeerJson(JamModulo().LlamarApi(
+		TEXT("canvas_pendiente"), {FString::FromInt(VersionBuzon)}));
+	if (!R.IsValid())
+	{
+		return EActiveTimerReturnType::Continue;
+	}
+	const int32 Version = static_cast<int32>(R->GetNumberField(TEXT("version")));
+	FString Grafo;
+	// La primera vuelta sólo se pone al día: un grafo que llegó ANTES de abrir el Graph no pisa
+	// el que el humano abrió después.
+	if (bBuzonSincronizado && Version > VersionBuzon && R->TryGetStringField(TEXT("graph"), Grafo)
+		&& !Grafo.IsEmpty() && CargarDesdeTexto(Grafo) && Output.IsValid())
+	{
+		Output->SetText(LOCTEXT("BuzonCargado",
+			"llegó un grafo por texto (api.run): es el que corrió — ✎ Texto lo muestra escrito."));
+	}
+	VersionBuzon = FMath::Max(VersionBuzon, Version);
+	bBuzonSincronizado = true;
+	return EActiveTimerReturnType::Continue;
+}
+
+TSharedRef<SWidget> SJamGraphEditor::ConstruirPanelTexto()
+{
+	return SNew(SBox)
+		.WidthOverride(460.0f)
+		.Visibility_Lambda([this]() { return bTextoVisible ? EVisibility::Visible : EVisibility::Collapsed; })
+		.Padding(FMargin(6.0f, 0.0f, 0.0f, 0.0f))
+		[
+			SNew(SVerticalBox)
+			+ SVerticalBox::Slot().AutoHeight().Padding(0.0f, 0.0f, 0.0f, 4.0f)
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot().AutoWidth()
+				[
+					SNew(SButton).Text(LOCTEXT("TextoAplicar", "Aplicar"))
+					.ToolTipText(LOCTEXT("TextoAplicarTip",
+						"Vuelve nodos lo escrito. Conserva la posición de cada nodo por su nombre; es un paso de Ctrl+Z."))
+					.OnClicked_Lambda([this]() { PedirAplicarTexto(); return FReply::Handled(); })
+				]
+				+ SHorizontalBox::Slot().AutoWidth().Padding(4.0f, 0.0f, 0.0f, 0.0f)
+				[
+					SNew(SButton).Text(LOCTEXT("TextoRefrescar", "↻ Del canvas"))
+					.ToolTipText(LOCTEXT("TextoRefrescarTip", "Descarta lo tipeado y vuelve a escribir el grafo del canvas"))
+					.OnClicked_Lambda([this]() { RefrescarTexto(); return FReply::Handled(); })
+				]
+				+ SHorizontalBox::Slot().FillWidth(1.0f).VAlign(VAlign_Center).Padding(8.0f, 0.0f, 0.0f, 0.0f)
+				[
+					SNew(STextBlock)
+					.Text_Lambda([this]()
+					{
+						return bTextoEditado ? LOCTEXT("TextoSinAplicar", "● sin aplicar") : FText::GetEmpty();
+					})
+				]
+			]
+			+ SVerticalBox::Slot().FillHeight(1.0f)
+			[
+				SAssignNew(TextoBox, SMultiLineEditableTextBox)
+				.Font(FCoreStyle::GetDefaultFontStyle("Mono", 9))
+				.AutoWrapText(false)
+				.OnTextChanged_Lambda([this](const FText&)
+				{
+					if (!bRefrescandoTexto) { bTextoEditado = true; }
+				})
+			]
+			+ SVerticalBox::Slot().AutoHeight().MaxHeight(160.0f).Padding(0.0f, 4.0f, 0.0f, 0.0f)
+			[
+				SNew(SScrollBox)
+				+ SScrollBox::Slot()
+				[
+					SAssignNew(TextoEstado, STextBlock).AutoWrapText(true)
+				]
+			]
+		];
 }
 
 void SJamGraphEditor::Deshacer()

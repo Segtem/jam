@@ -74,6 +74,7 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 {
 	Verb = InArgs._Verb;
 	DisplayName = InArgs._DisplayName;
+	NodeName = InArgs._NodeName;
 	IconPath = InArgs._IconPath;
 	IconColor = InArgs._IconColor;
 	OnDragDelta = InArgs._OnDragDelta;
@@ -999,10 +1000,22 @@ int32 SJamGraphNode::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGe
 
 	// Cartela superior: nombre humano del verbo y pequeño pico hacia el cuerpo.
 	{
-		const FString Title = DisplayName.IsEmpty() ? FriendlyVerbName(Verb) : DisplayName;
+		const FString Etiqueta = DisplayName.IsEmpty() ? FriendlyVerbName(Verb) : DisplayName;
 		const FSlateFontInfo Font = FCoreStyle::GetDefaultFontStyle("Regular", 8);
 		const TSharedRef<FSlateFontMeasure> FM =
 			FSlateApplication::Get().GetRenderer()->GetFontMeasureService();
+		// El nombre del nodo va PRIMERO: es lo que el texto del grafo escribe y lo que un LLM nombra.
+		// Si «nombre · etiqueta» no entra en el cuerpo, queda sólo el nombre — la etiqueta está en el
+		// icono y en el tooltip; el nombre no está en ningún otro lado.
+		FString Title = Etiqueta;
+		if (!NodeName.IsEmpty() && NodeName != Etiqueta)
+		{
+			Title = FString::Printf(TEXT("%s · %s"), *NodeName, *Etiqueta);
+			if (FM->Measure(Title, Font).X + 14.0f > BodyW - 10.0f)
+			{
+				Title = NodeName;
+			}
+		}
 		const FVector2D TS = FM->Measure(Title, Font);
 		// Ya NO hay que reservar la esquina derecha: la cartela subió y los botones tienen su
 		// propia fila, así que un nombre largo puede usar casi todo el ancho.

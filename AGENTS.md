@@ -167,6 +167,11 @@ $ENG/Engine/Binaries/Linux/UnrealEditor \
   -ExecCmds="py /ruta/absoluta/al/script.py,QUIT_EDITOR"
 ```
 
+**Una sonda que necesita el Graph de Slate abierto** (el canvas, no sólo el cerebro):
+`-ExecCmds="Jam.AbrirGraph,py <sonda>.py"` sin `QUIT_EDITOR`, y la sonda avanza con
+`unreal.register_slate_post_tick_callback` y sale sola con `unreal.SystemLibrary.quit_editor()`.
+El modelo es `tools/experiments/verifica_texto_canvas_58.py`.
+
 ⚠️ **La salida NO llega fiablemente a stdout.** El veredicto está en el `.log` más reciente de
 `Saved/Logs/` del proyecto que se corrió — `JamPlayground*.log` o `BotOO*.log` según el caso. Si el
 editor GUI está abierto, el commandlet paralelo escribe por ejemplo `BotOO_2.log`, no `BotOO.log`.

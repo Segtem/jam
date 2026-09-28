@@ -78,11 +78,43 @@ def run(command: str) -> str:
 
 # ---- el texto del grafo (tarea `dsl-grafos`): la segunda vista del mismo JamGraph ----
 
-def graph_text(graph_json: str) -> str:
-    """El texto canónico del grafo del canvas. JSON `{ok, texto}` o `{ok: false, error}`."""
+#: El canvas abierto, como lo publica el Graph en cada cambio (`canvas_publicar`), y lo que un
+#: agente mandó a mostrar (`run_text` desde `api.run`), que el Graph levanta con `canvas_pendiente`.
+#: Es el buzón entre el editor y quien escribe texto de afuera: el LLM y el humano editan el MISMO grafo.
+_CANVAS = {"json": ""}
+_PENDIENTE = {"version": 0, "json": ""}
+
+
+def canvas_publicar(graph_json: str) -> str:
+    """Lo llama el Graph en cada cambio: el texto de un agente parte de lo que el humano ve."""
+    _CANVAS["json"] = graph_json or ""
+    return "ok"
+
+
+def canvas_pendiente(version: str = "0") -> str:
+    """JSON `{version, graph}`: el último grafo mandado a mostrar si es más nuevo que `version`."""
+    import json
+    if _PENDIENTE["version"] > int(version or 0) and _PENDIENTE["json"]:
+        return json.dumps({"version": _PENDIENTE["version"], "graph": _PENDIENTE["json"]},
+                          ensure_ascii=True)
+    return json.dumps({"version": _PENDIENTE["version"], "graph": None}, ensure_ascii=True)
+
+
+def nombre_de_nodo_nuevo(verbo: str, usados_json: str = "[]") -> str:
+    """El id con el que nace un nodo del canvas (`texto.nombre_nuevo`). JSON `{nombre}`."""
+    import json
+
+    from . import texto
+    return json.dumps({"nombre": texto.nombre_nuevo(verbo, json.loads(usados_json or "[]"))},
+                      ensure_ascii=True)
+
+
+def graph_text(graph_json: str = "") -> str:
+    """El texto canónico del grafo (sin argumento: el del canvas abierto). JSON `{ok, texto}`."""
     import json
 
     from . import graph, texto
+    graph_json = graph_json or _CANVAS["json"] or '{"nodes": {}, "edges": []}'
     try:
         return json.dumps({"ok": True, "texto": texto.imprimir(graph.JamGraph.from_json(graph_json))},
                           ensure_ascii=False)
@@ -123,12 +155,19 @@ def graph_from_text(text: str, base_json: str = "") -> str:
 
 def run_text(text: str, base_json: str = "") -> str:
     """Lee el texto y lo corre por el MISMO Run del canvas. JSON de `run_graph_json` más
-    `canonico`, `lineas` (nodo → línea) y `errores`; el reporte nombra la línea de cada nodo."""
+    `canonico`, `lineas` (nodo → línea) y `errores`; el reporte nombra la línea de cada nodo.
+
+    Sin `base_json` el layout sale del canvas abierto, y el grafo leído se deja en el buzón para que
+    el Graph lo muestre (`canvas_pendiente`): lo que corre por texto aparece en los nodos.
+    """
     import json
     import re
 
     from . import texto
-    leido = json.loads(graph_from_text(text, base_json))
+    leido = json.loads(graph_from_text(text, base_json or _CANVAS["json"]))
+    if leido["graph"] is not None:
+        _PENDIENTE["version"] += 1
+        _PENDIENTE["json"] = json.dumps(leido["graph"], ensure_ascii=True)
     if leido["graph"] is None or leido["errores"]:
         reporte = "RUN ✗ — el texto no se puede correr:\n" + "\n".join(
             f"  línea {e['linea']}" + (f" ({e['nodo']})" if e["nodo"] else "") + f": {e['mensaje']}"

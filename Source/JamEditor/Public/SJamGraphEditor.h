@@ -254,6 +254,32 @@ private:
 	/** Carga un snapshot sin que la carga misma cuente como un paso nuevo. */
 	void RestaurarSnapshot(const FString& Json);
 
+	// ---- el texto del grafo (tarea `dsl-grafos`): la segunda vista del mismo grafo ----
+	/** El id con el que nace un nodo: legible, el que el texto escribe (`jam.texto.nombre_nuevo`). */
+	FString NombreDeNodoNuevo(const FString& Verb);
+	/** Después de cada cambio: publica el grafo a Python (el texto de un agente parte de lo que el
+	 *  humano ve) y, si el panel está abierto y no lo estás editando, lo reescribe. */
+	void AlCambiarGrafo();
+	TSharedRef<SWidget> ConstruirPanelTexto();
+	void RefrescarTexto();
+	/** «Aplicar»: diferido un frame, porque cargar el grafo muta la jerarquía de widgets y hacerlo
+	 *  adentro del clic es el crash de `Prepass_Internal` (ver `CrearNodoDiferido`). */
+	void PedirAplicarTexto();
+	EActiveTimerReturnType AplicarTextoDiferido(const double InCurrentTime, const float InDeltaTime);
+	/** El buzón: lo que un agente corrió por texto (`api.run`) aparece en el canvas abierto. */
+	EActiveTimerReturnType SondearBuzon(const double InCurrentTime, const float InDeltaTime);
+	/** Carga un grafo que llegó por texto sin cambiar de documento: «Guardar» sigue yendo al mismo
+	 *  .jamgraph. Es un paso de Undo, como cualquier edición. */
+	bool CargarDesdeTexto(const FString& GraphJson);
+	bool bTextoVisible = false;
+	bool bTextoEditado = false;
+	bool bRefrescandoTexto = false;
+	bool bBuzonSincronizado = false;
+	int32 VersionBuzon = 0;
+	FString TextoPorAplicar;
+	TSharedPtr<class SMultiLineEditableTextBox> TextoBox;
+	TSharedPtr<STextBlock> TextoEstado;
+
 	// ---- menú principal estilo Grasshopper (File / Edit / View / Display / Solution) ----
 	void FillFileMenu(class FMenuBuilder& MB);
 	void FillEditMenu(class FMenuBuilder& MB);

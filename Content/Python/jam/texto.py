@@ -546,3 +546,23 @@ def aplicar(texto_: str, base_json: str = "", vocab: dict | None = None) -> dict
     if base.get("comments"):
         salida["comments"] = base["comments"]
     return salida
+
+
+def nombre_nuevo(verbo: str, usados) -> str:
+    """El nombre con el que nace un nodo en el canvas: el verbo, y `_2`, `_3`… si ya existe.
+
+    Es lo que el texto escribe a la izquierda del «=», así que tiene que ser un nombre escribible y
+    no renombrar nunca a nadie: un nodo nuevo no mueve a los viejos. Una instancia `fn:…` se llama
+    `funcion`, porque su verbo lleva un id opaco.
+    """
+    usados = set(usados)
+    base = "funcion" if str(verbo).startswith("fn:") else re.sub(r"\W", "_", str(verbo), flags=re.A)
+    if not base or not IDENT.match(base):
+        base = "nodo_" + base.lstrip("_") if base else "nodo"
+        base = re.sub(r"\W", "_", base, flags=re.A)
+    if base not in usados:
+        return base
+    i = 2
+    while f"{base}_{i}" in usados:
+        i += 1
+    return f"{base}_{i}"

@@ -2,6 +2,7 @@
 #include "SJamGraphEditor.h"
 
 #include "Modules/ModuleManager.h"
+#include "HAL/IConsoleManager.h"
 #include "Containers/Ticker.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Widgets/SWindow.h"
@@ -333,6 +334,12 @@ void FJamEditorModule::StartupModule()
 		return false;
 	}), 1.0f);
 
+	// Abrir el Graph sin manos, para las sondas de tools/experiments: hasta acá ninguna podía
+	// ejercer el Slate del Graph, sólo el cerebro. `-ExecCmds="Jam.AbrirGraph,py <sonda>.py"`.
+	ComandoAbrirGraph = IConsoleManager::Get().RegisterConsoleCommand(TEXT("Jam.AbrirGraph"),
+		TEXT("Abre el panel Jam > Graph (lo usan las sondas de tools/experiments)."),
+		FConsoleCommandDelegate::CreateRaw(this, &FJamEditorModule::OpenGraph), ECVF_Default);
+
 	UE_LOG(LogTemp, Display, TEXT("[JamEditor] módulo C++ cargado — paneles en Window ▸ Tools."));
 }
 
@@ -358,6 +365,11 @@ void FJamEditorModule::ReleaseThumbnailResources()
 
 void FJamEditorModule::ShutdownModule()
 {
+	if (ComandoAbrirGraph != nullptr)
+	{
+		IConsoleManager::Get().UnregisterConsoleObject(ComandoAbrirGraph);
+		ComandoAbrirGraph = nullptr;
+	}
 	ReleaseThumbnailResources();
 	FEditorDelegates::OnEditorPreExit.RemoveAll(this);
 
@@ -2163,6 +2175,22 @@ FString FJamEditorModule::ExecPythonCapture(const FString& Statement)
 	}
 	Out.TrimEndInline();
 	return Out;
+}
+
+FString FJamEditorModule::LlamarApi(const FString& Funcion, const TArray<FString>& Args)
+{
+	TArray<FString> Literales;
+	for (const FString& Arg : Args)
+	{
+		Literales.Add(ToPyStr(Arg));
+	}
+	// El marcador separa la respuesta de cualquier otra cosa que la llamada haya logueado.
+	const FString Marca(TEXT("JAMAPI:"));
+	const FString Salida = ExecPythonCapture(FString::Printf(
+		TEXT("import jam.api as a; print('JAMAPI:' + a.%s(%s))"),
+		*Funcion, *FString::Join(Literales, TEXT(", "))));
+	const int32 M = Salida.Find(Marca);
+	return M == INDEX_NONE ? FString() : Salida.Mid(M + Marca.Len()).TrimStartAndEnd();
 }
 
 TMap<FString, FString> FJamEditorModule::ParamsDeNodoNuevo(const FString& Verb)

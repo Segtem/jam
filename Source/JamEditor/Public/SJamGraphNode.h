@@ -85,6 +85,9 @@ public:
 		SLATE_ARGUMENT(FString, Verb)
 		/** Título humano separado del verbo interno. */
 		SLATE_ARGUMENT(FString, DisplayName)
+		/** El nombre del nodo: su id, el que el TEXTO del grafo escribe a la izquierda del «=».
+		    Se ve en la cartela para que el humano y el LLM hablen del mismo nodo. */
+		SLATE_ARGUMENT(FString, NodeName)
 		/** Ruta absoluta del SVG que ocupa el centro del componente. */
 		SLATE_ARGUMENT(FString, IconPath)
 		SLATE_ARGUMENT(FLinearColor, IconColor)
@@ -226,6 +229,7 @@ private:
 
 	FString Verb;
 	FString DisplayName;
+	FString NodeName;
 	FString IconPath;
 	FLinearColor IconColor = FLinearColor(0.35f, 0.35f, 0.38f, 1.0f);
 	FString ResultState;

@@ -148,6 +148,8 @@ private:
 	void OpenDashBar();
 	void OnDashClosed(TSharedRef<SDockTab> Tab);
 	void OpenGraph();
+	/** `Jam.AbrirGraph`: el mismo OpenGraph, desde la consola (sondas). */
+	class IConsoleObject* ComandoAbrirGraph = nullptr;
 	void OnGraphClosed(TSharedRef<SDockTab> Tab);
 	/** Veto de cierre del panel Graph: si hay cambios sin guardar, pregunta antes. Devolver false
 	 *  cancela el cierre y `OnGraphClosed` no llega a correr. */
@@ -225,6 +227,10 @@ public:
 	    colocan, el punto de mira ya capturado. Vacío si Python no contesta (el nodo usa sus
 	    defaults, que es el comportamiento de antes). Público porque lo llama el editor de grafo. */
 	TMap<FString, FString> ParamsDeNodoNuevo(const FString& Verb);
+	/** Llama `jam.api.<Funcion>(*Args)` con cada argumento como string de Python y devuelve lo que
+	    imprime (una línea de JSON). Vacío si Python no contesta. Lo usa el Graph para el texto del
+	    grafo, los nombres de nodo y el buzón con los agentes (tarea `dsl-grafos`). */
+	FString LlamarApi(const FString& Funcion, const TArray<FString>& Args);
 
 private:
 	/** Manda una línea de DSL a `jam.panel.ejecutar_dsl` y agrega comando + veredicto al log. */
