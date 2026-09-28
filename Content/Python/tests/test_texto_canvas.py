@@ -60,6 +60,8 @@ class NombreNuevo(unittest.TestCase):
 class Buzon(unittest.TestCase):
     def setUp(self):
         self._canvas, self._pendiente = dict(api._CANVAS), dict(api._PENDIENTE)
+        api._CANVAS["json"] = ""
+        api._PENDIENTE.update({"version": 0, "json": "", "visto": 0})
 
     def tearDown(self):
         api._CANVAS.clear(); api._CANVAS.update(self._canvas)

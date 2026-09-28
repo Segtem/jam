@@ -22,6 +22,11 @@ from . import api, serve
 _PORT = 8790
 _DIR = os.path.join(os.path.dirname(__file__), "web")
 _SRV = {"server": None}
+#: Lo que `POST /api/<función>` deja llamar (ver `_Handler._api`).
+API_PUBLICA = frozenset({"leer_canvas", "aplicar_texto", "ayuda_texto", "graph_text",
+                         "graph_from_text", "run_text", "confirm", "discard"})
+#: Un Run puede tardar (un árbol de TreeGen hornea mallas): más que el plazo de un botón de la web.
+API_TIMEOUT = 600.0
 
 
 def _html() -> str:
@@ -66,9 +71,30 @@ class _Handler(http.server.BaseHTTPRequestHandler):
             r = serve.en_game_thread(api.confirm)
         elif parsed.path == "/discard":
             r = serve.en_game_thread(api.discard)
+        elif parsed.path.startswith("/api/"):
+            return self._api(parsed.path[len("/api/"):], body)
         else:
             return self._send(404, "not found", "text/plain; charset=utf-8")
         return self._send(200, r or "(sin respuesta)", "text/plain; charset=utf-8")
+
+    def _api(self, nombre: str, body: str) -> None:
+        """`POST /api/<función>` con cuerpo `{"args": [...]}`: una función de `jam.api` de la lista
+        blanca, en el game thread. Es la puerta de `jam-mcp` (~/Dev/jam-mcp), que corre FUERA del
+        editor. La lista es corta a propósito: un agente lee y aplica texto y maneja el Preview;
+        nada que escriba archivos o toque el disco."""
+        import json
+        if nombre not in API_PUBLICA:
+            return self._send(404, json.dumps({"error": f"«{nombre}» no está en la API pública",
+                                               "hay": sorted(API_PUBLICA)}),
+                              "application/json; charset=utf-8")
+        try:
+            args = [str(a) for a in (json.loads(body or "{}").get("args") or [])]
+        except (ValueError, AttributeError) as e:
+            return self._send(400, json.dumps({"error": f"cuerpo inválido: {e}"}),
+                              "application/json; charset=utf-8")
+        r = serve.en_game_thread(lambda: getattr(api, nombre)(*args), timeout=API_TIMEOUT)
+        return self._send(200, json.dumps({"resultado": r}, ensure_ascii=False),
+                          "application/json; charset=utf-8")
 
     def log_message(self, *_a) -> None:   # silenciar el log del http.server
         pass

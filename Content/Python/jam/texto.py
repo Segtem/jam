@@ -44,6 +44,25 @@ _TIPO_VALOR = {"N": "float", "T": "str", "B": "bool"}
 _BORDES = {"input": {"name": "", "type": "*"}, "output": {"name": "", "type": "*"}}
 
 
+#: Lo que un LLM necesita para escribir un grafo sin haberlo visto nunca (lo sirve `jam-mcp`).
+SINTAXIS = """\
+Un grafo de Jam es texto: una línea por nodo.
+    nombre = verbo [posicional] @entrada… clave=valor… +bypass +debug
+- nombre: letras, dígitos y «_»; es el id del nodo y lo que se ve en el canvas.
+- @x: cable desde la salida principal del nodo x al pin «in»; @x.pin desde una salida extra.
+  Varios @ seguidos entran en orden (verbos variádicos como mesh_merge).
+- clave=@x: cable a un parámetro. clave=valor: número, true/false, (x, y, z), texto o "entre comillas".
+- "=expr": expresión con variables (los nodos number/math por su nombre), p. ej. largo="=alto * 0.9".
+- posicional: el asset en los verbos que colocan uno (place SM_Rock), el valor de number/text.
+- Los parámetros que no escribís valen su default. Sin comentarios.
+Ejemplo:
+    caja = mesh_box size_x=200
+    suave = mesh_normals @caja
+    hornear = mesh_to_static @suave name=SM_Caja
+    colocar = place @hornear view=true
+"""
+
+
 class ErrorTexto(ValueError):
     """Un texto que no describe un grafo. Dice dónde, qué y cómo seguir."""
 

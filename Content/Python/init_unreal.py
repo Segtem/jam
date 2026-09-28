@@ -17,3 +17,19 @@ except Exception as e:  # noqa: BLE001
     unreal.log_error(f"[Jam] fallo en el arranque: {e}")
     import traceback
     unreal.log_error(traceback.format_exc())
+
+# La puerta de los agentes: `jam.web` en 127.0.0.1:8790 (sólo local), con `POST /api/<función>` para
+# `jam-mcp` (~/Dev/jam-mcp). Arranca con el editor para que un agente no dependa de que alguien
+# abra la UI web a mano. `JAM_WEB=0` lo apaga. Si el puerto está ocupado —otro editor abierto—,
+# este editor sigue sin puerta y lo dice.
+try:
+    import os
+
+    if os.environ.get("JAM_WEB", "1") != "0":
+        from jam import web
+
+        web.iniciar()
+except OSError as e:
+    unreal.log_warning(f"[Jam] web: no pude abrir el puerto ({e}); jam-mcp no va a llegar a este editor")
+except Exception as e:  # noqa: BLE001
+    unreal.log_error(f"[Jam] web: fallo al arrancar: {e}")

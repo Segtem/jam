@@ -82,7 +82,7 @@ def run(command: str) -> str:
 #: agente mandó a mostrar (`run_text` desde `api.run`), que el Graph levanta con `canvas_pendiente`.
 #: Es el buzón entre el editor y quien escribe texto de afuera: el LLM y el humano editan el MISMO grafo.
 _CANVAS = {"json": ""}
-_PENDIENTE = {"version": 0, "json": ""}
+_PENDIENTE = {"version": 0, "json": "", "visto": 0}
 
 
 def canvas_publicar(graph_json: str) -> str:
@@ -94,10 +94,95 @@ def canvas_publicar(graph_json: str) -> str:
 def canvas_pendiente(version: str = "0") -> str:
     """JSON `{version, graph}`: el último grafo mandado a mostrar si es más nuevo que `version`."""
     import json
+    # El Graph pasa la última versión que cargó: así se sabe si lo pendiente ya está en el canvas.
+    _PENDIENTE["visto"] = max(_PENDIENTE["visto"], int(version or 0))
     if _PENDIENTE["version"] > int(version or 0) and _PENDIENTE["json"]:
         return json.dumps({"version": _PENDIENTE["version"], "graph": _PENDIENTE["json"]},
                           ensure_ascii=True)
     return json.dumps({"version": _PENDIENTE["version"], "graph": None}, ensure_ascii=True)
+
+
+def _grafo_actual() -> str:
+    """El grafo que un agente tiene que tomar como base: lo pendiente si el Graph todavía no lo
+    cargó (o no está abierto), si no el canvas."""
+    if _PENDIENTE["version"] > _PENDIENTE["visto"] and _PENDIENTE["json"]:
+        return _PENDIENTE["json"]
+    return _CANVAS["json"] or '{"nodes": {}, "edges": []}'
+
+
+def _huella(texto_canonico: str) -> str:
+    import hashlib
+    return hashlib.sha256(texto_canonico.encode("utf-8")).hexdigest()[:16]
+
+
+def leer_canvas() -> str:
+    """Para un agente (jam-mcp): el grafo abierto como texto y su `version`.
+
+    La versión es la huella del TEXTO canónico, no un contador: mover un nodo o que el Graph vuelva
+    a publicar lo que un agente mandó no la cambian; editar el grafo, sí. JSON
+    `{texto, version, canvas_abierto}`.
+    """
+    import json
+
+    from . import graph, texto
+    t = texto.imprimir(graph.JamGraph.from_json(_grafo_actual()))
+    return json.dumps({"texto": t, "version": _huella(t), "canvas_abierto": bool(_CANVAS["json"])},
+                      ensure_ascii=False)
+
+
+def aplicar_texto(text: str, version: str = "", correr: str = "false") -> str:
+    """Para un agente (jam-mcp): el texto pasa a ser el grafo abierto, y opcionalmente corre.
+
+    Con `version` (la de `leer_canvas`), si el grafo cambió desde entonces —el humano editó— no se
+    pisa nada: devuelve `conflicto` con el texto y la versión actuales para que el agente rehaga su
+    cambio sobre ellos. Sin `correr`, el grafo sólo se muestra en el canvas (con su Compile por línea).
+    """
+    import json
+
+    actual = json.loads(leer_canvas())
+    if version and version != actual["version"]:
+        return json.dumps({"ok": False, "conflicto": True, "texto": actual["texto"],
+                           "version": actual["version"],
+                           "errores": [{"linea": 0, "columna": 0, "nodo": "", "mensaje":
+                                        "el grafo cambió desde que lo leíste (lo editó alguien en el "
+                                        "canvas): partí del texto de esta respuesta"}]},
+                          ensure_ascii=False)
+    if str(correr).lower() in ("1", "true", "si", "sí", "yes"):
+        r = json.loads(run_text(text))
+    else:
+        r = json.loads(graph_from_text(text, _grafo_actual()))
+        if r["graph"] is not None:
+            _PENDIENTE["version"] += 1
+            _PENDIENTE["json"] = json.dumps(r["graph"], ensure_ascii=True)
+    r.pop("graph", None)
+    r["conflicto"] = False
+    r["version"] = _huella(r.get("canonico", "")) if r.get("canonico") else actual["version"]
+    return json.dumps(r, ensure_ascii=False)
+
+
+def ayuda_texto(filtro: str = "") -> str:
+    """La ayuda del texto para un agente: sin filtro, la sintaxis y las categorías; con un verbo, su
+    firma; con otra palabra, los verbos que la mencionan (nombre, etiqueta, categoría o doc)."""
+    from . import texto
+    from .registro import REGISTRO
+    vocab = texto.vocabulario()
+    f = (filtro or "").strip()
+    if f in vocab:
+        return texto.ayuda(f, vocab)
+    if not f:
+        cats: dict[str, int] = {}
+        for info in REGISTRO.values():
+            cats[info.get("cat", "?")] = cats.get(info.get("cat", "?"), 0) + 1
+        return (texto.SINTAXIS + "\nCategorías (pedí ayuda con una para ver sus verbos): "
+                + ", ".join(f"{c} ({n})" for c, n in sorted(cats.items())))
+    fl = f.lower()
+    hits = [v for v, info in REGISTRO.items()
+            if fl in v.lower() or fl in str(info.get("label", "")).lower()
+            or fl == str(info.get("cat", "")).lower() or fl in str(info.get("doc", "")).lower()]
+    if not hits:
+        return f"nada coincide con «{f}». ayuda sin filtro lista las categorías."
+    return "\n".join(texto.ayuda(v, vocab) for v in hits[:60]) + (
+        f"\n(… y {len(hits) - 60} más: afiná la búsqueda)" if len(hits) > 60 else "")
 
 
 def nombre_de_nodo_nuevo(verbo: str, usados_json: str = "[]") -> str:
@@ -114,7 +199,7 @@ def graph_text(graph_json: str = "") -> str:
     import json
 
     from . import graph, texto
-    graph_json = graph_json or _CANVAS["json"] or '{"nodes": {}, "edges": []}'
+    graph_json = graph_json or _grafo_actual()
     try:
         return json.dumps({"ok": True, "texto": texto.imprimir(graph.JamGraph.from_json(graph_json))},
                           ensure_ascii=False)
@@ -164,7 +249,7 @@ def run_text(text: str, base_json: str = "") -> str:
     import re
 
     from . import texto
-    leido = json.loads(graph_from_text(text, base_json or _CANVAS["json"]))
+    leido = json.loads(graph_from_text(text, base_json or _grafo_actual()))
     if leido["graph"] is not None:
         _PENDIENTE["version"] += 1
         _PENDIENTE["json"] = json.dumps(leido["graph"], ensure_ascii=True)
