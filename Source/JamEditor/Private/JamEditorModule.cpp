@@ -850,6 +850,8 @@ void FJamEditorModule::LoadSpec(bool bIncludeFlow)
 		if (T.Section.IsEmpty()) { T.Section = T.Cat; }
 		O->TryGetStringField(TEXT("grupo"), T.Group);
 		O->TryGetStringField(TEXT("doc"), T.Doc);
+		O->TryGetBoolField(TEXT("disponible"), T.bDisponible);   // sin el campo: disponible
+		O->TryGetStringField(TEXT("porque"), T.Porque);
 		O->TryGetBoolField(TEXT("source"), T.bSource);
 		O->TryGetBoolField(TEXT("asset_pin"), T.bAssetPin);
 		O->TryGetBoolField(TEXT("asset_row"), T.bAssetRow);

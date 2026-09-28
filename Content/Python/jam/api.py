@@ -167,13 +167,27 @@ def ayuda_texto(filtro: str = "") -> str:
     from .registro import REGISTRO
     vocab = texto.vocabulario()
     f = (filtro or "").strip()
+    try:
+        from . import tools
+        motor, implementados = tools.motor_activo()
+    except Exception:  # noqa: BLE001 — sin adaptador (fuera del editor), se juzga por lo declarado
+        motor, implementados = "unreal", None
+    from .registro import disponible
+
+    def linea(v: str) -> str:
+        esta, porque = disponible(v, motor, implementados)
+        return texto.ayuda(v, vocab) + ("" if esta else f"  [NO DISPONIBLE en {motor}: {porque}]")
+
     if f in vocab:
-        return texto.ayuda(f, vocab)
+        return linea(f)
     if not f:
         cats: dict[str, int] = {}
         for info in REGISTRO.values():
             cats[info.get("cat", "?")] = cats.get(info.get("cat", "?"), 0) + 1
-        return (texto.SINTAXIS + "\nCategorías (pedí ayuda con una para ver sus verbos): "
+        fuera = sum(1 for v in REGISTRO if not disponible(v, motor, implementados)[0])
+        return (texto.SINTAXIS + f"\nMotor conectado: {motor}"
+                + (f" ({fuera} verbos no disponibles: la ayuda de cada uno dice por qué)" if fuera else "")
+                + "\nCategorías (pedí ayuda con una para ver sus verbos): "
                 + ", ".join(f"{c} ({n})" for c, n in sorted(cats.items())))
     fl = f.lower()
     hits = [v for v, info in REGISTRO.items()
@@ -181,7 +195,7 @@ def ayuda_texto(filtro: str = "") -> str:
             or fl == str(info.get("cat", "")).lower() or fl in str(info.get("doc", "")).lower()]
     if not hits:
         return f"nada coincide con «{f}». ayuda sin filtro lista las categorías."
-    return "\n".join(texto.ayuda(v, vocab) for v in hits[:60]) + (
+    return "\n".join(linea(v) for v in hits[:60]) + (
         f"\n(… y {len(hits) - 60} más: afiná la búsqueda)" if len(hits) > 60 else "")
 
 
@@ -487,13 +501,20 @@ def spec_all() -> str:
     from . import flow, funcion, tools
     # El canvas incorpora también herramientas graph-only, como el tab Mesh cuyos cables transportan
     # DynamicMesh `M`. La Dash Bar conserva sólo verbos útiles como acción aislada.
-    verbos = json.loads(tools.spec_json(include_graph_only=True))
+    motor, implementados = tools.motor_activo()
+    verbos = json.loads(tools.spec_json(include_graph_only=True, motor=motor,
+                                        implementados=implementados))
     ops = json.loads(flow.spec_json())
     # Las ops puras de Flow ahora TAMBIÉN son verbos del Graph (`tools.OPS_FLOW_EN_GRAPH`), así que
     # llegan por los dos lados. Gana la entrada del registro de verbos: es la que trae el contrato de
     # tipos (`in_name`/`out_name` = P) que usan el Preflight y el canvas.
     ya_estan = {item["verbo"] for item in verbos["tools"]}
     solo_flow = [item for item in ops["tools"] if item["verbo"] not in ya_estan]
+    for item in solo_flow:
+        # `source_surface`, `instance`, `weight_material`: sus implementaciones son del adaptador de
+        # Flow de Unreal (raycast, spawn, material), no del registro.
+        item["disponible"] = motor == "unreal"
+        item["porque"] = "" if item["disponible"] else "usa el adaptador de Flow de Unreal"
     funciones = funcion.herramientas()
     cats_flow = [item["cat"] for item in solo_flow]
     cats = verbos["categorias"] + [c for c in ops["categorias"]

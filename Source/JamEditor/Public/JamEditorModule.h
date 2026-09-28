@@ -65,6 +65,10 @@ struct FJamTool
 	FString Section;
 	FString Group;            // subgrupo dentro del tab (el «panel» de Grasshopper); puede ir vacío
 	FString Doc;
+	/** ¿Lo puede correr el motor conectado? Uno que no, se muestra DESHABILITADO —no se esconde—, con
+	 *  `Porque` en el tooltip (`registro.disponible`, tarea `fuera-del-motor`). */
+	bool bDisponible = true;
+	FString Porque;
 	bool bSource = false;     // en el grafo, nodo FUENTE (sin pin de entrada)
 	bool bAssetPin = false;   // CONSUME un asset (hay que resolvérselo)
 	/** Además dibuja su PROPIO pin «asset» en el canvas. No es lo mismo que consumirlo: `place`

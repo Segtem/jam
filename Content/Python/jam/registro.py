@@ -1008,8 +1008,23 @@ GRAPH_MIN_INPUTS = {"mesh_merge": 2, "asset_set": 2, "mesh_loft": 2, "material_n
 OPS_FLOW_EN_GRAPH = _registrar_ops_flow()
 NODOS_MATERIAL_EN_GRAPH = _registrar_nodos_material()
 
+#: Verbos que ningún otro motor va a tener, y por qué. Lo que no está acá y no es puro NO es «sólo de
+#: Unreal»: es «todavía no tiene implementación» en el motor que falte, y lo dice así.
+_SOLO_UNREAL = {"nanite": "Nanite existe sólo en Unreal", "nanite_analyze": "Nanite existe sólo en Unreal",
+                "nanite_validate": "Nanite existe sólo en Unreal",
+                "fracture": "la fractura es Chaos Destruction, de Unreal",
+                "pcg": "usa el framework PCG de Unreal"}
+_SOLO_UNREAL_POR_CATEGORIA = {"Mass": "MassEntity es de Unreal",
+                              "Shader": "arma el grafo de materiales de Unreal"}
+
 for _nombre, _info in REGISTRO.items():
     _source = _nombre in GRAPH_SOURCES
+    # En qué motores corre (tarea `fuera-del-motor`, criterio 11 de `dsl-grafos`). Se DERIVA: una op
+    # de Flow es cálculo puro y corre en cualquiera («*»); una `t_*` vive en el adaptador de Unreal.
+    _info["motores"] = ("*",) if _info.get("_flow_op") else ("unreal",)
+    _porque = _SOLO_UNREAL.get(_nombre) or _SOLO_UNREAL_POR_CATEGORIA.get(_info.get("cat", ""))
+    if _porque:
+        _info["porque"] = _porque
     _info["source"] = _source
     _info["aridad"] = GRAPH_ARITY.get(_nombre, 0 if _source else 1)
     _info["min_inputs"] = GRAPH_MIN_INPUTS.get(_nombre, 0 if _source else 1)
@@ -1071,7 +1086,24 @@ def unidad_de(verbo: str, pin: str) -> str:
     """`"grados"` si ese parámetro es un ángulo; `""` si es una cantidad cualquiera."""
     return "grados" if pin in PARAMS_ANGULARES.get(verbo, ()) else ""
 
-def spec_json(*, include_graph_only: bool = False) -> str:
+def disponible(verbo: str, motor: str = "unreal", implementados=None) -> tuple[bool, str]:
+    """¿Este verbo corre en `motor`? `(sí, porqué_no)`.
+
+    Si el adaptador conectado anunció lo que implementa (`implementados`), manda eso: es la verdad del
+    motor que está del otro lado. Si no, lo declarado en `motores`. Un verbo fuera del registro (una
+    instancia `fn:`, un nodo de valor) no se juzga acá.
+    """
+    info = REGISTRO.get(verbo)
+    if info is None:
+        return True, ""
+    si = (verbo in implementados) if implementados is not None else (
+        "*" in info.get("motores", ()) or motor in info.get("motores", ()))
+    if si:
+        return True, ""
+    return False, info.get("porque") or f"todavía no tiene implementación en {motor}"
+
+
+def spec_json(*, include_graph_only: bool = False, motor: str = "unreal", implementados=None) -> str:
     """El registro como JSON (categoría/verbo/doc/params) para que la Dash Bar en C++ se arme sola.
     Agregar una herramienta a REGISTRO la hace aparecer en su sección sin tocar C++."""
     import json
@@ -1102,7 +1134,13 @@ def spec_json(*, include_graph_only: bool = False) -> str:
         # Letra de cada pin para el modo compacto. Va en el spec —y no la calcula el C++— para que
         # la regla viva UNA vez, en `jam.letras`, donde está testeada contra los 140 verbos.
         letras = letras_de_pines(list(info["params"]))
+        # Deshabilitado, no escondido (Brian, 2026-09-28): un grafo de otro motor se sigue leyendo
+        # entero, y se ve qué falta y por qué.
+        esta, porque = disponible(nombre, motor, implementados)
         salida.append({
+            "disponible": esta,
+            "porque": porque,
+            "motores": list(info.get("motores", ())),
             "verbo": nombre,
             "label": info.get("label", nombre),
             "cat": info.get("cat", "Place"),

@@ -370,7 +370,8 @@ def _resolver_pick_runtime() -> str | None:
 
 
 def compilar(g: JamGraph, *, registro: dict | None = None, resolver_asset=None,
-             resolver_pick=None, transformar_asset=None) -> GraphPlan:
+             resolver_pick=None, transformar_asset=None, motor: str | None = None,
+             implementados=None) -> GraphPlan:
     """Compila el DAG completo sin ejecutar tools ni modificar Unreal.
 
     Valida nodos, endpoints, pines, tipos, cardinalidad, ciclos, variables, expresiones, params y la
@@ -379,6 +380,8 @@ def compilar(g: JamGraph, *, registro: dict | None = None, resolver_asset=None,
     if registro is None:
         from . import tools
         registro = tools.REGISTRO
+        if motor is None:
+            motor, implementados = tools.motor_activo()
         resolver_asset = resolver_asset or _resolver_asset_runtime
         resolver_pick = resolver_pick or _resolver_pick_runtime
         transformar_asset = transformar_asset or tools.asset_producido
@@ -401,6 +404,11 @@ def compilar(g: JamGraph, *, registro: dict | None = None, resolver_asset=None,
         verb = nodo.get("verb", "")
         if verb not in VALOR_KINDS and verb not in registro:
             error(nid, f"verbo desconocido: «{verb}»")
+        elif motor is not None and verb in registro:
+            from .registro import disponible
+            esta, porque = disponible(verb, motor, implementados)
+            if not esta:
+                error(nid, f"«{verb}» no disponible en este motor ({motor}): {porque}")
 
     valid_edges: list[tuple[str, str, str, str]] = []
     vistos: set[tuple[str, str, str, str]] = set()

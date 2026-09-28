@@ -1903,12 +1903,17 @@ void SJamGraphEditor::RebuildTabContent()
 						? FString::Printf(TEXT("\u2192 %s"), *T.OutName)
 						: FString::Printf(TEXT("%s \u2192 %s"), *T.InName, *T.OutName);
 				}
+				// Un verbo que el motor conectado no tiene se ve DESHABILITADO, no desaparece: el ribbon
+				// sigue diciendo qué existe, y el tooltip dice por qué no se puede usar acá.
+				const FString NoDisponible = T.bDisponible ? FString()
+					: FString::Printf(TEXT("NO DISPONIBLE en este motor: %s\n\n"), *T.Porque);
 				TSharedRef<SJamVerbTile> Tile = SNew(SJamVerbTile)
 					.Verb(Verb)
+					.IsEnabled(T.bDisponible)
 					.OnClicked_Lambda([this](FString V) { AddNodeAlCentro(V); })
 					.ToolTipText(FText::FromString(FString::Printf(
-						TEXT("%s   [%s]\n%s\n\nclic = al centro de la vista · arrastrá = donde sueltes"),
-						*(T.Label.IsEmpty() ? T.Verb : T.Label), *Firma, *T.Doc)))
+						TEXT("%s%s   [%s]\n%s\n\nclic = al centro de la vista · arrastrá = donde sueltes"),
+						*NoDisponible, *(T.Label.IsEmpty() ? T.Verb : T.Label), *Firma, *T.Doc)))
 					[ MakeBadge(CategoryColor(T.Cat), VerbCode(Verb), 30.0f, IconPathForVerb(Verb)) ];
 				if (T.Group == TEXT("Biblioteca"))
 				{
@@ -4816,19 +4821,24 @@ void SJamGraphEditor::RebuildSearchResults(const FString& Query)
 	SearchResults->ClearChildren();
 
 	const FString Q = Query.TrimStartAndEnd();
+	int32 Mostrados = 0;
 	for (const FJamTool& T : Tools)
 	{
 		if (!Q.IsEmpty() && !T.Verb.Contains(Q) && !T.Doc.Contains(Q))
 		{
 			continue;
 		}
-		SearchHits.Add(T.Verb);
+		// Enter agrega el primero: tiene que ser uno que se PUEDA agregar.
+		if (T.bDisponible) { SearchHits.Add(T.Verb); }
 		const FString Verb = T.Verb;
 		const FVector2D At = SearchAt;
 		SearchResults->AddSlot().AutoHeight().Padding(0.0f, 1.0f)
 		[
 			SNew(SButton)
 			.HAlign(HAlign_Left)
+			.IsEnabled(T.bDisponible)
+			.ToolTipText(T.bDisponible ? FText::GetEmpty() : FText::FromString(
+				FString::Printf(TEXT("NO DISPONIBLE en este motor: %s"), *T.Porque)))
 			.Text(FText::FromString(FString::Printf(TEXT("%s  —  %s"), *T.Verb, *T.Doc)))
 			.OnClicked_Lambda([this, Verb, At]()
 			{
@@ -4838,7 +4848,7 @@ void SJamGraphEditor::RebuildSearchResults(const FString& Query)
 				return FReply::Handled();
 			})
 		];
-		if (SearchHits.Num() >= 8)
+		if (++Mostrados >= 8)
 		{
 			break;
 		}

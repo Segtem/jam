@@ -2129,3 +2129,21 @@ IMPLEMENTA.update({verbo: _envolver_nodo_material(verbo, NODOS_MATERIAL[verbo][0
                    for verbo in NODOS_MATERIAL_EN_GRAPH})
 for _verbo, _fn in IMPLEMENTA.items():
     REGISTRO[_verbo]["fn"] = _fn
+
+MOTOR = "unreal"
+
+
+def motor_activo() -> tuple[str, frozenset | None]:
+    """El motor del otro lado y lo que implementa: `("unreal", IMPLEMENTA)`.
+
+    `JAM_MOTOR_SIMULADO=godot` hace de cuenta que el conectado es otro motor —se juzga por lo
+    DECLARADO en `registro`, porque ese adaptador todavía no existe—: sirve para ver en el canvas y
+    en el Compile qué verbos quedarían deshabilitados antes de tener Godot.
+    """
+    import os
+    simulado = os.environ.get("JAM_MOTOR_SIMULADO", "").strip().lower()
+    if simulado and simulado != MOTOR:
+        return simulado, None
+    # Lo que tiene `fn` AHORA, no la foto de IMPLEMENTA al importar: un verbo enchufado después
+    # (una prueba, un plugin) también está implementado.
+    return MOTOR, frozenset(v for v, info in REGISTRO.items() if callable(info.get("fn")))
