@@ -1190,3 +1190,34 @@ def spec_json(*, include_graph_only: bool = False, motor: str = "unreal", implem
                        for k, v in info["params"].items()],
         })
     return json.dumps({"categorias": CATEGORIAS, "tools": salida}, ensure_ascii=True)
+
+
+def spec_canvas(motor: str = "unreal", implementados=None, funciones=()) -> dict:
+    """El spec del CANVAS: verbos, ops de Flow y nodos de valor, con su disponibilidad en `motor`.
+    Puro: lo usan el Graph de Slate (`api.spec_all`) y el editor web fuera del motor
+    (`jam.servidor`). `funciones` son las del usuario, que viven en su biblioteca."""
+    import json
+
+    from . import flow, ribbon
+    verbos = json.loads(spec_json(include_graph_only=True, motor=motor, implementados=implementados))
+    ops = json.loads(flow.spec_json())
+    # Las ops puras de Flow TAMBIÉN son verbos del Graph, así que llegan por los dos lados. Gana la
+    # entrada del registro de verbos: es la que trae el contrato de tipos que usan Compile y canvas.
+    ya_estan = {item["verbo"] for item in verbos["tools"]}
+    solo_flow = [item for item in ops["tools"] if item["verbo"] not in ya_estan]
+    for item in solo_flow:
+        # `source_surface`, `instance`, `weight_material`: sus implementaciones son del adaptador de
+        # Flow de Unreal (raycast, spawn, material), no del registro. Los nodos de valor son puros.
+        from .math_core import VALOR_KINDS
+        puro = item["verbo"] in VALOR_KINDS
+        item["disponible"] = puro or motor == "unreal"
+        item["porque"] = "" if item["disponible"] else "usa el adaptador de Flow de Unreal"
+    # Las funciones del usuario y sus bordes (input/output) son grafo del núcleo: corren en cualquiera.
+    funciones = [{"disponible": True, "porque": "", **f} for f in (funciones or ())]
+    cats_flow = [item["cat"] for item in solo_flow]
+    cats = verbos["categorias"] + [c for c in ops["categorias"]
+                                   if c not in verbos["categorias"] and c in cats_flow]
+    if funciones and "Funciones" not in cats:
+        cats.append("Funciones")
+    return {"categorias": cats, "tools": ribbon.anotar(verbos["tools"] + solo_flow) + funciones,
+            "motor": motor}

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jam · Editor de nodos</title>
+<link rel="stylesheet" href="vendor/litegraph.css">
+<style>
+  :root { --fondo:#1d1e20; --panel:#26282b; --borde:#3a3d42; --tinta:#e6e3dc; --tenue:#9a978f;
+          --ok:#3aa45a; --aviso:#d8b820; --warn:#e08a2a; --error:#d4453c; --cancelado:#8c4a44;
+          --omitido:#6f6d68; --acento:#c9a45c; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; background:var(--fondo); color:var(--tinta);
+               font: 13px/1.35 system-ui, sans-serif; overflow:hidden; }
+  #barra { display:flex; gap:6px; align-items:center; padding:6px 10px; background:var(--panel);
+           border-bottom:1px solid var(--borde); height:42px; }
+  #barra h1 { font-size:14px; margin:0 10px 0 0; font-weight:600; letter-spacing:.02em; }
+  #motor { color:var(--acento); }
+  button, label.boton { background:#33363b; color:var(--tinta); border:1px solid var(--borde);
+                        border-radius:4px; padding:4px 10px; cursor:pointer; font:inherit; }
+  button:hover, label.boton:hover { border-color:var(--acento); }
+  button.activo { background:#4a3f2a; border-color:var(--acento); }
+  #conexion { margin-left:auto; color:var(--tenue); font-size:12px; }
+  #conexion.on::before { content:"● "; color:var(--ok); }
+  #conexion.off::before { content:"● "; color:var(--error); }
+  #cuerpo { display:flex; height:calc(100% - 42px - 110px); }
+  #lienzo { flex:1; position:relative; min-width:0; }
+  #lienzo canvas { display:block; }
+  #texto { width:440px; display:flex; flex-direction:column; border-left:1px solid var(--borde);
+           background:var(--panel); }
+  #texto.oculto { display:none; }
+  #texto .acciones { display:flex; gap:6px; padding:6px; align-items:center; }
+  #sin-aplicar { color:var(--acento); font-size:12px; }
+  #fuente { flex:1; resize:none; background:#17181a; color:var(--tinta); border:0;
+            border-top:1px solid var(--borde); padding:8px; font: 12.5px/1.45 ui-monospace, monospace;
+            white-space:pre; outline:none; }
+  #errores-texto { max-height:120px; overflow:auto; padding:6px 8px; color:#f0a39c; font-size:12px;
+                   border-top:1px solid var(--borde); white-space:pre-wrap; }
+  #reporte { height:110px; overflow:auto; background:#17181a; border-top:1px solid var(--borde);
+             padding:6px 10px; font: 12px/1.4 ui-monospace, monospace; white-space:pre-wrap;
+             color:var(--tenue); }
+  #reporte .ok { color:#8fd19e; } #reporte .error { color:#f0a39c; }
+</style>
+</head>
+<body>
+<div id="barra">
+  <h1>Jam <span id="motor">…</span></h1>
+  <button id="b-compilar" title="Valida nodos, cables y parámetros contra el motor conectado, sin tocar la escena">✓ Compile</button>
+  <button id="b-correr" title="Corre el grafo: el resultado aparece en el motor como Preview">▶ Run</button>
+  <button id="b-fijar" title="Fija en la escena lo que dejó el último Run">✓ Bake</button>
+  <button id="b-descartar" title="Borra lo que dejó el último Run">✗ Discard</button>
+  <label class="boton" title="Abrir un .jamgraph">📂 Abrir<input id="archivo" type="file" accept=".jamgraph,.json" hidden></label>
+  <button id="b-guardar" title="Descargar el grafo como .jamgraph">💾 Guardar</button>
+  <button id="b-nuevo" title="Grafo vacío">Nuevo</button>
+  <button id="b-texto" class="activo" title="El grafo como texto: lo que escribe y lee un LLM">✎ Texto</button>
+  <span id="conexion" class="off">conectando…</span>
+</div>
+<div id="cuerpo">
+  <div id="lienzo"><canvas id="canvas"></canvas></div>
+  <div id="texto">
+    <div class="acciones">
+      <button id="b-aplicar" title="Vuelve nodos lo escrito; conserva la posición de cada nodo por su nombre">Aplicar</button>
+      <button id="b-refrescar" title="Descarta lo tipeado y vuelve a escribir el grafo del canvas">↻ Del canvas</button>
+      <span id="sin-aplicar"></span>
+    </div>
+    <textarea id="fuente" spellcheck="false"></textarea>
+    <div id="errores-texto"></div>
+  </div>
+</div>
+<div id="reporte">Doble clic en el fondo para buscar un nodo; clic derecho para el menú por categoría.</div>
+<script src="vendor/litegraph.js"></script>
+<script src="editor.js"></script>
+</body>
+</html>

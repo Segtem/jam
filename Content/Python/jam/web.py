@@ -24,7 +24,10 @@ _DIR = os.path.join(os.path.dirname(__file__), "web")
 _SRV = {"server": None}
 #: Lo que `POST /api/<función>` deja llamar (ver `_Handler._api`).
 API_PUBLICA = frozenset({"leer_canvas", "aplicar_texto", "ayuda_texto", "graph_text",
-                         "graph_from_text", "run_text", "confirm", "discard"})
+                         "graph_from_text", "run_text", "confirm", "discard",
+                         # el editor web (web/editor.html), con los nombres de jam.servidor.Nucleo
+                         "estado", "spec_editor", "compilar_grafo", "correr_grafo",
+                         "texto_de_grafo", "grafo_de_texto", "preview"})
 #: Un Run puede tardar (un árbol de TreeGen hornea mallas): más que el plazo de un botón de la web.
 API_TIMEOUT = 600.0
 
@@ -48,8 +51,13 @@ class _Handler(http.server.BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:
         parsed = urllib.parse.urlparse(self.path)
-        if parsed.path in ("/", "/index.html"):
+        if parsed.path in ("/", "/editor"):
+            # El editor de nodos (el mismo que sirve jam.servidor para Godot y Unity).
+            return self._estatico("editor.html")
+        if parsed.path in ("/consola", "/index.html"):
             return self._send(200, _html(), "text/html; charset=utf-8")
+        if parsed.path.startswith("/vendor/") or parsed.path.endswith((".js", ".css")):
+            return self._estatico(parsed.path.lstrip("/"))
         if parsed.path == "/spec":
             r = serve.en_game_thread(api.spec) or "{}"
             return self._send(200, r, "application/json; charset=utf-8")
@@ -58,6 +66,16 @@ class _Handler(http.server.BaseHTTPRequestHandler):
             r = serve.en_game_thread(lambda: api.assets(q)) or "{}"
             return self._send(200, r, "application/json; charset=utf-8")
         return self._send(404, "not found", "text/plain; charset=utf-8")
+
+    def _estatico(self, relativo: str) -> None:
+        raiz = os.path.realpath(_DIR)
+        archivo = os.path.realpath(os.path.join(raiz, relativo))
+        if not archivo.startswith(raiz + os.sep) or not os.path.isfile(archivo):
+            return self._send(404, "no encontrado", "text/plain; charset=utf-8")
+        tipo = {".html": "text/html", ".js": "text/javascript", ".css": "text/css"}.get(
+            os.path.splitext(archivo)[1], "application/octet-stream")
+        with open(archivo, "rb") as fh:
+            return self._send(200, fh.read(), tipo + "; charset=utf-8")
 
     def do_POST(self) -> None:
         parsed = urllib.parse.urlparse(self.path)

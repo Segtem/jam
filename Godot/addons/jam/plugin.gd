@@ -20,7 +20,12 @@ var _srv := TCPServer.new()
 var _clientes: Array = []
 
 
+const PUERTO_EDITOR := 8795
+var _pid_editor := -1
+
+
 func _enter_tree() -> void:
+	add_tool_menu_item("Jam: editor de nodos", _abrir_editor)
 	var err := _srv.listen(PUERTO, "127.0.0.1")
 	if err == OK:
 		print("JAM_GODOT escuchando en 127.0.0.1:%d (contrato %d)" % [PUERTO, CONTRATO])
@@ -28,7 +33,25 @@ func _enter_tree() -> void:
 		push_warning("JAM_GODOT no pude abrir el puerto %d (%s)" % [PUERTO, error_string(err)])
 
 
+## El editor de nodos de Jam (la web): lo sirve el núcleo en un proceso aparte, que habla con este
+## plugin por el contrato. Si ya está corriendo, sólo se abre otra ventana.
+func _abrir_editor() -> void:
+	var ruta := str(ProjectSettings.get_setting("jam/nucleo_python",
+		OS.get_environment("HOME") + "/Dev/jam/Content/Python"))
+	var codigo := "import sys; sys.path.insert(0, %s); from jam import servidor; " % JSON.stringify(ruta)
+	if _pid_editor > 0 and OS.is_process_running(_pid_editor):
+		codigo += "servidor.abrir_ventana('http://127.0.0.1:%d/')" % PUERTO_EDITOR
+		OS.create_process("python3", ["-c", codigo])
+		return
+	codigo += "servidor.main(['--motor', 'godot', '--abrir'])"
+	_pid_editor = OS.create_process("python3", ["-c", codigo])
+	print("JAM_GODOT editor de nodos en http://127.0.0.1:%d/ (pid %d)" % [PUERTO_EDITOR, _pid_editor])
+
+
 func _exit_tree() -> void:
+	remove_tool_menu_item("Jam: editor de nodos")
+	if _pid_editor > 0 and OS.is_process_running(_pid_editor):
+		OS.kill(_pid_editor)
 	for c in _clientes:
 		c.peer.disconnect_from_host()
 	_clientes.clear()

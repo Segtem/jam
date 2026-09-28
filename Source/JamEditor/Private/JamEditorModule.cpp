@@ -443,8 +443,8 @@ void FJamEditorModule::RegisterMenus()
 		FUIAction(FExecuteAction::CreateRaw(this, &FJamEditorModule::OpenGraph)));
 	Section.AddMenuEntry(
 		"OpenJamWeb",
-		LOCTEXT("OpenJamWeb", "Jam: abrir web"),
-		LOCTEXT("OpenJamWebTip", "Arranca el server web de Jam y lo abre en el navegador (http://127.0.0.1:8790)"),
+		LOCTEXT("OpenJamWeb", "Jam: editor de nodos (web)"),
+		LOCTEXT("OpenJamWebTip", "El editor de nodos de Jam en su propia ventana: el mismo que se abre desde Godot y Unity (http://127.0.0.1:8790)"),
 		FSlateIcon(),
 		FUIAction(FExecuteAction::CreateRaw(this, &FJamEditorModule::OpenWebUI)));
 }
@@ -452,8 +452,10 @@ void FJamEditorModule::RegisterMenus()
 void FJamEditorModule::OpenWebUI()
 {
 	// Arranca el server HTTP dentro del editor (idempotente) y abre el navegador por defecto.
-	ExecPythonCapture(TEXT("import jam.web; jam.web.iniciar()"));
-	FPlatformProcess::LaunchURL(TEXT("http://127.0.0.1:8790"), nullptr, nullptr);
+	// La ventana la abre el núcleo (`jam.servidor.abrir_ventana`): la misma que desde Godot y Unity,
+	// en modo aplicación si hay Chromium, así se siente una ventana del editor y no una pestaña más.
+	ExecPythonCapture(TEXT("import jam.web, jam.servidor; jam.web.iniciar(); "
+		"jam.servidor.abrir_ventana('http://127.0.0.1:8790/')"));
 }
 
 void FJamEditorModule::OpenGraph()

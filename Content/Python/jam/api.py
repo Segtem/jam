@@ -199,6 +199,42 @@ def ayuda_texto(filtro: str = "") -> str:
         f"\n(… y {len(hits) - 60} más: afiná la búsqueda)" if len(hits) > 60 else "")
 
 
+# ---- el editor web (`web/editor.html`): los MISMOS nombres que `jam.servidor.Nucleo`, así el editor
+# no sabe si tiene Unreal (esta puerta) o Godot/Unity (el núcleo afuera) del otro lado ----
+
+def estado() -> str:
+    import json
+    return json.dumps({"motor": "unreal", "conectado": True})
+
+
+def spec_editor() -> str:
+    return spec_all()
+
+
+def compilar_grafo(grafo_json: str) -> str:
+    return compile_graph_json(grafo_json)
+
+
+def correr_grafo(grafo_json: str) -> str:
+    return run_graph_json(grafo_json)
+
+
+def texto_de_grafo(grafo_json: str) -> str:
+    return graph_text(grafo_json)
+
+
+def grafo_de_texto(texto_: str, base_json: str = "") -> str:
+    return graph_from_text(texto_, base_json)
+
+
+def preview(accion: str) -> str:
+    import json
+    if accion not in ("bake", "discard"):
+        return json.dumps({"ok": False, "error": "accion es bake o discard"})
+    texto_ = confirm() if accion == "bake" else discard()
+    return json.dumps({"ok": True, "texto": texto_}, ensure_ascii=False)
+
+
 def nombre_de_nodo_nuevo(verbo: str, usados_json: str = "[]") -> str:
     """El id con el que nace un nodo del canvas (`texto.nombre_nuevo`). JSON `{nombre}`."""
     import json
@@ -494,36 +530,15 @@ def flow_spec() -> str:
 
 
 def spec_all() -> str:
-    """Spec COMBINADO: verbos de herramienta + ops de flow, para que el canvas ofrezca ambos. Cada
-    entrada trae su `cat`; las de flow además `source`/`aridad`."""
+    """Spec COMBINADO: verbos de herramienta + ops de flow + funciones del usuario, para el canvas.
+    El armado es puro (`registro.spec_canvas`); acá se le agregan el motor conectado y las funciones,
+    que son lo único que necesita el editor."""
     import json
 
-    from . import flow, funcion, tools
-    # El canvas incorpora también herramientas graph-only, como el tab Mesh cuyos cables transportan
-    # DynamicMesh `M`. La Dash Bar conserva sólo verbos útiles como acción aislada.
+    from . import funcion, registro, tools
     motor, implementados = tools.motor_activo()
-    verbos = json.loads(tools.spec_json(include_graph_only=True, motor=motor,
-                                        implementados=implementados))
-    ops = json.loads(flow.spec_json())
-    # Las ops puras de Flow ahora TAMBIÉN son verbos del Graph (`tools.OPS_FLOW_EN_GRAPH`), así que
-    # llegan por los dos lados. Gana la entrada del registro de verbos: es la que trae el contrato de
-    # tipos (`in_name`/`out_name` = P) que usan el Preflight y el canvas.
-    ya_estan = {item["verbo"] for item in verbos["tools"]}
-    solo_flow = [item for item in ops["tools"] if item["verbo"] not in ya_estan]
-    for item in solo_flow:
-        # `source_surface`, `instance`, `weight_material`: sus implementaciones son del adaptador de
-        # Flow de Unreal (raycast, spawn, material), no del registro.
-        item["disponible"] = motor == "unreal"
-        item["porque"] = "" if item["disponible"] else "usa el adaptador de Flow de Unreal"
-    funciones = funcion.herramientas()
-    cats_flow = [item["cat"] for item in solo_flow]
-    cats = verbos["categorias"] + [c for c in ops["categorias"]
-                                   if c not in verbos["categorias"] and c in cats_flow]
-    if funciones and "Funciones" not in cats:
-        cats.append("Funciones")
-    from . import ribbon
-    todas = ribbon.anotar(verbos["tools"] + solo_flow) + funciones
-    return json.dumps({"categorias": cats, "tools": todas}, ensure_ascii=True)
+    return json.dumps(registro.spec_canvas(motor, implementados, funcion.herramientas()),
+                      ensure_ascii=True)
 
 
 def collapse_function(nombre: str, graph_json: str, selected_json: str,
