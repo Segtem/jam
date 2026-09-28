@@ -51,7 +51,7 @@ class AdaptadorUnity(unittest.TestCase):
 
     def test_compile_juzga_contra_unity(self):
         cliente = ClienteFalso()
-        r = au.correr_texto("toro = mesh_torus\n", au.AdaptadorUnity(cliente))
+        r = au.correr_texto("elegido = pick\n", au.AdaptadorUnity(cliente))
         self.assertFalse(r["ok"])
         self.assertIn("no disponible en este motor (unity)", r["errores"][0]["mensaje"])
         self.assertEqual([op for op, _ in cliente.pedidos], ["hola"])

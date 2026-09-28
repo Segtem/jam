@@ -82,7 +82,7 @@ class NucleoDelEditor(unittest.TestCase):
     def test_el_spec_marca_lo_que_godot_no_tiene(self):
         spec = {t["verbo"]: t for t in self.nucleo.spec_editor()["tools"]}
         self.assertTrue(spec["mesh_box"]["disponible"])
-        self.assertFalse(spec["mesh_torus"]["disponible"])
+        self.assertFalse(spec["mesh_revolve"]["disponible"])
         self.assertTrue(spec["number"]["disponible"], "los nodos de valor son puros")
 
     def test_compilar_y_correr(self):
@@ -93,7 +93,7 @@ class NucleoDelEditor(unittest.TestCase):
         self.assertIn("en Godot: 12 triángulos", r["nodes"]["ver"]["texto"])
 
     def test_un_verbo_que_godot_no_tiene_se_marca_en_su_nodo_y_no_corre(self):
-        g = json.dumps({"nodes": {"t": {"verb": "mesh_torus", "params": {}}}, "edges": []})
+        g = json.dumps({"nodes": {"t": {"verb": "pick", "params": {}}}, "edges": []})
         r = self.nucleo.correr_grafo(g)
         self.assertFalse(r["ok"])
         self.assertEqual(r["nodes"]["t"]["estado"], "error")

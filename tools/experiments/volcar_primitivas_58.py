@@ -83,7 +83,10 @@ def medir(dm):
 #: la de Geometry Script; para los demás, el verbo.
 REFERENCIA_GEOMETRY_SCRIPT = {"mesh_box": "box", "mesh_quad": "quad", "mesh_grid": "grid",
                               "mesh_disc": "disc", "mesh_cylinder": "cylinder", "mesh_cone": "cone",
-                              "mesh_sphere": "sphere"}
+                              "mesh_sphere": "sphere", "mesh_triangle": "triangle",
+                              "mesh_capsule": "capsule", "mesh_torus": "torus",
+                              "mesh_round_rect": "round_rect", "mesh_stairs": "stairs",
+                              "mesh_stairs_curved": "stairs_curved", "mesh_sphere_box": "sphere_box"}
 
 
 def correr(verbo, entrada, params):

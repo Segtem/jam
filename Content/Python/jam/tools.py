@@ -813,11 +813,6 @@ def t_choose_asset(frame_input, *, assets=None, mode="random", seed=7) -> str:
     return f"CHOOSE ASSET AF ✓ — {result['info']}"
 
 
-def t_mesh_triangle(_input=None, *, size=100.0) -> str:
-    from . import mesh
-    return _mesh_output("mesh_triangle", mesh.triangle(size=float(size)), "TRIANGLE M")
-
-
 def t_mesh_from_asset(asset_input) -> str:
     from . import mesh
     return _mesh_output("mesh_from_asset", mesh.from_asset(asset_input), "FROM ASSET M")
@@ -1493,52 +1488,6 @@ def t_mesh_box(_input=None, *, size_x=100.0, size_y=100.0, size_z=100.0,
         "info": f"{mesh._info(dm)} · {float(size_x):g}×{float(size_y):g}×{float(size_z):g}cm"}, "BOX M")
 
 
-def t_mesh_capsule(_input=None, *, radius=30.0, length=150.0, hemisphere_steps=5, sides=12) -> str:
-    from . import mesh
-    return _mesh_output("mesh_capsule", mesh.capsule(
-        radius=float(radius), length=float(length),
-        hemisphere_steps=int(hemisphere_steps), sides=int(sides)), "CAPSULE M")
-
-
-def t_mesh_torus(_input=None, *, major_radius=100.0, minor_radius=25.0,
-                 major_steps=24, minor_steps=12) -> str:
-    from . import mesh
-    return _mesh_output("mesh_torus", mesh.torus(
-        major_radius=float(major_radius), minor_radius=float(minor_radius),
-        major_steps=int(major_steps), minor_steps=int(minor_steps)), "TORUS M")
-
-
-def t_mesh_round_rect(_input=None, *, size_x=200.0, size_y=200.0, corner_radius=20.0, steps_round=6) -> str:
-    from . import mesh
-    return _mesh_output("mesh_round_rect", mesh.round_rect(
-        size_x=float(size_x), size_y=float(size_y),
-        corner_radius=float(corner_radius), steps_round=int(steps_round)), "ROUND RECT M")
-
-
-def t_mesh_stairs(_input=None, *, step_width=150.0, step_height=18.0, step_depth=28.0,
-                  steps=10, floating=False) -> str:
-    from . import mesh
-    return _mesh_output("mesh_stairs", mesh.stairs(
-        step_width=float(step_width), step_height=float(step_height),
-        step_depth=float(step_depth), steps=int(steps),
-        floating=bool(floating)), "STAIRS M")
-
-
-def t_mesh_stairs_curved(_input=None, *, step_width=150.0, step_height=18.0, inner_radius=200.0,
-                         curve_angle=90.0, steps=12, floating=False) -> str:
-    from . import mesh
-    return _mesh_output("mesh_stairs_curved", mesh.stairs_curved(
-        step_width=float(step_width), step_height=float(step_height),
-        inner_radius=float(inner_radius), curve_angle=float(curve_angle),
-        steps=int(steps), floating=bool(floating)), "CURVED STAIRS M")
-
-
-def t_mesh_sphere_box(_input=None, *, radius=80.0, steps=6) -> str:
-    from . import mesh
-    return _mesh_output("mesh_sphere_box", mesh.sphere_box(
-        radius=float(radius), steps=int(steps)), "SPHERE BOX M")
-
-
 def t_mesh_revolve(curve_input, *, steps=24, capped=True, degrees=360.0, samples=32) -> str:
     from . import mesh
     return _mesh_output("mesh_revolve", mesh.revolve(
@@ -1697,7 +1646,6 @@ def _envolver_op_flow(kind: str, aridad: int):
     return fn
 
 
-
 def _envolver_nodo_material(verbo: str, tipo: str):
     """Un verbo por tipo de nodo, todos sobre la misma implementación.
 
@@ -1709,7 +1657,6 @@ def _envolver_nodo_material(verbo: str, tipo: str):
                                x=x, y=y, _verbo=verbo)
     fn.__name__ = f"t_mat_{tipo.lower()}"
     return fn
-
 
 
 IMPLEMENTA = {
@@ -1760,7 +1707,7 @@ IMPLEMENTA = {
     "curve_subdivide": _envolver_comun("curve_subdivide"),
     "curve_offset": _envolver_comun("curve_offset"),
     "curve_branches": _envolver_comun("curve_branches"),
-    "mesh_triangle": t_mesh_triangle,
+    "mesh_triangle": _envolver_comun_malla("mesh_triangle", "TRIANGLE M"),
     "mesh_quad": _envolver_comun_malla("mesh_quad", "QUAD M"),
     "mesh_grid": _envolver_comun_malla("mesh_grid", "GRID M"),
     "mesh_cylinder": _envolver_comun_malla("mesh_cylinder", "CYLINDER M"),
@@ -1813,13 +1760,13 @@ IMPLEMENTA = {
     "debug": t_debug,
     "points_to_frames": _envolver_comun("points_to_frames"),
     "mesh_box": t_mesh_box,
-    "mesh_capsule": t_mesh_capsule,
-    "mesh_torus": t_mesh_torus,
+    "mesh_capsule": _envolver_comun_malla("mesh_capsule", "CAPSULE M"),
+    "mesh_torus": _envolver_comun_malla("mesh_torus", "TORUS M"),
     "mesh_disc": _envolver_comun_malla("mesh_disc", "DISC M"),
-    "mesh_round_rect": t_mesh_round_rect,
-    "mesh_stairs": t_mesh_stairs,
-    "mesh_stairs_curved": t_mesh_stairs_curved,
-    "mesh_sphere_box": t_mesh_sphere_box,
+    "mesh_round_rect": _envolver_comun_malla("mesh_round_rect", "ROUND RECT M"),
+    "mesh_stairs": _envolver_comun_malla("mesh_stairs", "STAIRS M"),
+    "mesh_stairs_curved": _envolver_comun_malla("mesh_stairs_curved", "CURVED STAIRS M"),
+    "mesh_sphere_box": _envolver_comun_malla("mesh_sphere_box", "SPHERE BOX M"),
     "mesh_revolve": t_mesh_revolve,
     "mesh_bark": t_mesh_bark,
     "mesh_noise": t_mesh_noise,

@@ -75,6 +75,59 @@ def mesh_sphere(_entrada=None, *, radius=100.0, latitude_steps=8, longitude_step
     return m, f"SPHERE M ✓ — {malla_core.info(m)}"
 
 
+# ---- formas (agy2, segunda tanda, contra el fixture de Unreal) ----
+
+def mesh_triangle(_entrada=None, *, size=100.0) -> tuple:
+    from . import malla_formas
+    m = malla_formas.triangulo(size=size)
+    return m, f"TRIANGLE M ✓ — {malla_core.info(m)}"
+
+
+def mesh_capsule(_entrada=None, *, radius=30.0, length=150.0, hemisphere_steps=5, sides=12) -> tuple:
+    from . import malla_formas
+    m = malla_formas.capsula(radius=radius, length=length, hemisphere_steps=hemisphere_steps,
+                             sides=sides)
+    return m, f"CAPSULE M ✓ — {malla_core.info(m)}"
+
+
+def mesh_torus(_entrada=None, *, major_radius=100.0, minor_radius=25.0, major_steps=24,
+               minor_steps=12) -> tuple:
+    from . import malla_formas
+    m = malla_formas.toro(major_radius=major_radius, minor_radius=minor_radius,
+                          major_steps=major_steps, minor_steps=minor_steps)
+    return m, f"TORUS M ✓ — {malla_core.info(m)}"
+
+
+def mesh_round_rect(_entrada=None, *, size_x=200.0, size_y=200.0, corner_radius=20.0,
+                    steps_round=6) -> tuple:
+    from . import malla_formas
+    m = malla_formas.rect_redondeado(size_x=size_x, size_y=size_y, corner_radius=corner_radius,
+                                     steps_round=steps_round)
+    return m, f"ROUND RECT M ✓ — {malla_core.info(m)}"
+
+
+def mesh_stairs(_entrada=None, *, step_width=150.0, step_height=18.0, step_depth=28.0, steps=10,
+                floating=False) -> tuple:
+    from . import malla_formas
+    m = malla_formas.escalera(step_width=step_width, step_height=step_height,
+                              step_depth=step_depth, steps=steps, floating=floating)
+    return m, f"STAIRS M ✓ — {malla_core.info(m)}"
+
+
+def mesh_stairs_curved(_entrada=None, *, step_width=150.0, step_height=18.0, inner_radius=200.0,
+                       curve_angle=90.0, steps=12, floating=False) -> tuple:
+    from . import malla_formas
+    m = malla_formas.escalera_curva(step_width=step_width, step_height=step_height,
+                                    inner_radius=inner_radius, curve_angle=curve_angle,
+                                    steps=steps, floating=floating)
+    return m, f"CURVED STAIRS M ✓ — {malla_core.info(m)}"
+
+
+def mesh_sphere_box(_entrada=None, *, radius=80.0, steps=6) -> tuple:
+    from . import malla_formas
+    m = malla_formas.esfera_caja(radius=radius, steps=steps)
+    return m, f"SPHERE BOX M ✓ — {malla_core.info(m)}"
+
 def _exigir_malla(valor, verbo: str) -> malla_core.Malla:
     if not isinstance(valor, malla_core.Malla):
         raise RuntimeError(f"{verbo} necesita una malla M del núcleo")
@@ -330,6 +383,8 @@ def curve_offset(curve_input, *, distance=100.0, side="left", plane="xy",
 IMPLEMENTA = {"mesh_box": mesh_box, **{v: globals()[v] for v in (
     "mesh_quad", "mesh_grid", "mesh_disc", "mesh_transform", "mesh_merge",
     "mesh_cylinder", "mesh_cone", "mesh_sphere", "mesh_pipe",
+    "mesh_triangle", "mesh_capsule", "mesh_torus", "mesh_round_rect", "mesh_stairs",
+    "mesh_stairs_curved", "mesh_sphere_box",
     "graph_curve", "series_range", "series_remap", "curve_bezier", "curve_polyline",
     "curve_interpolate", "curve_line", "curve_line_sdl", "curve_move", "curve_resample",
     "curve_smooth", "curve_frames", "distribute_frames", "transform_frames", "points_to_frames",
