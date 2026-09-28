@@ -1,0 +1,7 @@
+piso = mesh_box size_x=1600 size_y=1600 size_z=20
+piso_asset = mesh_to_static @piso name=JamPiso
+suelo = place @piso_asset surface=false anchor=top
+caja = mesh_box size_x=100 size_y=60 size_z=80
+caja_asset = mesh_to_static @caja name=JamCaja
+rejilla = pts_rect size_x=1000 size_y=1000 cols=5 rows=5 seed=4
+cajas = place @caja_asset points=@rejilla scale_min=0.6 scale_max=1.4
