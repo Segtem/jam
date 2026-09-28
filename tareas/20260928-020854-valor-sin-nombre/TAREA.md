@@ -18,6 +18,10 @@ en silencio.
 Que las dos rutas usen el mismo nombre. Cuál (el id del nodo, como propone el diseño de
 `dsl-grafos`, o el default `n` con el duplicado detectado) se decide con ese diseño.
 
+### Nota (2026-09-28 10:05:40 UTC)
+
+2026-09-28, Claude: hecho, con la regla que eligió dsl-grafos (Claude v2): un nodo de valor sin name se llama como el nodo. math_core.resolver leía el name EFECTIVO, que trae el default («n»); ahora lee el escrito, y sólo en los verbos que declaran name (compare_greater no lo declara y sigue llamándose por su id, como fijaba test_math). Tests: test_valor_sin_nombre.py, 3; los tres fallan contra HEAD. Suite 1266 OK; oracle test VERDE (28/4/3, 1099, 448/448). El Compile ya usaba name or nid, así que ahora las dos rutas coinciden.
+
 ## Próximo paso
 
-Esperar la elección de `dsl-grafos`; después, un test que falle hoy con el caso de arriba.
+Ninguno.

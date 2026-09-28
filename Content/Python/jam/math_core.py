@@ -1396,7 +1396,11 @@ def resolver(nodos: dict, enlaces: list[tuple[str, str, str, str]], *, campo_ver
             if pendiente:
                 continue
 
-            nombre = str(efectivos.get("name") or nid)
+            # El `name` ESCRITO en el nodo, no el efectivo: el efectivo trae el default («n») y dos
+            # valores sin nombre se pisaban en la tabla sin que el Compile —que usa `name or nid`—
+            # viera el duplicado. Tarea `valor-sin-nombre`.
+            escrito = nodo.get("params", {}).get("name") if "name" in defaults else None
+            nombre = str(escrito or nid)
             try:
                 valor = evaluar(verbo, efectivos, tabla, eval_expr)
             except ValorPendiente:
