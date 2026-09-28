@@ -26,3 +26,7 @@ la escena como hechos para Oracle (`sonda-escena-l0`). Es una capa delgada sobre
 1. Brian: ¿remoto para `~/Dev/jam-mcp` (Segtem/jam-mcp, privado como Jam?) y ¿se publica en PyPI como oracle-mcp? ¿Se registra en Claude Code / Codex?
 2. Lo que pedía la tarea y falta: volcar la escena como hechos para Oracle (`sonda-escena-l0`), para que commander juzgue cada cambio.
 3. Mientras el núcleo viva dentro del editor, `jam_help` necesita el editor abierto; con `fuera-del-motor` etapa 2 podría responder sin él.
+
+### Nota (2026-09-28 15:59:51 UTC)
+
+jam-mcp 0.2.0 (e6276c5, tag v0.2.0, de Codex): --motor unreal|godot|unity. Con Godot/Unity el núcleo corre en el proceso del MCP y el grafo vive en la sesión (sin canvas compartido). verifica_mcp_motor VERDE en Godot y Unity; reinstalado con uv tool (Claude Code y Codex siguen apuntando al mismo ejecutable, por defecto unreal). Pendiente posible: que en Godot/Unity el MCP hable con jam.servidor (8795/8796) para compartir el grafo con el editor web, como en Unreal.
