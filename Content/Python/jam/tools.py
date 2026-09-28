@@ -698,20 +698,6 @@ def _mesh_output(verbo: str, result: dict, label: str) -> str:
     return f"{label} ✓ — {result.get('info', 'DynamicMesh')}"
 
 
-def t_curve_child(curve_input, *, at=0.5, length=300.0, angle=55.0, azimuth=0.0,
-                  bend=40.0, radial_offset=0.0, segments=8, samples=32) -> str:
-    from . import curve
-    result = curve.child(
-        curve_input, at=float(at), length=float(length), angle=float(angle),
-        azimuth=float(azimuth), bend=float(bend), radial_offset=float(radial_offset),
-        segments=int(segments), samples=int(samples),
-    )
-    if "error" in result:
-        raise RuntimeError(result["error"])
-    _RUNTIME_DATA_OUTPUTS["curve_child"] = result["curve"]
-    return f"CHILD S ✓ — {result['info']}"
-
-
 def t_curve_noise(curve_input, *, amplitud=10.0, escala=0.004, octavas=3,
                   desde=0.0, seed=0, samples=16) -> str:
     from . import curve
@@ -722,78 +708,6 @@ def t_curve_noise(curve_input, *, amplitud=10.0, escala=0.004, octavas=3,
         raise RuntimeError(result["error"])
     _RUNTIME_DATA_OUTPUTS["curve_noise"] = result["curve"]
     return f"NOISE S \u2713 \u2014 {result['info']}"
-
-
-def t_curve_frames(curve_input, *, count=12, start=0.0, end=1.0,
-                   radial_offset=0.0, turns=0.0, angle_offset=0.0,
-                   radius_start=0.0, radius_end=0.0, samples=32, seed=7) -> str:
-    from . import curve
-    result = curve.frame_stream(
-        curve_input, count=int(count), start=float(start), end=float(end),
-        radial_offset=float(radial_offset), turns=float(turns),
-        angle_offset=float(angle_offset), radius_start=float(radius_start),
-        radius_end=float(radius_end), samples=int(samples), seed=int(seed),
-    )
-    if "error" in result:
-        raise RuntimeError(result["error"])
-    _RUNTIME_DATA_OUTPUTS["curve_frames"] = result["frame_set"]
-    return f"FRAMES F ✓ — {result['info']}"
-
-
-def t_distribute_frames(frame_input, *, count=12, start=0.0, end=1.0,
-                        rotate_per_index=137.5, angle_offset=0.0,
-                        angle_jitter=0.0, parameter_jitter=0.0, seed=7) -> str:
-    from . import curve
-    result = curve.distribute_frames(
-        frame_input, count=int(count), start=float(start), end=float(end),
-        rotate_per_index=float(rotate_per_index), angle_offset=float(angle_offset),
-        angle_jitter=float(angle_jitter), parameter_jitter=float(parameter_jitter),
-        seed=int(seed),
-    )
-    if "error" in result:
-        raise RuntimeError(result["error"])
-    _RUNTIME_DATA_OUTPUTS["distribute_frames"] = result["frame_set"]
-    return f"DISTRIBUTE F ✓ — {result['info']}"
-
-
-def t_transform_frames(frame_input, *, offset_x=0.0, offset_y=0.0, offset_z=0.0,
-                       pitch=0.0, yaw=0.0, roll=0.0, scale=1.0,
-                       offset_jitter_x=0.0, offset_jitter_y=0.0,
-                       offset_jitter_z=0.0, pitch_jitter=0.0,
-                       yaw_jitter=0.0, roll_jitter=0.0, scale_jitter=0.0,
-                       inherit_scale=True, seed=7) -> str:
-    from . import curve
-    result = curve.transform_frames(
-        frame_input, offset_x=float(offset_x), offset_y=float(offset_y),
-        offset_z=float(offset_z), pitch=float(pitch), yaw=float(yaw), roll=float(roll),
-        scale=float(scale), offset_jitter_x=float(offset_jitter_x),
-        offset_jitter_y=float(offset_jitter_y), offset_jitter_z=float(offset_jitter_z),
-        pitch_jitter=float(pitch_jitter), yaw_jitter=float(yaw_jitter),
-        roll_jitter=float(roll_jitter), scale_jitter=float(scale_jitter),
-        inherit_scale=bool(inherit_scale), seed=int(seed),
-    )
-    if "error" in result:
-        raise RuntimeError(result["error"])
-    _RUNTIME_DATA_OUTPUTS["transform_frames"] = result["frame_set"]
-    return f"TRANSFORM F ✓ — {result['info']}"
-
-
-def t_branch_from_frames(frame_input, *, length_min=200.0, length_max=400.0,
-                         angle=55.0, angle_jitter=0.0, curl=20.0,
-                         curl_jitter=0.0, segments=8, inherit_scale=True,
-                         relative_to_parent=False, profile=None, seed=7) -> str:
-    from . import curve
-    result = curve.branch_from_frames(
-        frame_input, length_min=float(length_min), length_max=float(length_max),
-        angle=float(angle), angle_jitter=float(angle_jitter), curl=float(curl),
-        curl_jitter=float(curl_jitter), segments=int(segments),
-        inherit_scale=bool(inherit_scale),
-        relative_to_parent=bool(relative_to_parent), profile=profile, seed=int(seed),
-    )
-    if "error" in result:
-        raise RuntimeError(result["error"])
-    _RUNTIME_DATA_OUTPUTS["branch_from_frames"] = result["curve"]
-    return f"BRANCH FROM F ✓ — {result['info']}"
 
 
 def _select(verbo: str, etiqueta: str, cond, si, no) -> str:
@@ -897,66 +811,6 @@ def t_choose_asset(frame_input, *, assets=None, mode="random", seed=7) -> str:
         raise RuntimeError(result["error"])
     _RUNTIME_DATA_OUTPUTS["choose_asset"] = result["selection"]
     return f"CHOOSE ASSET AF ✓ — {result['info']}"
-
-
-def t_curve_fuse_collinear(curve_input, *, angle_tolerance=1.0,
-                           distance_tolerance=0.01, samples=32) -> str:
-    from . import curve
-    result = curve.fuse_collinear(
-        curve_input, angle_tolerance=float(angle_tolerance),
-        distance_tolerance=float(distance_tolerance), samples=int(samples))
-    if "error" in result:
-        raise RuntimeError(result["error"])
-    _RUNTIME_DATA_OUTPUTS["curve_fuse_collinear"] = result["curve"]
-    return f"FUSE COLLINEAR S ✓ — {result['info']}"
-
-
-def t_curve_subdivide(curve_input, *, mode="distance", distance=100.0,
-                      count=1, samples=32) -> str:
-    from . import curve
-    result = curve.subdivide(
-        curve_input, mode=mode, distance=float(distance), count=int(count),
-        samples=int(samples))
-    if "error" in result:
-        raise RuntimeError(result["error"])
-    _RUNTIME_DATA_OUTPUTS["curve_subdivide"] = result["curve"]
-    return f"SUBDIVIDE S ✓ — {result['info']}"
-
-
-def t_curve_offset(curve_input, *, distance=100.0, side="left", plane="xy",
-                   join="miter", miter_limit=4.0, samples=32) -> str:
-    from . import curve
-    result = curve.offset(
-        curve_input, distance=float(distance), side=side, plane=plane, join=join,
-        miter_limit=float(miter_limit), samples=int(samples))
-    if "error" in result:
-        raise RuntimeError(result["error"])
-    _RUNTIME_DATA_OUTPUTS["curve_offset"] = result["curve"]
-    return f"OFFSET S ✓ — {result['info']}"
-
-
-def t_curve_branches(curve_input, *, count=12, start=0.2, end=0.92,
-                     length_min=200.0, length_max=400.0,
-                     parent_scale_start=1.0, parent_scale_end=1.0,
-                     angle=70.0, angle_jitter=8.0, rotate_per_index=137.0,
-                     azimuth=0.0, azimuth_jitter=5.0, bend=40.0,
-                     bend_jitter=20.0, radial_offset=0.0,
-                     segments=8, samples=32, seed=7) -> str:
-    from . import curve
-    result = curve.branches(
-        curve_input, count=int(count), start=float(start), end=float(end),
-        length_min=float(length_min), length_max=float(length_max),
-        parent_scale_start=float(parent_scale_start), parent_scale_end=float(parent_scale_end),
-        angle=float(angle), angle_jitter=float(angle_jitter),
-        rotate_per_index=float(rotate_per_index), azimuth=float(azimuth),
-        azimuth_jitter=float(azimuth_jitter), bend=float(bend),
-        bend_jitter=float(bend_jitter), radial_offset=float(radial_offset),
-        segments=int(segments), samples=int(samples), seed=int(seed),
-    )
-    if "error" in result:
-        raise RuntimeError(result["error"])
-    _RUNTIME_DATA_OUTPUTS["curve_branches"] = result["curve"]
-    return f"BRANCHES S ✓ — {result['info']}"
 
 
 def t_mesh_triangle(_input=None, *, size=100.0) -> str:
@@ -1508,20 +1362,6 @@ def t_debug(entrada, *, tamano=30.0, grosor=1.2, escalar_con_dato=True,
     )
 
 
-def t_points_to_frames(stream_input, *, orientacion="normal", escala=1.0,
-                       escala_desde_peso=True, giro_al_azar=True, seed=7) -> str:
-    """Puente P → F: convierte el stream de puntos de Flow en frames que consume el tab Mesh."""
-    from . import curve
-    result = curve.frames_desde_puntos(
-        stream_input, orientacion=str(orientacion), escala=float(escala),
-        escala_desde_peso=bool(escala_desde_peso), giro_al_azar=bool(giro_al_azar),
-        seed=int(seed))
-    if "error" in result:
-        raise RuntimeError(result["error"])
-    _RUNTIME_DATA_OUTPUTS["points_to_frames"] = result["frame_set"]
-    return f"POINTS TO F ✓ — {result['info']}"
-
-
 def t_mass_probe(frame_input) -> str:
     """Primera vertical Mass: crea, mide y limpia entidades, y deja pasar el mismo F."""
     from . import mass_core, ue
@@ -1890,12 +1730,12 @@ IMPLEMENTA = {
     "nanite_analyze": t_nanite_analyze,
     "nanite_validate": t_nanite_validate,
     "curve_bezier": _envolver_comun("curve_bezier"),
-    "curve_child": t_curve_child,
+    "curve_child": _envolver_comun("curve_child"),
     "curve_noise": t_curve_noise,
-    "curve_frames": t_curve_frames,
-    "distribute_frames": t_distribute_frames,
-    "transform_frames": t_transform_frames,
-    "branch_from_frames": t_branch_from_frames,
+    "curve_frames": _envolver_comun("curve_frames"),
+    "distribute_frames": _envolver_comun("distribute_frames"),
+    "transform_frames": _envolver_comun("transform_frames"),
+    "branch_from_frames": _envolver_comun("branch_from_frames"),
     "reroute_mesh": t_reroute,
     "reroute_asset": t_reroute,
     "reroute_points": t_reroute,
@@ -1916,10 +1756,10 @@ IMPLEMENTA = {
     "curve_move": _envolver_comun("curve_move"),
     "curve_resample": _envolver_comun("curve_resample"),
     "curve_smooth": _envolver_comun("curve_smooth"),
-    "curve_fuse_collinear": t_curve_fuse_collinear,
-    "curve_subdivide": t_curve_subdivide,
-    "curve_offset": t_curve_offset,
-    "curve_branches": t_curve_branches,
+    "curve_fuse_collinear": _envolver_comun("curve_fuse_collinear"),
+    "curve_subdivide": _envolver_comun("curve_subdivide"),
+    "curve_offset": _envolver_comun("curve_offset"),
+    "curve_branches": _envolver_comun("curve_branches"),
     "mesh_triangle": t_mesh_triangle,
     "mesh_quad": _envolver_comun_malla("mesh_quad", "QUAD M"),
     "mesh_grid": _envolver_comun_malla("mesh_grid", "GRID M"),
@@ -1971,7 +1811,7 @@ IMPLEMENTA = {
     "mesh_simplify_tolerance": t_mesh_simplify_tolerance,
     "mesh_simplify_edge_length": t_mesh_simplify_edge_length,
     "debug": t_debug,
-    "points_to_frames": t_points_to_frames,
+    "points_to_frames": _envolver_comun("points_to_frames"),
     "mesh_box": t_mesh_box,
     "mesh_capsule": t_mesh_capsule,
     "mesh_torus": t_mesh_torus,

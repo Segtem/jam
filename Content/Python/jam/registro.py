@@ -1022,7 +1022,10 @@ _SOLO_UNREAL_POR_CATEGORIA = {"Mass": "MassEntity es de Unreal",
 COMUNES = frozenset({"mesh_box", "mesh_quad", "mesh_grid", "mesh_disc", "mesh_transform",
                      "mesh_merge", "mesh_cylinder", "mesh_cone", "mesh_sphere", "mesh_pipe", "graph_curve", "series_range", "series_remap", "curve_bezier",
                      "curve_polyline", "curve_interpolate", "curve_line", "curve_line_sdl",
-                     "curve_move", "curve_resample", "curve_smooth"})
+                     "curve_move", "curve_resample", "curve_smooth", "curve_frames",
+                     "distribute_frames", "transform_frames", "points_to_frames", "branch_from_frames",
+                     "curve_child", "curve_branches", "curve_fuse_collinear", "curve_subdivide",
+                     "curve_offset"})
 #: Las PRIMITIVAS del contrato que cada motor implementa con lo suyo (no se calculan en el núcleo):
 #: mostrar una malla sin hornearla. También corren en cualquier motor: todo adaptador las trae.
 PRIMITIVAS = frozenset({"mesh_preview"})

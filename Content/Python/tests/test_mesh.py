@@ -183,7 +183,7 @@ class MeshTests(unittest.TestCase):
     def test_curve_frames_tool_publishes_the_runtime_f_stream(self):
         path = curve.CurvePath(((0.0, 0.0, 0.0), (0.0, 0.0, 100.0)))
         try:
-            message = tools.t_curve_frames(path, count=4, radius_start=8.0, radius_end=2.0)
+            message = tools.implementacion("curve_frames")(path, count=4, radius_start=8.0, radius_end=2.0)
             output = tools.dato_producido_runtime("curve_frames")
 
             self.assertIn("FRAMES F ✓", message)
@@ -242,7 +242,7 @@ class MeshTests(unittest.TestCase):
         path = curve.CurvePath(((0.0, 0.0, 0.0), (0.0, 0.0, 100.0)))
         source = curve.frame_stream(path, count=4)["frame_set"]
         try:
-            message = tools.t_distribute_frames(source, count=3, rotate_per_index=120.0)
+            message = tools.implementacion("distribute_frames")(source, count=3, rotate_per_index=120.0)
             output = tools.dato_producido_runtime("distribute_frames")
 
             self.assertIn("DISTRIBUTE F ✓", message)
@@ -308,7 +308,7 @@ class MeshTests(unittest.TestCase):
         path = curve.CurvePath(((0.0, 0.0, 0.0), (0.0, 0.0, 100.0)))
         source = curve.frame_stream(path, count=4)["frame_set"]
         try:
-            message = tools.t_transform_frames(source, offset_z=12.0, roll=15.0, scale=0.8)
+            message = tools.implementacion("transform_frames")(source, offset_z=12.0, roll=15.0, scale=0.8)
             output = tools.dato_producido_runtime("transform_frames")
 
             self.assertIn("TRANSFORM F ✓", message)
@@ -514,7 +514,7 @@ class MeshTests(unittest.TestCase):
         path = curve.CurvePath(((0.0, 0.0, 0.0), (0.0, 0.0, 100.0)))
         source = curve.frame_stream(path, count=4)["frame_set"]
         try:
-            message = tools.t_branch_from_frames(
+            message = tools.implementacion("branch_from_frames")(
                 source, length_min=100.0, length_max=100.0, segments=4,
             )
             output = tools.dato_producido_runtime("branch_from_frames")

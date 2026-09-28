@@ -194,9 +194,144 @@ def curve_smooth(curve_input, *, iterations=2, strength=0.5,
     return _resultado(result, "curve", "SMOOTH S")
 
 
+# ---- frames y ramas: también se mudaron de `tools.py` tal cual ----
+
+def curve_frames(curve_input, *, count=12, start=0.0, end=1.0,
+                   radial_offset=0.0, turns=0.0, angle_offset=0.0,
+                   radius_start=0.0, radius_end=0.0, samples=32, seed=7) -> tuple:
+    from . import curve
+    result = curve.frame_stream(
+        curve_input, count=int(count), start=float(start), end=float(end),
+        radial_offset=float(radial_offset), turns=float(turns),
+        angle_offset=float(angle_offset), radius_start=float(radius_start),
+        radius_end=float(radius_end), samples=int(samples), seed=int(seed),
+    )
+    return _resultado(result, "frame_set", "FRAMES F")
+
+
+def distribute_frames(frame_input, *, count=12, start=0.0, end=1.0,
+                        rotate_per_index=137.5, angle_offset=0.0,
+                        angle_jitter=0.0, parameter_jitter=0.0, seed=7) -> tuple:
+    from . import curve
+    result = curve.distribute_frames(
+        frame_input, count=int(count), start=float(start), end=float(end),
+        rotate_per_index=float(rotate_per_index), angle_offset=float(angle_offset),
+        angle_jitter=float(angle_jitter), parameter_jitter=float(parameter_jitter),
+        seed=int(seed),
+    )
+    return _resultado(result, "frame_set", "DISTRIBUTE F")
+
+
+def transform_frames(frame_input, *, offset_x=0.0, offset_y=0.0, offset_z=0.0,
+                       pitch=0.0, yaw=0.0, roll=0.0, scale=1.0,
+                       offset_jitter_x=0.0, offset_jitter_y=0.0,
+                       offset_jitter_z=0.0, pitch_jitter=0.0,
+                       yaw_jitter=0.0, roll_jitter=0.0, scale_jitter=0.0,
+                       inherit_scale=True, seed=7) -> tuple:
+    from . import curve
+    result = curve.transform_frames(
+        frame_input, offset_x=float(offset_x), offset_y=float(offset_y),
+        offset_z=float(offset_z), pitch=float(pitch), yaw=float(yaw), roll=float(roll),
+        scale=float(scale), offset_jitter_x=float(offset_jitter_x),
+        offset_jitter_y=float(offset_jitter_y), offset_jitter_z=float(offset_jitter_z),
+        pitch_jitter=float(pitch_jitter), yaw_jitter=float(yaw_jitter),
+        roll_jitter=float(roll_jitter), scale_jitter=float(scale_jitter),
+        inherit_scale=bool(inherit_scale), seed=int(seed),
+    )
+    return _resultado(result, "frame_set", "TRANSFORM F")
+
+
+def points_to_frames(stream_input, *, orientacion="normal", escala=1.0,
+                       escala_desde_peso=True, giro_al_azar=True, seed=7) -> tuple:
+    """Puente P → F: convierte el stream de puntos de Flow en frames que consume el tab Mesh."""
+    from . import curve
+    result = curve.frames_desde_puntos(
+        stream_input, orientacion=str(orientacion), escala=float(escala),
+        escala_desde_peso=bool(escala_desde_peso), giro_al_azar=bool(giro_al_azar),
+        seed=int(seed))
+    return _resultado(result, "frame_set", "POINTS TO F")
+
+
+def branch_from_frames(frame_input, *, length_min=200.0, length_max=400.0,
+                         angle=55.0, angle_jitter=0.0, curl=20.0,
+                         curl_jitter=0.0, segments=8, inherit_scale=True,
+                         relative_to_parent=False, profile=None, seed=7) -> tuple:
+    from . import curve
+    result = curve.branch_from_frames(
+        frame_input, length_min=float(length_min), length_max=float(length_max),
+        angle=float(angle), angle_jitter=float(angle_jitter), curl=float(curl),
+        curl_jitter=float(curl_jitter), segments=int(segments),
+        inherit_scale=bool(inherit_scale),
+        relative_to_parent=bool(relative_to_parent), profile=profile, seed=int(seed),
+    )
+    return _resultado(result, "curve", "BRANCH FROM F")
+
+
+def curve_child(curve_input, *, at=0.5, length=300.0, angle=55.0, azimuth=0.0,
+                  bend=40.0, radial_offset=0.0, segments=8, samples=32) -> tuple:
+    from . import curve
+    result = curve.child(
+        curve_input, at=float(at), length=float(length), angle=float(angle),
+        azimuth=float(azimuth), bend=float(bend), radial_offset=float(radial_offset),
+        segments=int(segments), samples=int(samples),
+    )
+    return _resultado(result, "curve", "CHILD S")
+
+
+def curve_branches(curve_input, *, count=12, start=0.2, end=0.92,
+                     length_min=200.0, length_max=400.0,
+                     parent_scale_start=1.0, parent_scale_end=1.0,
+                     angle=70.0, angle_jitter=8.0, rotate_per_index=137.0,
+                     azimuth=0.0, azimuth_jitter=5.0, bend=40.0,
+                     bend_jitter=20.0, radial_offset=0.0,
+                     segments=8, samples=32, seed=7) -> tuple:
+    from . import curve
+    result = curve.branches(
+        curve_input, count=int(count), start=float(start), end=float(end),
+        length_min=float(length_min), length_max=float(length_max),
+        parent_scale_start=float(parent_scale_start), parent_scale_end=float(parent_scale_end),
+        angle=float(angle), angle_jitter=float(angle_jitter),
+        rotate_per_index=float(rotate_per_index), azimuth=float(azimuth),
+        azimuth_jitter=float(azimuth_jitter), bend=float(bend),
+        bend_jitter=float(bend_jitter), radial_offset=float(radial_offset),
+        segments=int(segments), samples=int(samples), seed=int(seed),
+    )
+    return _resultado(result, "curve", "BRANCHES S")
+
+
+def curve_fuse_collinear(curve_input, *, angle_tolerance=1.0,
+                           distance_tolerance=0.01, samples=32) -> tuple:
+    from . import curve
+    result = curve.fuse_collinear(
+        curve_input, angle_tolerance=float(angle_tolerance),
+        distance_tolerance=float(distance_tolerance), samples=int(samples))
+    return _resultado(result, "curve", "FUSE COLLINEAR S")
+
+
+def curve_subdivide(curve_input, *, mode="distance", distance=100.0,
+                      count=1, samples=32) -> tuple:
+    from . import curve
+    result = curve.subdivide(
+        curve_input, mode=mode, distance=float(distance), count=int(count),
+        samples=int(samples))
+    return _resultado(result, "curve", "SUBDIVIDE S")
+
+
+def curve_offset(curve_input, *, distance=100.0, side="left", plane="xy",
+                   join="miter", miter_limit=4.0, samples=32) -> tuple:
+    from . import curve
+    result = curve.offset(
+        curve_input, distance=float(distance), side=side, plane=plane, join=join,
+        miter_limit=float(miter_limit), samples=int(samples))
+    return _resultado(result, "curve", "OFFSET S")
+
+
+
 IMPLEMENTA = {"mesh_box": mesh_box, **{v: globals()[v] for v in (
     "mesh_quad", "mesh_grid", "mesh_disc", "mesh_transform", "mesh_merge",
     "mesh_cylinder", "mesh_cone", "mesh_sphere", "mesh_pipe",
     "graph_curve", "series_range", "series_remap", "curve_bezier", "curve_polyline",
     "curve_interpolate", "curve_line", "curve_line_sdl", "curve_move", "curve_resample",
-    "curve_smooth")}}
+    "curve_smooth", "curve_frames", "distribute_frames", "transform_frames", "points_to_frames",
+    "branch_from_frames", "curve_child", "curve_branches", "curve_fuse_collinear", "curve_subdivide",
+    "curve_offset")}}
