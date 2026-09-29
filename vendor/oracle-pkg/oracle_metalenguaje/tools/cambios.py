@@ -21,7 +21,8 @@ from pathlib import Path
 
 from nucleo.caso import leer as leer_caso
 from nucleo.medida import cargar_catalogo
-from nucleo.proyecto import ProyectoInvalido, _sombra_declarada, macros_del_proyecto
+from nucleo.proyecto import (EscalaresInvalidas, EscalaresNoConfiables, ProyectoInvalido,
+                             _sombra_declarada, escalares_del_proyecto, macros_del_proyecto)
 
 SUPERIORES = ("<", "<=")
 INFERIORES = (">", ">=")
@@ -40,7 +41,10 @@ def _extraer(raiz: Path, ref: str, destino: Path, rutas: list[str]) -> None:
     """Copia a `destino` los archivos que `rutas` tenían en `ref`, relativos al proyecto."""
     prefijo = _git(raiz, "rev-parse", "--show-prefix").strip()
     for ruta in rutas:
-        for nombre in _git(raiz, "ls-tree", "-r", "--name-only", ref, "--", ruta).splitlines():
+        # `--full-name`: sin él, git devuelve rutas relativas al directorio actual, y a un proyecto
+        # que vive en un subdirectorio del repositorio (el `medidas/` de un consumidor) se le quitaba
+        # el prefijo dos veces. Lo encontró la adopción en LyraGASP.
+        for nombre in _git(raiz, "ls-tree", "-r", "--name-only", "--full-name", ref, "--", ruta).splitlines():
             relativo = nombre[len(prefijo):]
             salida = destino / relativo
             salida.parent.mkdir(parents=True, exist_ok=True)
@@ -121,7 +125,17 @@ def comparar(antes: dict, despues: dict, casos_antes: dict, casos_despues: dict,
     return errores, avisos
 
 
-def main(proy, ref: str = "HEAD") -> int:
+def main(proy, ref: str = "HEAD", *, confiar: bool = False) -> int:
+    # Las medidas de un proyecto pueden usar sus escalares: sin registrarlas, el catálogo no carga.
+    try:
+        with escalares_del_proyecto(proy, confiar=confiar):
+            return _main(proy, ref)
+    except (EscalaresNoConfiables, EscalaresInvalidas) as e:
+        print(f"ESCALARES EXTERNAS NO EJECUTADAS — {e}")
+        return 1
+
+
+def _main(proy, ref: str) -> int:
     raiz = proy.raiz
     try:
         _git(raiz, "rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}")
@@ -140,8 +154,12 @@ def main(proy, ref: str = "HEAD") -> int:
         except (ValueError, ProyectoInvalido) as e:
             print(f"✗ no se pudo leer el catálogo de {ref}: {e}")
             return 1
-    errores, avisos = comparar(antes, _medidas(raiz, proy, macros), casos_antes, _casos(raiz),
-                               sombra_antes, _sombra(raiz))
+    try:
+        despues, casos_despues, sombra_despues = _medidas(raiz, proy, macros), _casos(raiz), _sombra(raiz)
+    except (ValueError, ProyectoInvalido) as e:
+        print(f"✗ no se pudo leer el catálogo del árbol de trabajo: {e}")
+        return 1
+    errores, avisos = comparar(antes, despues, casos_antes, casos_despues, sombra_antes, sombra_despues)
     print(f"cambios desde {ref}:")
     for linea in errores:
         print(f"✗ {linea}")

@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# Antes de empujar: `oracle cambios` contra lo que ya está en el remoto. Bloquea si un cambio afloja
+# el catálogo de medidas/ sin declararlo (ver AGENTS.md, sección de Oracle).
+# Se activa una vez por clon: git config core.hooksPath .githooks. Necesita Oracle 0.36.1 o posterior.
+set -eo pipefail
+
+ORACLE_CMD=${ORACLE:-oracle}
+ZERO_SHA="0000000000000000000000000000000000000000"
+
+fallo=0
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+    # Borrado de rama: no bloquear
+    if [ "$local_sha" = "$ZERO_SHA" ] || [ "$local_ref" = "(delete)" ]; then
+        continue
+    fi
+
+    # Rama nueva: usar git merge-base <sha local> origin/main
+    if [ "$remote_sha" = "$ZERO_SHA" ]; then
+        base=$(git merge-base "$local_sha" origin/main 2>/dev/null || true)
+        if [ -z "$base" ]; then
+            echo "oracle cambios: rama nueva sin base común con origin/main; push permitido sin verificar."
+            continue
+        fi
+    else
+        base="$remote_sha"
+    fi
+
+    echo "oracle cambios: verificando cambios contra $base..."
+    if ! $ORACLE_CMD cambios --desde "$base" --proyecto medidas --confiar-escalares; then
+        echo "oracle cambios: push bloqueado porque el catálogo aflojó verificaciones sin justificación en 'porque'." >&2
+        fallo=1
+    fi
+done
+
+if [ "$fallo" -ne 0 ]; then
+    exit 1
+fi
+
+exit 0

@@ -40,7 +40,7 @@ Jam lo usa por **dos caminos a la vez**, y hacen falta los dos:
 ```bash
 # 1. los COMANDOS, para vos y para relevo.py
 uv tool install oracle-metalenguaje          # deja los 10 ejecutables en el PATH
-oracle --version                             # tiene que decir 0.36.0
+oracle --version                             # tiene que decir 0.36.1
 
 oracle-corpus      --proyecto medidas
 oracle-aceptacion  --proyecto medidas --confiar-escalares
@@ -48,11 +48,18 @@ oracle-diferencial --proyecto medidas --confiar-escalares
 oracle-mutar       --proyecto medidas --confiar-escalares
 oracle-estudio     --proyecto medidas --confiar-escalares
 oracle test        --proyecto medidas --confiar-escalares   # la secuencia entera
+oracle cobertura   --proyecto medidas --confiar-escalares   # qué promesas de Jam se miden
 ```
+
+Los **requisitos** (`medidas/requisitos/*.requisito`) dicen qué promete Jam, qué medidas lo
+defienden y qué queda sin medir; `oracle cobertura` los lista. Jam no tiene CI, así que
+`.githooks/pre-push` corre `oracle cambios` en cada push y lo bloquea si el catálogo se afloja sin
+reescribir su `porque` (un umbral subido, un `requiere` quitado). Se activa una vez por clon con
+`git config core.hooksPath .githooks`. Las dos cosas necesitan Oracle 0.36.1 o posterior.
 
 ```bash
 # 2. el PAQUETE, para el intérprete embebido de Unreal
-python3 -m pip install --target vendor/oracle-pkg --no-deps "oracle-metalenguaje==0.36.0"
+python3 -m pip install --target vendor/oracle-pkg --no-deps "oracle-metalenguaje==0.36.1"
 rm -rf vendor/oracle-pkg/bin        # scripts con shebang de esta máquina; no van al repo
 ```
 
