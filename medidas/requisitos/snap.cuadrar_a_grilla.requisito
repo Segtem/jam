@@ -1,0 +1,5 @@
+requisito snap.cuadrar_a_grilla:
+    texto "Las piezas alineadas con snap ajustan su pivote a la grilla y su ángulo yaw al paso angular"
+    fuente "Vault-kb/04-Ejecucion-y-pruebas/2026-09-10-GUIA-DSL-De-Jam-v1.0.md"
+    medido_por snap.grilla, snap.yaw
+    sin_medir "si el pivote está bien ubicado dentro de la malla, orientación pitch y roll, ni si la pieza apunta en sentido opuesto"

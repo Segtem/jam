@@ -1,0 +1,5 @@
+requisito vault.enlaces_validos:
+    texto "Todo wikilink dentro del vault resuelve a un documento existente"
+    fuente "Vault-kb/00-Proceso/2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0.md"
+    medido_por vault.enlace_resuelve
+    sin_medir "si el enlace apunta al documento pertinente, ni documentos que nadie enlaza"

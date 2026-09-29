@@ -1,0 +1,5 @@
+requisito malla.solido_cerrado:
+    texto "Los sólidos procedurales forman mallas cerradas sin bordes abiertos y con volumen orientado hacia afuera"
+    fuente "Vault-kb/02-TreeGen/2026-08-09-INFORME-Biblioteca-Ejemplos-Malla-Procedural-v1.0.md"
+    medido_por malla.solido_esta_cerrado, malla.solido_hacia_afuera
+    sin_medir "autointersecciones, caras duplicadas superpuestas, caras internas sobrantes, si el interior es hueco por diseño, escala ni calidad de la topología"

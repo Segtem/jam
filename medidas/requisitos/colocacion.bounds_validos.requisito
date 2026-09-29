@@ -1,0 +1,4 @@
+requisito colocacion.bounds_validos:
+    texto "Toda pieza colocada tiene una caja delimitadora tridimensional válida con volumen positivo"
+    medido_por colocacion.bounds
+    sin_medir "si la malla está partida, invertida, ni si tiene geometría adentro del bounding box"

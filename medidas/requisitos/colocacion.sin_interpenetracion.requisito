@@ -1,0 +1,5 @@
+requisito colocacion.sin_interpenetracion:
+    texto "Lo que Jam coloca no queda metido dentro de otra pieza vecina"
+    fuente "Vault-kb/04-Ejecucion-y-pruebas/2026-09-10-GUIA-DSL-De-Jam-v1.0.md"
+    medido_por colocacion.interpenetracion, scatter.interpenetracion
+    sin_medir "malla real, piezas cóncavas, proximidad visual, oclusión, flotación ni choques contra lo que ya estaba en la escena antes de la tanda"

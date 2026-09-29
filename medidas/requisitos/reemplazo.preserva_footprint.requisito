@@ -1,0 +1,5 @@
+requisito reemplazo.preserva_footprint:
+    texto "Al reemplazar un blockout por el asset final se preservan la planta, el centrado y la cota de apoyo"
+    fuente "Vault-kb/04-Ejecucion-y-pruebas/2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0.md"
+    medido_por reemplazo.apoyado, reemplazo.centrado, reemplazo.footprint
+    sin_medir "contacto real de malla, pendiente, colisión, socket de apoyo, terreno bajo el reemplazo, pivote semántico, orientación visual, silueta, voladizos, forma cóncava, huecos transitables, altura, navegación ni volumen ocupado dentro de la caja"

@@ -1,0 +1,5 @@
+requisito vault.nomenclatura_estable:
+    texto "Los documentos del vault tienen nombres únicos en ASCII siguiendo la convención de fecha, tipo y versión"
+    fuente "Vault-kb/00-Proceso/2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0.md"
+    medido_por vault.fecha_coincide, vault.nombre_es_ascii, vault.nombre_sigue_la_convencion, vault.nombre_unico_en_el_vault
+    sin_medir "si updated es cierto, el título con acentos y puntuación, si el nombre describe bien el contenido, si la versión declarada corresponde, ni nombres parecidos pero distintos"

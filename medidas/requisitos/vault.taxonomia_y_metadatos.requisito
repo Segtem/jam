@@ -1,0 +1,5 @@
+requisito vault.taxonomia_y_metadatos:
+    texto "Todo documento pertenece a una carpeta conocida con frontmatter completo y coincidente en área y tipo"
+    fuente "Vault-kb/00-Proceso/2026-07-29-GUIA-Convencion-Documentacion-Vault-v1.0.md"
+    medido_por vault.area_es_la_carpeta, vault.carpeta_conocida, vault.frontmatter_completo, vault.ningun_doc_suelto_en_la_raiz, vault.tipo_coincide
+    sin_medir "si el documento está en la carpeta correcta, si la lista de carpetas es la correcta ni si falta alguna, si el contenido del frontmatter es cierto, archivos que no sean .md, README.md en la raíz, ni si el tipo elegido es el correcto"

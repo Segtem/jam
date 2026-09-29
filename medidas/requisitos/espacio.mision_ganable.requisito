@@ -1,0 +1,5 @@
+requisito espacio.mision_ganable:
+    texto "Un mapa de extracción tiene un inicio único, una meta única y un recorrido ganable hasta la extracción"
+    fuente "Vault-kb/04-Ejecucion-y-pruebas/2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0.md"
+    medido_por espacio.ganable, espacio.inicio_unico, espacio.meta_unica
+    sin_medir "geometría, distancias, navmesh, movimiento real, switches, hazards, flags, recursos, tareas, canales, volumen de extracción, temporizador, interacción, colisión ni visibilidad"

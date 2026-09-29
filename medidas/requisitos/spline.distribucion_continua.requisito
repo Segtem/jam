@@ -1,0 +1,5 @@
+requisito spline.distribucion_continua:
+    texto "La distribución a lo largo de una spline cubre el recorrido con piezas a su largo real sin huecos ni solapes"
+    fuente "Vault-kb/04-Ejecucion-y-pruebas/2026-09-10-GUIA-DSL-De-Jam-v1.0.md"
+    medido_por spline.cobertura, spline.sin_solape
+    sin_medir "huecos internos, sobrante final por separado, visibilidad, cobertura de la malla real, AABB tridimensional, triángulos, ancho, curvas cerradas, cruces no adyacentes, jitter visual ni colisión real"

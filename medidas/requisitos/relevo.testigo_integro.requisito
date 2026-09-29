@@ -1,0 +1,5 @@
+requisito relevo.testigo_integro:
+    texto "El testigo RELEVO.md contiene todos sus campos obligatorios, seis secciones fijas y nombra a dos agentes distintos"
+    fuente "Vault-kb/00-Proceso/2026-07-29-GUIA-Relevo-Claude-Codex-v1.0.md"
+    medido_por relevo.agentes_conocidos, relevo.el_relevo_tiene_dos_puntas, relevo.testigo_tiene_sus_campos, relevo.testigo_tiene_sus_secciones
+    sin_medir "si el agente nombrado es el que realmente va a trabajar, si el reparto de turnos es el que corresponde, veracidad del contenido de los campos, si las secciones contienen texto debajo ni si lo que dicen es de este turno"

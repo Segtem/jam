@@ -1,0 +1,5 @@
+requisito snap.encajar_al_ras:
+    texto "El encaje al ras alinea las caras de dos piezas sobre el eje solicitado con solape lateral sin solaparse"
+    fuente "Vault-kb/04-Ejecucion-y-pruebas/2026-08-02-INFORME-Certificacion-Jam-UE-5-8-1-v1.0.md"
+    medido_por snap.al_ras, snap.comparte_cara
+    sin_medir "superficie compartida en los otros dos ejes, geometría real dentro del AABB, coincidencia de la cara real de la malla, orientación topológica ni obstrucciones"

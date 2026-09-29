@@ -1,0 +1,5 @@
+requisito malla.superficie_orientada:
+    texto "Las superficies procedurales muestran sus caras frontales hacia el lado visible del motor coherentes con sus normales"
+    fuente "Vault-kb/03-Mesh-y-materiales/2026-08-13-ROADMAP-Modelado-Japones-Como-Medidas-v1.0.md"
+    medido_por malla.cara_visible, malla.superficie_sin_vueltas
+    sin_medir "si la cara coincide con la intención del autor ante una inversión conjunta de normales y triángulos, materiales, huecos, UV, doble cara, triángulos que se tapan entre sí, autointersecciones ni pliegues donde la superficie se dobla sobre sí misma conservando el lado"

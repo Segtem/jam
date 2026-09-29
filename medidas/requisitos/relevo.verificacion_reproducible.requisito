@@ -1,0 +1,5 @@
+requisito relevo.verificacion_reproducible:
+    texto "La verificación de editor declarada en el relevo apunta a un commit existente en la historia del repositorio"
+    fuente "Vault-kb/00-Proceso/2026-07-29-GUIA-Relevo-Claude-Codex-v1.0.md"
+    medido_por relevo.verificacion_existe
+    sin_medir "si en ese commit la verificación se corrió de verdad"

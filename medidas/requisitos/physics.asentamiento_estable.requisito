@@ -1,0 +1,5 @@
+requisito physics.asentamiento_estable:
+    texto "Las piezas soltadas con física encuentran suelo y asientan sobre su base o soporte sin flotar, hundirse ni interpenetrarse"
+    fuente "Vault-kb/04-Ejecucion-y-pruebas/2026-09-10-GUIA-DSL-De-Jam-v1.0.md"
+    medido_por physics.apoyado, physics.tanda_completa, physics.tanda_sin_interpenetracion, physics.tiene_suelo
+    sin_medir "contacto real de triángulos de la malla, landscapes, equilibrio, centro de masa, rotación, penetración lateral, si el soporte es apropiado o estable, resistencia, pendiente, vuelco posterior, colisión Chaos ni colisiones contra la escena externa"

@@ -1,0 +1,5 @@
+requisito scatter.reparto_en_area:
+    texto "El reparto de scatter genera la cantidad pedida de instancias dentro del área sin amontonarse"
+    fuente "Vault-kb/04-Ejecucion-y-pruebas/2026-09-10-GUIA-DSL-De-Jam-v1.0.md"
+    medido_por scatter.cantidad, scatter.cobertura, scatter.contencion
+    sin_medir "si las instancias son las correctas ni si el pedido era razonable para el área, uniformidad dentro de cada celda, distancias entre vecinos, patrones, orientación, calidad visual, cuánto sobresale la malla por su tamaño, regiones rotadas, altura Z ni superficies irregulares"
