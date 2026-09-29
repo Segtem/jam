@@ -1,6 +1,8 @@
-ninguno colocacion.bounds:
+medida colocacion.bounds:
     de pieza a
     donde volumen(hecho(a)) <= 0.001
-    umbral <= 0 segun sin_declarar porque "una malla vacía o degenerada da volumen ~0: la colocación es inútil aunque no choque con nada"
+    resumen contar(1)
+    umbral <= 0 porque "una malla vacía o degenerada da volumen ~0: la colocación es inútil aunque no choque con nada"
+    requiere pieza
     ambito universal
     alcance "volumen del AABB. NO ve si la malla está partida, invertida, ni si tiene geometría adentro del bounding box"

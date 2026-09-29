@@ -1,0 +1,6 @@
+{"escena": [
+  {"id": "Suelo", "asset": "/Engine/BasicShapes/Cube.Cube", "loc": [0, 0, -10], "escala": [20, 20, 0.2]},
+  {"id": "Muro_Norte", "asset": "/Engine/BasicShapes/Cube.Cube", "loc": [0, 0, 100], "escala": [4, 0.2, 2]}],
+ "tanda": [
+  {"id": "Caja_A", "asset": "/Engine/BasicShapes/Cube.Cube", "loc": [-60, 60, 50]},
+  {"id": "Caja_B", "asset": "/Engine/BasicShapes/Cube.Cube", "loc": [40, 60, 50]}]}

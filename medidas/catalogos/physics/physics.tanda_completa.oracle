@@ -1,6 +1,8 @@
-ninguno physics.tanda_completa:
+medida physics.tanda_completa:
     de asentada a
     donde a.apoyada_medible == false o a.apoyada == false
-    umbral <= 0 segun sin_declarar porque "cero piezas sin soporte: un drop parcial no puede quedar verde aunque otra pieza sí haya aterrizado"
+    resumen contar(1)
+    umbral <= 0 porque "cero piezas sin soporte: un drop parcial no puede quedar verde aunque otra pieza sí haya aterrizado"
+    requiere asentada
     ambito universal
     alcance "el indicador de soporte que entrega el asentador. NO ve si el soporte es estable, transitable, resistente o apropiado para el asset"

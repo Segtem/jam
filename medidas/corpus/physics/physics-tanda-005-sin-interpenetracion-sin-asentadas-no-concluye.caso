@@ -1,0 +1,16 @@
+caso physics-tanda-005-sin-interpenetracion-sin-asentadas-no-concluye:
+    fecha: "2026-09-29"
+    origen:
+        repo: "Brianholl/jam"
+        commit: "sonda-escena-l0"
+    titulo: "Sin piezas asentadas no hay pares que juzgar"
+    etiqueta: falso_verde
+    espera: sin_evidencia
+    sintoma:
+        `physics.tanda_sin_interpenetracion` resume con `max` sobre los pares: una tanda vacía daba 0 y salía VERDE. Se vio al cerrar el ciclo de `tools/colocar_y_juzgar.py`: si la sonda no coloca nada, la evidencia llega vacía y la colocación se aprobaba sin haber mirado una sola pieza.
+    como_se_detecto: persona
+    medida: physics.tanda_sin_interpenetracion
+    evidencia:
+        asentada:
+    leccion:
+        Un conteo o un máximo sobre cero filas es indistinguible de uno que dio cero; la medida lo declara con `requiere`.

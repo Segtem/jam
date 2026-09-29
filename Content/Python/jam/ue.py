@@ -213,6 +213,17 @@ def actores_nivel() -> list:
     return _sub().get_all_level_actors()
 
 
+def hechos_escena(tanda) -> dict:
+    """Los hechos L0 de la escena con `tanda` recién colocada (`jam.hechos_escena`), para
+    `oracle juzgar`. La escena son los actores con malla —no luces, cámaras ni volúmenes, cuya caja
+    de editor daría choques que no existen—, sin la tanda y sin lo de Jam que no es escena."""
+    from . import hechos_escena as he
+    fuera = {a.get_path_name() for a in list(tanda) + actores_de_jam()}
+    escena = [a for a in actores_nivel() if a.get_path_name() not in fuera
+              and a.get_components_by_class(unreal.StaticMeshComponent)]
+    return he.hechos(piezas(tanda), piezas(escena))
+
+
 # ---- puentes actor → oráculo puro (para callers que tienen actores del editor) ----
 
 def _registrar_sombra(dominio: str, comparacion) -> None:

@@ -1,0 +1,16 @@
+caso physics-008-tiene-suelo-sin-asentamiento-no-concluye:
+    fecha: "2026-09-29"
+    origen:
+        repo: "Brianholl/jam"
+        commit: "sonda-escena-l0"
+    titulo: "Sin filas de asentamiento no hay suelo que buscar"
+    etiqueta: falso_verde
+    espera: sin_evidencia
+    sintoma:
+        `physics.tiene_suelo` cuenta piezas sin soporte: sobre cero filas contaba cero y salía VERDE. Se vio al cerrar el ciclo de `tools/colocar_y_juzgar.py`: si la sonda no coloca nada, la evidencia llega vacía y la colocación se aprobaba sin haber mirado una sola pieza.
+    como_se_detecto: persona
+    medida: physics.tiene_suelo
+    evidencia:
+        asentamiento:
+    leccion:
+        Un conteo o un máximo sobre cero filas es indistinguible de uno que dio cero; la medida lo declara con `requiere`.

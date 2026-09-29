@@ -1,0 +1,16 @@
+caso physics-tanda-004-completa-sin-asentadas-no-concluye:
+    fecha: "2026-09-29"
+    origen:
+        repo: "Brianholl/jam"
+        commit: "sonda-escena-l0"
+    titulo: "Sin piezas asentadas la tanda no está completa"
+    etiqueta: falso_verde
+    espera: sin_evidencia
+    sintoma:
+        `physics.tanda_completa` cuenta piezas sin apoyo: una tanda vacía contaba cero y salía VERDE. Se vio al cerrar el ciclo de `tools/colocar_y_juzgar.py`: si la sonda no coloca nada, la evidencia llega vacía y la colocación se aprobaba sin haber mirado una sola pieza.
+    como_se_detecto: persona
+    medida: physics.tanda_completa
+    evidencia:
+        asentada:
+    leccion:
+        Un conteo o un máximo sobre cero filas es indistinguible de uno que dio cero; la medida lo declara con `requiere`.
