@@ -1,6 +1,6 @@
 # Oracle 0.36.1, vendorizado, y oracle cambios antes de cada push
 
-- ESTADO: ABIERTA
+- ESTADO: CERRADA
 - PRIORIDAD: 50
 - ETIQUETAS: 
 
