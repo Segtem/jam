@@ -1,6 +1,6 @@
 # Oracle 0.35.0, vendorizado
 
-- ESTADO: ABIERTA
+- ESTADO: CERRADA
 - PRIORIDAD: 50
 - ETIQUETAS: 
 
