@@ -109,3 +109,25 @@ class NucleoDelEditor(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PuertoOcupado(unittest.TestCase):
+    def test_un_editor_nuevo_le_pide_el_puerto_al_viejo(self):
+        # Unity recarga scripts y pierde el proceso que lanzó: el viejo sigue con el puerto.
+        import http.server
+        import threading
+
+        from jam import servidor
+        viejo = http.server.ThreadingHTTPServer(("127.0.0.1", 0),
+                                                servidor._handler(servidor.Nucleo("unity")))
+        puerto = viejo.server_address[1]
+        hilo = threading.Thread(target=viejo.serve_forever, kwargs={"poll_interval": 0.02})
+        hilo.start()
+        nuevo = servidor._ocupar(puerto, servidor._handler(servidor.Nucleo("unity")))
+        try:
+            hilo.join(timeout=5)
+            self.assertFalse(hilo.is_alive(), "el viejo tenía que salir")
+            self.assertEqual(nuevo.server_address[1], puerto)
+        finally:
+            viejo.server_close()
+            nuevo.server_close()

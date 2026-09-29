@@ -8,10 +8,21 @@ namespace Jam
     /// proceso aparte (<c>python3 -m jam.servidor --motor unity</c>, puerto 8796), que habla con este
     /// editor por el contrato (JamServidor, 8793). Si ya está corriendo, sólo abre otra ventana.
     /// </summary>
+    [InitializeOnLoad]
     public static class JamEditorWeb
     {
         const string Url = "http://127.0.0.1:8796/";
         static Process _nucleo;
+
+        // Al cerrar Unity se cierra también el núcleo, como hace el plugin de Godot. Si Unity recarga
+        // scripts pierde esta referencia, y el núcleo nuevo le pide el puerto al viejo (servidor._ocupar).
+        static JamEditorWeb()
+        {
+            EditorApplication.quitting += () =>
+            {
+                try { if (_nucleo != null && !_nucleo.HasExited) _nucleo.Kill(); } catch { }
+            };
+        }
 
         // Dónde está el núcleo y con qué Python: los escribe `tools/instalar.py` en
         // ProjectSettings/JamNucleo.json. Sin instalar, el lugar de la máquina de desarrollo.

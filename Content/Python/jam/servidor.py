@@ -181,6 +181,14 @@ def _handler(nucleo: Nucleo):
             return self._enviar(200, archivo.read_bytes(), tipo + "; charset=utf-8")
 
         def do_POST(self):
+            if self.path == "/salir":
+                # Lo pide un editor nuevo que quiere este puerto (ver `servir`).
+                self._enviar(200, b'{"ok": true}', "application/json")
+                def soltar(srv=self.server):
+                    srv.shutdown()
+                    srv.server_close()   # el puerto, ya: no esperar a que el proceso termine
+                threading.Thread(target=soltar, daemon=True).start()
+                return
             nombre = self.path.split("?", 1)[0].removeprefix("/api/")
             if nombre not in Nucleo.PUBLICAS:
                 return self._enviar(404, json.dumps({"error": f"«{nombre}» no es pública"}).encode(),
@@ -211,8 +219,34 @@ def abrir_ventana(url: str) -> None:
     webbrowser.open(url)
 
 
+def _ocupar(puerto: int, handler) -> http.server.ThreadingHTTPServer:
+    """El puerto, aunque lo tenga un editor de Jam viejo. Pasa: el motor se reinicia (o Unity recarga
+    sus scripts) y pierde el proceso que había lanzado, que sigue vivo con el código de ANTES. En
+    vez de morir con «Address already in use» sin abrir nada, se le pide que salga y se toma su
+    lugar, así siempre corre el núcleo actual."""
+    import time
+    import urllib.request
+    try:
+        return http.server.ThreadingHTTPServer(("127.0.0.1", puerto), handler)
+    except OSError:
+        pass
+    try:
+        urllib.request.urlopen(urllib.request.Request(
+            f"http://127.0.0.1:{puerto}/salir", data=b"", method="POST"), timeout=3).read()
+    except OSError:
+        pass   # uno de antes de /salir, o algo que no es Jam: se reintenta y, si no, se dice
+    for _ in range(30):
+        time.sleep(0.2)
+        try:
+            return http.server.ThreadingHTTPServer(("127.0.0.1", puerto), handler)
+        except OSError:
+            continue
+    raise SystemExit(f"JAM_EDITOR el puerto {puerto} está ocupado y no lo suelta: cerrá el proceso "
+                     f"que lo tiene (en Linux: ss -ltnp | grep {puerto})")
+
+
 def servir(motor: str, puerto: int = PUERTO, abrir: bool = False) -> None:
-    servidor = http.server.ThreadingHTTPServer(("127.0.0.1", puerto), _handler(Nucleo(motor)))
+    servidor = _ocupar(puerto, _handler(Nucleo(motor)))
     url = f"http://127.0.0.1:{puerto}/"
     print(f"JAM_EDITOR {motor} en {url}", flush=True)
     if abrir:
