@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 import datetime
+import itertools
 import math
 from pathlib import Path
 from typing import Any
@@ -36,15 +37,10 @@ from nucleo.proyecto import (
 
 
 def extraer_fuentes(fuente: list) -> list[tuple[str, str]]:
-    """Devuelve la lista de (relacion, alias) del árbol de fuentes."""
-    if not isinstance(fuente, list) or not fuente:
-        return []
-    op = fuente[0]
-    if op == "de":
-        return [(fuente[1], fuente[2])]
-    if op == "unir":
+    """Devuelve la lista de (relacion, alias) del árbol de fuentes: `de` o `unir` (algebra.FUENTES)."""
+    if fuente[0] == "unir":
         return extraer_fuentes(fuente[1]) + extraer_fuentes(fuente[2])
-    return []
+    return [(fuente[1], fuente[2])]
 
 
 def extraer_accesos_campo(tuberia: list, resumen: list) -> dict[str, set[str]]:
@@ -54,13 +50,11 @@ def extraer_accesos_campo(tuberia: list, resumen: list) -> dict[str, set[str]]:
         campos[alias] = set()
 
     def _buscar(expr: Any) -> None:
+        # El árbol trae listas vacías (una medida sin agregados, por ejemplo).
         if not isinstance(expr, list) or not expr:
             return
-        cabeza = expr[0]
-        if cabeza == "campo" and len(expr) == 3 and isinstance(expr[1], str) and isinstance(expr[2], str):
-            alias, campo = expr[1], expr[2]
-            if alias in campos:
-                campos[alias].add(campo)
+        if expr[0] == "campo" and expr[1] in campos:
+            campos[expr[1]].add(expr[2])
         for sub in expr[1:]:
             _buscar(sub)
 
@@ -71,29 +65,55 @@ def extraer_accesos_campo(tuberia: list, resumen: list) -> dict[str, set[str]]:
 
 
 def _alt_val(val: Any) -> Any:
-    if isinstance(val, bool):
-        return not val
-    if isinstance(val, int):
-        return val + 1 if val == 0 else 0
-    if isinstance(val, float):
-        return val + 1.0 if val == 0.0 else 0.0
+    """Un valor distinto de `val` y del mismo tipo; cuál, no importa."""
+    if isinstance(val, (bool, int, float)):
+        return type(val)(not val)
     if isinstance(val, str):
         return "algo" if val == "" else ""
     return "otro"
 
 
-def resolver_predicado(expr: Any, objetivo: bool = True) -> dict[str, dict[str, Any]]:
+_OPUESTO = {"<": ">=", "<=": ">", ">": "<=", ">=": "<", "==": "!=", "!=": "=="}
+_ESPEJO = {"<": ">", "<=": ">=", ">": "<", ">=": "<=", "==": "==", "!=": "!="}
+# Dos campos comparados entre sí: textos que cumplen el comparador en orden lexicográfico.
+_PARES_DE_CAMPOS = {"==": ("mismo_valor", "mismo_valor"), "!=": ("valor_a", "valor_b"),
+                    "<": ("01-A", "02-B"), "<=": ("01-A", "02-B"),
+                    ">": ("02-B", "01-A"), ">=": ("02-B", "01-A")}
+
+
+def _menor(val):
+    return math.nextafter(val, -math.inf) if isinstance(val, float) else val - 1
+
+
+def _mayor(val):
+    return math.nextafter(val, math.inf) if isinstance(val, float) else val + 1
+
+
+def _valor_que_cumple(op: str, val: Any) -> Any:
+    """Un valor `v` con `v op val` cierto; None si `val` no es un número que se pueda ordenar."""
+    if op == "==":
+        return val
+    if op == "!=":
+        return _alt_val(val)
+    if isinstance(val, bool) or not isinstance(val, (int, float)):
+        return None
+    if op in ("<=", ">="):
+        return val
+    return _menor(val) if op == "<" else _mayor(val)
+
+
+def resolver_predicado(expr: Any, objetivo: bool) -> dict[str, dict[str, Any]]:
     """Dada una expresión de predicado, devuelve asignaciones de campos {alias: {campo: valor}}
 
     que hacen que la expresión evalúe a `objetivo` (True o False).
     """
-    if not isinstance(expr, list) or not expr:
+    if not isinstance(expr, list):
         return {}
 
     cabeza = expr[0]
 
     # 1. Negación
-    if cabeza == "no" and len(expr) == 2:
+    if cabeza == "no":
         return resolver_predicado(expr[1], not objetivo)
 
     # 2. Conjunción 'y'
@@ -138,212 +158,33 @@ def resolver_predicado(expr: Any, objetivo: bool = True) -> dict[str, dict[str, 
                     resultado.setdefault(alias, {}).update(vals)
             return resultado
 
-    # 4. Comparaciones
-    if cabeza in COMPARADORES and len(expr) == 3:
+    # 4. Comparaciones: se resuelve el comparador que tiene que cumplirse (el mismo si `objetivo`, el
+    # opuesto si no) y se fabrica un valor que lo cumpla. La propiedad la fija el test: el valor
+    # devuelto hace que la comparación dé `objetivo`.
+    if cabeza in COMPARADORES:
         izq, der = expr[1], expr[2]
+        op = cabeza if objetivo else _OPUESTO[cabeza]
+        es_campo = lambda nodo: isinstance(nodo, list) and nodo[0] == "campo"  # noqa: E731
 
-        # Caso: campo == literal
-        if isinstance(izq, list) and izq and izq[0] == "campo" and not isinstance(der, list):
-            alias, campo = izq[1], izq[2]
-            val = der
-            if cabeza == "==":
-                v = val if objetivo else _alt_val(val)
-                return {alias: {campo: v}}
-            if cabeza == "!=":
-                v = _alt_val(val) if objetivo else val
-                return {alias: {campo: v}}
-            if cabeza == "<":
-                if objetivo:
-                    v = (val - 1) if isinstance(val, int) else (val - 0.1 if isinstance(val, float) else 0)
-                else:
-                    v = val  # boundary: not < val
-                return {alias: {campo: v}}
-            if cabeza == "<=":
-                if objetivo:
-                    v = val  # boundary: <= val
-                else:
-                    v = (val + 1) if isinstance(val, int) else (val + 0.1 if isinstance(val, float) else 1)
-                return {alias: {campo: v}}
-            if cabeza == ">":
-                if objetivo:
-                    v = (val + 1) if isinstance(val, int) else (val + 0.1 if isinstance(val, float) else 2)
-                else:
-                    v = val  # boundary: not > val
-                return {alias: {campo: v}}
-            if cabeza == ">=":
-                if objetivo:
-                    v = val  # boundary: >= val
-                else:
-                    v = (val - 1) if isinstance(val, int) else (val - 0.1 if isinstance(val, float) else 0)
-                return {alias: {campo: v}}
-
-        # Caso: literal == campo
-        if isinstance(der, list) and der and der[0] == "campo" and not isinstance(izq, list):
-            # Invertir orden
-            inv_cmp = {"<": ">", "<=": ">=", ">": "<", ">=": "<=", "==": "==", "!=": "!="}[cabeza]
-            return resolver_predicado([inv_cmp, der, izq], objetivo)
-
-        # Caso: campo1 == campo2
-        if (isinstance(izq, list) and izq and izq[0] == "campo"
-                and isinstance(der, list) and der and der[0] == "campo"):
-            a1, f1 = izq[1], izq[2]
-            a2, f2 = der[1], der[2]
+        if es_campo(izq) and es_campo(der):
+            v1, v2 = _PARES_DE_CAMPOS[op]
             res: dict[str, dict[str, Any]] = {}
-            if cabeza == "==":
-                if objetivo:
-                    res.setdefault(a1, {})[f1] = "mismo_valor"
-                    res.setdefault(a2, {})[f2] = "mismo_valor"
-                else:
-                    res.setdefault(a1, {})[f1] = "valor_a"
-                    res.setdefault(a2, {})[f2] = "valor_b"
-                return res
-            if cabeza == "!=":
-                if objetivo:
-                    res.setdefault(a1, {})[f1] = "valor_a"
-                    res.setdefault(a2, {})[f2] = "valor_b"
-                else:
-                    res.setdefault(a1, {})[f1] = "mismo_valor"
-                    res.setdefault(a2, {})[f2] = "mismo_valor"
-                return res
-            if cabeza in ("<", "<="):
-                if objetivo:
-                    res.setdefault(a1, {})[f1] = "01-A"
-                    res.setdefault(a2, {})[f2] = "02-B"
-                else:
-                    res.setdefault(a1, {})[f1] = "02-B"
-                    res.setdefault(a2, {})[f2] = "01-A"
-                return res
-            if cabeza in (">", ">="):
-                if objetivo:
-                    res.setdefault(a1, {})[f1] = "02-B"
-                    res.setdefault(a2, {})[f2] = "01-A"
-                else:
-                    res.setdefault(a1, {})[f1] = "01-A"
-                    res.setdefault(a2, {})[f2] = "02-B"
-                return res
+            res.setdefault(izq[1], {})[izq[2]] = v1
+            res.setdefault(der[1], {})[der[2]] = v2
+            return res
+        if es_campo(der) and not isinstance(izq, list):
+            return resolver_predicado([_ESPEJO[cabeza], der, izq], objetivo)
+        if es_campo(izq) and not isinstance(der, list):
+            v = _valor_que_cumple(op, der)
+            return {} if v is None else {izq[1]: {izq[2]: v}}
+        # cerca(campo, blanco) op tolerancia: la distancia es |campo - blanco|.
+        if op not in ("==", "!=") and isinstance(izq, list) and izq[0] == "cerca" and es_campo(izq[1]):
+            blanco = izq[2]
+            v = blanco if op in ("<", "<=") else _mayor(blanco + der)
+            return {izq[1][1]: {izq[1][2]: v}}
 
-        # Caso: cerca(campo, target) > tol
-        if (cabeza in (">", ">=") and isinstance(izq, list) and izq and izq[0] == "cerca"
-                and len(izq) == 3 and isinstance(izq[1], list) and izq[1][0] == "campo"):
-            alias, campo = izq[1][1], izq[1][2]
-            target = izq[2]
-            tol = der
-            if objetivo:
-                return {alias: {campo: target + tol + 2.0}}
-            else:
-                return {alias: {campo: target}}
-
-        # Caso: cerca(campo, target) <= tol
-        if (cabeza in ("<", "<=") and isinstance(izq, list) and izq and izq[0] == "cerca"
-                and len(izq) == 3 and isinstance(izq[1], list) and izq[1][0] == "campo"):
-            alias, campo = izq[1][1], izq[1][2]
-            target = izq[2]
-            tol = der
-            if objetivo:
-                return {alias: {campo: target}}
-            else:
-                return {alias: {campo: target + tol + 2.0}}
-
-        # Caso: desvio_de_paso(campo, paso) > tol
-        if (cabeza in (">", ">=") and isinstance(izq, list) and izq and izq[0] == "desvio_de_paso"
-                and len(izq) == 3 and isinstance(izq[1], list) and izq[1][0] == "campo"):
-            alias, campo = izq[1][1], izq[1][2]
-            paso = izq[2]
-            tol = der
-            if objetivo:
-                return {alias: {campo: paso / 2.0}}
-            else:
-                return {alias: {campo: paso}}
-
-        # Caso: desvio_de_*(hecho, paso) > tol
-        if (cabeza in (">", ">=") and isinstance(izq, list) and izq and izq[0].startswith("desvio_de_")
-                and len(izq) == 3 and isinstance(izq[1], list) and izq[1][0] == "hecho"
-                and isinstance(izq[2], (int, float))):
-            alias = izq[1][1]
-            intervalo = izq[2]
-            if objetivo:
-                return {alias: {"lx": intervalo / 2.0, "ly": 0.0, "lz": 0.0}}
-            else:
-                return {alias: {"lx": float(intervalo), "ly": 0.0, "lz": 0.0}}
-
-        # Caso: desvio_de_contacto(hecho_a, hecho_b) > tol
-        if (cabeza in (">", ">=") and isinstance(izq, list) and izq and izq[0] == "desvio_de_contacto"
-                and len(izq) == 3 and isinstance(izq[1], list) and izq[1][0] == "hecho"
-                and isinstance(izq[2], list) and izq[2][0] == "hecho"):
-            a, b = izq[1][1], izq[2][1]
-            if objetivo:
-                return {
-                    a: {"ox": 0.0, "oy": 0.0, "oz": 0.0, "ex": 50.0, "ey": 50.0, "ez": 50.0},
-                    b: {"ox": 200.0, "oy": 0.0, "oz": 0.0, "ex": 50.0, "ey": 50.0, "ez": 50.0, "eje": "x"},
-                }
-            else:
-                return {
-                    a: {"ox": 0.0, "oy": 0.0, "oz": 0.0, "ex": 50.0, "ey": 50.0, "ez": 50.0},
-                    b: {"ox": 100.0, "oy": 0.0, "oz": 0.0, "ex": 50.0, "ey": 50.0, "ez": 50.0, "eje": "x"},
-                }
-
-        # Caso: solape_lateral_minimo(hecho_a, hecho_b) <= tol
-        if (cabeza in ("<", "<=") and isinstance(izq, list) and izq and izq[0] == "solape_lateral_minimo"
-                and len(izq) == 3 and isinstance(izq[1], list) and izq[1][0] == "hecho"
-                and isinstance(izq[2], list) and izq[2][0] == "hecho"):
-            a, b = izq[1][1], izq[2][1]
-            if objetivo:
-                return {
-                    a: {"ox": 0.0, "oy": 0.0, "oz": 0.0, "ex": 50.0, "ey": 50.0, "ez": 50.0},
-                    b: {"ox": 100.0, "oy": 0.0, "oz": 0.0, "ex": 50.0, "ey": 50.0, "ez": 50.0, "eje": "z"},
-                }
-            else:
-                return {
-                    a: {"ox": 0.0, "oy": 0.0, "oz": 0.0, "ex": 50.0, "ey": 50.0, "ez": 50.0},
-                    b: {"ox": 0.0, "oy": 0.0, "oz": 0.0, "ex": 50.0, "ey": 50.0, "ez": 50.0, "eje": "z"},
-                }
-
-        # Caso: penetracion(hecho_a, hecho_b) > 0
-        if (cabeza in (">", ">=") and isinstance(izq, list) and izq and izq[0] == "penetracion"
-                and len(izq) == 3 and isinstance(izq[1], list) and izq[1][0] == "hecho"
-                and isinstance(izq[2], list) and izq[2][0] == "hecho"):
-            a, b = izq[1][1], izq[2][1]
-            if objetivo:
-                return {
-                    a: {"id": "p1", "ox": 0.0, "oy": 0.0, "oz": 0.0, "ex": 50.0, "ey": 50.0, "ez": 50.0},
-                    b: {"id": "p2", "ox": 10.0, "oy": 0.0, "oz": 0.0, "ex": 50.0, "ey": 50.0, "ez": 50.0},
-                }
-            else:
-                return {
-                    a: {"id": "p1", "ox": 0.0, "oy": 0.0, "oz": 0.0, "ex": 50.0, "ey": 50.0, "ez": 50.0},
-                    b: {"id": "p2", "ox": 200.0, "oy": 0.0, "oz": 0.0, "ex": 50.0, "ey": 50.0, "ez": 50.0},
-                }
-
-        # Caso: volumen(hecho) <= tol
-        if (cabeza in ("<", "<=") and isinstance(izq, list) and izq and izq[0] == "volumen"
-                and len(izq) == 2 and isinstance(izq[1], list) and izq[1][0] == "hecho"):
-            alias = izq[1][1]
-            if objetivo:
-                return {alias: {"ex": 0.0, "ey": 0.0, "ez": 0.0}}
-            else:
-                return {alias: {"ex": 50.0, "ey": 50.0, "ez": 50.0}}
-
-    # 5. UDFs booleanas directas
-    if cabeza == "es_fondo" and len(expr) == 2 and isinstance(expr[1], list) and expr[1][0] == "hecho":
-        alias = expr[1][1]
-        if objetivo:
-            return {alias: {"ex": 60000.0, "ey": 60000.0, "ez": 60000.0}}
-        else:
-            return {alias: {"ex": 50.0, "ey": 50.0, "ez": 50.0}}
-
-    if cabeza == "fuera_de_region" and len(expr) == 3:
-        i, c = expr[1][1], expr[2][1]
-        if objetivo:
-            return {
-                i: {"ox": 1000.0, "oy": 1000.0, "oz": 0.0},
-                c: {"cx": 0.0, "cy": 0.0, "sx": 100.0, "sy": 100.0},
-            }
-        else:
-            return {
-                i: {"ox": 0.0, "oy": 0.0, "oz": 0.0},
-                c: {"cx": 0.0, "cy": 0.0, "sx": 100.0, "sy": 100.0},
-            }
-
+    # 5. UDFs booleanas directas. Sólo las escalares del propio Oracle: las de un consumidor no son
+    # del núcleo (hasta el 2026-09-29 había siete, escritas por nombre y sin casos generados).
     if cabeza == "contiene" and len(expr) == 3 and isinstance(expr[1], list) and expr[1][0] == "campo":
         alias, campo = expr[1][1], expr[1][2]
         aguja = expr[2]
@@ -396,17 +237,97 @@ def fabricar_filas(
             pred_res.setdefault(a, {}).update(vals)
 
     # 2. Armar las filas por relación
+    claves_de_sin: dict[str, set[str]] = {}
+    # El álgebra ya validó la forma: un `sin` es ["sin", ["de", rel, alias], condición].
+    for paso in tuberia[2:]:
+        if paso[0] == "sin":
+            for _campo, otro, campo_otro in _igualdades_con(paso[2], paso[1][2]):
+                claves_de_sin.setdefault(otro, set()).add(campo_otro)
     evidencia: dict[str, list[dict[str, Any]]] = {}
     for rel, alias in fuentes:
         valores_alias = pred_res.get(alias, {})
         fila = _rellenar_defaults(valores_alias, campos_por_al.get(alias, set()))
-        if "id" in fila and isinstance(fila["id"], str):
+        # El sufijo distingue filas, pero no puede tocar un valor que el `donde` fijó: un `id` que
+        # tiene que casar con el campo de otra relación dejaba de casar y el join no producía nada.
+        if "id" in fila and isinstance(fila["id"], str) and "id" not in valores_alias:
             fila["id"] = f"{fila['id']}{sufijo}"
         if "nombre" in fila and isinstance(fila["nombre"], str) and not valores_alias.get("nombre"):
             fila["nombre"] = f"{fila['nombre']}{sufijo}"
+        # Una clave con la que un `sin` busca pareja no puede quedar en su valor por defecto: la
+        # compartirían la fila que ofende y la que no, y la pareja salvaría a las dos. Se vuelve
+        # un texto único en TODA fila fabricada, para que las dos tengan el mismo tipo.
+        for campo in claves_de_sin.get(alias, ()):
+            if campo not in valores_alias:
+                fila[campo] = f"{campo}-{next(_CLAVES)}"
         evidencia.setdefault(rel, []).append(fila)
 
     return evidencia
+
+
+_CLAVES = itertools.count()
+
+
+def _igualdades_con(expr: Any, alias: str):
+    """(campo de `alias`, alias ajeno, campo ajeno) por cada `==` entre campos dentro de conjunciones.
+
+    Un `==` entre dos campos del mismo alias no une nada con la fila de afuera y no se cuenta."""
+    if not isinstance(expr, list):
+        return
+    if expr[0] == "y":
+        for sub in expr[1:]:
+            yield from _igualdades_con(sub, alias)
+    elif expr[0] == "==" and all(isinstance(lado, list) and lado[0] == "campo" for lado in expr[1:]):
+        lados = {expr[1][1]: expr[1][2], expr[2][1]: expr[2][2]}
+        if alias in lados and len(lados) == 2:
+            (otro, campo_otro), = ((a, c) for a, c in lados.items() if a != alias)
+            yield lados[alias], otro, campo_otro
+
+
+def _contiene_de(expr: Any, alias: str) -> dict[str, list[str]]:
+    """Los literales que `contiene` exige a cada campo de `alias`, en conjunción."""
+    salida: dict[str, list[str]] = {}
+    if isinstance(expr, list) and expr[0] == "y":
+        for sub in expr[1:]:
+            for campo, literales in _contiene_de(sub, alias).items():
+                salida.setdefault(campo, []).extend(literales)
+    elif (isinstance(expr, list) and expr[0] == "contiene"
+          and expr[1][:2] == ["campo", alias] and isinstance(expr[2], str)):
+        salida[expr[1][2]] = [expr[2]]
+    return salida
+
+
+def _campos_de(expr: Any, alias: str) -> set[str]:
+    if not isinstance(expr, list):
+        return set()
+    if expr[0] == "campo" and expr[1] == alias:
+        return {expr[2]}
+    return set().union(*(_campos_de(sub, alias) for sub in expr[1:]))
+
+
+def salvar_con_parejas(medida: Medida, evidencia: dict[str, list[dict[str, Any]]]) -> dict[str, list[dict[str, Any]]]:
+    """Agrega, por cada paso `sin`, la fila que hace que la tupla de `evidencia` NO pase el `sin`.
+
+    `evidencia` es la salida de UNA llamada a `fabricar_filas`: una fila por fuente. La pareja cumple
+    la condición del `sin`: los literales salen de `resolver_predicado` y cada igualdad con un campo
+    de la tupla copia el valor real de esa fila, no un marcador. Sin esto, un `sin` dejaba pasar
+    todas las filas fabricadas y el verde no se podía fabricar (tarea caso-generar-no).
+    """
+    # ponytail: si el `sin` niega la misma relación que una fuente, la pareja también entra como
+    # fila de esa fuente; el candidato lo comprueba `fabricar_candidatos` y, si no da, se rechaza.
+    salida = {rel: [dict(fila) for fila in filas] for rel, filas in evidencia.items()}
+    tupla = {alias: salida[rel][0] for rel, alias in extraer_fuentes(medida.tuberia[1]) if salida.get(rel)}
+    for paso in medida.tuberia[2:]:
+        if paso[0] != "sin":
+            continue
+        _, rel, alias = paso[1]
+        pareja = _rellenar_defaults(resolver_predicado(paso[2], True).get(alias, {}), _campos_de(paso[2], alias))
+        # `fabricar_filas` ya le dio a cada clave de un `sin` un valor propio en la tupla.
+        for campo, otro, campo_otro in _igualdades_con(paso[2], alias):
+            pareja[campo] = tupla[otro][campo_otro]
+        for campo, literales in _contiene_de(paso[2], alias).items():
+            pareja[campo] = " ".join(literales)
+        salida.setdefault(rel, []).append(pareja)
+    return salida
 
 
 class GeneracionNoPosible(ValueError):
@@ -446,6 +367,12 @@ def fabricar_candidatos(medida: Medida) -> list[dict[str, Any]]:
         except ErrorDeAlgebra as error:
             raise GeneracionNoPosible(
                 f"{medida.id}: no se pudo evaluar el candidato {candidato['id']}: {error}") from error
+        if candidato.get("espera") == "sin_evidencia":
+            if not veredicto.sin_evidencia:
+                raise GeneracionNoPosible(
+                    f"{medida.id}: con «{candidato['vacia']}» vacía la medida concluyó igual; "
+                    "su `requiere` no la protege")
+            continue
         if veredicto.sin_evidencia:
             raise GeneracionNoPosible(
                 f"{medida.id}: el candidato carece de la relación requerida "
@@ -466,48 +393,6 @@ def _proponer_candidatos(medida: Medida) -> list[dict[str, Any]]:
     dominio = mid.split(".")[0]
     nombre_medida = mid.split(".", 1)[1].replace("_", "-")
 
-    # Manejo especial para agrupar (ej. simulacion.la_traza_no_tiene_huecos)
-    tiene_agrupar = any(p[0] == "agrupar" for p in medida.tuberia[2:])
-
-    if tiene_agrupar:
-        # Caso especial para eventos agrupados con hueco vs sin hueco
-        if "la_traza_no_tiene_huecos" in mid:
-            # Falso verde: corrida con hueco (c1 con t=0,2) y corrida completa (c2 con t=0,1,2)
-            ev_rojo = {
-                "evento": [
-                    {"corrida": "c1", "t": 0},
-                    {"corrida": "c1", "t": 2},
-                    {"corrida": "c2", "t": 0},
-                    {"corrida": "c2", "t": 1},
-                    {"corrida": "c2", "t": 2},
-                ]
-            }
-            candidatos.append({
-                "id": f"{dominio}-gen-001-{nombre_medida}",
-                "etiqueta": "falso_verde",
-                "medida": mid,
-                "evidencia": ev_rojo,
-                "titulo": f"Evidencia fabricada con hueco de traza para fijar {mid}",
-            })
-            # Verde correcto: trazas completas en ambos grupos
-            ev_verde = {
-                "evento": [
-                    {"corrida": "c1", "t": 0},
-                    {"corrida": "c1", "t": 1},
-                    {"corrida": "c2", "t": 0},
-                    {"corrida": "c2", "t": 1},
-                    {"corrida": "c2", "t": 2},
-                ]
-            }
-            candidatos.append({
-                "id": f"{dominio}-gen-002-{nombre_medida}-verde",
-                "etiqueta": "verde_correcto",
-                "medida": mid,
-                "evidencia": ev_verde,
-                "titulo": f"Evidencia fabricada con trazas completas para fijar {mid}",
-            })
-            return candidatos
-
     # Candidatos Falso Verde (defecto)
     # Si hay disyunciones 'o' en el 'donde', generamos un caso para cada rama
     ramas_disyuncion = []
@@ -518,7 +403,6 @@ def _proponer_candidatos(medida: Medida) -> list[dict[str, Any]]:
 
     fuentes = extraer_fuentes(medida.tuberia[1])
     es_join_distinto = len(fuentes) == 2 and fuentes[0][0] != fuentes[1][0]
-    es_auto_join = len(fuentes) == 2 and fuentes[0][0] == fuentes[1][0]
 
     if ramas_disyuncion:
         for idx_rama, rama, disy in ramas_disyuncion:
@@ -555,8 +439,8 @@ def _proponer_candidatos(medida: Medida) -> list[dict[str, Any]]:
                 rel1: ev_of.get(rel1, []) + ev_no.get(rel1, []),
                 rel2: ev_of.get(rel2, []),  # Propuesta mínima; fabricar_candidatos verifica el umbral.
             }
-        elif es_auto_join:
-            rel = fuentes[0][0]
+        elif len(fuentes) == 2:  # una relación unida consigo misma
+            (rel, _), _ = fuentes
             ev_of = fabricar_filas(medida, satisfacer=True, sufijo="-of")
             ev_no = fabricar_filas(medida, satisfacer=False, sufijo="-limpia")
             # Hechos limpios con nombres distintos para no cruzar
@@ -569,7 +453,7 @@ def _proponer_candidatos(medida: Medida) -> list[dict[str, Any]]:
             }
         else:
             ev_ofensora = fabricar_filas(medida, satisfacer=True, sufijo="-ofensora")
-            ev_no_ofensora = fabricar_filas(medida, satisfacer=False, sufijo="-limpia")
+            ev_no_ofensora = salvar_con_parejas(medida, fabricar_filas(medida, satisfacer=False, sufijo="-limpia"))
             ev_rojo = {}
             for rel in set(ev_ofensora) | set(ev_no_ofensora):
                 ev_rojo[rel] = ev_ofensora.get(rel, []) + ev_no_ofensora.get(rel, [])
@@ -585,11 +469,42 @@ def _proponer_candidatos(medida: Medida) -> list[dict[str, Any]]:
     # Candidato Verde correcto (borde)
     # Contiene filas que NO ofenden, dejando la relación con veredicto verde
     # y matando quitar_filtro / negar_filtro / invertir_comparador
-    ev_verde1 = fabricar_filas(medida, satisfacer=False, sufijo="-v1")
-    ev_verde2 = fabricar_filas(medida, satisfacer=False, sufijo="-v2")
+    ev_verde1 = salvar_con_parejas(medida, fabricar_filas(medida, satisfacer=False, sufijo="-v1"))
+    ev_verde2 = salvar_con_parejas(medida, fabricar_filas(medida, satisfacer=False, sufijo="-v2"))
     ev_verde: dict[str, list[dict[str, Any]]] = {}
     for rel in set(ev_verde1) | set(ev_verde2):
         ev_verde[rel] = ev_verde1.get(rel, []) + ev_verde2.get(rel, [])
+
+    requeridas = [r for r in medida.requiere if isinstance(r, str)]
+    if requeridas:
+        # La relación que la medida necesita, vacía: fija `requiere`, que ningún otro candidato
+        # toca porque todos traen filas.
+        candidatos.append({
+            "id": f"{dominio}-gen-097-{nombre_medida}-sin-evidencia",
+            "etiqueta": "falso_verde",
+            "espera": "sin_evidencia",
+            "vacia": requeridas[0],
+            "medida": mid,
+            "evidencia": {requeridas[0]: []},
+            "titulo": f"Sin filas de {requeridas[0]}, {mid} no puede concluir",
+        })
+
+    if any(paso[0] == "sin" for paso in medida.tuberia[2:]):
+        # La fila que ofendería, salvada por su pareja, y una limpia SIN pareja. Mata quitar el
+        # `sin` (la salvada cuenta) y aflojar el `donde` (la limpia cuenta), que el verde de dos
+        # filas limpias no distingue.
+        salvada = salvar_con_parejas(medida, fabricar_filas(medida, satisfacer=True, sufijo="-salvada"))
+        limpia = fabricar_filas(medida, satisfacer=False, sufijo="-sola")
+        if not any(paso[0] == "donde" for paso in medida.tuberia[2:]):
+            # Sin `donde` nada deja afuera a la limpia: sólo la salva su pareja.
+            limpia = salvar_con_parejas(medida, limpia)
+        candidatos.append({
+            "id": f"{dominio}-gen-098-{nombre_medida}-salvada",
+            "etiqueta": "verde_correcto",
+            "medida": mid,
+            "evidencia": {rel: salvada.get(rel, []) + limpia.get(rel, []) for rel in set(salvada) | set(limpia)},
+            "titulo": f"Evidencia fabricada donde el `sin` salva la fila que ofendería en {mid}",
+        })
 
     candidatos.append({
         "id": f"{dominio}-gen-099-{nombre_medida}-verde",
@@ -598,6 +513,12 @@ def _proponer_candidatos(medida: Medida) -> list[dict[str, Any]]:
         "evidencia": ev_verde,
         "titulo": f"Evidencia fabricada en el borde verde para fijar {mid}",
     })
+
+    # Toda relación que la medida lee tiene que estar en la evidencia, aunque sea vacía: el álgebra
+    # no evalúa una relación ausente. Pasaba con un `sin` en las ramas de join y de disyunción.
+    for candidato in candidatos:
+        for rel in relaciones_de_medida(medida):
+            candidato["evidencia"].setdefault(rel, [])
 
     return candidatos
 
@@ -622,7 +543,7 @@ def evaluar_utilidad(
     muertos_base = {
         d["cambio"]
         for d in ev_base.get("mutante", [])
-        if d["apunta_a"] == mid and (d["detecciones_conductuales"] or d["rechazos_del_algebra"])
+        if d["detecciones_conductuales"] or d["rechazos_del_algebra"]
     }
     vivos_antes = sorted(nombres_mutantes - muertos_base)
 
@@ -638,7 +559,10 @@ def evaluar_utilidad(
         esperado_ok = cand["etiqueta"] == "verde_correcto"
         try:
             v_orig = medida.evaluar(cand["evidencia"])
-            if v_orig.ok != esperado_ok:
+            if cand.get("espera") == "sin_evidencia":
+                if not v_orig.sin_evidencia:
+                    continue
+            elif v_orig.ok != esperado_ok:
                 continue  # No cumple su propio contrato esperado
         except Exception:
             continue
@@ -649,7 +573,7 @@ def evaluar_utilidad(
         muertos_ahora = {
             d["cambio"]
             for d in ev_cand.get("mutante", [])
-            if d["apunta_a"] == mid and (d["detecciones_conductuales"] or d["rechazos_del_algebra"])
+            if d["detecciones_conductuales"] or d["rechazos_del_algebra"]
         }
 
         nuevos_muertos = muertos_ahora - acumulados_muertos
@@ -680,6 +604,7 @@ def construir_caso_final(cand: dict[str, Any], muertos_que_mata: set[str]) -> di
         "procedencia": "generada",
         "titulo": cand.get("titulo") or f"Evidencia generada para fijar {mid}",
         "etiqueta": cand["etiqueta"],
+        **({"espera": cand["espera"]} if "espera" in cand else {}),
         "sintoma": (
             f"Evidencia fabricada por la herramienta para discriminar mutaciones en {mid} "
             f"(mutante: {lista_muertos}).\n"
