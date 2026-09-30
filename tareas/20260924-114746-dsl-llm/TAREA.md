@@ -1,6 +1,6 @@
 # Un LLM no puede hacer por el DSL todo lo que Jam hace, y lo que escribe no siempre se puede seguir y corregir como nodos
 
-- ESTADO: ABIERTA
+- ESTADO: CERRADA
 - PRIORIDAD: 96
 - ETIQUETAS: dsl, graph, llm, commander
 
@@ -45,3 +45,7 @@ orden: `dsl-parametros` (acotada, ya), `fuente-roja` (acotada, ya), `dsl-grafos`
 modelos, después la implementación), `jam-mcp` (después de `dsl-grafos`), y `etiquetas-pines` y
 `labels-tools` para que el humano vea en los nodos los mismos nombres que usa el LLM. Esta tarea se
 cierra cuando `dsl-grafos` tenga la ida y vuelta.
+
+### Nota (2026-09-30 10:11:08 UTC)
+
+2026-09-30, cierre: la condición escrita («cuando dsl-grafos tenga la ida y vuelta») se cumple desde el tramo 1 de dsl-grafos (jam/texto.py: grafo→texto→grafo da la misma forma normal y el texto canónico es punto fijo en los 19 ejemplos y 3 presets, test_texto.py; en el editor verifica_texto_58 y verifica_texto_canvas_58 VERDE, re-corridas el 2026-09-29 en JamPlayground y BotOO). La cadena que ordenaba ya está: dsl-parametros, fuente-roja, dsl-grafos (tramos 1-3), jam-mcp 0.2.0 (Unreal, Godot, Unity). Lo que queda sigue en sus tareas: etiquetas-pines, labels-tools, y en dsl-grafos las instancias fn: por etiqueta y F2.
