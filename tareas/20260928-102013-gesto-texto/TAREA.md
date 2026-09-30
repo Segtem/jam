@@ -1,6 +1,6 @@
 # Verificar con Brian: el texto del grafo en el canvas (nombres, panel ✎ Texto, Aplicar, buzón)
 
-- ESTADO: ABIERTA
+- ESTADO: CERRADA
 - PRIORIDAD: 70
 - ETIQUETAS: gestos
 
@@ -26,3 +26,7 @@ está verificado (tests que atan el `.cpp`, y `verifica_texto_canvas_58.py`: lo 
 ## Próximo paso
 
 El gesto de Brian.
+
+### Nota (2026-09-30 14:11:42 UTC)
+
+2026-09-30: reemplazado por la decisión de Brian de una sola interfaz (tarea mudar-a-web). Este gesto revisaba la interfaz de C++, que queda congelada y se reemplaza; lo que verificaba se revisa UNA vez en el editor web, cuando esa capacidad llegue ahí (el inventario de mudar-a-web la incluye).

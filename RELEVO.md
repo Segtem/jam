@@ -3,8 +3,8 @@ turno: 2026-08-14 · claude-code → codex
 saliente: claude-code
 entrante: codex
 desde: 2026-08-14
-verde_editor: d207caf
-verde_editor_fecha: 2026-08-14
+verde_editor: 89eaa75
+verde_editor_fecha: 2026-09-30
 ---
 
 # Testigo
@@ -564,6 +564,15 @@ funciones y los 19/19 tutoriales, todos medidos en UE 5.8.1 sobre ese código. D
 nada de `VIVO` (`Source/`, `init_unreal.py`, `jam/`, `oraculo/`) — por eso `relevo.py` lo da vigente,
 y por eso el commit siguiente es de pura documentación.
 
+**2026-09-30 — `verde_editor` pasa a `89eaa75`.** Brian decidió una sola interfaz, la web (tarea
+`mudar-a-web`): el Graph de C++ queda congelado, y los cinco gestos sobre él se cerraron como
+reemplazados —lo que verificaban se revisa una vez, en el web—. Los dos rojos del día anterior se
+cerraron (Oracle 0.36.2 + `ORACLE_PYTHON`; selftest con el cubo del motor). Sobre `89eaa75`, con los
+binarios al día, en JamPlayground: matrices, multi-salida, funciones, texto, texto en el canvas,
+funciones en el texto, registro neutro, params y fuente roja, caja y comunes, colocar, matriz en
+`mesh_transform`, sombra de Oracle, web, physics, math, curvas y perillas —18 sondas en verde— y
+ejemplos 19/19 en BotOO.
+
 **2026-09-29 — re-medido; el campo NO se mueve** (tarea `editor-vigente`). La foto venció por 43
 archivos de `VIVO` (base común, texto en el canvas, editor web, colocar, registro neutro; seis de
 `Source/`). Sobre el código de hoy, las cuatro de `d207caf` dan verde —ejemplos 19/19 en **BotOO**:
@@ -583,7 +592,8 @@ suite de `init_unreal.py` y `jam/`, por lo que cambiar sólo tests ya no invalid
 evidencia.
 
 El selector con nombres completos es posterior a ese checkpoint. Su C++ compiló contra 5.8.1, pero
-`verde_editor` no se adelanta hasta que alguien despliegue la lista y confirme lo que realmente pinta.
+`verde_editor` no se adelantaba hasta que alguien desplegara la lista y confirmara lo que pinta; desde el
+2026-09-30 ese gesto quedó reemplazado por la mudanza a una sola interfaz (ver abajo).
 Cerrar Graph dejó el editor sin clics: la liberación simple tampoco alcanzó. El cierre ahora hace un
 reset completo de entrada inmediatamente y otro en el tick posterior a destruir la ventana. El gesto
 real registró `captor=sí` antes, `captor=no` después, y Brian recuperó los botones. **Cuidado con UBT:**

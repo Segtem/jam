@@ -1,6 +1,6 @@
 # La verificación del editor quedó vencida
 
-- ESTADO: ABIERTA
+- ESTADO: CERRADA
 - PRIORIDAD: 95
 - ETIQUETAS: verificacion
 
@@ -32,3 +32,11 @@ Repetir las sondas afectadas en JamPlayground y la integración que corresponda 
 ### Nota (2026-09-30 10:10:33 UTC)
 
 2026-09-30: los dos rojos que quedaban por sonda se cerraron — verifica_oracle_shadow TODO VERDE en JamPlayground y BotOO (Oracle 0.36.2 + ORACLE_PYTHON en bridge.py; selftest con el cubo del motor). Ya no hay sondas en rojo; verde_editor sólo espera los cinco gestos de Brian (gesto-596, gesto-texto, gesto-cancelado, gesto-deshabilitados, gesto-menu-web).
+
+### Nota (2026-09-30 14:11:43 UTC)
+
+2026-09-30: con la decisión de una sola interfaz (mudar-a-web), los cinco gestos sobre el C++ se cerraron como reemplazados. verde_editor ya no espera gestos del C++: todas las sondas están en VERDE, así que se puede mover (ver la nota de RELEVO.md).
+
+### Nota (2026-09-30 14:15:49 UTC)
+
+2026-09-30: CERRADA. verde_editor → 89eaa75 (2026-09-30): 18 sondas VERDE en JamPlayground sobre ese commit con binarios al día + ejemplos 19/19 en BotOO. Los gestos del C++ quedaron reemplazados por mudar-a-web. relevo.py: LLEGÓ VERDE.

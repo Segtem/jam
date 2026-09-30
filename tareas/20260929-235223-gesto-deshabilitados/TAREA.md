@@ -1,6 +1,6 @@
 # Verificar con Brian: los verbos no disponibles se ven deshabilitados con su porqué (ribbon y búsqueda)
 
-- ESTADO: ABIERTA
+- ESTADO: CERRADA
 - PRIORIDAD: 58
 - ETIQUETAS: gestos
 
@@ -27,3 +27,7 @@ En Unreal todo está disponible, así que hay que simular otro motor: abrir JamP
 ## Próximo paso
 
 El gesto de Brian.
+
+### Nota (2026-09-30 14:11:42 UTC)
+
+2026-09-30: reemplazado por la decisión de Brian de una sola interfaz (tarea mudar-a-web). Este gesto revisaba la interfaz de C++, que queda congelada y se reemplaza; lo que verificaba se revisa UNA vez en el editor web, cuando esa capacidad llegue ahí (el inventario de mudar-a-web la incluye).
