@@ -560,6 +560,13 @@ namespace Jam
             foreach (var malla in mallas) UnityEngine.Object.DestroyImmediate(malla);
         }
 
+        static string NombreDeArchivo(string nombre)
+        {
+            var malos = Path.GetInvalidFileNameChars();
+            var limpio = new string(nombre.Select(c => malos.Contains(c) || c == '/' || c == '\\' ? '_' : c).ToArray());
+            return string.IsNullOrWhiteSpace(limpio) ? "Malla" : limpio;
+        }
+
         static Respuesta Fijar()
         {
             var raiz = Raiz(false);
@@ -568,10 +575,18 @@ namespace Jam
             if (!AssetDatabase.IsValidFolder(CarpetaMallas)) AssetDatabase.CreateFolder("Assets", "JamGenerado");
             foreach (var filtro in raiz.GetComponentsInChildren<MeshFilter>(true))
             {
-                // Una escena no conserva un Mesh transitorio: se guarda como asset primero.
-                if (filtro.sharedMesh != null && !AssetDatabase.Contains(filtro.sharedMesh))
-                    AssetDatabase.CreateAsset(filtro.sharedMesh,
-                        AssetDatabase.GenerateUniqueAssetPath(CarpetaMallas + "/Malla.asset"));
+                // Una escena no conserva un Mesh transitorio: se guarda como asset primero. Por el
+                // NOMBRE de la pieza, pisando el de la corrida anterior —correr de nuevo una pieza
+                // ya la reemplaza en la escena—: con «Malla N.asset» cada fijar sumaba uno nuevo y
+                // la carpeta crecía sin fin (tarea base-comun).
+                if (filtro.sharedMesh == null || AssetDatabase.Contains(filtro.sharedMesh)) continue;
+                var ruta = CarpetaMallas + "/" + NombreDeArchivo(filtro.gameObject.name) + ".asset";
+                var anterior = AssetDatabase.LoadAssetAtPath<Mesh>(ruta);
+                if (anterior == null) { AssetDatabase.CreateAsset(filtro.sharedMesh, ruta); continue; }
+                var transitoria = filtro.sharedMesh;
+                EditorUtility.CopySerialized(transitoria, anterior);
+                filtro.sharedMesh = anterior;
+                UnityEngine.Object.DestroyImmediate(transitoria);
             }
             foreach (var t in raiz.GetComponentsInChildren<Transform>(true))
                 t.gameObject.hideFlags &= ~HideFlags.DontSaveInEditor;
