@@ -112,21 +112,20 @@ class ElRegistroRealTests(unittest.TestCase):
         self.assertIn("drop", nombres)
 
     def test_la_deuda_de_declaracion_no_crece(self):
-        """Tope medido el 2026-08-11: **136, y los 136 son `sin label`**.
-
-        Vale la pena leer ese número: categorías, docs, dominios y tipos de pin están TODOS sanos.
-        La única deuda de declaración del registro son los nombres visibles — que es justo lo que
-        se lee en la barra. Bajarlo es trabajo; subirlo, una regresión.
+        """Cero desde el 2026-09-30 (tarea `labels-tools`): el 2026-08-11 eran 136, y los 136 eran
+        `sin label` —categorías, docs, dominios y tipos de pin estaban sanos; la deuda eran los nombres
+        visibles, justo lo que se lee en la barra—. Los pusieron agy1, agy2 y Codex, cada uno sobre
+        una parte del registro, revisados sin duplicados y sin tocar otro campo.
 
         Si este test se pone rojo por una tool NUEVA, la tool está incompleta: no le falta al test,
-        le falta a la tool. Si baja, se actualiza el tope y queda registrado el avance.
+        le falta a la tool.
         """
         from jam import ribbon
 
         categorias = {cat for _, cats in ribbon.SECCIONES for cat in cats}
         defectos = registro_core.auditar(self.registro(), categorias_ribbon=categorias)
-        self.assertLessEqual(
-            len(defectos), 136,
+        self.assertEqual(
+            len(defectos), 0,
             "creció la deuda de declaración del registro:\n  " + "\n  ".join(defectos[:20]))
 
 
