@@ -2408,13 +2408,13 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At,
 	TArray<FJamNodePin> NamedInputs;
 	for (const FJamTool::FPin& P : T->InputPins)
 	{
-		NamedInputs.Add(FJamNodePin{P.Name, P.Type, DataName(P.Type), DataColor(P.Type)});
+		NamedInputs.Add(FJamNodePin{P.Name, P.Type, DataName(P.Type), DataColor(P.Type), P.Label});
 		Node.PinNames.Add(P.Name);   // después de Params: ése es también su índice visual de fila
 	}
 	TArray<FJamNodePin> NamedOutputs;
 	for (const FJamTool::FPin& P : T->OutputPins)
 	{
-		NamedOutputs.Add(FJamNodePin{P.Name, P.Type, DataName(P.Type), DataColor(P.Type)});
+		NamedOutputs.Add(FJamNodePin{P.Name, P.Type, DataName(P.Type), DataColor(P.Type), P.Label});
 		Node.OutputPinNames.Add(P.Name);
 	}
 	// Multi-salida: las extras ACOMPAÑAN a `out`, no la reemplazan. Por eso la principal se agrega
@@ -2424,11 +2424,11 @@ FString SJamGraphEditor::AddNode(const FString& Verb, const FVector2D* At,
 	if (T->OutputPins.Num() == 0 && T->SalidasExtra.Num() > 0)
 	{
 		NamedOutputs.Add(FJamNodePin{TEXT("out"), T->OutName, DataName(T->OutName),
-			DataColor(T->OutName)});
+			DataColor(T->OutName), T->OutLabel});
 		Node.OutputPinNames.Add(TEXT("out"));
 		for (const FJamTool::FPin& P : T->SalidasExtra)
 		{
-			NamedOutputs.Add(FJamNodePin{P.Name, P.Type, DataName(P.Type), DataColor(P.Type)});
+			NamedOutputs.Add(FJamNodePin{P.Name, P.Type, DataName(P.Type), DataColor(P.Type), P.Label});
 			Node.OutputPinNames.Add(P.Name);
 		}
 	}
@@ -3190,6 +3190,7 @@ void SJamGraphEditor::ColapsarSeleccion()
 			if (P.IsValid() && P->TryGetStringField(TEXT("name"), Pin.Name)
 				&& P->TryGetStringField(TEXT("tipo"), Pin.Type))
 			{
+				P->TryGetStringField(TEXT("label"), Pin.Label);
 				Destino.Add(Pin);
 			}
 		}
@@ -3292,7 +3293,11 @@ bool SJamGraphEditor::AplicarRespuestaFuncion(const FString& Res, bool bCargarCu
 			const TSharedPtr<FJsonObject> P = V.IsValid() ? V->AsObject() : nullptr;
 			FJamTool::FPin Pin;
 			if (P.IsValid() && P->TryGetStringField(TEXT("name"), Pin.Name)
-				&& P->TryGetStringField(TEXT("tipo"), Pin.Type)) { Destino.Add(Pin); }
+				&& P->TryGetStringField(TEXT("tipo"), Pin.Type))
+			{
+				P->TryGetStringField(TEXT("label"), Pin.Label);
+				Destino.Add(Pin);
+			}
 		}
 	};
 	LeerPines(TEXT("inputs"), Tool.InputPins);

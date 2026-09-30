@@ -47,6 +47,9 @@ struct FJamNodePin
 	FString DataType;
 	FString TypeLabel;
 	FLinearColor Color = FLinearColor(0.28f, 0.30f, 0.34f, 1.0f);
+	/** Lo que se lee en la fila («eje X»); `Name` («eje_x») sigue siendo la identidad del pin. */
+	FString Label;
+	const FString& Visible() const { return Label.IsEmpty() ? Name : Label; }
 };
 
 DECLARE_DELEGATE_OneParam(FOnNodeDragDelta, const FVector2D&);

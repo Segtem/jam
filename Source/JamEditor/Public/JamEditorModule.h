@@ -53,8 +53,9 @@ struct FJamTool
 {
 	struct FPin
 	{
-		FString Name;
+		FString Name;    // identidad: la usan los cables, los presets y el texto
 		FString Type;
+		FString Label;   // lo que ve el humano («eje X» para `eje_x`); vacío = el nombre
 	};
 
 	FString Verb;

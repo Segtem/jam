@@ -532,6 +532,13 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 	// Una función puede tener N entradas y M salidas. Van en filas enfrentadas y NOMBRADAS: el
 	// nombre es parte del contrato, no una etiqueta cosmética. Las filas empiezan después de los
 	// parámetros comunes para que el editor pueda calcular su Y con la misma métrica fija.
+	// El tooltip dice lo que se lee y, si difiere, el nombre con que se cablea y se escribe en texto.
+	auto Tip = [](const TCHAR* Lado, const FJamNodePin& Pin)
+	{
+		return Pin.Label.IsEmpty() || Pin.Label == Pin.Name
+			? FString::Printf(TEXT("%s «%s» · tipo %s"), Lado, *Pin.Name, *Pin.DataType)
+			: FString::Printf(TEXT("%s «%s» (%s) · tipo %s"), Lado, *Pin.Label, *Pin.Name, *Pin.DataType);
+	};
 	const int32 SignatureRows = FMath::Max(InArgs._InputPins.Num(), InArgs._OutputPins.Num());
 	for (int32 Row = 0; Row < SignatureRows; ++Row)
 	{
@@ -542,7 +549,7 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 		LeftCol->AddSlot().AutoHeight()
 		[
 			Cell(RowH, bHasIn
-				? MakeNub(FString::Printf(TEXT("entrada «%s» · tipo %s"), *InPin.Name, *InPin.DataType),
+				? MakeNub(Tip(TEXT("entrada"), InPin),
 					InPin.Color, [this, Nombre = InPin.Name]()
 					{ OnInputClickedDelegate.ExecuteIfBound(Nombre); })
 				: StaticCastSharedRef<SWidget>(SNullWidget::NullWidget))
@@ -554,21 +561,21 @@ void SJamGraphNode::Construct(const FArguments& InArgs)
 				+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
 				[
 					SNew(STextBlock).Text(FText::FromString(bHasIn
-						? FString::Printf(TEXT("%s (%s)"), *InPin.Name, *InPin.TypeLabel) : FString()))
+						? FString::Printf(TEXT("%s (%s)"), *InPin.Visible(), *InPin.TypeLabel) : FString()))
 					.ColorAndOpacity(JamInk).Font(FCoreStyle::GetDefaultFontStyle("Regular", 7))
 				]
 				+ SHorizontalBox::Slot().FillWidth(1.0f)[ SNew(SSpacer) ]
 				+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
 				[
 					SNew(STextBlock).Text(FText::FromString(bHasOut
-						? FString::Printf(TEXT("%s (%s)"), *OutPin.Name, *OutPin.TypeLabel) : FString()))
+						? FString::Printf(TEXT("%s (%s)"), *OutPin.Visible(), *OutPin.TypeLabel) : FString()))
 					.ColorAndOpacity(JamInk).Font(FCoreStyle::GetDefaultFontStyle("Regular", 7))
 				])
 		];
 		RightCol->AddSlot().AutoHeight()
 		[
 			Cell(RowH, bHasOut
-				? MakeNub(FString::Printf(TEXT("salida «%s» · tipo %s"), *OutPin.Name, *OutPin.DataType),
+				? MakeNub(Tip(TEXT("salida"), OutPin),
 					OutPin.Color, [this, Nombre = OutPin.Name]()
 					{ OnOutputClickedDelegate.ExecuteIfBound(Nombre); })
 				: StaticCastSharedRef<SWidget>(SNullWidget::NullWidget))

@@ -887,6 +887,7 @@ void FJamEditorModule::LoadSpec(bool bIncludeFlow)
 				if (PO->TryGetStringField(TEXT("name"), Pin.Name)
 					&& PO->TryGetStringField(TEXT("tipo"), Pin.Type) && !Pin.Name.IsEmpty())
 				{
+					PO->TryGetStringField(TEXT("label"), Pin.Label);
 					Destino.Add(Pin);
 				}
 			}
