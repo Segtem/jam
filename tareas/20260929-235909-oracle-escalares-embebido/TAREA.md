@@ -35,3 +35,7 @@ en VERDE con todos los dominios evaluados.
 ## Próximo paso
 
 Decidir con Brian si se arregla ahora en Oracle.
+
+### Nota (2026-09-30 00:54:08 UTC)
+
+2026-09-30: arreglado en Oracle 0.36.2 (tag v0.36.2, Oracle 38c1ed4; el trabajador elige su intérprete: ORACLE_PYTHON primero). En Jam, bridge.py fija ORACLE_PYTHON al python3 de Unreal (Engine/Binaries/ThirdParty/Python3/Linux/bin/python3, 3.11.8). Medido con el wheel local en vendor/ antes del pin: verifica_oracle_shadow en BotOO TODO VERDE (24 evaluaciones, 0 NO EVALUÓ); en JamPlayground la sombra evalúa todo, y el ROJO que queda es de los selftest de Jam (tarea selftest-primera-malla). Falta: publicación en PyPI (Brian) y el pin a 0.36.2.

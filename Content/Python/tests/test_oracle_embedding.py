@@ -683,3 +683,25 @@ class PuertaRelevoOracleTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PythonDelMotor(unittest.TestCase):
+    """En Unreal `sys.executable` es el editor: Oracle necesita que le digan qué Python usar para el
+    proceso aislado de `escalares.py` (tarea `oracle-escalares-embebido`)."""
+
+    def test_dentro_de_unreal_es_el_python_que_trae_el_motor(self):
+        import tempfile
+        from unittest import mock
+
+        from jam import bridge
+        with tempfile.TemporaryDirectory() as d:
+            binarios = Path(d) / "Engine" / "Binaries"
+            editor = binarios / "Linux" / "UnrealEditor"
+            python = binarios / "ThirdParty" / "Python3" / "Linux" / "bin" / "python3"
+            for f in (editor, python):
+                f.parent.mkdir(parents=True)
+                f.write_text("")
+            with mock.patch.object(bridge.sys, "executable", str(editor)):
+                self.assertEqual(bridge.python_del_motor(), python.resolve())
+            with mock.patch.object(bridge.sys, "executable", "/usr/bin/python3"):
+                self.assertIsNone(bridge.python_del_motor())

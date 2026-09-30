@@ -10,6 +10,7 @@ dentro de `BotOO/Plugins/Jam` → `~/Dev/jam`) para que ambos imports caigan en 
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
@@ -18,10 +19,27 @@ ORACULO_ROOT = PLUGIN_ROOT  # `import oraculo.*` cuelga de la raíz del plugin
 ORACLE_PACKAGE_ROOT = PLUGIN_ROOT / "vendor" / "oracle-pkg"
 
 
+def python_del_motor() -> Path | None:
+    """El `python3` que trae Unreal junto al editor, o None fuera de Unreal.
+
+    En el intérprete embebido `sys.executable` es `UnrealEditor`, no un Python, y Oracle lanza con
+    un Python el proceso aislado que corre `medidas/escalares.py`: sin decirle cuál, ninguna medida
+    con escalares propias se evaluaba dentro del editor (tarea `oracle-escalares-embebido`)."""
+    ejecutable = Path(sys.executable)
+    if not ejecutable.name.startswith("UnrealEditor"):
+        return None
+    tercero = ejecutable.resolve().parents[1] / "ThirdParty" / "Python3"
+    python = tercero / ("Win64/python.exe" if os.name == "nt" else "Linux/bin/python3")
+    return python if python.is_file() else None
+
+
 def ensure_oraculo_on_path() -> Path:
     """Garantiza los imports históricos y `oracle_metalenguaje`; devuelve la raíz del plugin."""
     for ruta in (ORACULO_ROOT, ORACLE_PACKAGE_ROOT):
         root = str(ruta)
         if root not in sys.path:
             sys.path.insert(0, root)
+    python = python_del_motor()
+    if python is not None:
+        os.environ.setdefault("ORACLE_PYTHON", str(python))
     return PLUGIN_ROOT
