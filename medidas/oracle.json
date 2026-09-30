@@ -20,5 +20,10 @@
       "porque": "9 medidas fijadas sólo con evidencia construida; se cierran transcribiendo corridas reales de las sondas contra JamPlayground, que necesita el editor abierto. El 2026-09-16 eran 16. El 2026-09-25 son 18: los casos nuevos de evidencia contradictoria de física no pueden salir de una sonda sana y se construyeron para probar el fallo cerrado ante un emisor defectuoso. La cota sigue vigilando que no crezca sin explicación.",
       "cota": 18
     }
-  }
+  },
+  "sensores": [
+    "../Content/Python/jam/oracle_*.py",
+    "../Content/Python/jam/hechos_escena.py",
+    "../tools/emitir_*.py"
+  ]
 }
