@@ -6,6 +6,12 @@ Este proyecto lo trabajan **dos agentes por turnos de 3-4 días**: Claude Code y
 recuerda el turno del otro, así que **todo lo que valga para mañana vive en el repo**, no en la
 memoria de nadie.
 
+
+> **2026-09-30 — una sola interfaz: la web** (decisión de Brian, tarea `mudar-a-web`). El Graph de
+> C++ (`Source/JamEditor/`) está **congelado**: ninguna función nueva, sólo arreglos que bloqueen.
+> Todo lo nuevo de interfaz va al editor web (`Content/Python/jam/web/`), que es uno solo para
+> Unreal, Godot y Unity.
+
 ## Protocolo de tareas y relevo
 
 - Para retomar: `tasks list` y `tasks show <id>`. `tasks` es el tracker, paquete aparte de Oracle
