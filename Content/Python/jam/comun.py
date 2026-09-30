@@ -135,10 +135,11 @@ def _exigir_malla(valor, verbo: str) -> malla_core.Malla:
 
 
 def mesh_transform(entrada=None, *, x=0.0, y=0.0, z=0.0, pitch=0.0, yaw=0.0, roll=0.0,
-                   scale_x=1.0, scale_y=1.0, scale_z=1.0) -> tuple:
+                   scale_x=1.0, scale_y=1.0, scale_z=1.0, matrix=None) -> tuple:
     from . import malla_ops
     m = malla_ops.transformar(_exigir_malla(entrada, "mesh_transform"), x=x, y=y, z=z, pitch=pitch,
-                              yaw=yaw, roll=roll, scale_x=scale_x, scale_y=scale_y, scale_z=scale_z)
+                              yaw=yaw, roll=roll, scale_x=scale_x, scale_y=scale_y, scale_z=scale_z,
+                              matriz=matrix or None)
     return m, f"TRANSFORM M ✓ — {malla_core.info(m)}"
 
 

@@ -57,8 +57,10 @@ def _rot_matrix_unreal(pitch: float, yaw: float, roll: float):
 def transformar(malla: malla_core.Malla, *,
                 x: float = 0.0, y: float = 0.0, z: float = 0.0,
                 pitch: float = 0.0, yaw: float = 0.0, roll: float = 0.0,
-                scale_x: float = 1.0, scale_y: float = 1.0, scale_z: float = 1.0) -> malla_core.Malla:
-    """Aplica escala, rotación (FRotator de Unreal) y traslación a una Malla.
+                scale_x: float = 1.0, scale_y: float = 1.0, scale_z: float = 1.0,
+                matriz=None) -> malla_core.Malla:
+    """Aplica escala, rotación (FRotator de Unreal) y traslación a una Malla, y DESPUÉS `matriz`
+    (16 números por filas, convención de `math_core`: `M · v`), si llega una.
 
     Si el determinante de la escala es negativo (reflexión espacial), invierte el winding de cada
     triángulo para que las caras frontales sigan apuntando hacia afuera.
@@ -105,7 +107,41 @@ def transformar(malla: malla_core.Malla, *,
         else:
             nuevos_t.append(t)
 
-    return malla_core.Malla(tuple(nuevos_v), tuple(nuevos_t), tuple(nuevas_n), malla.uv0)
+    salida = malla_core.Malla(tuple(nuevos_v), tuple(nuevos_t), tuple(nuevas_n), malla.uv0)
+    return salida if matriz is None else _por_matriz(salida, matriz)
+
+
+def _por_matriz(malla: malla_core.Malla, matriz) -> malla_core.Malla:
+    """`M · v` para las posiciones; la inversa transpuesta para las normales; y si `M` espeja, cada
+    triángulo al revés para que las caras sigan mirando afuera."""
+    from .math_core import ValorError, mx_trs
+    try:
+        m = mx_trs(matriz)
+    except ValorError as e:
+        raise malla_core.MallaError(str(e)) from None
+    a = [[m[0], m[1], m[2]], [m[4], m[5], m[6]], [m[8], m[9], m[10]]]
+    t = (m[3], m[7], m[11])
+    det = (a[0][0] * (a[1][1] * a[2][2] - a[1][2] * a[2][1])
+           - a[0][1] * (a[1][0] * a[2][2] - a[1][2] * a[2][0])
+           + a[0][2] * (a[1][0] * a[2][1] - a[1][1] * a[2][0]))
+    # Inversa transpuesta = cofactores / det; como sólo importa la dirección, alcanzan los cofactores
+    # con el signo de det.
+    cof = [[a[1][1] * a[2][2] - a[1][2] * a[2][1], a[1][2] * a[2][0] - a[1][0] * a[2][2],
+            a[1][0] * a[2][1] - a[1][1] * a[2][0]],
+           [a[0][2] * a[2][1] - a[0][1] * a[2][2], a[0][0] * a[2][2] - a[0][2] * a[2][0],
+            a[0][1] * a[2][0] - a[0][0] * a[2][1]],
+           [a[0][1] * a[1][2] - a[0][2] * a[1][1], a[0][2] * a[1][0] - a[0][0] * a[1][2],
+            a[0][0] * a[1][1] - a[0][1] * a[1][0]]]
+    signo = 1.0 if det > 0 else -1.0
+    vertices = tuple(tuple(sum(a[f][k] * v[k] for k in range(3)) + t[f] for f in range(3))
+                     for v in malla.vertices)
+    normales = []
+    for n in malla.normales:
+        r = [signo * sum(cof[f][k] * n[k] for k in range(3)) for f in range(3)]
+        largo = math.sqrt(sum(c * c for c in r))
+        normales.append(tuple(c / largo for c in r) if largo > 1e-12 else tuple(r))
+    triangulos = malla.triangulos if det > 0 else tuple((x, z, y) for x, y, z in malla.triangulos)
+    return malla_core.Malla(vertices, triangulos, tuple(normales), malla.uv0)
 
 
 def juntar(mallas) -> malla_core.Malla:

@@ -209,6 +209,18 @@ def piezas(actores) -> list:
     return [pieza(a) for a in actores]
 
 
+def transform_de_matriz(matriz) -> "unreal.Transform":
+    """Una matriz de Jam como `FTransform` de Unreal. EL único lugar donde se cruza la convención:
+    Jam guarda vectores COLUMNA (traslación en la última columna, `M · v`); Unreal usa vectores FILA
+    (traslación en la última fila, `v · M`). La traducción es una transposición —cada FILA del
+    `FMatrix` es una COLUMNA de la de Jam— y nada más. `math_core.mx_trs` se niega antes a lo que un
+    `FTransform` no puede representar (proyección, cizalla, un eje aplastado)."""
+    from .math_core import mx_trs
+    m = mx_trs(matriz)
+    fila = lambda c: unreal.Plane(m[c], m[4 + c], m[8 + c], m[12 + c])  # noqa: E731
+    return unreal.MathLibrary.conv_matrix_to_transform(unreal.Matrix(fila(0), fila(1), fila(2), fila(3)))
+
+
 def actores_nivel() -> list:
     return _sub().get_all_level_actors()
 

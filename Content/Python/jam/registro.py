@@ -525,8 +525,13 @@ REGISTRO = {
     "mesh_transform": {"label": "Transformar malla", "cat": "Mesh", "graph_only": True,
                        "params": {"x": 0.0, "y": 0.0, "z": 0.0, "pitch": 0.0,
                                   "yaw": 0.0, "roll": 0.0, "scale_x": 1.0,
-                                  "scale_y": 1.0, "scale_z": 1.0},
-                       "doc": "mueve, rota y escala una malla M sin modificar la entrada"},
+                                  "scale_y": 1.0, "scale_z": 1.0, "matrix": ""},
+                       # El primer consumidor de escena de las matrices (tarea `matrices-ue`).
+                       "data_params": {"matrix": "MX"},
+                       "optional_data_params": ("matrix",),
+                       "doc": "mueve, rota y escala una malla M sin modificar la entrada; con una "
+                              "matriz cableada, la aplica DESPUÉS (traslación, rotación y escala; "
+                              "una cizalla se rechaza)"},
     "mesh_color": {"label": "Pintar vértices", "cat": "Mesh", "graph_only": True,
                    "params": {"color": "#808080"},
                    "doc": "asigna un Vertex Color #RRGGBB a una malla M sin modificar la entrada"},

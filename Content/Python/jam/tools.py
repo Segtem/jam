@@ -983,11 +983,12 @@ def t_mesh_leaf(curve_input, *, asset=None, count=4, start=0.1, end=0.95,
 
 
 def t_mesh_transform(mesh_input, *, x=0.0, y=0.0, z=0.0, pitch=0.0, yaw=0.0, roll=0.0,
-                     scale_x=1.0, scale_y=1.0, scale_z=1.0) -> str:
+                     scale_x=1.0, scale_y=1.0, scale_z=1.0, matrix=None) -> str:
     from . import mesh
     result = mesh.transform(mesh_input, x=float(x), y=float(y), z=float(z),
                             pitch=float(pitch), yaw=float(yaw), roll=float(roll),
-                            scale_x=float(scale_x), scale_y=float(scale_y), scale_z=float(scale_z))
+                            scale_x=float(scale_x), scale_y=float(scale_y), scale_z=float(scale_z),
+                            matriz=matrix or None)
     return _mesh_output("mesh_transform", result, "TRANSFORM M")
 
 

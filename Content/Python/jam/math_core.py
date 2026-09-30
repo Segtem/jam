@@ -223,6 +223,27 @@ def _matriz(valor, pin: str) -> tuple:
     return salida
 
 
+def mx_trs(valor, pin: str = "matrix") -> tuple:
+    """La matriz, si es de las que una escena sabe aplicar: traslación, rotación y escala por eje,
+    con espejo permitido. Se niega —con el motivo— si tiene proyección, si aplasta un eje o si tiene
+    CIZALLA (ejes no perpendiculares). Es la regla de `mesh_transform`: Unreal aplica un `FTransform`,
+    que no puede representar una cizalla, y el núcleo exige lo mismo para que los tres motores den
+    lo mismo en vez de que uno aproxime en silencio."""
+    m = _matriz(valor, pin)
+    if (m[12], m[13], m[14], m[15]) != (0.0, 0.0, 0.0, 1.0):
+        raise ValorError(pin, "no es afín (su última fila no es 0 0 0 1): tiene proyección")
+    columnas = [(m[0], m[4], m[8]), (m[1], m[5], m[9]), (m[2], m[6], m[10])]
+    largos = [_largo(c) for c in columnas]
+    if min(largos) < 1e-9:
+        raise ValorError(pin, "aplasta un eje (escala 0): la malla quedaría sin volumen")
+    for i, j in ((0, 1), (0, 2), (1, 2)):
+        coseno = sum(a * b for a, b in zip(columnas[i], columnas[j])) / (largos[i] * largos[j])
+        if abs(coseno) > 1e-6:
+            raise ValorError(pin, "tiene cizalla (sus ejes no son perpendiculares): una escena "
+                                  "aplica traslación, rotación y escala, no cizalla")
+    return m
+
+
 def _mx_por_mx(a, b):
     """`a · b`: aplica primero `b`. Ver la convención de arriba."""
     return tuple(sum(a[fila * 4 + k] * b[k * 4 + col] for k in range(4))

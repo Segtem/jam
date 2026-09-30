@@ -1382,7 +1382,8 @@ def leaf(source, *, asset=None, count: int = 4, start: float = 0.1, end: float =
 
 def transform(source, *, x: float = 0.0, y: float = 0.0, z: float = 0.0,
               pitch: float = 0.0, yaw: float = 0.0, roll: float = 0.0,
-              scale_x: float = 1.0, scale_y: float = 1.0, scale_z: float = 1.0) -> dict:
+              scale_x: float = 1.0, scale_y: float = 1.0, scale_z: float = 1.0,
+              matriz=None) -> dict:
     try:
         result = _clone(source)
     except TypeError as exc:
@@ -1400,6 +1401,13 @@ def transform(source, *, x: float = 0.0, y: float = 0.0, z: float = 0.0,
         scale=unreal.Vector(float(scale_x), float(scale_y), float(scale_z)),
     )
     unreal.GeometryScript_MeshTransforms.transform_mesh(result, xf)
+    if matriz is not None:
+        from . import ue
+        from .math_core import ValorError
+        try:
+            unreal.GeometryScript_MeshTransforms.transform_mesh(result, ue.transform_de_matriz(matriz))
+        except ValorError as exc:
+            return {"error": str(exc)}
     return {"mesh": result, "info": _info(result)}
 
 
