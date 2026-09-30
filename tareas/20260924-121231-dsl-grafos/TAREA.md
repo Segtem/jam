@@ -121,3 +121,7 @@ LLM. Lo que se toma:
 1. `gesto-texto` (Brian mira el canvas).
 2. Lo que falta del diseño: `motores` / `no_disponible` en el registro (criterio 11), las instancias `fn:` por etiqueta con su firma, y F2 para renombrar un nodo (reescribe cables y el `name` de un valor).
 3. Con eso, `jam-mcp`: `leer_grafo` = `api.graph_text()`, `aplicar_texto` = `api.graph_from_text` / `run_text`, más la concurrencia por versión.
+
+### Nota (2026-09-30 10:23:22 UTC)
+
+2026-09-30, Claude: instancias fn: por NOMBRE — hecho. texto.vocabulario(funciones) acepta la biblioteca del usuario (las fichas de funcion.herramientas(), que el núcleo no lee: la pasa api._vocab); con ella imprimir escribe fn:<nombre> (entre comillas si tiene espacios) con las perillas en el orden de la firma, y leer resuelve el nombre al id. Va por id cuando el nombre es ambiguo (dos funciones iguales: leer el nombre es error y dice los ids) o choca con otro id, y sin biblioteca (fuera del motor) todo sigue por id. Un nombre mal escrito sugiere el parecido. test_texto_funciones.py (6); en el editor tools/experiments/verifica_texto_funciones_58.py VERDE (collapse_function real → graph_text escribe «f1 = "fn:Cilindro doblado sonda" @cil» → graph_from_text vuelve al mismo id, punto fijo); verifica_texto_58 sigue VERDE. Queda de esta tarea: F2 para renombrar (C++) y gesto-texto.

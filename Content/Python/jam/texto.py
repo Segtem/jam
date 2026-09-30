@@ -30,6 +30,9 @@ import unicodedata
 
 from .graph import PIN_ASSET, PIN_IN, PIN_OUT, JamGraph
 
+#: El de `funcion.PREFIJO`, sin importar `funcion` (que lee la biblioteca del usuario).
+PREFIJO_FUNCION = "fn:"
+
 IDENT = re.compile(r"[A-Za-z_][A-Za-z0-9_]*\Z")
 #: Texto que se escribe sin comillas: rutas `/Game/…`, anclas, nombres de asset.
 PALABRA = re.compile(r"[A-Za-z0-9_./:-]+\Z")
@@ -77,11 +80,13 @@ class Expr(str):
 
 # ---------------------------------------------------------------- vocabulario
 
-def vocabulario() -> dict[str, dict]:
+def vocabulario(funciones=None) -> dict[str, dict]:
     """verbo → {params: {clave: default}, tipos: {clave: tipo}, posicional, variadico, valor}.
 
     El mismo universo que acepta el canvas: el registro neutro, los nodos de valor, las ops que sólo
-    existen en Flow y los bordes de función. Una instancia `fn:…` no está: su firma es del usuario.
+    existen en Flow y los bordes de función. Las instancias `fn:…` entran si quien llama pasa la
+    biblioteca del usuario (`funciones`: las fichas de `funcion.herramientas()`, impuro); con ella,
+    cada una se escribe por su NOMBRE y con sus perillas en el orden de su firma.
     """
     from . import flow
     from .math_core import VALORES
@@ -103,7 +108,21 @@ def vocabulario() -> dict[str, dict]:
         vocab.setdefault(verbo, _spec(meta.get("params", {}), {}, None, False))
     for verbo, params in _BORDES.items():
         vocab.setdefault(verbo, _spec(params, {}, None, False))
+    for ficha in funciones or ():
+        spec = _spec({p["nombre"]: p.get("default", "") for p in ficha.get("params", [])}, {},
+                     None, False)
+        spec["nombre"] = str(ficha.get("label") or "")
+        vocab[ficha["verbo"]] = spec
     return vocab
+
+
+def _nombres_de_funcion(vocab: dict) -> dict[str, list[str]]:
+    """nombre visible → ids `fn:…` con ese nombre. Más de uno: ambiguo, y se escribe por id."""
+    salida: dict[str, list[str]] = {}
+    for verbo, spec in vocab.items():
+        if verbo.startswith(PREFIJO_FUNCION) and spec.get("nombre"):
+            salida.setdefault(spec["nombre"], []).append(verbo)
+    return salida
 
 
 def _spec(params: dict, data_params: dict, posicional, variadico: bool) -> dict:
@@ -268,6 +287,7 @@ def imprimir(g: JamGraph, vocab: dict | None = None) -> str:
     """El texto canónico del grafo: una línea por nodo, en el orden del documento."""
     vocab = vocabulario() if vocab is None else vocab
     entrantes = _entrantes(g)
+    nombres = _nombres_de_funcion(vocab)
     lineas = []
     for nid, n in g.nodes.items():
         if not IDENT.match(nid):
@@ -277,13 +297,18 @@ def imprimir(g: JamGraph, vocab: dict | None = None) -> str:
         spec = vocab.get(verbo)
         pines = entrantes.get(nid, {})
         params = _params_normales(nid, n, spec, {p for p in pines if p != PIN_IN})
-        partes = [f"{nid} =", verbo if re.fullmatch(r"[\w:.-]+", verbo) else json.dumps(verbo)]
+        escrito = verbo
+        # Por su nombre sólo si leerlo de vuelta da el mismo id: único, y sin chocar con otro id.
+        if (spec and spec.get("nombre") and len(nombres.get(spec["nombre"], ())) == 1
+                and PREFIJO_FUNCION + spec["nombre"] not in vocab):
+            escrito = PREFIJO_FUNCION + spec["nombre"]   # por su nombre, si no es ambiguo
+        partes = [f"{nid} =", escrito if re.fullmatch(r"[\w:.-]+", escrito) else json.dumps(escrito)]
         posicional = spec["posicional"] if spec else None
         if posicional and posicional in params and posicional not in pines:
             partes.append(escribir(params.pop(posicional)))
         partes += [_ref(a, ap) for a, ap in pines.get(PIN_IN, [])]
-        # ponytail: una instancia `fn:` va en orden alfabético porque su firma vive en la biblioteca
-        # del usuario (preset, impuro); ordenarla por firma cuando el texto resuelva funciones.
+        # Una instancia `fn:` sin la biblioteca a mano (fuera del motor) no tiene spec: sus params van
+        # en orden alfabético. Con la biblioteca, en el orden de su firma, como cualquier verbo.
         orden = list(spec["params"]) if spec else []
         resto = sorted((set(params) | set(pines)) - set(orden) - {PIN_IN})
         for k in orden + resto:
@@ -329,8 +354,10 @@ def leer(texto: str, vocab: dict | None = None) -> JamGraph:
         col, clase, verbo = tokens[0]
         if clase not in ("palabra", "cadena"):
             raise ErrorTexto(numero, col, f"«{nid}» necesita un verbo después del «=»")
+        if verbo.startswith(PREFIJO_FUNCION) and verbo not in vocab:
+            verbo = _resolver_funcion(verbo, vocab, numero, col)
         spec = vocab.get(verbo)
-        if spec is None and not verbo.startswith("fn:"):
+        if spec is None and not verbo.startswith(PREFIJO_FUNCION):
             cerca = difflib.get_close_matches(verbo, list(vocab), n=1)
             raise ErrorTexto(numero, col, f"verbo desconocido: «{verbo}»"
                                           + (f" — ¿quisiste decir «{cerca[0]}»?" if cerca else ""))
@@ -373,6 +400,23 @@ def leer(texto: str, vocab: dict | None = None) -> JamGraph:
                                           + " Los nombres son lo que está a la izquierda del «=».")
         g.edges.append((origen, pin, destino, pin_destino))
     return g
+
+
+def _resolver_funcion(verbo: str, vocab: dict, numero: int, col: int) -> str:
+    """`fn:Nombre` → `fn:<id>`. Sin biblioteca (ninguna función en el vocabulario) pasa tal cual: lo
+    juzga el Compile, como antes. Con biblioteca, un nombre que no está es un error con sugerencia."""
+    nombres = _nombres_de_funcion(vocab)
+    if not nombres:
+        return verbo
+    ids = nombres.get(verbo[len(PREFIJO_FUNCION):], [])
+    if len(ids) == 1:
+        return ids[0]
+    if len(ids) > 1:
+        raise ErrorTexto(numero, col, f"hay {len(ids)} funciones «{verbo[len(PREFIJO_FUNCION):]}»: "
+                                      f"escribí una por su id ({', '.join(sorted(ids))})")
+    cerca = difflib.get_close_matches(verbo[len(PREFIJO_FUNCION):], list(nombres), n=1)
+    raise ErrorTexto(numero, col, f"función desconocida: «{verbo}»"
+                                  + (f" — ¿quisiste decir «{PREFIJO_FUNCION}{cerca[0]}»?" if cerca else ""))
 
 
 def lineas(texto: str) -> dict[str, int]:

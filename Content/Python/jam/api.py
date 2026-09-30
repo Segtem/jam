@@ -125,7 +125,7 @@ def leer_canvas() -> str:
     import json
 
     from . import graph, texto
-    t = texto.imprimir(graph.JamGraph.from_json(_grafo_actual()))
+    t = texto.imprimir(graph.JamGraph.from_json(_grafo_actual()), _vocab())
     return json.dumps({"texto": t, "version": _huella(t), "canvas_abierto": bool(_CANVAS["json"])},
                       ensure_ascii=False)
 
@@ -165,7 +165,7 @@ def ayuda_texto(filtro: str = "") -> str:
     firma; con otra palabra, los verbos que la mencionan (nombre, etiqueta, categoría o doc)."""
     from . import texto
     from .registro import REGISTRO
-    vocab = texto.vocabulario()
+    vocab = _vocab()
     f = (filtro or "").strip()
     try:
         from . import tools
@@ -272,6 +272,17 @@ def nombre_de_nodo_nuevo(verbo: str, usados_json: str = "[]") -> str:
                       ensure_ascii=True)
 
 
+def _vocab() -> dict:
+    """El vocabulario del texto con la biblioteca de funciones del usuario: así una instancia se
+    escribe `fn:Nombre` con sus perillas en el orden de su firma, y se lee de vuelta por el nombre.
+    Si la biblioteca no se puede leer, el vocabulario de siempre (las instancias van por id)."""
+    from . import funcion, texto
+    try:
+        return texto.vocabulario(funcion.herramientas())
+    except Exception:  # noqa: BLE001 — sin biblioteca el texto sigue funcionando
+        return texto.vocabulario()
+
+
 def graph_text(graph_json: str = "") -> str:
     """El texto canónico del grafo (sin argumento: el del canvas abierto). JSON `{ok, texto}`."""
     import json
@@ -279,7 +290,8 @@ def graph_text(graph_json: str = "") -> str:
     from . import graph, texto
     graph_json = graph_json or _grafo_actual()
     try:
-        return json.dumps({"ok": True, "texto": texto.imprimir(graph.JamGraph.from_json(graph_json))},
+        return json.dumps({"ok": True, "texto": texto.imprimir(graph.JamGraph.from_json(graph_json),
+                                                             _vocab())},
                           ensure_ascii=False)
     except ValueError as e:
         return json.dumps({"ok": False, "error": str(e)}, ensure_ascii=False)
@@ -300,7 +312,7 @@ def graph_from_text(text: str, base_json: str = "") -> str:
 
     from . import texto
     try:
-        g = texto.aplicar(text, base_json)
+        g = texto.aplicar(text, base_json, _vocab())
     except texto.ErrorTexto as e:
         return json.dumps({"ok": False, "graph": None, "canonico": "",
                            "errores": _errores_de_texto(e)}, ensure_ascii=False)
