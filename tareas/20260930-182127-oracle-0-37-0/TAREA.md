@@ -1,6 +1,6 @@
 # oracle 0.37.0 y sensores vigilados por oracle cambios
 
-- ESTADO: ABIERTA
+- ESTADO: CERRADA
 - PRIORIDAD: 70
 - ETIQUETAS: 
 
