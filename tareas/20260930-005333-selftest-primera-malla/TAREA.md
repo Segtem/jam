@@ -1,6 +1,6 @@
 # Los selftest de snap y scatter usan la primera malla de la biblioteca: en JamPlayground es Pino y dan rojo
 
-- ESTADO: ABIERTA
+- ESTADO: CERRADA
 - PRIORIDAD: 60
 - ETIQUETAS: verificacion
 
@@ -23,3 +23,7 @@ proyecto) en vez de la primera de la biblioteca, y verlos verdes en JamPlaygroun
 ## Próximo paso
 
 Cambiar la elección de malla en `menu.selftest_snap` y `selftest_scatter`.
+
+### Nota (2026-09-30 10:10:33 UTC)
+
+HECHO: menu._malla_de_prueba() elige /Engine/BasicShapes/Cube (y si no existe, la primera de la biblioteca, como antes) para los ocho selftest. verifica_oracle_shadow: JamPlayground TODO VERDE (antes ROJO snap/scatter con Pino) y BotOO TODO VERDE, los dos con elegido «Cube» y 0 «NO EVALUÓ» con Oracle 0.36.2.

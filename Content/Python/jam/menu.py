@@ -94,11 +94,23 @@ def selftest_espacio() -> bool:
     return ok
 
 
+CUBO_DEL_MOTOR = "/Engine/BasicShapes/Cube.Cube"
+
+
+def _malla_de_prueba() -> list[dict]:
+    """La malla de los selftest: el cubo del motor, que está en todo proyecto, y si no la primera
+    de la biblioteca. Con «la primera» sola, el resultado dependía de qué hubiera en el proyecto: en
+    JamPlayground es un pino, y el scatter «sano» salía encimado (tarea `selftest-primera-malla`)."""
+    if unreal.EditorAssetLibrary.does_asset_exist(CUBO_DEL_MOTOR.split(".")[0]):
+        return [{"nombre": "Cube", "ruta": CUBO_DEL_MOTOR, "carpeta": "/Engine/BasicShapes"}]
+    return library.buscar(limit=1)
+
+
 def selftest_colocar() -> bool:
     """Biblioteca + colocar: enumera la biblioteca real, coloca una malla, y el oráculo distingue
     una copia coincidente (INTERPENETRA) de una lejana (LIMPIO). Limpia los actores al final."""
     _log("--- selftest: biblioteca + colocar ---")
-    libro = library.buscar(limit=1)
+    libro = _malla_de_prueba()
     if not libro:
         _log("biblioteca vacía — no hay StaticMesh bajo /Game")
         return False
@@ -136,7 +148,7 @@ def selftest_scatter() -> bool:
     SATURADO (área diminuta → las piezas se clavan). El oráculo debe aprobar el 1º y reprobar el 2º.
     Limpia los actores al final."""
     _log("--- selftest: scatter ---")
-    libro = library.buscar(limit=1)
+    libro = _malla_de_prueba()
     if not libro:
         _log("biblioteca vacía — no hay StaticMesh bajo /Game")
         return False
@@ -167,7 +179,7 @@ def selftest_physics() -> bool:
     """Physics drop: sobre un piso, una pieza que FLOTA debe caer a APOYADO, y una pieza clavada
     debe leerse HUNDIDO. El oráculo debe distinguir los tres estados. Limpia los actores al final."""
     _log("--- selftest: physics (drop) ---")
-    libro = library.buscar(limit=1)
+    libro = _malla_de_prueba()
     if not libro:
         _log("biblioteca vacía — no hay StaticMesh bajo /Game")
         return False
@@ -215,7 +227,7 @@ def selftest_snap() -> bool:
     """Snap: (a) una pieza fuera de grilla debe pasar a EN GRILLA; (b) una pieza con hueco contra
     otra debe pasar a AL RAS, y el oráculo debe leer HUECO antes. Limpia los actores al final."""
     _log("--- selftest: snap / alinear ---")
-    libro = library.buscar(limit=1)
+    libro = _malla_de_prueba()
     if not libro:
         _log("biblioteca vacía — no hay StaticMesh bajo /Game")
         return False
@@ -256,7 +268,7 @@ def selftest_reemplazo() -> bool:
     """Reemplazo: escalando (ajustar_escala=True) el footprint se PRESERVA; sin escalar el asset
     nativo NO calza la planta del blockout y el oráculo lo caza. Limpia los actores al final."""
     _log("--- selftest: reemplazar blockout ---")
-    libro = library.buscar(limit=1)
+    libro = _malla_de_prueba()
     if not libro:
         _log("biblioteca vacía — no hay StaticMesh bajo /Game")
         return False
@@ -300,7 +312,7 @@ def selftest_pared() -> bool:
     segmentos largos las juntas se despegan → discontinua. El oráculo debe distinguirlos.
     Limpia el spline y los segmentos al final."""
     _log("--- selftest: pared por spline ---")
-    libro = library.buscar(limit=1)
+    libro = _malla_de_prueba()
     if not libro:
         _log("biblioteca vacía — no hay StaticMesh bajo /Game")
         return False
@@ -333,7 +345,7 @@ def selftest_pared() -> bool:
 def selftest_spline_modular() -> bool:
     """Camino operativo del Graph: módulos a largo real, una cadena sana y otra solapada."""
     _log("--- selftest: spline modular ---")
-    libro = library.buscar(limit=1)
+    libro = _malla_de_prueba()
     if not libro:
         _log("biblioteca vacía — no hay StaticMesh bajo /Game")
         return False
@@ -418,7 +430,7 @@ def selftest_nivel() -> bool:
     BotOO, lee el grafo del nivel y verifica GANABLE; luego rompe el enlace a la pista (el sello se
     vuelve inalcanzable) y verifica NO GANABLE. Limpia los actores al final."""
     _log("--- selftest: oráculo sobre nivel real ---")
-    libro = library.buscar(limit=1)
+    libro = _malla_de_prueba()
     if not libro:
         _log("biblioteca vacía — no hay StaticMesh bajo /Game")
         return False
