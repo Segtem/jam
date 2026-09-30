@@ -23,6 +23,21 @@ que ver en cada paso, qué hacer.
 - Que sea la misma fuente que `INSTALAR.md` (una sola fuente; la página es su vista), así no se
   desincronizan.
 
+## Imágenes y pixel art (Brian, 2026-09-30)
+
+La página lleva imágenes y un estilo de pixel art:
+
+- **Capturas reales de cada paso** —la terminal con la salida del instalador, el menú de cada motor, el
+  editor de nodos conectado—, generadas por un script y no a mano, para que se rehagan cuando cambie
+  la interfaz: el editor web con Chromium headless (`--screenshot`), Unreal con `HighResShot` desde una
+  sonda, Godot y Unity desde sus modos de lote. Una captura vieja miente igual que un texto viejo.
+- **Pixel art** para la identidad (logo de Jam, íconos de cada motor y de cada paso, ilustraciones de
+  cabecera): o dibujado como SVG/PNG en una grilla chica y escalado sin suavizar
+  (`image-rendering: pixelated`), o generado con ComfyUI local (SDXL anda en esta máquina, ver
+  memoria `comfyui-gfx1030-verdict`) y limpiado a paleta chica. A elegir con una muestra de cada uno.
+- Las imágenes van al repo sólo si son livianas (PNG de paleta); las capturas grandes, generadas en
+  el build de la página.
+
 ## A decidir con Brian
 
 - **Dónde se publica.** El repo `Segtem/jam` es PRIVADO: una página pública (GitHub Pages) explicaría
