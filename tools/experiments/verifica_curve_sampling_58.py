@@ -81,7 +81,9 @@ try:
            f"Fuse mal tipado: {fuse}")
     exigir(subdivide["in_name"] == "S" and subdivide["out_name"] == "S",
            f"Subdivide mal tipado: {subdivide}")
-    data_types = {item["nombre"]: item["data_type"] for item in polyline["params"]}
+    # Sólo los que son PIN: `closed` (2026-08-12) es un parámetro sin cable y no cuenta acá.
+    data_types = {item["nombre"]: item["data_type"] for item in polyline["params"]
+                  if item["data_type"]}
     exigir(data_types == {"x": "N[]", "y": "N[]", "z": "N[]"},
            f"pines de Polyline inesperados: {data_types}")
 

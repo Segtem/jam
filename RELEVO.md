@@ -564,6 +564,17 @@ funciones y los 19/19 tutoriales, todos medidos en UE 5.8.1 sobre ese código. D
 nada de `VIVO` (`Source/`, `init_unreal.py`, `jam/`, `oraculo/`) — por eso `relevo.py` lo da vigente,
 y por eso el commit siguiente es de pura documentación.
 
+**2026-09-29 — re-medido; el campo NO se mueve** (tarea `editor-vigente`). La foto venció por 43
+archivos de `VIVO` (base común, texto en el canvas, editor web, colocar, registro neutro; seis de
+`Source/`). Sobre el código de hoy, las cuatro de `d207caf` dan verde —ejemplos 19/19 en **BotOO**:
+en JamPlayground los tres TreeGen piden `PineFrond`, que sólo está en BotOO, y JamPlayground nació
+después de `d207caf`—, y también las de lo que cambió, incluida `verifica_web_58` (nueva: `jam.web` por
+HTTP). No se adelanta por dos causas escritas en el tracker: **`verifica_oracle_shadow` da ROJO real**
+—dentro de Unreal la sombra de Oracle no evalúa ningún dominio porque Oracle lanza su trabajador de
+escalares con `sys.executable`, que ahí es UnrealEditor (`oracle-escalares-embebido`)— y **cinco
+gestos de Brian** sobre el C++ nuevo (`gesto-596`, `gesto-texto`, `gesto-cancelado`,
+`gesto-deshabilitados`, `gesto-menu-web`).
+
 El checkpoint anterior era `4eaf0c7`, verificado en UE 5.8.1 con MS/MH,
 Preview/Discard/Bake/Clear, cambio real de mapa y cierre PIE verde/discriminado. También conserva la evidencia previa de placement,
 snap, scatter, spline, physics, reemplazo y espacio sobre actores reales. Las verificaciones previas de Graph interactivo y
