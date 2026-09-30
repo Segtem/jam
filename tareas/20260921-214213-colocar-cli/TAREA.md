@@ -14,3 +14,7 @@ Un comando headless parametrizable (tools/jam_colocar.py o similar) que instanci
 ## Próximo paso
 
 Leer el plan (sección correspondiente) y empezar.
+
+### Nota (2026-09-30 10:09:07 UTC)
+
+2026-09-30: la parte de colocar sin Slate está: tools/colocar_y_juzgar.py <orden.json> instancia en Unreal headless con tag jam:preview, con loc, yaw y escala por pieza, y vuelca los hechos (7717827). Falta lo de «aplicar snap»: la orden no tiene un paso de snap; hoy el agente corrige posiciones a mano desde los testigos.

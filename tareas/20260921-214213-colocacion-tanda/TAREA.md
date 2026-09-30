@@ -1,6 +1,6 @@
 # No hay medida que juzgue una tanda de piezas entre sí
 
-- ESTADO: ABIERTA
+- ESTADO: CERRADA
 - PRIORIDAD: 72
 - ETIQUETAS: aura, colocacion
 
@@ -14,3 +14,7 @@ Medida colocacion.tanda_sin_interpenetracion con corpus de las dos polaridades y
 ## Próximo paso
 
 Leer el plan (sección correspondiente) y empezar.
+
+### Nota (2026-09-30 10:09:07 UTC)
+
+Cubierta por la medida que ya existe, sin crear otra: physics.tanda_sin_interpenetracion juzga los pares de la tanda (de asentada a unir asentada b donde a.id < b.id, una vez por par). hechos_escena.hechos emite la tanda en la bolsa asentada (7717827). Desde ese commit declara requiere asentada (SIN EVIDENCIA con tanda vacía, caso physics-tanda-005), tiene rojo en el borde y de distinta profundidad (physics-tanda-001/002), diferencial physics_tanda.json (80 mundos) y mutación completa (458/458 en el proyecto). En el escenario del corte 1 atrapó Caja_A↔Caja_B 69 cm. Una colocacion.tanda_sin_interpenetracion aparte sería la misma medida con otro nombre.
