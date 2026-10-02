@@ -17,9 +17,11 @@ Oracle no tiene dependencias y el sitio no va a ser la primera.
 from __future__ import annotations
 
 import html
+import json
 import re
 import sys
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[1]
@@ -132,19 +134,81 @@ def en_linea(texto: str, origen: Path, salida: Path) -> str:
 
 # ------------------------------------------------------------------------------ código
 
-_CLAVES_ORACLE = ("medida", "ninguno", "ninguno-requiere", "caso", "de", "donde", "sin", "unir",
-                  "agrupar", "resumen", "umbral", "segun", "porque", "alcance", "ambito",
-                  "requiere", "etiqueta", "evidencia", "defmacro", "sombra", "y", "o", "no")
+_LENGUAJES_ORACLE = {"oracle", "caso", "relacion", "requisito"}
+_SCOPES = {"comment", "storage", "entity", "keyword", "constant", "support",
+           "variable", "property", "string", "number", "operator"}
 
 
-def codigo(texto: str, lenguaje: str, archivo: str | None = None, es_salida: bool = False) -> str:
-    cuerpo = html.escape(texto)
-    if lenguaje in ("oracle", "caso"):
-        cuerpo = re.sub(r"(&quot;.*?&quot;)", r'<span class="c-txt">\1</span>', cuerpo)
-        patron = r"(?<![\w.-])(" + "|".join(map(re.escape, _CLAVES_ORACLE)) + r")(?![\w-])"
-        partes = re.split(r'(<span class="c-txt">.*?</span>)', cuerpo)
-        cuerpo = "".join(p if p.startswith("<span") else
-                         re.sub(patron, r'<span class="c-kw">\1</span>', p) for p in partes)
+@lru_cache(maxsize=1)
+def _gramatica_oracle() -> tuple[dict, ...]:
+    ruta = RAIZ / "editores/vscode/oracle.tmLanguage.json"
+    return tuple(json.loads(ruta.read_text(encoding="utf-8"))["patterns"])
+
+
+def _clase(scope: str | None) -> str | None:
+    if not scope:
+        return None
+    if scope.startswith("variable.other.property."):
+        return "property"
+    if scope.startswith("constant.numeric."):
+        return "number"
+    if scope.startswith("keyword.operator."):
+        return "operator"
+    categoria = scope.split(".", 1)[0]
+    return categoria if categoria in _SCOPES else None
+
+
+def _span(texto: str, scope: str | None) -> str:
+    contenido = html.escape(texto)
+    clase = _clase(scope)
+    return f'<span class="tok-{clase}">{contenido}</span>' if clase else contenido
+
+
+def colorear_oracle(texto: str) -> str:
+    """Aplica, por posición, el primer patrón TextMate que coincide."""
+    patrones = _gramatica_oracle()
+    expresiones = [re.compile(p.get("match", p.get("begin", "")), re.MULTILINE)
+                   for p in patrones]
+    salida = []
+    pos = 0
+    while pos < len(texto):
+        candidatos = [(m.start(), orden, m) for orden, rx in enumerate(expresiones)
+                      if (m := rx.search(texto, pos)) is not None]
+        if not candidatos:
+            salida.append(html.escape(texto[pos:]))
+            break
+        inicio, orden, match = min(candidatos, key=lambda x: (x[0], x[1]))
+        salida.append(html.escape(texto[pos:inicio]))
+        patron = patrones[orden]
+        if "begin" in patron:
+            fin = re.compile(patron["end"]).search(texto, match.end())
+            final = fin.end() if fin else len(texto)
+            salida.append(_span(texto[inicio:final], patron.get("name")))
+        elif "captures" in patron:
+            cursor = inicio
+            for numero, captura in sorted(patron["captures"].items(),
+                                          key=lambda par: match.start(int(par[0]))):
+                a, b = match.span(int(numero))
+                if a < 0:
+                    continue
+                salida.append(html.escape(texto[cursor:a]))
+                salida.append(_span(texto[a:b], captura["name"]))
+                cursor = b
+            salida.append(html.escape(texto[cursor:match.end()]))
+            final = match.end()
+        else:
+            final = match.end()
+            salida.append(_span(texto[inicio:final], patron.get("name")))
+        pos = max(final, pos + 1)
+    return "".join(salida)
+
+
+def codigo(texto: str, lenguaje: str, archivo: str | None = None, es_salida: bool = False,
+           es_arbol: bool = False) -> str:
+    cuerpo = colorear_oracle(texto) if lenguaje in _LENGUAJES_ORACLE else html.escape(texto)
+    if es_arbol:
+        # Un árbol se compara con la carpeta propia, no se copia: va sin botón de copiar.
+        return f'<pre class="arbol" data-lenguaje="así tiene que quedar tu carpeta"><code>{cuerpo}</code></pre>'
     if es_salida:
         return f'<pre class="salida" data-lenguaje="lo que tenés que ver"><code>{cuerpo}</code></pre>'
     etiqueta = f' data-lenguaje="{html.escape(archivo or lenguaje)}"' if (archivo or lenguaje) else ""
@@ -250,9 +314,51 @@ def _cazamutantes(proyecto: str, mid: str) -> dict:
     }
 
 
+SPRITES_POR_PAGINA: dict[str, str] = {
+    "de-cero.html": "timon",
+    "documentacion.html": "mapa",
+    "02-de-cero-a-un-rojo.html": "bandera_roja",
+    "03-escribir-una-medida.html": "pluma",
+    "13-primer-valor.html": "tacometro",
+    "como-funciona.html": "engranajes",
+    "05-por-que-la-mutacion.html": "mutante_cazado",
+    "07-conectar-a-un-proyecto-propio.html": "conector",
+    "tutorial-practico.html": "martillo",
+    "recetas.html": "matraz",
+    "14-sensor-prosa.html": "sensor_ojo",
+    "openspec.html": "llave_tuerca",
+    "mcp.html": "servidor_antena",
+    "mutacion-memoria.html": "chip_memoria",
+    "reportar.html": "boya_campana",
+    "especificacion.html": "pergamino_sello",
+    "decisiones/index.html": "encrucijada",
+    "notas.html": "faro_destello",
+    "notas/anteriores-a-0.20.html": "ancla_antigua",
+}
+
+SPRITES_POR_SECCION: dict[str, str] = {
+    "Empezar": "timon",
+    "Entender": "engranajes",
+    "Herramientas": "martillo",
+    "Referencia": "pergamino_sello",
+    "Decisiones": "brujula",
+}
+
+LEMAS_SECCION: dict[str, str] = {
+    "Empezar": "De cero a un rojo: la primera medida con veredicto.",
+    "Entender": "El álgebra, los testigos y los mutantes que caen.",
+    "Herramientas": "Sensores vigilados, memoria y conexiones.",
+    "Referencia": "El catálogo canónico, las cotas y el álgebra.",
+    "Decisiones": "El rumbo registrado y cada elección de diseño.",
+}
+
+
 class Convertidor:
-    def __init__(self, origen: Path, salida: Path):
+    def __init__(self, origen: Path, salida: Path, sprite_titulo: str | None = None,
+                 sprite_h2: str | None = None):
         self.origen, self.salida = origen, salida
+        self.sprite_titulo = sprite_titulo
+        self.sprite_h2 = sprite_h2
         self.indice: list[tuple[int, str, str]] = []
         self._ids: dict[str, int] = {}
 
@@ -279,6 +385,9 @@ class Convertidor:
                 salida.append(juego(m_juego.group(1)))
                 i += 1
                 continue
+            if re.fullmatch(r"<!--.*?-->", crudo):
+                i += 1
+                continue
             if crudo.startswith('<p class="pregunta">') and crudo.endswith("</p>"):
                 salida.append(f'<p class="pregunta">{self.linea(crudo[20:-4])}</p>')
                 i += 1
@@ -300,9 +409,9 @@ class Convertidor:
                                    for l in lineas[i + 1:j])
                 attrs = dict(re.findall(r"(\w+)=(\S+)", m.group(3)))
                 if "incluir" in attrs:
-                    cuerpo = (RAIZ / attrs["incluir"]).read_text(encoding="utf-8").rstrip("\n")
+                    cuerpo = (RAIZ / attrs["incluir"]).read_text(encoding="utf-8")
                 salida.append(codigo(cuerpo, m.group(2), attrs.get("archivo"),
-                                     "salida" in m.group(3).split()))
+                                     "salida" in m.group(3).split(), "arbol" in m.group(3).split()))
                 i = j + 1
                 continue
             m = re.match(r"^(#{1,6}) +(.*?)\s*#*\s*$", linea)
@@ -312,13 +421,19 @@ class Convertidor:
                 ident = self._id(contenido)
                 if nivel in (2, 3):
                     self.indice.append((nivel, ident, re.sub(r"<[^>]+>", "", contenido)))
-                salida.append(f'<h{nivel} id="{ident}">{contenido}'
+                if nivel == 1 and self.sprite_titulo:
+                    icono = f'<canvas class="sprite sprite-titulo" data-sprite="{self.sprite_titulo}" width="14" height="14" aria-hidden="true"></canvas>'
+                elif nivel == 2 and self.sprite_h2:
+                    icono = f'<canvas class="sprite sprite-h2" data-sprite="{self.sprite_h2}" width="14" height="14" aria-hidden="true"></canvas>'
+                else:
+                    icono = ""
+                salida.append(f'<h{nivel} id="{ident}">{icono}{contenido}'
                               f'<a class="ancla" href="#{ident}" aria-label="Enlace a esta sección">#</a>'
                               f'</h{nivel}>')
                 i += 1
                 continue
             if re.match(r"^ {0,3}([-*_])( *\1){2,}\s*$", linea):
-                salida.append("<hr>")
+                salida.append('<hr class="divisor-pixel" aria-hidden="true">')
                 i += 1
                 continue
             if "|" in linea and i + 1 < len(lineas) and _es_separador_tabla(lineas[i + 1]):
@@ -352,6 +467,7 @@ class Convertidor:
             parrafo = []
             while (j < len(lineas) and lineas[j].strip() and not _FENCE.match(lineas[j])
                    and not re.match(r"^#{1,6} ", lineas[j]) and not lineas[j].lstrip().startswith(">")
+                   and not re.fullmatch(r"<!--.*?-->", lineas[j].strip())
                    and not (j > i and _ITEM.match(lineas[j]))
                    and not ("|" in lineas[j] and j + 1 < len(lineas) and _es_separador_tabla(lineas[j + 1]))):
                 parrafo.append(lineas[j].strip())
@@ -425,7 +541,9 @@ def pagina(p: Pagina) -> str:
     origen = RAIZ / p.origen
     salida = DOCS / p.salida
     texto = origen.read_text(encoding="utf-8")
-    conv = Convertidor(origen, salida)
+    sprite_titulo = SPRITES_POR_PAGINA.get(p.salida, "brujula")
+    sprite_h2 = SPRITES_POR_SECCION.get(p.grupo, sprite_titulo)
+    conv = Convertidor(origen, salida, sprite_titulo=sprite_titulo, sprite_h2=sprite_h2)
     cuerpo = conv.bloques(texto.splitlines())
     titulo = _titulo(texto)
     raiz = _relativa(DOCS / "index.html", salida).removesuffix("index.html") or "./"
@@ -433,6 +551,8 @@ def pagina(p: Pagina) -> str:
         f'<li class="n{nivel}"><a href="#{ident}">{html.escape(t)}</a></li>'
         for nivel, ident, t in conv.indice)
     en_github = f"{REPO}/blob/main/{p.origen}"
+    seccion_id = p.grupo.lower()
+    lema = LEMAS_SECCION.get(p.grupo, "Medida y verificación continua.")
     return f"""<!doctype html>
 <html lang="es">
 <head>
@@ -462,22 +582,46 @@ def pagina(p: Pagina) -> str:
     <nav aria-label="Documentación">{_menu(p, salida)}</nav>
   </details>
   <main id="contenido" class="prosa">
+    <div class="cabecera-seccion">
+      <canvas class="escena-seccion" data-escena-seccion="{seccion_id}" width="320" height="64" aria-hidden="true"></canvas>
+      <div class="seccion-texto">
+        <span class="pixel seccion-nombre">{html.escape(p.grupo)}</span>
+        <span class="seccion-lema">{html.escape(lema)}</span>
+      </div>
+    </div>
 {cuerpo}
+    <footer class="pie-seccion">
+      <canvas class="escena-pie" data-escena-pie="marina" width="320" height="56" aria-hidden="true"></canvas>
+      <div class="pie-seccion-meta">
+        <span class="pixel">Oracle · navegación y medida continua</span>
+      </div>
+    </footer>
     <p class="fuente">Esta página se genera desde <a href="{en_github}" rel="noopener">{html.escape(p.origen)}</a>.</p>
   </main>
   <aside class="en-esta-pagina" aria-label="En esta página">
     {"<p class='menu-grupo'>En esta página</p><ul>" + indice + "</ul>" if indice else ""}
   </aside>
 </div>
-{f'<script src="{raiz}assets/guia.js" defer></script>{chr(10)}' if 'class="juego ' in cuerpo else ""}<script>
-if (matchMedia("(max-width: 760px)").matches) document.querySelector(".menu").removeAttribute("open");
-document.querySelectorAll(".prosa pre:not(.salida)").forEach((pre) => {{
+{f'<script src="{raiz}assets/guia.js" defer></script>{chr(10)}' if 'class="juego ' in cuerpo else ""}<script src="{raiz}assets/pixel-sitio.js" defer></script>
+<script>
+const menu = document.querySelector(".menu");
+const pantallaChica = matchMedia("(max-width: 760px)");
+const ajustarMenu = () => {{ menu.open = !pantallaChica.matches; }};
+ajustarMenu();
+pantallaChica.addEventListener("change", ajustarMenu);
+document.querySelectorAll(".prosa pre:not(.salida):not(.arbol)").forEach((pre) => {{
   const b = document.createElement("button");
   b.type = "button"; b.className = "copiar"; b.textContent = "Copiar";
-  b.addEventListener("click", () => {{
-    navigator.clipboard.writeText(pre.querySelector("code").innerText)
-      .then(() => {{ b.textContent = "Copiado"; setTimeout(() => {{ b.textContent = "Copiar"; }}, 1500); }})
-      .catch(() => {{ const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }});
+  b.addEventListener("click", async () => {{
+    try {{
+      await navigator.clipboard.writeText(pre.querySelector("code").textContent);
+      b.textContent = "Copiado";
+      setTimeout(() => {{ b.textContent = "Copiar"; }}, 1500);
+    }} catch (_) {{
+      const r = document.createRange(); r.selectNodeContents(pre.querySelector("code"));
+      const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+      b.textContent = "Texto seleccionado: copialo";
+    }}
   }});
   pre.append(b);
 }});
