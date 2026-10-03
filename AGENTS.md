@@ -15,7 +15,7 @@ memoria de nadie.
 ## Protocolo de tareas y relevo
 
 - Para retomar: `tasks list` y `tasks show <id>`. `tasks` es el tracker, paquete aparte de Oracle
-  desde 0.34.0: `uv tool install trackertast==0.1.0` (los verbos en español siguen como alias).
+  desde 0.34.0: `uv tool install oracle-task==0.2.0` (los verbos en español siguen como alias).
 - La tarea es la fuente de verdad del pedido, los avances, la evidencia y los bloqueos.
 - Anotá el relevo con `tasks note <id> "…"`; nunca en otro `.md` suelto.
 - Todo pendiente nuevo va a `tasks new "<problema>" --sufijo <corto>`.
