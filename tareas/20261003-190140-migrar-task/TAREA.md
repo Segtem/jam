@@ -1,6 +1,6 @@
 # Migrar a Oracle Task 0.2.0
 
-- ESTADO: ABIERTA
+- ESTADO: CERRADA
 - PRIORIDAD: 50
 - ETIQUETAS: 
 
@@ -21,7 +21,10 @@ AGENTS.md instala oracle-task==0.2.0. El relevo fuera del sandbox ejecutó los t
 
 Relevo pasó después del push. La etiqueta automática usa la identidad histórica del testigo; no se empujó como relevo real. La corrección se sigue en 20261003-234458-relevo-ident. Vendor Oracle queda pendiente de publicar 0.38.2, sin cambios manuales.
 
+### Nota (2026-10-04 00:52:01 UTC)
+
+PyPI Oracle 0.38.2 verificado. Tres pins renovados y vendor reinstalado desde el paquete publicado, sin editar su código a mano. Los 1448 tests Python pasaron. Tool global Oracle 0.38.2 y Oracle Task 0.2.0 desde PyPI. No hay cambios de C++ ni de catálogo. La etiqueta de relevo con identidad histórica no se empuja; se sigue en 20261003-234458-relevo-ident.
 
 ## Próximo paso
 
-Después de publicar Oracle 0.38.2, actualizar los tres pins y reinstalar vendor/oracle-pkg desde PyPI según AGENTS.md. La identidad histórica del relevo se sigue en su tarea separada.
+Ninguno en este consumidor. El retiro de trackertast se coordina en Oracle, tarea 20261003-183936-migrar-task.
