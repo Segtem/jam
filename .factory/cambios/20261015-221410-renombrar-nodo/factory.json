@@ -2,10 +2,20 @@
   "id": "20261015-221410-renombrar-nodo",
   "titulo": "F2 renombra un nodo y la variable de un valor conserva su nombre",
   "capacidad": "editor",
-  "fase": "espera_aprobacion_spec",
+  "fase": "spec_aprobada",
   "spec": "openspec/changes/20261015-221410-renombrar-nodo/specs/editor/spec.md",
-  "spec_sha256": null,
-  "spec_aprobada": null,
+  "spec_sha256": "c3088f3b85da4ae394a634077f65139c8ce7575181271f9396d0d9db10e3ce8d",
+  "spec_aprobada": {
+    "actor": "Brian Hollweg",
+    "tipo_actor": "persona",
+    "forma": "decidio",
+    "modo": "confirmacion",
+    "cuando": "2026-10-15T22:15:15+00:00",
+    "documentos": {
+      "openspec/changes/20261015-221410-renombrar-nodo/proposal.md": "93341f5839663ea243b48435a8565e14a580875f933e128d7e3465f0e4676422",
+      "openspec/changes/20261015-221410-renombrar-nodo/specs/editor/spec.md": "c3088f3b85da4ae394a634077f65139c8ce7575181271f9396d0d9db10e3ce8d"
+    }
+  },
   "requisitos": [],
   "revision": null,
   "oracle": null,
@@ -19,6 +29,19 @@
       "forma": "decidio",
       "cuando": "2026-10-15T22:14:10+00:00",
       "capacidad": "editor"
+    },
+    {
+      "accion": "spec_aprobada",
+      "actor": "Brian Hollweg",
+      "tipo_actor": "persona",
+      "modo": "confirmacion",
+      "forma": "decidio",
+      "cuando": "2026-10-15T22:15:15+00:00",
+      "documentos": {
+        "openspec/changes/20261015-221410-renombrar-nodo/proposal.md": "93341f5839663ea243b48435a8565e14a580875f933e128d7e3465f0e4676422",
+        "openspec/changes/20261015-221410-renombrar-nodo/specs/editor/spec.md": "c3088f3b85da4ae394a634077f65139c8ce7575181271f9396d0d9db10e3ce8d"
+      }
     }
-  ]
+  ],
+  "tipos": {}
 }
