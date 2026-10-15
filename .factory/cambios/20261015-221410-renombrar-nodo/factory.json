@@ -2,7 +2,7 @@
   "id": "20261015-221410-renombrar-nodo",
   "titulo": "F2 renombra un nodo y la variable de un valor conserva su nombre",
   "capacidad": "editor",
-  "fase": "spec_aprobada",
+  "fase": "requisitos_importados",
   "spec": "openspec/changes/20261015-221410-renombrar-nodo/specs/editor/spec.md",
   "spec_sha256": "e2cba3c4239dcc4c97af69a1ca46496050eb0796171fe94eeb77c11213f56884",
   "spec_aprobada": {
@@ -16,7 +16,10 @@
       "openspec/changes/20261015-221410-renombrar-nodo/specs/editor/spec.md": "e2cba3c4239dcc4c97af69a1ca46496050eb0796171fe94eeb77c11213f56884"
     }
   },
-  "requisitos": [],
+  "requisitos": [
+    "editor_c74fa6931d9c5585a.f2_renombra_el_nodo_seleccionado",
+    "editor_c74fa6931d9c5585a.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo"
+  ],
   "revision": null,
   "oracle": null,
   "modo": "confirmacion",
@@ -147,42 +150,24 @@
         "openspec/changes/20261015-221410-renombrar-nodo/proposal.md": "cc72498ccc448506c7f4094b704cbe0937b25e3d0aff0d3cce57b8453f622056",
         "openspec/changes/20261015-221410-renombrar-nodo/specs/editor/spec.md": "e2cba3c4239dcc4c97af69a1ca46496050eb0796171fe94eeb77c11213f56884"
       }
+    },
+    {
+      "accion": "requisitos_importados",
+      "actor": "claude-code",
+      "tipo_actor": "agente",
+      "modo": "confirmacion",
+      "forma": "decidio",
+      "cuando": "2026-10-15T23:47:44+00:00",
+      "ids": [
+        "editor_c74fa6931d9c5585a.f2_renombra_el_nodo_seleccionado",
+        "editor_c74fa6931d9c5585a.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo"
+      ]
     }
   ],
-  "tipos": {},
-  "medidas": {
-    "editor_c257ef91da6aae526.f2_renombra_el_nodo_seleccionado": {
-      "actor": "Brian Hollweg",
-      "tipo_actor": "persona",
-      "forma": "confirmo",
-      "modo": "confirmacion",
-      "cuando": "2026-10-15T22:26:36+00:00",
-      "sha256": "b28c170a19e19aa32bcf943a980c74f010d0582cefb2978e7351dd9b6f395733",
-      "catalogos": {
-        "editor.f2_renombra_el_nodo_seleccionado": "5460e13ec1a511dc60a19e4536f787eb249fcbd43877b10652739b02febb8fa9",
-        "pruebas.corrida_completa": "7ac0901dd6affa5809ea2a5087ba12c14788c3aba5be5dd518538b024f25272b"
-      },
-      "archivos_catalogo": {
-        "editor.f2_renombra_el_nodo_seleccionado": "medidas/catalogos/editor/editor.f2_renombra_el_nodo_seleccionado.oracle",
-        "pruebas.corrida_completa": "medidas/catalogos/pruebas/pruebas.corrida_completa.oracle"
-      }
-    },
-    "editor_c257ef91da6aae526.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo": {
-      "actor": "Brian Hollweg",
-      "tipo_actor": "persona",
-      "forma": "confirmo",
-      "modo": "confirmacion",
-      "cuando": "2026-10-15T22:26:36+00:00",
-      "sha256": "2873ccaa3963bf5ad30a4fa39915763623543733c984b518ec501ce55c7c4266",
-      "catalogos": {
-        "editor.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo": "2fd1303a68c866d184fe44bcd48da5f81442b13c0f71acbc20fa47b0f8a52ff0",
-        "pruebas.corrida_completa": "7ac0901dd6affa5809ea2a5087ba12c14788c3aba5be5dd518538b024f25272b"
-      },
-      "archivos_catalogo": {
-        "editor.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo": "medidas/catalogos/editor/editor.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo.oracle",
-        "pruebas.corrida_completa": "medidas/catalogos/pruebas/pruebas.corrida_completa.oracle"
-      }
-    }
+  "tipos": {
+    "editor_c74fa6931d9c5585a.f2_renombra_el_nodo_seleccionado": "funcional",
+    "editor_c74fa6931d9c5585a.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo": "funcional"
   },
+  "medidas": {},
   "medidas_pendientes": {}
 }

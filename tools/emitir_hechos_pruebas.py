@@ -1,18 +1,22 @@
-"""Hechos de pruebas para Oracle: corre por nombre los casos de contrato de un cambio de Factory y emite uno por caso.
+"""Hechos de pruebas para Oracle: corre los casos de contrato de un cambio de Factory y emite uno por caso.
 
-    python tools/emitir_hechos_pruebas.py --cambio ID --salida RUTA \\
-        --caso REQUISITO=modulo.Clase.test_x [--caso REQUISITO=modulo.Clase.test_y ...]
+    python tools/emitir_hechos_pruebas.py --cambio ID --salida "$(oracle-factory ruta ID evidencia)"
 
-`REQUISITO` es el nombre corto del requisito (lo que sigue al último punto de su id, por ejemplo
-`f2_renombra_el_nodo_seleccionado`). Los casos se cargan desde `Content/Python/tests`, con
-`Content/Python` en el camino, como los corre `relevo.py`. Escribe:
+Los casos salen del contrato del cambio, `medidas/contratos/<ID>.json`:
+
+    {"<requisito corto>": ["modulo.Clase.test_x", ...], ...}
+
+El requisito corto es lo que sigue al último punto de su id (`f2_renombra_el_nodo_seleccionado`).
+Los casos se cargan desde `Content/Python/tests`, con `Content/Python` en el camino, como los corre
+`relevo.py`. Escribe:
 
     {"prueba_caso":    [{"requisito", "caso", "codigo"}, ...],   # 0 si pasó; 1 si falló, dio error o se salteó
-     "prueba_corrida": [{"cambio", "completa", "casos"}]}        # completa: 1 si cada caso corrió una vez
+     "prueba_corrida": [{"cambio", "completa", "casos"}]}
 
-Las medidas de cada cambio juzgan estas dos relaciones; la corrida completa evita que un caso que
-falta o se repite pase por verde. Tarea 20261015-221410-renombrar-nodo (el primer cambio de Factory
-en Jam).
+`completa` vale 1 sólo si cada requisito del cambio (los de su registro, `.factory/cambios/<ID>/`)
+tiene al menos un caso en el contrato, el contrato no nombra un requisito que el cambio no tiene ni un
+caso dos veces, y cada caso corrió exactamente una vez. Así un caso o un requisito que falta no pasa
+por verde (hallazgo de codex y agy en la vuelta 1). Tarea 20261015-221410-renombrar-nodo.
 """
 
 from __future__ import annotations
@@ -61,6 +65,31 @@ class _Resultado(unittest.TextTestResult):
         self._marcar(test, 1)  # un caso salteado no prueba nada
 
 
+def contrato(cambio: str) -> tuple[list[tuple[str, str]], list[str]]:
+    """Los casos del contrato del cambio y lo que impide que la corrida sea completa."""
+    problemas = []
+    ruta = RAIZ / "medidas" / "contratos" / f"{cambio}.json"
+    datos = json.loads(ruta.read_text(encoding="utf-8")) if ruta.is_file() else {}
+    if not ruta.is_file():
+        problemas.append(f"no hay contrato en {ruta.relative_to(RAIZ)}")
+    registro = RAIZ / ".factory" / "cambios" / cambio / "factory.json"
+    requisitos = ({r.rsplit(".", 1)[-1] for r in json.loads(registro.read_text(encoding="utf-8")).get("requisitos", [])}
+                  if registro.is_file() else set())
+    if not registro.is_file():
+        problemas.append(f"no encuentro el registro del cambio {cambio}")
+    for r in sorted(requisitos - set(datos)):
+        problemas.append(f"el requisito {r} no tiene casos en el contrato")
+    for r in sorted(set(datos) - requisitos):
+        problemas.append(f"el contrato nombra {r}, que no es un requisito del cambio")
+    for r, lista in datos.items():
+        if not lista:
+            problemas.append(f"el requisito {r} no tiene casos en el contrato")
+    casos = [(r, c) for r, lista in datos.items() for c in lista]
+    repetidos = sorted(c for c, n in Counter(c for _r, c in casos).items() if n > 1)
+    problemas += [f"el caso {c} figura dos veces" for c in repetidos]
+    return casos, problemas
+
+
 def correr(casos: list[tuple[str, str]]) -> tuple[dict, str]:
     sys.path.insert(0, str(RAIZ / "Content" / "Python"))
     sys.path.insert(0, str(PRUEBAS))
@@ -78,18 +107,16 @@ def correr(casos: list[tuple[str, str]]) -> tuple[dict, str]:
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--cambio", required=True, help="id del cambio de Factory")
-    p.add_argument("--caso", action="append", required=True, metavar="REQUISITO=CASO")
     p.add_argument("--salida", type=Path, required=True, help="carpeta nueva de evidencia (oracle-factory ruta ID evidencia)")
     args = p.parse_args(argv)
-    casos = []
-    for item in args.caso:
-        requisito, _, caso = item.partition("=")
-        if not requisito or not caso:
-            p.error(f"--caso es REQUISITO=modulo.Clase.test_x; dice «{item}»")
-        casos.append((requisito, caso))
+    casos, problemas = contrato(args.cambio)
     hechos, salida = correr(casos)
     for fila in hechos["prueba_corrida"]:
         fila["cambio"] = args.cambio
+        if problemas:
+            fila["completa"] = 0
+    for problema in problemas:
+        print(f"Contrato incompleto: {problema}", file=sys.stderr)
     args.salida.mkdir(parents=True, exist_ok=False)
     (args.salida / "hechos.json").write_text(json.dumps(hechos, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     (args.salida / "pruebas.txt").write_text(salida, encoding="utf-8")

@@ -1,0 +1,12 @@
+{
+  "f2_renombra_el_nodo_seleccionado": [
+    "test_renombrar_nodo.RenombrarNodo.test_rn1_renombrar_con_f2",
+    "test_renombrar_nodo.RenombrarNodo.test_rn1_un_nombre_invalido_o_repetido"
+  ],
+  "la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo": [
+    "test_renombrar_nodo.RenombrarNodo.test_rn2_un_valor_sin_name_propio",
+    "test_renombrar_nodo.RenombrarNodo.test_rn2_nodos_de_valor_nuevos",
+    "test_renombrar_nodo.RenombrarNodo.test_rn2_un_valor_con_name_propio",
+    "test_renombrar_nodo.RenombrarNodo.test_rn2_una_operacion_que_una_expresion_usa"
+  ]
+}

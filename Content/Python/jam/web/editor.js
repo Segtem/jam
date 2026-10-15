@@ -102,6 +102,10 @@ function registrarNodos() {
     };
     Nodo.prototype.onAdded = function () {
       if (!this.properties.nombre) this.properties.nombre = nombreNuevo(t.verbo);
+      // Un nodo de valor nuevo se llama como su nodo, no con el default de su parámetro (`n`, `t`…): es la
+      // regla del texto y del Compile (`name or nid`). Uno cargado ya trae lo suyo (desdeJam).
+      const widgetName = t.valor && !this.cargado && (this.widgets || []).find((w) => w.name === "name");
+      if (widgetName) widgetName.value = this.properties.nombre;
       this.actualizarTitulo();
     };
     Nodo.prototype.actualizarTitulo = function () {
@@ -152,18 +156,34 @@ function nombreNuevo(verbo) {
   return `${base}_${i}`;
 }
 
-function renombrar(nodo) {
+async function renombrar(nodo) {
   const t = POR_VERBO[nodo.properties.verbo] || {};
   const widgetName = (nodo.widgets || []).find((w) => w.name === "name");
+  const viejo = nodo.properties.nombre;
   const r = JamRenombrar.renombrar(
-    { nombre: nodo.properties.nombre, valor: !!t.valor, conName: !!widgetName, name: widgetName ? widgetName.value : "" },
-    prompt("Nombre del nodo (letras, dígitos y «_»):", nodo.properties.nombre), nombresUsados());
+    { nombre: viejo, valor: !!t.valor, conName: !!widgetName, name: widgetName ? widgetName.value : "" },
+    prompt("Nombre del nodo (letras, dígitos y «_»):", viejo), nombresUsados());
   if (!r.ok) return r.error ? reportar(r.error, "error") : undefined;
+  if (r.variableSinName) {
+    // Una operación `math_*` se llama siempre como su nodo: si una expresión la usa, renombrarla la rompe.
+    // Lo dice el Compile del núcleo, no una copia de sus reglas: el nombre viejo deja de ser una variable.
+    // El grafo como quedaría, armado aparte: el nodo no cambia mientras se espera al núcleo.
+    const tentativo = aJam();
+    tentativo.nodes = Object.fromEntries(Object.entries(tentativo.nodes).map(([n, d]) => [n === viejo ? r.nombre : n, d]));
+    tentativo.edges = tentativo.edges.map((e) => e.map((x, i) => (i % 2 === 0 && x === viejo ? r.nombre : x)));
+    const despues = await api("compilar_grafo", JSON.stringify(tentativo));
+    if (nodo.properties.nombre !== viejo) return;  // otro cambio lo renombró mientras tanto
+    const rotos = Object.entries(despues.nodes || {})
+      .filter(([, d]) => String(d.texto || "").includes(`«${viejo}», que no es una variable`)).map(([n]) => n);
+    if (rotos.length) {
+      return reportar(`no renombré «${viejo}»: es una variable sin name y la usa${rotos.length > 1 ? "n" : ""} ` +
+                      `${rotos.map((n) => `«${n}»`).join(", ")}; cambiá primero esa expresión`, "error");
+    }
+  }
   nodo.properties.nombre = r.nombre;
   if (widgetName) widgetName.value = r.name;
   nodo.actualizarTitulo();
   cambioEnElGrafo();
-  if (r.aviso) reportar(r.aviso, "error");
 }
 
 // F2 renombra el nodo seleccionado, como «Renombrar…» de su menú; no mientras se escribe en un campo.
@@ -213,6 +233,8 @@ function desdeJam(doc) {
     nodo.properties.nombre = nombre;
     nodo.pos = [Number(nd.x) || 0, Number(nd.y) || 0];
     for (const w of nodo.widgets || []) {
+      // Un valor que llega sin `name` se llama como su nodo (regla del texto y del Compile), no `n`.
+      if (w.name === "name" && t.valor && !("name" in (nd.params || {}))) { w.value = nombre; continue; }
       if (!(w.name in (nd.params || {}))) continue;
       const v = nd.params[w.name];
       w.value = w.type === "toggle" ? String(v).toLowerCase() === "true"
@@ -220,6 +242,7 @@ function desdeJam(doc) {
     }
     if (nd.bypass) { nodo.properties.bypass = true; nodo.mode = 4; }
     if (nd.asset) nodo.properties.asset = nd.asset;
+    nodo.cargado = true;
     grafo.add(nodo);
     porNombre[nombre] = nodo;
   }
