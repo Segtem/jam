@@ -1,0 +1,6 @@
+{
+  "modo_por_defecto": "confirmacion",
+  "tipos_obligatorios": false,
+  "oracle": "medidas",
+  "confiar_escalares": true
+}

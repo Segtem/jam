@@ -36,3 +36,6 @@ Vault-kb/.obsidian/workspace.json
 # ensucia todo diff posterior con archivos que nadie escribió.
 vendor/oracle-pkg/**/__pycache__/
 vendor/oracle-pkg/**/*.pyc
+.factory-demo/
+.factory/local/
+.factory/cambios/*/candidatos/*/clue/

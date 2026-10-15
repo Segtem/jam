@@ -115,6 +115,36 @@ obligatoriamente **la defensa de su umbral** y **qué NO ve**. El informe verde 
 puntos ciegos. Todo lo demás está en
 `Vault-kb/00-Proceso/2026-07-30-INFORME-Oracle-Metalenguaje-De-Medidas-v1.0.md`.
 
+## Cambios con Oracle Factory (desde el 2026-10-15)
+
+Un trabajo que promete algo de Jam se hace como **cambio de Factory**: propuesta y spec, requisitos
+importados a `medidas/requisitos/`, medidas decididas por una persona, revisión, juicio de Oracle y
+cierre. Factory es una herramienta aparte, como `tasks`, y se instala sin exponer sus dependencias
+(el `oracle` del PATH sigue siendo el de arriba):
+
+```bash
+uv tool install --python 3.13 oracle-factory==0.1.0a10
+oracle-factory estado ID     # dónde está un cambio y qué sigue; en una terminal lo ofrece
+oracle-factory --agente <claude-code|codex> nuevo --capacidad colocacion --sufijo corto "Título"
+```
+
+- **Quién decide:** el modo por defecto es `confirmacion`. El agente de turno trabaja y propone con
+  `--agente claude-code` o `--agente codex` (spec, medidas, revisión); Brian confirma cada decisión
+  desde su terminal y cierra. Cada propuesta queda a nombre del agente que la hizo, así que el
+  relevo entre los dos se lee en `oracle-factory estado ID`. Tabla completa en `docs/modos.md` del
+  repositorio de Factory.
+- **El proyecto Oracle sigue en `medidas/`** (`"oracle": "medidas"` en `.factory/config.json`), con
+  `"confiar_escalares": true` porque las medidas usan `medidas/escalares.py`.
+- **Los 16 requisitos de antes** quedan como están: los sigue midiendo `oracle test`. Factory
+  gestiona sólo lo nuevo.
+- **La compuerta no cambia:** `oracle test --proyecto medidas --confiar-escalares`, el
+  `.githooks/pre-push` y `relevo.py --cerrar` siguen siendo la verdad. Factory no los reemplaza.
+- **Factory fija Oracle con `==`** (0.1.0a10 → `oracle-metalenguaje==0.38.2`). Subir Oracle en Jam
+  pasa a ser cuatro lugares: los tres de arriba y una versión de Factory que fije la misma.
+- `oracle-factory juzgar` necesita los hechos de los sensores, que salen del editor con las sondas;
+  se guardan donde dice `oracle-factory ruta ID evidencia`. La revisión independiente
+  (`pedir-revision`) necesita revisores declarados en `.factory/config.json`; todavía no hay.
+
 ## La arquitectura, en una regla
 
 **El cerebro es puro y el adaptador es fino.**
