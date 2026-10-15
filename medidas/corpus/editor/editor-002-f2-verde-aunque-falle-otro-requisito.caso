@@ -1,0 +1,18 @@
+caso editor-002-f2-verde-aunque-falle-otro-requisito:
+    fecha: "2026-10-15"
+    origen:
+        repo: "Segtem/jam"
+        commit: "20261015-221410-renombrar-nodo"
+    titulo: "F2 sale verde con sus casos pasando, aunque falle un caso de otro requisito"
+    etiqueta: verde_correcto
+    sintoma:
+        Sin el filtro por requisito, un caso que falla en otro requisito pondría rojo a éste.
+    como_se_detecto: persona
+    medida: editor.f2_renombra_el_nodo_seleccionado
+    evidencia:
+        prueba_caso: requisito, caso, codigo
+            "f2_renombra_el_nodo_seleccionado", "test_renombrar_nodo.RenombrarNodo.test_rn1_renombrar_con_f2", 0
+            "f2_renombra_el_nodo_seleccionado", "test_renombrar_nodo.RenombrarNodo.test_rn1_un_nombre_invalido_o_repetido", 0
+            "la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo", "test_renombrar_nodo.RenombrarNodo.test_rn2_un_valor_sin_name_propio", 1
+    leccion:
+        Las dos polaridades fijan el filtro: el requisito propio y el código del caso.

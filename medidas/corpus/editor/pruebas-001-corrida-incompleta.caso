@@ -1,0 +1,16 @@
+caso pruebas-001-corrida-incompleta:
+    fecha: "2026-10-15"
+    origen:
+        repo: "Segtem/jam"
+        commit: "20261015-221410-renombrar-nodo"
+    titulo: "Una corrida en la que falta o se repite un caso sale roja"
+    etiqueta: falso_verde
+    sintoma:
+        Un caso de contrato que no corrió dejaría verde a su requisito sin probarlo.
+    como_se_detecto: persona
+    medida: pruebas.corrida_completa
+    evidencia:
+        prueba_corrida: cambio, completa, casos
+            "20261015-221410-renombrar-nodo", 0, 4
+    leccion:
+        La corrida completa es la que impide el verde por omisión.

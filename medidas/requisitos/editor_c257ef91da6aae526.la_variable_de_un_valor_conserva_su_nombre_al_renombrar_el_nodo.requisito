@@ -1,0 +1,4 @@
+requisito editor_c257ef91da6aae526.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo:
+    texto "Tipo: funcional Al renombrar un nodo de valor que no tiene `name` propio, el editor SHALL fijarle `name` con el nombre viejo, de modo que su variable y las expresiones que la usan no cambien. Un nodo de valor con `name` propio SHALL conservarlo."
+    fuente "openspec/changes/20261015-221410-renombrar-nodo/specs/editor/spec.md#la variable de un valor conserva su nombre al renombrar el nodo"
+    sin_medir "sin medida todavía; escenarios: «un valor sin name propio», «un valor con name propio»"

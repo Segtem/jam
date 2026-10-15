@@ -153,14 +153,27 @@ function nombreNuevo(verbo) {
 }
 
 function renombrar(nodo) {
-  const nuevo = prompt("Nombre del nodo (letras, dígitos y «_»):", nodo.properties.nombre);
-  if (!nuevo || nuevo === nodo.properties.nombre) return;
-  if (!IDENT.test(nuevo)) return reportar(`«${nuevo}» no es un nombre: letras, dígitos y «_», sin empezar por dígito`, "error");
-  if (nombresUsados().has(nuevo)) return reportar(`ya hay un nodo «${nuevo}»`, "error");
-  nodo.properties.nombre = nuevo;
+  const t = POR_VERBO[nodo.properties.verbo] || {};
+  const widgetName = (nodo.widgets || []).find((w) => w.name === "name");
+  const r = JamRenombrar.renombrar(
+    { nombre: nodo.properties.nombre, valor: !!t.valor, conName: !!widgetName, name: widgetName ? widgetName.value : "" },
+    prompt("Nombre del nodo (letras, dígitos y «_»):", nodo.properties.nombre), nombresUsados());
+  if (!r.ok) return r.error ? reportar(r.error, "error") : undefined;
+  nodo.properties.nombre = r.nombre;
+  if (widgetName) widgetName.value = r.name;
   nodo.actualizarTitulo();
   cambioEnElGrafo();
+  if (r.aviso) reportar(r.aviso, "error");
 }
+
+// F2 renombra el nodo seleccionado, como «Renombrar…» de su menú; no mientras se escribe en un campo.
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "F2" || /^(INPUT|TEXTAREA|SELECT)$/.test((e.target && e.target.tagName) || "")) return;
+  const seleccionados = Object.values((lienzo && lienzo.selected_nodes) || {});
+  if (seleccionados.length !== 1) return;
+  e.preventDefault();
+  renombrar(seleccionados[0]);
+});
 
 // ---------------------------------------------------------------- JamGraph ↔ LiteGraph
 

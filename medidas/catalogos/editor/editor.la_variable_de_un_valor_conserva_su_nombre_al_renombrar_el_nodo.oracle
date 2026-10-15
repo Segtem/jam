@@ -1,0 +1,6 @@
+ninguno editor.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo:
+    de prueba_caso c
+    donde c.requisito == "la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo" y c.codigo != 0
+    umbral <= 0 segun contrato porque "cada caso de contrato de este requisito tiene que pasar; los casos los nombra la evidencia del cambio 20261015-221410-renombrar-nodo (tools/emitir_hechos_pruebas.py), y asociarla junto a pruebas.corrida_completa"
+    ambito universal
+    alcance "corre las pruebas del editor web con node y compila grafos reales con graph.compilar. NO abre un navegador: que F2 llegue al diálogo se comprueba en el código del editor, no apretando la tecla"

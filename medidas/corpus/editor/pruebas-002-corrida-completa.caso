@@ -1,0 +1,16 @@
+caso pruebas-002-corrida-completa:
+    fecha: "2026-10-15"
+    origen:
+        repo: "Segtem/jam"
+        commit: "20261015-221410-renombrar-nodo"
+    titulo: "Una corrida con cada caso una vez sale verde"
+    etiqueta: verde_correcto
+    sintoma:
+        Con la corrida completa, la medida no tiene nada que señalar.
+    como_se_detecto: persona
+    medida: pruebas.corrida_completa
+    evidencia:
+        prueba_corrida: cambio, completa, casos
+            "20261015-221410-renombrar-nodo", 1, 4
+    leccion:
+        Las dos polaridades fijan el filtro.

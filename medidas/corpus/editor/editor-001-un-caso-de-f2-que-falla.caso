@@ -1,0 +1,17 @@
+caso editor-001-un-caso-de-f2-que-falla:
+    fecha: "2026-10-15"
+    origen:
+        repo: "Segtem/jam"
+        commit: "20261015-221410-renombrar-nodo"
+    titulo: "Un caso de contrato de F2 que no pasa pone rojo al requisito"
+    etiqueta: falso_verde
+    sintoma:
+        Si un caso del contrato de F2 falla, el requisito no se cumple aunque los otros pasen.
+    como_se_detecto: persona
+    medida: editor.f2_renombra_el_nodo_seleccionado
+    evidencia:
+        prueba_caso: requisito, caso, codigo
+            "f2_renombra_el_nodo_seleccionado", "test_renombrar_nodo.RenombrarNodo.test_rn1_renombrar_con_f2", 0
+            "f2_renombra_el_nodo_seleccionado", "test_renombrar_nodo.RenombrarNodo.test_rn1_un_nombre_invalido_o_repetido", 1
+    leccion:
+        Un solo caso que falla alcanza para el rojo: el umbral es cero.
