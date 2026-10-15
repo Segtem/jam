@@ -2,5 +2,31 @@
   "modo_por_defecto": "confirmacion",
   "tipos_obligatorios": false,
   "oracle": "medidas",
-  "confiar_escalares": true
+  "confiar_escalares": true,
+  "revisores": {
+    "codex": {
+      "comando": [
+        "env",
+        "CODEX_MODEL=gpt-6-luna",
+        "ask-codex",
+        "{pedido}",
+        "{carpeta}",
+        "{carpeta}/codex.md"
+      ],
+      "proveedor": "codex",
+      "modelo": "gpt-6-luna",
+      "tope_minutos": 90
+    },
+    "agy": {
+      "comando": [
+        "ask-agy1",
+        "{pedido}",
+        "{carpeta}",
+        "{carpeta}/agy.md"
+      ],
+      "proveedor": "agy",
+      "modelo": "gemini-3.8-flash-high",
+      "tope_minutos": 90
+    }
+  }
 }
