@@ -1,0 +1,9 @@
+test_rn1_renombrar_con_f2 (test_renombrar_nodo.RenombrarNodo.test_rn1_renombrar_con_f2) ... ok
+test_rn1_un_nombre_invalido_o_repetido (test_renombrar_nodo.RenombrarNodo.test_rn1_un_nombre_invalido_o_repetido) ... ok
+test_rn2_un_valor_sin_name_propio (test_renombrar_nodo.RenombrarNodo.test_rn2_un_valor_sin_name_propio) ... ok
+test_rn2_un_valor_con_name_propio (test_renombrar_nodo.RenombrarNodo.test_rn2_un_valor_con_name_propio) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.171s
+
+OK
