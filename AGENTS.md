@@ -143,7 +143,8 @@ oracle-factory --agente <claude-code|codex> nuevo --capacidad colocacion --sufij
   pasa a ser cuatro lugares: los tres de arriba y una versión de Factory que fije la misma.
 - `oracle-factory juzgar` necesita los hechos de los sensores, que salen del editor con las sondas;
   se guardan donde dice `oracle-factory ruta ID evidencia`. La revisión independiente
-  (`pedir-revision`) necesita revisores declarados en `.factory/config.json`; todavía no hay.
+  se pide con `oracle-factory --agente <claude-code|codex> pedir-revision ID --a agy` (o `--a codex`):
+  los dos revisores están declarados en `.factory/config.json`. Probado el 2026-10-15 en un clon.
 
 ## La arquitectura, en una regla
 
