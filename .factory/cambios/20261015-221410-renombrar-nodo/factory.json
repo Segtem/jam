@@ -56,6 +56,34 @@
         "editor_c257ef91da6aae526.f2_renombra_el_nodo_seleccionado",
         "editor_c257ef91da6aae526.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo"
       ]
+    },
+    {
+      "accion": "medidas_propuestas",
+      "actor": "claude-code",
+      "tipo_actor": "agente",
+      "modo": "confirmacion",
+      "forma": "propuso",
+      "cuando": "2026-10-15T22:22:20+00:00",
+      "requisito": "editor_c257ef91da6aae526.f2_renombra_el_nodo_seleccionado",
+      "medidas": [
+        "editor.f2_renombra_el_nodo_seleccionado",
+        "pruebas.corrida_completa"
+      ],
+      "sin_medir": ""
+    },
+    {
+      "accion": "medidas_propuestas",
+      "actor": "claude-code",
+      "tipo_actor": "agente",
+      "modo": "confirmacion",
+      "forma": "propuso",
+      "cuando": "2026-10-15T22:22:21+00:00",
+      "requisito": "editor_c257ef91da6aae526.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo",
+      "medidas": [
+        "editor.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo",
+        "pruebas.corrida_completa"
+      ],
+      "sin_medir": ""
     }
   ],
   "tipos": {
@@ -63,5 +91,34 @@
     "editor_c257ef91da6aae526.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo": "funcional"
   },
   "medidas": {},
-  "medidas_pendientes": {}
+  "medidas_pendientes": {
+    "editor_c257ef91da6aae526.f2_renombra_el_nodo_seleccionado": {
+      "sha256": "b28c170a19e19aa32bcf943a980c74f010d0582cefb2978e7351dd9b6f395733",
+      "actor": "claude-code",
+      "tipo_actor": "agente",
+      "cuando": "2026-10-15T22:22:20+00:00",
+      "catalogos": {
+        "editor.f2_renombra_el_nodo_seleccionado": "5460e13ec1a511dc60a19e4536f787eb249fcbd43877b10652739b02febb8fa9",
+        "pruebas.corrida_completa": "7ac0901dd6affa5809ea2a5087ba12c14788c3aba5be5dd518538b024f25272b"
+      },
+      "archivos_catalogo": {
+        "editor.f2_renombra_el_nodo_seleccionado": "medidas/catalogos/editor/editor.f2_renombra_el_nodo_seleccionado.oracle",
+        "pruebas.corrida_completa": "medidas/catalogos/pruebas/pruebas.corrida_completa.oracle"
+      }
+    },
+    "editor_c257ef91da6aae526.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo": {
+      "sha256": "2873ccaa3963bf5ad30a4fa39915763623543733c984b518ec501ce55c7c4266",
+      "actor": "claude-code",
+      "tipo_actor": "agente",
+      "cuando": "2026-10-15T22:22:20+00:00",
+      "catalogos": {
+        "editor.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo": "2fd1303a68c866d184fe44bcd48da5f81442b13c0f71acbc20fa47b0f8a52ff0",
+        "pruebas.corrida_completa": "7ac0901dd6affa5809ea2a5087ba12c14788c3aba5be5dd518538b024f25272b"
+      },
+      "archivos_catalogo": {
+        "editor.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo": "medidas/catalogos/editor/editor.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo.oracle",
+        "pruebas.corrida_completa": "medidas/catalogos/pruebas/pruebas.corrida_completa.oracle"
+      }
+    }
+  }
 }
