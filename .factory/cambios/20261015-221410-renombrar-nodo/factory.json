@@ -190,19 +190,46 @@
         "pruebas.corrida_completa"
       ],
       "sin_medir": ""
+    },
+    {
+      "accion": "medidas_confirmadas",
+      "actor": "Brian Hollweg",
+      "tipo_actor": "persona",
+      "modo": "confirmacion",
+      "forma": "confirmo",
+      "cuando": "2026-10-15T23:53:09+00:00",
+      "requisito": "editor_c74fa6931d9c5585a.f2_renombra_el_nodo_seleccionado",
+      "medidas": [
+        "editor.f2_renombra_el_nodo_seleccionado",
+        "pruebas.corrida_completa"
+      ]
+    },
+    {
+      "accion": "medidas_confirmadas",
+      "actor": "Brian Hollweg",
+      "tipo_actor": "persona",
+      "modo": "confirmacion",
+      "forma": "confirmo",
+      "cuando": "2026-10-15T23:53:09+00:00",
+      "requisito": "editor_c74fa6931d9c5585a.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo",
+      "medidas": [
+        "editor.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo",
+        "pruebas.corrida_completa"
+      ]
     }
   ],
   "tipos": {
     "editor_c74fa6931d9c5585a.f2_renombra_el_nodo_seleccionado": "funcional",
     "editor_c74fa6931d9c5585a.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo": "funcional"
   },
-  "medidas": {},
-  "medidas_pendientes": {
+  "medidas": {
     "editor_c74fa6931d9c5585a.f2_renombra_el_nodo_seleccionado": {
+      "actor": "Brian Hollweg",
+      "tipo_actor": "persona",
+      "forma": "confirmo",
+      "modo": "confirmacion",
+      "cuando": "2026-10-15T23:53:08+00:00",
       "sha256": "5f8207411808b7ad355e3ac09e734abfe13fc820d8a84df0a2862d6f136b6ca6",
-      "actor": "claude-code",
-      "tipo_actor": "agente",
-      "cuando": "2026-10-15T23:52:36+00:00",
       "catalogos": {
         "editor.f2_renombra_el_nodo_seleccionado": "93643c48fc8c41865d9aa2972e99d83ce5f16252019438e2c67e19743693486a",
         "pruebas.corrida_completa": "7ac0901dd6affa5809ea2a5087ba12c14788c3aba5be5dd518538b024f25272b"
@@ -213,10 +240,12 @@
       }
     },
     "editor_c74fa6931d9c5585a.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo": {
+      "actor": "Brian Hollweg",
+      "tipo_actor": "persona",
+      "forma": "confirmo",
+      "modo": "confirmacion",
+      "cuando": "2026-10-15T23:53:09+00:00",
       "sha256": "c17f20ec05cb05d709d16e627aca00be25f57aa7b1e95c046c0c29bee3db72ad",
-      "actor": "claude-code",
-      "tipo_actor": "agente",
-      "cuando": "2026-10-15T23:52:36+00:00",
       "catalogos": {
         "editor.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo": "497bd70b45259fa85886b8cdc7eb603bce4c4f69f9370a1b3f05da9156f5125c",
         "pruebas.corrida_completa": "7ac0901dd6affa5809ea2a5087ba12c14788c3aba5be5dd518538b024f25272b"
@@ -226,5 +255,6 @@
         "pruebas.corrida_completa": "medidas/catalogos/pruebas/pruebas.corrida_completa.oracle"
       }
     }
-  }
+  },
+  "medidas_pendientes": {}
 }

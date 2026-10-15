@@ -47,3 +47,11 @@ Medidas de editor_c74fa6931d9c5585a.f2_renombra_el_nodo_seleccionado: editor.f2_
 ### Nota (2026-10-15 23:52:37 UTC)
 
 Medidas de editor_c74fa6931d9c5585a.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo: editor.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo, pruebas.corrida_completa; propuestas por claude-code (agente, propuso, modo confirmacion). SIN MEDIR: sin límite adicional declarado. Revisión y juicio anteriores invalidados; no se declara cumplimiento ni aprobación de pertinencia.
+
+### Nota (2026-10-15 23:53:09 UTC)
+
+Medidas de editor_c74fa6931d9c5585a.f2_renombra_el_nodo_seleccionado: Brian Hollweg (persona, confirmo, modo confirmacion).
+
+### Nota (2026-10-15 23:53:09 UTC)
+
+Medidas de editor_c74fa6931d9c5585a.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo: Brian Hollweg (persona, confirmo, modo confirmacion).
