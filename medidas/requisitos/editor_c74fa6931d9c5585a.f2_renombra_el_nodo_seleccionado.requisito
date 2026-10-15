@@ -1,4 +1,4 @@
 requisito editor_c74fa6931d9c5585a.f2_renombra_el_nodo_seleccionado:
     texto "Tipo: funcional En el editor de nodos web, F2 con un solo nodo seleccionado SHALL abrir el mismo diálogo que «Renombrar…». El nombre nuevo SHALL ser un identificador (letras, dígitos y «_», sin empezar por dígito) que no use otro nodo; si no lo es, el nodo SHALL quedar como estaba y el editor SHALL decir por qué. Los cables del nodo SHALL seguir conectados con el nombre nuevo."
     fuente "openspec/changes/20261015-221410-renombrar-nodo/specs/editor/spec.md#F2 renombra el nodo seleccionado"
-    sin_medir "sin medida todavía; escenarios: «renombrar con F2», «un nombre inválido o repetido»"
+    medido_por editor.f2_renombra_el_nodo_seleccionado, pruebas.corrida_completa
