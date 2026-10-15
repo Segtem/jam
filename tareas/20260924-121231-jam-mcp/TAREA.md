@@ -1,6 +1,6 @@
 # Un agente no tiene cómo hablarle a Jam: falta un servidor MCP que exponga el DSL
 
-- ESTADO: ABIERTA
+- ESTADO: CERRADA
 - PRIORIDAD: 85
 - ETIQUETAS: dsl, mcp, llm, commander
 
@@ -30,3 +30,7 @@ la escena como hechos para Oracle (`sonda-escena-l0`). Es una capa delgada sobre
 ### Nota (2026-09-28 15:59:51 UTC)
 
 jam-mcp 0.2.0 (e6276c5, tag v0.2.0, de Codex): --motor unreal|godot|unity. Con Godot/Unity el núcleo corre en el proceso del MCP y el grafo vive en la sesión (sin canvas compartido). verifica_mcp_motor VERDE en Godot y Unity; reinstalado con uv tool (Claude Code y Codex siguen apuntando al mismo ejecutable, por defecto unreal). Pendiente posible: que en Godot/Unity el MCP hable con jam.servidor (8795/8796) para compartir el grafo con el editor web, como en Unreal.
+
+### Nota (2026-10-15 21:58:45 UTC)
+
+2026-10-15, Claude: se cierra. Hecho: jam-mcp 0.2.0 en Segtem/jam-mcp, con --motor unreal|godot|unity, registrado en Claude Code y Codex, con jam_read_graph, jam_apply_graph (conflicto por versión), jam_help y jam_preview. Lo que falta (volcar la escena como hechos para Oracle) y las preguntas de PyPI y de jam_help sin editor pasan a la tarea 20261015-215831-mcp-hechos.

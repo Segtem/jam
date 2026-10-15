@@ -1,6 +1,6 @@
 # El DSL no puede describir un grafo: no hay cables ni nodos con nombre, y no hay ida y vuelta con el canvas
 
-- ESTADO: ABIERTA
+- ESTADO: CERRADA
 - PRIORIDAD: 95
 - ETIQUETAS: dsl, graph, llm, commander
 
@@ -125,3 +125,7 @@ LLM. Lo que se toma:
 ### Nota (2026-09-30 10:23:22 UTC)
 
 2026-09-30, Claude: instancias fn: por NOMBRE — hecho. texto.vocabulario(funciones) acepta la biblioteca del usuario (las fichas de funcion.herramientas(), que el núcleo no lee: la pasa api._vocab); con ella imprimir escribe fn:<nombre> (entre comillas si tiene espacios) con las perillas en el orden de la firma, y leer resuelve el nombre al id. Va por id cuando el nombre es ambiguo (dos funciones iguales: leer el nombre es error y dice los ids) o choca con otro id, y sin biblioteca (fuera del motor) todo sigue por id. Un nombre mal escrito sugiere el parecido. test_texto_funciones.py (6); en el editor tools/experiments/verifica_texto_funciones_58.py VERDE (collapse_function real → graph_text escribe «f1 = "fn:Cilindro doblado sonda" @cil» → graph_from_text vuelve al mismo id, punto fijo); verifica_texto_58 sigue VERDE. Queda de esta tarea: F2 para renombrar (C++) y gesto-texto.
+
+### Nota (2026-10-15 21:58:45 UTC)
+
+2026-10-15, Claude: se cierra. Hecho: jam/texto.py (leer, imprimir, normal y aplicar con ida y vuelta, layout por nombre), el canvas (ids legibles, cartela nombre · etiqueta, panel ✎ Texto), instancias fn: por nombre, motores y no_disponible derivados en registro.py (criterio 11), gesto-texto cerrada, y jam-mcp encima. Lo que falta, F2 para renombrar un nodo, pasa a la tarea 20261015-215831-renombrar-nodo.
