@@ -18,14 +18,24 @@ En el editor de nodos web, F2 con un solo nodo seleccionado SHALL abrir el mismo
 
 ### Requirement: la variable de un valor conserva su nombre al renombrar el nodo
 Tipo: funcional
-Al renombrar un nodo de valor que no tiene `name` propio, el editor SHALL fijarle `name` con el nombre viejo, de modo que su variable y las expresiones que la usan no cambien. Un nodo de valor con `name` propio SHALL conservarlo.
+En el editor web, un nodo de valor con parámetro `name` SHALL nacer y cargarse con `name` igual a su nombre cuando no tiene uno propio, que es la regla del texto y del Compile (`name or nid`). Al renombrar el nodo, su `name` SHALL conservarse (y fijarse en el nombre viejo si estaba vacío), de modo que su variable y las expresiones que la usan no cambien. Una variable sin parámetro `name` (las operaciones `math_*`, que se llaman siempre como su nodo) SHALL NOT renombrarse si una expresión del grafo la usa: el editor SHALL decir cuál; si ninguna la usa, SHALL renombrarse.
 
 #### Scenario: un valor sin name propio
-- GIVEN un nodo de valor sin name, usado por su nombre en una expresión
+- GIVEN un grafo cargado con un nodo de valor sin name, usado por su nombre en una expresión
 - WHEN se lo renombra
-- THEN su name es el nombre viejo y la expresión sigue resolviendo la misma variable
+- THEN su name es el nombre viejo y el grafo compila con la expresión resolviendo la misma variable
+
+#### Scenario: nodos de valor nuevos
+- GIVEN un grafo vacío
+- WHEN se agregan dos nodos de valor del mismo verbo
+- THEN cada uno tiene name igual a su nombre y el grafo compila sin variables duplicadas
 
 #### Scenario: un valor con name propio
 - GIVEN un nodo de valor con name propio
 - WHEN se lo renombra
 - THEN su name no cambia
+
+#### Scenario: una operación que una expresión usa
+- GIVEN una operación math_* que una expresión usa por su nombre, y otra que nadie usa
+- WHEN se renombra cada una
+- THEN la primera conserva su nombre y el editor nombra la expresión que la usa; la segunda se renombra

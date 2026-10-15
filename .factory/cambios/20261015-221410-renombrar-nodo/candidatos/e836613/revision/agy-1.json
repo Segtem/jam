@@ -1,0 +1,96 @@
+{
+  "schema_version": "oracle-clue.review/v1",
+  "repo": "/home/workstation/Dev/jam-renombrar-nodo/.factory/local/revisiones/e836613",
+  "base": "c7ed57704315380e809e5a848f0f5d5a03acea76",
+  "head": "e836613a9233a294ff25073025809fe138407045",
+  "diff_sha256": "f827912c8e0084ff15a0524c27ad84f484a2a474c843001b53b01c74e9a1cb81",
+  "context_sha256": "6265706c5ca5fdde56724db7a35f19a545c64ed8ee961724da891161d4a20ecb",
+  "provider": {
+    "name": "agy",
+    "model": "gemini-3.8-flash-high"
+  },
+  "review_status": "completo",
+  "limitations": [
+    "Se ejecutaron exclusivamente las pruebas indicadas por el usuario: 'python3 -m unittest tests.test_renombrar_nodo tests.test_editor_web' en Content/Python.",
+    "No se corrió 'oracle test', ni la suite completa de Jam, ni el editor de Unreal Engine, respetando las instrucciones dadas.",
+    "La verificación de los scripts web (renombrar.js, editor.js) se realizó mediante ejecución con Node.js y análisis estático de código; no se utilizó un navegador web interactivo con interfaz gráfica."
+  ],
+  "findings": [
+    {
+      "id": "f-01",
+      "kind": "bug",
+      "severity": "alta",
+      "confidence": 1.0,
+      "title": "Nodos de valor conservan el default 'n' en su widget name al cargarse desde Jam o crearse, impidiendo que renombrar fije el nombre viejo y rompiendo expresiones",
+      "explanation": "El requisito 2 promete que al renombrar un nodo de valor sin name propio, el editor fijará name con el nombre viejo para que sus expresiones no cambien. Sin embargo, en editor.js, los nodos de valor con parámetro name (number, text, boolean, math) se inicializan con el valor por defecto de su parámetro ('n', 't', 'b', 'm'). Al cargar un grafo con desdeJam(doc) donde un nodo no tiene name explícito en params, !(w.name in nd.params) causa que el widget conserve el default 'n'. Al renombrar el nodo, widgetName.value contiene 'n' y se pasa a JamRenombrar.renombrar. Como nodo.name es truthy ('n'), la condición !nodo.name en renombrar.js evalúa a false, r.name conserva 'n', y widgetName.value queda en 'n'. Al exportar con aJam(), params.name se fija en 'n', destruyendo la variable original y rompiendo cualquier expresión que la usaba con GraphValidationError al compilar. La prueba test_rn2_un_valor_sin_name_propio oculta este error porque pasa artificialmente name: '' en lugar de simular el estado real del nodo en el editor.",
+      "location": {
+        "file": "Content/Python/jam/web/editor.js",
+        "start_line": 157,
+        "end_line": 163,
+        "side": "head"
+      },
+      "trigger": "Cargar o crear un grafo con un nodo number llamado 'ancho' sin name propio referenciado en una expresión ('ancho * 2'), y renombrar el nodo a 'ancho_total' desde el editor web.",
+      "evidence": "Al simular el flujo del editor web: JamRenombrar.renombrar({ nombre: 'ancho', valor: true, conName: true, name: 'n' }, 'ancho_total', ['ancho']) retorna {'ok': true, 'nombre': 'ancho_total', 'name': 'n', 'aviso': ''}. En lugar de fijar name='ancho', mantiene name='n'. Al compilar el grafo resultante, graph.compilar arroja GraphValidationError: 'calc: la expresión usa «ancho», que no es una variable; disponibles: «n»'.",
+      "related_requirement": "la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo",
+      "status": "pendiente",
+      "verification": "Ejecutar en Node: node -e 'const {renombrar} = require(\"./Content/Python/jam/web/renombrar.js\"); console.log(renombrar({nombre: \"ancho\", valor: true, conName: true, name: \"n\"}, \"ancho_total\", [\"ancho\"]));' y comprobar que r.name devuelve 'n' en vez de 'ancho'."
+    },
+    {
+      "id": "f-02",
+      "kind": "discrepancia_con_spec",
+      "severity": "alta",
+      "confidence": 1.0,
+      "title": "Nodos de valor sin parámetro name (operadores math_*) no conservan su variable al renombrarse, rompiendo expresiones existentes",
+      "explanation": "La spec estipula: 'Al renombrar un nodo de valor que no tiene name propio, el editor SHALL fijarle name con el nombre viejo, de modo que su variable y las expresiones que la usan no cambien'. En registro.py, todos los operadores de VALOR_KINDS (math_add, math_subtract, etc.) tienen valor: True y sus salidas pueden ser referenciadas por nombre en expresiones. No obstante, al carecer de parámetro name (conName: false), renombrar.js (líneas 23-26) sólo emite un texto de advertencia (r.aviso) en lugar de preservar la variable, provocando que la variable cambie de nombre y rompa las expresiones existentes que la referenciaban. Esto contradice la decisión explícita de Brian registrada en proposal.md ('Out of scope: Reescribir expresiones (Brian eligió que la variable conserve su nombre)').",
+      "location": {
+        "file": "Content/Python/jam/web/renombrar.js",
+        "start_line": 23,
+        "end_line": 26,
+        "side": "head"
+      },
+      "trigger": "Renombrar un nodo de valor de operador aritmético (por ejemplo 'suma' de verbo math_add) cuyo resultado es referenciado por una expresión math ('suma * 2').",
+      "evidence": "Al renombrar un nodo con conName: false, renombrar.js no fija name y emite: '«suma» es una variable sin parámetro name: las expresiones que la nombraban así ahora tienen que decir «total»'. Al compilar, graph.compilar falla porque la variable 'suma' desaparece. La propia prueba test_rn2_un_valor_con_name_propio en test_renombrar_nodo.py documenta esta discrepancia: '# Una variable sin parámetro name (una op math_*): su nombre cambia, y el editor lo avisa'.",
+      "related_requirement": "la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo",
+      "status": "pendiente",
+      "verification": "Ejecutar en Node: node -e 'const {renombrar} = require(\"./Content/Python/jam/web/renombrar.js\"); console.log(renombrar({nombre: \"suma\", valor: true, conName: false, name: \"\"}, \"total\", [\"suma\"]));' y verificar que devuelve name: '' y aviso en lugar de fijar name='suma'."
+    },
+    {
+      "id": "f-03",
+      "kind": "discrepancia_con_spec",
+      "severity": "media",
+      "confidence": 0.95,
+      "title": "La prueba test_rn1_renombrar_con_f2 no prueba la serialización de cables del editor ni ejecuta el flujo real de LiteGraph/editor.js",
+      "explanation": "El escenario 'renombrar con F2' de la spec exige comprobar que 'el JSON del grafo tiene el cable con el nombre nuevo'. La prueba test_rn1_renombrar_con_f2 en test_renombrar_nodo.py simula esto llamando a una función auxiliar mock en Python llamada aplicar() (líneas 41-48), que reescribe manualmente una lista de edges en memoria. La prueba nunca invoca aJam() de editor.js ni manipula nodos en LiteGraph. Si renombrar() o aJam() en editor.js tuviera un error al serializar o mantener los enlaces entre nodos renombrados en LiteGraph, la prueba seguiría pasando en verde.",
+      "location": {
+        "file": "Content/Python/tests/test_renombrar_nodo.py",
+        "start_line": 70,
+        "end_line": 79,
+        "side": "head"
+      },
+      "trigger": "Ejecución de test_rn1_renombrar_con_f2 en Content/Python/tests/test_renombrar_nodo.py.",
+      "evidence": "En test_renombrar_nodo.py, líneas 77-78: 'nuevos, cables = aplicar(nodos, edges, \"cubo\", r)' y 'self.assertEqual(cables, [[\"caja\", \"out\", \"suma\", \"a\"]])'. La variable cables es producida por la función Python local aplicar (línea 41), sin interactuar con aJam() de editor.js.",
+      "related_requirement": "F2 renombra el nodo seleccionado",
+      "status": "pendiente",
+      "verification": "Inspeccionar las líneas 41-48 y 70-79 de Content/Python/tests/test_renombrar_nodo.py comprobando que la aserción de cables depende exclusivamente de la función Python local aplicar."
+    },
+    {
+      "id": "f-04",
+      "kind": "bug",
+      "severity": "alta",
+      "confidence": 1.0,
+      "title": "tools/emitir_hechos_pruebas.py emite completa=1 y éxito cuando se omiten casos de contrato, dejando requisitos verdes por verdad vacua en Oracle",
+      "explanation": "En tools/emitir_hechos_pruebas.py, la condición de completitud es completa = len(set(nombres)) == len(nombres) and all(resultado.cantidad.get(n) == 1 for n in nombres), evaluada únicamente sobre los argumentos --caso pasados por CLI. El script no valida que se hayan incluido todos los casos de contrato requeridos por el cambio. Si el invocador omite casos de un requisito o todos los casos de un requisito, el emisor emite completa: 1 y finaliza con código 0. En Oracle, las medidas editor.*.oracle usan el cuantificador 'ninguno ... donde c.codigo != 0 umbral <= 0'; al no haber filas para el requisito omitido en prueba_caso, se satisface 0 <= 0 (verdad vacua) y el requisito se juzga verde sin haberse probado. Esto contradice directamente el catálogo y el caso corpus pruebas-001-corrida-incompleta.caso, que sostienen que una corrida en la que falte un caso saldrá roja.",
+      "location": {
+        "file": "tools/emitir_hechos_pruebas.py",
+        "start_line": 71,
+        "end_line": 75,
+        "side": "head"
+      },
+      "trigger": "Ejecutar tools/emitir_hechos_pruebas.py pasando un subconjunto incompleto de casos (por ejemplo, omitiendo los casos del requisito la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo).",
+      "evidence": "Al invocar python tools/emitir_hechos_pruebas.py --cambio 20261015-221410-renombrar-nodo --salida /tmp/test_incompleto --caso f2_renombra_el_nodo_seleccionado=test_renombrar_nodo.RenombrarNodo.test_rn1_renombrar_con_f2, el proceso termina con código 0 e imprime 'corrida completa: True; todos pasaron'. En hechos.json, completa es 1 y el segundo requisito queda con 0 casos evaluados pero en verde por verdad vacua.",
+      "related_requirement": null,
+      "status": "pendiente",
+      "verification": "Ejecutar tools/emitir_hechos_pruebas.py con un solo caso hacia una carpeta temporal y verificar que reporta corrida completa: True y código de salida 0."
+    }
+  ]
+}
