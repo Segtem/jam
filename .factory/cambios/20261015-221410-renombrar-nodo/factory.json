@@ -2,7 +2,7 @@
   "id": "20261015-221410-renombrar-nodo",
   "titulo": "F2 renombra un nodo y la variable de un valor conserva su nombre",
   "capacidad": "editor",
-  "fase": "revision_aprobada",
+  "fase": "oracle_verde",
   "spec": "openspec/changes/20261015-221410-renombrar-nodo/specs/editor/spec.md",
   "spec_sha256": "e2cba3c4239dcc4c97af69a1ca46496050eb0796171fe94eeb77c11213f56884",
   "spec_aprobada": {
@@ -41,7 +41,19 @@
       "archivos_sha256": "e7da9c3a9abc802cfa4a97409b5f7c0ef97d0618dd270bd11578325dabb8bb58"
     }
   },
-  "oracle": null,
+  "oracle": {
+    "codigo": 0,
+    "codigo_oracle": 0,
+    "hechos": ".factory/cambios/20261015-221410-renombrar-nodo/candidatos/98f5254/evidencia/hechos.json",
+    "hechos_sha256": "ef8a0b375be6099b617d7fb6ba44bbf54604014e4436a8514e665ddecf77d699",
+    "informe": ".factory/cambios/20261015-221410-renombrar-nodo/oracle-veredicto.txt",
+    "informe_sha256": "0f7a75346f8310194f0756a43930c1a200e6b2f5114206fa066a0462650064ca",
+    "cuando": "2026-10-16T01:18:40+00:00",
+    "contexto": {
+      "head": "132f87197e15dfded45ea42da2ff6f00e057053f",
+      "archivos_sha256": "e7da9c3a9abc802cfa4a97409b5f7c0ef97d0618dd270bd11578325dabb8bb58"
+    }
+  },
   "modo": "confirmacion",
   "eventos": [
     {
@@ -421,6 +433,17 @@
       "abiertos": 0,
       "sha256": "203dc5ab42743cb63f58f1464de528688fc1f972f8090dc66867a88790d77e01",
       "decisiones_sha256": "dec161658a7b0aaa3e27501ab9b3aae59a204ba4fe5c22f2d5bc61f79a1a5e82"
+    },
+    {
+      "accion": "oracle_ejecutado",
+      "actor": "claude-code",
+      "tipo_actor": "agente",
+      "modo": "confirmacion",
+      "forma": "decidio",
+      "cuando": "2026-10-16T01:18:40+00:00",
+      "codigo": 0,
+      "codigo_oracle": 0,
+      "hechos_sha256": "ef8a0b375be6099b617d7fb6ba44bbf54604014e4436a8514e665ddecf77d699"
     }
   ],
   "tipos": {
