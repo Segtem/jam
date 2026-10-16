@@ -59,3 +59,7 @@ Medidas de editor_c74fa6931d9c5585a.la_variable_de_un_valor_conserva_su_nombre_a
 ### Nota (2026-10-16 00:32:15 UTC)
 
 Juicio Factory: verde; salida Oracle 0; informe .factory/cambios/20261015-221410-renombrar-nodo/oracle-veredicto.txt.
+
+### Nota (2026-10-16 01:16:58 UTC)
+
+Revisión guiada Brian Hollweg: aprobar; registrada por Brian Hollweg (persona, confirmo, modo confirmacion; motivo: seis vueltas de codex y agy, a la vez. La 1 encontró que el editor creaba y cargaba los valores con el name por defecto, que las math_* usadas se rompían, que el emisor no sabía qué casos faltaban y que la prueba no ejercitaba el editor; con decisiones de Brian se corrigió todo y el editor real se prueba en node con LiteGraph y el núcleo. La 2: una expresión rota en plural. La 3: un name vacío al cargar y un escenario que el contrato podía omitir. La 4 y la 5 quedaron incompletas de lado de codex porque su sandbox no abría sockets: el arnés pasó a hablar con el núcleo por stdio, y la 5 trajo además un requisito de la spec que el emisor podía omitir. La 6, completa en los dos, no encontró nada. Cada arreglo con una mutación que lo hace fallar; tests de Jam y oracle test VERDE sin subir cotas.); 0 abiertos derivados; commit bd38361d4f8ff73377b1f883daa95bc638420a27; informe tareas/20261015-221410-renombrar-nodo/revisiones/registro-zd5__e11/informe.json; decisiones tareas/20261015-221410-renombrar-nodo/revisiones/registro-zd5__e11/decisiones.json.

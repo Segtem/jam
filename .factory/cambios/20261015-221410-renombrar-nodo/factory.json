@@ -2,7 +2,7 @@
   "id": "20261015-221410-renombrar-nodo",
   "titulo": "F2 renombra un nodo y la variable de un valor conserva su nombre",
   "capacidad": "editor",
-  "fase": "oracle_verde",
+  "fase": "revision_aprobada",
   "spec": "openspec/changes/20261015-221410-renombrar-nodo/specs/editor/spec.md",
   "spec_sha256": "e2cba3c4239dcc4c97af69a1ca46496050eb0796171fe94eeb77c11213f56884",
   "spec_aprobada": {
@@ -20,20 +20,28 @@
     "editor_c74fa6931d9c5585a.f2_renombra_el_nodo_seleccionado",
     "editor_c74fa6931d9c5585a.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo"
   ],
-  "revision": null,
-  "oracle": {
-    "codigo": 0,
-    "codigo_oracle": 0,
-    "hechos": ".factory/cambios/20261015-221410-renombrar-nodo/candidatos/2131253/evidencia/hechos.json",
-    "hechos_sha256": "ef8a0b375be6099b617d7fb6ba44bbf54604014e4436a8514e665ddecf77d699",
-    "informe": ".factory/cambios/20261015-221410-renombrar-nodo/oracle-veredicto.txt",
-    "informe_sha256": "0f7a75346f8310194f0756a43930c1a200e6b2f5114206fa066a0462650064ca",
-    "cuando": "2026-10-16T00:32:15+00:00",
+  "revision": {
+    "formato": "guiado",
+    "revisor": "Brian Hollweg",
+    "decision": "aprobar",
+    "hallazgos_abiertos": 0,
+    "informe": "tareas/20261015-221410-renombrar-nodo/revisiones/registro-zd5__e11/informe.json",
+    "sha256": "203dc5ab42743cb63f58f1464de528688fc1f972f8090dc66867a88790d77e01",
+    "decisiones": "tareas/20261015-221410-renombrar-nodo/revisiones/registro-zd5__e11/decisiones.json",
+    "decisiones_sha256": "dec161658a7b0aaa3e27501ab9b3aae59a204ba4fe5c22f2d5bc61f79a1a5e82",
+    "actor": "Brian Hollweg",
+    "tipo_actor": "persona",
+    "forma": "confirmo",
+    "modo": "confirmacion",
+    "cuando": "2026-10-16T01:16:58+00:00",
+    "motivo": "seis vueltas de codex y agy, a la vez. La 1 encontró que el editor creaba y cargaba los valores con el name por defecto, que las math_* usadas se rompían, que el emisor no sabía qué casos faltaban y que la prueba no ejercitaba el editor; con decisiones de Brian se corrigió todo y el editor real se prueba en node con LiteGraph y el núcleo. La 2: una expresión rota en plural. La 3: un name vacío al cargar y un escenario que el contrato podía omitir. La 4 y la 5 quedaron incompletas de lado de codex porque su sandbox no abría sockets: el arnés pasó a hablar con el núcleo por stdio, y la 5 trajo además un requisito de la spec que el emisor podía omitir. La 6, completa en los dos, no encontró nada. Cada arreglo con una mutación que lo hace fallar; tests de Jam y oracle test VERDE sin subir cotas.",
+    "origen_motivo": "agente",
     "contexto": {
-      "head": "db32a533fd6c9328696f2b37dfbb08c74595cbd2",
-      "archivos_sha256": "d9ae2181d77276ae977dacdf1a473e8d375ab8e9e7a88014a2e0fcfed33ebeed"
+      "head": "bd38361d4f8ff73377b1f883daa95bc638420a27",
+      "archivos_sha256": "e7da9c3a9abc802cfa4a97409b5f7c0ef97d0618dd270bd11578325dabb8bb58"
     }
   },
+  "oracle": null,
   "modo": "confirmacion",
   "eventos": [
     {
@@ -399,6 +407,20 @@
       "cuando": "2026-10-16T01:14:57+00:00",
       "decision": "aprobar",
       "candidato": "98f5254"
+    },
+    {
+      "accion": "revision_registrada",
+      "actor": "Brian Hollweg",
+      "tipo_actor": "persona",
+      "modo": "confirmacion",
+      "forma": "confirmo",
+      "cuando": "2026-10-16T01:16:58+00:00",
+      "formato": "guiado",
+      "revisor": "Brian Hollweg",
+      "decision": "aprobar",
+      "abiertos": 0,
+      "sha256": "203dc5ab42743cb63f58f1464de528688fc1f972f8090dc66867a88790d77e01",
+      "decisiones_sha256": "dec161658a7b0aaa3e27501ab9b3aae59a204ba4fe5c22f2d5bc61f79a1a5e82"
     }
   ],
   "tipos": {
@@ -440,14 +462,5 @@
     }
   },
   "medidas_pendientes": {},
-  "motivos_propuestos": {
-    "revision": {
-      "decision": "aprobar",
-      "motivo": "seis vueltas de codex y agy, a la vez. La 1 encontró que el editor creaba y cargaba los valores con el name por defecto, que las math_* usadas se rompían, que el emisor no sabía qué casos faltaban y que la prueba no ejercitaba el editor; con decisiones de Brian se corrigió todo y el editor real se prueba en node con LiteGraph y el núcleo. La 2: una expresión rota en plural. La 3: un name vacío al cargar y un escenario que el contrato podía omitir. La 4 y la 5 quedaron incompletas de lado de codex porque su sandbox no abría sockets: el arnés pasó a hablar con el núcleo por stdio, y la 5 trajo además un requisito de la spec que el emisor podía omitir. La 6, completa en los dos, no encontró nada. Cada arreglo con una mutación que lo hace fallar; tests de Jam y oracle test VERDE sin subir cotas.",
-      "candidato": "98f5254",
-      "actor": "claude-code",
-      "tipo_actor": "agente",
-      "cuando": "2026-10-16T01:14:57+00:00"
-    }
-  }
+  "motivos_propuestos": {}
 }
