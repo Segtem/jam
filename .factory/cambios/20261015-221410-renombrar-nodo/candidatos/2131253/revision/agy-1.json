@@ -1,0 +1,21 @@
+{
+  "schema_version": "oracle-clue.review/v1",
+  "repo": "/home/workstation/Dev/jam-renombrar-nodo/.factory/local/revisiones/2131253",
+  "base": "c7ed57704315380e809e5a848f0f5d5a03acea76",
+  "head": "2131253b226ee1abb85ddf6f96f14da146d83d34",
+  "diff_sha256": "4caaa4890d66d45cde76f7af0af0ff8e71c6059f992eb9dd41e870da0cc7d4a0",
+  "context_sha256": "9172ee0465a8520c566a554d1e2bca73e3f33fa7eb91ccd8f35aa6c5f2fb7a6a",
+  "provider": {
+    "name": "agy",
+    "model": "gemini-3.8-flash-high"
+  },
+  "review_status": "completo",
+  "limitations": [
+    "Se ejecutaron exclusivamente las pruebas requeridas en primer plano: 'cd Content/Python && PYTHONPATH=. python3 -m unittest tests.test_renombrar_nodo tests.test_editor_web </dev/null' (13 pruebas exitosas en 1.5s).",
+    "Se verificó 'tools/emitir_hechos_pruebas.py' ejecutándolo con el cambio '20261015-221410-renombrar-nodo', comprobando la extracción de escenarios desde la spec y la correcta emisión de hechos de corrida completa y resultados de casos.",
+    "Se realizaron pruebas de mutación manuales sobre copias aisladas en el directorio de trabajo del revisor (omisión de escenarios del contrato, escenarios con listas vacías, contratos planos, omisión de validaciones en renombrar.js y editor.js, disparo de F2 en inputs) para confirmar que las pruebas y el emisor discriminan defectos.",
+    "No se corrieron 'oracle test', la suite completa de Jam ni el editor de Unreal Engine, respetando las instrucciones del usuario.",
+    "La verificación del editor web se realizó sobre Node.js con LiteGraph, renombrar.js, editor.js y el servidor del núcleo vía HTTP; no se ejecutó sobre un navegador con entorno gráfico interactivo."
+  ],
+  "findings": []
+}

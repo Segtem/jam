@@ -1,0 +1,5 @@
+relacion prueba_caso:
+    requisito: texto
+    caso: texto
+    codigo: entero adimensional
+    alcance "un caso de contrato de un cambio de Factory, corrido por tools/emitir_hechos_pruebas.py: 0 si pasó, 1 si falló, dio error o se salteó. NO observa qué prueba el caso ni si lo prueba bien"

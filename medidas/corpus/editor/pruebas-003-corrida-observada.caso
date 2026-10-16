@@ -1,0 +1,19 @@
+caso pruebas-003-corrida-observada:
+    fecha: "2026-10-15"
+    origen:
+        repo: "Segtem/jam"
+        commit: "a916000"
+        comando: "python tools/emitir_hechos_pruebas.py --cambio 20261015-221410-renombrar-nodo --salida $(oracle-factory ruta 20261015-221410-renombrar-nodo evidencia)"
+        registro: ".factory/cambios/20261015-221410-renombrar-nodo/candidatos/a916000/evidencia/hechos.json"
+    procedencia: observada
+    titulo: "La corrida real del emisor de pruebas sale completa"
+    etiqueta: verde_correcto
+    sintoma:
+        La corrida real del emisor de pruebas sale completa.
+    como_se_detecto: observacion
+    medida: pruebas.corrida_completa
+    evidencia:
+        prueba_corrida: cambio, completa, casos
+            "20261015-221410-renombrar-nodo", 1, 6
+    leccion:
+        Transcripta de la corrida del emisor sobre el commit del cambio.

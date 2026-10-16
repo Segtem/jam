@@ -1,0 +1,17 @@
+caso editor-003-un-caso-del-valor-que-falla:
+    fecha: "2026-10-15"
+    origen:
+        repo: "Segtem/jam"
+        commit: "20261015-221410-renombrar-nodo"
+    titulo: "Un caso de contrato de la variable que no pasa pone rojo al requisito"
+    etiqueta: falso_verde
+    sintoma:
+        Si el caso del valor sin name propio falla, la variable no conserva su nombre.
+    como_se_detecto: persona
+    medida: editor.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo
+    evidencia:
+        prueba_caso: requisito, caso, codigo
+            "la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo", "test_renombrar_nodo.RenombrarNodo.test_rn2_un_valor_sin_name_propio", 1
+            "la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo", "test_renombrar_nodo.RenombrarNodo.test_rn2_un_valor_con_name_propio", 0
+    leccion:
+        Un solo caso que falla alcanza para el rojo.

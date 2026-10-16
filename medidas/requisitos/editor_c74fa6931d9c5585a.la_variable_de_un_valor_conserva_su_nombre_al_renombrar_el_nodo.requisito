@@ -1,0 +1,4 @@
+requisito editor_c74fa6931d9c5585a.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo:
+    texto "Tipo: funcional En el editor web, un nodo de valor con parámetro `name` SHALL nacer y cargarse con `name` igual a su nombre cuando no tiene uno propio, que es la regla del texto y del Compile (`name or nid`). Al renombrar el nodo, su `name` SHALL conservarse (y fijarse en el nombre viejo si estaba vacío), de modo que su variable y las expresiones que la usan no cambien. Una variable sin parámetro `name` (las operaciones `math_*`, que se llaman siempre como su nodo) SHALL NOT renombrarse si una expresión del grafo la usa: el editor SHALL decir cuál; si ninguna la usa, SHALL renombrarse."
+    fuente "openspec/changes/20261015-221410-renombrar-nodo/specs/editor/spec.md#la variable de un valor conserva su nombre al renombrar el nodo"
+    medido_por editor.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo, pruebas.corrida_completa

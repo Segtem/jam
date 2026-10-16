@@ -1,0 +1,21 @@
+{
+  "schema_version": "oracle-clue.review/v1",
+  "repo": "/home/workstation/Dev/jam-renombrar-nodo/.factory/local/revisiones/98f5254",
+  "base": "c7ed57704315380e809e5a848f0f5d5a03acea76",
+  "head": "98f5254f6f6ff606f8cbbc597a8e4f556e115528",
+  "diff_sha256": "38a349c22f4110fdf90b3a770d2a29bd036d1bb38d075c69988afc3d7457b6cd",
+  "context_sha256": "f05848d8164560ae53febe16de33052716b7140c6f4963c37736fc8334a180f6",
+  "provider": {
+    "name": "codex",
+    "model": "gpt-6-luna"
+  },
+  "findings": [],
+  "review_status": "completo",
+  "limitations": [
+    "Revisión estática de la propuesta, la spec y el diff del paquete; del editor.js, renombrar.js, editor.html, marca valor del registro.spec_canvas, editor_en_node.js y test_renombrar_nodo.py; y de tools/emitir_hechos_pruebas.py, contratos, relaciones, catálogos, casos de corpus y revisiones anteriores indicadas. No se editaron archivos del checkout candidato ni se revisaron los 45 archivos excluidos de .factory/tareas.",
+    "Se ejecutó exactamente: cd /home/workstation/Dev/jam-renombrar-nodo/Content/Python && PYTHONPATH=. python3 -m unittest tests.test_renombrar_nodo </dev/null. Resultado: 6 tests, OK.",
+    "El arnés carga LiteGraph, renombrar.js y editor.js reales y usa el núcleo por un puente de stdin/stdout; LGraphCanvas es un doble que conserva selección y no dibuja. La tecla F2 es un evento sintético. No se ejecutó navegador ni editor de Unreal, conforme al alcance indicado.",
+    "El contrato cubre los seis escenarios de ambos requisitos. El emisor compara requisitos de la spec con el registro Factory, exige cobertura de cada escenario, rechaza entradas extra y casos repetidos o no ejecutados exactamente una vez; esto se revisó por inspección, sin ejecutar el emisor. No se ejecutó oracle test, tests.test_editor_web ni la suite completa.",
+    "No hice mutaciones manuales. Las correcciones observadas de vueltas previas siguen presentes: fallback para name ausente/vacío, detección de expresiones que usan operaciones sin name (incluidos errores plurales) y detección de requisitos/escenarios faltantes en el emisor. No encontré defectos adicionales demostrables dentro del alcance."
+  ]
+}

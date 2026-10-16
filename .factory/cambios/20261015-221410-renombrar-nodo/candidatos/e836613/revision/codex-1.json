@@ -1,0 +1,79 @@
+{
+  "schema_version": "oracle-clue.review/v1",
+  "repo": "/home/workstation/Dev/jam-renombrar-nodo/.factory/local/revisiones/e836613",
+  "base": "c7ed57704315380e809e5a848f0f5d5a03acea76",
+  "head": "e836613a9233a294ff25073025809fe138407045",
+  "diff_sha256": "f827912c8e0084ff15a0524c27ad84f484a2a474c843001b53b01c74e9a1cb81",
+  "context_sha256": "6265706c5ca5fdde56724db7a35f19a545c64ed8ee961724da891161d4a20ecb",
+  "provider": {
+    "name": "codex",
+    "model": "gpt-6-luna"
+  },
+  "findings": [
+    {
+      "id": "RN-001",
+      "kind": "discrepancia_con_spec",
+      "severity": "media",
+      "confidence": 0.99,
+      "title": "Los valores sin widget name cambian su variable al renombrarse",
+      "explanation": "VALOR_KINDS incluye operaciones como math_add, que no tienen parámetro name. Para esos nodos, esta rama solo genera un aviso; editor.js no encuentra un widget name para fijar el nombre viejo y aJam no serializa params.name. El compilador deriva la variable como params.name or nid, por lo que cambiar el ID también cambia la variable y rompe expresiones que usaban el ID anterior. Esto incumple el requisito de conservar la variable para un nodo de valor sin name propio.",
+      "location": {
+        "file": "Content/Python/jam/web/renombrar.js",
+        "start_line": 23,
+        "end_line": 25,
+        "side": "head"
+      },
+      "trigger": "Crear un nodo math_add con ID “suma”, usar “suma” en una expresión y renombrar el nodo a “total”.",
+      "evidence": "VALOR_KINDS en Content/Python/jam/math_core.py incluye math_add; su metadata no declara params.name. Content/Python/jam/graph.py construye nombres de variable con params.name or nid. La rama señalada devuelve un aviso sin un name nuevo; Content/Python/jam/web/editor.js solo actualiza widgetName.value si existe. El test test_rn2_un_valor_con_name_propio valida esta rama solo como aviso, no compila una expresión que referencie suma.",
+      "related_requirement": "la variable de un valor conserva su nombre al renombrar el nodo",
+      "status": "pendiente",
+      "verification": "Inferido de las rutas reales de serialización y compilación; la corrida permitida no incluyó un caso para un operador sin parámetro name."
+    },
+    {
+      "id": "RN-002",
+      "kind": "bug",
+      "severity": "media",
+      "confidence": 0.97,
+      "title": "La corrida puede salir completa aunque se omita un caso contractual",
+      "explanation": "completa solo compara la cantidad de ejecuciones con los nombres entregados en --caso. El emisor no tiene una lista esperada de casos por cambio o requisito, así que una invocación que omita un test y ejecute correctamente el resto produce completa=1 y retorno 0. Las medidas de editor solo cuentan hechos con codigo distinto de cero; el caso omitido no genera un hecho que detecte la omisión.",
+      "location": {
+        "file": "tools/emitir_hechos_pruebas.py",
+        "start_line": 71,
+        "end_line": 74,
+        "side": "head"
+      },
+      "trigger": "Invocar el emisor enumerando solo los casos de renombrar con F2 y omitir uno de los casos de variable, aunque el cambio declara cuatro casos contractuales.",
+      "evidence": "correr() forma nombres a partir de casos recibidos y define completa con len(set(nombres)) == len(nombres) y resultado.cantidad[n] == 1. main() acepta cualquier cantidad de --caso (solo exige al menos uno). Los catálogos Oracle filtran codigo != 0 y prueba_corrida.completa != 1, por lo que un conjunto parcial de casos exitosos queda verde.",
+      "related_requirement": "pruebas.corrida_completa",
+      "status": "pendiente",
+      "verification": "Revisión estática de tools/emitir_hechos_pruebas.py y medidas/catalogos/editor y pruebas; no ejecuté el emisor para no correr pruebas fuera del comando solicitado."
+    },
+    {
+      "id": "RN-003",
+      "kind": "pregunta",
+      "severity": "baja",
+      "confidence": 0.99,
+      "title": "El test de F2 verifica texto fuente, no el flujo de teclado y JSON real",
+      "explanation": "La prueba busca fragmentos del listener en editor.js y luego llama renombrar.js directamente. El cambio de IDs y extremos del cable lo crea el helper Python aplicar(), no el listener ni aJam() del editor. Por tanto, pasar no demuestra que un evento F2 con un nodo seleccionado llegue al diálogo ni que el serializador productivo emita el cable con el nuevo nombre.",
+      "location": {
+        "file": "Content/Python/tests/test_renombrar_nodo.py",
+        "start_line": 49,
+        "end_line": 66,
+        "side": "head"
+      },
+      "trigger": "Una regresión de integración que mantenga los textos buscados pero deje de invocar el listener desde el canvas o serialice distinto el grafo puede seguir pasando test_rn1_renombrar_con_f2.",
+      "evidence": "test_rn1_renombrar_con_f2 usa regex y assertIn sobre editor.js/editor.html; invoca el helper puro renombrar() y después aplicar(), que sustituye directamente los nombres de nodos y cables. No ejecuta un EventTarget, el manejador de F2 ni aJam().",
+      "related_requirement": "F2 renombra el nodo seleccionado",
+      "status": "pendiente",
+      "verification": "Verificado por lectura del caso; no se abrió un navegador, de acuerdo con el alcance pedido."
+    }
+  ],
+  "review_status": "incompleto",
+  "limitations": [
+    "Se leyó propuesta, spec, diff del paquete y checkout candidato de solo lectura; no se inspeccionaron los cuatro archivos Factory excluidos.",
+    "Se corrió exactamente el comando unittest solicitado. Resultado: 11 tests, 6 pasaron y 5 fallaron por PermissionError al crear sockets locales en tests.test_editor_web; el entorno no permite esos sockets.",
+    "No se corrieron oracle test, la suite completa ni el editor de Unreal, según lo indicado. No se abrió navegador.",
+    "No se ejecutó tools/emitir_hechos_pruebas.py: la brecha de omisión se verificó estáticamente para evitar correr casos adicionales fuera del comando indicado.",
+    "Se guardó el diff íntegro y el análisis ampliado en diff_completo.txt y revision_detalle.md."
+  ]
+}

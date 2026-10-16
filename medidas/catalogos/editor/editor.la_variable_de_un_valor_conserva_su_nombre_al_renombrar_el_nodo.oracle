@@ -1,0 +1,6 @@
+ninguno editor.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo:
+    de prueba_caso c
+    donde c.requisito == "la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo" y c.codigo != 0
+    umbral <= 0 segun contrato porque "cada caso de contrato de este requisito tiene que pasar; los casos los nombra la evidencia del cambio 20261015-221410-renombrar-nodo (tools/emitir_hechos_pruebas.py), y asociarla junto a pruebas.corrida_completa"
+    ambito universal
+    alcance "corre el editor web real en node (LiteGraph, renombrar.js y editor.js) con un DOM mínimo de prueba y el servidor del núcleo detrás, y compila con el Compile real. NO abre un navegador ni dibuja el lienzo: la tecla F2 llega como evento sintético"

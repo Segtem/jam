@@ -1260,5 +1260,8 @@ def spec_canvas(motor: str = "unreal", implementados=None, funciones=()) -> dict
                                    if c not in verbos["categorias"] and c in cats_flow]
     if funciones and "Funciones" not in cats:
         cats.append("Funciones")
-    return {"categorias": cats, "tools": ribbon.anotar(verbos["tools"] + solo_flow) + funciones,
-            "motor": motor}
+    from .math_core import VALOR_KINDS
+    tools = ribbon.anotar(verbos["tools"] + solo_flow) + funciones
+    for item in tools:  # un nodo de valor es una variable: el editor lo necesita para renombrarlo
+        item["valor"] = item["verbo"] in VALOR_KINDS
+    return {"categorias": cats, "tools": tools, "motor": motor}

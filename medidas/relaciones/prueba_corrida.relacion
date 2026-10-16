@@ -1,0 +1,5 @@
+relacion prueba_corrida:
+    cambio: texto
+    completa: entero adimensional
+    casos: entero adimensional
+    alcance "la corrida de los casos de contrato de un cambio de Factory (tools/emitir_hechos_pruebas.py): completa vale 1 si cada caso nombrado corrió exactamente una vez. NO observa si se nombraron todos los casos que el requisito necesita"

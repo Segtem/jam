@@ -1,0 +1,6 @@
+ninguno pruebas.corrida_completa:
+    de prueba_corrida c
+    donde c.completa != 1
+    umbral <= 0 segun contrato porque "un caso de contrato que falta, se repite o no corre dejaría verde a su requisito sin probarlo"
+    ambito universal
+    alcance "que cada caso nombrado haya corrido una vez (tools/emitir_hechos_pruebas.py). NO ve si los casos prueban lo que dicen"

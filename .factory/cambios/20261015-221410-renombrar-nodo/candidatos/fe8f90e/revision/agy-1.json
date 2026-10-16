@@ -1,0 +1,78 @@
+{
+  "schema_version": "oracle-clue.review/v1",
+  "repo": "/home/workstation/Dev/jam-renombrar-nodo/.factory/local/revisiones/fe8f90e",
+  "base": "c7ed57704315380e809e5a848f0f5d5a03acea76",
+  "head": "fe8f90eb6e2cde91fd1d32a7813ce7d7c9ba0a3f",
+  "diff_sha256": "e331a1b575704573eddaf66b01350d143c4a309a6d5e98ccf2e603edd6ca93d1",
+  "context_sha256": "011a643c1e42d9db8a76b5ba8ad3fb38afdb280e43e4c3b9cadec7b59062263b",
+  "provider": {
+    "name": "agy",
+    "model": "gemini-3.8-flash-high"
+  },
+  "review_status": "completo",
+  "limitations": [
+    "Se ejecutaron exclusivamente las pruebas requeridas: 'PYTHONPATH=. python3 -m unittest tests.test_renombrar_nodo tests.test_editor_web' en Content/Python.",
+    "Se comprobó la emisión de evidencia con 'tools/emitir_hechos_pruebas.py' en un directorio temporal aislado.",
+    "No se corrieron 'oracle test', la suite completa de Jam ni el editor de Unreal Engine, conforme a las instrucciones recibidas.",
+    "La ejecución del editor web se verificó en Node.js mediante 'editor_en_node.js' y análisis estático de código; no se utilizó un navegador web gráfico interactivo."
+  ],
+  "findings": [
+    {
+      "id": "f-01",
+      "kind": "bug",
+      "severity": "alta",
+      "confidence": 1.0,
+      "title": "El filtro de expresiones rotas para operaciones math_* busca la frase literal en singular («${viejo}», que no es una variable), omitiendo expresiones multivariables que se informan en plural y permitiendo renombrar la variable usada",
+      "explanation": "La spec establece que una variable sin parámetro name (operaciones math_*) no debe renombrarse si una expresión del grafo la usa, y el editor debe informar cuál. En Content/Python/jam/web/editor.js (línea 177), la detección de nodos rotos filtra d.texto con includes('«${viejo}», que no es una variable'). Sin embargo, Content/Python/jam/math_core.py (líneas 1350-1352) construye el mensaje de error de compilación diferenciando singular y plural: si en una expresión matemática falta más de una variable (por ejemplo, porque usa el nodo a renombrar junto con otra variable no resuelta), el núcleo emite 'la expresión usa «v1», «v2», que no son una variable; disponibles: ...'. Al buscar la subcadena exacta en singular, includes evalúa a false, rotos queda vacío y el editor procede a renombrar el nodo math_*, destruyendo la variable referenciada y dejando la expresión rota sin aviso.",
+      "location": {
+        "file": "Content/Python/jam/web/editor.js",
+        "start_line": 176,
+        "end_line": 181,
+        "side": "head"
+      },
+      "trigger": "Tener en el grafo un nodo de operación math_* (como s de tipo math_add) y un nodo math cuya expresión la utiliza junto con otra variable no resuelta (por ejemplo expr: 's + y'), e intentar renombrar s con F2 o desde el menú contextual.",
+      "evidence": "Al compilar el grafo tentativo con s renombrado a t y c con expr 's + y', el núcleo devuelve d.texto: 'la expresión usa «s», «y», que no son una variable; disponibles: «t»'. El filter en editor.js busca '«s», que no es una variable', devolviendo false. rotos resulta vacío ([]), reportar no se ejecuta, y s se renombra exitosamente a t en LiteGraph y aJam(), rompiendo la expresión matemática.",
+      "related_requirement": "la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo",
+      "status": "pendiente",
+      "verification": "Ejecutar en Node un escenario donde un nodo math_add 's' es usado en una expresión 's + y', invocar f2(['s'], 't') y comprobar que aJam() renombra el nodo a 't' en lugar de bloquear el renombre con error."
+    },
+    {
+      "id": "f-02",
+      "kind": "discrepancia_con_spec",
+      "severity": "media",
+      "confidence": 0.95,
+      "title": "La prueba contractual test_rn2_una_operacion_que_una_expresion_usa evalúa sólo expresiones monovariables y no previene fallos ante expresiones con múltiples variables",
+      "explanation": "El caso 'operacion' en Content/Python/tests/editor_en_node.js configura el nodo c con expr 's * 2', donde únicamente falta s. Esto provoca que el compilador emita la frase en singular ('«s», que no es una variable'), satisfaciendo fortuitamente la búsqueda literal de editor.js. La suite test_renombrar_nodo.py no incluye ningún caso donde la expresión matemática combine la variable evaluada con otras variables no resueltas (que provocan el plural 'que no son una variable'), permitiendo que el defecto de detección pase inadvertido en la verificación contractual.",
+      "location": {
+        "file": "Content/Python/tests/test_renombrar_nodo.py",
+        "start_line": 100,
+        "end_line": 109,
+        "side": "head"
+      },
+      "trigger": "Ejecución de test_rn2_una_operacion_que_una_expresion_usa en Content/Python/tests/test_renombrar_nodo.py.",
+      "evidence": "En test_renombrar_nodo.py líneas 100-109 y editor_en_node.js líneas 110-117, la única expresión probada es 's * 2', garantizando una sola variable faltante. Si se incorpora un caso con 's + no_declarada', la aserción falla porque el editor no impide el renombre de s.",
+      "related_requirement": "la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo",
+      "status": "pendiente",
+      "verification": "Inspeccionar las líneas 110-117 de Content/Python/tests/editor_en_node.js comprobando que la expresión usada es 's * 2', sin casos con expresiones multivariables."
+    },
+    {
+      "id": "f-03",
+      "kind": "bug",
+      "severity": "baja",
+      "confidence": 0.9,
+      "title": "El arnés de prueba editor_en_node.js sincroniza la invocación asíncrona de renombrar mediante un retardo fijo de 150 ms en lugar de encadenar su promesa",
+      "explanation": "En Content/Python/jam/web/editor.js (línea 195), el manejador de keydown ejecuta 'renombrar(seleccionados[0])' sin almacenar ni devolver la promesa resultante. En consecuencia, la función auxiliar f2 en editor_en_node.js (línea 64) se ve obligada a utilizar una espera ciega 'await dormir(150)' tras despachar el evento. En máquinas con alta carga o concurrencia donde la llamada HTTP a jam.servidor para compilar_grafo demore más de 150 ms, f2 retorna antes de que se complete la validación del grafo tentativo, produciendo lecturas desincronizadas del estado o fallos espurios en las aserciones.",
+      "location": {
+        "file": "Content/Python/tests/editor_en_node.js",
+        "start_line": 63,
+        "end_line": 65,
+        "side": "head"
+      },
+      "trigger": "Ejecutar las pruebas en un entorno con lentitud de red local o contención de CPU donde la respuesta de compilar_grafo tarde más de 150 ms.",
+      "evidence": "En editor_en_node.js línea 64: 'await dormir(150); // renombrar puede esperar al Compile del núcleo'. La sincronización depende exclusivamente de ese retardo fijo porque el listener de keydown en editor.js línea 195 no expone la promesa de renombrar.",
+      "related_requirement": "F2 renombra el nodo seleccionado",
+      "status": "pendiente",
+      "verification": "Inspeccionar la línea 195 de Content/Python/jam/web/editor.js y las líneas 63-65 de Content/Python/tests/editor_en_node.js comprobando la presencia del retardo fijo dormir(150) por falta de manejo de la promesa."
+    }
+  ]
+}

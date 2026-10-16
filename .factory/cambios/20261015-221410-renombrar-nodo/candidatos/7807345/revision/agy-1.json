@@ -1,0 +1,21 @@
+{
+  "schema_version": "oracle-clue.review/v1",
+  "repo": "/home/workstation/Dev/jam-renombrar-nodo/.factory/local/revisiones/7807345",
+  "base": "c7ed57704315380e809e5a848f0f5d5a03acea76",
+  "head": "7807345cfc3cfbf671ea681e7bced41bf3696efe",
+  "diff_sha256": "dc372bfb9c03b156300f7bc2da4f1da9d87e39f0425410ddba6fa3930634f2ef",
+  "context_sha256": "3d90c617ff182fb0fe380d03ea1a88ccaa7d5c5f2293c766653e1d9bd151318f",
+  "provider": {
+    "name": "agy",
+    "model": "gemini-3.8-flash-high"
+  },
+  "review_status": "completo",
+  "limitations": [
+    "Se ejecutaron exclusivamente las pruebas requeridas: 'PYTHONPATH=. python3 -m unittest tests.test_renombrar_nodo tests.test_editor_web' en Content/Python.",
+    "Se verificó la emisión de evidencia y validación de contrato con 'tools/emitir_hechos_pruebas.py' en un entorno aislado.",
+    "Se realizaron pruebas de mutación manuales sobre copias aisladas en el espacio del revisor para comprobar que las pruebas discriminan errores en renombrar.js, editor.js y el arnés.",
+    "No se corrieron 'oracle test', la suite completa de Jam ni el editor de Unreal Engine, conforme a las instrucciones.",
+    "La verificación del editor web se realizó en Node.js con LiteGraph real, renombrar.js, editor.js y el servidor del núcleo vía HTTP; no se utilizó un navegador interactivo de interfaz gráfica."
+  ],
+  "findings": []
+}

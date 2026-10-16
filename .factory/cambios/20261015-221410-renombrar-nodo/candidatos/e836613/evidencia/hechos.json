@@ -1,0 +1,31 @@
+{
+  "prueba_caso": [
+    {
+      "requisito": "f2_renombra_el_nodo_seleccionado",
+      "caso": "test_renombrar_nodo.RenombrarNodo.test_rn1_renombrar_con_f2",
+      "codigo": 0
+    },
+    {
+      "requisito": "f2_renombra_el_nodo_seleccionado",
+      "caso": "test_renombrar_nodo.RenombrarNodo.test_rn1_un_nombre_invalido_o_repetido",
+      "codigo": 0
+    },
+    {
+      "requisito": "la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo",
+      "caso": "test_renombrar_nodo.RenombrarNodo.test_rn2_un_valor_sin_name_propio",
+      "codigo": 0
+    },
+    {
+      "requisito": "la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo",
+      "caso": "test_renombrar_nodo.RenombrarNodo.test_rn2_un_valor_con_name_propio",
+      "codigo": 0
+    }
+  ],
+  "prueba_corrida": [
+    {
+      "completa": 1,
+      "casos": 4,
+      "cambio": "20261015-221410-renombrar-nodo"
+    }
+  ]
+}

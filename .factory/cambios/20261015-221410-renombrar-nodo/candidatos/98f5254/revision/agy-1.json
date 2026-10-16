@@ -1,0 +1,22 @@
+{
+  "schema_version": "oracle-clue.review/v1",
+  "repo": "/home/workstation/Dev/jam-renombrar-nodo/.factory/local/revisiones/98f5254",
+  "base": "c7ed57704315380e809e5a848f0f5d5a03acea76",
+  "head": "98f5254f6f6ff606f8cbbc597a8e4f556e115528",
+  "diff_sha256": "38a349c22f4110fdf90b3a770d2a29bd036d1bb38d075c69988afc3d7457b6cd",
+  "context_sha256": "f05848d8164560ae53febe16de33052716b7140c6f4963c37736fc8334a180f6",
+  "provider": {
+    "name": "agy",
+    "model": "gemini-3.8-flash-high"
+  },
+  "review_status": "completo",
+  "limitations": [
+    "Se ejecutaron exclusivamente las pruebas indicadas en primer plano: 'cd Content/Python && PYTHONPATH=. python3 -m unittest tests.test_renombrar_nodo </dev/null' (6 pruebas pasadas en ~0.7s), sin abrir sockets ni requerir dependencias no disponibles en el entorno.",
+    "Se verificó 'tools/emitir_hechos_pruebas.py' ejecutándolo con el cambio '20261015-221410-renombrar-nodo', comprobando que extrae escenarios de la spec, compara con los requisitos registrados en factory.json, valida el contrato y genera hechos completos ('completa': 1) sólo cuando no hay discrepancias ni omisiones.",
+    "Se verificó la corrección de la vuelta 5 (codex-1): cuando la spec contiene un requisito no importado por factory.json (o viceversa), emitir_hechos_pruebas.py marca problemas y emite 'completa': 0 impidiendo falsos verdes.",
+    "Se llevaron a cabo pruebas de mutación manuales en copias temporales aisladas dentro de la carpeta de trabajo del revisor (permitir dígitos iniciales en IDENT, omitir validación de nombres usados, disparar F2 sobre campos INPUT o con selecciones múltiples, omitir fallback a nombre viejo de parámetros name vacíos en renombrar.js o desdeJam, omitir asignación de name en onAdded y omitir bloqueo de operaciones math_* usadas por expresiones), comprobando que los tests fallan ante cada una de estas mutaciones.",
+    "No se corrieron 'oracle test', la suite completa de Jam ni el editor de Unreal Engine, respetando las instrucciones del usuario.",
+    "La verificación del editor web se realizó sobre Node.js con LiteGraph, renombrar.js, editor.js y el núcleo de Python vía stdio (puente_nucleo.py); no se probó sobre un navegador web gráfico interactivo."
+  ],
+  "findings": []
+}

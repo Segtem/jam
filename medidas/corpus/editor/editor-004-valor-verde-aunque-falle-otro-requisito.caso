@@ -1,0 +1,18 @@
+caso editor-004-valor-verde-aunque-falle-otro-requisito:
+    fecha: "2026-10-15"
+    origen:
+        repo: "Segtem/jam"
+        commit: "20261015-221410-renombrar-nodo"
+    titulo: "La variable sale verde con sus casos pasando, aunque falle un caso de F2"
+    etiqueta: verde_correcto
+    sintoma:
+        Sin el filtro por requisito, un caso de F2 que falla pondría rojo a éste.
+    como_se_detecto: persona
+    medida: editor.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo
+    evidencia:
+        prueba_caso: requisito, caso, codigo
+            "la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo", "test_renombrar_nodo.RenombrarNodo.test_rn2_un_valor_sin_name_propio", 0
+            "la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo", "test_renombrar_nodo.RenombrarNodo.test_rn2_un_valor_con_name_propio", 0
+            "f2_renombra_el_nodo_seleccionado", "test_renombrar_nodo.RenombrarNodo.test_rn1_renombrar_con_f2", 1
+    leccion:
+        Las dos polaridades fijan el filtro.

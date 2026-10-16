@@ -1,0 +1,24 @@
+caso editor-006-valor-observado:
+    fecha: "2026-10-15"
+    origen:
+        repo: "Segtem/jam"
+        commit: "a916000"
+        comando: "python tools/emitir_hechos_pruebas.py --cambio 20261015-221410-renombrar-nodo --salida $(oracle-factory ruta 20261015-221410-renombrar-nodo evidencia)"
+        registro: ".factory/cambios/20261015-221410-renombrar-nodo/candidatos/a916000/evidencia/hechos.json"
+    procedencia: observada
+    titulo: "La corrida real de los casos de contrato de la variable sale verde"
+    etiqueta: verde_correcto
+    sintoma:
+        La corrida real de los casos de contrato de la variable sale verde.
+    como_se_detecto: observacion
+    medida: editor.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo
+    evidencia:
+        prueba_caso: requisito, caso, codigo
+            "f2_renombra_el_nodo_seleccionado", "test_renombrar_nodo.RenombrarNodo.test_rn1_renombrar_con_f2", 0
+            "f2_renombra_el_nodo_seleccionado", "test_renombrar_nodo.RenombrarNodo.test_rn1_un_nombre_invalido_o_repetido", 0
+            "la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo", "test_renombrar_nodo.RenombrarNodo.test_rn2_un_valor_sin_name_propio", 0
+            "la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo", "test_renombrar_nodo.RenombrarNodo.test_rn2_nodos_de_valor_nuevos", 0
+            "la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo", "test_renombrar_nodo.RenombrarNodo.test_rn2_un_valor_con_name_propio", 0
+            "la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo", "test_renombrar_nodo.RenombrarNodo.test_rn2_una_operacion_que_una_expresion_usa", 0
+    leccion:
+        Transcripta de la corrida del emisor sobre el commit del cambio.
