@@ -300,6 +300,16 @@
       "candidato": "2131253",
       "resultado": "ok",
       "hallazgos": 0
+    },
+    {
+      "accion": "revision_propuesta",
+      "actor": "claude-code",
+      "tipo_actor": "agente",
+      "modo": "confirmacion",
+      "forma": "propuso",
+      "cuando": "2026-10-16T00:28:56+00:00",
+      "decision": "aprobar",
+      "candidato": "2131253"
     }
   ],
   "tipos": {
@@ -340,5 +350,15 @@
       }
     }
   },
-  "medidas_pendientes": {}
+  "medidas_pendientes": {},
+  "motivos_propuestos": {
+    "revision": {
+      "decision": "aprobar",
+      "motivo": "cuatro vueltas de codex y agy, a la vez. La 1 encontró que el editor creaba y cargaba los valores con el name por defecto (variables duplicadas y una variable que cambiaba al cargar), que las math_* usadas se rompían, que el emisor no sabía qué casos faltaban y que la prueba no ejercitaba el editor: con decisiones de Brian, se corrigió todo y el editor real se prueba en node con LiteGraph y el servidor del núcleo. La 2: una expresión rota en plural (corregido comparando el Compile de antes y después). La 3: un name vacío al cargar y un escenario que el contrato podía omitir (corregidos). La 4 no encontró nada. Cada arreglo con una mutación que lo hace fallar; tests de Jam y oracle test VERDE sin subir cotas.",
+      "candidato": "2131253",
+      "actor": "claude-code",
+      "tipo_actor": "agente",
+      "cuando": "2026-10-16T00:28:56+00:00"
+    }
+  }
 }
