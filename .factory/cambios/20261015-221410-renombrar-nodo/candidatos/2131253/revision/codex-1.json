@@ -1,0 +1,21 @@
+{
+  "schema_version": "oracle-clue.review/v1",
+  "repo": "/home/workstation/Dev/jam-renombrar-nodo/.factory/local/revisiones/2131253",
+  "base": "c7ed57704315380e809e5a848f0f5d5a03acea76",
+  "head": "2131253b226ee1abb85ddf6f96f14da146d83d34",
+  "diff_sha256": "4caaa4890d66d45cde76f7af0af0ff8e71c6059f992eb9dd41e870da0cc7d4a0",
+  "context_sha256": "9172ee0465a8520c566a554d1e2bca73e3f33fa7eb91ccd8f35aa6c5f2fb7a6a",
+  "provider": {
+    "name": "codex",
+    "model": "gpt-6-luna"
+  },
+  "findings": [],
+  "review_status": "incompleto",
+  "limitations": [
+    "Revisión estática de la propuesta y la spec; del diff del paquete y el código relevante en Content/Python/jam/web/renombrar.js, editor.js, editor.html y registro.py; del arnés editor_en_node.js y test_renombrar_nodo.py; y del contrato, emisor, relaciones, catálogos y corpus indicados. No se editaron archivos del checkout ni se revisaron los registros excluidos de .factory/tareas.",
+    "Se ejecutó exactamente el comando pedido: cd /home/workstation/Dev/jam-renombrar-nodo/Content/Python && PYTHONPATH=. python3 -m unittest tests.test_renombrar_nodo tests.test_editor_web </dev/null. Resultado: Ran 7 tests, FAILED (errors=6). Los seis errores ocurrieron al abrir sockets TCP locales para los servidores de prueba: PermissionError: [Errno 1] Operation not permitted. No pudo confirmarse en ejecución la integración del arnés; una prueba llegó a pasar. También se intentó en Content/Python del checkout candidato y se obtuvo el mismo resultado.",
+    "Por inspección, el arnés carga el LiteGraph incluido, renombrar.js y editor.js reales, y usa el servidor del núcleo; sustituye LGraphCanvas por un doble que conserva la selección y no dibuja. La medida declara que no comprueba navegador ni dibujo. No se confirmó la interacción en navegador debido al alcance indicado.",
+    "Se contrastaron los seis escenarios de la spec con los casos del contrato y las aserciones: hay un caso para cada escenario; los tests verifican F2, nombres inválidos/repetidos, cable serializado y Compile, valores cargados ausentes/vacíos, nuevos valores, name propio y operaciones usadas/libres. Por inspección, el emisor comprueba cobertura de requisitos y escenarios, rechaza escenarios o requisitos sobrantes, casos vacíos/duplicados y casos no ejecutados exactamente una vez.",
+    "Los hallazgos RN3-001 y RN3-002 de la vuelta anterior aparecen corregidos en el código revisado. No se hicieron mutaciones manuales ni se ejecutó tools/emitir_hechos_pruebas.py, oracle test, la suite completa, navegador ni editor de Unreal, según las restricciones del pedido. No se encontraron defectos adicionales demostrables por inspección estática."
+  ]
+}
