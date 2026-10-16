@@ -1,19 +1,18 @@
 """Renombrar un nodo en el editor web: escenarios rn1–rn2 del cambio 20261015-221410-renombrar-nodo.
 
 El editor corre de verdad en node (`editor_en_node.js`): LiteGraph, `web/renombrar.js` y `web/editor.js`
-reales, con un DOM mínimo de prueba y el servidor del núcleo (`jam.servidor`) detrás, así que F2, el
-diálogo, la serialización (`aJam`) y el Compile son los del editor. La función pura se prueba además
+reales, con un DOM mínimo de prueba y el núcleo (`jam.servidor.Nucleo`) detrás, en un proceso hijo que
+contesta por la entrada y la salida estándar (`puente_nucleo.py`): F2, el diálogo, la serialización
+(`aJam`) y el Compile son los del editor, y no se abre ningún socket. La función pura se prueba además
 sola, también con node.
 """
 
 from __future__ import annotations
 
-import http.server
 import json
 import shutil
 import subprocess
 import sys
-import threading
 import types
 import unittest
 from pathlib import Path
@@ -39,19 +38,8 @@ def renombrar(nodo: dict, nuevo, usados) -> dict:
 
 @unittest.skipUnless(NODE, "hace falta node para correr el editor web")
 class RenombrarNodo(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.srv = http.server.ThreadingHTTPServer(("127.0.0.1", 0), servidor._handler(servidor.Nucleo("godot")))
-        threading.Thread(target=cls.srv.serve_forever, daemon=True).start()
-        cls.base = f"http://127.0.0.1:{cls.srv.server_address[1]}"
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.srv.shutdown()
-        cls.srv.server_close()
-
     def editor(self, escenario: str) -> dict:
-        p = subprocess.run([NODE, str(ARNES), str(WEB), self.base, escenario], capture_output=True, text=True, timeout=90)
+        p = subprocess.run([NODE, str(ARNES), str(WEB), sys.executable, escenario], capture_output=True, text=True, timeout=90)
         self.assertEqual(p.returncode, 0, p.stderr[-2000:])
         return json.loads(p.stdout)
 

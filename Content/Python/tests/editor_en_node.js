@@ -1,13 +1,30 @@
 // El editor web de verdad, en node: LiteGraph, renombrar.js y editor.js reales, con un DOM mínimo de
-// prueba y el servidor del núcleo (jam.servidor) detrás. Lo usa tests/test_renombrar_nodo.py.
+// prueba y el núcleo (jam.servidor.Nucleo) detrás. Lo usa tests/test_renombrar_nodo.py.
 //
-//   node editor_en_node.js <carpeta web> <url del servidor> <escenario>
+//   node editor_en_node.js <carpeta web> <python> <escenario>
 //
+// El núcleo corre en un proceso hijo (puente_nucleo.py) que contesta por la entrada y la salida estándar:
+// sin sockets, para que las pruebas corran también donde no se pueden abrir (el sandbox de un revisor).
 // Imprime un JSON con lo que el escenario observó. El lienzo es un doble (no hay <canvas> en node): sólo
 // guarda la selección, que es lo que F2 lee.
 "use strict";
-const fs = require("fs"), path = require("path"), vm = require("vm");
-const [web, base, escenario] = process.argv.slice(2);
+const fs = require("fs"), path = require("path"), vm = require("vm"), { spawn } = require("child_process");
+const [web, python, escenario] = process.argv.slice(2);
+
+// El núcleo, de a un pedido por vez: el editor llama `fetch("/api/<fn>", {body: {args}})`.
+const nucleo = spawn(python, [path.join(__dirname, "puente_nucleo.py"), "godot"], { stdio: ["pipe", "pipe", "inherit"] });
+let pendiente = Promise.resolve(), resto = "";
+const esperando = [];
+nucleo.stdout.on("data", (trozo) => {
+  resto += trozo;
+  let i;
+  while ((i = resto.indexOf("\n")) >= 0) { const linea = resto.slice(0, i); resto = resto.slice(i + 1); esperando.shift()(JSON.parse(linea)); }
+});
+function alNucleo(url, opciones) {
+  const fn = url.replace(/^\/api\//, ""), args = JSON.parse((opciones && opciones.body) || "{}").args || [];
+  const respuesta = (pendiente = pendiente.then(() => new Promise((r) => { esperando.push(r); nucleo.stdin.write(JSON.stringify({ fn, args }) + "\n"); })));
+  return respuesta.then((r) => ({ ok: !r.error, status: r.error ? 500 : 200, json: async () => r }));
+}
 
 function elemento() {
   const e = { textContent: "", value: "", className: "", style: {}, children: [],
@@ -24,7 +41,7 @@ const ctx = {
   document: { title: "", body: elemento(), createElement: () => elemento(),
               querySelector: (s) => (porSelector[s] = porSelector[s] || elemento()),
               addEventListener: (tipo, f) => (escuchas[tipo] = escuchas[tipo] || []).push(f) },
-  fetch: (url, opciones) => fetch(base + url, opciones),
+  fetch: alNucleo,
   prompt: (mensaje, porDefecto) => { pedidos.push(porDefecto); return respuestas.shift(); },
 };
 ctx.window = ctx; ctx.self = ctx;
@@ -131,6 +148,7 @@ const ESCENARIOS = {
   await listo();
   const salida = await ESCENARIOS[escenario]();
   en("grafo.stop()");
+  nucleo.stdin.end();
   process.stdout.write(JSON.stringify(salida));
   process.exit(0);
 })().catch((e) => { process.stderr.write(String(e && e.stack || e)); process.exit(1); });
