@@ -18,6 +18,7 @@ const IDENT = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
 let SPEC = null, POR_VERBO = {}, grafo, lienzo;
 let ultimoJson = "", textoEditado = false, pausa = false;
+let renombrando = Promise.resolve();  // el último renombre, que puede esperar al Compile del núcleo
 
 // ---------------------------------------------------------------- API
 
@@ -171,10 +172,15 @@ async function renombrar(nodo) {
     const tentativo = aJam();
     tentativo.nodes = Object.fromEntries(Object.entries(tentativo.nodes).map(([n, d]) => [n === viejo ? r.nombre : n, d]));
     tentativo.edges = tentativo.edges.map((e) => e.map((x, i) => (i % 2 === 0 && x === viejo ? r.nombre : x)));
-    const despues = await api("compilar_grafo", JSON.stringify(tentativo));
+    const [antes, despues] = await Promise.all([api("compilar_grafo", JSON.stringify(aJam())),
+                                                api("compilar_grafo", JSON.stringify(tentativo))]);
     if (nodo.properties.nombre !== viejo) return;  // otro cambio lo renombró mientras tanto
+    // Rota por el renombre: después nombra a «viejo» entre las variables que faltan (el Compile lo dice en
+    // singular o en plural) y antes no. Lo que ya estaba roto por otra cosa no cuenta.
+    const falta = (d) => /que no (es|son) una variable/.test(String(d && d.texto || "")) &&
+                         String(d.texto).split(/que no (?:es|son) una variable/)[0].includes(`«${viejo}»`);
     const rotos = Object.entries(despues.nodes || {})
-      .filter(([, d]) => String(d.texto || "").includes(`«${viejo}», que no es una variable`)).map(([n]) => n);
+      .filter(([n, d]) => falta(d) && !falta((antes.nodes || {})[n])).map(([n]) => n);
     if (rotos.length) {
       return reportar(`no renombré «${viejo}»: es una variable sin name y la usa${rotos.length > 1 ? "n" : ""} ` +
                       `${rotos.map((n) => `«${n}»`).join(", ")}; cambiá primero esa expresión`, "error");
@@ -192,7 +198,7 @@ document.addEventListener("keydown", (e) => {
   const seleccionados = Object.values((lienzo && lienzo.selected_nodes) || {});
   if (seleccionados.length !== 1) return;
   e.preventDefault();
-  renombrar(seleccionados[0]);
+  renombrando = renombrar(seleccionados[0]);
 });
 
 // ---------------------------------------------------------------- JamGraph ↔ LiteGraph

@@ -61,7 +61,7 @@ async function f2(nombres, respuesta, etiqueta = "CANVAS") {
   if (respuesta !== undefined) respuestas.push(respuesta);
   let evitado = false;
   for (const f of escuchas.keydown || []) f({ key: "F2", target: { tagName: etiqueta }, preventDefault: () => (evitado = true) });
-  await dormir(150);  // renombrar puede esperar al Compile del núcleo
+  await en("renombrando");  // renombrar puede esperar al Compile del núcleo
   return evitado;
 }
 const cargarGrafo = (g) => en(`desdeJam(${JSON.stringify(g)})`);
@@ -112,8 +112,15 @@ const ESCENARIOS = {
                            c: { verb: "math", params: { name: "x", expr: "s * 2" } } }, edges: [] });
     await f2(["s"], "t");
     const usada = { grafo: en("aJam()"), reporte: reporte() };
+    // Una expresión que ya tenía otra variable faltante: el Compile nombra las dos, en plural.
+    cargarGrafo({ nodes: { s: { verb: "math_add", params: { a: "1", b: "2" } },
+                           c2: { verb: "math", params: { name: "y", expr: "s + falta" } } }, edges: [] });
+    await f2(["s"], "t");
+    const plural = { grafo: en("aJam()"), reporte: reporte() };
+    cargarGrafo({ nodes: { s: { verb: "math_add", params: { a: "1", b: "2" } }, libre: { verb: "math_add", params: { a: "1", b: "1" } },
+                           c: { verb: "math", params: { name: "x", expr: "s * 2" } } }, edges: [] });
     await f2(["libre"], "otra");
-    return { usada, libre: { grafo: en("aJam()") }, compilado: await compilar() };
+    return { usada, plural, libre: { grafo: en("aJam()") }, compilado: await compilar() };
   },
 };
 

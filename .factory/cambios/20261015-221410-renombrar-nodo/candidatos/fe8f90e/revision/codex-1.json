@@ -1,0 +1,21 @@
+{
+  "schema_version": "oracle-clue.review/v1",
+  "repo": "/home/workstation/Dev/jam-renombrar-nodo/.factory/local/revisiones/fe8f90e",
+  "base": "c7ed57704315380e809e5a848f0f5d5a03acea76",
+  "head": "fe8f90eb6e2cde91fd1d32a7813ce7d7c9ba0a3f",
+  "diff_sha256": "e331a1b575704573eddaf66b01350d143c4a309a6d5e98ccf2e603edd6ca93d1",
+  "context_sha256": "011a643c1e42d9db8a76b5ba8ad3fb38afdb280e43e4c3b9cadec7b59062263b",
+  "provider": {
+    "name": "codex",
+    "model": "gpt-6-luna"
+  },
+  "findings": [],
+  "review_status": "incompleto",
+  "limitations": [
+    "Revisión estática de la propuesta, la spec, el diff incluido en el paquete y los archivos de producto indicados; no se inspeccionaron los archivos excluidos de Factory/tareas.",
+    "Se ejecutó exactamente: cd /home/workstation/Dev/jam-renombrar-nodo/Content/Python && PYTHONPATH=. python3 -m unittest tests.test_renombrar_nodo tests.test_editor_web </dev/null. Resultado: Ran 7 tests, FAILED (errors=6). Las seis fallas son PermissionError al abrir sockets TCP locales; no pudo arrancar el servidor de test del arnés ni el de test_editor_web. Dos tests que no requieren esos servidores pasaron.",
+    "Se revisó estáticamente que el arnés carga vendor/litegraph.js, renombrar.js y editor.js reales, entrega eventos F2 al listener del documento, usa aJam() y conecta la API al servidor jam.servidor; no se pudo confirmar esa integración ejecutándola por la restricción de sockets.",
+    "Se revisó estáticamente el emisor, el contrato, las relaciones, catálogos y corpus: el contrato detecta requisitos faltantes/sobrantes y casos vacíos/repetidos; cada caso listado corre una vez y los errores o skips quedan con código no cero. No se ejecutó tools/emitir_hechos_pruebas.py ni Oracle.",
+    "No se hicieron mutaciones manuales. No se ejecutaron oracle test, la suite completa, un navegador ni el editor de Unreal, según las instrucciones."
+  ]
+}

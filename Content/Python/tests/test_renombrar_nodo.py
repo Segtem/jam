@@ -105,6 +105,9 @@ class RenombrarNodo(unittest.TestCase):
         r = self.editor("operacion")
         self.assertEqual(sorted(r["usada"]["grafo"]["nodes"]), ["c", "libre", "s"])  # «s» la usa «c»: no se renombra
         self.assertEqual(r["usada"]["reporte"], "no renombré «s»: es una variable sin name y la usa «c»; cambiá primero esa expresión")
+        # Con otra variable que ya faltaba en la misma expresión, el Compile habla en plural: tampoco se renombra.
+        self.assertEqual(sorted(r["plural"]["grafo"]["nodes"]), ["c2", "s"])
+        self.assertEqual(r["plural"]["reporte"], "no renombré «s»: es una variable sin name y la usa «c2»; cambiá primero esa expresión")
         self.assertEqual(sorted(r["libre"]["grafo"]["nodes"]), ["c", "otra", "s"])  # «libre» no la usa nadie: se renombra
         self.assertTrue(r["compilado"]["ok"], r["compilado"])
         spec = {t["verbo"]: t for t in registro.spec_canvas("godot")["tools"]}  # el spec dice qué nodos son variables
