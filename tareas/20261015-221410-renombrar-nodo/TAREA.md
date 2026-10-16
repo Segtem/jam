@@ -1,6 +1,6 @@
 # F2 renombra un nodo y la variable de un valor conserva su nombre
 
-- ESTADO: ABIERTA
+- ESTADO: CERRADA
 - PRIORIDAD: 50
 - ETIQUETAS: 
 
@@ -67,3 +67,7 @@ Revisión guiada Brian Hollweg: aprobar; registrada por Brian Hollweg (persona, 
 ### Nota (2026-10-16 01:18:40 UTC)
 
 Juicio Factory: verde; salida Oracle 0; informe .factory/cambios/20261015-221410-renombrar-nodo/oracle-veredicto.txt.
+
+### Nota (2026-10-16 01:25:42 UTC)
+
+Cierre: Brian Hollweg (persona, decidio, modo confirmacion), tras revisar el informe de código y el veredicto Oracle.

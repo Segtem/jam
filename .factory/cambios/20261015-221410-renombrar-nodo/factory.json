@@ -2,7 +2,7 @@
   "id": "20261015-221410-renombrar-nodo",
   "titulo": "F2 renombra un nodo y la variable de un valor conserva su nombre",
   "capacidad": "editor",
-  "fase": "oracle_verde",
+  "fase": "cerrada",
   "spec": "openspec/changes/20261015-221410-renombrar-nodo/specs/editor/spec.md",
   "spec_sha256": "e2cba3c4239dcc4c97af69a1ca46496050eb0796171fe94eeb77c11213f56884",
   "spec_aprobada": {
@@ -444,6 +444,26 @@
       "codigo": 0,
       "codigo_oracle": 0,
       "hechos_sha256": "ef8a0b375be6099b617d7fb6ba44bbf54604014e4436a8514e665ddecf77d699"
+    },
+    {
+      "accion": "cierre",
+      "actor": "Brian Hollweg",
+      "tipo_actor": "persona",
+      "modo": "confirmacion",
+      "forma": "decidio",
+      "cuando": "2026-10-16T01:25:42+00:00",
+      "oracle": ".factory/cambios/20261015-221410-renombrar-nodo/oracle-veredicto.txt",
+      "revision": "tareas/20261015-221410-renombrar-nodo/revisiones/registro-zd5__e11/informe.json"
+    },
+    {
+      "accion": "archivado",
+      "actor": "Brian Hollweg",
+      "tipo_actor": "persona",
+      "modo": "confirmacion",
+      "forma": "decidio",
+      "cuando": "2026-10-16T01:25:42+00:00",
+      "capacidad": "editor",
+      "spec": "openspec/specs/editor/spec.md"
     }
   ],
   "tipos": {
@@ -485,5 +505,17 @@
     }
   },
   "medidas_pendientes": {},
-  "motivos_propuestos": {}
+  "motivos_propuestos": {},
+  "cierre": {
+    "actor": "Brian Hollweg",
+    "tipo_actor": "persona",
+    "forma": "decidio",
+    "modo": "confirmacion",
+    "cuando": "2026-10-16T01:25:42+00:00"
+  },
+  "archivo": {
+    "capacidad": "editor",
+    "spec": "openspec/specs/editor/spec.md",
+    "cuando": "2026-10-16T01:25:42+00:00"
+  }
 }
