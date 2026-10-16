@@ -1,0 +1,39 @@
+{
+  "schema_version": "oracle-clue.review/v1",
+  "repo": "/home/workstation/Dev/jam-renombrar-nodo/.factory/local/revisiones/2fb5669",
+  "base": "c7ed57704315380e809e5a848f0f5d5a03acea76",
+  "head": "2fb56693bed15af5fc91f958a5f3b6b75b47d446",
+  "diff_sha256": "88f7cfad84b875cd34483df131ee010d553735a95330663dc6086bceb751e1c5",
+  "context_sha256": "3dd5e26e991c0808c8180b37b3757fa80957dd76e0eb1090e575f8f06dc1039e",
+  "provider": {
+    "name": "codex",
+    "model": "gpt-6-luna"
+  },
+  "findings": [
+    {
+      "id": "codex-1",
+      "kind": "bug",
+      "severity": "media",
+      "confidence": 0.96,
+      "title": "El emisor puede declarar completa una corrida si la spec tiene un requisito que Factory no registró",
+      "explanation": "La corrida toma como universo de requisitos únicamente estado[\"requisitos\"] del registro de Factory. Aunque escenarios_de() también lee los requisitos y escenarios presentes en la spec, contrato() sólo recorre requisitos - claves_del_contrato; no comprueba que los requisitos de la spec estén incluidos en estado[\"requisitos\"]. Si se agrega un requisito/escenario a la spec y el registro queda atrasado, el contrato puede omitirlo sin problema y completar=1 con todos los casos declarados en verde. Esto contradice la promesa del emisor de exigir casos para cada requisito del cambio.",
+      "location": {
+        "file": "tools/emitir_hechos_pruebas.py",
+        "start_line": 109,
+        "end_line": 110,
+        "side": "head"
+      },
+      "trigger": "Agregar a la spec del cambio un requisito con escenario, dejando ese requisito fuera de .factory/cambios/<ID>/factory.json y fuera del contrato; ejecutar el emisor con al menos un caso válido para el requisito ya registrado.",
+      "evidence": "Reproduje el escenario en una copia temporal aislada: spec con dos requisitos y un escenario cada uno, registro Factory con sólo el primero, contrato/caso exitoso sólo para el primero. El emisor terminó con rc=0 y emitió prueba_corrida.completa=1 y casos=1. En el código, escenarios_de(spec) obtiene ambos requisitos, pero las líneas 109-110 basan el conjunto esperado sólo en estado[\"requisitos\"] y no detectan el requisito extra de la spec. La salida completa de la reproducción quedó en /tmp/revision-emisor-requisito-omitido.txt.",
+      "related_requirement": "editor_c74fa6931d9c5585a.f2_renombra_el_nodo_seleccionado",
+      "status": "pendiente",
+      "verification": "Reproducción ejecutada en una copia temporal del emisor y un proyecto mínimo sintético; no se modificó el checkout del candidato."
+    }
+  ],
+  "review_status": "incompleto",
+  "limitations": [
+    "Se ejecutó exactamente: cd /home/workstation/Dev/jam-renombrar-nodo/Content/Python && PYTHONPATH=. python3 -m unittest tests.test_renombrar_nodo tests.test_editor_web </dev/null. Los 8 tests de test_renombrar_nodo pasaron; test_editor_web dejó 5 errores porque el sandbox denegó la creación de sockets locales (PermissionError: Operation not permitted).",
+    "Se revisaron la implementación web y el arnés Node, los escenarios de test_renombrar_nodo, el emisor, contrato, relaciones, catálogos, corpus y requisitos de medidas. Se revisaron los informes de vueltas previas: los hallazgos funcionales registrados allí aparecen corregidos en este candidato; el nuevo hallazgo señalado arriba es un caso no cubierto por esas correcciones.",
+    "No se corrieron oracle test, la suite completa de Jam ni el editor de Unreal Engine, según lo pedido. No se hicieron mutaciones en el checkout; la reproducción del emisor se hizo sobre archivos temporales aislados."
+  ]
+}

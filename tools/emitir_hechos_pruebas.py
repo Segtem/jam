@@ -107,6 +107,13 @@ def contrato(cambio: str) -> tuple[list[tuple[str, str]], list[str]]:
     if registro.is_file() and not escenarios:
         problemas.append("no encuentro los escenarios de la spec del cambio")
     requisitos = {r.rsplit(".", 1)[-1] for r in estado.get("requisitos", [])}
+    # La spec y el registro tienen que decir lo mismo: un requisito que la spec suma y el registro no importó
+    # todavía (o al revés) también se exige (hallazgo de codex, vuelta 5).
+    for r in sorted(set(escenarios) - requisitos):
+        problemas.append(f"la spec tiene el requisito {r}, que el registro del cambio no importó")
+    for r in sorted(requisitos - set(escenarios)) if escenarios else []:
+        problemas.append(f"el registro tiene el requisito {r}, que la spec del cambio ya no tiene")
+    requisitos |= set(escenarios)
     for r in sorted(requisitos - set(datos)):
         problemas.append(f"el requisito {r} no tiene casos en el contrato")
     for r in sorted(set(datos) - requisitos):

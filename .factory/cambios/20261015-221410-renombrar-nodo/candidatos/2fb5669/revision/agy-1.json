@@ -1,0 +1,22 @@
+{
+  "schema_version": "oracle-clue.review/v1",
+  "repo": "/home/workstation/Dev/jam-renombrar-nodo/.factory/local/revisiones/2fb5669",
+  "base": "c7ed57704315380e809e5a848f0f5d5a03acea76",
+  "head": "2fb56693bed15af5fc91f958a5f3b6b75b47d446",
+  "diff_sha256": "88f7cfad84b875cd34483df131ee010d553735a95330663dc6086bceb751e1c5",
+  "context_sha256": "3dd5e26e991c0808c8180b37b3757fa80957dd76e0eb1090e575f8f06dc1039e",
+  "provider": {
+    "name": "agy",
+    "model": "gemini-3.8-flash-high"
+  },
+  "findings": [],
+  "review_status": "completo",
+  "limitations": [
+    "Se ejecutaron exactamente las pruebas solicitadas en primer plano: 'cd Content/Python && PYTHONPATH=. python3 -m unittest tests.test_renombrar_nodo tests.test_editor_web </dev/null' (13 pruebas exitosas en 1.0s).",
+    "Se verificó la arquitectura de 'Content/Python/tests/editor_en_node.js' y 'Content/Python/tests/puente_nucleo.py', confirmando que la comunicación entre Node.js y el núcleo de Jam corre mediante stdio en un proceso hijo sin abrir sockets TCP locales, permitiendo su ejecución completa en sandboxes restrictivos.",
+    "Se revisó la implementación de 'Content/Python/jam/web/renombrar.js', las funciones y manejadores en 'Content/Python/jam/web/editor.js' (onAdded, desdeJam, renombrar, keydown F2), 'editor.html', la anotación de 'valor' en 'registro.spec_canvas', el arnés de Node.js y el emisor 'tools/emitir_hechos_pruebas.py'.",
+    "Se contrastaron los 2 requisitos de la spec ('F2 renombra el nodo seleccionado' y 'la variable de un valor conserva su nombre al renombrar el nodo') con sus 6 escenarios frente a las pruebas contractuales en 'test_renombrar_nodo.py' y los catálogos y corpus en 'medidas/'.",
+    "Se realizaron 14 pruebas de mutación manuales sobre copias aisladas en el directorio del revisor cubriendo validaciones de identificador, duplicados, nombres previos, variables sin name, evento F2 en inputs/selección múltiple, inicialización y fallback de widgets, bloqueo de renombre por expresiones rotas, y robustez del validador de contratos y emisor de hechos ante omisiones o anomalías; las 14 mutaciones fueron atrapadas.",
+    "No se ejecutaron 'oracle test', la suite completa de Jam ni el editor de Unreal Engine, conforme a las restricciones del pedido."
+  ]
+}

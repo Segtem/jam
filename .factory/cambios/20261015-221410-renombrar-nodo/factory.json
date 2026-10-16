@@ -333,6 +333,34 @@
       "codigo": 0,
       "codigo_oracle": 0,
       "hechos_sha256": "ef8a0b375be6099b617d7fb6ba44bbf54604014e4436a8514e665ddecf77d699"
+    },
+    {
+      "accion": "revision_pedida",
+      "actor": "claude-code",
+      "tipo_actor": "agente",
+      "modo": "confirmacion",
+      "forma": "registro",
+      "cuando": "2026-10-16T00:38:59+00:00",
+      "revisor": "codex",
+      "proveedor": "codex",
+      "modelo": "gpt-6-luna",
+      "candidato": "2fb5669",
+      "resultado": "ok",
+      "hallazgos": 1
+    },
+    {
+      "accion": "revision_pedida",
+      "actor": "claude-code",
+      "tipo_actor": "agente",
+      "modo": "confirmacion",
+      "forma": "registro",
+      "cuando": "2026-10-16T01:04:57+00:00",
+      "revisor": "agy",
+      "proveedor": "agy",
+      "modelo": "gemini-3.8-flash-high",
+      "candidato": "2fb5669",
+      "resultado": "ok",
+      "hallazgos": 0
     }
   ],
   "tipos": {
