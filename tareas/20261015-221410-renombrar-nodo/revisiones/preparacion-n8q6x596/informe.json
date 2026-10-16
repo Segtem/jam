@@ -1,0 +1,100 @@
+{
+  "schema_version": "oracle-factory.revision/v1",
+  "cambio": "20261015-221410-renombrar-nodo",
+  "contexto": {
+    "head": "9c6e1c7e32065dd148ebe98bcc75f5eaf162d35a",
+    "archivos_sha256": "d9ae2181d77276ae977dacdf1a473e8d375ab8e9e7a88014a2e0fcfed33ebeed"
+  },
+  "documentos": {
+    "openspec/changes/20261015-221410-renombrar-nodo/proposal.md": "cc72498ccc448506c7f4094b704cbe0937b25e3d0aff0d3cce57b8453f622056",
+    "openspec/changes/20261015-221410-renombrar-nodo/specs/editor/spec.md": "e2cba3c4239dcc4c97af69a1ca46496050eb0796171fe94eeb77c11213f56884"
+  },
+  "revisor": null,
+  "completa": null,
+  "archivos_revisados": [
+    "Content/Python/jam/registro.py",
+    "Content/Python/jam/web/editor.html",
+    "Content/Python/jam/web/editor.js",
+    "Content/Python/jam/web/renombrar.js",
+    "Content/Python/tests/editor_en_node.js",
+    "Content/Python/tests/test_renombrar_nodo.py",
+    "medidas/catalogos/editor/editor.f2_renombra_el_nodo_seleccionado.oracle",
+    "medidas/catalogos/editor/editor.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo.oracle",
+    "medidas/catalogos/pruebas/pruebas.corrida_completa.oracle",
+    "medidas/contratos/20261015-221410-renombrar-nodo.json",
+    "medidas/corpus/editor/editor-001-un-caso-de-f2-que-falla.caso",
+    "medidas/corpus/editor/editor-002-f2-verde-aunque-falle-otro-requisito.caso",
+    "medidas/corpus/editor/editor-003-un-caso-del-valor-que-falla.caso",
+    "medidas/corpus/editor/editor-004-valor-verde-aunque-falle-otro-requisito.caso",
+    "medidas/corpus/editor/editor-005-f2-observado.caso",
+    "medidas/corpus/editor/editor-006-valor-observado.caso",
+    "medidas/corpus/editor/pruebas-001-corrida-incompleta.caso",
+    "medidas/corpus/editor/pruebas-002-corrida-completa.caso",
+    "medidas/corpus/editor/pruebas-003-corrida-observada.caso",
+    "medidas/relaciones/prueba_caso.relacion",
+    "medidas/relaciones/prueba_corrida.relacion",
+    "medidas/requisitos/editor_c74fa6931d9c5585a.f2_renombra_el_nodo_seleccionado.requisito",
+    "medidas/requisitos/editor_c74fa6931d9c5585a.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo.requisito",
+    "openspec/changes/20261015-221410-renombrar-nodo/design.md",
+    "openspec/changes/20261015-221410-renombrar-nodo/proposal.md",
+    "openspec/changes/20261015-221410-renombrar-nodo/specs/editor/spec.md",
+    "openspec/changes/20261015-221410-renombrar-nodo/tasks.md",
+    "tools/emitir_hechos_pruebas.py"
+  ],
+  "comprobaciones": [
+    {
+      "descripcion": "Revisión de agy (gemini-3.8-flash-high): 0 hallazgos (completo)",
+      "resultado": "cumple",
+      "evidencia": ".factory/cambios/20261015-221410-renombrar-nodo/candidatos/2131253/revision/agy-1.json (validado con oracle-clue)"
+    },
+    {
+      "descripcion": "Revisión de codex (gpt-6-luna): 0 hallazgos (incompleto)",
+      "resultado": "no_ejecutada",
+      "evidencia": ".factory/cambios/20261015-221410-renombrar-nodo/candidatos/2131253/revision/codex-1.json (validado con oracle-clue)"
+    },
+    {
+      "descripcion": "Vuelta anterior en el candidato e836613: agy (gemini-3.8-flash-high), 4 hallazgos: f-01 (alta), f-02 (alta), f-03 (media), f-04 (alta)",
+      "resultado": "cumple",
+      "evidencia": ".factory/cambios/20261015-221410-renombrar-nodo/candidatos/e836613/revision/agy-1.json"
+    },
+    {
+      "descripcion": "Vuelta anterior en el candidato e836613: codex (gpt-6-luna), 3 hallazgos: RN-001 (media), RN-002 (media), RN-003 (baja)",
+      "resultado": "cumple",
+      "evidencia": ".factory/cambios/20261015-221410-renombrar-nodo/candidatos/e836613/revision/codex-1.json"
+    },
+    {
+      "descripcion": "Vuelta anterior en el candidato fe8f90e: agy (gemini-3.8-flash-high), 3 hallazgos: f-01 (alta), f-02 (media), f-03 (baja)",
+      "resultado": "cumple",
+      "evidencia": ".factory/cambios/20261015-221410-renombrar-nodo/candidatos/fe8f90e/revision/agy-1.json"
+    },
+    {
+      "descripcion": "Vuelta anterior en el candidato fe8f90e: codex (gpt-6-luna), 0 hallazgos: sin hallazgos",
+      "resultado": "cumple",
+      "evidencia": ".factory/cambios/20261015-221410-renombrar-nodo/candidatos/fe8f90e/revision/codex-1.json"
+    },
+    {
+      "descripcion": "Vuelta anterior en el candidato 7807345: agy (gemini-3.8-flash-high), 0 hallazgos: sin hallazgos",
+      "resultado": "cumple",
+      "evidencia": ".factory/cambios/20261015-221410-renombrar-nodo/candidatos/7807345/revision/agy-1.json"
+    },
+    {
+      "descripcion": "Vuelta anterior en el candidato 7807345: codex (gpt-6-luna), 2 hallazgos: RN3-001 (media), RN3-002 (media)",
+      "resultado": "cumple",
+      "evidencia": ".factory/cambios/20261015-221410-renombrar-nodo/candidatos/7807345/revision/codex-1.json"
+    }
+  ],
+  "limites": [
+    "agy (gemini-3.8-flash-high): Se ejecutaron exclusivamente las pruebas requeridas en primer plano: 'cd Content/Python && PYTHONPATH=. python3 -m unittest tests.test_renombrar_nodo tests.test_editor_web </dev/null' (13 pruebas exitosas en 1.5s).",
+    "agy (gemini-3.8-flash-high): Se verificó 'tools/emitir_hechos_pruebas.py' ejecutándolo con el cambio '20261015-221410-renombrar-nodo', comprobando la extracción de escenarios desde la spec y la correcta emisión de hechos de corrida completa y resultados de casos.",
+    "agy (gemini-3.8-flash-high): Se realizaron pruebas de mutación manuales sobre copias aisladas en el directorio de trabajo del revisor (omisión de escenarios del contrato, escenarios con listas vacías, contratos planos, omisión de validaciones en renombrar.js y editor.js, disparo de F2 en inputs) para confirmar que las pruebas y el emisor discriminan defectos.",
+    "agy (gemini-3.8-flash-high): No se corrieron 'oracle test', la suite completa de Jam ni el editor de Unreal Engine, respetando las instrucciones del usuario.",
+    "agy (gemini-3.8-flash-high): La verificación del editor web se realizó sobre Node.js con LiteGraph, renombrar.js, editor.js y el servidor del núcleo vía HTTP; no se ejecutó sobre un navegador con entorno gráfico interactivo.",
+    "codex (gpt-6-luna): Revisión estática de la propuesta y la spec; del diff del paquete y el código relevante en Content/Python/jam/web/renombrar.js, editor.js, editor.html y registro.py; del arnés editor_en_node.js y test_renombrar_nodo.py; y del contrato, emisor, relaciones, catálogos y corpus indicados. No se editaron archivos del checkout ni se revisaron los registros excluidos de .factory/tareas.",
+    "codex (gpt-6-luna): Se ejecutó exactamente el comando pedido: cd /home/workstation/Dev/jam-renombrar-nodo/Content/Python && PYTHONPATH=. python3 -m unittest tests.test_renombrar_nodo tests.test_editor_web </dev/null. Resultado: Ran 7 tests, FAILED (errors=6). Los seis errores ocurrieron al abrir sockets TCP locales para los servidores de prueba: PermissionError: [Errno 1] Operation not permitted. No pudo confirmarse en ejecución la integración del arnés; una prueba llegó a pasar. También se intentó en Content/Python del checkout candidato y se obtuvo el mismo resultado.",
+    "codex (gpt-6-luna): Por inspección, el arnés carga el LiteGraph incluido, renombrar.js y editor.js reales, y usa el servidor del núcleo; sustituye LGraphCanvas por un doble que conserva la selección y no dibuja. La medida declara que no comprueba navegador ni dibujo. No se confirmó la interacción en navegador debido al alcance indicado.",
+    "codex (gpt-6-luna): Se contrastaron los seis escenarios de la spec con los casos del contrato y las aserciones: hay un caso para cada escenario; los tests verifican F2, nombres inválidos/repetidos, cable serializado y Compile, valores cargados ausentes/vacíos, nuevos valores, name propio y operaciones usadas/libres. Por inspección, el emisor comprueba cobertura de requisitos y escenarios, rechaza escenarios o requisitos sobrantes, casos vacíos/duplicados y casos no ejecutados exactamente una vez.",
+    "codex (gpt-6-luna): Los hallazgos RN3-001 y RN3-002 de la vuelta anterior aparecen corregidos en el código revisado. No se hicieron mutaciones manuales ni se ejecutó tools/emitir_hechos_pruebas.py, oracle test, la suite completa, navegador ni editor de Unreal, según las restricciones del pedido. No se encontraron defectos adicionales demostrables por inspección estática."
+  ],
+  "hallazgos": [],
+  "sin_hallazgos_motivo": "Los revisores no reportaron hallazgos."
+}
