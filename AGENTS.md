@@ -123,7 +123,7 @@ cierre. Factory es una herramienta aparte, como `tasks`, y se instala sin expone
 (el `oracle` del PATH sigue siendo el de arriba):
 
 ```bash
-uv tool install --python 3.13 oracle-factory==0.1.0a10
+uv tool install --python 3.13 oracle-factory==0.1.0a11
 oracle-factory estado ID     # dónde está un cambio y qué sigue; en una terminal lo ofrece
 oracle-factory --agente <claude-code|codex> nuevo --capacidad colocacion --sufijo corto "Título"
 ```
@@ -139,7 +139,7 @@ oracle-factory --agente <claude-code|codex> nuevo --capacidad colocacion --sufij
   gestiona sólo lo nuevo.
 - **La compuerta no cambia:** `oracle test --proyecto medidas --confiar-escalares`, el
   `.githooks/pre-push` y `relevo.py --cerrar` siguen siendo la verdad. Factory no los reemplaza.
-- **Factory fija Oracle con `==`** (0.1.0a10 → `oracle-metalenguaje==0.38.2`). Subir Oracle en Jam
+- **Factory fija Oracle con `==`** (0.1.0a11 → `oracle-metalenguaje==0.38.2`). Subir Oracle en Jam
   pasa a ser cuatro lugares: los tres de arriba y una versión de Factory que fije la misma.
 - `oracle-factory juzgar` necesita los hechos de los sensores, que salen del editor con las sondas;
   se guardan donde dice `oracle-factory ruta ID evidencia`. La revisión independiente
