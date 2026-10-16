@@ -95,7 +95,10 @@ const ESCENARIOS = {
                            calc: { verb: "math", params: { name: "doble", expr: "ancho * 2" } } }, edges: [] });
     const cargado = en("aJam()");
     await f2(["ancho"], "ancho_total");
-    return { cargado, grafo: en("aJam()"), compilado: await compilar() };
+    const salida = { cargado, grafo: en("aJam()"), compilado: await compilar() };
+    cargarGrafo({ nodes: { alto: { verb: "number", params: { name: "", value: "2" } } }, edges: [] });  // name vacío
+    salida.vacio = en("aJam()");
+    return salida;
   },
   async valores_nuevos() {
     en("grafo.clear()");

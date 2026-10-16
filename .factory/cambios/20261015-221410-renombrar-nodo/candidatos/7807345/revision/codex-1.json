@@ -1,0 +1,58 @@
+{
+  "schema_version": "oracle-clue.review/v1",
+  "repo": "/home/workstation/Dev/jam-renombrar-nodo/.factory/local/revisiones/7807345",
+  "base": "c7ed57704315380e809e5a848f0f5d5a03acea76",
+  "head": "7807345cfc3cfbf671ea681e7bced41bf3696efe",
+  "diff_sha256": "dc372bfb9c03b156300f7bc2da4f1da9d87e39f0425410ddba6fa3930634f2ef",
+  "context_sha256": "3d90c617ff182fb0fe380d03ea1a88ccaa7d5c5f2293c766653e1d9bd151318f",
+  "provider": {
+    "name": "codex",
+    "model": "gpt-6-luna"
+  },
+  "findings": [
+    {
+      "id": "RN3-001",
+      "kind": "discrepancia_con_spec",
+      "severity": "media",
+      "confidence": 0.91,
+      "title": "Un valor cargado con name vacío no recibe el fallback al nombre del nodo",
+      "explanation": "desdeJam sólo sustituye name cuando la clave no existe. Si el grafo trae params.name = \"\", el bucle asigna la cadena vacía al widget. El Compile aplica name or nid, por lo que ese valor se resuelve con el nombre del nodo, pero el editor no queda con name igual al nombre del nodo como promete la spec. El propio renombrador trata el name vacío como ausencia y fija el nombre viejo al renombrar, lo que confirma que el estado vacío representa el caso sin nombre propio.",
+      "location": {
+        "file": "Content/Python/jam/web/editor.js",
+        "start_line": 243,
+        "end_line": 243,
+        "side": "head"
+      },
+      "trigger": "Cargar un grafo donde un nodo de valor tenga params.name explícitamente vacío, por ejemplo {nodes:{ancho:{verb:'number',params:{name:'',value:'3'}}},edges:[]}; serializarlo con aJam() y observar que params.name sigue vacío en vez de 'ancho'.",
+      "evidence": "La condición de la línea 243 comprueba únicamente que 'name' no esté en nd.params. Con la clave presente, las líneas 244-247 asignan String(v), que es ''. La regla de fallback está expresada en la spec y en el Compile como name or nid; test_renombrar_nodo.py prueba la clave ausente, pero no el campo presente con cadena vacía.",
+      "related_requirement": "editor_c74fa6931d9c5585a.la_variable_de_un_valor_conserva_su_nombre_al_renombrar_el_nodo",
+      "status": "pendiente",
+      "verification": "Revisión estática del cargador y la spec. La corrida pedida de unittest no llegó a ejecutar estos casos porque el sandbox rechazó la creación del socket local que usa el servidor del núcleo."
+    },
+    {
+      "id": "RN3-002",
+      "kind": "bug",
+      "severity": "media",
+      "confidence": 0.86,
+      "title": "El emisor da corrida completa si se omite un escenario del contrato y queda otro caso del mismo requisito",
+      "explanation": "La comprobación compara los requisitos del manifest con las claves del contrato y verifica que cada caso que el contrato sí nombra corra una vez. No valida que el contrato conserve todos los casos de escenarios previstos. Si se quita, por ejemplo, test_rn1_un_nombre_invalido_o_repetido del contrato y permanece test_rn1_renombrar_con_f2, el requisito F2 todavía tiene un caso y todos los casos nombrados pueden pasar; completa puede quedar en 1 aunque ya no se mida el escenario de nombre inválido o repetido. Así, la evidencia de corrida completa no detecta esa omisión.",
+      "location": {
+        "file": "tools/emitir_hechos_pruebas.py",
+        "start_line": 80,
+        "end_line": 89,
+        "side": "head"
+      },
+      "trigger": "Quitar del arreglo f2_renombra_el_nodo_seleccionado en medidas/contratos/20261015-221410-renombrar-nodo.json el caso test_rn1_un_nombre_invalido_o_repetido, dejando el otro caso del requisito. Si los casos restantes pasan, contrato() no registra problema: el requisito conserva al menos un caso y correr() sólo cuenta los nombres declarados.",
+      "evidence": "Las líneas 80-83 sólo comparan el conjunto de requisitos; las líneas 84-89 sólo detectan listas vacías y nombres duplicados. Las líneas 100-103 marcan completa según si los casos nombrados corrieron exactamente una vez. No existe una segunda fuente de casos esperados por escenario. La relación prueba_corrida.relacion documenta esta limitación, pero el corpus pruebas-001 describe como incompleta una corrida donde falta un caso y el nombre de la medida puede leerse como cobertura completa.",
+      "related_requirement": "editor_c74fa6931d9c5585a.f2_renombra_el_nodo_seleccionado",
+      "status": "pendiente",
+      "verification": "Inferido del flujo del emisor y el contrato actual; no ejecuté una mutación del contrato porque la corrida de pruebas que ejercita el servidor local quedó bloqueada por el sandbox. La limitación también está declarada en el alcance de medidas/relaciones/prueba_corrida.relacion."
+    }
+  ],
+  "review_status": "incompleto",
+  "limitations": [
+    "Leí la spec, el diff del paquete, editor.js, renombrar.js, el arnés, los tests, el emisor, el contrato, las relaciones, catálogos y corpus; contrasté también los hallazgos de las dos vueltas anteriores. Los defectos de expresión plural y de sincronización del arnés siguen corregidos.",
+    "Corrí exactamente: cd /home/workstation/Dev/jam-renombrar-nodo/Content/Python && PYTHONPATH=. python3 -m unittest tests.test_renombrar_nodo tests.test_editor_web </dev/null. La ejecución falló en setUp al crear sockets TCP locales con PermissionError: [Errno 1] Operation not permitted; por eso el arnés de Node y las pruebas de servidor no llegaron a ejecutarse.",
+    "No corrí oracle test, la suite completa ni el editor de Unreal, según lo pedido. No hice mutaciones ejecutables del código ni del contrato."
+  ]
+}

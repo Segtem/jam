@@ -2,21 +2,23 @@
 
     python tools/emitir_hechos_pruebas.py --cambio ID --salida "$(oracle-factory ruta ID evidencia)"
 
-Los casos salen del contrato del cambio, `medidas/contratos/<ID>.json`:
+Los casos salen del contrato del cambio, `medidas/contratos/<ID>.json`, por requisito y escenario:
 
-    {"<requisito corto>": ["modulo.Clase.test_x", ...], ...}
+    {"<requisito corto>": {"<escenario>": ["modulo.Clase.test_x", ...], ...}, ...}
 
-El requisito corto es lo que sigue al último punto de su id (`f2_renombra_el_nodo_seleccionado`).
+El requisito corto es lo que sigue al último punto de su id (`f2_renombra_el_nodo_seleccionado`) y el
+escenario es su título en la spec del cambio (`renombrar con F2`).
 Los casos se cargan desde `Content/Python/tests`, con `Content/Python` en el camino, como los corre
 `relevo.py`. Escribe:
 
     {"prueba_caso":    [{"requisito", "caso", "codigo"}, ...],   # 0 si pasó; 1 si falló, dio error o se salteó
      "prueba_corrida": [{"cambio", "completa", "casos"}]}
 
-`completa` vale 1 sólo si cada requisito del cambio (los de su registro, `.factory/cambios/<ID>/`)
-tiene al menos un caso en el contrato, el contrato no nombra un requisito que el cambio no tiene ni un
-caso dos veces, y cada caso corrió exactamente una vez. Así un caso o un requisito que falta no pasa
-por verde (hallazgo de codex y agy en la vuelta 1). Tarea 20261015-221410-renombrar-nodo.
+`completa` vale 1 sólo si cada escenario de cada requisito del cambio (los de su registro,
+`.factory/cambios/<ID>/`, con los escenarios de su spec) tiene al menos un caso en el contrato, el
+contrato no nombra un requisito ni un escenario que el cambio no tiene ni un caso dos veces, y cada
+caso corrió exactamente una vez. Así un caso, un escenario o un requisito que falta no pasa por verde
+(hallazgos de codex y agy en las vueltas 1 y 3). Tarea 20261015-221410-renombrar-nodo.
 """
 
 from __future__ import annotations
@@ -24,7 +26,9 @@ from __future__ import annotations
 import argparse
 import io
 import json
+import re
 import sys
+import unicodedata
 import unittest
 from collections import Counter
 from pathlib import Path
@@ -65,6 +69,28 @@ class _Resultado(unittest.TextTestResult):
         self._marcar(test, 1)  # un caso salteado no prueba nada
 
 
+def _slug(texto: str) -> str:
+    """El nombre corto de un requisito a partir de su título, como lo arma Factory al importarlo."""
+    ascii_ = unicodedata.normalize("NFKD", texto).encode("ascii", "ignore").decode()
+    return re.sub(r"[^a-z0-9]+", "_", ascii_.lower()).strip("_")
+
+
+def escenarios_de(spec: Path) -> dict[str, list[str]]:
+    """{requisito corto: [títulos de sus escenarios]} de la spec del cambio (lo que REMOVED retira no cuenta)."""
+    salida, actual, retirados = {}, None, False
+    for linea in spec.read_text(encoding="utf-8").splitlines():
+        delta = re.match(r"^##\s+(ADDED|MODIFIED|REMOVED|RENAMED)\s+Requirements\s*$", linea, re.I)
+        if delta:
+            retirados, actual = delta[1].upper() == "REMOVED", None
+        elif m := re.match(r"^###\s+Requirement:\s*(.+?)\s*$", linea):
+            actual = None if retirados else _slug(m[1])
+            if actual:
+                salida[actual] = []
+        elif (m := re.match(r"^####\s+Scenario:\s*(.+?)\s*$", linea)) and actual:
+            salida[actual].append(m[1])
+    return salida
+
+
 def contrato(cambio: str) -> tuple[list[tuple[str, str]], list[str]]:
     """Los casos del contrato del cambio y lo que impide que la corrida sea completa."""
     problemas = []
@@ -73,18 +99,28 @@ def contrato(cambio: str) -> tuple[list[tuple[str, str]], list[str]]:
     if not ruta.is_file():
         problemas.append(f"no hay contrato en {ruta.relative_to(RAIZ)}")
     registro = RAIZ / ".factory" / "cambios" / cambio / "factory.json"
-    requisitos = ({r.rsplit(".", 1)[-1] for r in json.loads(registro.read_text(encoding="utf-8")).get("requisitos", [])}
-                  if registro.is_file() else set())
+    estado = json.loads(registro.read_text(encoding="utf-8")) if registro.is_file() else {}
     if not registro.is_file():
         problemas.append(f"no encuentro el registro del cambio {cambio}")
+    spec = RAIZ / estado.get("spec", "") if estado.get("spec") else None
+    escenarios = escenarios_de(spec) if spec and spec.is_file() else {}
+    if registro.is_file() and not escenarios:
+        problemas.append("no encuentro los escenarios de la spec del cambio")
+    requisitos = {r.rsplit(".", 1)[-1] for r in estado.get("requisitos", [])}
     for r in sorted(requisitos - set(datos)):
         problemas.append(f"el requisito {r} no tiene casos en el contrato")
     for r in sorted(set(datos) - requisitos):
         problemas.append(f"el contrato nombra {r}, que no es un requisito del cambio")
-    for r, lista in datos.items():
-        if not lista:
-            problemas.append(f"el requisito {r} no tiene casos en el contrato")
-    casos = [(r, c) for r, lista in datos.items() for c in lista]
+    for r in sorted(requisitos & set(datos)):
+        por_escenario = datos[r] if isinstance(datos[r], dict) else {}
+        if not isinstance(datos[r], dict):
+            problemas.append(f"el contrato de {r} no está por escenario")
+        for e in escenarios.get(r, []):
+            if not por_escenario.get(e):
+                problemas.append(f"el escenario «{e}» de {r} no tiene casos en el contrato")
+        for e in sorted(set(por_escenario) - set(escenarios.get(r, []))):
+            problemas.append(f"el contrato nombra el escenario «{e}», que {r} no tiene")
+    casos = [(r, c) for r, por in datos.items() if isinstance(por, dict) for lista in por.values() for c in lista]
     repetidos = sorted(c for c, n in Counter(c for _r, c in casos).items() if n > 1)
     problemas += [f"el caso {c} figura dos veces" for c in repetidos]
     return casos, problemas

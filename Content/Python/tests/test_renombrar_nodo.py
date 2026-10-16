@@ -85,6 +85,7 @@ class RenombrarNodo(unittest.TestCase):
         self.assertEqual(r["cargado"]["nodes"]["ancho"]["params"]["name"], "ancho")
         self.assertEqual(r["grafo"]["nodes"]["ancho_total"]["params"]["name"], "ancho")  # renombrado, la conserva
         self.assertTrue(r["compilado"]["ok"], r["compilado"])  # «ancho * 2» sigue resolviendo la misma variable
+        self.assertEqual(r["vacio"]["nodes"]["alto"]["params"]["name"], "alto")  # un name vacío cuenta como sin name
         # Si el name se vació, renombrar le fija el nombre viejo.
         self.assertEqual(renombrar({"nombre": "ancho", "valor": True, "conName": True, "name": ""}, "otro", ["ancho"])["name"], "ancho")
 

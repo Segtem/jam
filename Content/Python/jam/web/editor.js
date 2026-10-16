@@ -239,8 +239,9 @@ function desdeJam(doc) {
     nodo.properties.nombre = nombre;
     nodo.pos = [Number(nd.x) || 0, Number(nd.y) || 0];
     for (const w of nodo.widgets || []) {
-      // Un valor que llega sin `name` se llama como su nodo (regla del texto y del Compile), no `n`.
-      if (w.name === "name" && t.valor && !("name" in (nd.params || {}))) { w.value = nombre; continue; }
+      // Un valor que llega sin `name`, o con uno vacío, se llama como su nodo (regla del texto y del Compile:
+      // `name or nid`), no `n`.
+      if (w.name === "name" && t.valor && !String((nd.params || {}).name ?? "").trim()) { w.value = nombre; continue; }
       if (!(w.name in (nd.params || {}))) continue;
       const v = nd.params[w.name];
       w.value = w.type === "toggle" ? String(v).toLowerCase() === "true"
