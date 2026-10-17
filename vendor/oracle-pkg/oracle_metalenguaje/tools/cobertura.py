@@ -4,7 +4,7 @@ Lee `requisitos/*.requisito` y el catálogo efectivo. No evalúa nada: dice qué
 declara por qué no se mide y qué nombra una medida que no existe. Esto último es un error (sale con
 1), porque un requisito que apunta a la nada se lee como cubierto y no lo está.
 
-Con `--con <hechos.json>` además juzga esa evidencia —igual que `oracle juzgar`, con sombras y
+Con `--con <hechos.json>` (repetible, uno por sensor) además juzga esa evidencia —igual que `oracle juzgar`, con sombras y
 cotas— y dice de cada requisito si **se cumple** hoy, no sólo si tiene medida: una medida roja o en
 sombra deja el requisito sin cumplir, y una que no tuvo evidencia lo deja sin juicio. Es la pregunta
 «¿el código cumple la spec?», contestada con su `sin_medir` al lado. Sale con 1 si algún requisito
@@ -43,7 +43,7 @@ def juicio(estados: list[str]) -> str:
     return "cumple" if all(e == "cumple" for e in estados) else "sin_juicio"
 
 
-def main(proy, *, confiar: bool = False, con: str | None = None) -> int:
+def main(proy, *, confiar: bool = False, con: str | list[str] | None = None) -> int:
     try:
         requisitos = cargar_requisitos(proy.raiz / "requisitos")
     except RequisitoMalDeclarado as e:
@@ -54,9 +54,10 @@ def main(proy, *, confiar: bool = False, con: str | None = None) -> int:
         return 0
     # Las medidas de un proyecto pueden usar sus escalares: sin registrarlas, el catálogo no carga.
     evidencia = None
-    if con is not None:
-        from tools.juzgar import _leer_evidencia
-        evidencia, error = _leer_evidencia(con)
+    rutas = [con] if isinstance(con, str) else list(con or [])  # una lista vacía es «sin evidencia»
+    if rutas:
+        from tools.juzgar import _leer_evidencias
+        evidencia, error = _leer_evidencias(rutas)
         if error:
             print(f"✗ {error}")
             return 1
@@ -73,7 +74,7 @@ def main(proy, *, confiar: bool = False, con: str | None = None) -> int:
         print(f"✗ no se pudo juzgar la evidencia: {e}")
         return 1
     if evidencia is not None:
-        return _con_juicio(requisitos, catalogo, informe)
+        return _con_juicio(requisitos, catalogo, informe, rutas)
     cuenta = {"total": 0, "parcial": 0, "ninguna": 0}
     inexistentes = 0
     usadas: set[str] = set()
@@ -101,7 +102,7 @@ def main(proy, *, confiar: bool = False, con: str | None = None) -> int:
     return 1 if inexistentes else 0
 
 
-def _con_juicio(requisitos, catalogo, informe) -> int:
+def _con_juicio(requisitos, catalogo, informe, rutas) -> int:
     cuenta = {"cumple": 0, "no_cumple": 0, "sin_juicio": 0, "sin_medir": 0}
     inexistentes = parciales = rojos = 0
     ids_rojos = {v.id for v in informe.rojos}
@@ -128,6 +129,9 @@ def _con_juicio(requisitos, catalogo, informe) -> int:
     print(f"\n{len(requisitos)} requisitos: {cuenta['cumple']} se cumplen ({parciales} sólo en lo medido)"
           f" · {cuenta['no_cumple']} no se cumplen · {cuenta['sin_juicio']} sin juicio"
           f" · {cuenta['sin_medir']} sin medir · {inexistentes} con medidas inexistentes")
-    for mid, motivo in informe.no_juzgaron:
-        print(f"✗ {mid} no juzgó: {motivo}")
+    if informe.no_juzgaron:
+        from tools.juzgar import archivo_del_error
+        donde = archivo_del_error(rutas)
+        for mid, motivo in informe.no_juzgaron:
+            print(f"✗ {mid} no juzgó: {motivo}{donde}")
     return 1 if inexistentes or rojos or informe.no_juzgaron else 0
