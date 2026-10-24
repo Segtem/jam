@@ -11,6 +11,25 @@ No es un producto para terceros: es la herramienta con la que construyo mi juego
 
 **En otra máquina:** ver [`INSTALAR.md`](INSTALAR.md) — `python tools/instalar.py <proyecto>` para Unreal, Godot o Unity.
 
+## Cambios con Oracle Factory
+
+Los cambios nuevos de Jam se llevan con [Oracle Factory](https://github.com/Segtem/oracle-factory):
+propuesta y spec, requisitos, medidas, revisión, juicio de Oracle y cierre. El proyecto Oracle de
+Jam está en `medidas/`; sus verificadores, sensores y requisitos anteriores siguen usando ese catálogo.
+El flujo y las versiones usadas en este proyecto están en [AGENTS.md](AGENTS.md).
+
+El agente trabaja con su nombre (`--agente codex` o `--agente claude-code`). En el modo
+`confirmacion`, Brian confirma las propuestas y decide el cierre desde su terminal.
+El [tablero de VS Code](https://github.com/Segtem/oracle-factory/blob/main/docs/tablero.md) permite
+seguir pendientes, evidencia y responsables, y colaborar con Live Share.
+
+Las guías actuales de Factory explican también el
+[conocimiento del proyecto](https://github.com/Segtem/oracle-factory/blob/main/docs/conocimiento.md)
+(base derivada del registro, notas humanas, consultas con citas y origen de decisiones) y el
+[trabajo de agentes](https://github.com/Segtem/oracle-factory/blob/main/docs/agentes.md).
+Las respuestas elaboradas requieren configurar un modelo por proyecto; el MCP de Factory ofrece
+consultas de sólo lectura. Las capacidades disponibles corresponden a la versión de Factory instalada.
+
 ## El juego: BotOO — *Bounty of the Old Ones*
 
 Un **Hunt: Showdown** lovecrafteano de **época 1920**, con la fidelidad visual de **The Order: 1886**.
